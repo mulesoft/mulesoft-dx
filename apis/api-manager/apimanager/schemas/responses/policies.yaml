@@ -1,0 +1,79 @@
+type: array
+items:
+  type: object
+  properties:
+    audit:
+      type: object
+      properties:
+        created:
+          type: object
+          properties:
+            date:
+              type: string
+        updated:
+          type: object
+          properties: {}
+    masterOrganizationId:
+      type: string
+    organizationId:
+      type: string
+    id:
+      type: number
+    policyTemplateId:
+      type: string
+    configurationData:
+      type: object
+      properties:
+        rateLimits:
+          type: array
+          items:
+            type: object
+            properties:
+              maximumRequests:
+                type: number
+              timePeriodInMilliseconds:
+                type: number
+        exposeHeaders:
+          type: boolean
+        clusterizable:
+          type: boolean
+    order:
+      type: number
+    disabled:
+      type: boolean
+    pointcutData:
+      type: array
+      items:
+        type: object
+        properties:
+          methodRegex:
+            type: string
+          uriTemplateRegex:
+            type: string
+    groupId:
+      type: string
+    assetId:
+      type: string
+    assetVersion:
+      type: string
+    implementationAsset:
+      type: object
+      properties:
+        assetId:
+          type: string
+        groupId:
+          type: string
+        version:
+          type: string
+        technology:
+          type: string
+        minRuntimeVersion:
+          type: string
+        supportedJavaVersions:
+          type: array
+          items:
+            type: string
+    type:
+      type: string
+    apiId:
+      type: number

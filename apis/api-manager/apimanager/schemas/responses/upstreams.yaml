@@ -1,0 +1,14 @@
+type: object
+properties:
+  total:
+    type: number
+  upstreams:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: string
+        label: {}
+        uri:
+          type: string

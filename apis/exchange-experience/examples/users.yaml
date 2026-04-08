@@ -1,0 +1,27 @@
+Profile:
+  value:
+    username: Bob
+
+Users:
+  value:
+    - id: 4b8c4ccd-c8fd-49ff-aa97-cf434d9d4e97
+      username: char
+      firstName: Charlie
+      lastName: Brown
+      profilePhoto: http://my-photos.com/char.jpg
+      email: char@wash.com
+
+AssetUsers:
+  value:
+    - id: 4b8c4ccd-c8fd-49ff-aa97-cf434d9d4e97
+      username: fredy
+      firstName: Fred
+      lastName: Sanchez
+      profilePhoto: http://my-photos.com/fredy.jpg
+      email: fredy@wash.com
+      role: admin
+
+AssetUsersAssignments:
+  value:
+    - userId: 4b8c4ccd-c8fd-49ff-aa97-cf434d9d4e97
+      role: admin

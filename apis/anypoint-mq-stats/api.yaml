@@ -1,0 +1,757 @@
+openapi: 3.0.0
+info:
+  title: Anypoint MQ Statistics API
+  version: 1.0.0
+  description: Retrieve usage statistics for Anypoint MQ queues, exchanges, and environments.
+servers:
+- url: https://anypoint.mulesoft.com/mq/stats/api/{version}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://eu1.anypoint.mulesoft.com/mq/stats/api/{version}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://{region}.platform.mulesoft.com/mq/stats/api/{version}
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+paths:
+  /organizations: {}
+  /organizations/{organizationId}:
+    summary: Usage Metrics by organization.
+    description: Collection of available organizations in the broker.
+    get:
+      description: 'MQ Usage Metrics by date for an organization,
+
+        across all environments. <br>
+
+        You can use this API to see number of api requests made,
+
+        number of messages received, number of billable units that depends on
+
+        the number of messages delivered to subscribers of a queue, and
+
+        message byte count sent & received by an organization. <br>
+
+        If you are using connected app, "Read MQ Stats" scope is needed. <br>
+
+        For query timeframes and retention refer to [MQ Stats documentation](https://docs.mulesoft.com/mq/mq-apis#usage-limits). <br>
+
+        Note: This API has a limit of 10 requests per minute.
+
+        '
+      x-optionalSecurity: true
+      parameters:
+      - name: startDate
+        description: 'Start date of the desired time window. MQ usage data is retained for up to 2 years depending on the granularity of the data requested.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: endDate
+        description: 'End date of the desired time window.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: period
+        description: 'The granularity of data points. It can take values : 1hour, 1day, 1month.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                title: Usage Metric List Response Schema
+                example: &id001
+                - timestamp: 2018-11-08T00:00Z
+                  apiRequestCount: 0
+                  messageReceiptCount: 0
+                  billableUnitCount: 0
+                  messageByteCount: 0
+                type: array
+                items:
+                  title: The Items Schema
+                  type: object
+                  required:
+                  - timestamp
+                  - apiRequestCount
+                  - messageReceiptCount
+                  - billableUnitCount
+                  - messageByteCount
+                  properties:
+                    timestamp:
+                      title: The Timestamp Schema
+                      default: ''
+                      type: string
+                      pattern: ^(.*)$
+                    apiRequestCount:
+                      title: The Apirequestcount Schema
+                      default: 0
+                      type: integer
+                    messageReceiptCount:
+                      title: The Messagereceiptcount Schema
+                      default: 0
+                      type: integer
+                    billableUnitCount:
+                      title: The Billableunitcount Schema
+                      default: 0
+                      type: integer
+                    messageByteCount:
+                      title: The Messagebytecount Schema
+                      default: 0
+                      type: integer
+              example: *id001
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '400':
+          description: 'If invalid query parameters or exceeds the limits documented above.
+
+            '
+        '429':
+          description: 'Too many requests. The limit for this API is 10 RPM.
+
+            '
+        '500':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getOrganizationsByOrganizationid
+  /organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}:
+    summary: Usage Metrics by environment.
+    description: Collection of available environments in the broker.
+    get:
+      description: 'MQ usage metrics by date for an organization, for a particular envrionment. <br>
+
+        You can use this API to see number of api requests made,
+
+        number of messages received, number of billable units that depends on
+
+        the number of messages delivered to subscribers of a queue, and
+
+        message byte count sent & received by an organization, filtered by an environment. <br>
+
+        If you are using connected app, "Read MQ Stats" scope is needed. <br>
+
+        For query timeframes and retention refer to [MQ Stats documentation](https://docs.mulesoft.com/mq/mq-apis#usage-limits). <br>
+
+        Note: This API has a limit of 10 requests per minute.
+
+        '
+      parameters:
+      - name: startDate
+        description: 'Start date of the desired time window. MQ usage data is retained for up to 2 years depending on the granularity of the data requested.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: endDate
+        description: 'End date of the desired time window.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: period
+        description: 'The granularity of data points. It can take values : 1hour, 1day, 1month.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                title: Usage Metric List Response Schema
+                example: &id002
+                - timestamp: 2018-11-08T00:00Z
+                  apiRequestCount: 0
+                  messageReceiptCount: 0
+                  billableUnitCount: 0
+                  messageByteCount: 0
+                type: array
+                items:
+                  title: The Items Schema
+                  type: object
+                  required:
+                  - timestamp
+                  - apiRequestCount
+                  - messageReceiptCount
+                  - billableUnitCount
+                  - messageByteCount
+                  properties:
+                    timestamp:
+                      title: The Timestamp Schema
+                      default: ''
+                      type: string
+                      pattern: ^(.*)$
+                    apiRequestCount:
+                      title: The Apirequestcount Schema
+                      default: 0
+                      type: integer
+                    messageReceiptCount:
+                      title: The Messagereceiptcount Schema
+                      default: 0
+                      type: integer
+                    billableUnitCount:
+                      title: The Billableunitcount Schema
+                      default: 0
+                      type: integer
+                    messageByteCount:
+                      title: The Messagebytecount Schema
+                      default: 0
+                      type: integer
+              example: *id002
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '400':
+          description: 'If invalid query parameters or exceeds the limits documented above.
+
+            '
+        '429':
+          description: 'Too many requests. The limit for this API is 10 RPM.
+
+            '
+        '500':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentid
+  /organizations/{organizationId}/environments/{environmentId}/regions:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The region ID to identify the target resource.
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/queues:
+    description: Collection of available queues in the broker.
+    get:
+      description: 'Realtime Stats for queues. <br>
+
+        Use this API to get current up-to-the-minute information about the number of visible and
+
+        in-flight messages in a queue. <br>
+
+        If you are using connected app, "View Destinations" or "Administer destinations" scope is needed. <br>
+
+        Note: This API has a limit of 100 requests per minute.
+
+        '
+      parameters:
+      - name: destinationIds
+        description: Comma-separated list of destination IDs.
+        required: true
+        in: query
+        schema:
+          type: string
+          default: myDestination
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: regionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The region ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueStatListResponse'
+              example: &id005
+              - destination: myDestinationId
+                messages: 100
+                inflightMessages: 10
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '429':
+          description: 'Too many requests. The limit for this API is 100 RPM.
+
+            '
+        '500':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidQueues
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/queues/{queueId}:
+    description: Entity representing a queue
+    get:
+      description: 'Historic stats for a queue. <br>
+
+        Use this API to get historic stats for a queue, up to 15 months old. <br>
+
+        This stats is not real time and expect up to 10 minutes latency before data is published. <br>
+
+        To keep the volume of data under control, historic data is retained at reduced levels of granularity. <br>
+
+        Second level data points are retained for 3 hours, one minute data points are available for past 15 days, five minute data points up to 63 days and one hour data points for up to 15 months. <br>
+
+        If you are using connected app, "View Destinations" or "Administer destinations" scope is needed. <br>
+
+        Note: This API has a limit of 100 requests per minute.
+
+        '
+      parameters:
+      - name: startDate
+        description: 'Start date of the desired time window. Note that the earliest start date one can specify is 3 months before the current time for 1hour granularity, 12 months for 1day granularity, 24 months for 1month granularity.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: endDate
+        description: 'End date of the desired time window.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: period
+        description: "The time granularity of metrics, expressed in seconds. \n"
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 86400
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: regionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The region ID to identify the target resource.
+      - name: queueId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+        x-origin:
+        - api: urn:api:anypoint-mq-stats
+          operation: GET /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/queues
+          description: GET `/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/queues` in this API; use `id` values as `queueId`.
+          values: $.id
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueStatResponse'
+              example: &id006
+                value:
+                  destination: myDestination
+                  messages:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 2126
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 2126
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 587
+                  inflightMessages:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 0
+                  messagesVisible:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 2126
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 2126
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 587
+                  messagesSent:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 0
+                  messagesReceived:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 0
+                  messagesAcked:
+                  - date: 2017-07-26T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-27T00:00:00.000+0000
+                    value: 0
+                  - date: 2017-07-28T00:00:00.000+0000
+                    value: 0
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  message: queue not found
+              example: *id003
+        '429':
+          description: 'Too many requests. The limit for this API is 100 RPM.
+
+            '
+        '500':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidQueuesByQueueid
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/exchanges:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The region ID to identify the target resource.
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/exchanges/{exchangeId}:
+    description: Entity representing a exchange
+    get:
+      description: 'Historic Stats for Exchange. <br>
+
+        Use this API to get historic stats for an exchange, up to 15 months old. <br>
+
+        This stats is not real time and expect up to 10 minutes latency before data is published. <br>
+
+        To keep the volume of data under control, historic data is retained at reduced levels of granularity. <br>
+
+        Second level data points are retained for 3 hours, one minute data points are available for past 15 days, five minute data points up to 63 days and one hour data points for up to 15 months. <br>
+
+        If you are using connected app, "View Destinations" or "Administer destinations" scope is needed. <br>
+
+        Note: This API has a limit of 100 requests per minute.
+
+        '
+      parameters:
+      - name: startDate
+        description: 'Start date of the desired time window. Note that the earliest start date one can specify is 3 months before the current time for 1hour granularity, 12 months for 1day granularity, 24 months for 1month granularity.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: endDate
+        description: 'End date of the desired time window.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          format: rfc2616
+      - name: period
+        description: "The time granularity of metrics, expressed in seconds. \n"
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 86400
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: regionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The region ID to identify the target resource.
+      - name: exchangeId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exchangeStatResponse'
+              example: &id007
+                destination: myDestinationId
+                messagesPublished: 100
+                messagesDelivered: 10
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  message: exchange not found
+              example: *id004
+        '429':
+          description: 'Too many requests. The limit for this API is 100 RPM.
+
+            '
+        '500':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidExchangesByExchangeid
+components:
+  securitySchemes:
+    oauth_2_0:
+      type: oauth2
+      description: This API supports OAuth 2.0 for authenticating all API requests.
+      x-amf-describedBy:
+        headers:
+          Authorization:
+            description: Used to send a valid OAuth 2 access token. Do not use with the "access_token" query string parameter.
+            type: string
+        responses:
+          '401':
+            description: Bad or expired token. This can happen if the user or the API revoked or expired an access token. To fix, you should re-authenticate the user.
+          '403':
+            description: Bad OAuth request (wrong consumer key, bad nonce, expired timestamp...). Unfortunately, re-authenticating the user won't help here.
+      x-amf-settings:
+        authorizationGrants:
+        - client_credentials
+      flows:
+        clientCredentials:
+          tokenUrl: http://localhost:8083/api/v1/authorize
+          scopes:
+            '*': ''
+  schemas:
+    queueStatListResponse:
+      example: *id005
+      type: array
+      items:
+        type: object
+        properties:
+          destination:
+            type: string
+          inflightMessages:
+            type: number
+          messages:
+            type: number
+    queueStatResponse:
+      example: *id006
+      type: object
+      properties:
+        destination:
+          type: string
+        inflightMessages:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+        messagesVisible:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+        messagesSent:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+        messagesReceived:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+        messagesAcked:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+    exchangeStatResponse:
+      example: *id007
+      type: object
+      properties:
+        '0':
+          type: object
+          properties:
+            destination:
+              type: string
+            messagesDelivered:
+              type: number
+            messagesPublished:
+              type: number
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.

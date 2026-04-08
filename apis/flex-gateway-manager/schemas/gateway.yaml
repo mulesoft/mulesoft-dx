@@ -1,0 +1,629 @@
+components:
+  schemas:
+    # Base schemas
+    GatewayKind:
+      type: string
+      example: managed
+      enum:
+        - managed
+        - selfManaged
+
+    SelfManagedGatewayReplicaDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123
+        targetId:
+          type: string
+          format: uuid
+          example: 18e39316-97ad-40ab-a460-602b14ec81d8
+        cid:
+          type: string
+        name:
+          type: string
+          example: 43a5b95706e6.default
+        nodeId:
+          type: string
+          format: uuid
+          example: e6a9018a-e8b0-4ad1-a0b4-36ebcd040b28
+        provider:
+          type: string
+          example: RR
+        status:
+          type: string
+          example: CONNECTED
+        connectedAt:
+          type: string
+          example: 2021-01-01T00:00:00Z
+        disconnectedAt:
+          type: string
+          nullable: true
+          example: 2021-01-01T00:00:00Z
+        certificateExpirationDate:
+          type: string
+          example: 2021-01-01T00:00:00Z
+        gatewayVersion:
+          type: string
+          example: 1.0.0
+        configurationStatus:
+          type: object
+          properties:
+            status:
+              type: string
+              example: UP_TO_DATE
+            message:
+              type: string
+              nullable: true
+    SelfManagedGatewayReplicaSet:
+      type: array
+      items:
+        type: object
+        properties:
+          status:
+            type: string
+            example: RUNNING
+          count:
+            type: integer
+          certificateExpirationDates:
+            type: array
+            items:
+              type: string
+        required:
+          - status
+          - count
+          - certificateExpirationDates
+
+    ManagedGatewaySize:
+      type: string
+      example: small
+
+    ManagedGatewayReleaseChannel:
+      type: string
+      example: lts
+      enum:
+        - lts
+        - edge
+        - dev
+
+    ManagedGatewayConfiguration:
+      required:
+        - properties
+      type: object
+      properties:
+        ingress:
+          type: object
+          required:
+            - publicUrl
+          properties:
+            publicUrl:
+              type: string
+              description: String with all URLs separated by commas
+              example: http://some-url.me/,http://other-url.com/
+            forwardSslSession:
+              type: boolean
+              example: true
+            lastMileSecurity:
+              type: boolean
+              example: true
+        logging:
+          type: object
+          properties:
+            level:
+              type: string
+              example: info
+              enum:
+                - debug
+                - info
+                - warn
+                - error
+                - fatal
+            forwardLogs:
+              type: boolean
+              example: true
+        properties:
+          required:
+            - connectionIdleTimeout
+            - upstreamResponseTimeout
+          type: object
+          properties:
+            upstreamResponseTimeout:
+              type: integer
+              minimum: 0
+              example: 1
+            connectionIdleTimeout:
+              type: integer
+              minimum: 0
+              example: 1
+        tracing:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              example: true
+            sampling:
+              type: number
+              minimum: 0
+              maximum: 100
+              example: 2
+            labels:
+              type: array
+              items:
+                type: object
+                required:
+                  - type
+                  - name
+                  - defaultValue
+                properties:
+                  type:
+                    type: string
+                    example: environment
+                    enum:
+                      - environment
+                      - requestHeader
+                      - literal
+                  name:
+                    type: string
+                    minLength: 1
+                  keyName:
+                    type: string
+                    minLength: 1
+                  defaultValue:
+                    type: string
+                    minLength: 1
+
+    # CRUD API schemas
+    ManagedGatewayOverview:
+      description: Overview of a Managed Gateway entry
+      type: object
+      properties:
+        id:
+          type: string
+          example: d564a300-7007-4f74-9013-faa8fce5970f
+        name:
+          type: string
+          example: gateway
+        status:
+          type: string
+          example: RUNNING
+        lastUpdated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        dateCreated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        targetId:
+          type: string
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+      required:
+        - id
+        - name
+        - status
+        - lastUpdated
+        - dateCreated
+        - targetId
+
+    ManagedGatewayDetail:
+      description: Managed gateway entry
+      type: object
+      properties:
+        id:
+          type: string
+          example: d564a300-7007-4f74-9013-faa8fce5970f
+        name:
+          type: string
+          example: gateway
+        status:
+          type: string
+          example: APPLYING
+        lastUpdated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        dateCreated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        targetId:
+          type: string
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+        targetName:
+          type: string
+          example: Private Space US East 1
+        desiredStatus:
+          type: string
+          example: STARTED
+        releaseChannel:
+          type: string
+          example: lts
+          enum:
+            - edge
+            - lts
+            - dev
+        runtimeVersion:
+          type: string
+          example: 1.9.3
+        size:
+          type: string
+          example: small
+        apiLimit:
+          type: number
+          example: 50
+        configuration:
+          $ref: '#/components/schemas/ManagedGatewayConfiguration'
+      required:
+        - id
+        - name
+        - status
+        - lastUpdated
+        - dateCreated
+        - targetId
+        - desiredStatus
+        - runtimeVersion
+        - releaseChannel
+        - size
+        - configuration
+
+    # Experience API schemas
+    EnrichedGatewayOverview:
+      description: Gateway overview (managed or self managed) enriched for experience consumers
+      type: object
+      properties:
+        id:
+          type: string
+          example: d564a300-7007-4f74-9013-faa8fce5970f
+        name:
+          type: string
+          example: gateway
+        status:
+          type: string
+          example: RUNNING
+        ready:
+          type: boolean
+          example: true
+        running:
+          type: boolean
+          example: true
+        lastUpdated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        dateCreated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        minRuntimeVersion:
+          type: string
+          example: 1.7.1
+        kind:
+          $ref: '#/components/schemas/GatewayKind'
+        targetName:
+          type: string
+          example: Private Space US East 1
+        replicas:
+          description: <SelfManaged> Replica set for a Self Managed Gateway
+          $ref: '#/components/schemas/SelfManagedGatewayReplicaSet'
+        targetId:
+          description: <Managed> Target id where the Managed Gateway is deployed
+          type: string
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+        size:
+          description: <Managed> Size of the Managed Gateway
+          $ref: '#/components/schemas/ManagedGatewaySize'
+        runtimeVersion:
+          description: <Managed> Runtime version of a Managed Gateway
+          type: string
+          example: 1.6.1
+        apiLimits:
+          description: <Managed> Maximum amount of APIs that can be deployed to a gateway.
+          type: number
+          example: 50
+        configuration:
+          description: <Managed> Configuration of a Managed gateway
+          $ref: '#/components/schemas/ManagedGatewayConfiguration'
+      required:
+        - id
+        - name
+        - status
+        - lastUpdated
+        - kind
+        - targetName
+
+    EnrichedGatewayDetail:
+      description: Gateway detail (managed or self managed) enriched for experience consumers
+      type: object
+      properties:
+        id:
+          type: string
+          example: d564a300-7007-4f74-9013-faa8fce5970f
+        name:
+          type: string
+          example: gateway
+        status:
+          type: string
+          example: RUNNING
+        ready:
+          type: boolean
+          example: true
+        running:
+          type: boolean
+          example: true
+        lastUpdated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        dateCreated:
+          type: string
+          example: '2024-04-11T13:18:14.060Z'
+        minRuntimeVersion:
+          type: string
+          example: 1.7.1
+        kind:
+          $ref: '#/components/schemas/GatewayKind'
+        targetName:
+          type: string
+          example: Private Space US East 1
+        deployment:
+          description: A partial representation of a deployment in the current gateway.
+          type: object
+          properties:
+            target:
+              type: object
+              properties:
+                id:
+                  type: string
+                provider:
+                  type: string
+              required:
+                - id
+                - provider
+            spec:
+              type: object
+          required:
+            - target
+          example:
+            strict: true
+            value:
+              target:
+                provider: RR
+                id: 18e39316-97ad-40ab-a460-602b14ec81d8
+              spec:
+                target:
+                  environment:
+                    target:
+                      provider: RR
+                      id: 18e39316-97ad-40ab-a460-602b14ec81d8
+                  annotations:
+                    'gateway-manager.mulesoft.com/kind': managed
+        replicas:
+          description: <SelfManaged> Replica set for a Self Managed Gateway
+          $ref: '#/components/schemas/SelfManagedGatewayReplicaSet'
+        versions:
+          description: <SelfManaged> Version set for a Self Managed Gateway
+          type: array
+          items:
+            type: string
+            example: '1.7.1'
+        targetId:
+          description: <Managed> Target id where the Managed Gateway is deployed
+          type: string
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+        size:
+          description: <Managed> Size of the Managed Gateway
+          $ref: '#/components/schemas/ManagedGatewaySize'
+        releaseChannel:
+          description: <Managed> Release channel of a Managed Gateway
+          $ref: '#/components/schemas/ManagedGatewayReleaseChannel'
+        runtimeVersion:
+          description: <Managed> Runtime version of a Managed Gateway
+          type: string
+          example: 1.6.1
+        apiLimits:
+          description: <Managed> Maximum amount of APIs that can be deployed to a gateway.
+          type: number
+          example: 50
+        configuration:
+          description: <Managed> Configuration of a Managed gateway
+          required:
+            - properties
+          type: object
+          properties:
+            ingress:
+              type: object
+              properties:
+                publicUrl:
+                  type: string
+                  description: String with all URLs separated by commas
+                  example: http://some-url.me/,http://other-url.com/
+                forwardSslSession:
+                  type: boolean
+                  example: true
+                lastMileSecurity:
+                  type: boolean
+                  example: true
+            logging:
+              type: object
+              properties:
+                level:
+                  type: string
+                  example: info
+                forwardLogs:
+                  type: boolean
+                  example: true
+            properties:
+              required:
+                - connectionIdleTimeout
+                - upstreamResponseTimeout
+              type: object
+              properties:
+                upstreamResponseTimeout:
+                  type: integer
+                  example: 1
+                connectionIdleTimeout:
+                  type: integer
+                  example: 1
+            tracing:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                  example: true
+                sampling:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  example: 2
+                labels:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - name
+                      - defaultValue
+                    properties:
+                      type:
+                        type: string
+                        example: environment
+                        enum:
+                          - environment
+                          - requestHeader
+                          - literal
+                      name:
+                        type: string
+                        minLength: 1
+                      keyName:
+                        type: string
+                        minLength: 1
+                      defaultValue:
+                        type: string
+                        minLength: 1
+
+      required:
+        - id
+        - name
+        - status
+        - lastUpdated
+        - kind
+        - targetName
+        - deployment
+
+    GatewayUsage:
+      type: object
+      required:
+        - apis
+        - currentMonthApiCallsCount
+      properties:
+        apis:
+          type: object
+          properties:
+            current:
+              type: number
+              example: 2
+            limit:
+              type: number
+              example: 500
+          required:
+            - current
+            - limit
+        currentMonthApiCallsCount:
+          type: number
+          example: 145
+        currentMonthDataConsumed:
+          type: number
+          example: 0.5
+    RuntimeConfiguration:
+      type: object
+      example:
+        logging:
+          anypoint:
+            forwardLogs: true
+          runtimeLogs:
+            logLevel: info
+        tracing:
+          enabled: true
+          provider:
+            type: anypoint
+          sampling:
+            overall: 25
+        timeouts:
+          upstreamConnectionIdleSeconds: 60
+          upstreamResponseSeconds: 15
+          streamIdleSeconds: 302
+        proxyProtocol:
+          enabled: true
+      properties:
+        logging:
+          type: object
+          description: Logging configuration
+        tracing:
+          type: object
+          description: Tracing configuration
+        timeouts:
+          type: object
+          description: Timeout configuration
+        proxyProtocol:
+          type: object
+          description: Proxy protocol configuration
+        circuitBreaker:
+          type: object
+          description: Circuit breaker configuration
+        probe:
+          type: object
+          description: Probe configuration
+        tls:
+          type: object
+          description: TLS configuration
+          properties:
+            defaultPoliciesOutboundTls:
+              type: object
+              description: TLS configuration for outbound connections
+              required:
+                - secretGroupId
+                - truststoreId
+                # version removed - will be fetched from secrets-manager
+              properties:
+                skipValidation:
+                  type: boolean
+                  description: Whether to skip TLS certificate validation
+                  example: false
+                  default: false
+                secretGroupId:
+                  type: string
+                  format: uuid
+                  description: The ID of the secret group containing the truststore
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                truststoreId:
+                  type: string
+                  format: uuid
+                  description: The ID of the truststore secret (PEM type only)
+                  example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                # version field removed - service will fetch modifiedAt from secrets-manager
+      additionalProperties: true
+    RuntimeConfigurationDetail:
+      description: Configuration entry
+      type: object
+      properties:
+        id:
+          type: string
+          example: d564a300-7007-4f74-9013-faa8fce5970f
+        name:
+          type: string
+          example: gateway
+        targetId:
+          type: string
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+        status:
+          type: string
+          example: RUNNING
+        createdAt:
+          type: string
+          example: 2024-04-11T13:18:14.060Z
+        updatedAt:
+          type: string
+          example: 2024-04-11T13:18:14.060Z
+        desiredStatus:
+          type: string
+          example: DEPLOYED
+        gatewayVersion:
+          type: string
+          example: 1.10.0
+        configuration:
+          $ref: '#/components/schemas/RuntimeConfiguration'
+      required:
+        - configuration

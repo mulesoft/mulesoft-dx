@@ -1,0 +1,55 @@
+{
+  "value": {
+    "total": 2,
+    "tiers": [
+      {
+        "audit": {
+          "created": {
+            "date": "2017-07-19T20:46:22.196Z"
+          },
+          "updated": {}
+        },
+        "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "id": 47,
+        "name": "consectetur 47",
+        "description": "ea nisi est eius libero\nnon consequatur vel repudiandae ipsa rerum\ndolores vel eos tenetur animi",
+        "limits": [
+          {
+            "maximumRequests": 1000000,
+            "timePeriodInMilliseconds": 1000,
+            "visible": false
+          }
+        ],
+        "status": "ACTIVE",
+        "autoApprove": false,
+        "applicationCount": 0,
+        "apiId": 25
+      },
+      {
+        "audit": {
+          "created": {
+            "date": "2017-07-19T20:46:22.197Z"
+          },
+          "updated": {}
+        },
+        "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "id": 48,
+        "name": "magni 48",
+        "description": "incidunt sit eius vel quo qui qui ex et\nrerum possimus laudantium fugit minima aut perferendis\nmaiores dolore tempore non",
+        "limits": [
+          {
+            "maximumRequests": 1000000,
+            "timePeriodInMilliseconds": 1000,
+            "visible": true
+          }
+        ],
+        "status": "DEPRECATED",
+        "autoApprove": true,
+        "applicationCount": 1,
+        "apiId": 25
+      }
+    ]
+  }
+}

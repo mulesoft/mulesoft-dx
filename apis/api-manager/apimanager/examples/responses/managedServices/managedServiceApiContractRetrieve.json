@@ -1,0 +1,83 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2020-11-02T18:29:11.233Z"
+      },
+      "updated": {}
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "4b1240fd-e1df-44a8-9949-6778c3d3dd91",
+    "id": 135,
+    "status": "APPROVED",
+    "approvedDate": "2020-11-02T18:29:11.285Z",
+    "rejectedDate": null,
+    "revokedDate": null,
+    "applicationId": 8,
+    "application": {
+      "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+      "id": 8,
+      "name": "Client APP 1603822451",
+      "description": "This is the description",
+      "clientProvider": {
+        "providerId": null
+      },
+      "coreServicesId": "eea7e89a970f46818827c425918e6979",
+      "url": "http://www.salesforce-app.com",
+      "grantTypes": [],
+      "redirectUri": [],
+      "clientId": "eea7e89a970f46818827c425918e6979",
+      "owner": "Organization Owner",
+      "email": "api.platform.qa+o_o@gmail.com",
+      "owners": [
+        {
+          "id": "57e281b5-ec5b-4701-80a0-92a936a68da3",
+          "firstName": "Organization",
+          "lastName": "Owner",
+          "email": "api.platform.qa+o_o@gmail.com",
+          "username": "organization_owner"
+        }
+      ]
+    },
+    "tierId": 307,
+    "tier": {
+      "audit": {
+        "created": {
+          "date": "2020-10-26T15:36:20.600Z"
+        },
+        "updated": {
+          "date": "2020-10-27T15:38:02.573Z"
+        }
+      },
+      "id": 307,
+      "name": "tier-1603813082",
+      "description": "tier description",
+      "limits": [
+        {
+          "visible": true,
+          "maximumRequests": 40,
+          "timePeriodInMilliseconds": 1
+        }
+      ],
+      "status": "ACTIVE",
+      "autoApprove": true
+    },
+    "requestedTierId": null,
+    "requestedTier": null,
+    "terms": null,
+    "groupInstanceId": null,
+    "groupInstance": null,
+    "partyId": "",
+    "partyName": "",
+    "condition": "APPLIED",
+    "managedServiceApi": {
+      "audit": {
+        "created": {},
+        "updated": {}
+      },
+      "organizationId": "4b1240fd-e1df-44a8-9949-6778c3d3dd91",
+      "id": 193
+    },
+    "managedServiceApiId": 193
+  }
+}

@@ -1,0 +1,55 @@
+Tiers:
+  value:
+    - id: 100
+      name: Free
+      description: null
+      limits:
+        - timePeriodInMilliseconds: 10000
+          maximumRequests: 10
+      status: ACTIVE
+    - id: 101
+      name: Cheap
+      description: null
+      limits:
+        - timePeriodInMilliseconds: 1000
+          maximumRequests: 10
+      status: ACTIVE
+
+CompleteTiers:
+  value:
+  - audit:
+      created:
+        date: 2017-08-04T15:11:13.070Z
+      updated: {}
+    masterOrganizationId: 40fbc081-bb0d-4aff-9fb7-f3a48fdeb958
+    organizationId: 643c5d65-93ab-404d-9c13-efab34cf2a60
+    id: 23
+    apiGroupVersionId: 34
+    name: Free
+    description: This is some description text
+    limitsByApi:
+      -
+        apiId: 2
+        organizationId: 643c5d65-93ab-404d-9c13-efab34cf2a60
+        groupId: ba3dd49c-9bd3-43a3-bb54-226715e9c57a
+        assetId: facebook-api
+        assetVersion: 1.0.0
+        limits:
+          -
+            visible: true
+            maximumRequests: 2
+            timePeriodInMilliseconds: 1000
+      -
+        apiId: 3
+        organizationId: ba3dd49c-9bd3-43a3-bb54-226715e9c57a
+        groupId: ba3dd49c-9bd3-43a3-bb54-226715e9c57a
+        assetId: instagram-api
+        assetVersion: 1.0.1
+        limits:
+          -
+            visible: true
+            maximumRequests: 2
+            timePeriodInMilliseconds: 1000
+    status: ACTIVE
+    autoApprove: false
+    applicationCount: 0

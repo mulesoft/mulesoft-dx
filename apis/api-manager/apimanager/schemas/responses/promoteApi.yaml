@@ -1,0 +1,40 @@
+type: object
+properties:
+  environmentId:
+    type: string
+  autodiscoveryInstanceName:
+    type: string
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  apiId:
+    type: number
+  assetVersion: {}
+  productVersion: {}
+  providerId:
+    type: string
+  instanceLabel:
+    type: string
+  description:
+    type: string
+  tags:
+    type: array
+    items:
+      type: string
+  order:
+    type: number
+  endpointUri: {}
+  lastActiveDelta:
+    type: number
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}

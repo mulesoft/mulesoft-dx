@@ -1,0 +1,30 @@
+{
+  "value": {
+    "apiAlertsVersion": "1.0.0",
+    "condition": {
+      "aggregate": "COUNT",
+      "operator": "GREATER_THAN",
+      "value": 90,
+      "resourceType": "api"
+    },
+    "enabled": true,
+    "name": "some alert name",
+    "period": {
+      "repeat": 5,
+      "duration": {
+        "count": 5,
+        "weight": "DAYS"
+      }
+    },
+    "recipients": [
+      {
+        "type": "user",
+        "value": "57e281b5-ec5b-4701-80a0-92a936a68da3",
+        "lastName": "Owner",
+        "firstName": "Organization"
+      }
+    ],
+    "severity": "CRITICAL",
+    "type": "api-request-count"
+  }
+}

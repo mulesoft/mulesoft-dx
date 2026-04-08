@@ -1,0 +1,43 @@
+type: object
+properties:
+  assetId:
+    type: string
+  assetVersion:
+    type: string
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}
+  configurationData:
+    type: object
+    properties:
+      clientIdExpression:
+        type: string
+      clientSecretExpression:
+        type: string
+      credentialsOriginHasHttpBasicAuthenticationHeader:
+        type: string
+  disabled:
+    type: boolean
+  groupId:
+    type: string
+  id:
+    type: number
+  managedServiceApiId:
+    type: number
+  masterOrganizationId:
+    type: string
+  order:
+    type: number
+  organizationId:
+    type: string
+  pointcutData: {}
+  policyTemplateId:
+    type: string

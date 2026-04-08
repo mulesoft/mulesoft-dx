@@ -1,0 +1,12 @@
+{
+  "value": {
+    "name": "v2",
+    "instances": [
+      {
+        "apiInstances": [14],
+        "environmentId": "5ead2051-f855-425a-9226-312c562ed268",
+        "deprecated": false
+      }
+    ]
+  }
+}

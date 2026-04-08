@@ -1,0 +1,25 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "limits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "name": "tier-1603812476",
+    "description": "tier description",
+    "audit": {
+      "created": {
+        "date": "2020-10-27T15:27:55.937Z"
+      },
+      "updated": {}
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "4b1240fd-e1df-44a8-9949-6778c3d3dd91",
+    "id": 316,
+    "managedServiceApiId": 193
+  }
+}

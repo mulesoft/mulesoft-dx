@@ -1,0 +1,48 @@
+{
+  "value": {
+    "id": 4,
+    "name": "Social Media",
+    "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+    "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+    "versions": [
+      {
+        "id": 49,
+        "groupId": 4,
+        "name": "v1",
+        "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "createdDate": "2019-03-21T18:40:23.955Z",
+        "instances": [
+          {
+            "id": 1074,
+            "groupId": 4,
+            "groupVersionId": 49,
+            "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+            "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+            "apiInstances": [1, 45],
+            "environmentId": "5ead2051-f855-425a-9226-312c562ed268",
+            "createdDate": "2019-03-21T18:40:23.955Z",
+            "audit": {
+              "created": {
+                "date": "2019-03-21T18:40:23.955Z"
+              },
+              "updated": {}
+            }
+          }
+        ],
+        "audit": {
+          "created": {
+            "date": "2019-03-21T18:40:23.955Z"
+          },
+          "updated": {}
+        }
+      }
+    ],
+    "audit": {
+      "created": {
+        "date": "2019-03-21T18:40:23.955Z"
+      },
+      "updated": {}
+    }
+  }
+}

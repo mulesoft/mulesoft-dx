@@ -1,0 +1,181 @@
+{
+  "value": {
+    "total": 2,
+    "assets": [
+      {
+        "audit": {
+          "created": {
+            "date": "2017-08-03T22:37:53.989Z"
+          },
+          "updated": {}
+        },
+        "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "id": 16,
+        "name": "Api",
+        "groupId": null,
+        "assetId": null,
+        "apis": [
+          {
+            "audit": {
+              "created": {
+                "date": "2017-08-06T20:21:50.666Z"
+              },
+              "updated": {
+                "date": "2017-08-06T20:28:35.662Z"
+              }
+            },
+            "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "id": 95,
+            "instanceLabel": null,
+            "autodiscoveryInstanceName": "alerts",
+            "assetVersion": null,
+            "productVersion": null,
+            "description": "",
+            "tags": [],
+            "order": 1,
+            "deprecated": false,
+            "lastActiveDate": "2017-08-02T18:50:10.842Z",
+            "endpointUri": null,
+            "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+            "lastActiveDelta": 419033,
+            "pinned": false,
+            "activeContractsCount": 0
+          }
+        ],
+        "totalApis": 1
+      },
+      {
+        "audit": {
+          "created": {
+            "date": "2017-07-19T20:46:19.420Z"
+          },
+          "updated": {
+            "date": "2017-08-03T15:07:26.338Z"
+          }
+        },
+        "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "id": 5,
+        "name": "apiName",
+        "groupId": null,
+        "assetId": null,
+        "apis": [
+          {
+            "audit": {
+              "created": {
+                "date": "2017-07-19T20:46:19.621Z"
+              },
+              "updated": {
+                "date": "2017-08-03T21:28:31.317Z"
+              }
+            },
+            "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "id": 25,
+            "instanceLabel": null,
+            "autodiscoveryInstanceName": "some name!",
+            "assetVersion": null,
+            "productVersion": null,
+            "description": "some description!",
+            "tags": [
+              "quas",
+              "consectetur",
+              "quidem",
+              "et",
+              "veritatis",
+              "itaque",
+              "ipsum",
+              "ut",
+              "deleniti",
+              "voluptatem"
+            ],
+            "order": 5,
+            "deprecated": false,
+            "lastActiveDate": "2017-08-02T18:50:10.842Z",
+            "endpointUri": "/google.com",
+            "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+            "lastActiveDelta": 419033,
+            "pinned": false,
+            "activeContractsCount": 1
+          },
+          {
+            "audit": {
+              "created": {
+                "date": "2017-07-31T19:10:04.228Z"
+              },
+              "updated": {}
+            },
+            "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "id": 79,
+            "instanceLabel": null,
+            "autodiscoveryInstanceName": "promotedApiName4",
+            "assetVersion": null,
+            "productVersion": null,
+            "description": "sint enim maiores officiis aliquam minima ipsam quas animi voluptatem aut necessitatibus quod deleniti voluptatem aut est aut adipisci mollitia aliquid rerum iure maxime provident libero non repellendus labore et ut facere quidem repudiandae quis nihil doloremque harum eum ipsum magnam velit aspernatur porro atque nulla qui temporibus dicta totam",
+            "tags": [
+              "excepturi",
+              "quia",
+              "nisi",
+              "molestias",
+              "sint",
+              "labore",
+              "itaque",
+              "non",
+              "alias",
+              "blanditiis"
+            ],
+            "order": 4,
+            "deprecated": false,
+            "lastActiveDate": null,
+            "endpointUri": null,
+            "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+            "pinned": false,
+            "activeContractsCount": 4
+          },
+          {
+            "audit": {
+              "created": {
+                "date": "2017-07-19T20:46:19.621Z"
+              },
+              "updated": {
+                "date": "2017-07-31T18:39:56.291Z"
+              }
+            },
+            "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+            "id": 24,
+            "instanceLabel": null,
+            "autodiscoveryInstanceName": "ad 24",
+            "assetVersion": null,
+            "productVersion": null,
+            "description": "sint enim maiores officiis aliquam minima ipsam quas animi voluptatem aut necessitatibus quod deleniti voluptatem aut est aut adipisci mollitia aliquid rerum iure maxime provident libero non repellendus labore et ut facere quidem repudiandae quis nihil doloremque harum eum ipsum magnam velit aspernatur porro atque nulla qui temporibus dicta totam",
+            "tags": [
+              "excepturi",
+              "quia",
+              "nisi",
+              "molestias",
+              "sint",
+              "labore",
+              "itaque",
+              "non",
+              "alias",
+              "blanditiis"
+            ],
+            "order": 4,
+            "deprecated": false,
+            "lastActiveDate": "2017-07-31T18:25:34.766Z",
+            "endpointUri": null,
+            "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+            "lastActiveDelta": 593309,
+            "pinned": false,
+            "activeContractsCount": 1
+          }
+        ],
+        "totalApis": 3
+      }
+    ]
+  }
+}

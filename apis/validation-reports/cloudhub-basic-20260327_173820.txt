@@ -1,0 +1,264 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./cloudhub
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3917,2)-(4038,0)]
+	Link:       cloudhub/api.yaml:3917:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6064,2)-(6151,0)]
+	Link:       cloudhub/api.yaml:6064:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6153,2)-(6158,0)]
+	Link:       cloudhub/api.yaml:6153:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6158,2)-(6182,0)]
+	Link:       cloudhub/api.yaml:6158:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6182,2)-(6186,0)]
+	Link:       cloudhub/api.yaml:6182:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6186,2)-(6230,0)]
+	Link:       cloudhub/api.yaml:6186:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6230,2)-(6277,0)]
+	Link:       cloudhub/api.yaml:6230:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6277,2)-(6363,0)]
+	Link:       cloudhub/api.yaml:6277:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6363,2)-(6503,0)]
+	Link:       cloudhub/api.yaml:6363:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6503,2)-(6574,0)]
+	Link:       cloudhub/api.yaml:6503:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6574,2)-(6680,0)]
+	Link:       cloudhub/api.yaml:6574:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6680,2)-(6786,0)]
+	Link:       cloudhub/api.yaml:6680:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6786,2)-(6895,0)]
+	Link:       cloudhub/api.yaml:6786:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6786,2)-(6895,0)]
+	Link:       cloudhub/api.yaml:6786:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6895,2)-(7044,0)]
+	Link:       cloudhub/api.yaml:6895:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(6895,2)-(7044,0)]
+	Link:       cloudhub/api.yaml:6895:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7044,2)-(7205,0)]
+	Link:       cloudhub/api.yaml:7044:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7044,2)-(7205,0)]
+	Link:       cloudhub/api.yaml:7044:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7205,2)-(7278,0)]
+	Link:       cloudhub/api.yaml:7205:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7205,2)-(7278,0)]
+	Link:       cloudhub/api.yaml:7205:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7278,2)-(7316,0)]
+	Link:       cloudhub/api.yaml:7278:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7278,2)-(7316,0)]
+	Link:       cloudhub/api.yaml:7278:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7316,2)-(7395,0)]
+	Link:       cloudhub/api.yaml:7316:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7316,2)-(7395,0)]
+	Link:       cloudhub/api.yaml:7316:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter orgid must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7395,2)-(7471,0)]
+	Link:       cloudhub/api.yaml:7395:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter vpcId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(7395,2)-(7471,0)]
+	Link:       cloudhub/api.yaml:7395:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be string
+	Location:   file://api.yaml
+	Position:   [(9556,12)-(9556,16)]
+	Link:       cloudhub/api.yaml:9556:12
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    customerAwsId should be string
+	Location:   file://api.yaml
+	Position:   [(9177,0)-(9181,0)]
+	Link:       cloudhub/api.yaml:9177:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be string
+	Location:   file://api.yaml
+	Position:   [(9557,12)-(9557,17)]
+	Link:       cloudhub/api.yaml:9557:12
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    httpMode should be string
+ipAddresses[0] should NOT be shorter than 7 characters
+ipAllowlist[0] should NOT be shorter than 9 characters
+ipWhitelist[0] should NOT be shorter than 9 characters
+
+	Location:   file://api.yaml
+	Position:   [(7067,0)-(7083,0)]
+	Link:       cloudhub/api.yaml:7067:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    sslEndpoints[0].verifyClientMode should be string
+	Location:   file://api.yaml
+	Position:   [(9387,0)-(9436,0)]
+	Link:       cloudhub/api.yaml:9387:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be string
+	Location:   file://api.yaml
+	Position:   [(9663,18)-(9663,22)]
+	Link:       cloudhub/api.yaml:9663:18
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    endTime should match pattern "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$"
+startTime should match pattern "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$"
+
+	Location:   file://api.yaml
+	Position:   [(9097,0)-(9104,0)]
+	Link:       cloudhub/api.yaml:9097:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    sslEndpoints[0].verifyClientMode should be string
+	Location:   file://api.yaml
+	Position:   [(9437,0)-(9478,0)]
+	Link:       cloudhub/api.yaml:9437:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be string
+	Location:   file://api.yaml
+	Position:   [(9662,18)-(9662,23)]
+	Link:       cloudhub/api.yaml:9662:18
+

@@ -1,0 +1,21 @@
+Rating:
+  type: object
+  properties:
+    organizationId:
+      title: Organizationid
+      type: string
+    group:
+      title: Group
+      type: string
+    assetId:
+      title: Asset id
+      type: string
+    version:
+      title: Version
+      type: string
+    rating:
+      title: Rating
+      type: number
+    numberOfRates:
+      title: Number of rates
+      type: integer

@@ -1,0 +1,22 @@
+Tag:
+  type: object
+  properties:
+    value:
+      type: string
+    key:
+      type: string
+  required:
+    - value
+
+Tags:
+  type: array
+  items:
+    $ref: '#/Tag'
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+Tags1:
+  type: array
+  items:
+    $ref: '#/Tag'

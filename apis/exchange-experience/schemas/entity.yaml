@@ -1,0 +1,10 @@
+Entity:
+  title: Entity
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    entityType:
+      title: Entity Type
+      type: string

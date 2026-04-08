@@ -1,0 +1,540 @@
+openapi: 3.0.1
+info:
+  title: Flex Gateway Manager API
+  version: 0.1.0
+  description: Register, manage, and monitor Flex Gateway instances. Configure runtime settings and track gateway status.
+servers:
+- url: https://anypoint.mulesoft.com/gatewaymanager/api/v1
+- url: https://eu1.anypoint.mulesoft.com/gatewaymanager/api/v1
+- url: https://{region}.platform.mulesoft.com/gatewaymanager/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations/{organizationId}/usage/managed-gateways:
+    get:
+      operationId: getOrganizationsByOrganizationidUsageManagedGateways
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: string
+          example: small
+          enum:
+          - small
+          - large
+        description: The size query parameter.
+      responses:
+        '200':
+          description: Amount of existing Managed Gateways created for the specified organization
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    resource:
+                      type: string
+                    value:
+                      type: number
+                  required:
+                  - resource
+                  - value
+              example:
+              - resource: string
+                value: 0.0
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Retrieves a managed gateways.
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-configuration:
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
+      description: Get the runtime configuration of a Managed or Self-Managed Flex Gateway
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/gateway.yaml#/components/schemas/RuntimeConfigurationDetail
+              example:
+                id: string
+                type: string
+          x-amf-mediaType: application/json
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+    put:
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRuntimeConfig'
+        required: true
+        description: The runtime configuration data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/gateway.yaml#/components/schemas/RuntimeConfigurationDetail
+              example:
+                id: string
+                type: string
+          x-amf-mediaType: application/json
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Replaces a runtime configuration.
+  /organizations/{organizationId}/environments/{environmentId}/gateways:
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+        description: The name query parameter.
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Maximum number of results to return per page.
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Field and direction to sort results by.
+      - name: sortOrder
+        in: query
+        required: false
+        schema:
+          type: string
+        description: The sortOrder query parameter.
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Pagination offset or page number for results.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayList'
+              example:
+                content:
+                - id: string
+                  type: string
+                totalElements: 21
+                pageNumber: 0
+                pageSize: 20
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Retrieves a gateways.
+    post:
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGateway'
+        required: false
+        description: The gateways data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayDetail
+              example:
+                id: string
+                type: string
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Creates a gateways.
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}:
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayDetail
+              example:
+                id: string
+                type: string
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Retrieves a gateways.
+    put:
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGateway'
+        required: false
+        description: The gateways data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayDetail
+              example:
+                id: string
+                type: string
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Replaces a gateways.
+    delete:
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+          content: {}
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Deletes a gateways.
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/registration:
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRegistration
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - expiration
+                properties:
+                  expiration:
+                    type: string
+                    example: '2024-11-22T17:34:09.000Z'
+              example:
+                expiration: '2024-11-22T17:34:09.000Z'
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Retrieves a registration.
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/status:
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidStatus
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - status
+                - ready
+                - running
+                properties:
+                  status:
+                    type: string
+                    example: RUNNING
+                  ready:
+                    type: boolean
+                  running:
+                    type: boolean
+              example:
+                status: RUNNING
+                ready: true
+                running: true
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Retrieves a status.
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/desiredstatus:
+    patch:
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidDesiredstatus
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetGatewayId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - desiredStatus
+              type: object
+              properties:
+                desiredStatus:
+                  type: string
+                  example: STARTED
+                  enum:
+                  - STARTED
+                  - STOPPED
+        required: false
+        description: The desiredstatus data to update.
+      responses:
+        '202':
+          description: Request accepted for processing.
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+        default:
+          description: Response body for handled errors
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/errors.yaml#/components/schemas/GatewayManagerError
+              example:
+                id: string
+                type: string
+      description: Updates a desiredstatus.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    GatewayList:
+      required:
+      - content
+      - pageNumber
+      - pageSize
+      - totalElements
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayOverview
+        totalElements:
+          type: integer
+          example: 21
+        pageNumber:
+          type: integer
+          example: 0
+        pageSize:
+          type: integer
+          example: 20
+    CreateGateway:
+      required:
+      - name
+      - runtimeVersion
+      - releaseChannel
+      - size
+      - targetId
+      type: object
+      properties:
+        name:
+          type: string
+          example: example-gateway
+          pattern: ^(?![-0-9])([a-z0-9-]{2,41}[a-z0-9])?$
+        targetId:
+          type: string
+          format: uuid
+          example: f1c1b011-888e-4994-9999-e44e4a44c444
+        releaseChannel:
+          $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayReleaseChannel
+        runtimeVersion:
+          type: string
+          example: 1.9.3
+        size:
+          $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewaySize
+        configuration:
+          $ref: ./schemas/gateway.yaml#/components/schemas/ManagedGatewayConfiguration
+    CreateRuntimeConfig:
+      type: object
+      required:
+      - configuration
+      properties:
+        configuration:
+          $ref: ./schemas/gateway.yaml#/components/schemas/RuntimeConfiguration
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_targetGatewayId_Path:
+      name: gatewayId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+      - api: urn:api:flex-gateway-manager
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/gateways` in this API; use `id` values as `gatewayId`.
+        values: $.id
+        labels: $.name
+      description: The gateway ID to identify the target resource.

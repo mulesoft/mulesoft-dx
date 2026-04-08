@@ -1,0 +1,39 @@
+{
+  "value": {
+    "apiAlertsVersion": "1.0.0",
+    "api": {
+      "id": 95,
+      "name": "alerts"
+    },
+    "condition": {
+      "aggregate": "COUNT",
+      "operator": "GREATER_THAN",
+      "value": 90,
+      "resourceType": "api"
+    },
+    "createdAt": 1502053776408,
+    "enabled": true,
+    "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+    "id": "1e2a174f-162b-4803-ab74-fb8d5feeaf86",
+    "lastModified": 1502053776408,
+    "name": "some alert name",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "period": {
+      "repeat": 5,
+      "duration": {
+        "count": 5,
+        "weight": "DAYS"
+      }
+    },
+    "recipients": [
+      {
+        "type": "user",
+        "value": "57e281b5-ec5b-4701-80a0-92a936a68da3",
+        "lastName": "Owner",
+        "firstName": "Organization"
+      }
+    ],
+    "severity": "CRITICAL",
+    "type": "api-request-count"
+  }
+}

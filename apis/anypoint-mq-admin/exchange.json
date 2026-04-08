@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Anypoint MQ Admin",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "anypoint-mq-admin",
+  "version": "1.0.12",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "c293d6f6996f2b54d400e98303bdd958b3800b53",
+    "projectId": "446f00a9-6447-44cf-a7f9-83c83c4b3a49"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

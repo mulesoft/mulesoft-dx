@@ -1,0 +1,953 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./anypoint-security-policies
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: 'Forbidden'
+	Location:   file://api.yaml
+	Position:   [(1668,11)-(1668,20)]
+	Link:       anypoint-security-policies/api.yaml:1668:11
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Human readable error description.
+'
+	Location:   file://api.yaml
+	Position:   [(1675,2)-(1676,0)]
+	Link:       anypoint-security-policies/api.yaml:1675:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          failed. Only required in case
+'
+	Location:   file://api.yaml
+	Position:   [(1681,2)-(1682,0)]
+	Link:       anypoint-security-policies/api.yaml:1681:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          HTTP error code is not enough to describe the failure case.
+'
+	Location:   file://api.yaml
+	Position:   [(1683,2)-(1684,0)]
+	Link:       anypoint-security-policies/api.yaml:1683:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '                for consumer
+'
+	Location:   file://api.yaml
+	Position:   [(1695,2)-(1696,0)]
+	Link:       anypoint-security-policies/api.yaml:1695:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '                code error handling.
+'
+	Location:   file://api.yaml
+	Position:   [(1697,2)-(1698,0)]
+	Link:       anypoint-security-policies/api.yaml:1697:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              description: 'field that caused the error.
+'
+	Location:   file://api.yaml
+	Position:   [(1702,2)-(1703,0)]
+	Link:       anypoint-security-policies/api.yaml:1702:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              description: 'Human readable error description.
+'
+	Location:   file://api.yaml
+	Position:   [(1707,2)-(1708,0)]
+	Link:       anypoint-security-policies/api.yaml:1707:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '    example:
+'
+	Location:   file://api.yaml
+	Position:   [(1859,2)-(1860,0)]
+	Link:       anypoint-security-policies/api.yaml:1859:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '0.5'
+	Location:   file://api.yaml
+	Position:   [(1871,12)-(1871,15)]
+	Link:       anypoint-security-policies/api.yaml:1871:12
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+'
+	Location:   file://api.yaml
+	Position:   [(1910,4)-(1911,0)]
+	Link:       anypoint-security-policies/api.yaml:1910:4
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'message' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1636,2)-(1637,0)]
+	Link:       anypoint-security-policies/api.yaml:1636:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(31,8)-(33,0)]
+	Link:       anypoint-security-policies/api.yaml:31:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(31,8)-(33,0)]
+	Link:       anypoint-security-policies/api.yaml:31:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(42,8)-(44,0)]
+	Link:       anypoint-security-policies/api.yaml:42:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(42,8)-(44,0)]
+	Link:       anypoint-security-policies/api.yaml:42:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(44,8)-(46,0)]
+	Link:       anypoint-security-policies/api.yaml:44:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_envId_Path
+	Location:   file://api.yaml
+	Position:   [(44,8)-(46,0)]
+	Link:       anypoint-security-policies/api.yaml:44:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(54,8)-(56,0)]
+	Link:       anypoint-security-policies/api.yaml:54:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(54,8)-(56,0)]
+	Link:       anypoint-security-policies/api.yaml:54:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(56,8)-(58,0)]
+	Link:       anypoint-security-policies/api.yaml:56:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_envId_Path
+	Location:   file://api.yaml
+	Position:   [(56,8)-(58,0)]
+	Link:       anypoint-security-policies/api.yaml:56:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(110,8)-(112,0)]
+	Link:       anypoint-security-policies/api.yaml:110:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(110,8)-(112,0)]
+	Link:       anypoint-security-policies/api.yaml:110:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(112,8)-(114,0)]
+	Link:       anypoint-security-policies/api.yaml:112:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_envId_Path
+	Location:   file://api.yaml
+	Position:   [(112,8)-(114,0)]
+	Link:       anypoint-security-policies/api.yaml:112:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(347,8)-(349,0)]
+	Link:       anypoint-security-policies/api.yaml:347:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(347,8)-(349,0)]
+	Link:       anypoint-security-policies/api.yaml:347:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(569,8)-(571,0)]
+	Link:       anypoint-security-policies/api.yaml:569:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(569,8)-(571,0)]
+	Link:       anypoint-security-policies/api.yaml:569:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(634,8)-(636,0)]
+	Link:       anypoint-security-policies/api.yaml:634:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(634,8)-(636,0)]
+	Link:       anypoint-security-policies/api.yaml:634:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(739,8)-(741,0)]
+	Link:       anypoint-security-policies/api.yaml:739:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(739,8)-(741,0)]
+	Link:       anypoint-security-policies/api.yaml:739:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(747,8)-(749,0)]
+	Link:       anypoint-security-policies/api.yaml:747:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_edgeConfigId_Path
+	Location:   file://api.yaml
+	Position:   [(747,8)-(749,0)]
+	Link:       anypoint-security-policies/api.yaml:747:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(840,8)-(842,0)]
+	Link:       anypoint-security-policies/api.yaml:840:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(840,8)-(842,0)]
+	Link:       anypoint-security-policies/api.yaml:840:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(848,8)-(850,0)]
+	Link:       anypoint-security-policies/api.yaml:848:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_edgeConfigId_Path
+	Location:   file://api.yaml
+	Position:   [(848,8)-(850,0)]
+	Link:       anypoint-security-policies/api.yaml:848:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(940,8)-(942,0)]
+	Link:       anypoint-security-policies/api.yaml:940:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(940,8)-(942,0)]
+	Link:       anypoint-security-policies/api.yaml:940:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(948,8)-(950,0)]
+	Link:       anypoint-security-policies/api.yaml:948:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_edgeConfigId_Path
+	Location:   file://api.yaml
+	Position:   [(948,8)-(950,0)]
+	Link:       anypoint-security-policies/api.yaml:948:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(997,8)-(999,0)]
+	Link:       anypoint-security-policies/api.yaml:997:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(997,8)-(999,0)]
+	Link:       anypoint-security-policies/api.yaml:997:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1005,8)-(1007,0)]
+	Link:       anypoint-security-policies/api.yaml:1005:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_edgeConfigId_Path
+	Location:   file://api.yaml
+	Position:   [(1005,8)-(1007,0)]
+	Link:       anypoint-security-policies/api.yaml:1005:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1047,8)-(1049,0)]
+	Link:       anypoint-security-policies/api.yaml:1047:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(1047,8)-(1049,0)]
+	Link:       anypoint-security-policies/api.yaml:1047:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1156,8)-(1158,0)]
+	Link:       anypoint-security-policies/api.yaml:1156:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(1156,8)-(1158,0)]
+	Link:       anypoint-security-policies/api.yaml:1156:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1389,8)-(1391,0)]
+	Link:       anypoint-security-policies/api.yaml:1389:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(1389,8)-(1391,0)]
+	Link:       anypoint-security-policies/api.yaml:1389:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1391,8)-(1393,0)]
+	Link:       anypoint-security-policies/api.yaml:1391:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_policyId_Path
+	Location:   file://api.yaml
+	Position:   [(1391,8)-(1393,0)]
+	Link:       anypoint-security-policies/api.yaml:1391:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1470,8)-(1472,0)]
+	Link:       anypoint-security-policies/api.yaml:1470:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(1470,8)-(1472,0)]
+	Link:       anypoint-security-policies/api.yaml:1470:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1472,8)-(1474,0)]
+	Link:       anypoint-security-policies/api.yaml:1472:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_policyId_Path
+	Location:   file://api.yaml
+	Position:   [(1472,8)-(1474,0)]
+	Link:       anypoint-security-policies/api.yaml:1472:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1567,8)-(1569,0)]
+	Link:       anypoint-security-policies/api.yaml:1567:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(1567,8)-(1569,0)]
+	Link:       anypoint-security-policies/api.yaml:1567:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(1569,8)-(1571,0)]
+	Link:       anypoint-security-policies/api.yaml:1569:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_policyId_Path
+	Location:   file://api.yaml
+	Position:   [(1569,8)-(1571,0)]
+	Link:       anypoint-security-policies/api.yaml:1569:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_35' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1637,0)-(1639,0)]
+	Link:       anypoint-security-policies/api.yaml:1637:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_31' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1639,0)-(1642,0)]
+	Link:       anypoint-security-policies/api.yaml:1639:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_16' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1642,0)-(1644,0)]
+	Link:       anypoint-security-policies/api.yaml:1642:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_12' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1644,0)-(1646,0)]
+	Link:       anypoint-security-policies/api.yaml:1644:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_2' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1646,0)-(1648,0)]
+	Link:       anypoint-security-policies/api.yaml:1646:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'bad-rq' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1648,0)-(1656,0)]
+	Link:       anypoint-security-policies/api.yaml:1648:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_32' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1656,0)-(1658,0)]
+	Link:       anypoint-security-policies/api.yaml:1656:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_0' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1658,0)-(1660,0)]
+	Link:       anypoint-security-policies/api.yaml:1658:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'unprocessable-rq' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1660,0)-(1665,0)]
+	Link:       anypoint-security-policies/api.yaml:1660:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_36' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1665,0)-(1667,0)]
+	Link:       anypoint-security-policies/api.yaml:1665:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_1' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1667,0)-(2107,0)]
+	Link:       anypoint-security-policies/api.yaml:1667:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'DOS' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(2107,0)-(2208,0)]
+	Link:       anypoint-security-policies/api.yaml:2107:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'ACL' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(2208,0)-(2217,0)]
+	Link:       anypoint-security-policies/api.yaml:2208:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'WAF' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(2217,0)-(3389,0)]
+	Link:       anypoint-security-policies/api.yaml:2217:0
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'PolicyResponse'
+	Location:   file://api.yaml
+	Position:   [(1059,16)-(1060,0)]
+	Link:       anypoint-security-policies/api.yaml:1059:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'DeployementStatusResponse'
+	Location:   file://api.yaml
+	Position:   [(1014,16)-(1015,0)]
+	Link:       anypoint-security-policies/api.yaml:1014:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'EdgeConfigResponse'
+	Location:   file://api.yaml
+	Position:   [(584,16)-(585,0)]
+	Link:       anypoint-security-policies/api.yaml:584:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'EdgeConfigPatchRequest'
+	Location:   file://api.yaml
+	Position:   [(854,14)-(855,0)]
+	Link:       anypoint-security-policies/api.yaml:854:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/PolicyResponse'
+	Location:   file://api.yaml
+	Position:   [(1335,18)-(1336,0)]
+	Link:       anypoint-security-policies/api.yaml:1335:18
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/PolicyResponse'
+	Location:   file://api.yaml
+	Position:   [(1400,16)-(1401,0)]
+	Link:       anypoint-security-policies/api.yaml:1400:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/PolicyResponse'
+	Location:   file://api.yaml
+	Position:   [(1484,16)-(1485,0)]
+	Link:       anypoint-security-policies/api.yaml:1484:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'EdgeConfigRequest'
+	Location:   file://api.yaml
+	Position:   [(646,14)-(647,0)]
+	Link:       anypoint-security-policies/api.yaml:646:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/EdgeConfigResponse'
+	Location:   file://api.yaml
+	Position:   [(660,16)-(661,0)]
+	Link:       anypoint-security-policies/api.yaml:660:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/EdgeConfigResponse'
+	Location:   file://api.yaml
+	Position:   [(763,16)-(764,0)]
+	Link:       anypoint-security-policies/api.yaml:763:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/EdgeConfigResponse'
+	Location:   file://api.yaml
+	Position:   [(864,16)-(865,0)]
+	Link:       anypoint-security-policies/api.yaml:864:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'PolicyCreateRequest'
+	Location:   file://api.yaml
+	Position:   [(1627,12)-(1628,0)]
+	Link:       anypoint-security-policies/api.yaml:1627:12
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'EdgeConfigUpdateRequest'
+	Location:   file://api.yaml
+	Position:   [(753,14)-(754,0)]
+	Link:       anypoint-security-policies/api.yaml:753:14
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(26,2)-(37,0)]
+	Link:       anypoint-security-policies/api.yaml:26:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(37,2)-(50,0)]
+	Link:       anypoint-security-policies/api.yaml:37:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(37,2)-(50,0)]
+	Link:       anypoint-security-policies/api.yaml:37:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(50,2)-(106,0)]
+	Link:       anypoint-security-policies/api.yaml:50:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(50,2)-(106,0)]
+	Link:       anypoint-security-policies/api.yaml:50:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(106,2)-(342,0)]
+	Link:       anypoint-security-policies/api.yaml:106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(106,2)-(342,0)]
+	Link:       anypoint-security-policies/api.yaml:106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(342,2)-(564,0)]
+	Link:       anypoint-security-policies/api.yaml:342:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(564,2)-(733,0)]
+	Link:       anypoint-security-policies/api.yaml:564:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(733,2)-(993,0)]
+	Link:       anypoint-security-policies/api.yaml:733:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter edgeConfigId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(733,2)-(993,0)]
+	Link:       anypoint-security-policies/api.yaml:733:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(993,2)-(1040,0)]
+	Link:       anypoint-security-policies/api.yaml:993:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter edgeConfigId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(993,2)-(1040,0)]
+	Link:       anypoint-security-policies/api.yaml:993:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1040,2)-(1384,0)]
+	Link:       anypoint-security-policies/api.yaml:1040:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1384,2)-(1604,0)]
+	Link:       anypoint-security-policies/api.yaml:1384:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1384,2)-(1604,0)]
+	Link:       anypoint-security-policies/api.yaml:1384:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(31,8)-(33,0)]
+	Link:       anypoint-security-policies/api.yaml:31:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(42,8)-(44,0)]
+	Link:       anypoint-security-policies/api.yaml:42:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(44,8)-(46,0)]
+	Link:       anypoint-security-policies/api.yaml:44:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(54,8)-(56,0)]
+	Link:       anypoint-security-policies/api.yaml:54:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(56,8)-(58,0)]
+	Link:       anypoint-security-policies/api.yaml:56:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(110,8)-(112,0)]
+	Link:       anypoint-security-policies/api.yaml:110:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(112,8)-(114,0)]
+	Link:       anypoint-security-policies/api.yaml:112:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(347,8)-(349,0)]
+	Link:       anypoint-security-policies/api.yaml:347:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(569,8)-(571,0)]
+	Link:       anypoint-security-policies/api.yaml:569:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(634,8)-(636,0)]
+	Link:       anypoint-security-policies/api.yaml:634:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(739,8)-(741,0)]
+	Link:       anypoint-security-policies/api.yaml:739:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(747,8)-(749,0)]
+	Link:       anypoint-security-policies/api.yaml:747:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(840,8)-(842,0)]
+	Link:       anypoint-security-policies/api.yaml:840:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(848,8)-(850,0)]
+	Link:       anypoint-security-policies/api.yaml:848:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(940,8)-(942,0)]
+	Link:       anypoint-security-policies/api.yaml:940:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(948,8)-(950,0)]
+	Link:       anypoint-security-policies/api.yaml:948:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(997,8)-(999,0)]
+	Link:       anypoint-security-policies/api.yaml:997:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1005,8)-(1007,0)]
+	Link:       anypoint-security-policies/api.yaml:1005:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1047,8)-(1049,0)]
+	Link:       anypoint-security-policies/api.yaml:1047:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1156,8)-(1158,0)]
+	Link:       anypoint-security-policies/api.yaml:1156:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1389,8)-(1391,0)]
+	Link:       anypoint-security-policies/api.yaml:1389:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1391,8)-(1393,0)]
+	Link:       anypoint-security-policies/api.yaml:1391:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1470,8)-(1472,0)]
+	Link:       anypoint-security-policies/api.yaml:1470:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1472,8)-(1474,0)]
+	Link:       anypoint-security-policies/api.yaml:1472:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1567,8)-(1569,0)]
+	Link:       anypoint-security-policies/api.yaml:1567:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(1569,8)-(1571,0)]
+	Link:       anypoint-security-policies/api.yaml:1569:8
+

@@ -1,0 +1,4024 @@
+openapi: 3.0.0
+info:
+  title: Exchange Experience API
+  description: Manage assets, reviews, ratings, and portal customizations in Anypoint Exchange. Search, publish, and consume reusable API and integration assets.
+  version: 2.0.1
+servers:
+- url: https://anypoint.mulesoft.com/exchange/api/v2
+  description: Anypoint URL
+- url: https://eu1.anypoint.mulesoft.com/exchange/api/v2
+  description: Regional Anypoint URL
+- url: https://{region}.platform.mulesoft.com/exchange/api/v2
+  description: Regional Anypoint URL
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+- url: /api/v2
+  description: Base URI
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /assets:
+    summary: Asset
+    description: Represents all the resources under the assets path
+    post:
+      description: Uploads an asset
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          description: Use "multipart/form-data"
+          example: multipart/form-data
+          type: string
+        description: The Content Type header value.
+      - $ref: '#/components/parameters/AllowedAPISpecFormats'
+      - $ref: '#/components/parameters/FileValidation'
+      - $ref: '#/components/parameters/StrictPackage'
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/SnapshotsAllowed'
+      responses:
+        '201':
+          description: Asset created
+      operationId: createAssets
+  /assets/search:
+    summary: Assets Search
+    description: Assets Search
+    get:
+      description: Gets a paginated set of assets
+      parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - name: sharedWithMe
+        description: Filter assets that are shared with me
+        in: query
+        schema:
+          $ref: '#/components/schemas/NullableBoolean'
+      - name: types
+        description: Filter assets by type
+        in: query
+        schema:
+          type: string
+          example: rest-api
+          enum:
+            - rest-api
+            - soap-api
+            - http-api
+            - raml-fragment
+            - connector
+            - template
+            - example
+            - custom
+      - name: rootOrganizationId
+        description: Root organization ID to scope the asset search
+        in: query
+        schema:
+          type: string
+          format: uuid
+          example: 434b78c3-bcd9-412d-9428-dec2f8c72cb2
+        x-origin:
+        - api: urn:api:access-management
+          operation: getOrganizations
+          description: GET `/organizations/{organizationId}`; use the `id` of the organization where the user is logged in.
+          values: $.id
+          labels: $.name
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                SearchResult:
+                  $ref: examples/assets.yaml#/SearchResult
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: getAssetsSearch
+  /assets/{groupId}/{assetId}:
+    summary: Assets
+    description: Asset by groupId and assetId
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    delete:
+      parameters:
+      - $ref: '#/components/parameters/DeleteType'
+      description: Deletes an asset
+      responses:
+        '204':
+          description: Asset deleted
+        '409':
+          description: There were conflicts while deleting
+      operationId: deleteAssetsByGroupidByAssetid
+    patch:
+      operationId: patchAssetsByGroupidByAssetid
+      description: Updates asset metadata (name and description)
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: new asset name
+              description: new asset description
+            schema:
+              $ref: schemas/assets.yaml#/PatchAsset
+        description: The assets data to update.
+      responses:
+        '204':
+          description: asset modified successfully
+  /assets/{groupId}/{assetId}/metrics:
+    summary: Asset metrics
+    description: Asset metrics
+    get:
+      description: Gets metrics given a groupId and assetId
+      parameters:
+      - $ref: '#/components/parameters/PeriodType'
+      - $ref: '#/components/parameters/Format'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: success
+          headers:
+            content-type:
+              schema:
+                description: Response content can be of type 'text/csv' or 'application/json'
+                type: string
+              description: Media type of the response body.
+          content:
+            application/json:
+              examples:
+                Metrics:
+                  $ref: examples/metrics.yaml#/Metrics
+            text/csv:
+              examples:
+                MetricsCSV:
+                  $ref: examples/metrics.yaml#/MetricsCSV
+      operationId: getAssetsByGroupidByAssetidMetrics
+  /assets/{groupId}/{assetId}/metrics/versions:
+    summary: Asset metrics
+    description: Asset metrics
+    get:
+      description: Gets metrics by version given a groupId and assetId
+      parameters:
+      - $ref: '#/components/parameters/Format'
+      - $ref: '#/components/parameters/PeriodType'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Accept'
+      responses:
+        '200':
+          description: success
+          headers:
+            content-type:
+              schema:
+                description: Response content can be of type 'text/csv' or 'application/json'
+                type: string
+              description: Media type of the response body.
+          content:
+            application/json:
+              examples:
+                MetricVersions:
+                  $ref: examples/metrics.yaml#/MetricVersions
+              schema:
+                type: object
+            text/csv:
+              examples:
+                MetricVersionsCSV:
+                  $ref: examples/metrics.yaml#/MetricVersionsCSV
+              schema:
+                type: string
+      operationId: getAssetsByGroupidByAssetidMetricsVersions
+  /assets/{groupId}/{assetId}/icon:
+    summary: Icon
+    description: Asset icon
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    put:
+      operationId: updateAssetsByGroupidByAssetidIcon
+      description: Uploads an icon as a binary file
+      requestBody:
+        content:
+          '*/*':
+            examples:
+              IconSVG:
+                $ref: examples/icon.yaml#/IconSVG
+        description: The icon data to update.
+      responses:
+        '201':
+          description: Resource created successfully.
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  assetId: api-test
+                  groupId: 59291b3f-c12a-4c84-be4b-19cf19de0475
+                  classifier: icon
+                  packaging: png
+                  externalKey: 59291b3f-c12a-4c84-be4b-19cf19de0475/41470514d754ff6ae8906b93540742c8dbaeb44deb88d565f677c47641452870.png
+                  externalLink: http://localhost/api-test-1.0.0-icon.png
+              example: *id001
+    delete:
+      description: Delete an icon for the whole ga
+      responses:
+        '204':
+          description: Icon deleted
+      operationId: deleteAssetsByGroupidByAssetidIcon
+  /assets/{groupId}/{assetId}/public:
+    summary: Public Versions
+    description: Public asset versions
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    put:
+      operationId: updateAssetsByGroupidByAssetidPublic
+      description: Sets the public versions for the asset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - versionGroup: v1
+              - versionGroup: v2
+              type: array
+              items:
+                type: object
+        description: The public data to update.
+      responses:
+        '204':
+          description: success
+  /assets/{groupId}/{assetId}/asset:
+    summary: Asset
+    description: Asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    get:
+      description: Gets an asset
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                Asset:
+                  $ref: examples/assets.yaml#/AssetWithFiles
+      operationId: getAssetsByGroupidByAssetidAsset
+  /assets/{groupId}/{assetId}/minorVersions/{minorVersion}/portal/search:
+    summary: Asset portal search
+    description: Search for a term within an asset portal
+    get:
+      parameters:
+      - name: term
+        in: query
+        required: true
+        schema:
+          title: Search term
+          description: The term to search for in the asset portal
+          type: string
+        description: The term query parameter.
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/MinorVersion'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                description: The list of documentation pages with matches
+                example: &id002
+                  pages:
+                  - title: home
+                  - title: authentication
+                type: array
+                items:
+                  type: object
+              example: *id002
+      operationId: getAssetsByGroupidByAssetidMinorversionsByMinorversionPortalSearch
+      description: Retrieves a search.
+  /assets/{groupId}/{assetId}/versionGroups:
+    summary: Version Groups
+    description: Version groups of an asset
+    parameters:
+    - $ref: '#/components/parameters/Status'
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    get:
+      description: Gets asset version groups
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                VersionGroups:
+                  $ref: examples/assets.yaml#/VersionGroups
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: getAssetsByGroupidByAssetidVersiongroups
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/apiGroupInstances:
+    summary: API Groups Instances
+    description: API Groups instances
+    get:
+      description: Gets API Group Instance
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                APIGroupInstances:
+                  $ref: examples/instances.yaml#/APIGroupInstances
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupApigroupinstances
+  ? /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}
+  : summary: Instance
+    description: A single API Group instance identified by a "apiGroupInstanceId"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/VersionGroup'
+    - $ref: '#/components/parameters/EnvironmentId'
+    - $ref: '#/components/parameters/APIGroupInstanceId'
+    patch:
+      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceid
+      description: Updates API Group visibility
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                isPublic: true
+              type: object
+        description: The apiGroupInstances data to update.
+      responses:
+        '204':
+          description: API Group visibility successfully updated
+  ? /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}/tiers
+  : summary: Instance Tiers
+    description: Retrieves a list of tiers for an API Group instance
+    get:
+      description: Gets a list of tiers
+      parameters:
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/APIGroupInstanceId'
+      - $ref: '#/components/parameters/EnvironmentId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                Tiers:
+                  $ref: examples/tiers.yaml#/Tiers
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidTiers
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/terms:
+    summary: Terms and Conditions
+    description: Gets underlying API terms and conditions for an asset version group
+    get:
+      description: Gets Terms and Conditions associated to the API
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                Terms:
+                  $ref: examples/instances.yaml#/Terms
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupTerms
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances:
+    summary: API Instances
+    description: A collection of API instances
+    get:
+      description: Gets API instances
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                ExternalInstances:
+                  $ref: examples/instances.yaml#/ExternalInstances
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstances
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/{apiInstanceId}/relatedApiGroupInstances:
+    summary: API Group Instances
+    description: API Group instances that include an API instance
+    get:
+      description: Gets API group instances that include an API instance
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/APIInstanceId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id003
+                - id: 266126
+                  organizationId: 930f973d-e5a7-4e48-acfa-3b30de06f98d
+                  groupId: 930f973d-e5a7-4e48-acfa-3b30de06f98d
+                  assetId: social-media
+                  version: 1.0.0
+                  isPublic: true
+                - id: 266127
+                  organizationId: 930f973d-e5a7-4e48-acfa-3b30de06f98d
+                  groupId: 930f973d-e5a7-4e48-acfa-3b30de06f98d
+                  assetId: social-media
+                  version: 2.0.0
+                  isPublic: false
+              example: *id003
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesByApiinstanceidRelatedapigroupinstances
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/{apiId}/tiers:
+    summary: Instance Tiers
+    description: A collection of the available SLA Tiers for a given API instance
+    get:
+      description: Gets a list of tiers
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/APIId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/tiers.yaml#/Tiers
+              examples:
+                Tiers:
+                  $ref: examples/tiers.yaml#/Tiers
+      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesByApiidTiers
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/evented-apis/external:
+    summary: External Instances
+    description: Evented API External instances
+    post:
+      operationId: createAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesEventedApisExternal
+      description: Creates a new external API instance for an evented API
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/instances.yaml#/CreateExternalInstance1
+            examples:
+              CreateExternalInstance:
+                $ref: examples/instances.yaml#/CreateExternalInstance
+        description: The external data to create.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/instances.yaml#/ExternalInstance1
+              examples:
+                ExternalInstance:
+                  $ref: examples/instances.yaml#/ExternalInstance
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/evented-apis/external/{id}:
+    summary: Instance Id
+    description: A single instance for an evented API
+    patch:
+      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesEventedApisExternalById
+      description: Updates an existing external API instance
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/ExternalInstanceId'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              CreateExternalInstance:
+                $ref: examples/instances.yaml#/CreateExternalInstance
+            schema:
+              type: object
+        description: The external data to update.
+      responses:
+        '204':
+          description: External instance updated
+        '404':
+          description: External instance not found
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/external:
+    summary: External Instances
+    description: External instances
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/VersionGroup'
+    post:
+      operationId: createAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternal
+      description: Creates a new external API instance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/instances.yaml#/CreateExternalInstance
+            examples:
+              CreateExternalInstance:
+                $ref: examples/instances.yaml#/CreateExternalInstance
+        description: The external data to create.
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/instances.yaml#/ExternalInstance
+              examples:
+                ExternalInstance:
+                  $ref: examples/instances.yaml#/ExternalInstance
+    delete:
+      description: Deletes all instance instances from Version Group
+      responses:
+        '204':
+          description: deleted all external instances
+      operationId: deleteAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternal
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/external/{id}:
+    summary: Instance Id
+    description: A single instance
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/VersionGroup'
+    - $ref: '#/components/parameters/ExternalInstanceId'
+    patch:
+      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternalById
+      description: Updates an existing external API instance
+      requestBody:
+        content:
+          application/json:
+            examples:
+              CreateExternalInstance:
+                $ref: examples/instances.yaml#/CreateExternalInstance
+            schema:
+              type: object
+        description: The external data to update.
+      responses:
+        '204':
+          description: External instance updated
+        '404':
+          description: External instance not found
+    delete:
+      description: Deletes an existing external API instance
+      responses:
+        '204':
+          description: External instance deleted
+        '404':
+          description: External instance not found
+      operationId: deleteAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternalById
+  /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/managed/{id}:
+    summary: Instance Id
+    description: A single managed instance
+    patch:
+      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesManagedById
+      description: Updates an existing managed API instance
+      parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/ManagedInstanceId'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              CreateExternalInstance:
+                $ref: examples/instances.yaml#/CreateExternalInstance
+            schema:
+              type: object
+        description: The managed data to update.
+      responses:
+        '204':
+          description: Managed instance updated
+        '404':
+          description: Managed instance not found
+  /assets/{groupId}/{assetId}/identities:
+    summary: Identities
+    description: Identities assigned to an asset with their role
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    get:
+      description: A collection of identities assigned to an asset with their role
+      parameters:
+      - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: &id004
+                - identityType: user
+                  username: username
+                  firstName: Scott
+                  lastName: Lawson
+                  email: email@gmail.com
+                  id: 3db3585a-db33-4fe6-b8e7-b91ac953e482
+                  role: admin
+                  roleId: 03bf5aff-a0e2-4e1a-8377-b7e4f67750df
+                  createdAt: 2020-08-10 20:02:11.955239
+                  organization:
+                    id: d4e2bceb-baae-484c-92f3-3cc272256c7f
+                    name: Mulesoft Inc
+                    domain: mulesoft-inc
+                type: object
+              example: *id004
+      operationId: getAssetsByGroupidByAssetidIdentities
+    put:
+      operationId: updateAssetsByGroupidByAssetidIdentities
+      description: Assigns identities to an asset
+      parameters:
+      - name: x-skip-notifications
+        required: false
+        in: header
+        schema:
+          description: Set a non-falsy value to skip notifications
+          type: string
+        description: The x skip notifications header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                added:
+                - identityId: 4b8c4ccd-c8fd-49ff-aa97-cf434d9d4e97
+                  organizationId: 5b3c4ccd-c8fd-49ff-aa97-cf434d9d4e90
+                  identityType: user
+                  role: admin
+                deleted:
+                - identityId: 4b8c4ccd-c8fd-49ff-aa97-cf434d9d4e97
+                  organizationId: 5b3c4ccd-c8fd-49ff-aa97-cf434d9d4e90
+                  identityType: team
+                  role: contributor
+              type: object
+        description: The identities data to update.
+      responses:
+        '204':
+          description: Identities assigned to the asset
+  /assets/{groupId}/{assetId}/domain:
+    summary: Domain
+    description: Allowed domain for the asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    get:
+      description: Gets domain
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                example: domain
+              example: domain
+      operationId: getAssetsByGroupidByAssetidDomain
+  /assets/{groupId}/{assetId}/{version}:
+    summary: Asset Version
+    description: Asset version
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Get a particular asset by its id
+      parameters:
+      - $ref: '#/components/parameters/IncludeSnapshots'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/Strict'
+      responses:
+        '200':
+          description: Gets asset
+          content:
+            application/json:
+              examples:
+                Asset:
+                  $ref: examples/assets.yaml#/AssetWithFiles
+      operationId: getAssetsByGroupidByAssetidByVersion
+    delete:
+      description: Deletes an asset by its ID
+      parameters:
+      - $ref: '#/components/parameters/DeleteType'
+      responses:
+        '204':
+          description: Asset deleted
+        '409':
+          description: There were conflicts while deleting
+      operationId: deleteAssetsByGroupidByAssetidByVersion
+  /assets/{groupId}/{assetId}/{version}/icon:
+    summary: Icon
+    description: Asset icon
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    put:
+      description: 'Uploads an icon as a binary file.
+
+        - Body should be application/json. This is not specified in the raml as it conflicts with Osprey.
+
+        '
+      requestBody:
+        content:
+          '*/*':
+            examples:
+              Icon:
+                $ref: examples/icon.yaml#/IconSVG
+        description: The icon data to update.
+      responses:
+        '204':
+          description: Icon has been uploaded
+        '400':
+          description: Invalid icon
+        '404':
+          description: Asset does not exist
+      operationId: updateAssetsByGroupidByAssetidByVersionIcon
+  /assets/{groupId}/{assetId}/{version}/asset:
+    summary: Asset
+    description: Asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets an asset
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                Asset:
+                  $ref: examples/assets.yaml#/AssetWithFiles
+      operationId: getAssetsByGroupidByAssetidByVersionAsset
+  /assets/{groupId}/{assetId}/{version}/rating:
+    summary: Rating
+    description: Rating of the asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets the asset rating
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/ratings.yaml#/Rating
+              examples:
+                Rating:
+                  $ref: examples/ratings.yaml#/Rating
+      operationId: getAssetsByGroupidByAssetidByVersionRating
+  /assets/{groupId}/{assetId}/{version}/reviews:
+    summary: Reviews
+    description: Reviews of the asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets a list of reviews
+      parameters:
+      - name: includeComments
+        required: false
+        in: query
+        description: Indicates to include comments or not in reviews
+        schema:
+          $ref: '#/components/schemas/NullableBoolean'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/reviews.yaml#/Reviews
+              examples:
+                Reviews:
+                  $ref: examples/reviews.yaml#/Reviews
+      operationId: getAssetsByGroupidByAssetidByVersionReviews
+    post:
+      description: Creates a new asset review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/reviews.yaml#/CreateReview
+            examples:
+              CreateReview:
+                $ref: examples/reviews.yaml#/CreateReview
+        description: The reviews data to create.
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/reviews.yaml#/Review
+              examples:
+                Review:
+                  $ref: examples/reviews.yaml#/Review
+      operationId: createAssetsByGroupidByAssetidByVersionReviews
+  /assets/{groupId}/{assetId}/{version}/reviews/{reviewId}:
+    summary: Review
+    description: A single asset review identified by a "reviewId"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/ReviewId'
+    patch:
+      description: Edits an asset review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/reviews.yaml#/UpdateReview
+            examples:
+              UpdateReview:
+                $ref: examples/reviews.yaml#/UpdateReview
+        description: The reviews data to update.
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/reviews.yaml#/Review1
+              examples:
+                Review:
+                  $ref: examples/reviews.yaml#/Review
+      operationId: patchAssetsByGroupidByAssetidByVersionReviewsByReviewid
+    delete:
+      description: Deletes an specific asset review.
+      responses:
+        '204':
+          description: Review deleted
+      operationId: deleteAssetsByGroupidByAssetidByVersionReviewsByReviewid
+  /assets/{groupId}/{assetId}/{version}/api/model:
+    summary: API Model
+    description: API Model
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets the JSON-LD model for this API
+      responses:
+        '200':
+          description: Returns the JSON-LD model for this API
+          content:
+            application/json:
+              examples:
+                JsonLD:
+                  $ref: examples/web-api.yaml#/JsonLD
+      operationId: getAssetsByGroupidByAssetidByVersionApiModel
+  /assets/{groupId}/{assetId}/{version}/api/root:
+    summary: Root File
+    description: Root file for the API
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Redirects to path of root file for this API
+      responses:
+        '301':
+          description: Redirection to root file if available.
+      operationId: getAssetsByGroupidByAssetidByVersionApiRoot
+  /assets/{groupId}/{assetId}/{version}/api/{filePath}*:
+    summary: File Path
+    description: API file path
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - name: filePath
+      required: true
+      in: path
+      schema:
+        description: The path of the API file
+        type: string
+      description: The filePath to identify the target resource.
+    get:
+      description: Gets the API file content
+      responses:
+        '200':
+          description: 'Retrieved file contents for the specified file.
+
+            - For example, if api.raml was specified the response will be that raml.
+
+            '
+      operationId: getAssetsByGroupidByAssetidByVersionApiFilepath
+  /assets/{groupId}/{assetId}/{version}/domain:
+    summary: Domain
+    description: Allowed domain for the asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets domain
+      responses:
+        '200':
+          description: Gets the domain
+          content:
+            text/plain:
+              schema:
+                example: domain
+              example: domain
+      operationId: getAssetsByGroupidByAssetidByVersionDomain
+  /assets/{groupId}/{assetId}/{version}/portal:
+    summary: Portal Documentation
+    description: Asset portal documentation
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    patch:
+      operationId: patchAssetsByGroupidByAssetidByVersionPortal
+      description: 'Publishes draft version.
+
+        This endpoint should be executed without specifying any body.
+
+        '
+      responses:
+        '204':
+          description: Asset documentation updated
+        '404':
+          description: Asset documentation does not exist
+        '409':
+          description: There were conflicts while publishing
+    get:
+      description: Gets an asset portal
+      responses:
+        '200':
+          description: success
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/PortalPages
+              examples:
+                Pages:
+                  $ref: examples/pages.yaml#/PortalPages
+      operationId: getAssetsByGroupidByAssetidByVersionPortal
+  /assets/{groupId}/{assetId}/{version}/portal/pages:
+    summary: Pages
+    description: Asset documentation pages
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets a list of pages
+      responses:
+        '200':
+          description: success
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Pages
+              examples:
+                value:
+                  $ref: examples/pages.yaml#/Pages
+      operationId: getAssetsByGroupidByAssetidByVersionPortalPages
+  /assets/{groupId}/{assetId}/{version}/portal/pages/{pagePath}*:
+    summary: Page
+    description: A single documentation page path identified by a "pagePath"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/PagePath'
+    get:
+      description: Gets a particular page
+      parameters:
+      - $ref: '#/components/parameters/PublicPortalDomain'
+      - $ref: '#/components/parameters/ForwardedHost'
+      - $ref: '#/components/parameters/ForwardedPath'
+      responses:
+        '200':
+          description: success to get a page
+          content:
+            text/html:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageHTML
+            text/markdown:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageMarkdown
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Page
+              examples:
+                Page:
+                  $ref: examples/pages.yaml#/Page
+      operationId: getAssetsByGroupidByAssetidByVersionPortalPagesPagepath
+  /assets/{groupId}/{assetId}/{version}/portal/resources:
+    summary: Resources
+    description: Asset documentation resources
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets portals resources
+      responses:
+        '200':
+          description: Retrieved list of resources
+          content:
+            application/json:
+              schema:
+                example: &id005
+                - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
+              example: *id005
+      operationId: getAssetsByGroupidByAssetidByVersionPortalResources
+  /assets/{groupId}/{assetId}/{version}/portal/resources/{resourceId}:
+    summary: Resource
+    description: A single asset documentation resource identified by a "resourceId"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/ResourceId'
+    get:
+      description: Gets portals resource
+      responses:
+        '200':
+          description: Retrieved file as a binary content
+      operationId: getAssetsByGroupidByAssetidByVersionPortalResourcesByResourceid
+  /assets/{groupId}/{assetId}/{version}/portal/draft:
+    summary: Draft
+    description: Asset documentation draft
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    delete:
+      description: Discards asset documentation draft
+      responses:
+        '204':
+          description: Draft deleted
+      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraft
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraft
+      description: 'Publishes asset documentation draft.
+
+        This endpoint should be executed without specifying any body.
+
+        '
+      responses:
+        '204':
+          description: Asset documentation updated
+        '404':
+          description: Asset documentation does not exist
+        '409':
+          description: There were conflicts while publishing
+    get:
+      description: Gets an asset portal
+      responses:
+        '200':
+          description: success
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/PortalPages
+              examples:
+                Pages:
+                  $ref: examples/pages.yaml#/PortalPages
+      operationId: getAssetsByGroupidByAssetidByVersionPortalDraft
+  /assets/{groupId}/{assetId}/{version}/portal/draft/pages:
+    summary: Pages
+    description: Asset documentation draft pages
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    post:
+      description: 'Creates an empty page for a draft version. Remember that:
+
+        - A page cannot be moved/created to/in a path that already contains another page with the same name.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/MoveSource'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/pages.yaml#/CreatePage
+            examples:
+              CreatePage:
+                $ref: examples/pages.yaml#/CreatePage
+        description: The pages data to create.
+      responses:
+        '201':
+          description: Page created.
+        '409':
+          description: Page already exists
+      operationId: createAssetsByGroupidByAssetidByVersionPortalDraftPages
+    get:
+      description: Gets a list of pages
+      responses:
+        '200':
+          description: success
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Page1
+              examples:
+                Page:
+                  $ref: examples/pages.yaml#/Page
+      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftPages
+  /assets/{groupId}/{assetId}/{version}/portal/draft/pages/{pagePath}*:
+    summary: Page
+    description: A single documentation page path identified by a "pagePath"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/PagePath'
+    get:
+      description: Gets particular pages for a specific version of an asset
+      parameters:
+      - $ref: '#/components/parameters/PublicPortalDomain'
+      - $ref: '#/components/parameters/ForwardedHost'
+      - $ref: '#/components/parameters/ForwardedPath'
+      responses:
+        '200':
+          description: Get a page in specified format
+          content:
+            text/html:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageHTML
+            text/markdown:
+              schema:
+                type: string
+              examples:
+                PageMarkdown:
+                  $ref: examples/pages.yaml#/PageMarkdown
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Page2
+              examples:
+                Page:
+                  $ref: examples/pages.yaml#/Page
+        '404':
+          description: Page not found
+      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+    put:
+      description: Updates a page for a version of an asset portal
+      requestBody:
+        content:
+          text/markdown:
+            schema:
+              type: string
+            examples:
+              PageMarkdown:
+                $ref: examples/pages.yaml#/PageMarkdown
+        description: The pages data to update.
+      responses:
+        '204':
+          description: Page updated
+      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+    delete:
+      description: Deletes a page of a version of an asset portal
+      responses:
+        '204':
+          description: Page deleted
+      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+  /assets/{groupId}/{assetId}/{version}/portal/draft/pagesOrder:
+    summary: Pages Order
+    description: Asset documentation pages order
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    put:
+      description: Saves the pages order for portal
+      parameters:
+      - $ref: '#/components/parameters/PagesOrderRevision'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - page-C
+              - page-A
+              - page-B
+              type: array
+              minItems: 1
+              items:
+                type: string
+        description: The pagesOrder data to update.
+      responses:
+        '204':
+          description: Pages order stored successfully
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+        '409':
+          description: Pages order out of syncs
+      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraftPagesorder
+  /assets/{groupId}/{assetId}/{version}/portal/draft/resources:
+    summary: Resources
+    description: Asset documentation resources
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets portals resources
+      responses:
+        '200':
+          description: Retrieved list of resources
+          content:
+            application/json:
+              schema:
+                example: &id006
+                - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
+              example: *id006
+      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftResources
+    post:
+      operationId: createAssetsByGroupidByAssetidByVersionPortalDraftResources
+      description: 'Creates a resource for the portal draft.
+
+        The required multipart fields in the body are the path of the resource and the content type. Ex:
+
+        -F "Content-Type=image/png"
+
+        -F "file=@/Users/llucas/Documents/image.png"
+
+        '
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              format: binary
+        description: The resources data to create.
+      responses:
+        '201':
+          description: Successfully created the portal resource
+          content:
+            application/json:
+              schema:
+                example: &id007
+                  path: resources/dog.jpg
+                  commitId: eda56891-efab-40e0-a9ff-064e79327d17
+              example: *id007
+  /assets/{groupId}/{assetId}/{version}/portal/draft/resources/{resourceId}:
+    summary: Resource
+    description: A single documentation resource identified by a "resourceId"
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/ResourceId'
+    delete:
+      description: Deletes a resource
+      responses:
+        '204':
+          description: Resource deleted
+      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraftResourcesByResourceid
+    get:
+      description: Gets portals resource
+      responses:
+        '200':
+          description: Retrieved file as a binary content
+      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftResourcesByResourceid
+  /assets/{groupId}/{assetId}/{version}/policies/instances:
+    summary: API Instances
+    description: API instances affected by the policy
+    get:
+      description: Gets an array of API instances affected by the policy
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Successfully completed
+          headers:
+            x-resources-count:
+              schema:
+                description: The total amount of instances affected by that policy, where the user has permissions to see them, pagination purpose.
+                type: number
+              description: The x-resources-count response header value.
+            x-total-count:
+              schema:
+                description: The total amount of instances affected by that policy even if the user has no permissions to see them.
+                type: number
+              description: The x-total-count response header value.
+          content:
+            application/json:
+              schema:
+                example: &id008
+                - apiName: 8becfaac-7f03-4272-a5cd-fd83177af58d
+                  environment: production
+                  instanceName: v1:7
+                  apiVersion: v1
+                  url: localhost:8088/api/v1
+                - apiName: 8becfaac-7f03-4272-a5cd-fd83177af58d
+                  environment: production
+                  instanceName: v1:8
+                  apiVersion: v1
+                  url: localhost:8088/api/v1
+              example: *id008
+      operationId: getAssetsByGroupidByAssetidByVersionPoliciesInstances
+  /assets/{groupId}/{assetId}/{version}/policies/implementations:
+    summary: Implementations
+    description: Implementations of a specific policy
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets an array with implementations of a specific policy
+      responses:
+        '200':
+          description: Successfully completed
+          headers:
+            x-total-count:
+              schema:
+                description: The total amount of implementations of the specific policy.
+                type: number
+              description: The x-total-count response header value.
+          content:
+            application/json:
+              schema:
+                example: &id009
+                - name: skywalker saga - Mule 4 - implementation
+                  groupId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  organizationId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  assetId: skywalker-implementation
+                  version: 1.0.0
+                  technology: mule4
+                  permissions:
+                  - admin
+                  - view
+                  createdDate: 2022-01-03 19:46:54.763000+00:00
+                  minRuntimeVersion: 4.1.1
+                  maxRuntimeVersion: 4.2.0
+                - name: skywalker saga - Mule 4 - implementation
+                  groupId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  organizationId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  assetId: skywalker-implementation
+                  version: 1.1.0
+                  technology: mule4
+                  permissions:
+                  - admin
+                  - view
+                  createdDate: 2022-01-03 19:46:54.763000+00:00
+                  minRuntimeVersion: 4.1.1
+                - name: skywalker saga - flex- implementation
+                  groupId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  organizationId: 20a27e6b-79a5-4a0f-9c81-ce6b9784a15a
+                  assetId: skywalker-implementation-flex
+                  version: 1.0.0
+                  technology: flexGateway
+                  permissions:
+                  - admin
+                  - view
+                  createdDate: 2022-01-03 19:46:54.763000+00:00
+                  minRuntimeVersion: 1.0.0
+                  maxRuntimeVersion: 2.0.0
+              example: *id009
+      operationId: getAssetsByGroupidByAssetidByVersionPoliciesImplementations
+  /assets/{groupId}/{assetId}/{version}/policies/environments:
+    summary: Environments
+    description: Environments affected by the policy
+    get:
+      description: Gets an array with environments affected by the policy
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Successfully completed
+          headers:
+            x-resources-count:
+              schema:
+                description: The total amount of environments affected by the policy, where the user has permissions to see them, pagination purpose.
+                type: number
+              description: The x-resources-count response header value.
+            x-total-count:
+              schema:
+                description: The total amount of environments affected by the policy even if the user has no permissions to see them.
+                type: number
+              description: The x-total-count response header value.
+          content:
+            application/json:
+              schema:
+                example: &id010
+                - environment: production
+                  url: localhost:8088/api/v1
+              example: *id010
+      operationId: getAssetsByGroupidByAssetidByVersionPoliciesEnvironments
+  /assets/{groupId}/{assetId}/{version}/tags:
+    summary: Tags
+    description: Asset tags
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionTags
+      description: Upserts asset tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/tags.yaml#/Tags
+            examples:
+              Tags:
+                $ref: examples/tags.yaml#/Tags
+        description: The tags data to update.
+      responses:
+        '204':
+          description: Tags updated
+  /assets/{groupId}/{assetId}/{version}/tags/fields/{tagKey}:
+    summary: Field Key
+    description: The key that identifies the custom field
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/TagKey'
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionTagsFieldsByTagkey
+      description: Update or create a custom field
+      responses:
+        '200':
+          description: Custom field updated
+    delete:
+      operationId: deleteAssetsByGroupidByAssetidByVersionTagsFieldsByTagkey
+      description: Delete a custom field
+      responses:
+        '204':
+          description: Custom field deleted
+  /assets/{groupId}/{assetId}/{version}/tags/categories/{tagKey}:
+    summary: Category Key
+    description: The key that identifies the category
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/TagKey'
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionTagsCategoriesByTagkey
+      description: Updates or creates a category.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                value:
+                  tagValue: value
+              type: object
+        description: The categories data to update.
+      responses:
+        '200':
+          description: Successful operation.
+    delete:
+      description: Deletes a category
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteAssetsByGroupidByAssetidByVersionTagsCategoriesByTagkey
+  /assets/{groupId}/{assetId}/{version}/status:
+    summary: Status
+    description: The status of the asset
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionStatus
+      description: Updates asset status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                status: published
+              type: object
+        description: The status data to update.
+      responses:
+        '204':
+          description: Asset status successfully updated
+  /assets/{groupId}/{assetId}/{version}/actions:
+    summary: Actions
+    get:
+      description: Returns list of available actions for this asset version
+      parameters:
+      - name: include
+        required: true
+        in: query
+        schema:
+          title: Include
+          description: Action types to include in response, current possible value is "statusTransitions"
+          type: string
+        description: The include query parameter.
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Transition list was calculated and returned. Possible error codes are INVALID_TRANSITION, SNAPSHOT_TRANSITION, OLD_ASSET_HARD_DELETION, DEVELOPMENT_DEPENDENCIES, ASSET_HAS_DEPENDENTS
+          content:
+            application/json:
+              schema:
+                example: &id011
+                  statusTransitions:
+                  - affordance: disallowed
+                    affordanceDetails:
+                    - code: INVALID_TRANSITION
+                      description: Transition from published to development is not allowed
+                    targetStatus: development
+                  - affordance: allowed
+                    affordanceDetails: []
+                    targetStatus: published
+                  - affordance: allowed
+                    affordanceDetails: []
+                    targetStatus: deprecated
+                  - affordance: disallowed
+                    affordanceDetails:
+                    - code: ASSET_HAS_DEPENDENTS
+                      description: Asset has dependent assets
+                    targetStatus: deleted
+                  - affordance: disallowed
+                    affordanceDetails:
+                    - code: ASSET_HAS_DEPENDENTS
+                      description: Asset has dependent assets
+                    - code: OLD_ASSET_HARD_DELETION
+                      description: Cannot hard delete asset after more than 7 days
+                    targetStatus: hard-deleted
+              example: *id011
+      operationId: getAssetsByGroupidByAssetidByVersionActions
+  /assets/{groupId}/{assetId}/{version}/owner:
+    summary: Owner
+    description: Asset ownership
+    parameters:
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    put:
+      operationId: updateAssetsByGroupidByAssetidByVersionOwner
+      description: Update Asset ownership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                createdById: e1dd88f8-dG6e-4443-93a1-bd074603e118
+              type: object
+              additionalProperties: true
+              required:
+              - createdById
+              properties:
+                createdById:
+                  type: string
+        description: The owner data to update.
+      responses:
+        '204':
+          description: success
+  /organizations/metrics/top:
+    summary: Top 10 assets by organization
+    description: Top assets metrics of specific organization
+    post:
+      parameters:
+      - name: content-type
+        in: header
+        schema:
+          default: application/json
+          type: string
+        description: The content type header value.
+      - $ref: '#/components/parameters/Accept'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                periodType: WEEK
+                type: rest-api
+                sortBy: assetDownload
+                orderBy: ascending
+                format: csv
+                limit: 10
+                organizationIds:
+                - 885682a7-08f3-4a92-8658-468e7a8c09d9
+                - 993542a7-08f3-4a92-8658-468e7a8c09d9
+              type: object
+        description: The top data to create.
+      responses:
+        '200':
+          description: success
+          headers:
+            content-type:
+              schema:
+                description: Response content can be of type 'text/csv' or 'application/json'
+                type: string
+              description: Media type of the response body.
+          content:
+            application/json:
+              schema:
+                example: &id012
+                  periodType: WEEK
+                  fromDate: 2022-11-03 03:00:00+00:00
+                  toDate: 2022-11-10 03:00:00+00:00
+                  totalTopAssets: 3
+                  pageNumber: 1
+                  assets:
+                  - groupId: cd7e8b06-e178-4167-9e36-1abf795a5b5e
+                    assetId: asssetname
+                    ranking: 1
+                    metrics:
+                    - metricId: 1621d354-bb5e-45b1-9ea3-767236c7dd08
+                      score: 76
+                      allTime: 1000
+                      displayName: Downloads
+                      key: assetDownload
+                    - metricId: a57a91e6-5aaf-4863-b0fd-55b93318952a
+                      score: 22
+                      allTime: 2000
+                      displayName: Engagement
+                      key: engagement
+                    - metricId: c07bba9e-8afc-4e44-9f99-ed9697c09272
+                      displayName: Imports from API Designer
+                      key: importsFromApid
+                      score: 0
+                      allTime: 0
+                    - metricId: 283f0a5b-32d8-4cab-b18b-96477f2c1944
+                      displayName: Dependents
+                      key: assetDependent
+                      score: 0
+                      allTime: 0
+                    - metricId: bb572128-b2c6-45b4-814e-e9d84a834906
+                      displayName: Contracts
+                      key: assetContract
+                      score: 0
+                      allTime: 0
+                    organizationId: cd7e8b06-e178-4167-9e36-1abf795a5b5e
+                    version: 2.0.0
+                    name: AsssetName
+                    description: ''
+                    type: http-api
+                    updatedDate: 2022-12-01 13:21:13.817000+00:00
+                    contactEmail:
+                    contactName:
+                    assetCreatedDate: 2022-11-28 13:01:44.011000+00:00
+                  - groupId: 7f3d510c-bf27-4395-9b49-8ac8a9504d30
+                    assetId: asssetname
+                    ranking: 2
+                    metrics:
+                    - metricId: 1621d354-bb5e-45b1-9ea3-767236c7dd08
+                      score: 76
+                      allTime: 1000
+                      displayName: Downloads
+                      key: assetDownload
+                    - metricId: a57a91e6-5aaf-4863-b0fd-55b93318952a
+                      score: 22
+                      allTime: 2000
+                      displayName: Engagement
+                      key: engagement
+                    - metricId: c07bba9e-8afc-4e44-9f99-ed9697c09272
+                      displayName: Imports from API Designer
+                      key: importsFromApid
+                      score: 0
+                      allTime: 0
+                    - metricId: 283f0a5b-32d8-4cab-b18b-96477f2c1944
+                      displayName: Dependents
+                      key: assetDependent
+                      score: 0
+                      allTime: 0
+                    - metricId: bb572128-b2c6-45b4-814e-e9d84a834906
+                      displayName: Contracts
+                      key: assetContract
+                      score: 0
+                      allTime: 0
+                    organizationId: 7f3d510c-bf27-4395-9b49-8ac8a9504d30
+                    version: 1.0.0
+                    name: AsssetName
+                    description: ''
+                    type: http-api
+                    updatedDate: 2022-10-13 14:54:32.507000+00:00
+                    contactEmail:
+                    contactName:
+                    assetCreatedDate: 2022-10-13 14:54:32.716000+00:00
+              example: *id012
+            text/csv:
+              schema:
+                example: '"ranking","groupId","assetId","organizationId","version","name","description","type","updatedDate","contactEmail","contactName","assetCreatedDate","assetDownloadScore","assetDownloadAllTime","engagementScore","engagementAllTime","importsFromApidScore","assetDependentScore","assetContractScore"
+
+                  1,"cd7e8b06-e178-4167-9e36-1abf795a5b5e","asssetname","cd7e8b06-e178-4167-9e36-1abf795a5b5e","2.0.0","AsssetName","","http-api","2022-12-01T13:21:13.817Z",,,"2022-11-28T13:01:44.011Z",76,1000,22,2000,0,0,0
+
+                  2,"7f3d510c-bf27-4395-9b49-8ac8a9504d30","asssetname","7f3d510c-bf27-4395-9b49-8ac8a9504d30","1.0.0","AsssetName","","http-api","2022-10-13T14:54:32.507Z",,,"2022-10-13T14:54:32.716Z",76,1000,22,2000,0,0,0
+
+                  '
+              example: '"ranking","groupId","assetId","organizationId","version","name","description","type","updatedDate","contactEmail","contactName","assetCreatedDate","assetDownloadScore","assetDownloadAllTime","engagementScore","engagementAllTime","importsFromApidScore","assetDependentScore","assetContractScore"
+
+                1,"cd7e8b06-e178-4167-9e36-1abf795a5b5e","asssetname","cd7e8b06-e178-4167-9e36-1abf795a5b5e","2.0.0","AsssetName","","http-api","2022-12-01T13:21:13.817Z",,,"2022-11-28T13:01:44.011Z",76,1000,22,2000,0,0,0
+
+                2,"7f3d510c-bf27-4395-9b49-8ac8a9504d30","asssetname","7f3d510c-bf27-4395-9b49-8ac8a9504d30","1.0.0","AsssetName","","http-api","2022-10-13T14:54:32.507Z",,,"2022-10-13T14:54:32.716Z",76,1000,22,2000,0,0,0
+
+                '
+      operationId: createOrganizationsMetricsTop
+      description: Creates top.
+  /organizations/{masterOrganizationId}/clientProviders/{clientProviderId}/grantTypes:
+    summary: Grant Types
+    description: Grant types of a client provider
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    - name: clientProviderId
+      required: true
+      in: path
+      schema:
+        description: The Id of the client provider
+        example: 434b78c3-bcd9-412d-9428-dec2f8c72cb2
+        type: string
+        format: uuid
+      description: The clientProvider ID to identify the target resource.
+    get:
+      description: Gets the grant types for the client provider
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id013
+                  type:
+                    name: ping
+                  grant_types:
+                  - name: password
+                    label: Resource Owner Grant
+                    depends: []
+                    exclude: []
+                    required: false
+                  - name: implicit
+                    label: Implicit Grant
+                    depends: []
+                    exclude: []
+                    required: false
+                  - name: client_credentials
+                    label: Client Credentials Grant
+                    depends: []
+                    exclude: []
+                    required: false
+                  - name: authorization_code
+                    label: Authorization Code Grant
+                    depends: []
+                    exclude: []
+                    required: false
+                  - name: refresh_token
+                    label: Refresh Token
+                    depends:
+                    - authorization_code
+                    - password
+                    exclude: []
+                    required: false
+              example: *id013
+      operationId: getOrganizationsByMasterorganizationidClientprovidersByClientprovideridGranttypes
+  /organizations/{organizationId}/identities:
+    summary: Identities
+    description: Identities of an organization
+    get:
+      description: Gets identities for an organization
+      parameters:
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id014
+                - id: 3db3585a-db33-4fe6-b8e7-b91ac953e482
+                  identityType: user
+                  username: username
+                  firstName: Scott
+                  lastName: Lawson
+                  email: email@gmail.com
+                  organization:
+                    id: d4e2bceb-baae-484c-92f3-3cc272256c7f
+                    name: Mulesoft Inc
+                    domain: mulesoft-inc
+                type: object
+              example: *id014
+      operationId: getOrganizationsByOrganizationidIdentities
+  /organizations/{organizationId}/identities/{identityId}/assets/authorize:
+    description: Authorizes provided resources against a given identity. For now, only teams are supported.
+    post:
+      description: return all assets a given identity has permission
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - name: identityId
+        required: true
+        in: path
+        schema:
+          description: UUID
+          example: b8886ae1-ba56-40e9-9d6d-92fe4d12758a
+          type: string
+          format: uuid
+        description: The identity ID to identify the target resource.
+      requestBody:
+        content:
+          '*/*':
+            schema: {}
+        description: The authorize data to create.
+      responses:
+        '201':
+          description: success
+      operationId: createOrganizationsByOrganizationidIdentitiesByIdentityidAssetsAuthorize
+  /organizations/{masterOrganizationId}/applications:
+    summary: Applications
+    description: A collection of applications that consume APIs via contracts
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    get:
+      description: Retrieves a list of client applications
+      parameters:
+      - name: groupInstanceId
+        required: false
+        description: This field is used to filter by API Group instance.
+        in: query
+        schema:
+          $ref: '#/components/schemas/NullableInteger'
+      - name: query
+        required: false
+        in: query
+        schema:
+          description: Search criteria
+          type: string
+        description: Search or filter expression to narrow results.
+      - name: includeContractsForApiVersion
+        required: false
+        in: query
+        description: This field is used to filter by API version
+        schema:
+          $ref: '#/components/schemas/NullableInteger'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/APIInstanceIdQuery'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Sort'
+      - name: literalMatch
+        required: false
+        description: Literal match
+        in: query
+        schema:
+          $ref: '#/components/schemas/NullableBoolean'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/client-applications.yaml#/ClientApplications
+              examples:
+                ClientApplications:
+                  $ref: examples/client-applications.yaml#/ClientApplications
+      operationId: getOrganizationsByMasterorganizationidApplications
+    post:
+      description: Adds a client application
+      parameters:
+      - $ref: '#/components/parameters/APIGroupInstanceIdQuery'
+      - $ref: '#/components/parameters/APIInstanceIdQuery'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              CreateClientApplication:
+                $ref: examples/client-applications.yaml#/CreateClientApplication
+        description: The applications data to create.
+      responses:
+        '201':
+          description: Application created
+          content:
+            application/json:
+              examples:
+                ClientApplication:
+                  $ref: examples/client-applications.yaml#/ClientApplication
+      operationId: createOrganizationsByMasterorganizationidApplications
+  /organizations/{masterOrganizationId}/applications/{applicationId}:
+    summary: Application
+    description: A single application identified by an "applicationId"
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    - $ref: '#/components/parameters/ApplicationId'
+    get:
+      description: Gets a client application
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                ClientApplication:
+                  $ref: examples/client-applications.yaml#/ClientApplication
+      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationid
+    patch:
+      operationId: patchOrganizationsByMasterorganizationidApplicationsByApplicationid
+      description: Updates a client application
+      requestBody:
+        content:
+          application/json:
+            examples:
+              UpdateClientApplication:
+                $ref: examples/client-applications.yaml#/UpdateClientApplication
+        description: The applications data to update.
+      responses:
+        '200':
+          description: Client application updated.
+          content:
+            application/json:
+              examples:
+                ClientApplication:
+                  $ref: examples/client-applications.yaml#/ClientApplication
+    delete:
+      description: Deletes a client application
+      responses:
+        '204':
+          description: Client application deleted.
+      operationId: deleteOrganizationsByMasterorganizationidApplicationsByApplicationid
+  ? /organizations/{masterOrganizationId}/applications/{applicationId}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}/limits
+  : summary: Limits
+    description: Limits of each instance part of the API Group
+    get:
+      description: Gets the list of instances of the API Group with their corresponding limit
+      parameters:
+      - name: tierId
+        required: true
+        in: query
+        schema:
+          allOf:
+          - x-force-coercion-to: integer
+          - type: integer
+            minimum: 1
+        description: The tier ID query parameter.
+      - $ref: '#/components/parameters/MasterOrganizationId'
+      - $ref: '#/components/parameters/ApplicationId'
+      - $ref: '#/components/parameters/EnvironmentId'
+      - $ref: '#/components/parameters/APIGroupInstanceId'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id015
+                - apiVersionId: 307123
+                  assetId: oas-api-indexed
+                  groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+                  assetVersion: 1.0.0
+                  productVersion: v1
+                  organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+                  environmentId: 90b78656-99e5-4754-a2ec-09f2eefc7d02
+                  isPublic: true
+                  tier:
+                    audit:
+                      created:
+                        date: 2020-09-17 13:10:55.006000+00:00
+                      updated: {}
+                    masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+                    organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+                    id: 173842
+                    groupInstanceId: 1901
+                    name: Free
+                    description:
+                    status: ACTIVE
+                    autoApprove: true
+                    applicationCount: 0
+                    limits:
+                    - visible: true
+                      maximumRequests: 1
+                      timePeriodInMilliseconds: 1000
+              example: *id015
+      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidLimits
+  /organizations/{masterOrganizationId}/applications/{applicationId}/instances:
+    summary: Application Instances
+    description: Application instances
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    - $ref: '#/components/parameters/ApplicationId'
+    get:
+      description: Gets the list of API instances for the application
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                Instances:
+                  $ref: examples/instances.yaml#/Instances
+      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidInstances
+  /organizations/{masterOrganizationId}/applications/{applicationId}/instances/{instanceId}/contracts:
+    summary: Contracts
+    description: The contracts for an API instance
+    get:
+      description: Gets the list of contracts for an API instance
+      parameters:
+      - $ref: '#/components/parameters/MasterOrganizationId'
+      - $ref: '#/components/parameters/ApplicationId'
+      - $ref: '#/components/parameters/InstanceId'
+      responses:
+        '200':
+          description: returns contracts of instance
+          content:
+            application/json:
+              examples:
+                InstanceContracts:
+                  $ref: examples/client-applications.yaml#/InstanceContracts
+      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidInstancesByInstanceidContracts
+  /organizations/{masterOrganizationId}/applications/{applicationId}/contracts:
+    summary: Application Contracts
+    description: Contracts associated with an application
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    - $ref: '#/components/parameters/ApplicationId'
+    get:
+      description: Gets a list of applications with contracts with the application
+      parameters:
+      - name: includeContractsForApiVersion
+        required: false
+        description: This field is used to filter by API version
+        in: query
+        schema:
+          $ref: '#/components/schemas/NullableInteger'
+      responses:
+        '200':
+          description: Gets a list of contracts
+          content:
+            application/json:
+              schema:
+                $ref: schemas/client-applications.yaml#/Contracts
+              examples:
+                Contracts:
+                  $ref: examples/client-applications.yaml#/Contracts
+      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidContracts
+    post:
+      operationId: createOrganizationsByMasterorganizationidApplicationsByApplicationidContracts
+      description: Creates a contract for an API or an API Group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/client-applications.yaml#/CreateContractV2
+            examples:
+              CreateContract:
+                $ref: examples/client-applications.yaml#/CreateContract
+        description: The contracts data to create.
+      responses:
+        '201':
+          description: Contract created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/client-applications.yaml#/Contract
+              examples:
+                Contract:
+                  $ref: examples/client-applications.yaml#/Contract
+  /organizations/{masterOrganizationId}/applications/{applicationId}/contracts/{contractId}:
+    summary: Contract
+    description: A single contract associated with an application and identified by a "contractId"
+    patch:
+      operationId: patchOrganizationsByMasterorganizationidApplicationsByApplicationidContractsByContractid
+      description: Updates contract SLA tier for an API or an API Group
+      parameters:
+      - $ref: '#/components/parameters/MasterOrganizationId'
+      - $ref: '#/components/parameters/ApplicationId'
+      - name: contractId
+        required: true
+        in: path
+        schema:
+          description: Id of the contract
+          allOf:
+          - x-force-coercion-to: integer
+          - type: integer
+            minimum: 1
+        x-origin:
+        - api: urn:api:exchange-experience
+          operation: GET /organizations/{masterOrganizationId}/applications/{applicationId}/contracts
+          description: GET `/organizations/{masterOrganizationId}/applications/{applicationId}/contracts` in this API; use `id` values as `contractId`.
+          values: $.id
+        description: The contract ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                requestedTierId: 3080
+              type: object
+        description: The contracts data to update.
+      responses:
+        '200':
+          description: Contract updated
+          content:
+            application/json:
+              schema:
+                example: &id016
+                  id: 384818
+                  status: APPROVED
+                  applicationId: 276068
+                  clientId: 13d5201f05344a4193e1fe4b14e8cb4d
+                  clientSecret: 285116794aE54Fa5C23BaE03D673EB09
+                  tier:
+                    id: 173842
+                    groupInstanceId: 1901
+                    name: Free
+                    description:
+                    defaultLimits:
+                    - visible: true
+                      maximumRequests: 1
+                      timePeriodInMilliseconds: 1000
+                    status: ACTIVE
+                    autoApprove: true
+              example: *id016
+  /organizations/{masterOrganizationId}/applications/{applicationId}/secret/reset:
+    summary: Reset Application Secret
+    description: Resets client secret for the application
+    parameters:
+    - $ref: '#/components/parameters/MasterOrganizationId'
+    - $ref: '#/components/parameters/ApplicationId'
+    post:
+      operationId: createOrganizationsByMasterorganizationidApplicationsByApplicationidSecretReset
+      description: 'Resets the client secret for the application.
+
+        This endpoint should be executed without specifying any body.
+
+        '
+      responses:
+        '201':
+          description: Secret reseted
+  /organizations/{organizationId}:
+    summary: Organization
+    description: A single organization identified by an "organizationId"
+    delete:
+      description: Unconditional delete organization
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '204':
+          description: Organization deleted
+      operationId: deleteOrganizationsByOrganizationid
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}:
+    summary: Asset Version
+    description: Asset version
+    post:
+      description: 'Uploads an asset.
+
+        Available fields for describing the asset are: "name", "description", "type", "dependencies", "keywords", "files" and "status".
+
+        You can also add properties by prefixing them with “properties”, e.g: properties.apiVersion, properties.mainFile.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      - name: x-sync-publication
+        in: header
+        schema:
+          description: Indicates if the publicacation should be synchronic or not
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+        description: The x sync publication header value.
+      - $ref: '#/components/parameters/AllowedAPISpecFormats'
+      - $ref: '#/components/parameters/FileValidation'
+      - $ref: '#/components/parameters/SnapshotsAllowed'
+      - $ref: '#/components/parameters/StrictPackage'
+      - name: Content-Type
+        required: true
+        in: header
+        schema:
+          description: Use "multipart/form-data"
+          example: multipart/form-data
+          type: string
+        description: The Content Type header value.
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/AssignRoles'
+      responses:
+        '201':
+          description: Asset successfully created, If the publication was triggered as synchronic (through the header x-sync-publication)
+          content:
+            application/json:
+              schema:
+                example: &id017
+                  organizationId: 1da12ec1-7614-43a3-bf24-ff754cab8ddf
+                  groupId: 1da12ec1-7614-43a3-bf24-ff754cab8ddf
+                  assetId: mulan
+                  version: 1.0.9
+                  name: examplecitoSnap
+                  type: app
+              example: *id017
+        '202':
+          description: Asset asynchronic publication has been started, the link provided in the body will have the necessary information to know its status
+          content:
+            application/json:
+              schema:
+                example: &id018
+                  publicationStatusLink: https://anypoint.mulesoft.com/exchange/api/v2/organizations/1da12ec1-7614-43a3-bf24-ff754cab8ddf/assets/1da12ec1-7614-43a3-bf24-ff754cab8ddf/mulapp/1.0.0/publication/status/543254325432
+                type: object
+              example: *id018
+      operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersion
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/mutabledata:
+    summary: Asset mutable data
+    description: Asset mutable data
+    patch:
+      description: Patch an asset mutable data
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      - name: Content-Type
+        required: true
+        in: header
+        schema:
+          description: Use "multipart/form-data"
+          example: multipart/form-data
+          type: string
+        description: The Content Type header value.
+      responses:
+        '202':
+          description: Asset asynchronous mutable data publication has been started, the link provided in the body will have the necessary information to know its status
+          content:
+            application/json:
+              schema:
+                example: &id019
+                  mutableDataStatusLink: https://anypoint.mulesoft.com/exchange/api/v2/organizations/1da12ec1-7614-43a3-bf24-ff754cab8ddf/assets/1da12ec1-7614-43a3-bf24-ff754cab8ddf/mulapp/1.0.0/mutabledata/status/543254325432
+              example: *id019
+      operationId: patchOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionMutabledata
+  /organizations/{organizationId}/groups/{groupId}/assets/{assetId}/nextAvailableVersion:
+    summary: Next Available Version
+    description: Next Available Version
+    get:
+      description: Returns the highest next available version, considering soft-deleted and snapshot versions
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - name: versionOrder
+        required: false
+        description: Specifies the position by which the version should be increased (PATCH, MINOR, MAJOR)
+        in: query
+        schema:
+          default: PATCH
+          type: string
+          enum:
+          - MAJOR
+          - MINOR
+          - PATCH
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id020
+                  nextAvailableVersion: 1.2.0
+              example: *id020
+      operationId: getOrganizationsByOrganizationidGroupsByGroupidAssetsByAssetidNextavailableversion
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/mutabledata/status/{runId}:
+    summary: By RunId
+    description: Mutable data publication status by "runId"
+    parameters:
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/RunId'
+    get:
+      description: Gets asset publication status
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id021
+                  status: running
+                  assetType: rest-api
+                  steps:
+                  - description: Files processing
+                    status: completed
+                    errors: []
+                  - description: Inferring type
+                    status: completed
+                    errors: []
+                type: object
+              example: *id021
+      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionMutabledataStatusByRunid
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/extendedStatus/{runId}:
+    summary: By RunId
+    description: Extended asset publication status by "runId"
+    parameters:
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/Version'
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/RunId'
+    get:
+      description: Gets extended asset publication extended status by runId
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: string
+              example: string
+      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationExtendedstatusByRunid
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/status:
+    summary: Status
+    description: Asset publication status
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/Version'
+    get:
+      description: Gets asset publication status
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                example: &id022
+                  status: running
+                  assetType: rest-api
+                  steps:
+                  - description: Files processing
+                    status: completed
+                    errors: []
+                  - description: Inferring type
+                    status: completed
+                    errors: []
+                type: object
+              example: *id022
+      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatus
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/status/{runId}:
+    summary: By RunId
+    description: Asset publication status by "runId"
+    get:
+      description: Gets asset publication status
+      parameters:
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/Version'
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: &id023
+                  status: running
+                  assetType: rest-api
+                  steps:
+                  - description: Files processing
+                    status: completed
+                    errors: []
+                  - description: Inferring type
+                    status: completed
+                    errors: []
+                type: object
+              example: *id023
+      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatusByRunid
+  /organizations/{organizationId}/fields:
+    summary: Custom Fields
+    description: Tags of type "custom field"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    get:
+      description: Gets field configurations available for the organization
+      parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/categories.yaml#/FieldsConfigurations
+              examples:
+                Categories:
+                  $ref: examples/categories.yaml#/FieldsConfigurations
+      operationId: getOrganizationsByOrganizationidFields
+    post:
+      operationId: createOrganizationsByOrganizationidFields
+      description: 'Adds a field configuration to the organization.
+
+        - Body should be application/json. This is not specified in the raml as it conflicts with Osprey.
+
+        '
+      responses:
+        '201':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/categories.yaml#/FieldConfiguration
+              examples:
+                FieldConfiguration:
+                  $ref: examples/categories.yaml#/FieldConfiguration
+  /organizations/{organizationId}/fields/{id}:
+    summary: Field Key
+    description: The key that identifies the custom field
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/Id'
+    patch:
+      operationId: patchOrganizationsByOrganizationidFieldsById
+      description: Updates a custom field configuration
+      parameters:
+      - $ref: '#/components/parameters/ForceUpdate'
+      responses:
+        '200':
+          description: Custom field updated
+    delete:
+      description: Deletes a custom field configuration
+      parameters:
+      - $ref: '#/components/parameters/ForceDelete'
+      responses:
+        '204':
+          description: Custom field deleted
+      operationId: deleteOrganizationsByOrganizationidFieldsById
+  /organizations/{organizationId}/categories:
+    summary: Categories
+    description: Tags of type "category"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    get:
+      description: Get categories configurations available for the organization
+      parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Organization's categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              examples:
+                Categories:
+                  $ref: examples/categories.yaml#/CategoriesConfigurations
+      operationId: getOrganizationsByOrganizationidCategories
+    post:
+      description: Add a category configuration to the organization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        description: The categories data to create.
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/categories.yaml#/CategoryConfiguration
+              examples:
+                Category:
+                  $ref: examples/categories.yaml#/CategoryConfiguration
+      operationId: createOrganizationsByOrganizationidCategories
+  /organizations/{organizationId}/categories/{id}:
+    summary: Category Key
+    description: The key that identifies the category
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/Id'
+    patch:
+      operationId: patchOrganizationsByOrganizationidCategoriesById
+      description: 'Updates a category configuration
+
+        - Body should be application/json. This is not specified in the raml as it conflicts with Osprey.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/ForceUpdate'
+      responses:
+        '200':
+          description: Category updated or created
+    delete:
+      description: Deletes a category configuration
+      parameters:
+      - $ref: '#/components/parameters/ForceDelete'
+      responses:
+        '204':
+          description: Category deleted
+      operationId: deleteOrganizationsByOrganizationidCategoriesById
+  /organizations/{organizationId}/queries:
+    summary: Organization Queries
+    description: Saved searches queries that belong to an organization
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    get:
+      description: Gets a list of queries
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      responses:
+        '200':
+          description: Gets a list of queries
+          content:
+            application/json:
+              schema:
+                $ref: schemas/search-queries.yaml#/SearchQueries
+              examples:
+                SearchQueries:
+                  $ref: examples/search-queries.yaml#/SearchQueries
+      operationId: getOrganizationsByOrganizationidQueries
+    post:
+      summary: Creates a new query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/search-queries.yaml#/CreateSearchQuery1
+            examples:
+              CreateSearchQuery:
+                $ref: examples/search-queries.yaml#/SearchQuery
+        description: The queries data to create.
+      responses:
+        '201':
+          description: Creates a new query
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                SearchQuery:
+                  $ref: examples/search-queries.yaml#/SearchQuery
+      operationId: createOrganizationsByOrganizationidQueries
+      description: Creates a new query
+  /organizations/{organizationId}/softDeleted:
+    summary: Soft Deleted Assets
+    get:
+      description: Get organization's soft deleted assets
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Soft Deleted assets
+          content:
+            application/json:
+              examples:
+                SoftDeletedAssets:
+                  $ref: examples/assets.yaml#/SoftDeletedAssets
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: getOrganizationsByOrganizationidSoftdeleted
+  /organizations/{organizationId}/settings:
+    summary: Organization Settings
+    get:
+      description: Gets root organization level settings
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: settings
+        in: query
+        description: Settings to be retrieved
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - deletionSettings
+            - assetRoleAssignmentSettings
+          minItems: 1
+      responses:
+        '200':
+          description: Organization level settings retrieved
+          content:
+            application/json:
+              example:
+                externalValue: examples/org-level-settings.yaml#/FetchOrgLevelSettings
+        '400':
+          description: No valid values were provided
+          content: {}
+      operationId: getOrganizationsByOrganizationidSettings
+    patch:
+      description: Updates root organization level settings
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/org-level-settings.yaml#/UpdateOrgLevelSettings
+            example:
+              externalValue: examples/org-level-settings.yaml#/UpdateOrgLevelSettings
+        description: The settings data to update.
+      responses:
+        '204':
+          description: assetCountLimit updated
+        '400':
+          description: If no valid values are provided
+          content: {}
+      operationId: patchOrganizationsByOrganizationidSettings
+  /organizations/{organizationId}/queries/{queryId}:
+    summary: Query
+    description: A single organization saved search query identified by a "queryId"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationId'
+    - $ref: '#/components/parameters/QueryId'
+    patch:
+      description: Edits a saved search query
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/search-queries.yaml#/UpdateSearchQuery1
+            examples:
+              SearchQuery:
+                $ref: examples/search-queries.yaml#/SearchQuery
+        description: The queries data to update.
+      responses:
+        '201':
+          description: Search query updated
+          content:
+            application/json:
+              schema:
+                $ref: schemas/search-queries.yaml#/SearchQuery2
+              examples:
+                SearchQuery:
+                  $ref: examples/search-queries.yaml#/SearchQuery
+      operationId: patchOrganizationsByOrganizationidQueriesByQueryid
+    delete:
+      description: Deletes the query
+      responses:
+        '204':
+          description: Saved search query deleted
+      operationId: deleteOrganizationsByOrganizationidQueriesByQueryid
+  /portals/{organizationDomain}:
+    summary: Portal Domain
+    description: Public portal domain
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    patch:
+      operationId: patchPortalsByOrganizationdomain
+      description: 'Publishes draft portal customization.
+
+        This endpoint should be executed without specifying any body.
+
+        '
+      responses:
+        '204':
+          description: Portal updated
+        '404':
+          description: Custom portal does not exist
+        '409':
+          description: There were conflicts while publishing
+    get:
+      description: Gets the customization portal
+      responses:
+        '200':
+          description: Gets customization
+          content:
+            application/json:
+              examples:
+                Customization:
+                  $ref: examples/customizations.yaml#/Customization
+      operationId: getPortalsByOrganizationdomain
+  /portals/{organizationDomain}/metadata:
+    summary: Metadata
+    description: Organization domain metadata
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    get:
+      description: Gets organization domain metadata from authentication service
+      responses:
+        '200':
+          description: Gets organization metadata
+          content:
+            application/json:
+              schema:
+                example: &id024
+                  isFederated: false
+                  name: Mulesoft Inc
+              example: *id024
+      operationId: getPortalsByOrganizationdomainMetadata
+  /portals/{organizationDomain}/resources:
+    summary: Resources
+    description: Public portal customization resources
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    get:
+      description: Gets portals resources
+      responses:
+        '200':
+          description: Retrieved list of resources
+          content:
+            application/json:
+              schema:
+                example: &id025
+                - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
+              example: *id025
+      operationId: getPortalsByOrganizationdomainResources
+  /portals/{organizationDomain}/resources/{resourceId}:
+    summary: Resource
+    description: A single portal resource identified by a "resourceId"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    - $ref: '#/components/parameters/ResourceId'
+    get:
+      description: Gets portals resource
+      responses:
+        '200':
+          description: Retrieved file as a binary content
+      operationId: getPortalsByOrganizationdomainResourcesByResourceid
+  /portals/{organizationDomain}/assets/search:
+    summary: Public Assets Search
+    description: Public Assets Search
+    get:
+      description: Gets a paginated set of assets
+      parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/OrganizationDomain'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                SearchResult:
+                  $ref: examples/assets.yaml#/SearchResult
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: getPortalsByOrganizationdomainAssetsSearch
+  /portals/{organizationDomain}/assets/{groupId}/{assetId}:
+    summary: Asset
+    description: Public asset by groupId and assetId
+    get:
+      parameters:
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/Strict'
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: success
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetid
+      description: Retrieves a assets.
+  /portals/{organizationDomain}/assets/{groupId}/{assetId}/asset:
+    summary: Asset
+    description: Asset
+    get:
+      description: Gets an asset
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Gets a simple asset
+          content:
+            application/json:
+              examples:
+                AssetWithFiles:
+                  $ref: examples/assets.yaml#/AssetWithFiles
+              schema:
+                type: object
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidAsset
+  /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/apiGroupInstances:
+    summary: API Group instances
+    description: API Group instances for an asset version group
+    get:
+      description: Gets API Group Instance
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/VersionGroup'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                APIGroupInstances:
+                  $ref: examples/assets.yaml#/VersionGroups
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupApigroupinstances
+  ? /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}/tiers
+  : summary: Tiers
+    description: Tiers for a public API Group instance
+    get:
+      description: Gets a list of tiers
+      parameters:
+      - $ref: '#/components/parameters/VersionGroup'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/APIGroupInstanceId'
+      - $ref: '#/components/parameters/EnvironmentId'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                CompleteTiers:
+                  $ref: examples/tiers.yaml#/CompleteTiers
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidTiers
+  /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/terms:
+    summary: Terms and Conditions
+    description: Gets public underlying API terms and conditions for a public asset version group
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    - $ref: '#/components/parameters/GroupId'
+    - $ref: '#/components/parameters/AssetId'
+    - $ref: '#/components/parameters/VersionGroup'
+    get:
+      description: Gets Terms and Conditions associated to the API
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                Terms:
+                  $ref: examples/instances.yaml#/Terms
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupTerms
+  /portals/{organizationDomain}/assets/{groupId}/{assetId}/{version}/asset:
+    summary: Asset
+    description: Asset
+    get:
+      description: Gets an asset
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                Asset:
+                  $ref: examples/assets.yaml#/AssetWithFiles
+      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidByVersionAsset
+  /portals/{organizationDomain}/applications/{applicationId}/instances:
+    summary: Instances
+    description: Public application instances
+    get:
+      description: Gets the list of API instances for the application
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/ApplicationId'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              examples:
+                Instances:
+                  $ref: examples/instances.yaml#/Instances
+      operationId: getPortalsByOrganizationdomainApplicationsByApplicationidInstances
+  /portals/{organizationDomain}/domain:
+    summary: Organization Domain
+    description: Public portal domain
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    put:
+      operationId: updatePortalsByOrganizationdomainDomain
+      description: Updates a domain for an organization
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              example: domain
+        description: The domain data to update.
+      responses:
+        '204':
+          description: Domain updated
+    delete:
+      description: Removes a domain
+      responses:
+        '204':
+          description: Domain deleted
+      operationId: deletePortalsByOrganizationdomainDomain
+    get:
+      description: Gets domain
+      responses:
+        '200':
+          description: Doamin obtained
+          content:
+            text/plain:
+              schema:
+                example: domain
+              example: domain
+      operationId: getPortalsByOrganizationdomainDomain
+  /portals/{organizationDomain}/cookieConsentId:
+    summary: Organization CookieConsentId
+    description: Public portal cookie consent id
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    put:
+      operationId: updatePortalsByOrganizationdomainCookieconsentid
+      description: Updates a cookie consent id for an organization
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              example: bb58d9d0-c218-4169-9742-cbc398811891
+        description: The cookieConsentId data to update.
+      responses:
+        '204':
+          description: Cookie consent id updated
+    delete:
+      description: Removes a cookie consent id
+      responses:
+        '204':
+          description: Cookie consent id deleted
+      operationId: deletePortalsByOrganizationdomainCookieconsentid
+    get:
+      description: Gets cookie consent id
+      responses:
+        '200':
+          description: Cookie consent id obtained
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 88520c5c-fa3c-4381-85bb-8Ccdb9b543974
+              example: 88520c5c-fa3c-4381-85bb-8Ccdb9b543974
+      operationId: getPortalsByOrganizationdomainCookieconsentid
+  /portals/{organizationDomain}/status:
+    summary: Organization public portal status
+    description: Public portal status
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    put:
+      operationId: updatePortalsByOrganizationdomainStatus
+      description: Updates a public portal status for an organization
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: disabled
+        description: The status data to update.
+      responses:
+        '204':
+          description: Status updated
+    get:
+      description: Gets a public portal status
+      responses:
+        '200':
+          description: Status obtained
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: enabled
+              example: enabled
+      operationId: getPortalsByOrganizationdomainStatus
+  /portals/{organizationDomain}/draft:
+    summary: Draft
+    description: Public portal customization draft
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    put:
+      operationId: updatePortalsByOrganizationdomainDraft
+      description: Updates the portal customization draft
+      requestBody:
+        content:
+          application/json:
+            examples:
+              UpdateCustomization:
+                $ref: examples/customizations.yaml#/UpdateCustomization
+        description: The draft data to update.
+      responses:
+        '204':
+          description: Custom portal updated
+        '422':
+          description: Customization Data is invalid
+    delete:
+      description: Deletes the portal customization draft
+      responses:
+        '204':
+          description: Draft portal deleted
+        '404':
+          description: Draft does not exist
+      operationId: deletePortalsByOrganizationdomainDraft
+    get:
+      description: Gets the customization portal
+      responses:
+        '200':
+          description: Customization obtained
+          content:
+            application/json:
+              examples:
+                Customization:
+                  $ref: examples/customizations.yaml#/Customization
+      operationId: getPortalsByOrganizationdomainDraft
+  /portals/{organizationDomain}/draft/pages:
+    summary: Pages
+    description: Public portal customization draft pages
+    post:
+      description: 'Creates an empty page for a draft version. Remember that:
+
+        - A page cannot be moved/created to/in a path that already contains another page with the same name.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/MoveSource'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/pages.yaml#/CreatePage2
+            examples:
+              CreatePage:
+                $ref: examples/pages.yaml#/CreatePage
+        description: The pages data to create.
+      responses:
+        '201':
+          description: Page created.
+        '409':
+          description: Page already exists
+        '422':
+          description: Maximum page quantity exceeded
+      operationId: createPortalsByOrganizationdomainDraftPages
+  /portals/{organizationDomain}/draft/pages/{pagePath}*:
+    summary: Page
+    description: A single portal draft page identified by a "pagePath"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    - $ref: '#/components/parameters/PagePath'
+    put:
+      description: Updates a page for a custom draft portal
+      requestBody:
+        content:
+          text/markdown:
+            schema:
+              type: string
+            examples:
+              PageMarkdown:
+                $ref: examples/pages.yaml#/PageMarkdown
+        description: The pages data to update.
+      responses:
+        '204':
+          description: Page updated
+      operationId: updatePortalsByOrganizationdomainDraftPagesPagepath
+    delete:
+      description: Deletes a page of a custom draft portal
+      responses:
+        '204':
+          description: Page deleted
+      operationId: deletePortalsByOrganizationdomainDraftPagesPagepath
+    get:
+      description: Gets a particular page
+      parameters:
+      - $ref: '#/components/parameters/PublicPortalDomain'
+      - $ref: '#/components/parameters/ForwardedHost'
+      - $ref: '#/components/parameters/ForwardedPath'
+      responses:
+        '200':
+          description: Gets the page
+          content:
+            text/html:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageHTML
+            text/markdown:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageMarkdown
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Page3
+              examples:
+                Page:
+                  $ref: examples/pages.yaml#/Page
+      operationId: getPortalsByOrganizationdomainDraftPagesPagepath
+  /portals/{organizationDomain}/draft/pagesOrder:
+    summary: Pages Order
+    description: Public portal pages order
+    put:
+      description: Saves the pages order for portal
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/PagesOrderRevision'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - page-C
+              - page-A
+              - page-B
+              type: array
+              minItems: 1
+              items:
+                type: string
+        description: The pagesOrder data to update.
+      responses:
+        '204':
+          description: Pages order stored successfully
+          headers:
+            X-Pages-Order-Revision:
+              $ref: '#/components/headers/PagesOrderRevision'
+              description: The X-Pages-Order-Revision response header value.
+        '409':
+          description: Pages order out of syncs
+      operationId: updatePortalsByOrganizationdomainDraftPagesorder
+  /portals/{organizationDomain}/draft/resources:
+    summary: Resources
+    description: Public portal customization resources
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    get:
+      description: Gets portals resources
+      responses:
+        '200':
+          description: Retrieved list of resources
+          content:
+            application/json:
+              schema:
+                type: object
+                example: &id026
+                - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
+              example: *id026
+      operationId: getPortalsByOrganizationdomainDraftResources
+    post:
+      operationId: createPortalsByOrganizationdomainDraftResources
+      description: 'Creates a resource for the portal draft.
+
+        The required multipart fields in the body are the path of the resource and the content type. Ex:
+
+        -F "Content-Type=image/png"
+
+        -F "file=@/Users/llucas/Documents/image.png"
+
+        '
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              format: binary
+        description: The resources data to create.
+      responses:
+        '201':
+          description: Successfully created the portal resource
+          content:
+            application/json:
+              schema:
+                type: object
+                example: &id027
+                  path: resources/dog.jpg
+                  commitId: eda56891-efab-40e0-a9ff-064e79327d17
+              example: *id027
+  /portals/{organizationDomain}/draft/resources/{resourceId}:
+    summary: Resource
+    description: A single portal resource identified by a "resourceId"
+    parameters:
+    - $ref: '#/components/parameters/OrganizationDomain'
+    - $ref: '#/components/parameters/ResourceId'
+    delete:
+      description: Deletes portals resource
+      responses:
+        '204':
+          description: Resource deleted
+      operationId: deletePortalsByOrganizationdomainDraftResourcesByResourceid
+    get:
+      description: Gets portals resource
+      responses:
+        '200':
+          description: Retrieved file as a binary content
+      operationId: getPortalsByOrganizationdomainDraftResourcesByResourceid
+  /portals/{organizationDomain}/pages/{pagePath}*:
+    summary: Page
+    description: A single portal page identified by a "pagePath"
+    get:
+      description: Gets a particular page
+      parameters:
+      - $ref: '#/components/parameters/OrganizationDomain'
+      - $ref: '#/components/parameters/PagePath'
+      - $ref: '#/components/parameters/PublicPortalDomain'
+      - $ref: '#/components/parameters/ForwardedHost'
+      - $ref: '#/components/parameters/ForwardedPath'
+      responses:
+        '200':
+          description: success
+          content:
+            text/html:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageHTML
+            text/markdown:
+              schema:
+                type: string
+              examples:
+                PageHTML:
+                  $ref: examples/pages.yaml#/PageMarkdown
+            application/json:
+              schema:
+                $ref: schemas/pages.yaml#/Page4
+              examples:
+                Page:
+                  $ref: examples/pages.yaml#/Page
+      operationId: getPortalsByOrganizationdomainPagesPagepath
+  /users/me/queries:
+    summary: Queries
+    description: Saved searches queries that belong to an user
+    get:
+      description: Gets a list of queries
+      parameters:
+      - $ref: '#/components/parameters/LimitNotValidated'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Ascending'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: schemas/search-queries.yaml#/SearchQueries
+              examples:
+                SearchQueries:
+                  $ref: examples/search-queries.yaml#/SearchQueries
+      operationId: getUsersMeQueries
+    post:
+      description: Creates a new query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/search-queries.yaml#/CreateSearchQuery
+            examples:
+              CreateSearchQuery:
+                $ref: examples/search-queries.yaml#/SearchQuery
+        description: The queries data to create.
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                SearchQuery:
+                  $ref: examples/search-queries.yaml#/SearchQuery
+      operationId: createUsersMeQueries
+  /users/me/queries/{queryId}:
+    summary: Query
+    description: A single user saved search query identified by a "queryId"
+    patch:
+      description: Edits a saved search query
+      parameters:
+      - $ref: '#/components/parameters/QueryId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/search-queries.yaml#/UpdateSearchQuery
+            examples:
+              UpdateSearchQuery:
+                $ref: examples/search-queries.yaml#/UpdateSearchQuery
+        description: The queries data to update.
+      responses:
+        '201':
+          description: Resource created successfully.
+          content:
+            application/json:
+              schema:
+                example: &id028
+                  name: name
+                  types:
+                  - connector
+                  - rest-api
+                  search: salesforce
+              example: *id028
+      operationId: patchUsersMeQueriesByQueryid
+    delete:
+      description: Deletes the query
+      parameters:
+      - $ref: '#/components/parameters/QueryId'
+      responses:
+        '204':
+          description: Saved search query deleted
+      operationId: deleteUsersMeQueriesByQueryid
+  /featureFlags:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getFeatureflags
+      description: Lists featureFlags.
+  /graphql:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getGraphql
+      description: Lists graphql.
+    post:
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: postGraphql
+      description: Creates graphql.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  parameters:
+    OrganizationId:
+      in: path
+      name: organizationId
+      description: Id of the organization
+      required: true
+      schema:
+        type: string
+        example: 434b78c3-bcd9-412d-9428-dec2f8c72cb2
+        format: uuid
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    MasterOrganizationId:
+      name: masterOrganizationId
+      required: true
+      in: path
+      schema:
+        description: The Id of the root organization
+        example: 434b78c3-bcd9-412d-9428-dec2f8c72cb2
+        type: string
+        format: uuid
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the root organization GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      description: The masterOrganization ID to identify the target resource.
+    GroupId:
+      in: path
+      name: groupId
+      description: groupId of the asset
+      required: true
+      schema:
+        type: string
+        example: group-id
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        description: GET `/assets/search`; use the asset search results from Exchange and extract `groupId` values.
+        values: $[*].groupId
+        labels: $[*].name
+    AssetId:
+      name: assetId
+      required: true
+      description: assetId of the asset
+      in: path
+      schema:
+        type: string
+        example: asset-id
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        description: GET `/assets/search`; use the asset search results from Exchange and extract`assetId` values.
+        values: $[*].assetId
+        labels: $[*].name
+    OrganizationDomain:
+      name: organizationDomain
+      required: true
+      description: Domain of the root organization
+      in: path
+      schema:
+        example: some-domain
+        type: string
+        maxLength: 255
+    MinorVersion:
+      name: minorVersion
+      required: true
+      description: Minor version
+      in: path
+      schema:
+        example: '2.22'
+        type: string
+        pattern: ^[0-9]+\.[0-9]+$
+    Version:
+      name: version
+      required: true
+      description: version of the asset
+      in: path
+      schema:
+        example: 2.22.45
+        type: string
+        pattern: ^v{0,1}(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        description: GET `/assets/search`; use the asset search results from Exchange and extract `version` values.
+        values: $.versions
+        labels: $.name
+    APIInstanceIdQuery:
+      name: apiInstanceId
+      required: false
+      description: id of the api instance
+      in: query
+      schema:
+        $ref: '#/components/schemas/NullableInteger'
+    APIInstanceId:
+      name: apiInstanceId
+      required: true
+      in: path
+      schema:
+        description: id of the api instance
+        type: string
+      description: The apiInstance ID to identify the target resource.
+    APIId:
+      name: apiId
+      required: true
+      in: path
+      schema:
+        description: id of the api instance
+        type: string
+      description: The api ID to identify the target resource.
+    Search:
+      name: search
+      required: false
+      description: Search parameter used to filter facets
+      in: query
+      schema:
+        title: Search
+        example: my name
+        type: string
+    Limit:
+      name: limit
+      description: Amount of objects retrieved in the response
+      in: query
+      schema:
+        title: Limit
+        example: 10
+        allOf:
+        - x-force-coercion-to: number
+        - type: number
+          minimum: 0
+          maximum: 250
+    LimitNotValidated:
+      name: limit
+      description: Amount of objects retrieved in the response
+      in: query
+      schema:
+        title: Limit
+        example: 10
+        allOf:
+        - x-force-coercion-to: number
+        - type: number
+    Offset:
+      name: offset
+      description: The offset specifies the offset of the first row to return
+      in: query
+      schema:
+        $ref: '#/components/schemas/NullableInteger'
+    Sort:
+      name: sort
+      description: Property to sort by
+      required: false
+      in: query
+      schema:
+        title: Sort
+        example: name
+        type: string
+    Status:
+      name: status
+      in: query
+      description: Filter versions that matches the status indicated. Should be one of deprecated, development or published
+      schema:
+        title: Status
+        type: array
+        items:
+          type: string
+    VersionGroup:
+      name: versionGroup
+      description: Version group of the asset
+      required: true
+      in: path
+      schema:
+        type: string
+    ApplicationId:
+      name: applicationId
+      required: true
+      in: path
+      schema:
+        description: The Id of an application
+        example: '273463'
+        type: string
+      description: The application ID to identify the target resource.
+    EnvironmentId:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        description: The id of the environment for this API Group instance
+        type: string
+        minLength: 36
+        maxLength: 36
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    APIGroupInstanceIdQuery:
+      name: apiGroupInstanceId
+      required: false
+      in: query
+      schema:
+        description: Id of the API Group instance
+        allOf:
+        - x-force-coercion-to: integer
+        - type: integer
+          minimum: 0
+      description: The apiGroupInstance ID query parameter.
+    APIGroupInstanceId:
+      name: apiGroupInstanceId
+      required: true
+      in: path
+      schema:
+        description: Id of the API Group instance
+        allOf:
+        - x-force-coercion-to: integer
+        - type: integer
+          minimum: 0
+      description: The apiGroupInstance ID to identify the target resource.
+    InstanceId:
+      name: instanceId
+      required: true
+      in: path
+      schema:
+        description: Id of the API instance
+        allOf:
+        - x-force-coercion-to: integer
+        - type: integer
+          minimum: 1
+      description: The instance ID to identify the target resource.
+    ReviewId:
+      name: reviewId
+      required: true
+      in: path
+      schema:
+        description: Id of the review. It is a UUID.
+        example: 7a7190da-29f3-451a-b2b2-ebd6f7e1f8ea
+        type: string
+        format: uuid
+      description: The review ID to identify the target resource.
+    ExternalInstanceId:
+      name: id
+      required: true
+      in: path
+      schema:
+        description: Id of the external instance
+        example: 7a7190da-29f3-451a-b2b2-ebd6f7e1f8ea
+        type: string
+        format: uuid
+      description: The id to identify the target resource.
+    ManagedInstanceId:
+      name: id
+      required: true
+      in: path
+      schema:
+        description: Id of the managed instance
+        example: '9897'
+        type: string
+      description: The id to identify the target resource.
+    PagePath:
+      name: pagePath
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The pagePath to identify the target resource.
+    QueryId:
+      in: path
+      name: queryId
+      required: true
+      schema:
+        type: string
+      description: The query ID to identify the target resource.
+    ResourceId:
+      name: resourceId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The resource ID to identify the target resource.
+    TagKey:
+      name: tagKey
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The tagKey to identify the target resource.
+    AllowedAPISpecFormats:
+      name: x-allowed-api-spec-formats
+      required: false
+      in: header
+      schema:
+        description: Specify API Spec formats that assets are allowed to use
+        example:
+        - application/raml
+        - application/vnd.oai.openapi;version=2.0
+        type: string
+      description: The x allowed api spec formats header value.
+    FileValidation:
+      name: x-file-validation
+      in: header
+      required: false
+      schema:
+        default: true
+        allOf:
+        - x-force-coercion-to: boolean
+        - type: boolean
+      description: The x file validation header value.
+    StrictPackage:
+      name: x-strict-package
+      description: Indicates if file is immutable.
+      in: header
+      schema:
+        default: false
+        allOf:
+        - x-force-coercion-to: boolean
+        - type: boolean
+    SnapshotsAllowed:
+      name: x-snapshots-allowed
+      required: false
+      description: Indicates if snapshot publicataion is enabled.
+      in: header
+      schema:
+        $ref: '#/components/schemas/NullableBoolean'
+    UserId:
+      name: x-user-id
+      required: false
+      in: header
+      schema:
+        description: UserId.
+        type: string
+      description: The x user id header value.
+    AssignRoles:
+      name: x-assign-roles
+      required: false
+      in: header
+      schema:
+        type: boolean
+      description: The x assign roles header value.
+    Accept:
+      name: accept
+      required: false
+      in: header
+      schema:
+        description: Data can be exported as a CSV. The allowed content-type to be requested for is 'text/csv' or 'application/json'
+        default: application/json
+        enum:
+        - application/json
+        - text/csv
+        type: string
+      description: The accept header value.
+    PagesOrderRevision:
+      name: X-Pages-Order-Revision
+      required: false
+      in: header
+      schema:
+        description: 'Hash that must be sent to ensure the client is in sync with the most recent pages order stored by the server.
+
+          '
+        type: string
+        minLength: 1
+      description: The X Pages Order Revision header value.
+    Ascending:
+      name: ascending
+      description: Order for sorting
+      in: query
+      example: true
+      schema:
+        $ref: '#/components/schemas/NullableBoolean'
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: The id to identify the target resource.
+    RunId:
+      name: runId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The run ID to identify the target resource.
+    ForceDelete:
+      name: X-Force-Delete
+      required: false
+      in: header
+      schema:
+        description: Enforce delete operation (possibly affecting many resources) to avoid Conflict response (409)
+        $ref: '#/components/schemas/NullableBoolean'
+      description: The X Force Delete header value.
+    DeleteType:
+      name: X-Delete-Type
+      in: header
+      schema:
+        description: 'It could be ''soft-delete'' or ''hard-delete'', that mean the asset will be logical deleted or physical deleted
+
+          It''s supposed to if it is not specified, the type will be ''soft-delete''
+
+          '
+        enum:
+        - soft-delete
+        - hard-delete
+        type: string
+      description: The X Delete Type header value.
+    ForwardedHost:
+      name: x-forwarded-host
+      required: false
+      in: header
+      schema:
+        description: Vanity domain host
+        type: string
+      description: The x forwarded host header value.
+    ForwardedPath:
+      name: x-forwarded-path
+      required: false
+      in: header
+      schema:
+        description: Vanity domain path
+        type: string
+      description: The x forwarded path header value.
+    PublicPortalDomain:
+      name: x-public-portal-domain
+      required: false
+      in: header
+      schema:
+        description: Public portal domain
+        type: string
+      description: The x public portal domain header value.
+    IncludeSnapshots:
+      in: query
+      name: includeSnapshots
+      description: Filters results depending on whether the snapshots is enabled or not
+      required: false
+      schema:
+        $ref: '#/components/schemas/NullableBoolean'
+    MoveSource:
+      name: x-move-source
+      required: false
+      in: header
+      schema:
+        description: 'This header is used when you want to rename or move an existing page.
+
+          `x-move-source` specifies the path of the page or folder that wants to be moved, the source.
+
+          The request body property `path` will be the destination.
+
+          '
+        example: /examples/
+        type: string
+      description: The x move source header value.
+    PeriodType:
+      name: periodType
+      in: query
+      schema:
+        title: Time span of interest
+        description: Assets can be aggregated based on a period of N days with end date = today
+        default: WEEK
+        enum:
+        - DAY
+        - WEEK
+        - MONTH
+        - QUARTER
+        type: string
+      description: The periodType query parameter.
+    ForceUpdate:
+      name: X-Force-Update
+      required: false
+      in: header
+      description: Enforce update operation (possibly affecting many resources) to avoid Conflict response (409)
+      schema:
+        $ref: '#/components/schemas/NullableBoolean'
+    Format:
+      name: format
+      required: false
+      in: query
+      schema:
+        title: Response format
+        description: The format for the response. It can be "csv" or "json" (default).
+        type: string
+      description: The format query parameter.
+    Strict:
+      name: strict
+      in: query
+      description: 'Asset related versions populated into `otherVersions` property will also have the filters for this query applied, e.g.: if status filter is applied, then related versions will have the status filter also applied, otherwise all possible status will be returned. Defaults to `true`'
+      schema:
+        $ref: '#/components/schemas/NullableBoolean'
+    XOrigin_organizationId_Path:
+      name: organizationId
+      in: path
+      description: UUID
+      required: true
+      schema:
+        pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+  headers:
+    PagesOrderRevision:
+      description: Hash which represents the most recent pages order revision. This hash should be sent back to the server when attempting to store a new pages order.
+      schema:
+        type: string
+  schemas:
+    NullableInteger:
+      description: An empty value is allowed and transformed to `0`
+      allOf:
+      - x-force-coercion-to: integer
+      - type: integer
+    NullableBoolean:
+      description: An empty value is allowed and transformed to `false`
+      allOf:
+      - x-force-coercion-to: boolean
+      - type: boolean
+    ServiceDependency:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+          - ok
+          - error

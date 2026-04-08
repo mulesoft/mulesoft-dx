@@ -1,0 +1,33 @@
+{
+  "value": {
+    "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+    "autodiscoveryInstanceName": "promotedApiName",
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "apiId": 91,
+    "assetVersion": null,
+    "productVersion": null,
+    "providerId": "2e71d283-6248-4c81-98eb-e254a89b7e0a",
+    "instanceLabel": "some instance label",
+    "description": "sint enim maiores officiis aliquam minima ipsam quas animi voluptatem aut necessitatibus quod deleniti voluptatem aut est aut adipisci mollitia aliquid rerum iure maxime provident libero non repellendus labore et ut facere quidem repudiandae quis nihil doloremque harum eum ipsum magnam velit aspernatur porro atque nulla qui temporibus dicta totam",
+    "tags": [
+      "excepturi",
+      "quia",
+      "nisi",
+      "molestias",
+      "sint",
+      "labore",
+      "itaque",
+      "non",
+      "alias",
+      "blanditiis"
+    ],
+    "order": 4,
+    "endpointUri": null,
+    "lastActiveDelta": 181073,
+    "audit": {
+      "created": { "date": "2017-08-02T20:43:27.864Z" },
+      "updated": {}
+    }
+  }
+}

@@ -1,0 +1,10 @@
+ApplicationOwners:
+  value:
+    - "id": "48bd820e-9332-49b9-92cf-1f57e624aec0"
+      "firstName": "Name"
+      "lastName": "Last"
+      "email": "name.last@mulesoft.com"
+      "type": "user"
+    - "id": "48bd820e-9332-49b9-92cf-1f57e624aec0"
+      "username": "teamuser"
+      "type": "team"

@@ -1,0 +1,10 @@
+production_secret: []
+non_production_secret: []
+mock_secret: []
+false_positive:
+ - id: anypoint-public-api-specs://cloudhub/api.yaml_63edc248110a73d5c52415d6f6ac38304f0b1bc726410cbc75ace7e2c937ae9b_spectral
+   justification: Example/dummy 1024-bit RSA private key used in OpenAPI spec example payload for CloudHub SSL configuration documentation. Not a real key.
+ - id: anypoint-public-api-specs://access-management/api.yaml_0777ac47f30449354744512f0cbd9aec28c838d03ce07d45adb54b4a934988ba_spectral
+   justification: Fabricated UUID in OpenAPI spec example response illustrating access_token format for the Access Management API. Not a real token.
+ - id: anypoint-public-api-specs://access-management/api.yaml_31b8b462b412205693911854b1d45d1ee37306165c9a508c09f9470ac0e285b5_spectral
+   justification: Fabricated UUID in OpenAPI spec example response for the login endpoint of the Access Management API. Not a real token.

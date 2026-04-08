@@ -1,0 +1,11 @@
+UpdateOrgLevelSettings:
+  value:
+    deletionSettings:
+      hardDeletionEnabled: true
+      assetRoleAssignmentSettings: true
+
+FetchOrgLevelSettings:
+  value:
+    - deletionSettings:
+        hardDeletionEnabled: true
+        assetRoleAssignmentSettings: true

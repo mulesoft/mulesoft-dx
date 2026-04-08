@@ -1,0 +1,4913 @@
+openapi: 3.0.0
+info:
+  title: API Platform API
+  version: 2.0.0
+  description: Manage APIs, applications, alerts, and classifications in the Anypoint API Platform repository.
+servers:
+- url: https://anypoint.mulesoft.com/apiplatform/repository/{version}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://eu1.anypoint.mulesoft.com/apiplatform/repository/{version}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://{region}.platform.mulesoft.com/apiplatform/repository/{version}
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /public: {}
+  /public/apis:
+    get:
+      description: Retrieves a list of APIs.
+      parameters:
+      - name: requireRaml
+        description: Search only those APIs which have a publicly accesible RAML specification.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getPublicApis
+  /organizations:
+    description: Organizations are the container entity for all API Portal-related resources.
+  /organizations/active:
+    get:
+      description: Get the active organization.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsActive
+  /organizations/{organizationId}:
+    description: The organization's data.
+    get:
+      description: Get the organization.
+      parameters:
+      - name: extended
+        description: Obtain extended information from the organization.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: resolveTheme
+        description: Resolves the theme inheritance.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful.
+        '400':
+          description: Bad Request.
+        '500':
+          description: An unknown error occurred.
+      operationId: getOrganizationsByOrganizationid
+    put:
+      description: Update the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The organizations data to update.
+      responses:
+        '200':
+          description: Successful.
+        '400':
+          description: Bad Request.
+        '500':
+          description: An unknown error occurred.
+      operationId: updateOrganizationsByOrganizationid
+    delete:
+      description: Delete the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: Organization deleted.
+      operationId: deleteOrganizationsByOrganizationid
+  /organizations/{organizationId}/migration-mapping:
+    get:
+      description: Get all api version migration mappings in CSV format. This is for setting up the Crowd upgrade.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidMigrationMapping
+  /organizations/{organizationId}/permissions:
+    description: A list of available permissions.
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPermissions
+  /organizations/{organizationId}/alerts:
+    get:
+      description: Gets a collection of alerts.
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The apiVersion ID query parameter.
+      - name: tierId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The tier ID query parameter.
+      - name: lastModifiedSince
+        description: 'Return items which have been modified since the specified timestamp
+
+          '
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+      - name: alertId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The alert ID query parameter.
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: policyId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The policy ID query parameter.
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: apiId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The api ID query parameter.
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      - name: severity
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The severity query parameter.
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: type
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The type query parameter.
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - name: active
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The active query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successfully retrieved alert definitions.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  value:
+                    total: 1234
+                    data:
+                    - apiVersion:
+                        name: My First API
+                        id: 12345
+                        apiId: 67890
+                      name: My First API's Request Count Alert
+                      severity: warning
+                      recipients:
+                      - role: Api Version Owner
+                      - userId: abcde-fghij-klmno
+                        name: Jane Doe
+                        email: jane.doe@example.com
+                      period:
+                        duration:
+                          count: 1
+                          weight: HOURS
+                        repeat: 4
+                      type: requestCount
+                      condition:
+                        aggregate: count
+                        operator: GREATER_THAN
+                        value: 1000
+                    - apiVersion:
+                        name: My First API
+                        id: 12345
+                        apiId: 67890
+                      name: My First API's Request Count Alert
+                      severity: warning
+                      recipients:
+                      - role: Api Version Owner
+                      - userId: abcde-fghij-klmno
+                        name: Jane Doe
+                        email: jane.doe@example.com
+                      period:
+                        duration:
+                          count: 1
+                          weight: HOURS
+                        repeat: 4
+                      type: requestCount
+                      condition:
+                        aggregate: count
+                        operator: GREATER_THAN
+                        value: 1000
+              example: *id001
+      operationId: getOrganizationsByOrganizationidAlerts
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The alerts data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidAlerts
+  /organizations/{organizationId}/environments:
+    description: A list of available environments to deploy to.
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - name: withCloudhubPermissions
+        description: Add to each environment the user's permissions in CloudHub
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: true
+      - name: all
+        description: Retrieve all environments, without filtering by the user's permissions.
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidEnvironments
+  /organizations/{organizationId}/environments/default:
+    description: The default environment. This is defined in core services per organization.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  id: 80139f69-2845-46fa-9217-d9fe0171030f
+                  name: QA
+                  organizationId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  isProduction: false
+              example: *id002
+      operationId: getOrganizationsByOrganizationidEnvironmentsDefault
+      description: Retrieves a default.
+  /organizations/{organizationId}/environments/{environmentId}/apis/{apiId}/versions/{apiVersionId}/alerts:
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - anyOf:
+                - type: object
+                  required:
+                  - type
+                  - policyId
+                  - policyTemplate
+                  properties:
+                    type:
+                      enum:
+                      - api-policy-violation
+                    policyId:
+                      type: integer
+                    policyTemplate:
+                      type: object
+                      required:
+                      - id
+                      - name
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                          maxLength: 150
+                - type: object
+                  required:
+                  - type
+                  properties:
+                    type:
+                      enum:
+                      - api-request-count
+                - type: object
+                  required:
+                  - type
+                  properties:
+                    type:
+                      enum:
+                      - api-response-code
+                - type: object
+                  required:
+                  - type
+                  properties:
+                    type:
+                      enum:
+                      - api-response-time
+              - type: object
+                required:
+                - apiAlertsVersion
+                - name
+                - api
+                - apiVersion
+                - enabled
+                - severity
+                - recipients
+                - period
+                - condition
+                properties:
+                  apiAlertsVersion:
+                    enum:
+                    - 1.0.0
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  api:
+                    type: object
+                    required:
+                    - id
+                    - name
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 64
+                  apiVersion:
+                    type: object
+                    required:
+                    - id
+                    - name
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 150
+                  enabled:
+                    type: boolean
+                  severity:
+                    enum:
+                    - INFO
+                    - WARNING
+                    - CRITICAL
+                  recipients:
+                    type: array
+                    minItems: 1
+                    items:
+                      type: object
+                      required:
+                      - type
+                      - value
+                      properties:
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        type:
+                          enum:
+                          - email
+                          - role
+                          - user
+                        value:
+                          type: string
+                          maxLength: 254
+                  period:
+                    type: object
+                    required:
+                    - duration
+                    - repeat
+                    properties:
+                      duration:
+                        type: object
+                        required:
+                        - count
+                        - weight
+                        properties:
+                          count:
+                            type: integer
+                            minimum: 1
+                          weight:
+                            enum:
+                            - DAYS
+                            - HOURS
+                            - MINUTES
+                      repeat:
+                        type: integer
+                        minimum: 1
+                  condition:
+                    type: object
+                    required:
+                    - aggregate
+                    - operator
+                    - value
+                    properties:
+                      aggregate:
+                        enum:
+                        - COUNT
+                        - AVG
+                        - SUM
+                        - MIN
+                        - MAX
+                      operator:
+                        enum:
+                        - GREATER_THAN
+                        - LESS_THAN
+                        - EQUAL
+                      value:
+                        type: integer
+                        minimum: 0
+                      resourceType:
+                        enum:
+                        - api-version
+                      filter:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            property:
+                              type: string
+                            operator:
+                              enum:
+                              - GREATER_THAN
+                              - LESS_THAN
+                              - EQUAL
+                              - MATCHES
+                              - IN
+                              - BETWEEN
+                              - EXIST
+                            values:
+                              anyOf:
+                              - type: array
+                                items: {}
+                              - type: string
+                              - type: integer
+                              - nullable: true
+              type: object
+        x-amf-mediaType: application/json
+        description: The alerts data to create.
+      responses:
+        '200':
+          description: Successfully created alert definition.
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlerts
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successfully retrieved an API Version's alert definitions.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlerts
+  /organizations/{organizationId}/environments/{environmentId}/apis/{apiId}/versions/{apiVersionId}/alerts/{alertId}:
+    description: An alert Item
+    get:
+      description: Gets an alert.
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The apiVersion ID to identify the target resource.
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The api ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successfully retrieved alert definition.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                allOf:
+                - anyOf:
+                  - type: object
+                    required:
+                    - type
+                    - policyId
+                    - policyTemplate
+                    properties:
+                      type:
+                        enum:
+                        - api-policy-violation
+                      policyId:
+                        type: integer
+                      policyTemplate:
+                        type: object
+                        required:
+                        - id
+                        - name
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                            maxLength: 150
+                  - type: object
+                    required:
+                    - type
+                    properties:
+                      type:
+                        enum:
+                        - api-request-count
+                  - type: object
+                    required:
+                    - type
+                    properties:
+                      type:
+                        enum:
+                        - api-response-code
+                  - type: object
+                    required:
+                    - type
+                    properties:
+                      type:
+                        enum:
+                        - api-response-time
+                - type: object
+                  required:
+                  - apiAlertsVersion
+                  - name
+                  - api
+                  - apiVersion
+                  - enabled
+                  - severity
+                  - recipients
+                  - period
+                  - condition
+                  properties:
+                    apiAlertsVersion:
+                      enum:
+                      - 1.0.0
+                    name:
+                      type: string
+                      minLength: 1
+                      maxLength: 255
+                    api:
+                      type: object
+                      required:
+                      - id
+                      - name
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 64
+                    apiVersion:
+                      type: object
+                      required:
+                      - id
+                      - name
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 150
+                    enabled:
+                      type: boolean
+                    severity:
+                      enum:
+                      - INFO
+                      - WARNING
+                      - CRITICAL
+                    recipients:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: object
+                        required:
+                        - type
+                        - value
+                        properties:
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+                          type:
+                            enum:
+                            - email
+                            - role
+                            - user
+                          value:
+                            type: string
+                            maxLength: 254
+                    period:
+                      type: object
+                      required:
+                      - duration
+                      - repeat
+                      properties:
+                        duration:
+                          type: object
+                          required:
+                          - count
+                          - weight
+                          properties:
+                            count:
+                              type: integer
+                              minimum: 1
+                            weight:
+                              enum:
+                              - DAYS
+                              - HOURS
+                              - MINUTES
+                        repeat:
+                          type: integer
+                          minimum: 1
+                    condition:
+                      type: object
+                      required:
+                      - aggregate
+                      - operator
+                      - value
+                      properties:
+                        aggregate:
+                          enum:
+                          - COUNT
+                          - AVG
+                          - SUM
+                          - MIN
+                          - MAX
+                        operator:
+                          enum:
+                          - GREATER_THAN
+                          - LESS_THAN
+                          - EQUAL
+                        value:
+                          type: integer
+                          minimum: 0
+                        resourceType:
+                          enum:
+                          - api-version
+                        filter:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              property:
+                                type: string
+                              operator:
+                                enum:
+                                - GREATER_THAN
+                                - LESS_THAN
+                                - EQUAL
+                                - MATCHES
+                                - IN
+                                - BETWEEN
+                                - EXIST
+                              values:
+                                anyOf:
+                                - type: array
+                                  items: {}
+                                - type: string
+                                - type: integer
+                                - nullable: true
+                type: object
+              example: {}
+        '401':
+          description: Authentication requirements not fulfilled.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Specified alert not found.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+    patch:
+      description: Updates a alert.
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The apiVersion ID to identify the target resource.
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The api ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiAlertsVersion:
+                  enum:
+                  - 1.0.0
+                name:
+                  type: string
+                enabled:
+                  type: boolean
+                severity:
+                  enum:
+                  - INFO
+                  - WARNING
+                  - CRITICAL
+                recipients:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                    - type
+                    - value
+                    properties:
+                      type:
+                        enum:
+                        - email
+                        - role
+                        - user
+                      value:
+                        type: string
+                period:
+                  type: object
+                  properties:
+                    duration:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                        weight:
+                          enum:
+                          - DAYS
+                          - HOURS
+                          - MINUTES
+                          - SECONDS
+                    repeat:
+                      type: integer
+                condition:
+                  type: object
+                  properties:
+                    aggregate:
+                      enum:
+                      - COUNT
+                      - AVG
+                      - SUM
+                      - MIN
+                      - MAX
+                    operator:
+                      enum:
+                      - GREATER_THAN
+                      - LESS_THAN
+                      - EQUAL
+                    value:
+                      type: integer
+        x-amf-mediaType: application/json
+        description: The alerts data to update.
+      responses:
+        '200':
+          description: Successfully updated alert definition.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  value:
+                    type: api-request-count
+                    apiAlertsVersion: 1.0.0
+                    api:
+                      name: My First API
+                      id: 22
+                    apiVersion:
+                      name: First version
+                      id: 77
+                    enabled: true
+                    resources:
+                    - foo-api-version-id
+                    name: My First API's Request Count Alert
+                    severity: WARNING
+                    recipients:
+                    - type: role
+                      value: API_VERSION_OWNER
+                    - type: user
+                      value: foo-user-id
+                    - type: email
+                      value: foo_email@example.com
+                    period:
+                      duration:
+                        count: 1
+                        weight: HOURS
+                      repeat: 4
+                    condition:
+                      resourceType: api-version
+                      aggregate: COUNT
+                      operator: GREATER_THAN
+                      value: 1000
+                      filter:
+                      - property: apiVersionId
+                        operator: EQUAL
+                        values:
+                        - foo-api-version-id
+              example: *id003
+        '400':
+          description: Invalid alert payload.
+        '401':
+          description: Authentication requirements not fulfilled.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Specified alert not found.
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+    delete:
+      description: Deletes the specified alert definition.
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The apiVersion ID to identify the target resource.
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The api ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: Successfully deleted alert definition.
+        '401':
+          description: Authentication requirements not fulfilled.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: alert not found.
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+  /organizations/{organizationId}/theme:
+    put:
+      description: Update the organization theme.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated4'
+        description: The theme data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidTheme
+  /organizations/{organizationId}/theme/default:
+    get:
+      description: Get the default theme for an organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidThemeDefault
+  /organizations/{organizationId}/portals/terms:
+    get:
+      description: Gets portal terms set for the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPortalsTerms
+    put:
+      description: Create portal terms for the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The terms data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidPortalsTerms
+    delete:
+      description: Deletes portal terms for the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidPortalsTerms
+  /organizations/{organizationId}/portals/redirectUri:
+    put:
+      description: Update redirect uri of the list of portals for the organization
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The redirectUri data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidPortalsRedirecturi
+  /organizations/{organizationId}/apis:
+    description: A collection of APIs.
+    get:
+      description: Retrieves a list of APIs.
+      parameters:
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: filters
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The filters query parameter.
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: requirePortal
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The requirePortal query parameter.
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApis
+    post:
+      description: Creates an API.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated2'
+        description: The apis data to create.
+      x-amf-requestPayloads:
+      - mediaType: multipart/form-data
+        schema: {}
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApis
+  /organizations/{organizationId}/apis/by-name:
+    get:
+      description: 'Returns a single API that matches the passed-in API name.
+
+        Returns null if no match is found.
+
+        '
+      parameters:
+      - name: apiName
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The apiName query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByName
+  /organizations/{organizationId}/apis/versions:
+    post:
+      description: Create an API Version from an Exchange Spec. Only available after the Crowd upgrade.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: unclassified api version from GAV
+                spec:
+                  groupId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  assetId: api-test
+                  version: 1.0.0
+              type: object
+              required:
+              - spec
+              - name
+              properties:
+                spec:
+                  type: object
+                  required:
+                  - groupId
+                  - assetId
+                  - version
+                  properties:
+                    groupId:
+                      type: string
+                      minLength: 1
+                      maxLength: 256
+                    assetId:
+                      type: string
+                      minLength: 1
+                      maxLength: 256
+                    version:
+                      type: string
+                      minLength: 1
+                      maxLength: 256
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 150
+        x-amf-mediaType: application/json
+        description: The versions data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  apiId: 26
+                  assetVersion: 1.0.0
+                  productVersion: v1
+                  environmentId:
+                  name: unclassified api version from GAV
+                  order: 1
+                  audit:
+                    created:
+                      date: 2017-09-19 21:27:47.177000+00:00
+                    updated: {}
+                  masterOrganizationId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  organizationId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  id: 97
+                  groupId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  assetId: api-test
+                  tags: []
+                  terms:
+              example: *id004
+      operationId: createOrganizationsByOrganizationidApisVersions
+  /organizations/{organizationId}/apis/versions/by-endpoint:
+    get:
+      description: Returns a list of API versions for a given list of endpoints.
+      parameters:
+      - name: uris
+        required: true
+        in: query
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+        description: The uris query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisVersionsByEndpoint
+  /organizations/{organizationId}/apis/versions/by-name:
+    get:
+      description: 'Returns a single API that matches the passed-in API name
+
+        and API version name. Returns null if no match is found.
+
+        '
+      parameters:
+      - name: apiName
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The apiName query parameter.
+      - name: versionName
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The versionName query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisVersionsByName
+  /organizations/{organizationId}/apis/versions/tiers:
+    get:
+      description: 'Returns permitted SLA tiers within an organization.
+
+        It means every SLA tier that belongs to API version requesting user has access to.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisVersionsTiers
+  /organizations/{organizationId}/apis/versions/contracts/applications:
+    get:
+      description: 'Returns permitted applications within an organization.
+
+        It means every applications that has a contract with an API version requesting user has access to.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisVersionsContractsApplications
+  /organizations/{organizationId}/apis/{apiId}:
+    description: An API.
+    get:
+      description: Returns an API and all its versions.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiid
+    patch:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The apis data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiid
+      description: Updates a apis.
+    delete:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiid
+      description: Deletes a apis.
+  /organizations/{organizationId}/apis/{apiId}/portals:
+    description: A collection of API portals.
+    get:
+      description: Returns a collection of API portals.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidPortals
+  /organizations/{organizationId}/apis/{apiId}/permissions:
+    post:
+      description: Grant a user view access to this API.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The permissions data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidPermissions
+  /organizations/{organizationId}/apis/{apiId}/versions:
+    description: A collection of API versions.
+    post:
+      description: Creates an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated2'
+        description: The versions data to create.
+      x-amf-requestPayloads:
+      - mediaType: multipart/form-data
+        schema: {}
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersions
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}:
+    description: An API version.
+    get:
+      description: Returns an instance of a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The versions data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The versions data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/classify:
+    post:
+      description: (Only avaliable after the Crowd upgrade) Moves an API Version from the unclassified environment into a specified environment.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - type: object
+                required:
+                - environmentId
+                properties:
+                  instanceLabel:
+                    x-amf-union:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                    - type: 'null'
+                  environmentId:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+              example:
+                environmentId: 2ba4f3f8-0d26-49f6-8fd5-ea508abbb7ea
+                instanceLabel: my-instance-label
+              type: object
+        x-amf-mediaType: application/json
+        description: The classify data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                  audit:
+                    created:
+                      date: 2017-09-01 18:34:50.783000+00:00
+                    updated:
+                      date: 2017-09-11 14:49:53.257000+00:00
+                  masterOrganizationId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  organizationId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  id: 25
+                  apiId: 5
+                  portalId: 11
+                  name: dolorem 25
+                  instanceLabel: my-instance-label
+                  groupId: f0c9b011-980e-4928-9430-e60e3a97c043
+                  assetId: api-test
+                  assetVersion: 1.0.0
+                  productVersion: v1
+                  description: accusamus dolorem et rerum placeat libero doloremque id quia vitae illo et suscipit sed nam ipsa qui in eum reiciendis incidunt corporis est iusto voluptas magnam pariatur adipisci fugiat voluptatibus odio aut sed culpa dignissimos sit quis quo est corrupti omnis quaerat voluptatum enim asperiores voluptatem exercitationem et accusantium illum
+                  tags:
+                  - accusantium
+                  - voluptatem
+                  - dolores
+                  - hic
+                  - nostrum
+                  - quia
+                  - aut
+                  - alias
+                  - in
+                  - qui
+                  order: 5
+                  rootFileId: 23
+                  deprecated: false
+                  lastActiveDate:
+                  endpointUri:
+                  environmentId: 2ba4f3f8-0d26-49f6-8fd5-ea508abbb7ea
+                  isPublic: false
+                  terms:
+                  termsDate: 2017-09-08 19:41:01.096000+00:00
+              example: *id005
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidClassify
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/export:
+    get:
+      description: Exports an API Version.
+      parameters:
+      - name: portal
+        description: Include portal.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: files
+        description: Include definition files.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: slaTiers
+        description: Include SLA tiers.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: portalAttachments
+        description: Include portal attachments.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: endpoint
+        description: Include endpoint definition.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: portalFiles
+        description: Include portal images.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/zip
+          content:
+            application/zip:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidExport
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users:
+    description: Proxy for core services that return users, with exception of API OWNER role and the current user.
+    get:
+      description: Search for users.
+      parameters:
+      - name: search
+        required: true
+        in: query
+        schema:
+          type: string
+        description: Search or filter expression to narrow results.
+      - name: includeCurrent
+        description: Whether to include the currently logged-in user in the search results or not.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: offset
+        description: Offset on the amount of assets (each of which has all its apis)
+        required: true
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        description: Limit on the amount of assets (each of which has all its apis)
+        required: true
+        in: query
+        schema:
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsers
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users/by-roles:
+    description: 'Proxy for core services that return users for a given set of roles and context parameters.
+
+      Users are returned with an extra "roles" property containing the core services id of the subset of passed-in roles of which they are a member.
+
+      '
+    get:
+      description: Search for users who match a specific set of roles.
+      parameters:
+      - name: API_VERSION_OWNER
+        description: Context params for the API VERSION OWNER role.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: PORTAL_ACCESS
+        description: Context params for the PORTAL ACCESS role.
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsersByRoles
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users/owners:
+    get:
+      description: Return all owners of an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsersOwners
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/permissions:
+    post:
+      description: Grant a user admin access to this API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The permissions data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPermissions
+    delete:
+      description: Revoke a user's admin access to this API version.
+      parameters:
+      - name: userId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The user ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPermissions
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/migration-mapping:
+    description: This is for setting up for the Crowd upgrade.
+    get:
+      description: Get the api version migration mapping of an API version
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The apiVersion ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                  masterOrganizationId: 9881ab9d-e73a-47cd-8105-d0b5f1a27fa1
+                  organizationId: 9881ab9d-e73a-47cd-8105-d0b5f1a27fa1
+                  id: 4399
+                  apiVersionId: 116409
+                  apiName: newName
+                  apiVersionName: newVersion
+                  migratePortal: true
+                  crowdOneAccount: false
+              example: *id006
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+    post:
+      description: Create a migration mapping for an API version
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The migration mapping data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+    put:
+      description: Update a migration mapping of an API version
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The migration mapping data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal:
+    get:
+      description: Obtain the portal associated with the API version.
+      parameters:
+      - name: resolveTheme
+        description: Resolves theme inheritance.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+    post:
+      description: Create a portal and associates it with an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The portal data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+    patch:
+      description: Create a portal and associates it with an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The portal data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/permissions:
+    post:
+      description: Grant a user view access to this portal.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The permissions data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPermissions
+    delete:
+      description: Revoke a user's view access to portal.
+      parameters:
+      - name: userId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The user ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPermissions
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/redirectUri:
+    put:
+      description: Update redirec uri for a portal
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The redirectUri data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalRedirecturi
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages:
+    description: A collection of portal pages.
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The pages data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPages
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}:
+    put:
+      description: Update an existing page.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: pageId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The page ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The pages data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageid
+    delete:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: pageId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The page ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageid
+      description: Deletes a pages.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}/widgets:
+    get:
+      description: Returns all content widgets of a page.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: pageId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The page ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+    patch:
+      description: Updates the collection of widgets.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: pageId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The page ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The widgets data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/theme:
+    put:
+      description: Update the portal theme.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated4'
+        description: The theme data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalTheme
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files:
+    description: A collection of portal files.
+    post:
+      description: Upload an api portal file.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated4'
+        description: The files data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFiles
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}:
+    get:
+      description: Gets the portal file.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: fileId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The file ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileid
+    delete:
+      description: Removes the Portal file.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: fileId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The file ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileid
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}/{fileName}:
+    get:
+      description: Same as parent get but allows to set a file name in the content-disposition header for downloading in a browser environment.
+      parameters:
+      - name: fileId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The file ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: fileName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The fileName to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileidByFilename
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/addRootRaml:
+    post:
+      description: Adds the root RAML for this API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The addRootRaml data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidAddrootraml
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/definition:
+    description: The fully resolved RAML spec for this version of the API.
+    get:
+      description: Gets the RAML SPEC.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidDefinition
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/endpoint:
+    description: The endpoint associated with the API version.
+    get:
+      description: Returns the endpoint associated with the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful.
+        '400':
+          description: Bad request.
+        '404':
+          description: No endpoint found for this API version.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+    post:
+      description: Creates an endpoint for the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The endpoint data to create.
+      responses:
+        '201':
+          description: The endpoint has been created.
+        '400':
+          description: Bad request.
+        '409':
+          description: The endpoint URL already exists.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+    put:
+      description: Updates the endpoint associated with the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The endpoint data to update.
+      responses:
+        '200':
+          description: The endpoint has been updated.
+        '409':
+          description: The endpoint URL already exists.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+    patch:
+      description: Updates the endpoint associated with the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The endpoint data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+    delete:
+      description: Deletes the endpoint associated with the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: The endpoint has been succesfully deleted.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/endpoint/active:
+    post:
+      description: Records activity for an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '201':
+          description: The API version activity has been recorded.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpointActive
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files:
+    description: A collection of API version RAML files and directories.
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The files data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFiles
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFiles
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files/export:
+    get:
+      description: Exports all files in the filesystem as a ZIP file.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/zip
+          content:
+            application/zip:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesExport
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files/{apiVersionFileId}:
+    description: An API version RAML file (or directory).
+    get:
+      description: Obtain a RAML file (or directory).
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: apiVersionFileId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersionFile ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+    put:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: apiVersionFileId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersionFile ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The files data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+      description: Replaces a files.
+    delete:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: apiVersionFileId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersionFile ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+      description: Deletes a files.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies:
+    description: A collection of API version policies.
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - name: standalone
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The standalone query parameter.
+      - name: version
+        required: true
+        in: query
+        schema:
+          type: string
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+          default: v1
+        description: The version query parameter.
+      - name: fullInfo
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: The fullInfo query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: if-modified-since
+        description: Last modification date (EPOC)
+        required: false
+        in: header
+        schema:
+          type: number
+      responses:
+        '200':
+          description: Successful operation.
+        '304':
+          description: Resource has not been modified since the last request.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The policies data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+    patch:
+      description: Updates multiple policies. Currently, only updates in order field are supported.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - id: 51
+                order: 1
+              - id: 63
+                order: 2
+        x-amf-mediaType: application/json
+        description: The policies data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}:
+    description: An API version policy.
+    patch:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The policies data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyid
+      description: Updates a policies.
+    delete:
+      description: Unapplies a policy.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyid
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}/disable:
+    description: Disables an API version policy.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+        '404':
+          description: Not found. The requested resource does not exist.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyidDisable
+      description: Creates a disable.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}/enable:
+    description: Enables an API version policy.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+        '404':
+          description: Not found. The requested resource does not exist.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyidEnable
+      description: Creates a enable.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tags:
+    description: Manages an API version tags.
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_apiId_Path'
+    - name: apiVersionId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      description: The apiVersion ID to identify the target resource.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tags/{tag}:
+    post:
+      description: Adds a tag to an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: tag
+        required: true
+        in: path
+        schema:
+          type: string
+          maxLength: 150
+        description: The tag to identify the target resource.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTagsByTag
+    delete:
+      description: Removes a tag from an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: tag
+        required: true
+        in: path
+        schema:
+          type: string
+          maxLength: 150
+        description: The tag to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTagsByTag
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers:
+    description: Manages API version tiers.
+    get:
+      description: Retrieves a list of tiers for the supplied api version.
+      parameters:
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - name: active
+        description: Retrieve only active tiers if set to true.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+    post:
+      description: Creates a sla tier for the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The tiers data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers/{tierId}:
+    description: A particular tier associated with the API version.
+    put:
+      description: Update a tier associated with an API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_tierId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The tiers data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiersByTierid
+    delete:
+      description: Delete a tier that has no active applications.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_tierId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiersByTierid
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts:
+    description: Contracts associated with the API version.
+    get:
+      description: Retrieves a list of applications with contracts with the API version.
+      parameters:
+      - name: includeExtraRedirections
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The includeExtraRedirections query parameter.
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: coreServicesId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The coreServices ID query parameter.
+      - name: status
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The status query parameter.
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - name: includeExtraApplicationData
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The includeExtraApplicationData query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContracts
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}:
+    description: A particular contract associated with the API version.
+    get:
+      description: Retrieves a specific contract for the API version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+    patch:
+      description: Patches contract conditions.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The contracts data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+    delete:
+      description: Deletes the contract.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/approveTierChange:
+    description: Approves contract tier change request.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidApprovetierchange
+      description: Creates a approveTierChange.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/approve:
+    description: Approves the contract.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidApprove
+      description: Creates a approve.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/reject:
+    description: Rejects the contract.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidReject
+      description: Creates a reject.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/rejectTierChange:
+    description: Rejects contract tier change request.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRejecttierchange
+      description: Creates a rejectTierChange.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/restore:
+    description: Restores contract.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRestore
+      description: Creates a restore.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/revoke:
+    description: Revokes contract.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_contractId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRevoke
+      description: Creates a revoke.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy:
+    description: Gets a proxy.
+    get:
+      description: Gets a proxy.
+      parameters:
+      - name: gatewayVersion
+        required: true
+        in: query
+        schema:
+          type: string
+          default: 3.8.4
+        description: The gatewayVersion query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/zip
+          content:
+            application/zip:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxy
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy/deployment:
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The deployment data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeployment
+      description: Creates a deployment.
+    patch:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The deployment data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeployment
+      description: Updates a deployment.
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy/deployment/status:
+    get:
+      description: Retrieves the deployment details of a version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeploymentStatus
+  /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/gateway-versions:
+    description: Gets the gateway versions compatible for the API version, based on the RAML version tag specified on the root RAML file.
+    get:
+      description: Retrieves the gateway versions compatible
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_apiId_Path'
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidGatewayVersions
+  /organizations/{organizationId}/policy-templates:
+    description: 'Policy Templates are the basis for creating new policies.
+
+      The platform provides out of the box with several policies and new
+
+      ones can be added by MuleSoft Support Team if needed.
+
+      '
+    get:
+      description: Retrieve a list of policy templates.
+      parameters:
+      - name: version
+        required: true
+        in: query
+        schema:
+          type: string
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+        description: The version query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful.
+        '400':
+          description: Bad Request.
+        '406':
+          description: The requested accept type is not supported.
+        '500':
+          description: An unknown error occurred.
+      operationId: getOrganizationsByOrganizationidPolicyTemplates
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}:
+    get:
+      description: 'Retrieve specific details from the policy template, including the full
+
+        XML that is being injected as well as all of its configuration parameters.
+
+        '
+      parameters:
+      - name: version
+        required: true
+        in: query
+        schema:
+          type: string
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+        description: The version query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: policyTemplateId
+        required: true
+        in: path
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:api-platform
+          operation: GET /organizations/{organizationId}/policy-templates
+          description: GET `/organizations/{organizationId}/policy-templates` in this API; use `id` values as `policyTemplateId`.
+          values: $.id
+        description: The policyTemplate ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful.
+        '400':
+          description: Bad Request.
+        '404':
+          description: There is no policy template defined under the specified id.
+        '406':
+          description: The requested accept type is not supported.
+        '500':
+          description: An unknown error occurred.
+      operationId: getOrganizationsByOrganizationidPolicyTemplatesByPolicytemplateid
+  /organizations/{organizationId}/custom-policy-templates:
+    description: 'Custom Policy Templates are the basis for creating new policies.
+
+      The platform provides out of the box with several policies and new
+
+      ones can be added using this API.
+
+      '
+    get:
+      description: Retrieves a list of custom policy templates.
+      parameters:
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidCustomPolicyTemplates
+    post:
+      description: Creates a new custom policy.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated4'
+        description: The custom policy templates data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidCustomPolicyTemplates
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}:
+    description: A custom policy template.
+    get:
+      description: Returns an instance of a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The custom policy templates data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The custom policy templates data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/configuration:
+    get:
+      description: The XML configuration for the custom policy template.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/xml
+          content:
+            application/xml:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateidConfiguration
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/definition:
+    get:
+      description: The YAML definition for the custom policy template.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_customPolicyTemplateId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/yaml
+          content:
+            application/yaml:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateidDefinition
+  /organizations/{organizationId}/portals:
+    description: A collection of API portals within organization.
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPortals
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The portals data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidPortals
+  /organizations/{organizationId}/users:
+    description: 'Proxy for core services that return organization users.
+
+      '
+    get:
+      description: Search for users
+      parameters:
+      - name: search
+        description: The search string to query users for.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: includeCurrent
+        description: Whether to include the currently logged-in user in the search results or not.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: offset
+        description: Offset on the amount of assets (each of which has all its apis)
+        required: true
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        description: Limit on the amount of assets (each of which has all its apis)
+        required: true
+        in: query
+        schema:
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidUsers
+  /organizations/{organizationId}/applications:
+    description: A collection of applications that consume APIs via contracts.
+    get:
+      description: Retrieves a list of applications.
+      parameters:
+      - name: targetAdminSite
+        description: Retrieve applications with all the information needed for the admin site.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: includeContractsForApiVersion
+        description: This field is used to filter by API version.
+        required: true
+        in: query
+        schema:
+          type: integer
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        description: Property to sort by. Possible values 'id', 'name', 'status', 'createdDate' or 'updatedDate'.
+        required: false
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApplications
+    post:
+      description: Creates a new application.
+      parameters:
+      - name: apiVersionId
+        description: 'Used to associate the application with the IDP (Identity Provider) configured on the api instance.
+
+          This parameter is not needed when the organization is not fully migrated to crowd or when
+
+          the organization does not use a client provider.
+
+          '
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: groupInstanceId
+        description: 'Used to associate the application with the IDP (Identity Provider) configured on the api instances of the group instance.
+
+          This parameter is not needed when the organization is not fully migrated to crowd or when
+
+          the organization does not use a client provider.
+
+          '
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The applications data to create.
+      responses:
+        '201':
+          description: The new application has been successfully created.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id007
+                  redirectUri:
+                  - http://123.123.123.123:8080/api/v1
+                  name: App name
+                  description: App Description
+                  url: http://123.123.123.123:8080/api/v2
+                  coreServicesId: d7eed6c45caa453ca763ba96b22e1bea
+                  clientId: d7eed6c45caa453ca763ba96b22e1bea
+                  clientSecret: 53899407a628417d83ee480A099Bfc06
+                  audit:
+                    created:
+                      date: 2017-08-23 14:18:25.504000+00:00
+                    updated: {}
+                  masterOrganizationId: 40fbc081-bb0d-4aff-9fb7-f3a48fdeb958
+                  grantTypes:
+                  - password
+                  - implicit
+                  - client_credentials
+                  - authorization_code
+                  - refresh_token
+                  id: 9
+              example: *id007
+        '400':
+          description: The organization is federated and the apiVersionId query parameter is missing.
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+      operationId: createOrganizationsByOrganizationidApplications
+  /organizations/{organizationId}/applications/{applicationId}:
+    description: An application.
+    get:
+      description: Returns an instance of a single element.
+      parameters:
+      - name: ignoreOwners
+        description: Retrieve application with or without owners information.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApplicationsByApplicationid
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The applications data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidApplicationsByApplicationid
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The applications data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApplicationsByApplicationid
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidApplicationsByApplicationid
+  /organizations/{organizationId}/applications/{applicationId}/secret/reset:
+    description: Resets client secret for application.
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidSecretReset
+      description: Creates a reset.
+  /organizations/{organizationId}/applications/{applicationId}/party-ids:
+    description: Party Ids associated with the application.
+    get:
+      description: Retrieves a list of Party Ids for a specific api version.
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: query
+        schema:
+          type: integer
+        description: The apiVersion ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApplicationsByApplicationidPartyIds
+  /organizations/{organizationId}/applications/{applicationId}/owners:
+    post:
+      description: Adds an owner to an existing application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                id: 36d6f025-cdd9-4c06-9320-7dccb1f13db2
+        x-amf-mediaType: application/json
+        description: The owners data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+        '404':
+          description: The application cannot be found.
+      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidOwners
+  /organizations/{organizationId}/applications/{applicationId}/owners/{userId}:
+    delete:
+      description: Removes an owner from an existing application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - name: userId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The user ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+        '404':
+          description: The application cannot be found.
+      operationId: deleteOrganizationsByOrganizationidApplicationsByApplicationidOwnersByUserid
+  /organizations/{organizationId}/applications/{applicationId}/contracts:
+    description: Contracts associated with the application.
+    get:
+      description: Retrieves a list of applications with contracts with the application.
+      parameters:
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidApplicationsByApplicationidContracts
+    post:
+      description: Creates new contract between an API version and the application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The contracts data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidContracts
+  /organizations/{organizationId}/applications/{applicationId}/contracts/{contractId}:
+    description: A particular contract associated with the application.
+    patch:
+      description: Patches contract conditions.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - name: contractId
+        required: true
+        in: path
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:api-platform
+          operation: GET /organizations/{organizationId}/applications/{applicationId}/contracts
+          description: GET `/organizations/{organizationId}/applications/{applicationId}/contracts` in this API; use `id` values as `contractId`.
+          values: $.id
+        description: The contract ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The contracts data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidApplicationsByApplicationidContractsByContractid
+  /organizations/{organizationId}/contracts:
+    get:
+      parameters:
+      - name: apiVersionId
+        required: true
+        in: query
+        schema:
+          type: integer
+        description: The apiVersion ID query parameter.
+      - name: coreServicesId
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The coreServices ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidContracts
+      description: Retrieves a contracts.
+  /organizations/{organizationId}/deployment-targets:
+    description: A collection of deploy targets for Hybrid deploymentTargets.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidDeploymentTargets
+      description: Retrieves a deployment targets.
+  /organizations/{organizationId}/bundles:
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/zip:
+            schema: {}
+          application/x-gzip:
+            schema: {}
+        x-amf-mediaType: application/zip
+        description: The bundles data to create.
+      x-amf-requestPayloads:
+      - mediaType: application/x-gzip
+        schema: {}
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidBundles
+      description: Creates a bundles.
+  /organizations/{organizationId}/public:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/public/theme:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/public/theme/logo:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicThemeLogo
+      description: Retrieves a logo.
+  /organizations/{organizationId}/public/theme/favicon:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicThemeFavicon
+      description: Retrieves a favicon.
+  /organizations/{organizationId}/public/permissions:
+    description: A list of available permissions.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPermissions
+      description: Retrieves a permissions.
+  /organizations/{organizationId}/public/portals:
+    description: 'A collection of API portals within organization.
+
+      When performing a search by passing in ''query=foo'' as a string, it is equivalent to passing in the following combination: ''query[name]=foo&query[version]=foo&query[description]=foo&query[tags]=foo&query[matchAll]=false''.
+
+      '
+    get:
+      description: Returns a list of elements.
+      parameters:
+      - name: query[tags]
+        description: 'A list of keywords for matching API version tags in a search. Used in conjunction with other ''query[xxx]'' to perform advanced search. Note: when any of ''query[xxx]'' is used, the query parameter ''query'' would be disregarded.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: requireRaml
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The requireRaml query parameter.
+      - name: query
+        description: Search criteria.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: query[name]
+        description: 'A list of keywords for matching API name in a search. Used in conjunction with other ''query[xxx]'' to perform advanced search. Note: when any of ''query[xxx]'' is used, the query parameter ''query'' would be disregarded.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: query[version]
+        description: 'A list of keywords for matching API version name in a search. Used in conjunction with other ''query[xxx]'' to perform advanced search. Note: when any of ''query[xxx]'' is used, the query parameter ''query'' would be disregarded.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+      - name: deep
+        description: 'A boolean value that, when set, would cause the search be perform on the organization associated with ''organizationId'' param, as well as all the sub-organizations under it - as long as the login user has permission to view the content.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: ascending
+        description: Order for sorting.
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: query[description]
+        description: 'A list of keywords for matching API version description in a search. Used in conjunction with other ''query[xxx]'' to perform advanced search. Note: when any of ''query[xxx]'' is used, the query parameter ''query'' would be disregarded.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: organizationId
+        description: 'The organization ID that the search should be run in. If not provided, search would be performed within the organization which the login user is under.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:access-management
+          operation: listMe
+          name: rootOrg
+          description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+          values: $.user.organization.id
+          labels: $.user.organization.name
+        - api: urn:api:access-management
+          operation: getOrganizations
+          name: currentOrganization
+          description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+          values: $.id
+          labels: $.name
+        - api: urn:api:access-management
+          operation: getOrganizations
+          name: subOrganizations
+          description: GET `/organizations/{organizationId}`; each value in `subOrganizationIds` is a valid child Business Group GUID.
+          values: $.subOrganizationIds
+          labels: $.name
+      - name: sort
+        description: Property to sort by.
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: query[matchAll]
+        description: 'A boolean value that determines how other ''query[xxx]'' values should work together in an advanced search When ''matchAll'' is true, all other ''query[xxx]'' would be chained with an ''AND'' when performing a search, otherwise they are chained with an ''OR'' Note: when any of ''query[xxx]'' is used, the query parameter ''query'' would be disregarded.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+      - name: limit
+        description: Limit the number of elements on the response.
+        required: true
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPortals
+    post:
+      description: Creates a new element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The portals data to create.
+      responses:
+        '201':
+          description: The new element has been successfully created.
+      operationId: createOrganizationsByOrganizationidPublicPortals
+  /organizations/{organizationId}/public/portals/{portalId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - name: portalId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      description: The portal ID to identify the target resource.
+  /organizations/{organizationId}/public/portals/{portalId}/theme:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - name: portalId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      description: The portal ID to identify the target resource.
+  /organizations/{organizationId}/public/portals/{portalId}/theme/logo:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: portalId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The portal ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPortalsByPortalidThemeLogo
+      description: Retrieves a logo.
+  /organizations/{organizationId}/public/portals/{portalId}/theme/favicon:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: portalId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The portal ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPortalsByPortalidThemeFavicon
+      description: Retrieves a favicon.
+  /organizations/{organizationId}/public/portals/terms:
+    description: Portal terms for the organization.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPortalsTerms
+      description: Retrieves a terms.
+  /organizations/{organizationId}/public/portals/terms/acceptance:
+    description: Accepted portal terms for current user.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicPortalsTermsAcceptance
+      description: Retrieves a acceptance.
+  /organizations/{organizationId}/public/portals/terms/{portalTermsId}/acceptance:
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: portalTermsId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The portalTerms ID to identify the target resource.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createOrganizationsByOrganizationidPublicPortalsTermsByPortaltermsidAcceptance
+      description: Creates a acceptance.
+  /organizations/{organizationId}/public/apis/{apiId}:
+    description: An API.
+    get:
+      description: Returns an instance of a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiid
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The apis data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidPublicApisByApiid
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The apis data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidPublicApisByApiid
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidPublicApisByApiid
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}:
+    description: An API version.
+    get:
+      description: Returns an instance of a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The versions data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The versions data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortal
+      description: Retrieves a portal.
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}/widgets:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: pageId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The page ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+      description: Retrieves a widgets.
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}:
+    get:
+      description: Retrieve the file by file id. Content-type will be set based on the content-type originally received.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: fileId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The file ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful.
+        '404':
+          description: Not Found.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalFilesByFileid
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}/{fileName}:
+    get:
+      description: Same as parent get but allows to set a file name in the content-disposition header for downloading in a browser environment.
+      parameters:
+      - name: fileId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The file ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: fileName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The fileName to identify the target resource.
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalFilesByFileidByFilename
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/tiers:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidTiers
+      description: Retrieves a tiers.
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/definition:
+    description: The fully resolved RAML spec for this version of the API.
+    get:
+      description: Gets the RAML SPEC.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+    put:
+      description: Updates a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The definition data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+    patch:
+      description: Patches a single element.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated3'
+        description: The definition data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+    delete:
+      description: Deletes the instance of the element specified.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      operationId: deleteOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files:
+    description: Serves RAML files for the portal.
+    get:
+      description: Redirect to the root RAML file.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '302':
+          description: Temporary redirect to the root RAML file.
+        '404':
+          description: No RAML file found.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFiles
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files/root:
+    get:
+      description: Retrieve the root RAML file contents.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      responses:
+        '302':
+          description: Temporary redirect to the root RAML file.
+        '404':
+          description: Not Found.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFilesRoot
+  /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files/{+fileName}:
+    get:
+      description: Retrieve the RAML contents by file name.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: apiId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The api ID to identify the target resource.
+      - name: apiVersionId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The apiVersion ID to identify the target resource.
+      - name: +fileName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The +fileName to identify the target resource.
+      responses:
+        '200':
+          description: Successful.
+        '404':
+          description: Not Found.
+      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFilesByFilename
+  /policies: {}
+  /policies/{policyId}:
+    description: A policy.
+    get:
+      parameters:
+      - name: policyId
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        description: The policy ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getPoliciesByPolicyid
+      description: Retrieves a policies.
+  /ch-domains/{domainName}:
+    description: Returns information about the availability desired CH domain.
+    get:
+      parameters:
+      - name: domainName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The domainName to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getChDomainsByDomainname
+      description: Retrieves a ch domains.
+  /gateway-versions:
+    description: A collection of supported gateway versions.
+    get:
+      description: Retrieves a list of gateway versions.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getGatewayVersions
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  requestBodies:
+    Generated:
+      content:
+        application/json:
+          schema:
+            example:
+              apiName: newName
+              apiVersionName: newVersion
+              migratePortal: true
+      x-amf-mediaType: application/json
+      description: Request payload for Generated operations.
+    Generated2:
+      content:
+        application/json:
+          schema: {}
+        multipart/form-data:
+          schema: {}
+      x-amf-mediaType: application/json
+      description: Request payload for Generated2 operations.
+    Generated3:
+      content:
+        application/json:
+          schema: {}
+      x-amf-mediaType: application/json
+      description: Request payload for Generated3 operations.
+    Generated4:
+      content:
+        multipart/form-data:
+          schema: {}
+      x-amf-mediaType: multipart/form-data
+      description: Request payload for Generated4 operations.
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+        pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Query:
+      name: environmentId
+      required: true
+      in: query
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID query parameter.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_apiId_Path:
+      name: apiId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApis
+        description: GET `/organizations/{organizationId}/apis` in this API; use `id` values as `apiId`.
+        values: $.id
+      description: The api ID to identify the target resource.
+    XOrigin_policyId_Path:
+      name: policyId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies` in this API; use `id` values as `policyId`.
+        values: $.id
+      description: The policy ID to identify the target resource.
+    XOrigin_tierId_Path:
+      name: tierId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers` in this API; use `id` values as `tierId`.
+        values: $.id
+      description: The tier ID to identify the target resource.
+    XOrigin_contractId_Path:
+      name: contractId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContracts
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts` in this API; use `id` values as `contractId`.
+        values: $.id
+      description: The contract ID to identify the target resource.
+    XOrigin_customPolicyTemplateId_Path:
+      name: customPolicyTemplateId
+      required: true
+      in: path
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidCustomPolicyTemplates
+        description: GET `/organizations/{organizationId}/custom-policy-templates` in this API; use `id` values as `customPolicyTemplateId`.
+        values: $.id
+      description: The customPolicyTemplate ID to identify the target resource.
+    XOrigin_applicationId_Path:
+      name: applicationId
+      description: Could be an API Manager application ID or a Core Services client ID.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApplications
+        description: GET `/organizations/{organizationId}/applications` in this API; use `id` values as `applicationId`.
+        values: $.id

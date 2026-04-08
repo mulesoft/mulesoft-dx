@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["APPROVED", "REVOKED", "REJECTED"]
+    },
+    "tierId": {
+      "type": "integer"
+    }
+  }
+}

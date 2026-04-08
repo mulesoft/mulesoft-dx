@@ -1,0 +1,15 @@
+Summary:
+  value:
+    data:
+    - value: 1234
+      formattedValue: "1234"
+      key: total-requests
+      label: Total requests
+    - value: 12.57
+      formattedValue: "12ms"
+      key: average-latency
+      label: Average latency (ms)
+    - value: 15.66
+      formattedValue: "15%"
+      key: error-rate
+      label: Error %

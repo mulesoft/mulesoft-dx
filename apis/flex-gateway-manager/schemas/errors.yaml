@@ -1,0 +1,8 @@
+components:
+  schemas:
+    GatewayManagerError:
+      properties:
+        status:
+          type: number
+        message:
+          type: string

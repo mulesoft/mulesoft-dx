@@ -1,0 +1,3224 @@
+openapi: 3.0.0
+info:
+  title: API Manager API
+  version: 1.0.0
+  description: Manage APIs, policies, contracts, and SLA tiers within Anypoint Platform. Create, configure, deploy, and monitor APIs across organizations and environments, including API policies, client application contracts, automated policies, API groups, upstream configurations, and TLS contexts.
+servers:
+- url: https://anypoint.mulesoft.com/apimanager/api/v1
+- url: https://eu1.anypoint.mulesoft.com/apimanager/api/v1
+- url: https://{region}.platform.mulesoft.com/apimanager/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/applications:
+    post:
+      description: 'Imports a Client Application from an external client provider
+
+        Connected Apps require Manage Client Applications scope
+
+        '
+      responses:
+        '201':
+          description: Application succesfully imported
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Invalid request body. Provider might not have import feature enabled
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '404':
+          description: Client or provider not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/application-import.json
+            example: apimanager/examples/responses/application-import.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsApplications
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apisSearch.yaml
+              examples:
+                Apis:
+                  $ref: ./apimanager/examples/responses/apisSearch.json
+      description: "Retrieves a collection of APIs\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      parameters:
+      - name: query
+        in: query
+        description: A string that will be checked for a partial or similar matches of the name, description, label and tags
+        allowReserved: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/param_exchange_group_id_query'
+      - $ref: '#/components/parameters/param_exchange_asset_id_query'
+      - $ref: '#/components/parameters/param_exchange_asset_version_query'
+      - name: instanceLabel
+        in: query
+        description: A string that will be checked for an exact match of the instanceLabel
+        allowReserved: true
+        schema:
+          type: string
+      - name: productVersion
+        in: query
+        description: A string that will be checked for an exact match of the productVersion
+        allowReserved: true
+        schema:
+          type: string
+      - name: autodiscoveryInstanceName
+        in: query
+        description: A string that will be checked for an exact match of the autodiscoveryInstanceName
+        allowReserved: true
+        schema:
+          type: string
+      - name: autodiscoveryApiName
+        in: query
+        description: A string that will be checked for an exact match of the autodiscoveryApiName
+        allowReserved: true
+        schema:
+          type: string
+      - name: filters
+        in: query
+        allowReserved: true
+        description: Comma-separated list of filters, which can be "active" and/or "pinned"
+        schema:
+          type: string
+      - name: offset
+        in: query
+        description: Offset on the amount of assets (each of which has all its apis)
+        schema:
+          default: 0
+          type: integer
+      - name: limit
+        in: query
+        description: Limit on the amount of assets (each of which has all its apis)
+        schema:
+          default: 100
+          type: integer
+      - name: sort
+        in: query
+        description: Field to sort results by. Determines the ordering of the returned API list.
+        schema:
+          default: name
+          enum:
+          - id
+          - name
+          - createdDate
+          - updatedDate
+          type: string
+      - name: ascending
+        in: query
+        description: Sort direction. When true, sorts in ascending order; when false, sorts in descending order.
+        schema:
+          default: true
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+      operationId: listOrganizationsEnvironmentsApis
+    post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/promoteApi.yaml
+              examples:
+                Promote:
+                  $ref: ./apimanager/examples/responses/promoteApi.json
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Creates a new API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n  - Exchange Viewer\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/api-oas.json
+            examples:
+              Api:
+                $ref: ./apimanager/examples/apiSpecBody.json
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Binary file with the API package in ZIP/Bundle archive. May include tiers, endpoint settings, and policies.
+                instanceLabel:
+                  type: string
+                  minLength: 1
+                  description: User-defined label that identifies this API instance. Should be unique in the environment.
+                endpoint:
+                  type: object
+                  description: JSON of endpoint, which will override any enpoint passed in the file and the policies (if any)
+                  properties:
+                    uri:
+                      type: string
+                      nullable: true
+                      description: The backend implementation URI where the API is deployed (e.g., http://example.com/api). This is the actual service endpoint.
+                    proxyUri:
+                      type: string
+                      nullable: true
+                      description: The proxy endpoint URI exposed to consumers through API Manager (e.g., http://proxy.example.com/api). This is the public-facing endpoint.
+                    isCloudHub:
+                      type: boolean
+                      nullable: true
+                      description: Indicates whether the API is deployed on CloudHub (true) or on-premises/RTF (false).
+                  required:
+                  - uri
+                  - proxyUri
+                  - isCloudHub
+                providerId:
+                  type: string
+                  description: Client identity system ID. When empty, defaults to CS.
+              required: []
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApis
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/getEnvironmentApi.yaml
+              examples:
+                Api:
+                  $ref: ./apimanager/examples/responses/getEnvironmentApi.json
+      description: "Returns an API\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      parameters:
+      - name: includeProxyTemplate
+        in: query
+        description: Include the configured proxyTemplate to its associated endpoint
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: includeValidation
+        in: query
+        description: Include the configured validation to its associated endpoint
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: includeTlsContexts
+        in: query
+        description: Include the configured TLS contexts
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      operationId: getOrganizationsEnvironmentsApis
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/updatedApiVersion.yaml
+              examples:
+                Api:
+                  $ref: ./apimanager/examples/responses/updatedApiVersion.json
+      description: "Updates an API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApis
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/updatedApiVersion.yaml
+              examples:
+                Api:
+                  $ref: ./apimanager/examples/responses/updatedApiVersion.json
+      description: "Updates an API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      parameters:
+      - name: force
+        in: query
+        description: Allows patching the API autodiscoveryInstanceName. You may want to change the 'api.version' configuration on all Mule 2 & Mule 3 applications tracking this API.
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: updateApisInSamePort
+        in: query
+        description: For APIs deployed to Flex, if endpoint proxyUri or inbound TLS Contexts are being updated, apis in the same port are also updated
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      operationId: patchOrganizationsEnvironmentsApis
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Deletes an API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      operationId: deleteOrganizationsEnvironmentsApis
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/pin:
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: "Pins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      operationId: updateOrganizationsEnvironmentsApisPin
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Unpins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      operationId: deleteOrganizationsEnvironmentsApisPin
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/upstreams:
+    post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: "Create an upstream for an API version\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      requestBody:
+        content:
+          application/json:
+            example:
+              uri: https://example.com
+              label: my-upstream
+            schema:
+              $ref: ./apimanager/schemas/upstreamPOST-oas.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisUpstreams
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/upstreams.yaml
+              examples:
+                Upstreams:
+                  $ref: ./apimanager/examples/responses/upstreams.json
+      description: "Get API version upstreams\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      operationId: listOrganizationsEnvironmentsApisUpstreams
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/upstreams/{upstreamId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/upstream.yaml
+              examples:
+                Upstream:
+                  $ref: ./apimanager/examples/responses/upstream.json
+      description: "Get an upstream\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      operationId: getOrganizationsEnvironmentsApisUpstreams
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/upstream.yaml
+              examples:
+                Upstream:
+                  $ref: ./apimanager/examples/responses/upstream.json
+      description: "Patch an upstream\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      requestBody:
+        content:
+          application/json:
+            example:
+              uri: https://example.com
+              label: my-upstream
+            schema:
+              $ref: ./apimanager/schemas/upstreamPATCH-oas.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisUpstreams
+    delete:
+      responses:
+        default:
+          description: Response with status code default.
+          content:
+            application/json:
+              example:
+                message: Success
+      description: "Delete an upstream\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      operationId: deleteOrganizationsEnvironmentsApisUpstreams
+    parameters:
+    - $ref: '#/components/parameters/param_upstream_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/policies:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/policies.yaml
+              examples:
+                Policies:
+                  $ref: ./apimanager/examples/responses/policies.json
+        '304':
+          description: Not Modified. The resource has not been modified since the last request.
+      description: "Gets a collection of API Policies\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      parameters:
+      - name: if-modified-since
+        in: header
+        description: Last modification date (EPOC)
+        schema:
+          type: number
+      - name: standalone
+        in: query
+        description: When true, returns only standalone policies. When false (default), returns all policies regardless of deployment mode.
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: version
+        in: query
+        description: Policy template version to filter by. Format is semantic versioning (e.g., v1, v1.2, v1.2.3). Defaults to v1.
+        allowReserved: true
+        schema:
+          default: v1
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+          type: string
+      - name: fullInfo
+        in: query
+        description: if fullInfo = true, Fetches only active policies, with template and configuration data. (Default) if fullInfo = false,  Fetches all policies (active + disabled), without template.
+        schema:
+          default: true
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+      operationId: listOrganizationsEnvironmentsApisPolicies
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: "Applies a new API Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiPolicy.json
+            example:
+              name: Example Resource
+              description: Example description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisPolicies
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+        '400':
+          description: Bad Request. The request was invalid or cannot be processed.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Updates multiple policies. Currently, only updates in order field are supported.\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      requestBody:
+        content:
+          application/json:
+            example:
+            - id: 51
+              order: 1
+            - id: 63
+              order: 2
+            schema:
+              type: array
+              items:
+                type: object
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisPoliciesBulk
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/policies/{policyId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/policies.yaml
+              examples:
+                Policies:
+                  $ref: ./apimanager/examples/responses/policies.json
+      description: "Retrieves a specific policy for the API\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      operationId: getOrganizationsEnvironmentsApisPolicies
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: "Updates an API policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsEnvironmentsApisPolicy
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Unapplies a policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      operationId: deleteOrganizationsEnvironmentsApisPolicies
+    parameters:
+    - $ref: '#/components/parameters/param_policy_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/policies/{policyId}/implementationAsset
+  : post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '404':
+          description: Not Found. The requested resource does not exist.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Updates the implementation asset\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      - name: dryRun
+        in: query
+        description: Perform a dry run of the implementation update
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      operationId: createOrganizationsEnvironmentsApisPoliciesImplementationasset
+    parameters:
+    - $ref: '#/components/parameters/param_policy_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/tiers:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/tiers.yaml
+              examples:
+                Tiers:
+                  $ref: ./apimanager/examples/responses/tiers.json
+      description: "Retrieves a list of tiers for the supplied API\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
+      parameters:
+      - name: active
+        in: query
+        description: Retrieve only active tiers if set to true.
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - $ref: '#/components/parameters/trait_searchable_offset'
+      - $ref: '#/components/parameters/trait_searchable_limit'
+      - $ref: '#/components/parameters/trait_searchable_sort'
+      - $ref: '#/components/parameters/trait_searchable_ascending'
+      - $ref: '#/components/parameters/trait_searchable_query'
+      operationId: listOrganizationsEnvironmentsApisTiers
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/tiers.yaml
+              examples:
+                Tiers:
+                  $ref: ./apimanager/examples/responses/tiers.json
+        '400':
+          description: Bad Request. The request was invalid or cannot be processed.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Creates a sla tier for the API\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/tierPOST.json
+            examples:
+              Tier:
+                $ref: ./apimanager/examples/requests/tier.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisTiers
+    head:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+      description: Retrieves a count tiers of the API version
+      operationId: checkOrganizationsEnvironmentsApisTiers
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/tiers/{tierId}:
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/tier.yaml
+              examples:
+                Tier:
+                  $ref: ./apimanager/examples/responses/tier.json
+        '400':
+          description: Bad Request. The request was invalid or cannot be processed.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Updates a tier associated with an API\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/tierPUT.json
+            examples:
+              Tier:
+                $ref: ./apimanager/examples/requests/tier.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisTiers
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Deletes a tier that has no active applications\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
+      operationId: deleteOrganizationsEnvironmentsApisTiers
+    parameters:
+    - $ref: '#/components/parameters/param_tier_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/group-tiers:
+    head:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+      description: Retrieves a count group tiers of the API version
+      operationId: checkOrganizationsEnvironmentsApisGrouptiers
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: Returns a list of elements.
+      operationId: listOrganizationsEnvironmentsApisGrouptiers
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Creates a new element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Example Resource
+              description: Example description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisGrouptiers
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/group-contracts:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/contracts.yaml
+              examples:
+                Contracts:
+                  $ref: ./apimanager/examples/responses/contracts.json
+      description: "Retrieves a list of group contracts of the API version\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
+      operationId: listOrganizationsEnvironmentsApisGroupcontracts
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Creates a new element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Example Resource
+              description: Example description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisGroupcontracts
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/contracts:
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/contractCreation.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/contractCreation.json
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Creates new contract between an API and the application\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n  - Exchange Viewer\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/contractPOST.json
+            examples:
+              Contract:
+                $ref: ./apimanager/examples/requests/contractThroughApi.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisContracts
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/contracts.yaml
+              examples:
+                Contracts:
+                  $ref: ./apimanager/examples/responses/contracts.json
+      description: "Retrieves a list of applications with contracts with the API\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
+      parameters:
+      - name: includeExtraApplicationData
+        in: query
+        description: When true, includes additional metadata about the client applications in the response. Defaults to false.
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: includeExtraRedirections
+        in: query
+        description: When true, includes OAuth redirect URI information for each application. Defaults to false.
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: coreServicesId
+        in: query
+        description: Filter contracts by the core services identifier of the client application.
+        schema:
+          type: string
+      - name: status
+        in: query
+        description: Filter contracts by status (e.g., approved, pending, revoked).
+        allowReserved: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/trait_searchable_offset'
+      - $ref: '#/components/parameters/trait_searchable_limit'
+      - $ref: '#/components/parameters/trait_searchable_sort'
+      - $ref: '#/components/parameters/trait_searchable_ascending'
+      - $ref: '#/components/parameters/trait_searchable_query'
+      operationId: listOrganizationsEnvironmentsApisContracts
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/contracts/{contractId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/contracts.yaml
+              examples:
+                Contracts:
+                  $ref: ./apimanager/examples/responses/contracts.json
+      description: "Retrieves a specific contract for the API\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
+      operationId: getOrganizationsEnvironmentsApisContracts
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/contractCreation.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/contractCreation.json
+      description: "Patches contract conditions.\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n  - Exchange Viewer\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/contractPATCH.json
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisContracts
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Deletes the contract\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
+      operationId: deleteOrganizationsEnvironmentsApisContracts
+    parameters:
+    - $ref: '#/components/parameters/param_contract_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/alerts:
+    get:
+      responses:
+        '200':
+          description: Successfully retrieved an API's alert definitions.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/alerts.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/alerts.json
+      description: "Retrieves a list of API alerts\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
+      operationId: listOrganizationsEnvironmentsApisAlerts
+    post:
+      responses:
+        '201':
+          description: Successfully created alert definition.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/alerts.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/alerts.json
+      description: "Creates an API alert\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/alert.json
+            examples:
+              Alert:
+                $ref: ./apimanager/examples/requests/alert.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisAlerts
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/alerts/{alertId}:
+    get:
+      responses:
+        '200':
+          description: Successfully retrieved alert definition.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/alert.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/alert.json
+        '401':
+          description: Authentication requirements not fulfilled.
+          content:
+            application/json:
+              example:
+                message: Success
+        '403':
+          description: Insufficient permissions.
+          content:
+            application/json:
+              example:
+                message: Success
+        '404':
+          description: Specified alert not found.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Retrieves an API alert\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
+      operationId: getOrganizationsEnvironmentsApisAlerts
+    patch:
+      responses:
+        '200':
+          description: Successfully updated alert definition.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/alert.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/alert.json
+        '400':
+          description: Invalid alert payload.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '401':
+          description: Authentication requirements not fulfilled.
+          content:
+            application/json:
+              example:
+                message: Success
+        '403':
+          description: Insufficient permissions.
+          content:
+            application/json:
+              example:
+                message: Success
+        '404':
+          description: Specified alert not found.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Updates an API alert\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/alert.json
+            examples:
+              Alert:
+                $ref: ./apimanager/examples/requests/alert.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisAlerts
+    delete:
+      responses:
+        '204':
+          description: Successfully deleted alert definition.
+        '401':
+          description: Authentication requirements not fulfilled.
+          content:
+            application/json:
+              example:
+                message: Success
+        '403':
+          description: Insufficient permissions.
+          content:
+            application/json:
+              example:
+                message: Success
+        '404':
+          description: alert not found.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Deletes the specified alert definition\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
+      operationId: deleteOrganizationsEnvironmentsApisAlerts
+    parameters:
+    - $ref: '#/components/parameters/param_alert_id'
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/bundle:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: "A zip with all the api's information - Equivalent to exporting the api\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      parameters:
+      - name: slaTiers
+        in: query
+        description: Include SLA tiers.
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: endpoint
+        in: query
+        description: Include endpoint definition and policies.
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: omitPoliciesWithSensitiveFields
+        in: query
+        description: Omit policies with sensitive fields.
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      operationId: listOrganizationsEnvironmentsApisBundle
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/tags/{tag}:
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: "Adds a new API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      operationId: updateOrganizationsEnvironmentsApisTags
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Deletes an API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      operationId: deleteOrganizationsEnvironmentsApisTags
+    parameters:
+    - name: tag
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The tag to identify the target resource.
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/autodiscoveryProperties:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: "Gets the autodiscovery properties required for a gateway to track the API\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
+      parameters:
+      - name: gatewayVersion
+        in: query
+        allowReserved: true
+        required: true
+        description: The version of the gateway that will use the autodiscovery properties to track this API, written in semver.
+        schema:
+          type: string
+      operationId: listOrganizationsEnvironmentsApisAutodiscoveryproperties
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/tls-contexts:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/tlsContexts.yaml
+              examples:
+                Tls:
+                  $ref: ./apimanager/examples/responses/tlsContexts.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '404':
+          description: No TLS Contexts found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: Retrieves TLS Contexts configuration for a given API endpoint
+      operationId: listOrganizationsEnvironmentsApisTlscontexts
+    post:
+      responses:
+        '201':
+          description: TLS Contexts configuration was created successfully
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '409':
+          description: TLS Contexts for that API endpoint already existed
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: Creates TLS Contexts configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              Tls:
+                $ref: ./apimanager/examples/tlsContextsRequest.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsApisTlscontexts
+    put:
+      responses:
+        '200':
+          description: TLS Contexts configuration was successfully updated
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: Updates TLS Contexts configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              Tls:
+                $ref: ./apimanager/examples/tlsContextsRequest.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsApisTlscontexts
+    delete:
+      responses:
+        '204':
+          description: TLS Contexts successfully deleted
+      description: Deletes TLS Contexts configuration
+      operationId: deleteOrganizationsEnvironmentsApisTlscontexts
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances:
+    post:
+      responses:
+        '201':
+          description: Group instance was created successfully
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Creates a Group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupInstance-oas.json
+            examples:
+              GroupContract:
+                $ref: ./apimanager/examples/requests/apiGroups/groupInstanceCreation.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsGroupinstances
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: "Gets a list of group istances by environmentId\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsEnvironmentsGroupinstances
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: Example Resource
+        '404':
+          description: Group instance not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Gets a group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: getOrganizationsEnvironmentsGroupinstances
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: "Updates a group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupInstanceUpdate-oas.json
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsGroupinstances
+    delete:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: "Deletes a group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: deleteOrganizationsEnvironmentsGroupinstances
+    parameters:
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}/contracts:
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/contractCreation.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/apiGroups/contractCreation.json
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Creates new contract between a group instance and a application\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n  - Exchange Viewer\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/contractGroupPOST.json
+            examples:
+              Contract:
+                $ref: ./apimanager/examples/requests/contractThroughApi.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsGroupinstancesContracts
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceContractsRetrieve.yaml
+              examples:
+                GroupContract:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceContractsRetrieve.json
+      description: "Retrieves the list of contracts of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsEnvironmentsGroupinstancesContracts
+    head:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+      description: "Retrieves the count of contracts of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: checkOrganizationsEnvironmentsGroupinstancesContracts
+    parameters:
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}/contracts/{contractId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceContractsRetrieve.yaml
+              examples:
+                GroupContract:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceContractsRetrieve.json
+      description: "Retrieves a specific contract for the group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: getOrganizationsEnvironmentsGroupinstancesContracts
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: "Deletes a group instance contract that is not currently applied\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: deleteOrganizationsEnvironmentsGroupinstancesContracts
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: "Updates a group instance contract\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: updateOrganizationsEnvironmentsGroupinstancesContracts
+    parameters:
+    - $ref: '#/components/parameters/param_contract_id_string'
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}/tiers:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceTiersRetrieve.yaml
+              examples:
+                GroupTier:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceTiersRetrieve.json
+      description: "Retrieves the tiers of a Group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsEnvironmentsGroupinstancesTiers
+    post:
+      responses:
+        '201':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceTierCreation.yaml
+              examples:
+                GroupTier:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceTierCreation.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Creates a Group instance tier\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupInstanceTier-oas.json
+            examples:
+              GroupTier:
+                $ref: ./apimanager/examples/requests/apiGroups/groupInstanceTierCreation.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsGroupinstancesTiers
+    parameters:
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}/tiers/{tierId}:
+    get:
+      responses:
+        '200':
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceTierRetrieve.yaml
+              examples:
+                GroupTier:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceTierRetrieve.json
+        '404':
+          description: Group instance tier not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Retrieves a group instance tier\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: getOrganizationsEnvironmentsGroupinstancesTiers
+    delete:
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      description: "Deletes a tier that has no active applications\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: deleteOrganizationsEnvironmentsGroupinstancesTiers
+    put:
+      responses:
+        '200':
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstanceTierRetrieve.yaml
+              examples:
+                GroupTier:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstanceTierRetrieve.json
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '404':
+          description: Group instance tier not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Updates a group instance tier\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupInstanceTierUpdate-oas.json
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsGroupinstancesTiers
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: Patches a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsEnvironmentsGroupinstancesTiers
+    parameters:
+    - $ref: '#/components/parameters/param_tier_id'
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/groupInstances/{groupInstanceId}/apiInstances:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: "Gets API instances of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsEnvironmentsGroupinstancesApiinstances
+    parameters:
+    - $ref: '#/components/parameters/param_group_instance_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis:
+    get:
+      description: 'Retrieves a collection of Managed Service APIs in the specified environment.
+
+        Managed Service APIs are deployed and managed through API Manager''s service
+
+        mesh capabilities.
+
+        '
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/apiList.yaml
+              examples:
+                ApiList:
+                  $ref: ./apimanager/examples/responses/managedServices/apiList.json
+      operationId: listOrganizationsEnvironmentsManagedserviceapis
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiGet.yaml
+              examples:
+                Api:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiGet.json
+      description: Retrieve a specific Managed Service API
+      operationId: getOrganizationsEnvironmentsManagedserviceapis
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedAPI.yaml
+              examples:
+                Api:
+                  $ref: ./apimanager/examples/responses/managedServices/managedAPI.json
+      description: Updates endpointUri and providerId of managed service API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiPatch-oas.json
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsManagedserviceapis
+    parameters:
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/policies:
+    post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/policyPost.yaml
+              examples:
+                Policy:
+                  $ref: ./apimanager/examples/responses/managedServices/policyPost.json
+      description: Creates a Managed Service API Policy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiPolicyPost.json
+            example:
+              name: Example Resource
+              description: Example description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsManagedserviceapisPolicies
+    get:
+      description: 'Retrieves all policies applied to a specific Managed Service API.
+
+        Returns the policy configuration including order, enabled status, and configuration
+
+        parameters.
+
+        '
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/policies.yaml
+              examples:
+                Policies:
+                  $ref: ./apimanager/examples/responses/managedServices/policies.json
+        '304':
+          description: Not Modified. The resource has not been modified since the last request.
+      parameters:
+      - name: if-none-match
+        in: header
+        description: Last modification date (EPOC)
+        schema:
+          type: number
+      - name: fullInfo
+        in: query
+        schema:
+          default: true
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+        description: The fullInfo query parameter.
+      operationId: listOrganizationsEnvironmentsManagedserviceapisPolicies
+    parameters:
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/policies/{policyId}:
+    get:
+      description: 'Retrieves details of a specific policy applied to a Managed Service API.
+
+        Returns the complete policy configuration including template information and
+
+        parameter values.
+
+        '
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/policy.yaml
+              examples:
+                Policy:
+                  $ref: ./apimanager/examples/responses/managedServices/policy.json
+      operationId: getOrganizationsEnvironmentsManagedserviceapisPolicies
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/policyPatch.yaml
+              examples:
+                Policy:
+                  $ref: ./apimanager/examples/responses/managedServices/policyPatch.json
+      description: Updates a Managed Service API Policy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiPolicyPatch.json
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsManagedserviceapisPolicies
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: Unapplies a policy.
+      operationId: deleteOrganizationsEnvironmentsManagedserviceapisPolicies
+    parameters:
+    - $ref: '#/components/parameters/param_policy_id'
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/tiers:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiTiersRetrieve.yaml
+              examples:
+                Tiers:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiTiersRetrieve.json
+      description: Retrieves the tiers of a Managed Service API
+      operationId: listOrganizationsEnvironmentsManagedserviceapisTiers
+    post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiTier.yaml
+              examples:
+                Tier:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiTier.json
+      description: Creates a tier for a Managed Service API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiTier-oas.json
+            examples:
+              Tier:
+                $ref: ./apimanager/examples/requests/managedServices/managedServiceApiTier.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsManagedserviceapisTiers
+    parameters:
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/tiers/{tierId}:
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiTier.yaml
+              examples:
+                Tier:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiTier.json
+      description: Edit a tier of a Managed Service API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiTierPut-oas.json
+            examples:
+              Tier:
+                $ref: ./apimanager/examples/requests/managedServices/managedServiceApiTier.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsManagedserviceapisTiers
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: Delete a tier of a Managed Service API
+      operationId: deleteOrganizationsEnvironmentsManagedserviceapisTiers
+    parameters:
+    - $ref: '#/components/parameters/param_tier_id_managed_service'
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/contracts:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiContractsRetrieve.yaml
+              examples:
+                Contracts:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContractsRetrieve.json
+      description: Retrieves the contracts of a Managed Service API
+      operationId: listOrganizationsEnvironmentsManagedserviceapisContracts
+    post:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiContract.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContract.json
+      description: Creates a contract for a Managed Service API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiContract.json
+            examples:
+              Contract:
+                $ref: ./apimanager/examples/requests/managedServices/managedServiceApiContract.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsEnvironmentsManagedserviceapisContracts
+    parameters:
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/managedServiceApis/{managedServiceApiId}/contracts/{contractId}
+  : get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiContractRetrieve.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContractRetrieve.json
+      description: Retrieves a contract of a Managed Service API
+      operationId: getOrganizationsEnvironmentsManagedserviceapisContracts
+    patch:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/managedServices/managedServiceApiContract.yaml
+              examples:
+                Contract:
+                  $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContract.json
+      description: Edit a contract of a Managed Service API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/managedServices/managedServiceApiContractPatch.json
+            examples:
+              Contract:
+                $ref: ./apimanager/examples/requests/managedServices/managedServiceApiContractPatch.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsEnvironmentsManagedserviceapisContracts
+    delete:
+      responses:
+        '204':
+          description: No Content. The operation completed successfully with no response body.
+      description: Delete a contract of a Managed Service API
+      operationId: deleteOrganizationsEnvironmentsManagedserviceapisContracts
+    parameters:
+    - $ref: '#/components/parameters/param_contract_id_string'
+    - $ref: '#/components/parameters/param_managed_service_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/custom-policy-templates:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: Retrieves a list of custom policy templates.
+      parameters:
+      - $ref: '#/components/parameters/trait_searchable_offset'
+      - $ref: '#/components/parameters/trait_searchable_limit'
+      - $ref: '#/components/parameters/trait_searchable_sort'
+      - $ref: '#/components/parameters/trait_searchable_ascending'
+      - $ref: '#/components/parameters/trait_searchable_query'
+      operationId: listOrganizationsCustompolicytemplates
+    post:
+      responses:
+        '201':
+          description: The new element has been successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: Creates a new custom policy.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                definition:
+                  type: string
+                  format: binary
+                  description: Policy template definition file in YAML with the implementation and execution logic.
+                configuration:
+                  type: string
+                  format: binary
+                  description: Policy configuration schema file in YAML/JSON defining the configurable parameters.
+                name:
+                  type: string
+                  description: Unique name identifying the custom policy template.
+                gatewayVersion:
+                  type: string
+                  description: Target Mule Gateway version (e.g., 4.x, 3.x) determining compatibility.
+              required: []
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsCustompolicytemplates
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: Example Resource
+      description: Returns an instance of a single element.
+      operationId: getOrganizationsCustompolicytemplates
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Updates a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsCustompolicytemplates
+    patch:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+      description: Patches a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsCustompolicytemplates
+    delete:
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      description: Deletes the instance of the element specified.
+      operationId: deleteOrganizationsCustompolicytemplates
+    parameters:
+    - $ref: '#/components/parameters/param_custom_policy_template_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/configuration:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: The XML configuration for the custom policy template.
+      operationId: listOrganizationsCustompolicytemplatesConfiguration
+    parameters:
+    - $ref: '#/components/parameters/param_custom_policy_template_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/definition:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+      description: The YAML definition for the custom policy template.
+      operationId: listOrganizationsCustompolicytemplatesDefinition
+    parameters:
+    - $ref: '#/components/parameters/param_custom_policy_template_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/policy-templates:
+    get:
+      responses:
+        '200':
+          description: Successful.
+          content:
+            application/json:
+              example:
+                total: 0
+                data: []
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '406':
+          description: The requested accept type is not supported.
+          content:
+            application/json:
+              example:
+                message: Success
+        '500':
+          description: An unknown error occurred.
+          content:
+            application/json:
+              example:
+                message: Success
+      description: "Retrieves a list of policy templates\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      parameters:
+      - name: apiInstanceId
+        in: query
+        schema:
+          minimum: 0
+          maximum: 2147483647
+          type: integer
+        description: The apiInstance ID query parameter.
+      - name: version
+        in: query
+        allowReserved: true
+        schema:
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+          type: string
+        description: The version query parameter.
+      operationId: listOrganizationsPolicytemplates
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}:
+    get:
+      responses:
+        '200':
+          description: Successful.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: Example Resource
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '404':
+          description: There is no policy template defined under the specified id.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+        '406':
+          description: The requested accept type is not supported.
+          content:
+            application/json:
+              example:
+                message: Success
+        '500':
+          description: An unknown error occurred.
+          content:
+            application/json:
+              example:
+                message: Success
+      description: 'Retrieve specific details from the policy template, including the full XML
+
+        that is being injected as well as all of its configuration parameters.
+
+        '
+      parameters:
+      - name: version
+        in: query
+        allowReserved: true
+        schema:
+          pattern: ^v\d+(.\d+)?(.\d+)?$
+          type: string
+        description: The version query parameter.
+      operationId: getOrganizationsPolicytemplates
+    parameters:
+    - $ref: '#/components/parameters/param_policy_template_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/automated-policies:
+    head:
+      responses:
+        '200':
+          description: Successful
+      description: "Gets count of Automated Policies that apply to a certain scope\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      - name: runtimeVersion
+        in: query
+        allowReserved: true
+        description: A semver string that will be checked for an exact match of Runtime Version
+        schema:
+          type: string
+      operationId: checkOrganizationsAutomatedpolicies
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/automatedPolicies/automatedPoliciesSearch.yaml
+              examples:
+                AutomatedPolicies:
+                  $ref: ./apimanager/examples/responses/automatedPolicies/automatedPoliciesSearch.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Searches for a list of Automated Policies that apply to a certain scope\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      - name: runtimeVersion
+        in: query
+        allowReserved: true
+        description: A semver string that will be checked for an exact match of Runtime Version
+        schema:
+          type: string
+      operationId: listOrganizationsAutomatedpolicies
+    post:
+      responses:
+        '201':
+          description: Automated Policy was created successfully
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '409':
+          description: Automated Policy creation had a conflict
+          content:
+            application/json:
+              example:
+                error: Conflict
+                message: Resource already exists or conflicts with existing state
+      description: "Creates an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/automatedPolicy.json
+            examples:
+              AutomatedPolicy:
+                $ref: ./apimanager/examples/requests/automatedPolicy.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsAutomatedpolicies
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/automated-policies/{automatedPolicyId}:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/automatedPolicies/automatedPoliciesRetrieve.yaml
+              examples:
+                AutomatedPolicies:
+                  $ref: ./apimanager/examples/responses/automatedPolicies/automatedPoliciesRetrieve.json
+      description: "Retrieves an Automated Policy.\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      operationId: getOrganizationsAutomatedpolicies
+    patch:
+      responses:
+        '200':
+          description: Automated Policy successfully updated
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Updates an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/automatedPolicyPATCH-oas.json
+            examples:
+              AutomatedPolicy:
+                $ref: ./apimanager/examples/requests/automatedPolicy.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsAutomatedpolicies
+    delete:
+      responses:
+        '204':
+          description: Automated Policy successfully deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Deletes an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      operationId: deleteOrganizationsAutomatedpolicies
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Updates a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsAutomatedpolicies
+    parameters:
+    - $ref: '#/components/parameters/param_automated_policy_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/automated-policies/{automatedPolicyId}/apis:
+    get:
+      responses:
+        '200':
+          description: Success. Returns the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiDefinitions.yaml
+              examples:
+                AutomatedPolicies:
+                  $ref: ./apimanager/examples/responses/apiDefinitions.json
+      description: "Gets deployed APIs affected by Automated Policy\n\nConnected Apps require the following scopes:\n  - View Policies\n"
+      parameters:
+      - name: type
+        in: query
+        description: Type of query.
+        schema:
+          default: include
+          enum:
+          - include
+          - exclude
+          - all
+          type: string
+      - name: deployedOnly
+        in: query
+        description: Type of requested APIs.
+        schema:
+          default: true
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+      - name: runtimes
+        in: query
+        allowReserved: true
+        schema:
+          default: mule3,mule4,flexGateway
+          type: string
+        description: The runtimes query parameter.
+      - name: offset
+        in: query
+        description: Offset on the amount of assets (each of which has all its apis)
+        schema:
+          default: 0
+          type: integer
+      - name: limit
+        in: query
+        description: Limit on the amount of assets (each of which has all its apis)
+        schema:
+          default: 100
+          type: integer
+      operationId: listOrganizationsAutomatedpoliciesApis
+    parameters:
+    - $ref: '#/components/parameters/param_automated_policy_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/automated-policies/{automatedPolicyId}/incompatible-apis/{environmentApiId}:
+    delete:
+      responses:
+        '204':
+          description: API left uncovered from Automated Policy
+        '404':
+          description: Not Found. The requested resource does not exist.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: Delete Automated Policy coverage over the apiVersion specified due to incompatible implementation for the proxy version.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      operationId: deleteOrganizationsAutomatedpoliciesIncompatibleapis
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_automated_policy_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/automated-policies/{automatedPolicyId}/implementationAssets:
+    post:
+      responses:
+        '201':
+          description: Implementation asset successfully deployed
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '404':
+          description: Not Found. The requested resource does not exist.
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Updates implementation assets\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      - name: dryRun
+        in: query
+        description: Perform a dry run of the implementation update
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+      operationId: createOrganizationsAutomatedpoliciesImplementationassets
+    parameters:
+    - $ref: '#/components/parameters/param_automated_policy_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupsSearch.yaml
+              examples:
+                Groups:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupsSearch.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Retrieves all groups within an organization\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      parameters:
+      - name: name
+        in: query
+        allowReserved: true
+        description: Search groups by name
+        schema:
+          type: string
+      operationId: listOrganizationsGroups
+    post:
+      responses:
+        '201':
+          description: Group was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupCreation.yaml
+              examples:
+                Groups:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupCreation.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Creates a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/group-oas.json
+            examples:
+              Group:
+                $ref: ./apimanager/examples/requests/apiGroups/groupCreation.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsGroups
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups/{groupId}:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupRetrieve.yaml
+              examples:
+                Group:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupRetrieve.json
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Retrieves a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: getOrganizationsGroups
+    patch:
+      responses:
+        '200':
+          description: Group successfully updated
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Updates a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupUpdate.json
+            examples:
+              Group:
+                $ref: ./apimanager/examples/requests/apiGroups/groupUpdate.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsGroups
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Updates a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsGroups
+    delete:
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      description: Deletes the instance of the element specified.
+      operationId: deleteOrganizationsGroups
+    parameters:
+    - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups/{groupId}/assets:
+    post:
+      responses:
+        '200':
+          description: Group asset successfully created
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Creates a group asset\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/publishGroupVersion.json
+            example:
+              name: Example Resource
+              description: Example description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsGroupsAssets
+    parameters:
+    - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups/{groupId}/versions:
+    post:
+      responses:
+        '201':
+          description: Group was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupVersionCreation.yaml
+              examples:
+                Group:
+                  $ref: apimanager/examples/responses/apiGroups/groupVersionCreation.json
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+      description: "Creates a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupVersion-oas.json
+            examples:
+              Group:
+                $ref: ./apimanager/examples/requests/apiGroups/groupVersionCreation.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: createOrganizationsGroupsVersions
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupVersionsRetrieve.yaml
+              examples:
+                Group:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupVersionsRetrieve.json
+      description: "Retrieves all versions of a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsGroupsVersions
+    parameters:
+    - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups/{groupId}/versions/{groupVersionId}:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupVersionRetrieve.yaml
+              examples:
+                Group:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupVersionRetrieve.json
+        '404':
+          description: Group Version not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Retrieves a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: getOrganizationsGroupsVersions
+    patch:
+      responses:
+        '200':
+          description: Group Version successfully updated
+          content:
+            application/json:
+              example:
+                message: Resource updated successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+                message: Invalid request parameters
+        '404':
+          description: Group Version not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Updates a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./apimanager/schemas/apiGroups/groupVersionUpdate.json
+            examples:
+              Group:
+                $ref: ./apimanager/examples/requests/apiGroups/groupVersionUpdate.json
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: patchOrganizationsGroupsVersions
+    put:
+      responses:
+        '201':
+          description: Created. The resource was successfully created.
+          content:
+            application/json:
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+      description: Updates a single element.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              name: Updated Resource
+              description: Updated description
+        required: true
+        description: Request body containing the data needed for this operation.
+      operationId: updateOrganizationsGroupsVersions
+    delete:
+      responses:
+        '204':
+          description: The element has been deleted successfully.
+      description: Deletes the instance of the element specified.
+      operationId: deleteOrganizationsGroupsVersions
+    parameters:
+    - $ref: '#/components/parameters/param_group_version_id'
+    - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/groups/{groupId}/versions/{groupVersionId}/instances:
+    get:
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: ./apimanager/schemas/responses/apiGroups/groupInstancesRetrieve.yaml
+              examples:
+                Groups:
+                  $ref: ./apimanager/examples/responses/apiGroups/groupInstancesRetrieve.json
+        '404':
+          description: Group Version not found
+          content:
+            application/json:
+              example:
+                error: Not Found
+                message: Resource not found
+      description: "Retrieves the instances contained in a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
+      operationId: listOrganizationsGroupsVersionsInstances
+    parameters:
+    - $ref: '#/components/parameters/param_group_version_id'
+    - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+components:
+  schemas: {}
+  responses: {}
+  parameters:
+    trait_searchable_offset:
+      name: offset
+      in: query
+      description: Skip over a number of elements by specifying an offset value for the query.
+      schema:
+        default: 0
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+    trait_searchable_limit:
+      name: limit
+      in: query
+      description: Limit the number of elements on the response.
+      schema:
+        default: 100
+        minimum: 0
+        maximum: 250
+        type: integer
+    trait_searchable_sort:
+      name: sort
+      in: query
+      allowReserved: true
+      description: Property to sort by.
+      schema:
+        type: string
+    trait_searchable_ascending:
+      name: ascending
+      in: query
+      description: Order for sorting.
+      schema:
+        allOf:
+        - x-force-coercion-to: boolean
+        - type: boolean
+    trait_searchable_query:
+      name: query
+      in: query
+      allowReserved: true
+      description: Search criteria.
+      schema:
+        type: string
+    param_organization_id:
+      name: organizationId
+      in: path
+      required: true
+      description: '**Business group** GUID. API Manager scopes resources by Anypoint Business Group, which may be:
+
+        - **`id`** — the organization returned by **getOrganizations** (GET `/organizations/{organizationId}`), or
+
+        - **any element of `subOrganizationIds`** — a **child Business Group** under that org.
+
+        The same UUID shape is used for root and sub-orgs. Resolve **environmentId** via **listEnvironments**
+
+        for the same Business Group (see **param_environment_id**).
+
+        '
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: '**listMe** is `GET /me` in `access-management/api.yaml` (`operationId` listMe). Returns the caller profile;
+
+          **user.organization.id** is the primary Business Group GUID for this parameter. Other orgs (memberships, sub-orgs)
+
+          are covered by the **getOrganizations** sources below.
+
+          '
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    param_environment_id:
+      name: environmentId
+      in: path
+      required: true
+      description: 'Runtime environment GUID. **Source:** **listEnvironments** (GET `/organizations/{organizationId}/environments`)
+
+        using the **same** `organizationId` (Business Group) as in this API Manager path—use each **`data[].id`**
+
+        from the response. Optional query params (**name**, **isProduction**, **type**, **search**, pagination)
+
+        help pick the right environment. **getOrganizations** may also include an **environments** array, but
+
+        **listEnvironments** is the authoritative list for resolving **environmentId**.
+
+        '
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: 'GET `/organizations/{organizationId}/environments`; **organizationId** is the path parameter on **listEnvironments**
+
+          (same Business Group as in this API Manager path). Response includes `data` and `total`; use each **data[].id** as **environmentId**.
+
+          '
+        values: $.data[*].id
+        labels: $.data[*].name
+    param_environment_api_id:
+      name: environmentApiId
+      in: path
+      required: true
+      description: Managed API instance id in this environment (API Manager deployment).
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApis
+        values: $.assets[*].apis[*].id
+        labels: $.assets[*].apis[*].name
+    param_exchange_asset_id_query:
+      name: assetId
+      in: query
+      allowReserved: true
+      description: Exact match on Exchange asset id (pairs with groupId for a published API spec).
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        name: getAssetsAssetId
+        values: $[*].assetId
+        labels: $[*].name
+    param_exchange_group_id_query:
+      name: groupId
+      in: query
+      description: Exact match on Exchange group id (Maven groupId of the asset).
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        name: getAssetsGroupId
+        values: $[*].groupId
+        labels: $[*].name
+    param_exchange_asset_version_query:
+      name: assetVersion
+      in: query
+      allowReserved: true
+      description: Exact match on published asset version string.
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        description: Align with Exchange asset version for the same assetId + groupId; exact response shape depends on search results.
+        values: $[*].version
+        labels: $[*].name
+    param_upstream_id:
+      name: upstreamId
+      in: path
+      required: true
+      description: Upstream target id for this managed API instance.
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisUpstreams
+        values: $.id
+        labels: $.name
+    param_policy_id:
+      name: policyId
+      in: path
+      required: true
+      description: Applied policy instance id on this API instance.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisPolicies
+        values: $.id
+        labels: $.name
+    param_tier_id:
+      name: tierId
+      in: path
+      required: true
+      description: SLA tier id on this API instance or API group instance tier (integer).
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisTiers
+        values: $.id
+        labels: $.name
+    param_contract_id:
+      name: contractId
+      in: path
+      required: true
+      description: Client contract id for this API instance.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisContracts
+        description: API group contract paths may use string contractId—see param_contract_id_string.
+        values: $.id
+        labels: $.name
+    param_contract_id_string:
+      name: contractId
+      in: path
+      required: true
+      description: Contract id on API group instance or managed service API (string form).
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsGroupinstancesContracts
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsManagedserviceapisContracts
+        description: Alternate source for managed service API contract ids (string form on that surface).
+        values: $.id
+        labels: $.name
+    param_tier_id_managed_service:
+      name: tierId
+      in: path
+      required: true
+      description: Tier id on managed service API (string in this surface).
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsManagedserviceapisTiers
+        values: $.id
+        labels: $.name
+    param_alert_id:
+      name: alertId
+      in: path
+      required: true
+      description: Alert configuration id for this API instance.
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisAlerts
+        values: $.id
+        labels: $.name
+    param_group_instance_id:
+      name: groupInstanceId
+      in: path
+      required: true
+      description: API group instance id in this environment.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsGroupinstances
+        values: $.id
+        labels: $.name
+    param_managed_service_api_id:
+      name: managedServiceApiId
+      in: path
+      required: true
+      description: Managed (Flex/evented) API instance id in this environment.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsManagedserviceapis
+        values: $.id
+        labels: $.name
+    param_custom_policy_template_id:
+      name: customPolicyTemplateId
+      in: path
+      required: true
+      description: Organization-scoped custom policy template id.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsCustompolicytemplates
+        values: $.id
+        labels: $.name
+    param_policy_template_id:
+      name: policyTemplateId
+      in: path
+      required: true
+      description: Catalog policy template identifier (org-level).
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsPolicytemplates
+        values: $.id
+        labels: $.name
+    param_automated_policy_id:
+      name: automatedPolicyId
+      in: path
+      required: true
+      description: Automated policy rule id for the organization.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsAutomatedpolicies
+        values: $.id
+        labels: $.name
+    param_api_group_id:
+      name: groupId
+      in: path
+      required: true
+      description: API Manager API group id (integer; not Exchange Maven groupId).
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsGroups
+        values: $.id
+        labels: $.name
+    param_group_version_id:
+      name: groupVersionId
+      in: path
+      required: true
+      description: Published version id of an API group.
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsGroupsVersions
+        values: $.id
+        labels: $.name
+    XOrigin_environmentId_Query:
+      name: environmentId
+      in: query
+      allowReserved: true
+      required: true
+      description: A string that will be checked for an exact match of the Environment ID
+      schema:
+        minLength: 1
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication. Login endpoint https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: OAuth2 client credentials. Token endpoint https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  links: {}
+  callbacks: {}

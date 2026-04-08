@@ -1,0 +1,342 @@
+JsonLD:
+  value:
+    - "@id": valkyr-for-humans-api.raml
+      "@type":
+        - http://raml.org/vocabularies/document#Document
+        - http://raml.org/vocabularies/document#Fragment
+        - http://raml.org/vocabularies/document#Module
+        - http://raml.org/vocabularies/document#Unit
+      http://raml.org/vocabularies/document#encodes:
+        -
+          "@id": valkyr-for-humans-api.raml#/web-api
+          "@type":
+            - http://schema.org/WebAPI
+            - http://raml.org/vocabularies/document#RootDomainElement
+            - http://raml.org/vocabularies/document#DomainElement
+          http://schema.org/name:
+            -
+              "@value": Valkyr for Humans API
+          http://schema.org/version:
+            -
+              "@value": v1
+          http://raml.org/vocabularies/http#endpoint:
+            -
+              "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice
+              "@type":
+                - http://raml.org/vocabularies/http#EndPoint
+                - http://raml.org/vocabularies/document#DomainElement
+              http://raml.org/vocabularies/http#path:
+                -
+                  "@value": /service
+              http://www.w3.org/ns/hydra/core#supportedOperation:
+                -
+                  "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post
+                  "@type":
+                    - http://www.w3.org/ns/hydra/core#Operation
+                    - http://raml.org/vocabularies/document#DomainElement
+                  http://www.w3.org/ns/hydra/core#method:
+                    -
+                      "@value": post
+                  http://www.w3.org/ns/hydra/core#expects:
+                    -
+                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request
+                      "@type":
+                        - http://raml.org/vocabularies/http#Request
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://raml.org/vocabularies/http#payload:
+                        -
+                          "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json
+                          "@type":
+                            - http://raml.org/vocabularies/http#Payload
+                            - http://raml.org/vocabularies/document#DomainElement
+                          http://raml.org/vocabularies/http#mediaType:
+                            -
+                              "@value": application/json
+                          http://raml.org/vocabularies/http#schema:
+                            -
+                              "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json/schema
+                              "@type":
+                                - http://www.w3.org/ns/shacl#NodeShape
+                                - http://www.w3.org/ns/shacl#Shape
+                                - http://raml.org/vocabularies/shapes#Shape
+                                - http://raml.org/vocabularies/document#DomainElement
+                              http://www.w3.org/ns/shacl#closed:
+                                -
+                                  "@value": false
+                              http://www.w3.org/ns/shacl#property:
+                                -
+                                  "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json/schema/property/product
+                                  "@type":
+                                    - http://www.w3.org/ns/shacl#PropertyShape
+                                    - http://www.w3.org/ns/shacl#Shape
+                                    - http://raml.org/vocabularies/shapes#Shape
+                                  http://www.w3.org/ns/shacl#path:
+                                    -
+                                      "@id": http://raml.org/vocabularies/data#product
+                                  http://raml.org/vocabularies/shapes#range:
+                                    -
+                                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json/schema/property/product/scalar/product
+                                      "@type":
+                                        - http://raml.org/vocabularies/shapes#ScalarShape
+                                        - http://www.w3.org/ns/shacl#Shape
+                                        - http://raml.org/vocabularies/shapes#Shape
+                                        - http://raml.org/vocabularies/document#DomainElement
+                                      http://www.w3.org/ns/shacl#datatype:
+                                        -
+                                          "@id": http://www.w3.org/2001/XMLSchema#string
+                                      http://www.w3.org/ns/shacl#name:
+                                        -
+                                          "@value": product
+                                  http://www.w3.org/ns/shacl#minCount:
+                                    -
+                                      "@value": 1
+                                  http://www.w3.org/ns/shacl#name:
+                                    -
+                                      "@value": product
+                                -
+                                  "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json/schema/property/component
+                                  "@type":
+                                    - http://www.w3.org/ns/shacl#PropertyShape
+                                    - http://www.w3.org/ns/shacl#Shape
+                                    - http://raml.org/vocabularies/shapes#Shape
+                                  http://www.w3.org/ns/shacl#path:
+                                    -
+                                      "@id": http://raml.org/vocabularies/data#component
+                                  http://raml.org/vocabularies/shapes#range:
+                                    -
+                                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/request/application/json/schema/property/component/scalar/component
+                                      "@type":
+                                        - http://raml.org/vocabularies/shapes#ScalarShape
+                                        - http://www.w3.org/ns/shacl#Shape
+                                        - http://raml.org/vocabularies/shapes#Shape
+                                        - http://raml.org/vocabularies/document#DomainElement
+                                      http://www.w3.org/ns/shacl#datatype:
+                                        -
+                                          "@id": http://www.w3.org/2001/XMLSchema#string
+                                      http://www.w3.org/ns/shacl#name:
+                                        -
+                                          "@value": component
+                                  http://www.w3.org/ns/shacl#minCount:
+                                    -
+                                      "@value": 1
+                                  http://www.w3.org/ns/shacl#name:
+                                    -
+                                      "@value": component
+                              http://www.w3.org/ns/shacl#name:
+                                -
+                                  "@value": Service
+                  http://www.w3.org/ns/hydra/core#returns:
+                    -
+                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/201
+                      "@type":
+                        - http://raml.org/vocabularies/http#Response
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://schema.org/name:
+                        -
+                          "@value": "201"
+                      http://www.w3.org/ns/hydra/core#statusCode:
+                        -
+                          "@value": "201"
+                      http://raml.org/vocabularies/http#payload:
+                        -
+                          "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/201/application/json
+                          "@type":
+                            - http://raml.org/vocabularies/http#Payload
+                            - http://raml.org/vocabularies/document#DomainElement
+                          http://raml.org/vocabularies/http#mediaType:
+                            -
+                              "@value": application/json
+                          http://raml.org/vocabularies/http#schema:
+                            -
+                              "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/201/application/json/any/schema
+                              "@type":
+                                - http://raml.org/vocabularies/shapes#AnyShape
+                                - http://www.w3.org/ns/shacl#Shape
+                                - http://raml.org/vocabularies/shapes#Shape
+                              http://www.w3.org/ns/shacl#name:
+                                -
+                                  "@value": schema
+                    -
+                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/post/409
+                      "@type":
+                        - http://raml.org/vocabularies/http#Response
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://schema.org/name:
+                        -
+                          "@value": "409"
+                      http://www.w3.org/ns/hydra/core#statusCode:
+                        -
+                          "@value": "409"
+                -
+                  "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/delete
+                  "@type":
+                    - http://www.w3.org/ns/hydra/core#Operation
+                    - http://raml.org/vocabularies/document#DomainElement
+                  http://www.w3.org/ns/hydra/core#method:
+                    -
+                      "@value": delete
+                  http://www.w3.org/ns/hydra/core#returns:
+                    -
+                      "@id": valkyr-for-humans-api.raml#/web-api/end-points/%2Fservice/delete/204
+                      "@type":
+                        - http://raml.org/vocabularies/http#Response
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://schema.org/name:
+                        -
+                          "@value": "204"
+                      http://www.w3.org/ns/hydra/core#statusCode:
+                        -
+                          "@value": "204"
+      http://raml.org/vocabularies/document#declares:
+        -
+          "@id": types/Service.raml/type
+          "@type":
+            - http://www.w3.org/ns/shacl#NodeShape
+            - http://www.w3.org/ns/shacl#Shape
+            - http://raml.org/vocabularies/shapes#Shape
+            - http://raml.org/vocabularies/document#DomainElement
+          http://www.w3.org/ns/shacl#closed:
+            -
+              "@value": false
+          http://www.w3.org/ns/shacl#property:
+            -
+              "@id": types/Service.raml/type/property/product
+              "@type":
+                - http://www.w3.org/ns/shacl#PropertyShape
+                - http://www.w3.org/ns/shacl#Shape
+                - http://raml.org/vocabularies/shapes#Shape
+              http://www.w3.org/ns/shacl#path:
+                -
+                  "@id": http://raml.org/vocabularies/data#product
+              http://raml.org/vocabularies/shapes#range:
+                -
+                  "@id": types/Service.raml/type/property/product/scalar/product
+                  "@type":
+                    - http://raml.org/vocabularies/shapes#ScalarShape
+                    - http://www.w3.org/ns/shacl#Shape
+                    - http://raml.org/vocabularies/shapes#Shape
+                    - http://raml.org/vocabularies/document#DomainElement
+                  http://www.w3.org/ns/shacl#datatype:
+                    -
+                      "@id": http://www.w3.org/2001/XMLSchema#string
+                  http://www.w3.org/ns/shacl#name:
+                    -
+                      "@value": product
+              http://www.w3.org/ns/shacl#minCount:
+                -
+                  "@value": 1
+              http://www.w3.org/ns/shacl#name:
+                -
+                  "@value": product
+            -
+              "@id": types/Service.raml/type/property/component
+              "@type":
+                - http://www.w3.org/ns/shacl#PropertyShape
+                - http://www.w3.org/ns/shacl#Shape
+                - http://raml.org/vocabularies/shapes#Shape
+              http://www.w3.org/ns/shacl#path:
+                -
+                  "@id": http://raml.org/vocabularies/data#component
+              http://raml.org/vocabularies/shapes#range:
+                -
+                  "@id": types/Service.raml/type/property/component/scalar/component
+                  "@type":
+                    - http://raml.org/vocabularies/shapes#ScalarShape
+                    - http://www.w3.org/ns/shacl#Shape
+                    - http://raml.org/vocabularies/shapes#Shape
+                    - http://raml.org/vocabularies/document#DomainElement
+                  http://www.w3.org/ns/shacl#datatype:
+                    -
+                      "@id": http://www.w3.org/2001/XMLSchema#string
+                  http://www.w3.org/ns/shacl#name:
+                    -
+                      "@value": component
+              http://www.w3.org/ns/shacl#minCount:
+                -
+                  "@value": 1
+              http://www.w3.org/ns/shacl#name:
+                -
+                  "@value": component
+          http://www.w3.org/ns/shacl#name:
+            -
+              "@value": Service
+      http://raml.org/vocabularies/document#references:
+        -
+          "@id": types/Service.raml
+          "@type":
+            - http://raml.org/vocabularies/document#DataType
+            - http://raml.org/vocabularies/document#Fragment
+            - http://raml.org/vocabularies/document#Unit
+          http://raml.org/vocabularies/document#encodes:
+            -
+              "@id": types/Service.raml/type
+              "@type":
+                - http://www.w3.org/ns/shacl#NodeShape
+                - http://www.w3.org/ns/shacl#Shape
+                - http://raml.org/vocabularies/shapes#Shape
+                - http://raml.org/vocabularies/document#DomainElement
+              http://www.w3.org/ns/shacl#closed:
+                -
+                  "@value": false
+              http://www.w3.org/ns/shacl#property:
+                -
+                  "@id": types/Service.raml/type/property/product
+                  "@type":
+                    - http://www.w3.org/ns/shacl#PropertyShape
+                    - http://www.w3.org/ns/shacl#Shape
+                    - http://raml.org/vocabularies/shapes#Shape
+                  http://www.w3.org/ns/shacl#path:
+                    -
+                      "@id": http://raml.org/vocabularies/data#product
+                  http://raml.org/vocabularies/shapes#range:
+                    -
+                      "@id": types/Service.raml/type/property/product/scalar/product
+                      "@type":
+                        - http://raml.org/vocabularies/shapes#ScalarShape
+                        - http://www.w3.org/ns/shacl#Shape
+                        - http://raml.org/vocabularies/shapes#Shape
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://www.w3.org/ns/shacl#datatype:
+                        -
+                          "@id": http://www.w3.org/2001/XMLSchema#string
+                      http://www.w3.org/ns/shacl#name:
+                        -
+                          "@value": product
+                  http://www.w3.org/ns/shacl#minCount:
+                    -
+                      "@value": 1
+                  http://www.w3.org/ns/shacl#name:
+                    -
+                      "@value": product
+                -
+                  "@id": types/Service.raml/type/property/component
+                  "@type":
+                    - http://www.w3.org/ns/shacl#PropertyShape
+                    - http://www.w3.org/ns/shacl#Shape
+                    - http://raml.org/vocabularies/shapes#Shape
+                  http://www.w3.org/ns/shacl#path:
+                    -
+                      "@id": http://raml.org/vocabularies/data#component
+                  http://raml.org/vocabularies/shapes#range:
+                    -
+                      "@id": types/Service.raml/type/property/component/scalar/component
+                      "@type":
+                        - http://raml.org/vocabularies/shapes#ScalarShape
+                        - http://www.w3.org/ns/shacl#Shape
+                        - http://raml.org/vocabularies/shapes#Shape
+                        - http://raml.org/vocabularies/document#DomainElement
+                      http://www.w3.org/ns/shacl#datatype:
+                        -
+                          "@id": http://www.w3.org/2001/XMLSchema#string
+                      http://www.w3.org/ns/shacl#name:
+                        -
+                          "@value": component
+                  http://www.w3.org/ns/shacl#minCount:
+                    -
+                      "@value": 1
+                  http://www.w3.org/ns/shacl#name:
+                    -
+                      "@value": component
+              http://www.w3.org/ns/shacl#name:
+                -
+                  "@value": Service

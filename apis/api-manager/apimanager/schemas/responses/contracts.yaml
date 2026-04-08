@@ -1,0 +1,116 @@
+type: object
+properties:
+  total:
+    type: number
+  contracts:
+    type: array
+    items:
+      type: object
+      properties:
+        audit:
+          type: object
+          properties:
+            created:
+              type: object
+              properties:
+                date:
+                  type: string
+            updated:
+              type: object
+              properties:
+                date:
+                  type: string
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        id:
+          type: number
+        status:
+          type: string
+        approvedDate:
+          type: string
+        rejectedDate: {}
+        revokedDate: {}
+        applicationId:
+          type: number
+        application:
+          type: object
+          properties:
+            audit:
+              type: object
+              properties:
+                created:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                updated:
+                  type: object
+                  properties: {}
+            id:
+              type: number
+            name:
+              type: string
+            description: {}
+            coreServicesId:
+              type: string
+            url: {}
+        tierId:
+          type: number
+        tier:
+          type: object
+          properties:
+            audit:
+              type: object
+              properties:
+                created:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                updated:
+                  type: object
+                  properties: {}
+            id:
+              type: number
+            name:
+              type: string
+            description:
+              type: string
+            limits:
+              type: array
+              items:
+                type: object
+                properties:
+                  maximumRequests:
+                    type: number
+                  timePeriodInMilliseconds:
+                    type: number
+                  visible:
+                    type: boolean
+            status:
+              type: string
+            autoApprove:
+              type: boolean
+        requestedTierId: {}
+        requestedTier: {}
+        terms: {}
+        partyId: {}
+        partyName: {}
+        apiId:
+          type: number
+        api:
+          type: object
+          properties:
+            audit:
+              type: object
+              properties:
+                created:
+                  type: object
+                  properties: {}
+                updated:
+                  type: object
+                  properties: {}
+            id:
+              type: number

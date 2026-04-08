@@ -1,0 +1,11 @@
+{
+  "classifier": "oas",
+  "apiVersion": "1",
+  "main": "api.yaml",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "arm-monitoring-query",
+  "version": "1.0.1",
+  "name": "ARM Monitoring Query",
+  "originalFormatVersion": "3.0"
+}

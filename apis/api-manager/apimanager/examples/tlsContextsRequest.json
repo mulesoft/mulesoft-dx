@@ -1,0 +1,12 @@
+{
+  "value": {
+    "inbound": {
+      "secretGroupId": "8f5c4947-feea-4683-aa38-42ad97584d51",
+      "tlsContextId": "1d3b677a-7c9f-4c9b-b143-cf257835f9a8"
+    },
+    "outbound": {
+      "secretGroupId": "8f5c4947-feea-4683-aa38-42ad97584d51",
+      "tlsContextId": "1d3b677a-7c9f-4c9b-b143-cf257835f9a8"
+    }
+  }
+}

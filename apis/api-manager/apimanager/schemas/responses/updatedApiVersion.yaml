@@ -1,0 +1,70 @@
+type: object
+properties:
+  autodiscoveryInstanceName:
+    type: string
+  instanceLabel:
+    type: string
+  pinned:
+    type: boolean
+  order:
+    type: number
+  description:
+    type: string
+  endpoint:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties:
+              date:
+                type: string
+          updated:
+            type: object
+            properties:
+              date:
+                type: string
+      masterOrganizationId:
+        type: string
+      organizationId:
+        type: string
+      id:
+        type: number
+      type:
+        type: string
+      uri:
+        type: string
+      proxyUri:
+        type: string
+      proxyRegistrationUri: {}
+      lastActiveDate: {}
+      isCloudHub: {}
+      deploymentType:
+        type: string
+      policiesVersion:
+        type: string
+      referencesUserDomain: {}
+      responseTimeout: {}
+      apiId:
+        type: number
+  id:
+    type: number
+  environmentId:
+    type: string
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties: {}
+      updated:
+        type: object
+        properties:
+          date:
+            type: string
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string

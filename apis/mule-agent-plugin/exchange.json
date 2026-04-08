@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "ARM Mule Agent Plugin API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "mule-agent-plugin-api",
+  "version": "1.1.3",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "4ac5a8a5c572c6ee0d70279e3299c51c8ee7915d",
+    "projectId": "a37e8241-40a1-4dd4-b48d-abe2a0cd5efa"
+  },
+  "apiVersion": "v1.0",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

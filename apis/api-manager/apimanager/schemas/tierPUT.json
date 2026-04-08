@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "maximumRequests": {
+            "type": "integer"
+          },
+          "timePeriodInMilliseconds": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "DEPRECATED"]
+    }
+  }
+}

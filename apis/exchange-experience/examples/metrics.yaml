@@ -1,0 +1,124 @@
+MetricVersions:
+  value:
+    periodType: MONTH
+    dateFrom: 2022-12-28T00:00:00.000Z
+    dateTo: 2023-01-05T00:00:00.000Z
+    versions:
+      - groupId: cd7y8b06-e178-4167-9a36-1abf775a5b5e
+        assetId: assset-id
+        version: 2.0.0
+        minorVersion: "2.0"
+        isPublic: false
+        name: Assset Name
+        type: http-api
+        status: published
+        createdDate: 2022-12-01T13:21:13.973Z
+        contactEmail: null
+        contactName: null
+        createdBy:
+          id: 0853c514-6a56-4e23-8a51-6c2e6b6d2e85
+          userName: pepe
+          firstName: Pepe
+          lastName: lastName
+        metrics:
+          - metricId: 1621d354-bb5e-45b1-9ea3-767236c7dd08
+            displayName: Downloads
+            key: assetDownload
+            score: 20
+            allTime: 200
+          - metricId: a57a91e6-5aaf-4863-b0fd-55b93318952a
+            displayName: Engagement
+            key: engagement
+            score: 12
+            allTime: 23
+          - metricId: c07bba9e-8afc-4e44-9f99-ed9697c09272
+            displayName: Imports from API Designer
+            key: importsFromApid
+            score: 2
+            allTime: 30
+          - metricId: 283f0a5b-32d8-4cab-b18b-96477f2c1944
+            displayName: Dependents
+            key: assetDependent
+            score: 1
+            allTime: 12
+      - groupId: cd7y8b06-e178-4167-9a36-1abf775a5b5e
+        assetId: assset-id
+        version: 1.0.0
+        minorVersion: "1.0"
+        isPublic: false
+        name: Assset Name
+        type: http-api
+        status: published
+        createdDate: 2021-10-28T13:01:44.011Z
+        contactEmail: null
+        contactName: null
+        createdBy:
+          id: 0853c514-6a56-4e23-8a51-6c2e6b6d2e85
+          userName: pepe
+          firstName: Pepe
+          lastName: lastName
+        metrics:
+          - metricId: 1621d354-bb5e-45b1-9ea3-767236c7dd08
+            displayName: Downloads
+            key: assetDownload
+            score: 12
+            allTime: 15
+          - metricId: a57a91e6-5aaf-4863-b0fd-55b93318952a
+            displayName: Engagement
+            key: engagement
+            score: 30
+            allTime: 50
+          - metricId: c07bba9e-8afc-4e44-9f99-ed9697c09272
+            displayName: Imports from API Designer
+            key: importsFromApid
+            score: 30
+            allTime: 46
+          - metricId: 283f0a5b-32d8-4cab-b18b-96477f2c1944
+            displayName: Dependents
+            key: assetDependent
+            score: 12
+            allTime: 23
+
+MetricVersionsCSV:
+  value: |
+    "version","isPublic","status","createdDate","createdByFirstName","createdByLastName","updatedDate","assetCreatedDate","assetDownloadScore","assetDownloadAllTime","engagementScore","engagementAllTime","importsFromApidScore","importsFromApidAllTime","assetDependentScore","assetDependentAllTime","assetContractScore","assetContractAllTime"
+    "2.0.0",false,"published","2022-12-01T13:21:13.973Z","Pepe","Gomez",,,,0,0,0,0,0,0,0,0,0
+    "1.0.0",false,"published","2022-11-28T13:01:44.011Z","Pepe","Gomez",,,0,0,0,0,0,0,0,0,0,0
+
+Metrics:
+  value:
+    periodType: WEEK
+    dateFrom: 2022-12-29T00:00:00.000Z
+    dateTo: 2023-01-06T00:00:00.000Z
+    asset:
+      metrics:
+        - metricId: 1621d354-bb5e-45b1-9ea3-767236c7dd08
+          displayName: Downloads
+          key: assetDownload
+          score: 1
+          allTime: 200
+        - metricId: a57a91e6-5aaf-4863-b0fd-55b93318952a
+          displayName: Engagement
+          key: engagement
+          score: 1
+          allTime: 200
+        - metricId: c07bba9e-8afc-4e44-9f99-ed9697c09272
+          displayName: Imports from API Designer
+          key: importsFromApid
+          score: 0
+          allTime: 0
+        - metricId: 283f0a5b-32d8-4cab-b18b-96477f2c1944
+          displayName: Dependents
+          key: assetDependent
+          score: 0
+          allTime: 0
+        - metricId: bb572128-b2c6-45b4-814e-e9d84a834906
+          displayName: Contracts
+          key: assetContract
+          score: 0
+          allTime: 0
+
+MetricsCSV:
+  value: |
+    "assetDownloadScore","engagementScore","importsFromApidScore","importsFromApidAllTime","assetDependentScore","assetDependentAllTime","assetContractScore","assetContractAllTime"
+    4,4,0,0,0,0,0,0

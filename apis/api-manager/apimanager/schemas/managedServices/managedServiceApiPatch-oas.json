@@ -1,0 +1,73 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "endpoint": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        }
+      },
+      "required": ["uri"],
+      "additionalProperties": false
+    },
+    "endpointUri": {
+      "type": "string",
+      "nullable": true
+    },
+    "providerId": {
+      "type": "string",
+      "nullable": true,
+      "maxLength": 255,
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "organizationId": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+      "example": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a"
+    },
+    "masterOrganizationId": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+      "example": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a"
+    },
+    "environmentId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 36,
+      "example": "5d15a77c-0d35-400e-9a90-61d0beb09409"
+    },
+    "audit": {
+      "type": "object",
+      "properties": {
+        "created": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            }
+          }
+        },
+        "updated": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

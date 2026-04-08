@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "autoApprove": {
+      "type": "boolean"
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "maximumRequests": {
+            "type": "integer"
+          },
+          "timePeriodInMilliseconds": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "DEPRECATED"]
+    }
+  },
+  "required": ["name", "status"]
+}

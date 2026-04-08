@@ -1,0 +1,129 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  id:
+    type: number
+  status:
+    type: string
+  approvedDate:
+    type: string
+  rejectedDate: {}
+  revokedDate: {}
+  applicationId:
+    type: number
+  application:
+    type: object
+    properties:
+      masterOrganizationId:
+        type: string
+      id:
+        type: number
+      name:
+        type: string
+      description:
+        type: string
+      coreServicesId:
+        type: string
+      url:
+        type: string
+      grantTypes:
+        type: array
+        items: {}
+      redirectUri:
+        type: array
+        items:
+          type: string
+      clientId:
+        type: string
+      clientSecret:
+        type: string
+      clientProvider:
+        type: object
+        properties:
+          providerId: {}
+      owner:
+        type: string
+      email:
+        type: string
+      owners:
+        type: array
+        items: {}
+  tierId:
+    type: number
+  tier:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties:
+              date:
+                type: string
+          updated:
+            type: object
+            properties: {}
+      id:
+        type: number
+      name:
+        type: string
+      description:
+        type: string
+      limits:
+        type: array
+        items:
+          type: object
+          properties:
+            maximumRequests:
+              type: number
+            timePeriodInMilliseconds:
+              type: number
+            visible:
+              type: boolean
+      status:
+        type: string
+      autoApprove:
+        type: boolean
+  requestedTierId: {}
+  requestedTier: {}
+  terms: {}
+  partyId:
+    type: string
+  partyName:
+    type: string
+  requestAccessInfo:
+    type: object
+    properties:
+      reason:
+        type: string
+  apiId:
+    type: number
+  api:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties: {}
+          updated:
+            type: object
+            properties: {}
+      id:
+        type: number

@@ -1,0 +1,609 @@
+openapi: 3.0.0
+info:
+  title: Object Store v2 Statistics API
+  version: 1.0.0
+  description: Retrieve usage statistics for Object Store v2 stores, environments, and regions.
+servers:
+- url: https://object-store-stats.anypoint.mulesoft.com/api/v1
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations: {}
+  /organizations/{organizationId}:
+    get:
+      description: Get list of request counts. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - name: isMaster
+        description: 'If true, provide OS usage for master org along with all underlying sub orgs. If false provide OS usage for only org provided.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: List of request counts, one per period in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                - timeStamp: 2015-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 12
+                - timeStamp: 2017-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+              example: *id001
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationid
+  /organizations/{organizationId}/environments:
+    get:
+      description: Get list of environments with data for a specific queried time frame. This api will also return list of deleted environments. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: List of environments with data in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                - myEnvironment1
+                - myEnvironment2
+              example: *id002
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironments
+  /organizations/{organizationId}/environments/{environmentId}:
+    get:
+      description: Get list of request counts. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: List of request counts, one per period in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                - timeStamp: 2015-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 12
+                - timeStamp: 2017-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+              example: *id003
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentid
+  /organizations/{organizationId}/environments/{environmentId}/regions:
+    get:
+      description: Get list of regions with data for a specific queried time frame. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: List of regions with data in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                - us-east-1
+                - eu-west-2
+              example: *id004
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
+    get:
+      description: Get list of request count per region. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '200':
+          description: List of request count per region, one per period in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                - timeStamp: 2015-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 12
+                - timeStamp: 2017-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+              example: *id005
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionid
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores:
+    get:
+      description: Get list of stores with data for a specific queried time frame. This api will also return list of deleted stores. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '200':
+          description: List of stores with data in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                - myStore1
+                - myStore2
+                - anotherSampleStore
+              example: *id006
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidStores
+  /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores/{storeId}:
+    get:
+      description: Get list of request count per store. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
+      parameters:
+      - name: startDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The startDate query parameter.
+      - name: endDate
+        required: true
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: The endDate query parameter.
+      - name: period
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - 1hour
+          - 1day
+          - 1month
+        description: The period query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: storeId
+        required: true
+        in: path
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:object-store-v2-stats
+          operation: GET /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores
+          description: GET `/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores` in this API; use `id` values as `storeId`.
+          values: $.id
+        description: The store ID to identify the target resource.
+      responses:
+        '200':
+          description: List of request count per store, one per period in the queried time frame.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id007
+                - timeStamp: 2015-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2016-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-01-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-02-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-03-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-04-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-05-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-06-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-07-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-08-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-09-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-10-01 00:00:00+00:00
+                  objectStoreRequestCount: 12
+                - timeStamp: 2017-11-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+                - timeStamp: 2017-12-01 00:00:00+00:00
+                  objectStoreRequestCount: 0
+              example: *id007
+        '400':
+          description: If invalid query parameters or exceeds the limits documented above.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidStoresByStoreid
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_regionId_Path:
+      name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:object-store-v2-stats
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/regions` in this API; use `id` values as `regionId`.
+        values: $.id
+        labels: $.name
+      description: The region ID to identify the target resource.

@@ -1,0 +1,745 @@
+Assets:
+  value:
+  - id: org.mule.modules/Test-connector-1/1.0.0
+    groupId: org.mule.modules
+    assetId: Test-connector-1
+    version: 1.0.0
+    isPublic: false
+    productAPIVersion: v1
+    versionGroup: v1
+    description: My connector test description
+    name: My Anypoint Connector
+    type: connector
+    createdAt: '2017-01-25T19:36:45.654Z'
+    modifiedAt: '2017-01-25T19:36:45.654Z'
+    runtimeVersion: v1
+    assetLink: http://www.racing.com.ar
+    icon: http://www.icon.com.ar
+    status: published
+    rating: 3.5
+    numberOfRates: 2
+    attributes:
+    - value: inmutable-tags
+      tagType: attribute
+      key: some-key
+    labels:
+    - value: 'yes'
+      tagType: label
+      key:
+    - value: this is a dog
+      tagType: label
+      key:
+    categories:
+    - value:
+      - value
+      displayName: hsbc.category.yes
+      tagType: category
+      dataType: enum
+      key: my-new-category
+    customFields: []
+    tags:
+    - value: inmutable-tags
+      key: some-key
+    - value: 'yes'
+      key:
+    - value: this is a dog
+      key:
+    dependencies:
+    - id: org.mule.modules/Test-connector-1/1.0.0
+      groupId: org.mule.modules
+      assetId: Test-connector-1
+      version: 1.0.0
+      type: extension
+      name: Mule App
+    files:
+    - classifier: oas
+      packaging: yaml
+      externalLink: http://localhost/d83b3280-4ea8-4c3b-a8a2-ec6e589574f4/oas.yaml
+      md5: d2dd14a6cbbb15869105d9755d2f8345
+      createdDate: '2017-11-15T14:45:56.592Z'
+    - classifier: fat-raml
+      packaging: zip
+      externalLink: http://localhost/d83b3280-4ea8-4c3b-a8a2-ec6e589574f4/raml.zip
+      md5: cc06a35cbb56a7468ba434810972e89a
+      createdDate: '2017-11-15T14:45:56.592Z'
+    instances:
+    - id: mocking-service
+      groupId: f0c9b011-980e-4928-9430-e60e3a97c043.agw
+      assetId: carlos
+      productAPIVersion: v1
+      version: 1.0.0
+      environmentId: id
+      providerId: ed687558-f86e-465f-bf88-45c989f0c2ad
+      endpointUri: http://localhost/exchange/f0c9b011-980e-4928-9430-e60e3a97c043.agw/carlos/1.0.0
+      name: Mocking Service
+      isPublic: true
+      type: mocked
+      fullname: Mocking Service
+      deprecated: false
+    productAPIVersions:
+    - productAPIVersion: v1
+      versions:
+      - id: f0c9b011-980e-4928-9430-e60e3a97c043.agw/carlos/1.0.0
+        groupId: f0c9b011-980e-4928-9430-e60e3a97c043.agw
+        assetId: carlos
+        version: 1.0.0
+        organization:
+          id: d83b3280-4ea8-4c3b-a8a2-ec6e589574f4
+        status: published
+        isPublic: false
+        createdAt: '2017-11-15T14:45:58.962Z'
+        assetLink: ''
+        runtimeVersion: ''
+        productAPIVersion: v1
+        files:
+        - classifier: oas
+          packaging: yaml
+          externalLink: http://localhost/d83b3280-4ea8-4c3b-a8a2-ec6e589574f4/oas.yaml
+          md5: d2dd14a6cbbb15869105d9755d2f8345
+          createdDate: '2017-11-15T14:45:56.592Z'
+        - classifier: fat-raml
+          packaging: zip
+          externalLink: http://localhost/d83b3280-4ea8-4c3b-a8a2-ec6e589574f4/raml.zip
+          md5: cc06a35cbb56a7468ba434810972e89a
+          createdDate: '2017-11-15T14:45:56.592Z'
+        type: rest-api
+    metadata:
+      productApiVersion: v1
+    createdBy:
+      id: 22222a22-2222-22a2-a2aa-2222222222aa
+      firstName: Charlie
+      lastName: Brown
+      userName: Char
+    permissions:
+    - admin
+    - edit
+    organization:
+      name: AGW
+      id: d83b3280-4ea8-4c3b-a8a2-ec6e589574f4
+      createdAt: '2017-09-01T19:05:53.528Z'
+      updatedAt: '2017-11-01T16:56:04.797Z'
+      ownerId: 6dd2fd2d-9a83-4949-9a3f-72f3a065fef3
+      clientId: a1e5d79e5bf3482fa22e90825b92142c
+      domain: mulesoft-inc
+      idprovider_id: mulesoft
+      isFederated: false
+      parentOrganizationIds:
+      - f0c9b011-980e-4928-9430-e60e3a97c043
+      subOrganizationIds: []
+      tenantOrganizationIds: []
+      isMaster: false
+      isRoot: false
+
+AssetWithFiles:
+  value:
+    groupId: org.mule.modules
+    assetId: asset-with-files
+    version: 2.0.0
+    minorVersion: "2.0"
+    description: My asset description
+    versionGroup: v2
+    isPublic: false
+    name: Asset with files
+    type: rest-api
+    isSnapshot: false
+    status: published
+    externalFile:
+      url: null
+    createdDate: 2020-09-08T16:44:04.238Z
+    updatedDate: 2020-09-08T16:44:04.217Z
+    originalFormat: raml
+    originalFormatVersion: "1.0"
+    minMuleVersion: null
+    isMozartTemplate: false
+    labels:
+      - asset-tag
+      - another-tag
+    categories:
+      -
+        value:
+          - value
+        displayName: Category
+        key: Category
+    customFields: []
+    mule3ConnectorMetadata:
+      fullVersion: null
+      featureId: null
+    files:
+      - classifier: raml
+        packaging: zip
+        downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/raml/zip
+        externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+        md5: d2dd14a6cbbb15869105d9755d2f8345
+        sha1: d2dd14a6cbbb15869105d9755d2f8345
+        createdDate: 2020-09-08T16:44:03.861Z
+        mainFile: instagram-secure.raml
+        isGenerated: false
+      - classifier: fat-raml
+        packaging: zip
+        downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/fat-raml/zip
+        externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+        md5: d2dd14a6cbbb15869105d9755d2f8345
+        sha1: d2dd14a6cbbb15869105d9755d2f8345
+        createdDate: 2020-09-08T16:44:03.887Z
+        mainFile: instagram-secure.raml
+        isGenerated: false
+      - classifier: oas
+        packaging: zip
+        downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/oas/zip
+        externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+        md5: d2dd14a6cbbb15869105d9755d2f8345
+        sha1: d2dd14a6cbbb15869105d9755d2f8345
+        createdDate: 2020-09-08T16:44:04.117Z
+        mainFile: api.json
+        isGenerated: true
+    rating: 5
+    numberOfRates: 1
+    createdBy:
+      id: 102d0953-9cca-475e-8767-768cd7aa7695
+      userName: Char
+      firstName: Charlie
+      lastName: Brown
+    instances:
+      - versionGroup: v2
+        organizationId: org.mule.modules
+        id: mocking-service
+        groupId: org.mule.modules
+        assetId: asset-with-files
+        version: 2.0.0
+        minorVersion: "2.0"
+        productAPIVersion: v2
+        environmentId: null
+        providerId: null
+        endpointUri: https://anypoint.mulesoft.com/mocking/api/v1/sources/exchange/assets/org.mule.modules/asset-with-files/2.0.0/m
+        name: Mocking Service
+        isPublic: true
+        type: mocked
+        fullname: Mocking Service
+        deprecated: false
+    dependencies: []
+    generated:
+      - roupId: org.mule.modules
+        assetId: mule-plugin-asset-with-files
+        version: 2.0.0
+        versionGroup: 2.0.0
+        name: Asset with files
+        type: extension
+        minMuleVersion: 4.1.1
+        files:
+          - classifier: icon
+            packaging: svg
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/icon/svg
+            externalLink: https://localhost/org.mule.modules/Dmule-plugin-asset-with-files-2.0.0-icon.svg
+            md5: 4e66d7d9944fae99cd10d802a9c02207
+            sha1: 00b2b3da2a1a886eeefc4d5fa5d8f049cef4e7e8
+            createdDate: 2020-09-08T16:37:12.435Z
+            mainFile: null
+            isGenerated: false
+          - classifier: mule-plugin
+            packaging: jar
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/mule-plugin/jar
+            externalLink: https://localhost/org.mule.modules/mule-plugin-asset-with-files-2.0.0-mule-plugin.jar
+            md5: a94d53d0a5522a83bcc7b8c6c7118ae0
+            sha1: be58dd541aa71c947de488c174c44b016f13698c
+            createdDate: 2020-09-08T16:44:05.420Z
+            mainFile: null
+            isGenerated: false
+          - classifier: null
+            packaging: pom
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/pom
+            externalLink: https://localhost/org.mule.modules/mule-plugin-asset-with-files-2.0.0.pom
+            md5: 45ae05e606e34293314a4a189f9bbb92
+            sha1: 1d50e4a549975cb712ec56d9e7516a9a6849f025
+            createdDate: 2020-09-08T16:44:05.745Z
+            mainFile: null
+            isGenerated: false
+      - groupId: org.mule.modules
+        assetId: mule-module-asset-with-files
+        version: 2.0.0
+        versionGroup: 2.0.0
+        name: instagram Connector
+        type: connector
+        minMuleVersion: 3.6.0
+        files:
+          - classifier: null
+            packaging: jar
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/jar
+            externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0.jar
+            md5: 26ab438e482e032bb0187b5208ebc733
+            sha1: 72b1f94bafc6d71d92767315edbd3d4899498cb0
+            createdDate: 2020-09-08T16:44:19.813Z
+            mainFile: null
+            isGenerated: false
+          - classifier: null
+            packaging: pom
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/pom
+            externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0.pom
+            md5: c92f82a5690cf7e129127ce77e10c4b0
+            sha1: 2b47d576700d141749d36f7fa4f9aae3f4bd94bf
+            createdDate: 2020-09-08T16:44:20.250Z
+            mainFile: null
+            isGenerated: false
+          - classifier: studio-plugin
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/studio-plugin/zip
+            externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0-studio-plugin.zip
+            md5: abafce8dd4817861aea26c1d4ae37e8f
+            sha1: cdba899a66202fed3683736ec91beb195e17faba
+            createdDate: 2020-09-08T16:44:21.680Z
+            mainFile: null
+            isGenerated: false
+    otherVersions:
+      - groupId: org.mule.modules
+        assetId: asset-with-files
+        version: 1.0.1
+        minorVersion: "1.0"
+        versionGroup: v1
+        isPublic: false
+        type: rest-api
+        status: published
+        createdDate: 2020-09-08T16:55:28.130Z
+        updatedDate: 2020-09-08T16:55:28.115Z
+        isSnapshot: false
+        originalFormat: raml
+        originalFormatVersion: "1.0"
+        minMuleVersion: null
+        isMozartTemplate: false
+        externalFile:
+          url: null
+        createdBy:
+          id: 102d0953-9cca-475e-8767-768cd7aa7695
+          userName: Char
+          firstName: Charlie
+          lastName: Brown
+        files:
+          - classifier: raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: 347f9598e3fed6e428e58380186ea294
+            sha1: c4e5f88e56e66ba61d25ccb9fa0a81688bc7ec8f
+            createdDate: 2020-09-08T16:55:26.660Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: fat-raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/fat-raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: 347f9598e3fed6e428e58380186ea294
+            sha1: c4e5f88e56e66ba61d25ccb9fa0a81688bc7ec8f
+            createdDate: 2020-09-08T16:55:26.681Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: oas
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/oas/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+            md5: d4af802fbf1a35e0feb85ebc775582b9
+            sha1: eb72390d770fe89d711ce295fb2973aa97ba0889
+            createdDate: 2020-09-08T16:55:27.956Z
+            mainFile: api.json
+            isGenerated: true
+        dependencies: []
+      - groupId: org.mule.modules
+        assetId: asset-with-files
+        version: 1.0.0
+        minorVersion: "1.0"
+        versionGroup: v1
+        isPublic: false
+        type: rest-api
+        status: published
+        createdDate: 2020-09-08T16:37:11.194Z
+        updatedDate: 2020-09-08T16:44:04.217Z
+        isSnapshot: false
+        originalFormat: raml
+        originalFormatVersion: "1.0"
+        minMuleVersion: null
+        isMozartTemplate: false
+        externalFile:
+          url: null
+        createdBy:
+          id: 102d0953-9cca-475e-8767-768cd7aa7695
+          userName: Char
+          firstName: Charlie
+          lastName: Brown
+        files:
+          - classifier: raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: ec57fff8e8abd7169f20b9c0f3a65c03
+            sha1: 3f75b6252ba42a502bcd41771f9d847b09ea126e
+            createdDate: 2020-09-08T16:37:10.781Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: fat-raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/fat-raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: ec57fff8e8abd7169f20b9c0f3a65c03
+            sha1: 3f75b6252ba42a502bcd41771f9d847b09ea126e
+            createdDate: 2020-09-08T16:37:10.824Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: oas
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/oas/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+            md5: e6658956af113a1ce7771f649f1e1370
+            sha1: 73897231991441f0d0e0d9c15e2b30ebcb29d09d
+            createdDate: 2020-09-08T16:37:11.001Z
+            mainFile: api.json
+            isGenerated: true
+        dependencies: []
+    id: org.mule.modules/asset-with-files/2.0.0
+    icon: http://www.icon.com.ar
+    createdAt: 2020-09-08T16:44:04.238Z
+    modifiedAt: 2020-09-08T16:44:04.217Z
+    organization:
+      id: org.mule.modules
+      name: Mulesoft
+      parentOrganizationIds: []
+      subOrganizationIds: []
+      tenantOrganizationIds: []
+      isMaster: true
+      domain: mulesoft-0000
+      isMulesoftOrganization: false
+    permissions:
+      - admin
+      - edit
+    versions:
+      - groupId: org.mule.modules
+        assetId: asset-with-files
+        version: 2.0.0
+        minorVersion: "2.0"
+        description: ""
+        versionGroup: v2
+        isPublic: false
+        name: Asset with files
+        type: rest-api
+        isSnapshot: false
+        status: published
+        externalFile:
+          url: null
+        createdDate: 2020-09-08T16:44:04.238Z
+        updatedDate: 2020-09-08T16:44:04.217Z
+        originalFormat: raml
+        originalFormatVersion: "1.0"
+        minMuleVersion: null
+        isMozartTemplate: false
+        labels:
+          - asset-tag
+          - another-tag
+        categories:
+          -
+            value:
+              - value
+            displayName: Category
+            key: Category
+        customFields: []
+        mule3ConnectorMetadata:
+          fullVersion: null
+          featureId: null
+        files:
+          - classifier: raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: b2fb0ee5430cf3947432ebdee9383c38
+            sha1: c57be838629921bcdf7c0de4f56798205d0178c4
+            createdDate: 2020-09-08T16:44:03.861Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: fat-raml
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/fat-raml/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+            md5: b2fb0ee5430cf3947432ebdee9383c38
+            sha1: c57be838629921bcdf7c0de4f56798205d0178c4
+            createdDate: 2020-09-08T16:44:03.887Z
+            mainFile: instagram-secure.raml
+            isGenerated: false
+          - classifier: oas
+            packaging: zip
+            downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/2.0.0/oas/zip
+            externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+            md5: d5e9236adfea9ef8b54c053795bf768b
+            sha1: 08bdcca2179479d385a772dfe0654253a3e2ac80
+            createdDate: 2020-09-08T16:44:04.117Z
+            mainFile: api.json
+            isGenerated: true
+        rating: 5
+        numberOfRates: 1
+        createdBy:
+          id: 102d0953-9cca-475e-8767-768cd7aa7695
+          userName: Char
+          firstName: Charlie
+          lastName: Brown
+        instances:
+          - versionGroup: v2
+            organizationId: org.mule.modules
+            id: mocking-service
+            groupId: org.mule.modules
+            assetId: asset-with-files
+            version: 2.0.0
+            minorVersion: "2.0"
+            productAPIVersion: v2
+            environmentId: null
+            providerId: null
+            endpointUri: https://anypoint.mulesoft.com/mocking/api/v1/sources/exchange/assets/org.mule.modules/asset-with-files/2.0.0/m
+            name: Mocking Service
+            isPublic: true
+            type: mocked
+            fullname: Mocking Service
+            deprecated: false
+        dependencies: []
+        generated:
+          - groupId: org.mule.modules
+            assetId: mule-plugin-asset-with-files
+            version: 2.0.0
+            versionGroup: 2.0.0
+            name: Asset with files
+            type: extension
+            minMuleVersion: 4.1.1
+            files:
+              - classifier: icon
+                packaging: svg
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/icon/svg
+                externalLink: https://localhost/org.mule.modules/Dmule-plugin-asset-with-files-2.0.0-icon.svg
+                md5: 4e66d7d9944fae99cd10d802a9c02207
+                sha1: 00b2b3da2a1a886eeefc4d5fa5d8f049cef4e7e8
+                createdDate: 2020-09-08T16:37:12.435Z
+                mainFile: null
+                isGenerated: false
+              - classifier: mule-plugin
+                packaging: jar
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/mule-plugin/jar
+                externalLink: https://localhost/org.mule.modules/mule-plugin-asset-with-files-2.0.0-mule-plugin.jar
+                md5: a94d53d0a5522a83bcc7b8c6c7118ae0
+                sha1: be58dd541aa71c947de488c174c44b016f13698c
+                createdDate: 2020-09-08T16:44:05.420Z
+                mainFile: null
+                isGenerated: false
+              - classifier: null
+                packaging: pom
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-plugin-asset-with-files/2.0.0/pom
+                externalLink: https://localhost/org.mule.modules/mule-plugin-asset-with-files-2.0.0.pom
+                md5: 45ae05e606e34293314a4a189f9bbb92
+                sha1: 1d50e4a549975cb712ec56d9e7516a9a6849f025
+                createdDate: 2020-09-08T16:44:05.745Z
+                mainFile: null
+                isGenerated: false
+          - groupId: org.mule.modules
+            assetId: mule-module-asset-with-files
+            version: 2.0.0
+            versionGroup: 2.0.0
+            name: instagram Connector
+            type: connector
+            minMuleVersion: 3.6.0
+            files:
+              - classifier: null
+                packaging: jar
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/jar
+                externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0.jar
+                md5: 26ab438e482e032bb0187b5208ebc733
+                sha1: 72b1f94bafc6d71d92767315edbd3d4899498cb0
+                createdDate: 2020-09-08T16:44:19.813Z
+                mainFile: null
+                isGenerated: false
+              - classifier: null
+                packaging: pom
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/pom
+                externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0.pom
+                md5: c92f82a5690cf7e129127ce77e10c4b0
+                sha1: 2b47d576700d141749d36f7fa4f9aae3f4bd94bf
+                createdDate: 2020-09-08T16:44:20.250Z
+                mainFile: null
+                isGenerated: false
+              - classifier: studio-plugin
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/mule-module-asset-with-files/2.0.0/studio-plugin/zip
+                externalLink: https://localhost/org.mule.modules/mule-module-asset-with-files-2.0.0-studio-plugin.zip
+                md5: abafce8dd4817861aea26c1d4ae37e8f
+                sha1: cdba899a66202fed3683736ec91beb195e17faba
+                createdDate: 2020-09-08T16:44:21.680Z
+                mainFile: null
+                isGenerated: false
+        otherVersions:
+          - groupId: org.mule.modules
+            assetId: asset-with-files
+            version: 1.0.1
+            minorVersion: "1.0"
+            versionGroup: v1
+            isPublic: false
+            type: rest-api
+            status: published
+            createdDate: 2020-09-08T16:55:28.130Z
+            updatedDate: 2020-09-08T16:55:28.115Z
+            isSnapshot: false
+            originalFormat: raml
+            originalFormatVersion: "1.0"
+            minMuleVersion: null
+            isMozartTemplate: false
+            externalFile:
+              url: null
+            createdBy:
+              id: 102d0953-9cca-475e-8767-768cd7aa7695
+              userName: Char
+              firstName: Charlie
+              lastName: Brown
+            files:
+              - classifier: raml
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/raml/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+                md5: 347f9598e3fed6e428e58380186ea294
+                sha1: c4e5f88e56e66ba61d25ccb9fa0a81688bc7ec8f
+                createdDate: 2020-09-08T16:55:26.660Z
+                mainFile: instagram-secure.raml
+                isGenerated: false
+              - classifier: fat-raml
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/fat-raml/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+                md5: 347f9598e3fed6e428e58380186ea294
+                sha1: c4e5f88e56e66ba61d25ccb9fa0a81688bc7ec8f
+                createdDate: 2020-09-08T16:55:26.681Z
+                mainFile: instagram-secure.raml
+                isGenerated: false
+              - classifier: oas
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.1/oas/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+                md5: d4af802fbf1a35e0feb85ebc775582b9
+                sha1: eb72390d770fe89d711ce295fb2973aa97ba0889
+                createdDate: 2020-09-08T16:55:27.956Z
+                mainFile: api.json
+                isGenerated: true
+            dependencies: []
+          - groupId: org.mule.modules
+            assetId: asset-with-files
+            version: 1.0.0
+            minorVersion: "1.0"
+            versionGroup: v1
+            isPublic: false
+            type: rest-api
+            status: published
+            createdDate: 2020-09-08T16:37:11.194Z
+            updatedDate: 2020-09-08T16:44:04.217Z
+            isSnapshot: false
+            originalFormat: raml
+            originalFormatVersion: "1.0"
+            minMuleVersion: null
+            isMozartTemplate: false
+            externalFile:
+              url: null
+            createdBy:
+              id: 102d0953-9cca-475e-8767-768cd7aa7695
+              userName: Char
+              firstName: Charlie
+              lastName: Brown
+            files:
+              - classifier: raml
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/raml/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+                md5: ec57fff8e8abd7169f20b9c0f3a65c03
+                sha1: 3f75b6252ba42a502bcd41771f9d847b09ea126e
+                createdDate: 2020-09-08T16:37:10.781Z
+                mainFile: instagram-secure.raml
+                isGenerated: false
+              - classifier: fat-raml
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/fat-raml/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-raml.zip
+                md5: ec57fff8e8abd7169f20b9c0f3a65c03
+                sha1: 3f75b6252ba42a502bcd41771f9d847b09ea126e
+                createdDate: 2020-09-08T16:37:10.824Z
+                mainFile: instagram-secure.raml
+                isGenerated: false
+              - classifier: oas
+                packaging: zip
+                downloadURL: https://anypoint.mulesoft.com/exchange/files/api/v1/organizations/org.mule.modules/assets/org.mule.modules/asset-with-files/1.0.0/oas/zip
+                externalLink: http://localhost/org.mule.modules/asset-with-files-2.0.0-oas.zip
+                md5: e6658956af113a1ce7771f649f1e1370
+                sha1: 73897231991441f0d0e0d9c15e2b30ebcb29d09d
+                createdDate: 2020-09-08T16:37:11.001Z
+                mainFile: api.json
+                isGenerated: true
+            dependencies: []
+        id: org.mule.modules/asset-with-files/2.0.0
+        icon: http://www.icon.com.ar
+        createdAt: 2020-09-08T16:44:04.238Z
+        modifiedAt: 2020-09-08T16:44:04.217Z
+        organization:
+          id: org.mule.modules
+          name: Mulesoft
+          parentOrganizationIds: []
+          subOrganizationIds: []
+          tenantOrganizationIds: []
+          isMaster: true
+          domain: mulesoft-0000
+          isMulesoftOrganization: false
+        permissions:
+          - admin
+          - edit
+
+VersionGroups:
+  value:
+  - organizationId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    groupId: group-id
+    assetId: some-asset-id
+    versionGroup: v2
+    major: 2
+    isPublic: true
+  - organizationId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    groupId: group-id
+    assetId: some-asset-id
+    versionGroup: v1
+    major: 1
+    isPublic: true
+
+MinorVersions:
+  value:
+  - organizationId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    groupId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    assetId: some-asset-id
+    minorVersion: "1.1"
+    versionGroup: v1
+    isPublic: true
+  - organizationId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    groupId: 26c17b05-c2da-4ad6-b1d1-34bde9e74e6e
+    assetId: some-asset-id
+    minorVersion: "2.0"
+    versionGroup: 2.0.0
+    isPublic: false
+
+SearchResult:
+  value:
+  - organizationId: 9efb6531-9fa2-4a45-ac42-bd157773ce95
+    groupId: 9efb6531-9fa2-4a45-ac42-bd157773aa00
+    assetId: endpoints-review
+    version: 1.0.0
+    minorVersion: '1.0'
+    description: description of the asset
+    versionGroup: 1.0.0
+    isPublic: false
+    name: Endpoints Review
+    type: custom
+    status: published
+    createdById: 102d0953-9cca-475e-1919-768cd7aa7695
+    createdAt: '2020-09-07T17:48:33.995Z'
+
+PublicAssetVersions:
+  value:
+    - productAPIVersion: v1
+      versionGroup: v1
+    - productAPIVersion: v2
+      versionGroup: v2
+
+SoftDeletedAssets:
+  value:
+    - organizationId: 9efb6531-9fa2-4a45-ac42-bd157773ce95
+      groupId: 9efb6531-9fa2-4a45-ac42-bd157773aa00
+      assetId: endpoints-review
+      version: 1.0.0

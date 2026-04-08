@@ -1,0 +1,86 @@
+AgentMetadata:
+  value:
+    connections:
+    - kind: agent
+      ref:
+        groupId: test-group1
+        assetId: test-asset1
+        version: 1.0.0
+    - kind: mcp
+      ref:
+        groupId: test-group2
+        assetId: test-asset2
+        version: 2.0.0
+      metadata:
+        allowList:
+        - tool1
+        - tool2
+        - tool3
+        transport: http
+        url: https://example.com
+    - kind: llm
+      ref:
+        groupId: test-group3
+        assetId: test-asset3
+        version: 3.0.0
+    - kind: mcp
+      ref:
+        groupId: test-group4
+        assetId: test-asset4
+        version: 4.0.0
+      metadata: {}
+    card:
+      protocolVersion: 0.2.9
+      name: Acme Agent
+      description: Acme Agent provides all the capabilities that acme Company can offer to its customers.
+      url: https://anypoint.mulesoft.com/exchange/acme-agent
+      capabilities: {}
+      version: 1.0.0
+      provider:
+        organization: Acme Inc.
+        url: https://weather-agent.ch.anypoint.com
+      securitySchemes:
+        anypointClientCredentials:
+          type: apiKey
+          in: header
+          name: clientSecret
+          description: The client secret for Anypoint Platform authentication.
+      defaultInputModes:
+        - application/json
+        - text/plain
+      defaultOutputModes:
+        - application/json
+        - image/png
+      skills:
+        - id: weather
+          name: Returns the weather for a given location
+          description: Get the current weather conditions for a specified location.
+          examples:
+          - What is the weather like in New York?
+          - Is it going to rain in San Francisco today?
+          inputModes:
+          - application/json
+          - text/plain
+          outputModes:
+          - application/json
+          - application/vnd.geo+json
+          - text/html
+          tags:
+          - weather
+          - geolocation
+        - id: exchange-rate
+          name: Returns the exchange rate for a given currency pair
+          description: Get the current exchange rate between two specified currencies.
+          examples:
+          - What is the exchange rate from USD to EUR?
+          - How much is 100 JPY in USD?
+          inputModes:
+          - application/json
+          - text/plain
+          outputModes:
+          - application/json
+          - application/vnd.geo+json
+          - text/html
+          tags:
+          - exchange_rate
+

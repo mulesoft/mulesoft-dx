@@ -1,0 +1,290 @@
+ClientApplication:
+  value:
+    description: TestRequestAPIAccess description
+    name: TestRequestAPIAccess
+    grantTypes:
+      - password
+      - implicit
+      - client_credentials
+      - authorization_code
+      - refresh_token
+    redirectUri:
+      - http://localhost:9090
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/authentication/oauth2.html
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/admin/authentication/oauth2.html
+      - https://api-notebook.anypoint.mulesoft.com/authenticate/oauth.html
+    url: https://localhost:8080
+    masterOrganizationId: 2f17a3df-a5f9-45e8-a8b4-41bd26d89236
+    clientId: 49670e55b98b4ad2be0b6fc20d2cafa2
+    clientSecret: 0fD00492a2554e5f9857598Dbd675472
+    id: 3
+
+ClientApplications:
+  value:
+    - masterOrganizationId: 40fbc081-bb0d-4aff-9fb7-f3a48fdeb958
+      id: 1
+      name: The Amazing Application
+      description: This is the description of The Amazing Application
+      grantTypes:
+        - password
+        - implicit
+        - client_credentials
+        - authorization_code
+        - refresh_token
+      redirectUri:
+        - http://localhost:9090
+        - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/authentication/oauth2.html
+        - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/admin/authentication/oauth2.html
+        - https://api-notebook.anypoint.mulesoft.com/authenticate/oauth.html
+      contract:
+        id: 35885
+        status: APPROVED
+        tier:
+          id: 1234
+          name: Gold
+          description: null
+          limits:
+            -
+              timePeriodInMilliseconds: 60000
+              maximumRequests: 1000
+            -
+              maximumRequests: 20000
+              timePeriodInMilliseconds: 3600000
+          status: ACTIVE
+
+CreateClientApplication:
+  value:
+    description: TestRequestAPIAccess description
+    name: TestRequestAPIAccess
+    grantTypes:
+      - password
+      - implicit
+      - client_credentials
+      - authorization_code
+      - refresh_token
+    redirectUri:
+      - http://localhost:9090
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/authentication/oauth2.html
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/admin/authentication/oauth2.html
+      - https://api-notebook.anypoint.mulesoft.com/authenticate/oauth.html
+    url: https://localhost:8080
+
+UpdateClientApplication:
+  value:
+    description: TestRequestAPIAccess description
+    name: TestRequestAPIAccess
+    grantTypes:
+      - password
+      - implicit
+      - client_credentials
+      - authorization_code
+      - refresh_token
+    redirectUri:
+      - http://localhost:9090
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/authentication/oauth2.html
+      - https://qax.anypoint.mulesoft.com/apiplatform/pingfederateqa/admin/authentication/oauth2.html
+      - https://api-notebook.anypoint.mulesoft.com/authenticate/oauth.html
+    url: https://localhost:8080
+
+Contracts:
+  value:
+    - id: 36444
+      status: PENDING
+      requestedTier:
+        description: null
+        id: 14939
+        limits:
+          -
+            maximumRequests: 1000
+            timePeriodInMilliseconds: 60000
+          -
+            maximumRequests: 20000
+            timePeriodInMilliseconds: 3600000
+        name: Gold
+    - id: 13765
+      status: APPROVED
+      tier:
+        description: null
+        id: 5770
+        limits:
+          -
+            maximumRequests: 5
+            timePeriodInMilliseconds: 60000
+        name: Silver
+
+InstanceContracts:
+  value:
+  - audit:
+      created:
+        date: 2020-05-12T18:47:09.746Z
+      updated:
+        date: 2020-07-27T14:35:16.685Z
+    masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    id: 298286
+    status: APPROVED
+    approvedDate: 2020-07-27T14:35:16.685Z
+    rejectedDate: null
+    revokedDate: null
+    applicationId: 213125
+    application:
+      audit:
+        created:
+          date: 2020-02-11T14:09:40.515Z
+        updated:
+          date: 2020-07-28T20:54:51.546Z
+      id: 213125
+      name: Application
+      description: null
+      clientProvider: {}
+      coreServicesId: 150bc7635a014fd38fc6deddee942561
+      url: null
+    tierId: 138725
+    requestedTierId: null
+    apiVersionId: 699301
+    apiVersion:
+      audit:
+        created: {}
+        updated: {}
+      organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      id: 699301
+      apiId: 309557
+      masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      assetId: some-api
+      assetVersion: 1.0.0
+    partyId: null
+    partyName: null
+    condition: APPLIED
+    tier:
+      id: 138725
+      name: Free
+      description: null
+      limits:
+        - timePeriodInMilliseconds: 60000
+          maximumRequests: 30
+        - timePeriodInMilliseconds: 86400000
+          maximumRequests: 1000
+      status: ACTIVE
+      autoApprove: true
+    possibleTiers:
+      - masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+        organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+        id: 138726
+        apiVersionId: 699301
+        name: Improved
+        description: null
+        limits:
+          - timePeriodInMilliseconds: 60000
+            maximumRequests: 30
+        status: ACTIVE
+        autoApprove: true
+        compareToActual: LESS RESTRICTIVE
+      - masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+        organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+        id: 138727
+        apiVersionId: 699301
+        name: Premium
+        description: null
+        limits:
+          - timePeriodInMilliseconds: 60000
+            maximumRequests: 60
+        status: ACTIVE
+        autoApprove: false
+        compareToActual: LESS RESTRICTIVE
+    versionGroup: v1
+    assetName: Some API
+  - audit:
+      created:
+        date: 2020-06-26T13:50:48.981Z
+      updated: {}
+    masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    id: 336926
+    status: APPROVED
+    approvedDate: 2020-06-26T13:50:48.995Z
+    rejectedDate: null
+    revokedDate: null
+    applicationId: 213125
+    application:
+      audit:
+        created:
+          date: 2020-02-11T14:09:40.515Z
+        updated:
+          date: 2020-07-28T20:54:51.546Z
+      id: 213125
+      name: Third application
+      description: null
+      clientProvider: {}
+      coreServicesId: 150bc7635a014fd38fc6deddee942561
+      url: null
+    tierId: 138733
+    requestedTierId: null
+    apiVersionId: null
+    partyId: null
+    partyName: null
+    condition: NOT_APPLIED
+    apiGroupInstance:
+      audit:
+        created: {}
+        updated: {}
+      id: 3840
+      organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      environmentId: 4b131683-a8d4-459d-8ada-deb6578dfaaa
+      assetId: api-group
+      assetVersion: 1.0.0
+      productVersion: v1
+      name: undefined:3840
+      groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      apiGroupVersionId: 3689
+    apiGroupInstanceId: 3840
+    tier:
+      id: 138733
+      name: Group Free
+      description: null
+      status: ACTIVE
+      autoApprove: true
+      limitsByApi:
+        - apiId: 699301
+          groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+          assetId: some-api
+          assetVersion: 1.0.0
+          productVersion: v1
+          organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+          limits:
+            - timePeriodInMilliseconds: 60000
+              maximumRequests: 20
+            - timePeriodInMilliseconds: 86400000
+              maximumRequests: 500
+      apiGroupInstanceId: 3840
+    possibleTiers: []
+    versionGroup: v1
+    assetName: API Group
+
+CreateContract:
+  value:
+    acceptedTerms: true
+    apiId: 2345
+    environmentId: 1234
+    requestedTierId: 100
+    termsText: These are the terms and conditions
+    productAPIVersion: v1
+
+Contract:
+  value:
+    id: 1000
+    clientId: 314e6d88-4c0f-4259-95e1-2c9b06bffb6c
+    clientSecret: 2f17a3df-a5f9-45e8-a8b4-41bd26d89236
+    status: ACTIVE
+    tier:
+      description: |-
+        est nihil magnam dolore et ipsa nulla omnis
+        cupiditate consectetur qui tempore quaerat et consequatur sunt eos enim
+        esse quasi et qui quis dolorum
+      id: 35
+      limits:
+        -
+          maximumRequests: 10000000
+          timePeriodInMilliseconds: 2592000000
+      name: enim 35
+      status: DEPRECATED

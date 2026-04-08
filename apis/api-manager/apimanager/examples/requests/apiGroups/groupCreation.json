@@ -1,0 +1,16 @@
+{
+  "value": {
+    "name": "Social Media",
+    "versions": [
+      {
+        "name": "v1",
+        "instances": [
+          {
+            "apiInstances": [1, 45],
+            "environmentId": "5ead2051-f855-425a-9226-312c562ed268"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+type: object
+properties:
+  status:
+    type: string
+  autoApprove:
+    type: boolean
+  defaultLimits:
+    type: array
+    items:
+      type: object
+      properties:
+        visible:
+          type: boolean
+        maximumRequests:
+          type: number
+        timePeriodInMilliseconds:
+          type: number
+  limitsByApi:
+    type: array
+    items:
+      type: object
+      properties:
+        apiId:
+          type: number
+        groupId:
+          type: string
+        assetId:
+          type: string
+        assetVersion:
+          type: string
+        limits:
+          type: array
+          items:
+            type: object
+            properties:
+              visible:
+                type: boolean
+              maximumRequests:
+                type: number
+              timePeriodInMilliseconds:
+                type: number
+  groupInstanceId:
+    type: number
+  name:
+    type: string
+  description:
+    type: string
+  audit:
+    type: object
+    properties:
+      created:
+        type: string
+      updated:
+        type: string
+  id:
+    type: number

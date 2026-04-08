@@ -1,0 +1,36 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "defaultLimits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "limitsByApi": [
+      {
+        "apiId": 3,
+        "groupId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "assetId": "facebook-api",
+        "assetVersion": "1.0.0",
+        "limits": [
+          {
+            "visible": true,
+            "maximumRequests": 5,
+            "timePeriodInMilliseconds": 1
+          }
+        ]
+      }
+    ],
+    "groupInstanceId": 1072,
+    "name": "tierName",
+    "description": "tier description",
+    "audit": {
+      "created": "",
+      "updated": ""
+    },
+    "id": 131529
+  }
+}

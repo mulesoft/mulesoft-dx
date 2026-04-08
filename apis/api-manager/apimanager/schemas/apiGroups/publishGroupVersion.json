@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 45,
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "versionId": {
+      "type": "integer",
+      "minLength": 1
+    }
+  },
+  "required": ["version", "versionId"],
+  "additionalProperties": false
+}

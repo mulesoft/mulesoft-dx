@@ -1,0 +1,29 @@
+ApplicationOwner:
+  title: ApplicationOwner
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    firstName:
+      title: First Name
+      type: string
+    lastName:
+      title: Last Name
+      type: string
+    email:
+      title: Email
+      type: string
+    type:
+      title: Type
+      type: string
+    name:
+      title: Name
+      type: string
+
+ApplicationOwners:
+  type: array
+  title: ApplicationOwners
+  items:
+    $ref: '#/ApplicationOwner'
+

@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Anypoint MQ Broker",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "anypoint-mq-broker",
+  "version": "1.0.21",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "ecfaec4f406140a8f3139418fc4014bc13f8fa54",
+    "projectId": "329aef9d-e248-4ca2-8bce-583331114cb2"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

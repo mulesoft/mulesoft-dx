@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Runtime Fabric",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "runtime-fabric",
+  "version": "1.0.5",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "5096461eb0bd9121b31339abbe10cc44368fd165",
+    "projectId": "daeb130a-a9f4-426a-ba02-677d0ff57d6f"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

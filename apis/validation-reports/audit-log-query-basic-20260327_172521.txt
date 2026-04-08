@@ -1,0 +1,133 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./audit-log-query
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/data#unreachable-asset
+	Severity:   Violation
+	Message:    Asset f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/ is unreachable
+	Location:   f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/
+	Position:   [(0,0)-(0,0)]
+	Link:       audit-log-query/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/:0:0
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '2011-10-10T14:48:00'
+	Location:   file://api.yaml
+	Position:   [(780,13)-(780,32)]
+	Link:       audit-log-query/api.yaml:780:13
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        maxLength: 50
+'
+	Location:   file://api.yaml
+	Position:   [(1033,2)-(1034,0)]
+	Link:       audit-log-query/api.yaml:1033:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'startDate' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(758,2)-(759,0)]
+	Link:       audit-log-query/api.yaml:758:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'actions' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(759,2)-(761,0)]
+	Link:       audit-log-query/api.yaml:759:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'userIds' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(761,2)-(764,0)]
+	Link:       audit-log-query/api.yaml:761:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example3' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(764,0)-(768,0)]
+	Link:       audit-log-query/api.yaml:764:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example1' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(768,0)-(773,0)]
+	Link:       audit-log-query/api.yaml:768:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example5' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(773,0)-(779,0)]
+	Link:       audit-log-query/api.yaml:773:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example2' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(779,0)-(1034,0)]
+	Link:       audit-log-query/api.yaml:779:0
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/logQueryResult'
+	Location:   file://api.yaml
+	Position:   [(446,16)-(447,0)]
+	Link:       audit-log-query/api.yaml:446:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'actionResponse'
+	Location:   file://api.yaml
+	Position:   [(631,16)-(632,0)]
+	Link:       audit-log-query/api.yaml:631:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'objects'
+	Location:   file://api.yaml
+	Position:   [(598,16)-(599,0)]
+	Link:       audit-log-query/api.yaml:598:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'retentionSettingsResponse'
+	Location:   file://api.yaml
+	Position:   [(673,16)-(674,0)]
+	Link:       audit-log-query/api.yaml:673:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'objectTypeResponse'
+	Location:   file://api.yaml
+	Position:   [(504,16)-(505,0)]
+	Link:       audit-log-query/api.yaml:504:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'logQueryResult'
+	Location:   file://api.yaml
+	Position:   [(438,16)-(439,0)]
+	Link:       audit-log-query/api.yaml:438:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'platforms'
+	Location:   file://api.yaml
+	Position:   [(475,16)-(476,0)]
+	Link:       audit-log-query/api.yaml:475:16
+

@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "properties": {
+    "configurationData": {
+      "type": "object"
+    },
+    "pointcutData": {
+      "nullable": true,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "methodRegex": {
+            "type": "string"
+          },
+          "uriTemplateRegex": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "order:": {
+      "type": "integer"
+    },
+    "groupId": {
+      "type": "string"
+    },
+    "assetId": {
+      "type": "string"
+    },
+    "assetVersion": {
+      "type": "string"
+    },
+    "apiVersionId": {
+      "type": "integer"
+    },
+    "policyTemplateId": {
+      "type": "string"
+    }
+  }
+}

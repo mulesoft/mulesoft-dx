@@ -1,0 +1,28 @@
+type: object
+properties:
+  total:
+    type: number
+  apis:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: number
+        isPublic:
+          type: boolean
+        groupId:
+          type: string
+        assetId:
+          type: string
+        assetVersion:
+          type: string
+        productVersion:
+          type: string
+        environmentId:
+          type: string
+        endpointUri: {}
+        instanceName:
+          type: string
+        instanceLabel:
+          type: string

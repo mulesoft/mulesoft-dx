@@ -1,0 +1,24 @@
+{
+  "value": {
+    "ruleOfApplication": {
+      "environmentId": "5d15a77c-0d35-400e-9a90-61d0beb09409",
+      "range": {
+        "from": "4.1.1",
+        "to": "4.3.x"
+      }
+    },
+    "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+    "assetId": "rate-limiting",
+    "assetVersion": "1.0.0",
+    "configurationData": {
+      "rateLimits": [
+        {
+          "timePeriodInMilliseconds": 60000,
+          "maximumRequests": 3
+        }
+      ],
+      "clusterizable": true,
+      "exposeHeaders": true
+    }
+  }
+}

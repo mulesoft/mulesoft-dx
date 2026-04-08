@@ -1,0 +1,141 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  id:
+    type: number
+  status:
+    type: string
+  approvedDate:
+    type: string
+  rejectedDate: {}
+  revokedDate: {}
+  applicationId:
+    type: number
+  application:
+    type: object
+    properties:
+      masterOrganizationId:
+        type: string
+      id:
+        type: number
+      name:
+        type: string
+      description:
+        type: string
+      clientProvider:
+        type: object
+        properties:
+          providerId: {}
+      coreServicesId:
+        type: string
+      url:
+        type: string
+      grantTypes:
+        type: array
+        items: {}
+      redirectUri:
+        type: array
+        items: {}
+      clientId:
+        type: string
+      owner:
+        type: string
+      email:
+        type: string
+      owners:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+            username:
+              type: string
+  tierId:
+    type: number
+  tier:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties:
+              date:
+                type: string
+          updated:
+            type: object
+            properties:
+              date:
+                type: string
+      id:
+        type: number
+      name:
+        type: string
+      description:
+        type: string
+      limits:
+        type: array
+        items:
+          type: object
+          properties:
+            visible:
+              type: boolean
+            maximumRequests:
+              type: number
+            timePeriodInMilliseconds:
+              type: number
+      status:
+        type: string
+      autoApprove:
+        type: boolean
+  requestedTierId: {}
+  requestedTier: {}
+  terms: {}
+  groupInstanceId: {}
+  groupInstance: {}
+  partyId:
+    type: string
+  partyName:
+    type: string
+  condition:
+    type: string
+  managedServiceApi:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties: {}
+          updated:
+            type: object
+            properties: {}
+      organizationId:
+        type: string
+      id:
+        type: number
+  managedServiceApiId:
+    type: number

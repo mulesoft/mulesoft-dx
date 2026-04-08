@@ -1,0 +1,4 @@
+MainFiles:
+  value:
+    - oas.json
+    - oas.yaml

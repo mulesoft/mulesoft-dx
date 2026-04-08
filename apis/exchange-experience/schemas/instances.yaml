@@ -1,0 +1,145 @@
+ExternalInstance:
+  type: object
+  properties:
+    id:
+      type: string
+    groupId:
+      type: string
+      maxLength: 256
+    assetId:
+      type: string
+      maxLength: 256
+    productApiVersion:
+      type: string
+      maxLength: 128
+    isPublic:
+      type: boolean
+    type:
+      enum:
+        - external
+        - managed
+        - mocked
+    endpointUri:
+      type: string
+      maxLength: 2048
+    name:
+      type: string
+      maxLength: 150
+    organizationId:
+      type: string
+      maxLength: 256
+    createdBy:
+      type: string
+    createdDate:
+      type: string
+    updatedDate:
+      type: string
+  required:
+    - id
+    - groupId
+    - assetId
+    - productApiVersion
+    - isPublic
+    - type
+    - endpointUri
+    - name
+
+ExternalInstance1:
+  type: object
+  properties:
+    id:
+      type: string
+    groupId:
+      type: string
+      maxLength: 256
+    assetId:
+      type: string
+      maxLength: 256
+    productApiVersion:
+      type: string
+      maxLength: 128
+    isPublic:
+      type: boolean
+    type:
+      enum:
+        - external
+        - managed
+        - mocked
+    endpointUri:
+      type: string
+      maxLength: 2048
+    name:
+      type: string
+      maxLength: 150
+    organizationId:
+      type: string
+      maxLength: 256
+    createdBy:
+      type: string
+    createdDate:
+      type: string
+    updatedDate:
+      type: string
+  required:
+    - id
+    - groupId
+    - assetId
+    - productApiVersion
+    - isPublic
+    - type
+    - endpointUri
+    - name
+
+CreateExternalInstance:
+  type: object
+  properties:
+    endpointUri:
+      type: string
+      maxLength: 2048
+    isPublic:
+      type: boolean
+    name:
+      type: string
+      maxLength: 150
+  required:
+    - endpointUri
+    - name
+
+CreateExternalInstance1:
+  type: object
+  properties:
+    endpointUri:
+      type: string
+      maxLength: 2048
+    isPublic:
+      type: boolean
+    name:
+      type: string
+      maxLength: 150
+  required:
+    - endpointUri
+    - name
+
+UpdateExternalInstance:
+  type: object
+  properties:
+    endpointUri:
+      type: string
+      maxLength: 2048
+    isPublic:
+      type: boolean
+    name:
+      type: string
+      maxLength: 150
+
+UpdateManagedInstance:
+  type: object
+  properties:
+    endpointUri:
+      type: string
+      maxLength: 2048
+    isPublic:
+      type: boolean
+    name:
+      type: string
+      maxLength: 150

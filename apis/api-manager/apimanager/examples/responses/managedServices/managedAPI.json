@@ -1,0 +1,21 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2020-09-07T13:57:59.194Z"
+      },
+      "updated": {
+        "date": "2020-09-24T14:14:29.120Z"
+      }
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "id": 123,
+    "providerId": null,
+    "endpointUri": "http://graph.example.com/api",
+    "environmentId": "ee737db1-b6a3-4d17-8f45-3f8c4a53b699",
+    "endpoint": {
+      "uri": "http://mygraph.cloudhub.io/api"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+Facets:
+  value:
+    types:
+      - custom
+      - http-api
+    categories:
+      - displayName: My category
+        tagKey: category
+        value: value 1
+      - displayName: My category
+        tagKey: category
+        value: value 2
+    organizations:
+      - name: Organization Inc
+        id: fc12ee3a-6429-4bde-9918-f1059b3f1015
+        domain: my-org
+        isMaster: true
+    tags:
+      - gustavo
+
+ANGNode:
+  assetType: WebAPISpec
+  tenantId: 1d25b093-aed5-476a-8bb6-f9c8297bd2ca
+  name: update ang SE
+  assetId: se-18849
+  groupId: 1d25b093-aed5-476a-8bb6-f9c8297bd2ca
+  description: ""
+  organizationId: 1d25b093-aed5-476a-8bb6-f9c8297bd2ca
+  majorVersions:
+    - https://catalog.graph.qax.anypoint.mulesoft.com/v1/asset-major-versions/1d25b093-aed5-476a-8bb6-f9c8297bd2ca/se-18849/1
+  createdAt: 2021-07-15T12:32:27.919Z
+
+NonMigratedOrgs:
+  - nonMigratedGAs: 1
+    nonMigratedMinors: 1
+    organizationId: 643c5d65-93ab-404d-9c13-efab34cf2a60
+  - nonMigratedGAs: 1
+    nonMigratedMinors: 2
+    organizationId: 432c5d65-93ab-404d-9c13-efab34cf2a60

@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 45,
+      "minLength": 1
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 45,
+            "minLength": 1
+          },
+          "instances": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "apiInstances": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "groupInstanceLabel": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "environmentId": {
+                  "type": "string"
+                },
+                "deprecated": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["apiInstances", "environmentId"]
+            }
+          }
+        },
+        "required": ["name", "instances"]
+      }
+    }
+  },
+  "required": ["name", "versions"],
+  "additionalProperties": false
+}

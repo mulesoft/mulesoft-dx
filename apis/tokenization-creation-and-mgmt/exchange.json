@@ -1,0 +1,11 @@
+{
+  "classifier": "oas",
+  "apiVersion": "v1",
+  "main": "api.yaml",
+  "name": "Tokenization Creation and Mgmt API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "tokenization-creation-and-mgmt-api",
+  "version": "1.0.9",
+  "originalFormatVersion": "3.0"
+}

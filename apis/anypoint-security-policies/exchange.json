@@ -1,0 +1,11 @@
+{
+  "classifier": "oas",
+  "apiVersion": "v2",
+  "main": "api.yaml",
+  "name": "Anypoint Security Policy and Runtime Fabric Inbound Traffic API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "anypoint-security-policies-api",
+  "version": "2.0.0",
+  "originalFormatVersion": "3.0"
+}

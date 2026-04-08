@@ -1,0 +1,105 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties:
+          date:
+            type: string
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  apiId:
+    type: number
+  instanceLabel: {}
+  autodiscoveryInstanceName:
+    type: string
+  assetVersion: {}
+  productVersion: {}
+  description:
+    type: string
+  tags:
+    type: array
+    items:
+      type: string
+  order:
+    type: number
+  deprecated:
+    type: boolean
+  lastActiveDate:
+    type: string
+  endpointUri: {}
+  environmentId:
+    type: string
+  endpoint:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties: {}
+          updated:
+            type: object
+            properties: {}
+      id:
+        type: number
+      type:
+        type: string
+      uri:
+        type: string
+      proxyUri:
+        type: string
+      proxyRegistrationUri: {}
+      lastActiveDate: {}
+      isCloudHub: {}
+      deploymentType:
+        type: string
+      policiesVersion:
+        type: string
+      referencesUserDomain: {}
+      responseTimeout: {}
+      validation:
+        type: string
+  deployment:
+    type: object
+    properties:
+      audit:
+        type: object
+        properties:
+          created:
+            type: object
+            properties: {}
+          updated:
+            type: object
+            properties: {}
+      id:
+        type: number
+      applicationId: {}
+      applicationName:
+        type: string
+      gatewayVersion:
+        type: string
+      environmentName:
+        type: string
+      environmentId:
+        type: string
+      targetId: {}
+      targetName: {}
+      deploymentId: {}
+      updatedDate: {}
+      type:
+        type: string
+      apiId:
+        type: number
+  lastActiveDelta:
+    type: number

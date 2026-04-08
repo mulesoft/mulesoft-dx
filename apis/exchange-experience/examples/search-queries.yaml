@@ -1,0 +1,20 @@
+SearchQuery:
+  value:
+    name: name
+    types:
+      - connector
+      - rest-api
+    search: salesforce
+
+SearchQueries:
+  value:
+    - name: name
+      types:
+        - connector
+        - rest-api
+      search: salesforce
+
+UpdateSearchQuery:
+  value:
+    name: name
+    search: connector

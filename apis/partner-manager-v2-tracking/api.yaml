@@ -1,0 +1,2100 @@
+openapi: 3.0.0
+info:
+  title: Partner Manager v2 Tracking API
+  version: 1.0.0
+  description: Track and replay B2B message activity, review transmission status, and query message contents in Anypoint Partner Manager.
+servers:
+- url: https://anypoint.mulesoft.com/partnermanager/tracking/api/v1
+- url: https://eu1.anypoint.mulesoft.com/partnermanager/tracking/api/v1
+- url: https://{region}.platform.mulesoft.com/partnermanager/tracking/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations: {}
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{envId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_envId_Path'
+  /organizations/{organizationId}/environments/{envId}/activity:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_envId_Path'
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions:
+    description: The collection of transmissions
+    get:
+      description: Get all transmissions
+      parameters:
+      - name: overdue
+        description: For transmissions expecting acknowledgements, filter by their ack overdue status.
+        in: query
+        schema:
+          type: string
+          enum:
+          - true
+          - false
+      - name: reviewed
+        description: Filter transmissions by their reviewed status when required.
+        in: query
+        schema:
+          type: string
+          enum:
+          - true
+          - false
+      - name: pageSize
+        description: Limit the elements to be fetched a page
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 100
+      - name: ackStatus
+        description: Ack Status of the transmission .
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - RECEIVED
+          - SENT
+          - NOT_APPLICABLE
+          - FAILED
+          - ACCEPTED
+          - REJECTED
+          - PARTIAL_ACCEPTED
+          - ACCEPTED_WITH_ERRORS
+      - name: page
+        description: The page to be fetched
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: replay
+        description: The replay query parameter.
+        in: query
+        schema:
+          type: boolean
+      - name: direction
+        description: Filter transmissions by specific direction. By default, both inbound and outbound transmissions are returned.
+        in: query
+        schema:
+          type: string
+          enum:
+          - INBOUND
+          - OUTBOUND
+      - name: partnerId
+        description: Filter transmission for specific partner.
+        in: query
+        schema:
+          type: string
+      - name: hostMessageFormat
+        description: Filter transmissions for a specific message format exchanged with Host's internal applications. This is required if hostMessageType is specified.
+        in: query
+        schema:
+          type: string
+          enum:
+          - JSON
+          - XML
+          - CSV
+      - name: searchString
+        description: search string used for searching transmissions with additional parameters.
+        in: query
+        schema:
+          type: string
+      - name: status
+        description: Filter transmissions by status.
+        in: query
+        schema:
+          type: string
+          enum:
+          - RECEIVED
+          - DELIVERED
+          - PROCESSING
+          - ERRORED
+          - PARTIAL
+      - name: dateReceivedFrom
+        description: Get transmissions received after certain time.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: hostMessageType
+        description: Filter transmissions for a specific message type in a given host message format. This is required if hostMessageFormat is specified.
+        in: query
+        schema:
+          type: string
+      - name: partnerMessageFormat
+        description: Filter transmissions for a specific message format exchanged with Trading Partner. This is required if partnerMessageType is specified.
+        in: query
+        schema:
+          type: string
+          enum:
+          - X12
+          - EDIFACT
+          - JSON
+          - XML
+          - CSV
+      - name: partnerMessageType
+        description: Filter transmissions for a specific message type in a given partner message format. This is required if partnerMessageFormat is specified.
+        in: query
+        schema:
+          type: string
+      - name: transactionId
+        description: The transaction ID query parameter.
+        in: query
+        schema:
+          type: string
+      - name: dateReceivedTo
+        description: Get transmissions received until certain time.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: dateLimit
+        description: Get transmissions up to this limit.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+            X-TotalRecordCount:
+              description: the count of total elements in the query
+              schema:
+                type: integer
+            X-TotalPages:
+              description: The count of total pages in the query
+              schema:
+                type: integer
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  tranmissionsList:
+                  - sourceDocType:
+                      baseType: '850'
+                      name: X12-4010-850
+                      id: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    targetDocType:
+                      baseType: JSON
+                      name: Target-Schema
+                      id: 94165a70-9b46-4d8e-adf9-fe25724cd5e1
+                    targetEndpoint:
+                      partner:
+                        id: b06fc941-f9dc-425e-8f68-611491687ba3
+                        name: Salesforce
+                        status: ACTIVE
+                      endpointType: http
+                      name: HTTPS-Inbound-Target-1
+                      id: 6249e7e4-3020-4401-b8bb-985513078b82
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Manipal Hospital
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Salesforce
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: cc7a30f6-b553-403e-88df-e0a1b0c57bff
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-18 07:48:46.454000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: 53690a81-36dc-472f-9f7f-99dc4c27e2a1
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-18 07:48:46.445000+00:00
+                      status: RECEIVED
+                      contentStorageId: 4c4592ea-1f3c-4cff-aeb2-4de181f699a7
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: 4232c6ee-6220-4454-ac11-e20fe3684689
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-18 07:48:51.506000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Sender
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: DELIVERED
+                    dateReceived: 2024-11-18 07:48:45.961000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 1
+                    transmissionSummaries:
+                    - id: 54938b38-f5d4-4ab0-8c9a-b25c0ff70fd0
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      documentFlowName: X12-4010-850
+                      documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                      messageType: v004010_850
+                      messageCount: 1
+                      validatedCount: 1
+                      failedCount: 0
+                      routedCount: 1
+                      ackStatus: NOT_APPLICABLE
+                      ackType: ''
+                      groupControlNumber: '1'
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-18 07:48:45.961000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+                  - sourceDocType:
+                      baseType: '850'
+                      name: X12-4010-850
+                      id: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    targetDocType:
+                      baseType: JSON
+                      name: Target-Schema
+                      id: 94165a70-9b46-4d8e-adf9-fe25724cd5e1
+                    targetEndpoint:
+                      partner:
+                        id: b06fc941-f9dc-425e-8f68-611491687ba3
+                        name: Salesforce
+                        status: ACTIVE
+                      endpointType: http
+                      name: HTTPS-Inbound-Target-1
+                      id: 6249e7e4-3020-4401-b8bb-985513078b82
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Manipal Hospital
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Salesforce
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                      id: 16a8c509-ce9f-4ee5-9405-9af66539c6fa
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-18 07:46:23.004000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                      id: 9281b72e-500a-4239-b2f9-7ffcb055600d
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-18 07:46:22.998000+00:00
+                      status: RECEIVED
+                      contentStorageId: 2d668dd0-5f0d-47e1-9b3a-85129afd656e
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                      id: 1c1d5718-a359-4f80-9440-c0d7d71ee7bb
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-18 07:46:28.084000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Sender
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: DELIVERED
+                    dateReceived: 2024-11-18 07:46:22.185000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 1
+                    transmissionSummaries:
+                    - id: 3dda760d-95f7-4659-8fe4-fe8398f451f1
+                      transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                      documentFlowName: X12-4010-850
+                      documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                      messageType: v004010_850
+                      messageCount: 1
+                      validatedCount: 1
+                      failedCount: 0
+                      routedCount: 1
+                      ackStatus: NOT_APPLICABLE
+                      ackType: ''
+                      groupControlNumber: '1'
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-18 07:46:22.185000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+                  - sourceDocType:
+                      baseType: '850'
+                      name: X12-4010-850
+                      id: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    targetDocType:
+                      baseType: JSON
+                      name: Target-Schema
+                      id: 94165a70-9b46-4d8e-adf9-fe25724cd5e1
+                    targetEndpoint:
+                      partner:
+                        id: b06fc941-f9dc-425e-8f68-611491687ba3
+                        name: Salesforce
+                        status: ACTIVE
+                      endpointType: http
+                      name: HTTPS-Inbound-Target-1
+                      id: 6249e7e4-3020-4401-b8bb-985513078b82
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Manipal Hospital
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Salesforce
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                      id: 11f28d4f-3068-40c1-ad1b-db840cc94543
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-18 06:26:21.634000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                      id: bada5a2d-4773-4f35-9999-fea719ff1a23
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-18 06:26:21.626000+00:00
+                      status: RECEIVED
+                      contentStorageId: 3c5a6b5c-019b-4475-bcd0-473a37a5583b
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                      id: 47c958e1-265f-40cd-ae48-11b0d5d8e62e
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-18 06:26:26.712000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Sender
+                    - errors:
+                      - segTag: ST
+                        groupId: 1
+                        f: '0001'
+                        interchangeId: 263
+                        errorType: TRANSACTION_SYNTAX
+                        errorLevel: TRANSACTION_LEVEL
+                        segment: 2
+                        errorDetails: fatal transaction error 'Functional code IN doesn't match schema'
+                        objectType: X12
+                        errorText: Functional code IN doesn't match schema
+                        errorCode: '18'
+                        fatal: true
+                      transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                      id: 0e11eed8-5d99-4bc7-ba3a-049cc6f35c6d
+                      stepName: EDI_VALIDATE
+                      stepTime: 2024-11-18 06:26:26.787000+00:00
+                      status: ERRORED
+                      errorMessage: Interchange has failed X12 validation.
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: 32664b43-d871-42b6-8418-428b9521ac84
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: ERRORED
+                    dateReceived: 2024-11-18 06:26:20.872000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 0
+                    transmissionSummaries:
+                    - id: 7f93c68a-d577-4ceb-a387-ad9a459525be
+                      transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                      documentFlowName: X12-4010-850
+                      documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                      messageType: v004010_850
+                      messageCount: 1
+                      validatedCount: 0
+                      failedCount: 0
+                      routedCount: 0
+                      ackStatus: NOT_APPLICABLE
+                      ackType: ''
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: 32664b43-d871-42b6-8418-428b9521ac84
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: 32664b43-d871-42b6-8418-428b9521ac84
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-18 06:26:20.872000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+                  - partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Manipal Hospital
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Salesforce
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: 98c8a09c-e029-4571-8116-46ef926d6e20
+                      id: 00bd69f3-6aad-48aa-9446-83a0fb243787
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-18 04:57:04.816000+00:00
+                      status: RECEIVED
+                      contentStorageId: e3185001-898b-415a-ad6d-7d67797f0140
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 98c8a09c-e029-4571-8116-46ef926d6e20
+                      id: 477e0d34-0f94-4b46-9ac7-c72d4751461a
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-18 04:57:04.824000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 98c8a09c-e029-4571-8116-46ef926d6e20
+                      id: 54387f0c-5f2d-46b6-9025-07864f537438
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-18 04:57:09.924000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Receiver
+                    - errors:
+                      - segTag: ''
+                        groupId: -1
+                        transactionId: ''
+                        interchangeId: 263
+                        errorType: INTERCHANGE_NOTE
+                        errorLevel: INTERCHANGE_LEVEL
+                        segment: 1
+                        errorDetails: Duplicate interchange control number 263
+                        objectType: X12
+                        errorText: Duplicate Interchange Control Number
+                        errorCode: '025'
+                        fatal: true
+                      transmissionId: 98c8a09c-e029-4571-8116-46ef926d6e20
+                      id: 00506bf2-3f50-4801-ae74-a3cc884c7469
+                      stepName: EDI_VALIDATE
+                      stepTime: 2024-11-18 04:57:10.196000+00:00
+                      status: ERRORED
+                      errorMessage: Interchange has failed X12 validation.
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: 98c8a09c-e029-4571-8116-46ef926d6e20
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: ERRORED
+                    dateReceived: 2024-11-18 04:57:04.058000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 0
+                    transmissionSummaries: []
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: 98c8a09c-e029-4571-8116-46ef926d6e20
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: 98c8a09c-e029-4571-8116-46ef926d6e20
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-18 04:57:04.058000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: 98c8a09c-e029-4571-8116-46ef926d6e20
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+                  - sourceDocType:
+                      baseType: '850'
+                      name: X12-4010-850
+                      id: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    targetDocType:
+                      baseType: JSON
+                      name: Target-Schema
+                      id: 94165a70-9b46-4d8e-adf9-fe25724cd5e1
+                    targetEndpoint:
+                      partner:
+                        id: b06fc941-f9dc-425e-8f68-611491687ba3
+                        name: Salesforce
+                        status: ACTIVE
+                      endpointType: http
+                      name: HTTPS-Inbound-Target-1
+                      id: 6249e7e4-3020-4401-b8bb-985513078b82
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Manipal Hospital
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Salesforce
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                      id: b272b415-947c-485d-9288-39e6fb3b1abc
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-15 07:01:12.048000+00:00
+                      status: RECEIVED
+                      contentStorageId: a75c9e41-9cce-4dcd-a679-4f5ac1ed0fd1
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                      id: c8efad99-aef9-4723-b69c-49d808b90290
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-15 07:01:12.052000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                      id: a74f5198-a67b-49e9-b13f-9d3008bd9c7e
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-15 07:01:17.847000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Receiver
+                    - errors:
+                      - segTag: ST
+                        groupId: 1
+                        transactionId: '0001'
+                        interchangeId: 263
+                        errorType: TRANSACTION_SYNTAX
+                        errorLevel: TRANSACTION_LEVEL
+                        segment: 2
+                        errorDetails: fatal transaction error 'Functional code IN doesn't match schema'
+                        objectType: X12
+                        errorText: Functional code IN doesn't match schema
+                        errorCode: '18'
+                        fatal: true
+                      transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                      id: 4d0ecb9e-e680-44bf-9dce-79ae83aae196
+                      stepName: EDI_VALIDATE
+                      stepTime: 2024-11-15 07:01:28.831000+00:00
+                      status: ERRORED
+                      errorMessage: Interchange has failed X12 validation.
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: 97037275-94ce-4743-ba57-ab965a551dc8
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: ERRORED
+                    dateReceived: 2024-11-15 07:01:10.937000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 0
+                    transmissionSummaries:
+                    - id: d576d32a-eb86-4fca-a34c-838a0f7e2c2a
+                      transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                      documentFlowName: X12-4010-850
+                      documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                      messageType: v004010_850
+                      messageCount: 1
+                      validatedCount: 0
+                      failedCount: 0
+                      routedCount: 0
+                      ackStatus: NOT_APPLICABLE
+                      ackType: ''
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: 97037275-94ce-4743-ba57-ab965a551dc8
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: 97037275-94ce-4743-ba57-ab965a551dc8
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-15 07:01:10.937000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+                  - partnerFrom: {}
+                    partnerTo: {}
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: 0f31989f-4418-418b-a959-650b3e1ba45a
+                      id: 8375563a-a599-41b8-bde1-a5cdcd00d142
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-15 06:42:59.613000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 0f31989f-4418-418b-a959-650b3e1ba45a
+                      id: dd1ff1bb-cb3c-490a-bc65-5e949fa857ba
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-15 06:42:59.605000+00:00
+                      status: RECEIVED
+                      contentStorageId: b13a8d90-9bd6-4959-8c43-429d489d1c87
+                      payloadSize: 526
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: 0f31989f-4418-418b-a959-650b3e1ba45a
+                      id: 9a1453ac-31c7-4a26-9d0a-0f6d81589d49
+                      stepName: PARTNER_IDENTIFICATION
+                      stepTime: 2024-11-15 06:43:04.909000+00:00
+                      status: ERRORED
+                      errorMessage: Partner not found for identifiers 16-SENDER1-X12-ISA
+                    transmissionMessages: []
+                    customAttributes: []
+                    id: 0f31989f-4418-418b-a959-650b3e1ba45a
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: ERRORED
+                    dateReceived: 2024-11-15 06:42:57.661000+00:00
+                    businessDocumentId: '263'
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 0
+                    transmissionSummaries: []
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '16'
+                    partnerFromIdentifierValue: SENDER1
+                    partnerToIdentifierCode: 1B
+                    partnerToIdentifierValue: RECEIVER1
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: 0f31989f-4418-418b-a959-650b3e1ba45a
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: 0f31989f-4418-418b-a959-650b3e1ba45a
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-15 06:42:57.661000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: 0f31989f-4418-418b-a959-650b3e1ba45a
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 526
+                        customProtocolHeaders: {}
+              example: {}
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissions
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/replay:
+    description: The collection of replay
+    post:
+      description: Create a new replay
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-amf-examples:
+                value:
+                - fe6fc070-9f9a-49d9-b609-a454c54d316f
+                - 34fb099e-83d2-4f42-a1f0-acb4aab89191
+              type: array
+              items: {}
+        x-amf-mediaType: application/json
+        description: The replay data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  entityCreatedResponseList:
+                  - id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    message: ACCEPTED
+                  - id: 34fb099e-83d2-4f42-a1f0-acb4aab89191
+                    message: NOT_ACCEPTED
+              example: *id001
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      security:
+      - oauth_2_0: []
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsReplay
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}:
+    description: The collection of transmissions
+    get:
+      description: Get all transmissions
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  transmissionInfo:
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                      status: ACTIVE
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                      status: ACTIVE
+                    transmissionSteps:
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: 53690a81-36dc-472f-9f7f-99dc4c27e2a1
+                      stepName: CONTENT_STORAGE
+                      stepTime: 2024-11-18 07:48:46.445000+00:00
+                      status: RECEIVED
+                      contentStorageId: 4c4592ea-1f3c-4cff-aeb2-4de181f699a7
+                      payloadSize: 527
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: cc7a30f6-b553-403e-88df-e0a1b0c57bff
+                      stepName: SEND_DPS
+                      stepTime: 2024-11-18 07:48:46.454000+00:00
+                      status: RECEIVED
+                      errorMessage: ' '
+                    - errors: []
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      id: 4232c6ee-6220-4454-ac11-e20fe3684689
+                      stepName: X12_CONFIG
+                      stepTime: 2024-11-18 07:48:51.506000+00:00
+                      status: RESOLVED
+                      errorMessage: X12 configuration owner - Sender
+                    transmissionMessages: []
+                    replayHistory: []
+                    customAttributes: []
+                    id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                    status: DELIVERED
+                    dateReceived: 2024-11-18 07:48:45.961000+00:00
+                    businessDocumentId: '263'
+                    partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                    partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                    direction: INBOUND
+                    formatType: X12
+                    messageCount: 1
+                    transmissionSummaries:
+                    - id: 54938b38-f5d4-4ab0-8c9a-b25c0ff70fd0
+                      transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      documentFlowName: X12-4010-850
+                      flowId: d13dd354-60a9-42eb-acf7-5de3edbe789c
+                      documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                      messageType: v004010_850
+                      messageCount: 1
+                      validatedCount: 1
+                      failedCount: 0
+                      routedCount: 1
+                      ackStatus: NOT_APPLICABLE
+                      ackType: ''
+                      groupControlNumber: '1'
+                    ackStatus: NOT_APPLICABLE
+                    receivingEndpointType: http
+                    partnerFromIdentifierCode: '01'
+                    partnerFromIdentifierValue: '1234567'
+                    partnerToIdentifierCode: '01'
+                    partnerToIdentifierValue: '4156978307'
+                    isReplay: false
+                    inboundEndpointMetadata:
+                      properties:
+                        operation: CREATE
+                        serviceName: inbound-http-cloudhub-eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        documentIdentifier: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        serviceInstanceIdentifier: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        inboundEndpointType: http
+                        visibility: EXTERNAL
+                      data:
+                        id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                        status: RECEIVED
+                        dateReceived: 2024-11-18 07:48:45.961000+00:00
+                        direction: INBOUND
+                        receivingEndpointType: http
+                        objectType: Transmission
+                      content:
+                        contentType: text/plain
+                      b2bMessageContext:
+                        sourceProtocol: HTTPS
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        messageId: ''
+                        sourceEndpointAttributes:
+                          path: /
+                          fileSize: 527
+                        customProtocolHeaders: {}
+              example: {}
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionid
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/reviews:
+    description: Get an entity representing a review
+    get:
+      description: 'Get the review
+
+        with id =
+
+        {reviewId}
+
+        '
+      parameters:
+      - name: page
+        description: The page to be fetched
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        description: Limit the elements to be fetched a page
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+            X-TotalRecordCount:
+              description: the count of total elements in the query
+              schema:
+                type: integer
+            X-TotalPages:
+              description: The count of total pages in the query
+              schema:
+                type: integer
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  entityCreatedResponse:
+                    id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    message: ACCEPTED
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviews
+    post:
+      description: Create a new review
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/TransmissionReview'
+        description: The reviews data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  entityCreatedResponse:
+                    id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    message: ACCEPTED
+              example: *id002
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  value:
+                    message: Your request does not have the correct values
+              example: *id003
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      security:
+      - oauth_2_0: []
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviews
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/reviews/{reviewId}:
+    description: Get an entity representing a review
+    put:
+      description: Replace review
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      - name: reviewId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The review ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/TransmissionReview'
+        description: The reviews data to update.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  value:
+                    message: Your request does not have the correct values
+              example: *id004
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      security:
+      - oauth_2_0: []
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviewsByReviewid
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/summaries:
+    description: The collection of summaries
+    get:
+      description: Get all summaries
+      parameters:
+      - name: page
+        description: The page to be fetched
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        description: Limit the elements to be fetched a page
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+            X-TotalRecordCount:
+              description: the count of total elements in the query
+              schema:
+                type: integer
+            X-TotalPages:
+              description: The count of total pages in the query
+              schema:
+                type: integer
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  transmissionSummaryList:
+                  - id: 54938b38-f5d4-4ab0-8c9a-b25c0ff70fd0
+                    transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    documentFlowName: X12-4010-850
+                    flowId: d13dd354-60a9-42eb-acf7-5de3edbe789c
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    messageType: v004010_850
+                    messageCount: 1
+                    validatedCount: 1
+                    failedCount: 0
+                    routedCount: 1
+                    ackStatus: NOT_APPLICABLE
+                    ackType: ''
+                    groupControlNumber: '1'
+              example: {}
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidSummaries
+  /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/replays:
+    description: Get an entity representing a replay
+    post:
+      description: Create a new replay
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: transmissionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The transmission ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransmissionReplay'
+        x-amf-mediaType: application/json
+        description: The replays data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                  entityCreatedResponse:
+                    id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    message: ACCEPTED
+              example: *id005
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                  value:
+                    message: Your request does not have the correct values
+              example: *id006
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      security:
+      - oauth_2_0: []
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReplays
+  /organizations/{organizationId}/environments/{envId}/activity/messages:
+    description: The collection of messages
+    get:
+      description: Get all messages
+      parameters:
+      - name: overdue
+        description: For messages expecting acknowledgements, filter by their ack overdue status.
+        in: query
+        schema:
+          type: string
+          enum:
+          - true
+          - false
+      - name: reviewed
+        description: Filter messages by their reviewed status when required.
+        in: query
+        schema:
+          type: string
+          enum:
+          - true
+          - false
+      - name: pageSize
+        description: Limit the elements to be fetched a page
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 100
+      - name: customAttributeValue1
+        description: The customAttributeValue1 query parameter.
+        in: query
+        schema:
+          type: string
+      - name: ackStatus
+        description: Ack Status of the transmission
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - RECEIVED
+          - SENT
+          - NOT_APPLICABLE
+          - FAILED
+          - ACCEPTED
+          - REJECTED
+          - PARTIAL_ACCEPTED
+          - ACCEPTED_WITH_ERRORS
+      - name: page
+        description: The page to be fetched
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: customAttributeId1
+        description: The customAttribute ID1 query parameter.
+        in: query
+        schema:
+          type: string
+      - name: direction
+        description: Filter messages by specific direction. By default, both inbound and outbound transmissions are returned.
+        in: query
+        schema:
+          type: string
+          enum:
+          - INBOUND
+          - OUTBOUND
+      - name: partnerId
+        description: Filter messages for specific partner.
+        in: query
+        schema:
+          type: string
+      - name: hostMessageFormat
+        description: Filter messages for a specific message format exchanged with Host's internal applications.
+        in: query
+        schema:
+          type: string
+          enum:
+          - JSON
+          - XML
+          - CSV
+      - name: searchString
+        description: Search string used for searching transmissions with additional parameters.
+        in: query
+        schema:
+          type: string
+      - name: status
+        description: Filter messages by status
+        in: query
+        schema:
+          type: string
+          enum:
+          - VALIDATED
+          - RESOLVED
+          - ACKED
+          - TRANSFORMED
+          - DELIVERED
+          - ERRORED
+          - ROUTED
+      - name: dateReceivedFrom
+        description: Get messages received after certain time.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: expandCustomAttributes
+        description: 'Show custom attributes from the message. '
+        in: query
+        schema:
+          type: boolean
+      - name: hostMessageType
+        description: Filter messages for a specific message type in a given host message format.
+        in: query
+        schema:
+          type: string
+      - name: partnerMessageFormat
+        description: Filter messages for a specific message format exchanged with Trading Partner.
+        in: query
+        schema:
+          type: string
+          enum:
+          - X12
+          - EDIFACT
+          - JSON
+          - XML
+          - CSV
+      - name: partnerMessageType
+        description: Filter messages for a specific message type in a given partner message format.
+        in: query
+        schema:
+          type: string
+      - name: transactionId
+        description: The transaction ID query parameter.
+        in: query
+        schema:
+          type: string
+      - name: dateReceivedTo
+        description: Get messages received until certain time.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: dateLimit
+        description: Get messages up to this limit.
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+            X-TotalRecordCount:
+              description: the count of total elements in the query
+              schema:
+                type: integer
+            X-TotalPages:
+              description: The count of total pages in the query
+              schema:
+                type: integer
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  transmissionMessageInfo:
+                  - receivedTime: 2024-11-18 07:48:45.961000+00:00
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                    functionalAck: {}
+                    direction: INBOUND
+                    messageAckStatus: NOT_APPLICABLE
+                    id: 86480257-e209-41af-8a7e-c7a247bd181d
+                    businessDocumentGroupId: '1'
+                    businessDocumentId: '0001'
+                    businessDocumentFunctionalGroupCode: PO
+                    documentTypeId: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    messageType: '850'
+                    messageVersion: v004010
+                    documentFlowName: X12-4010-850
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    status: DELIVERED
+                    targetFileName: 850_1234567_20241118_074847046_263.json
+                    sendTime: 2024-11-18 07:48:47+00:00
+                    transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    businessDocumentKey: '0001'
+                    transmissionMessageSteps: []
+                    customAttributes: []
+                    isReplay: false
+                  - receivedTime: 2024-11-18 07:46:22.185000+00:00
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                    functionalAck: {}
+                    direction: INBOUND
+                    messageAckStatus: NOT_APPLICABLE
+                    id: e8669e91-77c4-4847-adce-94755c65549b
+                    businessDocumentGroupId: '1'
+                    businessDocumentId: '0001'
+                    businessDocumentFunctionalGroupCode: PO
+                    documentTypeId: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    messageType: '850'
+                    messageVersion: v004010
+                    documentFlowName: X12-4010-850
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    status: DELIVERED
+                    targetFileName: 850_1234567_20241118_074638724_263.json
+                    sendTime: 2024-11-18 07:46:31+00:00
+                    transmissionId: c5102a00-66a2-417d-8a8e-4ef7d448e7c9
+                    businessDocumentKey: '0001'
+                    transmissionMessageSteps: []
+                    customAttributes: []
+                    isReplay: false
+                  - receivedTime: 2024-11-18 06:26:20.872000+00:00
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                    functionalAck: {}
+                    direction: INBOUND
+                    messageAckStatus: NOT_APPLICABLE
+                    id: 42387f7f-bb4e-4c10-bb72-f634cfff9025
+                    businessDocumentGroupId: '1'
+                    businessDocumentId: '0001'
+                    documentTypeId: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    messageType: '850'
+                    messageVersion: v004010
+                    documentFlowName: X12-4010-850
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    status: ERRORED
+                    transmissionId: 32664b43-d871-42b6-8418-428b9521ac84
+                    businessDocumentKey: '0001'
+                    transmissionMessageSteps: []
+                    customAttributes: []
+                    isReplay: false
+                  - receivedTime: 2024-11-15 07:01:10.937000+00:00
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                    functionalAck: {}
+                    direction: INBOUND
+                    messageAckStatus: NOT_APPLICABLE
+                    id: a95f837f-8792-4033-b2f0-28b19a6b4578
+                    businessDocumentGroupId: '1'
+                    businessDocumentId: '0001'
+                    documentTypeId: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    messageType: '850'
+                    messageVersion: v004010
+                    documentFlowName: X12-4010-850
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    status: ERRORED
+                    transmissionId: 97037275-94ce-4743-ba57-ab965a551dc8
+                    businessDocumentKey: '0001'
+                    transmissionMessageSteps: []
+                    customAttributes: []
+                    isReplay: false
+              example: {}
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityMessages
+  /organizations/{organizationId}/environments/{envId}/activity/messages/{messageId}:
+    description: Get an entity representing a message
+    get:
+      description: 'Get the message
+
+        with id =
+
+        {messageId}
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: messageId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The message ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  transmissionMessageExtendedInfo:
+                    formatType: X12
+                    targetMessageSize: 0
+                    transmission:
+                      transmissionSteps:
+                      - errors: []
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        id: 4232c6ee-6220-4454-ac11-e20fe3684689
+                        stepName: X12_CONFIG
+                        stepTime: 2024-11-18 07:48:51.506000+00:00
+                        status: RESOLVED
+                        errorMessage: X12 configuration owner - Sender
+                      - errors: []
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        id: cc7a30f6-b553-403e-88df-e0a1b0c57bff
+                        stepName: SEND_DPS
+                        stepTime: 2024-11-18 07:48:46.454000+00:00
+                        status: RECEIVED
+                        errorMessage: ' '
+                      - errors: []
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        id: 53690a81-36dc-472f-9f7f-99dc4c27e2a1
+                        stepName: CONTENT_STORAGE
+                        stepTime: 2024-11-18 07:48:46.445000+00:00
+                        status: RECEIVED
+                        contentStorageId: 4c4592ea-1f3c-4cff-aeb2-4de181f699a7
+                        payloadSize: 527
+                        errorMessage: ' '
+                      transmissionMessages: []
+                      replayHistory: []
+                      customAttributes: []
+                      id: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                      receivingEndpointId: 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                      endpointDeploymentId: eab07e18-1d6e-4cff-a3dd-52c6513ce231
+                      status: DELIVERED
+                      dateReceived: 2024-11-18 07:48:45.961000+00:00
+                      businessDocumentId: '263'
+                      partnerFromId: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      partnerToId: b06fc941-f9dc-425e-8f68-611491687ba3
+                      direction: INBOUND
+                      formatType: X12
+                      messageCount: 1
+                      transmissionSummaries:
+                      - id: 54938b38-f5d4-4ab0-8c9a-b25c0ff70fd0
+                        transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                        documentFlowName: X12-4010-850
+                        flowId: d13dd354-60a9-42eb-acf7-5de3edbe789c
+                        documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                        messageType: v004010_850
+                        messageCount: 1
+                        validatedCount: 1
+                        failedCount: 0
+                        routedCount: 1
+                        ackStatus: NOT_APPLICABLE
+                        ackType: ''
+                        groupControlNumber: '1'
+                      ackStatus: NOT_APPLICABLE
+                      receivingEndpointType: http
+                      partnerFromIdentifierCode: '01'
+                      partnerFromIdentifierValue: '1234567'
+                      partnerToIdentifierCode: '01'
+                      partnerToIdentifierValue: '4156978307'
+                      isReplay: false
+                    'receivingEndpointId ': 5f2ee54c-f1fc-4ee4-8b40-3d50b18804f3
+                    receivedTime: 2024-11-18 07:48:45.961000+00:00
+                    partnerFrom:
+                      id: fe6aefcd-abe4-4fa2-bcf2-69dcfaa45e55
+                      name: Partner
+                      logo: {}
+                    partnerTo:
+                      id: b06fc941-f9dc-425e-8f68-611491687ba3
+                      name: Host
+                      logo: {}
+                    functionalAck: {}
+                    direction: INBOUND
+                    messageAckStatus: NOT_APPLICABLE
+                    replayHistory: []
+                    id: 86480257-e209-41af-8a7e-c7a247bd181d
+                    businessDocumentGroupId: '1'
+                    businessDocumentId: '0001'
+                    businessDocumentFunctionalGroupCode: PO
+                    documentTypeId: 1dc69835-7b26-49bb-ab0c-f7b482c0c97b
+                    messageType: '850'
+                    messageVersion: v004010
+                    documentFlowName: X12-4010-850
+                    documentFlowConfigInstanceId: 8cef1e1d-5b65-4ce7-85bb-2e7b126ee57f
+                    status: DELIVERED
+                    ackStatus: NOT_APPLICABLE
+                    targetFileName: 850_1234567_20241118_074847046_263.json
+                    sendTime: 2024-11-18 07:48:47+00:00
+                    transmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+                    businessDocumentKey: '0001'
+                    transmissionMessageSteps:
+                    - transmissionMessageId: 86480257-e209-41af-8a7e-c7a247bd181d
+                      errors: []
+                      id: babe3ef1-7acf-4b04-9add-70b0e62b8d7a
+                      stepName: SEND_MESSAGE
+                      stepTime: 2024-11-18 07:48:52.517000+00:00
+                      status: DELIVERED
+                      contentStorageId: 1f734377-ccbd-4d37-ab02-1436ea8443e6
+                      outboundEndpointId: 6249e7e4-3020-4401-b8bb-985513078b82
+                      payloadSize: 0
+                      errorMessage: ''
+                    customAttributes: []
+                    isReplay: false
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      security:
+      - oauth_2_0: []
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityMessagesByMessageid
+  /organizations/{organizationId}/environments/{envId}/contents:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_envId_Path'
+  /organizations/{organizationId}/environments/{envId}/contents/{contentId}:
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: contentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The content ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: plain/text
+          content:
+            plain/text:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidContentsByContentid
+      description: Retrieves a contents.
+components:
+  requestBodies:
+    TransmissionReview:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransmissionReview'
+      x-amf-mediaType: application/json
+      description: Request payload for TransmissionReview operations.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+    oauth_2_0:
+      type: http
+      scheme: bearer
+      description: Authentication via oauth_2_0.
+  schemas:
+    type:
+      x-amf-examples:
+        example_0:
+          message: review
+        example_1:
+          message: Not Supported  Content-Type
+        amf_example_1:
+          message: Too Many Requests
+        amf_example_2:
+          message: message
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          description: 'Human readable error description.
+
+            '
+          type: string
+        errors:
+          description: 'Error list use to describe the set of validations that has failed. Only required in case
+
+            HTTP error code is not enough to describe the failure case.
+
+            '
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            - message
+            properties:
+              code:
+                description: 'Machine error description. Internal code representation for cosumer
+
+                  code error handling.
+
+                  '
+                type: string
+              message:
+                description: 'Human readable error description.
+
+                  '
+                type: string
+    TransmissionReview:
+      description: This is the entity that reflects the review of the transmission.
+      x-amf-examples:
+        transmissionReview:
+          id: f48d6f97-c457-4697-ad70-f0513569d5c2
+          reviewType: ACK
+          reviewName: '997'
+          reviewedAt: '2029-11-23T18:25:43+01:00'
+          reviewedBy: f48d6f97-c457-4697-ad70-f0513569d5c2
+          comment: Something from user
+      type: object
+      required:
+      - comment
+      - reviewType
+      - reviewName
+      - id
+      - reviewedBy
+      - reviewedAt
+      properties:
+        comment:
+          type: string
+        reviewType:
+          type: string
+        reviewName:
+          type: string
+        id:
+          type: string
+        reviewedBy:
+          type: string
+        reviewedAt:
+          type: string
+    TransmissionReplay:
+      description: This is the entity that reflects the replay of the transmission.
+      x-amf-examples:
+        transmissionReplay:
+          id: 54938b38-f5d4-4ab0-8c9a-b25c0ff70fd0
+          originalTransmissionId: fe6fc070-9f9a-49d9-b609-a454c54d316f
+          replayedTransmissionId: 66cd38b1-9de7-4d1a-a301-4976e3c8d05e
+          status: REPLAYED
+          createdAt: 2024-11-18 07:48:45.961000+00:00
+          createdBy: ''
+          updatedAt: 2024-11-18 07:48:45.961000+00:00
+          updatedBy: ''
+          environmentId: bead9ebb-3c1b-4ae9-ad7e-57c83ddde115
+          organizationId: bdf63494-ad7d-431d-bd51-91c6205a3353
+          deletedAt: 2024-11-18 07:48:45.961000+00:00
+      type: object
+      required:
+      - createdBy
+      - createdAt
+      - updatedBy
+      - updatedAt
+      - environmentId
+      - deletedAt
+      - organizationId
+      - originalTransmissionId
+      properties:
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        id:
+          type: string
+        updatedBy:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        environmentId:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+        replayedTransmissionId:
+          type: string
+        organizationId:
+          type: string
+        status:
+          $ref: '#/components/schemas/TransmissionReplayStatus'
+        originalTransmissionId:
+          type: string
+    TransmissionReplayStatus:
+      enum:
+      - ACCEPTED
+      - REPLAYING
+      - ENQUEUED
+      - FAILED
+      - REPLAYED
+      - NOT_ACCEPTED
+      type: string
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_envId_Path:
+      name: envId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The env ID to identify the target resource.

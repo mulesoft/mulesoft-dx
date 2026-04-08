@@ -1,0 +1,41 @@
+{
+  "value": [
+    {
+      "apiAlertsVersion": "1.0.0",
+      "api": {
+        "id": 24,
+        "name": "ad 24"
+      },
+      "condition": {
+        "aggregate": "COUNT",
+        "operator": "GREATER_THAN",
+        "value": 90,
+        "resourceType": "api"
+      },
+      "createdAt": 1501526157101,
+      "enabled": true,
+      "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+      "id": "a54e3a66-489b-43d9-895f-183837bc82a4",
+      "lastModified": 1501526157101,
+      "name": "REQUEST COUNT ALERT",
+      "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+      "period": {
+        "repeat": 5,
+        "duration": {
+          "count": 5,
+          "weight": "DAYS"
+        }
+      },
+      "recipients": [
+        {
+          "type": "user",
+          "value": "57e281b5-ec5b-4701-80a0-92a936a68da3",
+          "lastName": "Owner",
+          "firstName": "Organization"
+        }
+      ],
+      "severity": "CRITICAL",
+      "type": "api-request-count"
+    }
+  ]
+}

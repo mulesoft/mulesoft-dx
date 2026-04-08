@@ -1,0 +1,73 @@
+User:
+  title: User
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    username:
+      title: Username
+      type: string
+    firstName:
+      title: First Name
+      type: string
+    lastName:
+      title: Last Name
+      type: string
+    profilePhoto:
+      title: Profile photo
+      type: string
+    email:
+      title: Email
+      type: string
+
+Users:
+  type: array
+  title: Users
+  items:
+    $ref: '#/User'
+
+AssetUser:
+  allOf:
+    - $ref: '#/User'
+    - type: object
+      properties:
+        role:
+          title: Role name
+          type: string
+
+AssetUsers:
+  type: array
+  items:
+    $ref: '#/AssetUser'
+
+AssetUserAssignment:
+  type: object
+  properties:
+    userId:
+      title: User Id
+      type: string
+    role:
+      title: Role Name
+      type: string
+  required:
+    - userId
+    - role
+
+AssetUsersAssignments:
+  type: array
+  items:
+    $ref: '#/AssetUserAssignment'
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+AssetUsers1:
+  type: array
+  items:
+    $ref: '#/AssetUser'
+
+AssetUsersAssignments1:
+  type: array
+  items:
+    $ref: '#/AssetUserAssignment'

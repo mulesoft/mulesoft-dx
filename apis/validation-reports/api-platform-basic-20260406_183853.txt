@@ -1,0 +1,1314 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./api-platform
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(89,2)-(138,0)]
+	Link:       api-platform/api.yaml:89:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(138,2)-(147,0)]
+	Link:       api-platform/api.yaml:138:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(147,2)-(157,0)]
+	Link:       api-platform/api.yaml:147:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(157,2)-(322,0)]
+	Link:       api-platform/api.yaml:157:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(322,2)-(346,0)]
+	Link:       api-platform/api.yaml:322:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(346,2)-(366,0)]
+	Link:       api-platform/api.yaml:346:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(366,2)-(605,0)]
+	Link:       api-platform/api.yaml:366:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter environmentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(366,2)-(605,0)]
+	Link:       api-platform/api.yaml:366:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(605,2)-(1012,0)]
+	Link:       api-platform/api.yaml:605:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter environmentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(605,2)-(1012,0)]
+	Link:       api-platform/api.yaml:605:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1012,2)-(1024,0)]
+	Link:       api-platform/api.yaml:1012:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1024,2)-(1033,0)]
+	Link:       api-platform/api.yaml:1024:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1033,2)-(1061,0)]
+	Link:       api-platform/api.yaml:1033:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1061,2)-(1073,0)]
+	Link:       api-platform/api.yaml:1061:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1073,2)-(1145,0)]
+	Link:       api-platform/api.yaml:1073:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1145,2)-(1164,0)]
+	Link:       api-platform/api.yaml:1145:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1164,2)-(1236,0)]
+	Link:       api-platform/api.yaml:1164:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1236,2)-(1255,0)]
+	Link:       api-platform/api.yaml:1236:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1255,2)-(1280,0)]
+	Link:       api-platform/api.yaml:1255:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1280,2)-(1293,0)]
+	Link:       api-platform/api.yaml:1280:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1293,2)-(1306,0)]
+	Link:       api-platform/api.yaml:1293:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1306,2)-(1338,0)]
+	Link:       api-platform/api.yaml:1306:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1306,2)-(1338,0)]
+	Link:       api-platform/api.yaml:1306:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1338,2)-(1349,0)]
+	Link:       api-platform/api.yaml:1338:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1338,2)-(1349,0)]
+	Link:       api-platform/api.yaml:1338:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1349,2)-(1362,0)]
+	Link:       api-platform/api.yaml:1349:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1349,2)-(1362,0)]
+	Link:       api-platform/api.yaml:1349:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1362,2)-(1379,0)]
+	Link:       api-platform/api.yaml:1362:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1362,2)-(1379,0)]
+	Link:       api-platform/api.yaml:1362:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1379,2)-(1455,0)]
+	Link:       api-platform/api.yaml:1379:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1379,2)-(1455,0)]
+	Link:       api-platform/api.yaml:1379:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1455,2)-(1545,0)]
+	Link:       api-platform/api.yaml:1455:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1455,2)-(1545,0)]
+	Link:       api-platform/api.yaml:1455:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1545,2)-(1605,0)]
+	Link:       api-platform/api.yaml:1545:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1545,2)-(1605,0)]
+	Link:       api-platform/api.yaml:1545:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1605,2)-(1650,0)]
+	Link:       api-platform/api.yaml:1605:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1605,2)-(1650,0)]
+	Link:       api-platform/api.yaml:1605:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1650,2)-(1685,0)]
+	Link:       api-platform/api.yaml:1650:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1650,2)-(1685,0)]
+	Link:       api-platform/api.yaml:1650:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1685,2)-(1703,0)]
+	Link:       api-platform/api.yaml:1685:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1685,2)-(1703,0)]
+	Link:       api-platform/api.yaml:1685:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1703,2)-(1747,0)]
+	Link:       api-platform/api.yaml:1703:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1703,2)-(1747,0)]
+	Link:       api-platform/api.yaml:1703:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1747,2)-(1826,0)]
+	Link:       api-platform/api.yaml:1747:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1747,2)-(1826,0)]
+	Link:       api-platform/api.yaml:1747:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1826,2)-(1890,0)]
+	Link:       api-platform/api.yaml:1826:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1826,2)-(1890,0)]
+	Link:       api-platform/api.yaml:1826:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1890,2)-(1934,0)]
+	Link:       api-platform/api.yaml:1890:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1890,2)-(1934,0)]
+	Link:       api-platform/api.yaml:1890:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1934,2)-(1955,0)]
+	Link:       api-platform/api.yaml:1934:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1934,2)-(1955,0)]
+	Link:       api-platform/api.yaml:1934:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1955,2)-(1977,0)]
+	Link:       api-platform/api.yaml:1955:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1955,2)-(1977,0)]
+	Link:       api-platform/api.yaml:1955:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1977,2)-(2031,0)]
+	Link:       api-platform/api.yaml:1977:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1977,2)-(2031,0)]
+	Link:       api-platform/api.yaml:1977:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2031,2)-(2085,0)]
+	Link:       api-platform/api.yaml:2031:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2031,2)-(2085,0)]
+	Link:       api-platform/api.yaml:2031:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2085,2)-(2106,0)]
+	Link:       api-platform/api.yaml:2085:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2085,2)-(2106,0)]
+	Link:       api-platform/api.yaml:2085:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2106,2)-(2128,0)]
+	Link:       api-platform/api.yaml:2106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2106,2)-(2128,0)]
+	Link:       api-platform/api.yaml:2106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2128,2)-(2175,0)]
+	Link:       api-platform/api.yaml:2128:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2128,2)-(2175,0)]
+	Link:       api-platform/api.yaml:2128:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2175,2)-(2205,0)]
+	Link:       api-platform/api.yaml:2175:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2175,2)-(2205,0)]
+	Link:       api-platform/api.yaml:2175:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2205,2)-(2226,0)]
+	Link:       api-platform/api.yaml:2205:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2205,2)-(2226,0)]
+	Link:       api-platform/api.yaml:2205:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2226,2)-(2245,0)]
+	Link:       api-platform/api.yaml:2226:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2226,2)-(2245,0)]
+	Link:       api-platform/api.yaml:2226:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2245,2)-(2351,0)]
+	Link:       api-platform/api.yaml:2245:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2245,2)-(2351,0)]
+	Link:       api-platform/api.yaml:2245:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2351,2)-(2369,0)]
+	Link:       api-platform/api.yaml:2351:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2351,2)-(2369,0)]
+	Link:       api-platform/api.yaml:2351:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2369,2)-(2408,0)]
+	Link:       api-platform/api.yaml:2369:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2369,2)-(2408,0)]
+	Link:       api-platform/api.yaml:2369:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2408,2)-(2432,0)]
+	Link:       api-platform/api.yaml:2408:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2408,2)-(2432,0)]
+	Link:       api-platform/api.yaml:2408:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2432,2)-(2512,0)]
+	Link:       api-platform/api.yaml:2432:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2432,2)-(2512,0)]
+	Link:       api-platform/api.yaml:2432:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2512,2)-(2610,0)]
+	Link:       api-platform/api.yaml:2512:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2512,2)-(2610,0)]
+	Link:       api-platform/api.yaml:2512:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2610,2)-(2651,0)]
+	Link:       api-platform/api.yaml:2610:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2610,2)-(2651,0)]
+	Link:       api-platform/api.yaml:2610:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2610,2)-(2651,0)]
+	Link:       api-platform/api.yaml:2610:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2651,2)-(2675,0)]
+	Link:       api-platform/api.yaml:2651:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2651,2)-(2675,0)]
+	Link:       api-platform/api.yaml:2651:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2651,2)-(2675,0)]
+	Link:       api-platform/api.yaml:2651:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2675,2)-(2699,0)]
+	Link:       api-platform/api.yaml:2675:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2675,2)-(2699,0)]
+	Link:       api-platform/api.yaml:2675:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2675,2)-(2699,0)]
+	Link:       api-platform/api.yaml:2675:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2699,2)-(2712,0)]
+	Link:       api-platform/api.yaml:2699:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2699,2)-(2712,0)]
+	Link:       api-platform/api.yaml:2699:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2712,2)-(2761,0)]
+	Link:       api-platform/api.yaml:2712:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2712,2)-(2761,0)]
+	Link:       api-platform/api.yaml:2712:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2761,2)-(2842,0)]
+	Link:       api-platform/api.yaml:2761:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2761,2)-(2842,0)]
+	Link:       api-platform/api.yaml:2761:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2842,2)-(2883,0)]
+	Link:       api-platform/api.yaml:2842:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2842,2)-(2883,0)]
+	Link:       api-platform/api.yaml:2842:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter tierId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2842,2)-(2883,0)]
+	Link:       api-platform/api.yaml:2842:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2883,2)-(2962,0)]
+	Link:       api-platform/api.yaml:2883:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2883,2)-(2962,0)]
+	Link:       api-platform/api.yaml:2883:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2962,2)-(3021,0)]
+	Link:       api-platform/api.yaml:2962:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2962,2)-(3021,0)]
+	Link:       api-platform/api.yaml:2962:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2962,2)-(3021,0)]
+	Link:       api-platform/api.yaml:2962:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3021,2)-(3041,0)]
+	Link:       api-platform/api.yaml:3021:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3021,2)-(3041,0)]
+	Link:       api-platform/api.yaml:3021:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3021,2)-(3041,0)]
+	Link:       api-platform/api.yaml:3021:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3041,2)-(3061,0)]
+	Link:       api-platform/api.yaml:3041:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3041,2)-(3061,0)]
+	Link:       api-platform/api.yaml:3041:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3041,2)-(3061,0)]
+	Link:       api-platform/api.yaml:3041:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3061,2)-(3081,0)]
+	Link:       api-platform/api.yaml:3061:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3061,2)-(3081,0)]
+	Link:       api-platform/api.yaml:3061:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3061,2)-(3081,0)]
+	Link:       api-platform/api.yaml:3061:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3081,2)-(3101,0)]
+	Link:       api-platform/api.yaml:3081:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3081,2)-(3101,0)]
+	Link:       api-platform/api.yaml:3081:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3081,2)-(3101,0)]
+	Link:       api-platform/api.yaml:3081:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3101,2)-(3121,0)]
+	Link:       api-platform/api.yaml:3101:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3101,2)-(3121,0)]
+	Link:       api-platform/api.yaml:3101:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3101,2)-(3121,0)]
+	Link:       api-platform/api.yaml:3101:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3121,2)-(3141,0)]
+	Link:       api-platform/api.yaml:3121:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3121,2)-(3141,0)]
+	Link:       api-platform/api.yaml:3121:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter contractId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3121,2)-(3141,0)]
+	Link:       api-platform/api.yaml:3121:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3141,2)-(3173,0)]
+	Link:       api-platform/api.yaml:3141:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3141,2)-(3173,0)]
+	Link:       api-platform/api.yaml:3141:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3173,2)-(3214,0)]
+	Link:       api-platform/api.yaml:3173:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3173,2)-(3214,0)]
+	Link:       api-platform/api.yaml:3173:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3214,2)-(3232,0)]
+	Link:       api-platform/api.yaml:3214:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3214,2)-(3232,0)]
+	Link:       api-platform/api.yaml:3214:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3232,2)-(3251,0)]
+	Link:       api-platform/api.yaml:3232:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter apiId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3232,2)-(3251,0)]
+	Link:       api-platform/api.yaml:3232:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3251,2)-(3280,0)]
+	Link:       api-platform/api.yaml:3251:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3280,2)-(3319,0)]
+	Link:       api-platform/api.yaml:3280:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3319,2)-(3382,0)]
+	Link:       api-platform/api.yaml:3319:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3382,2)-(3426,0)]
+	Link:       api-platform/api.yaml:3382:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter customPolicyTemplateId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3382,2)-(3426,0)]
+	Link:       api-platform/api.yaml:3382:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3426,2)-(3442,0)]
+	Link:       api-platform/api.yaml:3426:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter customPolicyTemplateId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3426,2)-(3442,0)]
+	Link:       api-platform/api.yaml:3426:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3442,2)-(3458,0)]
+	Link:       api-platform/api.yaml:3442:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter customPolicyTemplateId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3442,2)-(3458,0)]
+	Link:       api-platform/api.yaml:3442:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3458,2)-(3479,0)]
+	Link:       api-platform/api.yaml:3458:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3479,2)-(3523,0)]
+	Link:       api-platform/api.yaml:3479:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3523,2)-(3648,0)]
+	Link:       api-platform/api.yaml:3523:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3648,2)-(3698,0)]
+	Link:       api-platform/api.yaml:3648:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3648,2)-(3698,0)]
+	Link:       api-platform/api.yaml:3648:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3698,2)-(3709,0)]
+	Link:       api-platform/api.yaml:3698:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3698,2)-(3709,0)]
+	Link:       api-platform/api.yaml:3698:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3709,2)-(3726,0)]
+	Link:       api-platform/api.yaml:3709:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3709,2)-(3726,0)]
+	Link:       api-platform/api.yaml:3709:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3726,2)-(3746,0)]
+	Link:       api-platform/api.yaml:3726:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3726,2)-(3746,0)]
+	Link:       api-platform/api.yaml:3726:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3746,2)-(3764,0)]
+	Link:       api-platform/api.yaml:3746:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3746,2)-(3764,0)]
+	Link:       api-platform/api.yaml:3746:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3764,2)-(3823,0)]
+	Link:       api-platform/api.yaml:3764:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3764,2)-(3823,0)]
+	Link:       api-platform/api.yaml:3764:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3823,2)-(3848,0)]
+	Link:       api-platform/api.yaml:3823:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3823,2)-(3848,0)]
+	Link:       api-platform/api.yaml:3823:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3848,2)-(3869,0)]
+	Link:       api-platform/api.yaml:3848:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3869,2)-(3880,0)]
+	Link:       api-platform/api.yaml:3869:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3880,2)-(3900,0)]
+	Link:       api-platform/api.yaml:3880:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3900,2)-(3903,0)]
+	Link:       api-platform/api.yaml:3900:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3903,2)-(3906,0)]
+	Link:       api-platform/api.yaml:3903:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3906,2)-(3915,0)]
+	Link:       api-platform/api.yaml:3906:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3915,2)-(3924,0)]
+	Link:       api-platform/api.yaml:3915:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3924,2)-(3934,0)]
+	Link:       api-platform/api.yaml:3924:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(3934,2)-(4076,0)]
+	Link:       api-platform/api.yaml:3934:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4076,2)-(4087,0)]
+	Link:       api-platform/api.yaml:4076:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4087,2)-(4098,0)]
+	Link:       api-platform/api.yaml:4087:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4098,2)-(4115,0)]
+	Link:       api-platform/api.yaml:4098:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4115,2)-(4132,0)]
+	Link:       api-platform/api.yaml:4115:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4132,2)-(4142,0)]
+	Link:       api-platform/api.yaml:4132:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4142,2)-(4152,0)]
+	Link:       api-platform/api.yaml:4142:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4152,2)-(4169,0)]
+	Link:       api-platform/api.yaml:4152:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4169,2)-(4241,0)]
+	Link:       api-platform/api.yaml:4169:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4241,2)-(4345,0)]
+	Link:       api-platform/api.yaml:4241:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4345,2)-(4370,0)]
+	Link:       api-platform/api.yaml:4345:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4370,2)-(4401,0)]
+	Link:       api-platform/api.yaml:4370:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4401,2)-(4434,0)]
+	Link:       api-platform/api.yaml:4401:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4434,2)-(4471,0)]
+	Link:       api-platform/api.yaml:4434:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4471,2)-(4496,0)]
+	Link:       api-platform/api.yaml:4471:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4496,2)-(4600,0)]
+	Link:       api-platform/api.yaml:4496:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4600,2)-(4628,0)]
+	Link:       api-platform/api.yaml:4600:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4628,2)-(4655,0)]
+	Link:       api-platform/api.yaml:4628:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(4655,2)-(4688,0)]
+	Link:       api-platform/api.yaml:4655:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'api'
+should have required property 'apiAlertsVersion'
+should have required property 'apiVersion'
+should have required property 'condition'
+should have required property 'enabled'
+should have required property 'name'
+should have required property 'period'
+should have required property 'policyId'
+should have required property 'policyTemplate'
+should have required property 'recipients'
+should have required property 'severity'
+should have required property 'type'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(825,23)-(825,25)]
+	Link:       api-platform/api.yaml:825:23
+

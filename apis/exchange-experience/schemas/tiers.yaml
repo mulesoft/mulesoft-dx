@@ -1,0 +1,32 @@
+Tier:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: integer
+    name:
+      title: Name
+      type: string
+    description:
+      title: Description
+      type: string
+      nullable: true
+    limits:
+      type: array
+      items:
+        type: object
+        properties:
+          timePeriodInMilliseconds:
+            title: Time period in milliseconds
+            type: integer
+          maximumRequests:
+            title: Maximum requests
+            type: integer
+    status:
+      title: Status
+      type: string
+
+Tiers:
+  type: array
+  items:
+    $ref: '#/Tier'

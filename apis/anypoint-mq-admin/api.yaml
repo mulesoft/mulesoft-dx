@@ -1,0 +1,1422 @@
+openapi: 3.0.0
+info:
+  title: Anypoint MQ Admin API
+  version: 1.0.0
+  description: Manage Anypoint MQ destinations, exchanges, bindings, and client authorizations across environments.
+servers:
+- url: https://anypoint.mulesoft.com/mq/admin/api
+- url: https://eu1.anypoint.mulesoft.com/mq/admin/api
+- url: https://{region}.platform.mulesoft.com/mq/admin/api
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /v1: {}
+  /v1/organizations: {}
+  /v1/organizations/{organizationId}:
+    delete:
+      description: 'Delete organization. If you are using connected app, "Administer destinations" and "Manage clients" scope is needed.
+
+        '
+      x-optionalSecurity: true
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationid
+  /v1/organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}:
+    delete:
+      description: 'Delete environment. If you are using connected app, "Administer destinations" and "Manage clients" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentid
+  /v1/organizations/{organizationId}/environments/{environmentId}/clients:
+    get:
+      description: 'Gets the list of messaging clients. If you are using connected app, "View clients" or "Manage clients" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                - name: CustomerSuccessToSupportClient
+                  clientId: '123434645645765858'
+                  clientSecret: asdfgsdfhd32456uerfgd^rtgsDFV
+                - name: BillingToFinanceClient
+                  clientId: '123434645231234348'
+                  clientSecret: asdfgsdfhdasdfa6uerfgd^rtgsDFV
+              example: *id001
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+    put:
+      description: 'Create a messaging client. If you are using connected app, "Manage clients" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: CustomerSuccessToSupportClient
+        x-amf-mediaType: application/json
+        description: The clients data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+  /v1/organizations/{organizationId}/environments/{environmentId}/clients/{clientId}:
+    post:
+      description: 'Regenerates the client secret. If you are using connected app, "Manage clients" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_clientId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  name: CustomerSuccessToSupportClient
+              example: *id002
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: createV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClientsByClientid
+    delete:
+      description: 'Deletes a client. If you are using connected app, "Manage clients" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_clientId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClientsByClientid
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions:
+    get:
+      description: 'Obtains the valid regions where the service is deployed. If you are using connected app, no specific scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                - regionId: us-east-1
+                  serviceUrl: http://example.domain/api/v1
+                  fallbackRegion: us-east-2
+                - regionId: us-east-2
+                  serviceUrl: http://example.domain/api/v1
+                  fallbackRegion: us-west-2
+              example: *id003
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
+    get:
+      description: 'Obtains the region entity. If you are using connected app, no specific scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                - regionId: us-east-1
+                  serviceUrl: http://example.domain/api/v1
+                  fallbackRegion: us-east-2
+                - regionId: us-east-2
+                  serviceUrl: http://example.domain/api/v1
+                  fallbackRegion: us-west-2
+              example: *id004
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionid
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations:
+    description: Collection of available destinations in the broker.
+    get:
+      description: Retrieve all the destinations. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+      parameters:
+      - name: destinationType
+        description: Defines what to fetch
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - queue
+          - exchange
+          default: all
+      - name: startsWith
+        description: 'Searchs the field from the left using the passed string.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: inclusion
+        description: Defines what to fetch
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - minimal
+          default: all
+      - name: limit
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                - exchangeId: myExchangeId
+                  encrypted: true
+                - queueId: myQueueId
+                  defaultTtl: 120000
+                  defaultLockTtl: 10000
+                  defaultDeliveryDelay: 0
+                  encrypted: true
+                  isFallback: false
+                  fallbackConfig:
+                    enabled: true
+                    linkedQueueName: myQueueId_fb
+                    linkedQueueRegion: <fallback region>
+                - queueId: myQueueId2
+                  defaultTtl: 120000
+                  defaultLockTtl: 10000
+                  defaultDeliveryDelay: 0
+                  encrypted: true
+                  isFallback: false
+              example: *id005
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinations
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}:
+    description: Entity representing a queue
+    patch:
+      description: 'Updates fields specified; if "maxDeliveries" or "deadLetterQueueId" are not provided the dead letter queue configuration will be removed.
+
+        If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The queues data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                  queueId: myQueueId
+                  defaultTtl: 120000
+                  defaultLockTtl: 10000
+                  defaultDeliveryDelay: 0
+                  encrypted: true
+                  deadLetterQueueId: <existing_DLQ_name>
+                  maxDeliveries: 10
+                  isFallback: false
+              example: *id006
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: patchV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+    get:
+      description: 'Get the queue with queueId = {queueId}. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id007
+                  queueId: myQueueId
+                  defaultTtl: 120000
+                  defaultLockTtl: 10000
+                  defaultDeliveryDelay: 0
+                  encrypted: true
+                  deadLetterQueueId: <existing_DLQ_name>
+                  maxDeliveries: 10
+                  isFallback: false
+              example: *id007
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id008
+                  message: queue not found
+              example: *id008
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+    put:
+      description: 'Add new queue to the broker. This is an idempotent API. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The queues data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id009
+                  queueId: myQueueId
+                  defaultTtl: 120000
+                  defaultLockTtl: 10000
+                  defaultDeliveryDelay: 0
+                  encrypted: true
+                  deadLetterQueueId: <existing_DLQ_name>
+                  maxDeliveries: 10
+                  isFallback: false
+              example: *id009
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+    delete:
+      description: 'Delete queue from the broker. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}/messages:
+    delete:
+      description: 'Deletes the messages contained in the queue (effectively purging it). *The deleted messages cannot be retrieved any more* Messages present in the queue prior to this call are deleted; messages sent after this call may also be deleted.
+
+        If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueidMessages
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}/fallback:
+    put:
+      description: 'Enables or disables cross-region failover configuration for a queue. This configuration is used to evaluate if messages published to or consumed from a queue using Anypoint MQ Connector temporarily redirect to a fallback queue in a fallback region when the primary region is unavailable.<br/><br/>If you are using a connected app, "Administer destinations" scope is required.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                fallbackEnabled: true
+              type: object
+              required:
+              - fallbackEnabled
+              properties:
+                fallbackEnabled:
+                  description: Property for turning on or turning off cross region fallback configuration for a queue.
+                  type: boolean
+        x-amf-mediaType: application/json
+        description: The fallback data to update.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id010
+                  queueId: myQueueId
+                  isFallback: false
+                  fallbackConfig:
+                    enabled: true
+                    linkedQueueName: myQueueId_fb
+                    linkedQueueRegion: <fallback region>
+              example: *id010
+        '400':
+          description: Invalid payload or feature not supported for a given destination type.
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: Not enough permissions to enable or disable fallback configuration for a queue.
+        '404':
+          description: Environment or queue specified in the request URI doesn't exist.
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueidFallback
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/exchanges:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/exchanges/{exchangeId}:
+    description: Entity representing a exchange
+    get:
+      description: 'Get the exchange with exchangeId = {exchangeId}. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id011
+                  encrypted: true
+              example: *id011
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id012
+                  message: exchange not found
+              example: *id012
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+    patch:
+      description: 'Modifies the exchange of the broker. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated2'
+        description: The exchanges data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id013
+                  encrypted: true
+              example: *id013
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: patchV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+    put:
+      description: 'Add new exchange to the broker. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated2'
+        description: The exchanges data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id014
+                  encrypted: true
+              example: *id014
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+    delete:
+      description: 'Delete the exchange. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}:
+    description: Collection of available exchanges in the broker.
+    get:
+      description: 'Gathers all the queues bound to exchange. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: inclusion
+        description: Defines what to fetch. inclusion=all returns details like routing rules defined on the binding
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - minimal
+          default: minimal
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: startsWith
+        description: 'Searchs the field from the left using the passed string.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id015
+                - queueId: myQueueId
+                  exchangeId: myExchangeId
+              example: *id015
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeid
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+    - name: exchangeId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The exchange ID to identify the target resource.
+  ? /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues/{queueId}
+  : get:
+      description: 'Gathers the existence of a specific binding. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: inclusion
+        description: Defines what to fetch. inclusion=all returns details like routing rules defined on the binding
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - minimal
+          default: minimal
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+    put:
+      description: 'Creates a binding between a message exchange and a queue. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+    delete:
+      description: 'Deletes this binding. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '204':
+          description: 'The resource has been correctly removed.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+  ? /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues/{queueId}/rules
+  : parameters:
+    - name: exchangeId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The exchange ID to identify the target resource.
+    - name: queueId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The queue ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  ? /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues/{queueId}/rules/routing
+  : put:
+      description: 'Creates a routing rule on a binding between a message exchange and a queue. This rule is used to evaluate if a message published to an exchange should be forwarded to a specific queue. <br/><br/>This will override existing routing rules on the binding with the new rules specified in this request.
+
+        If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Maximum of one routing rule allowed per binding.
+              example:
+                value:
+                  routingRules:
+                  - propertyName: Order Number
+                    propertyType: NUMERIC
+                    matcherType: GT
+                    value: 1009
+              type: object
+              properties:
+                routingRules:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - propertyName
+                    - propertyType
+                    - matcherType
+                    - value
+                    properties:
+                      propertyName:
+                        description: Non-empty string with a maximum length of 180 bytes.
+                        type: string
+                      propertyType:
+                        description: 'Supported property types: NUMERIC, STRING.'
+                        type: string
+                      matcherType:
+                        description: "This is used to determine how the value in this rule is evaluated against the header and property values in the message published to Anypoint MQ. \n\nSupported matcher types:\n<table><tr><td>propertyType</td><td>matcherType</td><td>Description</td></tr><tr><td>STRING</td><td>EQ</td><td>Message property value is an exact match for the value in this rule</td></tr><tr><td></td><td>PREFIX</td><td>Message property value starts with the value in this rule</td></tr><tr><td></td><td>ANY_OF</td><td>Message property value matches any of the values in this rule</td></tr><tr><td></td><td>NONE_OF</td><td>Message property value matches none of the values in this rule</td></tr><tr><td></td><td>EXISTS</td><td>Message has a property whose name matches the property name in this rule</td></tr><tr><td>NUMERIC</td><td>EQ</td><td>Message property value equals to the value in this rule</td></tr><tr><td></td><td>LT</td><td>Message property value is less than the value in this rule</td></tr><tr><td></td><td>LE</td><td>Message property value is less than or equals to the value in this rule</td></tr><tr><td></td><td>GT</td><td>Message property value is greater than the value in this rule</td></tr><tr><td></td><td>GE</td><td>Message property value is greater than or equals to the value in this rule</td></tr><tr><td></td><td>RANGE</td><td>Message property value falls within the range of values specified in this rule (lower and upper limits of the range inclusive)</td></tr><tr><td></td><td>NONE_OF</td><td>Message property value matches none of the values in this rule</td></tr><tr><td></td><td>EXISTS</td><td>Message has a property whose name matches the property name in this rule</td></tr></table>"
+                        type: string
+                      value:
+                        description: "Value must not be null, empty and can only contain these characters: a-z, A-Z, 0-9, '(', ')', '@', '!', '&', '|', '#', '$', '%', whitespace, hyphen(-), underscore(_), colon(;), semi-colon(:), comma(,), period(.), single-quote('). Numeric values must be within the range -10^9 to 10^9. \n\nMax size of property value is 45 KB. \n\nSupported values:\n\n<table><tr><td>propertyType</td><td>matcherType</td><td>value</td><td>Example</td></tr><tr><td>STRING</td><td>EQ<br/>PREFIX</td><td>Non-empty string</td><td>\"Order A\"</td></tr><tr><td></td><td>ANY_OF<br/>NONE_OF</td><td>Non-empty array of strings. Array size cannot exceed 150</td><td>[\"Order A\", \"Order B\"]</td></tr><tr><td></td><td>EXISTS</td><td>Boolean value</td><td>true</td></tr><tr><td>NUMERIC</td><td>EQ<br/>LT<br/>LE<br/>GT<br/>GE</td><td>A non-null number</td><td>5.5</td></tr><tr><td></td><td>RANGE</td><td>An array of two numbers where the first number is less than the second number</td><td>[1, 7.8]</td></tr><tr><td></td><td>NONE_OF</td><td>Non-empty array of numbers. Array size cannot exceed 150</td><td>[1.0, 2, 3.456]</td></tr><tr><td></td><td>EXISTS</td><td>Boolean value</td><td>false</td></tr></table>"
+        x-amf-mediaType: application/json
+        description: The routing data to update.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id016
+                  value:
+                    queueId: new-orders
+                    exchangeId: orders-processing
+                    routingRules:
+                    - propertyName: Order Number
+                      propertyType: NUMERIC
+                      matcherType: GT
+                      value: 1009
+              example: *id016
+        '400':
+          description: Invalid payload.
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: Not enough permissions to create a routing rule.
+        '404':
+          description: Environment, exchange, queue or binding specified in the request URI doesn't exist.
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueidRulesRouting
+    delete:
+      description: 'Deleted routing rules on a binding between a message exchange and queue. If you are using connected app, "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: exchangeId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The exchange ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      responses:
+        '204':
+          description: Successfully deleted or routing rules don't exist.
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: Not enough permissions to delete routing rules.
+        '404':
+          description: Exchange, Queue or Binding specified in the request URI doesn't exist.
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueidRulesRouting
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/queues:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_regionId_Path'
+  /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/queues/{queueId}:
+    description: Collection of available queues in the broker.
+    get:
+      description: 'Gathers all the exchanges bound to the queue. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
+
+        '
+      parameters:
+      - name: inclusion
+        description: Defines what to fetch. inclusion=all returns details like routing rules defined on the binding
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - minimal
+          default: minimal
+      - name: offset
+        description: Skip over a number of elements by specifying an offset value for the query.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: startsWith
+        description: 'Searchs the field from the left using the passed string.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_regionId_Path'
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id017
+                - queueId: myQueueId
+                  exchangeId: myExchangeId
+              example: *id017
+        '204':
+          description: 'There are no elements to return.
+
+            '
+        '404':
+          description: 'The requested resource in the form it is requested is not found on this broker.
+
+            '
+        '501':
+          description: 'This kind of request in the form it is performed is not implemented by this broker.
+
+            '
+      security:
+      - {}
+      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsQueuesByQueueid
+  /v1/authorize:
+    post:
+      description: 'Obtains an access token using client credentials of the OAuth grant type. This API is not supported with connected apps.
+
+        '
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              example:
+                client_id: 8cdb7b136f3fg29b87963g2f76c
+                client_secret: 76a9g045a6514g6E1806Df3ggc4
+                grant_type: client_credentials
+        x-amf-mediaType: application/x-www-form-urlencoded
+        description: The authorize data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id018
+                  access_token: aaaaaaa-bbbb-cccc-dddd-eeeeee
+                  token_type: bearer
+              example: *id018
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+      security:
+      - {}
+      operationId: createV1Authorize
+  /v2: {}
+  /v2/organizations: {}
+  /v2/organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /v2/organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /v2/organizations/{organizationId}/environments/{environmentId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /v2/organizations/{organizationId}/environments/{environmentId}/regions:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /v2/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The region ID to identify the target resource.
+  /v2/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The region ID to identify the target resource.
+  /v2/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The region ID to identify the target resource.
+  /v2/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}:
+    patch:
+      description: 'Updates only the fields specified, "maxDeliveries" and "deadLetterQueueId" must be consistent.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: regionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The region ID to identify the target resource.
+      - name: queueId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The queue ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The queues data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      security:
+      - {}
+      operationId: patchV2OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+components:
+  requestBodies:
+    Generated:
+      content:
+        application/json:
+          schema:
+            example:
+              queueId: myQueueId
+              defaultTtl: 120000
+              defaultLockTtl: 10000
+              defaultDeliveryDelay: 0
+              encrypted: true
+              deadLetterQueueId: <existing_DLQ_name>
+              maxDeliveries: 10
+              isFallback: false
+      x-amf-mediaType: application/json
+      description: Request payload for Generated operations.
+    Generated2:
+      content:
+        application/json:
+          schema:
+            example:
+              encrypted: true
+      x-amf-mediaType: application/json
+      description: Request payload for Generated2 operations.
+  securitySchemes:
+    oauth_2_0:
+      type: oauth2
+      description: This API supports OAuth 2.0 for authenticating all API requests.
+      x-amf-describedBy:
+        headers:
+          Authorization:
+            description: Used to send a valid OAuth 2 access token. Do not use with the "access_token" query string parameter.
+            type: string
+        responses:
+          '401':
+            description: Bad or expired token. This can happen if the user or the API revoked or expired an access token. To fix, you should re-authenticate the user.
+          '403':
+            description: Bad OAuth request (wrong consumer key, bad nonce, expired timestamp...). Unfortunately, re-authenticating the user won't help here.
+      x-amf-settings:
+        authorizationGrants:
+        - client_credentials
+      flows:
+        clientCredentials:
+          tokenUrl: http://localhost:8082/api/v1/authorize
+          scopes:
+            '*': ''
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using JWT
+    clientAuth:
+      type: oauth2
+      description: OAuth 2.0 client credentials flow
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_clientId_Path:
+      name: clientId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-mq-admin
+        operation: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+        description: GET `/v1/organizations/{organizationId}/environments/{environmentId}/clients` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      description: The client ID to identify the target resource.
+    XOrigin_regionId_Path:
+      name: regionId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-mq-admin
+        operation: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+        description: GET `/v1/organizations/{organizationId}/environments/{environmentId}/regions` in this API; use `id` values as `regionId`.
+        values: $.id
+        labels: $.name
+      description: The region ID to identify the target resource.

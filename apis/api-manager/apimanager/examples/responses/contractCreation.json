@@ -1,0 +1,73 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2017-08-07T16:42:32.872Z"
+      },
+      "updated": {}
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "id": 80,
+    "status": "APPROVED",
+    "approvedDate": "2017-08-07T16:42:32.907Z",
+    "rejectedDate": null,
+    "revokedDate": null,
+    "applicationId": 3,
+    "application": {
+      "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+      "id": 3,
+      "name": "veritatis 3",
+      "description": "omnis temporibus voluptas cumque ut quia quas commodi officiis doloremque deserunt tempore qui veritatis qui porro ut modi eos consequatur possimus accusamus perferendis a sunt nulla quos laudantium iste voluptas odio blanditiis aliquam aliquid iusto esse dicta neque fugit cupiditate beatae aut quae sint eos sequi numquam ab quo rem",
+      "coreServicesId": "a81fca28ebaa4001bc2426350f207a53",
+      "url": "http://sample-app.com/3",
+      "grantTypes": [],
+      "redirectUri": ["http://sample-app.com/3/redirect"],
+      "clientId": "a81fca28ebaa4001bc2426350f207a53",
+      "clientSecret": "795F7A469Bf646289d742869B5d828d4",
+      "clientProvider": {
+        "providerId": null
+      },
+      "owner": "N/A",
+      "email": "N/A",
+      "owners": []
+    },
+    "tierId": 48,
+    "tier": {
+      "audit": {
+        "created": {
+          "date": "2017-07-19T20:46:22.197Z"
+        },
+        "updated": {}
+      },
+      "id": 48,
+      "name": "magni 48",
+      "description": "incidunt sit eius vel quo qui qui ex et\nrerum possimus laudantium fugit minima aut perferendis\nmaiores dolore tempore non",
+      "limits": [
+        {
+          "maximumRequests": 1000000,
+          "timePeriodInMilliseconds": 1000,
+          "visible": true
+        }
+      ],
+      "status": "DEPRECATED",
+      "autoApprove": true
+    },
+    "requestedTierId": null,
+    "requestedTier": null,
+    "terms": null,
+    "partyId": "",
+    "partyName": "",
+    "requestAccessInfo": {
+      "reason": "This is the request reason"
+    },
+    "apiId": 25,
+    "api": {
+      "audit": {
+        "created": {},
+        "updated": {}
+      },
+      "id": 25
+    }
+  }
+}

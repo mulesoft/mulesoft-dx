@@ -1,0 +1,3165 @@
+openapi: 3.0.0
+info:
+  title: ARM REST Services API
+  version: 1.23.0
+  description: Manage applications, clusters, server groups, alerts, and deployment actions in Anypoint Runtime Manager.
+servers:
+- url: https://anypoint.mulesoft.com/hybrid/api/v1
+- url: https://eu1.anypoint.mulesoft.com/hybrid/api/v1
+- url: https://{region}.platform.mulesoft.com/hybrid/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /servers:
+    description: 'A server refers to an instance of Mule Runtime or to the Gateway runtime on older versions. A server is registered in Runtime Manager and can itself be a target, or can be a part of a target that forms part of a server group or cluster.
+
+
+      Servers managed by Runtime Manager must first be registered into a platform. Each server is identified with a signed certificate, which is unique across all registered servers. Runtime Manager acts as a certificate authority and accepts connections from servers that have a signed certificate. Registered runtimes have more restrictive access in that they can only accept connections from the certificate authority in Runtime Manager.
+
+      '
+    post:
+      description: 'Registers a server. Uses a token to retrieve the client ID and client secret. Returns: 1- Signed certificate. 2- ClientId and ClientSecret. 3- Set of URLs used by Mule.
+
+        '
+      parameters:
+      - name: Accept
+        description: The return type accepted to separate from a legacy registration.
+        in: header
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                gatewayVersion: 1.4.0
+                signatureRequest: '-----BEGIN CERTIFICATE REQUEST-----MIIByjCCATMCAQAwgYkxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlh
+
+                  MRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRMwEQYDVQQKEwpHb29nbGUgSW5jMR8w
+
+
+                  HQYDVQQLExZJbmZvcm1hdGlvbiBUZWNobm9sb2d5MRcwFQYDVQQDEw53d3cuZ29vZ2xlLmNvbTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEApZtYJCHJ4VpVXHfV
+
+                  IlstQTlO4qC03hjX+ZkPyvdYd1Q4+qbAeTwXmCUKYHThVRd5aXSqlPzyIBwieMZr
+
+                  WFlRQddZ1IzXAlVRDWwAo60KecqeAXnnUK+5fXoTI/UgWshre8tJ+x/TMHaQKR/J
+
+                  cIWPhqaQhsJuzZbvAdGA80BLxdMCAwEAAaAAMA0GCSqGSIb3DQEBBQUAA4GBAIhl
+
+                  4PvFq+e7ipARgI5ZM+GZx6mpCz44DTo0JkwfRDf+BtrsaC0q68eTf2XhYOsq4fkH
+
+                  Q0uA0aVog3f5iJxCa3Hp5gxbJQ6zV6kJ0TEsuaaOhEko9sdpCoPOnRBm2i/XRD2D
+
+                  6iNh8f8z0ShGsFqjDgFHyF3o+lUyj+UC6H1QW7bn
+
+                  -----END CERTIFICATE REQUEST-----'
+                muleLabel: mule-gw-testing
+              type: object
+              required:
+              - signatureRequest
+              - muleLabel
+              properties:
+                gatewayVersion:
+                  type: string
+                signatureRequest:
+                  type: string
+                muleLabel:
+                  type: string
+                muleVersion:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The servers data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  clientId: 24a635ed2b1d44aa88b5e31397335b9e
+                  clientSecret: 57b598683dbc4b8b93d0935bcaa66892
+                  certificate: '-----BEGIN CERTIFICATE REQUEST-----MIIByjCCATMCAQAwgYkxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlh
+
+                    MRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRMwEQYDVQQKEwpHb29nbGUgSW5jMR8w
+
+
+                    HQYDVQQLExZJbmZvcm1hdGlvbiBUZWNobm9sb2d5MRcwFQYDVQQDEw53d3cuZ29vZ2xlLmNvbTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEApZtYJCHJ4VpVXHfV
+
+                    IlstQTlO4qC03hjX+ZkPyvdYd1Q4+qbAeTwXmCUKYHThVRd5aXSqlPzyIBwieMZr
+
+                    WFlRQddZ1IzXAlVRDWwAo60KecqeAXnnUK+5fXoTI/UgWshre8tJ+x/TMHaQKR/J
+
+                    cIWPhqaQhsJuzZbvAdGA80BLxdMCAwEAAaAAMA0GCSqGSIb3DQEBBQUAA4GBAIhl
+
+                    4PvFq+e7ipARgI5ZM+GZx6mpCz44DTo0JkwfRDf+BtrsaC0q68eTf2XhYOsq4fkH
+
+                    Q0uA0aVog3f5iJxCa3Hp5gxbJQ6zV6kJ0TEsuaaOhEko9sdpCoPOnRBm2i/XRD2D
+
+                    6iNh8f8z0ShGsFqjDgFHyF3o+lUyj+UC6H1QW7bn
+
+                    -----END CERTIFICATE REQUEST-----'
+                  environmentUrls:
+                    anypointPlatformBaseUrl: http://anypoint.platform.base.url:8080/path
+                    analyticsUrl: http://analytics:8083/path
+                    authProxyUrl: http://auth.proxy:8085/path
+                    contractCachingServiceUrl: http://contract.caching.service:8082/path
+                    mcmWebsocketUrl: wss://mcm.websocket:8084/path
+                    coreServicesUrl: http://core.services.url:8081/path
+              example: *id001
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  value:
+                    message: Your request does not have the correct values
+              example: *id002
+        '403':
+          description: Forbidden. The authenticated user lacks the required permissions.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  message: You don't have enough permissions to read the organization client_id.
+              example: *id003
+        '404':
+          description: Resource not found
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  message: Invalid Resource
+              example: *id004
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                  message: 'Unable to process Core Services response. Returned status code: 409'
+              example: *id005
+      operationId: createServers
+    get:
+      description: Get the registered servers information.
+      parameters:
+      - name: belongsTo
+        description: List servers on a target.
+        in: query
+        schema:
+          type: string
+          enum:
+          - SERVER_GROUP
+          - CLUSTER
+          - NO_GROUP
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                  data:
+                  - data:
+                      id: 2194
+                      timeCreated: 1437495853061
+                      timeUpdated: 1437512467554
+                      name: clustering-server
+                      serverType: MULE
+                      type: SERVER
+                      muleVersion: 3.6.1
+                      agentVersion: 1.1.1
+                      status: DISCONNECTED
+                      addresses:
+                      - ip: 172.16.12.169
+                        networkInterface: en0
+                      currentClusteringIp:
+                      clusterId: 2195
+                      clusterName: Cluster-1
+              example: *id006
+      operationId: getServers
+  /servers/{serverId}:
+    description: Operate on a server.
+    get:
+      description: Get information about a server.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id007
+                  data:
+                    id: 2194
+                    timeCreated: 1437495853061
+                    timeUpdated: 1437512467554
+                    name: clustering-server
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.1
+                    agentVersion: 1.1.1
+                    status: DISCONNECTED
+                    addresses:
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                    currentClusteringIp:
+                    clusterId: 2195
+                    clusterName: Cluster-1
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  name:
+                    type: string
+                  gatewayVersion:
+                    type: string
+                  agentVersion:
+                    type: string
+                  status:
+                    enum:
+                    - CREATED
+                    - RUNNING
+                    - CONNECTED
+                    - DISCONNECTED
+                  currentClusteringIP:
+                    type: string
+                  memberUUID:
+                    type: string
+                  serverType:
+                    enum:
+                    - MULE
+                    - GATEWAY
+                  addresses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ip:
+                          type: string
+                        networkInterface:
+                          type: string
+                  runtimeInformation:
+                    type: object
+              example: *id007
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id008
+                  message: server not found
+              example: *id008
+      operationId: getServersByServerid
+    patch:
+      description: Modify a server name.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: newName
+        x-amf-mediaType: application/json
+        description: The servers data to update.
+      responses:
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id009
+                  data:
+                    id: 2194
+                    timeCreated: 1437495853061
+                    timeUpdated: 1437512467554
+                    name: clustering-server
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.1
+                    agentVersion: 1.1.1
+                    status: DISCONNECTED
+                    addresses:
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                    currentClusteringIp:
+                    clusterId: 2195
+                    clusterName: Cluster-1
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  name:
+                    type: string
+                  gatewayVersion:
+                    type: string
+                  agentVersion:
+                    type: string
+                  status:
+                    enum:
+                    - CREATED
+                    - RUNNING
+                    - CONNECTED
+                    - DISCONNECTED
+                  currentClusteringIP:
+                    type: string
+                  memberUUID:
+                    type: string
+                  serverType:
+                    enum:
+                    - MULE
+                    - GATEWAY
+                  addresses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ip:
+                          type: string
+                        networkInterface:
+                          type: string
+                  runtimeInformation:
+                    type: object
+              example: *id009
+      operationId: patchServersByServerid
+    delete:
+      description: "remove the server from Runtime Manager: \n\nDeletes related server artifacts from all deployments. Does not attempt to undeploy the server artifacts from the server. Records are simply deleted.\n\nIf the server is connected, the connection is terminated and cannot be accepted in future.\n\nTo cleanly delete a server, first:\n\nRemove the server from its group/cluster.\n\nDelete all deployments whose deployment target is this server.\n\nWait until all applications are undeployed.\n"
+      parameters:
+      - name: isForce
+        description: 'variable enable/disables the function to force delete a server.
+
+
+          This will make a deletion without notifications to the Mule Runtime, this is more recommended in the case that server can''t be deleted in a normal way
+
+          '
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_serverId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteServersByServerid
+  /servers/{serverId}/actions:
+    description: "Performs stateless synchronic actions immediately. \nPossible options are:\n- RESTART\n- DELETE\n- RENEW_CERTIFICATE\n- SHUTDOWN\n"
+    post:
+      description: Actually performs the action on the specified runtime
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                actionType: RESTART
+        x-amf-mediaType: application/json
+        description: The actions data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id010
+                  data:
+                    id: 2380
+                    timeCreated: 1541022133978
+                    timeUpdated: 1541022133978
+                    timeExecuted: 1541022133978
+                    actionType: RENEW_CERTIFICATE
+                    status: PENDING
+                    reason: ''
+                    description: ''
+              example: *id010
+      operationId: createServersByServeridActions
+  /servers/registrationToken:
+    description: Get a registration token. This token needs to be used to register a new server.
+    get:
+      description: 'Get the registrationToken
+
+        with id =
+
+        {registrationTokenId}
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id011
+                  data: d8fb6e7b-8dd7-4438-99e6-572c5af92dd0---1
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: string
+              example: *id011
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id012
+                  message: registrationToken not found
+              example: *id012
+      operationId: getServersRegistrationtoken
+    patch:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id013
+                  data: d8fb6e7b-8dd7-4438-99e6-572c5af92dd0---1
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: string
+              example: *id013
+      operationId: patchServersRegistrationtoken
+      description: Updates registrationToken.
+  /serverGroups:
+    description: A server group is group of servers that are considered a unique target. The servers in a server group do not cooperate as a cluster topology. However, they are treated as a unit by Runtime Manager's deployment, and configuration tasks are performed along all the servers in a server group.
+    get:
+      description: Get a list of all registered server groups.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id014
+                  data:
+                  - id: 73
+                    timeCreated: 1432247776992
+                    timeUpdated: 1432247776992
+                    name: Group2
+                    servers:
+                    - id: 71
+                      timeCreated: 1432247665613
+                      timeUpdated: 1432301095608
+                      name: Server71
+                      serverType: MULE
+                      type: SERVER
+                      muleVersion: 3.6.2
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 73
+                      serverGroupName: Group2
+                      addresses:
+                      - ip: 172.16.12.169
+                        networkInterface: en0
+                    - id: 72
+                      timeCreated: 1432247685261
+                      timeUpdated: 1432303178444
+                      name: Server73
+                      serverType: MULE
+                      type: SERVER
+                      muleVersion: 3.6.2
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 73
+                      serverGroupName: Group2
+                      addresses:
+                      - ip: 172.16.12.168
+                        networkInterface: en0
+                    type: SERVER_GROUP
+                    status: DISCONNECTED
+              example: *id014
+      operationId: getServergroups
+    post:
+      description: Create a server group from a list of servers. The servers must not belong to any other server group or cluster.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: Group2
+                serverIds:
+                - 71
+                - 72
+        x-amf-mediaType: application/json
+        description: The serverGroups data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id015
+                  data:
+                    id: 73
+                    timeCreated: 1432247776992
+                    timeUpdated: 1432247776992
+                    name: Group2
+                    servers:
+                    - id: 71
+                      timeCreated: 1432247665613
+                      timeUpdated: 1432301095608
+                      name: Server71
+                      serverType: MULE
+                      type: SERVER
+                      muleVersion: 3.6.2
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 73
+                      serverGroupName: Group2
+                      addresses:
+                      - ip: 172.16.12.169
+                        networkInterface: en0
+                    - id: 72
+                      timeCreated: 1432247685261
+                      timeUpdated: 1432303178444
+                      name: Server73
+                      serverType: MULE
+                      type: SERVER
+                      muleVersion: 3.6.2
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 73
+                      serverGroupName: Group2
+                      addresses:
+                      - ip: 172.16.12.168
+                        networkInterface: en0
+                    type: SERVER_GROUP
+                    status: DISCONNECTED
+              example: *id015
+      operationId: createServergroups
+  /serverGroups/{serverGroupId}:
+    description: Performs operations on a server group.
+    get:
+      description: Get information about a server group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverGroupId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id016
+                  data: ''
+                  id: 73
+                  timeCreated: 1432247776992
+                  timeUpdated: 1432247776992
+                  name: Group2
+                  servers:
+                  - id: 71
+                    timeCreated: 1432247665613
+                    timeUpdated: 1432301095608
+                    name: Server71
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                  - id: 72
+                    timeCreated: 1432247685261
+                    timeUpdated: 1432303178444
+                    name: Server73
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.168
+                      networkInterface: en0
+                  type: SERVER_GROUP
+                  status: DISCONNECTED
+              example: *id016
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id017
+                  message: serverGroup not found
+              example: *id017
+      operationId: getServergroupsByServergroupid
+    patch:
+      description: Modify a server group. The only field that can be modified is the name of the server group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverGroupId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id018
+                  id: 73
+                  timeCreated: 1432247776992
+                  timeUpdated: 1432247776992
+                  name: Group2
+                  servers:
+                  - id: 71
+                    timeCreated: 1432247665613
+                    timeUpdated: 1432301095608
+                    name: Server71
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                  - id: 72
+                    timeCreated: 1432247685261
+                    timeUpdated: 1432303178444
+                    name: Server73
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.168
+                      networkInterface: en0
+                  type: SERVER_GROUP
+                  status: DISCONNECTED
+                type: object
+                required:
+                - id
+                - timeCreated
+                - timeUpdated
+                - name
+                - servers
+                - type
+                - status
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  name:
+                    type: string
+                  servers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        timeCreated:
+                          type: number
+                        timeUpdated:
+                          type: integer
+                        name:
+                          type: string
+                        serverType:
+                          type: string
+                        type:
+                          type: string
+                        muleVersion:
+                          type: string
+                        agentVersion:
+                          type: string
+                        status:
+                          type: string
+                        serverGroupId:
+                          type: integer
+                        serverGroupName:
+                          type: string
+                        addresses:
+                          type: array
+                          items: {}
+                  type:
+                    enum:
+                    - SERVER_GROUP
+                    type: string
+                  status:
+                    enum:
+                    - CREATED
+                    - RUNNING
+                    - EMPTY
+                    - CONNECTED
+                    - DISCONNECTED
+                    - PARTIAL
+                    type: string
+              example: *id018
+      operationId: patchServergroupsByServergroupid
+    delete:
+      description: Delete a server group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverGroupId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '202':
+          description: Request accepted for processing.
+      operationId: deleteServergroupsByServergroupid
+  /serverGroups/{serverGroupId}/servers/{serverId}:
+    description: Perform operations on a server that is part of a server group.
+    post:
+      description: Add a server to a server group. Any artifacts that have been deployed to this server group also deploy to the new server. Returns the updated server.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverGroupId_Path'
+      - name: serverId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The server ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id019
+                  id: 73
+                  timeCreated: 1432247776992
+                  timeUpdated: 1432247776992
+                  name: Group2
+                  servers:
+                  - id: 71
+                    timeCreated: 1432247665613
+                    timeUpdated: 1432301095608
+                    name: Server71
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.169
+                      networkInterface: en0
+                  - id: 72
+                    timeCreated: 1432247685261
+                    timeUpdated: 1432303178444
+                    name: Server73
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.6.2
+                    agentVersion: 1.0.1-SNAPSHOT
+                    status: DISCONNECTED
+                    serverGroupId: 73
+                    serverGroupName: Group2
+                    addresses:
+                    - ip: 172.16.12.168
+                      networkInterface: en0
+                  type: SERVER_GROUP
+                  status: DISCONNECTED
+                type: object
+                required:
+                - id
+                - timeCreated
+                - timeUpdated
+                - name
+                - servers
+                - type
+                - status
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  name:
+                    type: string
+                  servers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        timeCreated:
+                          type: number
+                        timeUpdated:
+                          type: integer
+                        name:
+                          type: string
+                        serverType:
+                          type: string
+                        type:
+                          type: string
+                        muleVersion:
+                          type: string
+                        agentVersion:
+                          type: string
+                        status:
+                          type: string
+                        serverGroupId:
+                          type: integer
+                        serverGroupName:
+                          type: string
+                        addresses:
+                          type: array
+                          items: {}
+                  type:
+                    enum:
+                    - SERVER_GROUP
+                    type: string
+                  status:
+                    enum:
+                    - CREATED
+                    - RUNNING
+                    - EMPTY
+                    - CONNECTED
+                    - DISCONNECTED
+                    - PARTIAL
+                    type: string
+              example: *id019
+        '409':
+          description: Conflict.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id020
+                  message: There are applications already deployed on the servers to be added
+              example: *id020
+      operationId: createServergroupsByServergroupidServersByServerid
+    delete:
+      description: Remove a server from a server group. This undeploys any artifacts from the server that are deployed to this server group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_serverGroupId_Path'
+      - name: serverId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The server ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteServergroupsByServergroupidServersByServerid
+  /clusters:
+    description: A server cluster consists of a set of tightly connected servers that work together and can be viewed as a single system. Unlike server groups, server clusters share information and status between nodes.
+    post:
+      description: Create a cluster from a set of registered servers. The servers cannot already belong to another cluster or server group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: clusteName
+                multicastEnabled: true
+                servers:
+                - serverId: 1
+                  serverIp: 172.16.12.169
+              type: object
+              required:
+              - name
+              - multicastEnabled
+              - servers
+              properties:
+                name:
+                  type: string
+                multicastEnabled:
+                  type: boolean
+                servers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      serverId:
+                        type: integer
+                      serverIp:
+                        type: string
+        x-amf-mediaType: application/json
+        description: The clusters data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+      operationId: createClusters
+    get:
+      description: Get a list of all registered clusters.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id021
+                - id: 4
+                  timeCreated: 1445968023535
+                  timeUpdated: 1445968023535
+                  name: testCluster
+                  multicastEnabled: false
+                  primaryNodeId:
+                  servers:
+                  - id: 2
+                    timeCreated: 1445967595700
+                    timeUpdated: 1445967683096
+                    name: Mule1
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  - id: 3
+                    timeCreated: 1445967663477
+                    timeUpdated: 1445967680845
+                    name: Mule2
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  type: CLUSTER
+                  visibilityMap:
+                    mapNodes:
+                    - serverId: 2
+                      visibleNodeIds:
+                      - 3
+                      unknownNodeIps: []
+                    - serverId: 3
+                      visibleNodeIds: []
+                      unknownNodeIps: []
+                  status: RUNNING
+              example: *id021
+      operationId: getClusters
+  /clusters/{clusterId}:
+    description: Perform actions in a particular cluster.
+    get:
+      description: Get information about a cluster.
+      parameters:
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id022
+                  data: ''
+                  timeCreated: 1445968023535
+                  timeUpdated: 1445968023535
+                  name: testCluster
+                  multicastEnabled: false
+                  primaryNodeId:
+                  servers:
+                  - id: 2
+                    timeCreated: 1445967595700
+                    timeUpdated: 1445967683096
+                    name: Mule1
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  - id: 3
+                    timeCreated: 1445967663477
+                    timeUpdated: 1445967680845
+                    name: Mule2
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  type: CLUSTER
+                  visibilityMap:
+                    mapNodes:
+                    - serverId: 2
+                      visibleNodeIds:
+                      - 3
+                      unknownNodeIps: []
+                    - serverId: 3
+                      visibleNodeIds: []
+                      unknownNodeIps: []
+                  status: RUNNING
+              example: *id022
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id023
+                  message: cluster not found
+              example: *id023
+      operationId: getClustersByClusterid
+    patch:
+      description: Modify a cluster. The only field that can be modified is the name of the cluster.
+      parameters:
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id024
+                - id: 4
+                  timeCreated: 1445968023535
+                  timeUpdated: 1445968023535
+                  name: testCluster
+                  multicastEnabled: false
+                  primaryNodeId:
+                  servers:
+                  - id: 2
+                    timeCreated: 1445967595700
+                    timeUpdated: 1445967683096
+                    name: Mule1
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  - id: 3
+                    timeCreated: 1445967663477
+                    timeUpdated: 1445967680845
+                    name: Mule2
+                    serverType: MULE
+                    type: SERVER
+                    muleVersion: 3.7.1-SNAPSHOT
+                    agentVersion: 1.3.0-SNAPSHOT
+                    status: RUNNING
+                    addresses:
+                    - ip: 10.250.2.74
+                      networkInterface: en1
+                    currentClusteringIp: 127.0.0.1
+                    clusterId: 4
+                    clusterName: testCluster
+                  type: CLUSTER
+                  visibilityMap:
+                    mapNodes:
+                    - serverId: 2
+                      visibleNodeIds:
+                      - 3
+                      unknownNodeIps: []
+                    - serverId: 3
+                      visibleNodeIds: []
+                      unknownNodeIps: []
+                  status: RUNNING
+                type: array
+                items: {}
+              example: *id024
+      operationId: patchClustersByClusterid
+    delete:
+      description: Delete a cluster.
+      parameters:
+      - name: isForce
+        description: 'variable enable/disables the function to force delete a cluster.
+
+
+          This will make a deletion without notifications to the Mule Runtimes, this is more recommended in the case that cluster can''t be deleted in a normal way
+
+          '
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '202':
+          description: Request accepted for processing.
+      operationId: deleteClustersByClusterid
+  /clusters/{clusterId}/servers:
+    description: Perform actions on a particular server in a cluster.
+    post:
+      description: Add a server to the cluster. Any artifacts that were already deployed to this cluster also deploy to the new server. Returns the updated server. Only include the server's IP address when adding servers to a unicast cluster.
+      parameters:
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                serverId: 3
+                serverIp: 127.0.0.1
+              type: object
+              required:
+              - serverId
+              properties:
+                serverId:
+                  type: integer
+                serverIp:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The servers data to create.
+      responses:
+        '202':
+          description: Request accepted for processing.
+        '409':
+          description: Conflict.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id025
+                  message: There are applications already deployed on the servers to be added
+              example: *id025
+      operationId: createClustersByClusteridServers
+  /clusters/{clusterId}/servers/{serverId}:
+    description: Perform actions on a particular server in a cluster.
+    delete:
+      description: Remove server from a cluster. This undeploys any artifacts from the server that are deployed to this cluster.
+      parameters:
+      - name: isForce
+        description: 'variable enable/disables function to force remove a server from cluster
+
+
+          This will make a deletion without notifications to the Mule Runtimes, this is more recommended in the case that server can''t be removed from cluster in a normal way
+
+          '
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - name: serverId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The server ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+      operationId: deleteClustersByClusteridServersByServerid
+    put:
+      description: Modifies clustering information for a server. The server must be part of a cluster.
+      parameters:
+      - name: clusterId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The cluster ID to identify the target resource.
+      - name: serverId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The server ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                serverIp: 10.8.8.85
+                serverPort: 3332
+              type: object
+              required:
+              - serverIp
+              properties:
+                serverIp:
+                  type: string
+                serverPort:
+                  type: integer
+        x-amf-mediaType: application/json
+        description: The servers data to update.
+      responses:
+        '202':
+          description: Accepted.
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id026
+                - message: All servers of a unicast cluster must have their corresponding IP.
+                - message: 'Server serverName (id: number) does not belong to Cluster clusterName (id: number).'
+              example: *id026
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id027
+                - message: Server does not exist for this organization.
+                - message: Cluster does not exist in your organization.
+              example: *id027
+      operationId: updateClustersByClusteridServersByServerid
+  /targets:
+    description: A target can be a Server, Server Group or Cluster.
+  /targets/{targetId}/components:
+    description: A component is a configurable piece of a target. For example, all third party integrations are a new component for a target.
+    get:
+      parameters:
+      - name: targetId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The target ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getTargetsByTargetidComponents
+      description: Retrieves a components.
+  /targets/{targetId}/components/{componentId}:
+    description: Get an entity representing a component
+    get:
+      description: 'Get the component
+
+        with id =
+
+        {componentId}
+
+        '
+      parameters:
+      - name: targetId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The target ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_componentId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id028
+                  data: ''
+                  configurableComponentId: 123
+                  enabled: 'true'
+                  configurationProperties:
+                    trackingLevel: DEBUG
+              example: *id028
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id029
+                  message: component not found
+              example: *id029
+      operationId: getTargetsByTargetidComponentsByComponentid
+    put:
+      parameters:
+      - name: targetId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The target ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_componentId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: updateTargetsByTargetidComponentsByComponentid
+      description: Replaces a components.
+    patch:
+      parameters:
+      - name: targetId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The target ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_componentId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id030
+                  configurableComponentId: 123
+                  enabled: 'true'
+                  configurationProperties:
+                    trackingLevel: DEBUG
+                type: object
+                required:
+                - configurableComponentId
+                - enabled
+                - configurationProperties
+                properties:
+                  configurableComponentId:
+                    type: integer
+                  enabled:
+                    type: string
+                  configurationProperties:
+                    type: object
+                    patternProperties:
+                      .{1,}:
+                        x-amf-union:
+                        - type: object
+                        - type: string
+              example: *id030
+      operationId: patchTargetsByTargetidComponentsByComponentid
+      description: Updates a components.
+  /applications:
+    description: An application refers to a Mule application or proxy that is running in a Mule Runtime. It's important to differentiate the application from its corresponding binary. The same binary can be deployed twice and represents two different applications.
+    post:
+      description: Deploy an artifact to a deployment target. Initiates deployment and creates server artifacts.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                applicationSource:
+                  source: EXCHANGE
+                  groupId: com.mulesoft.hybrid
+                  artifactId: testApp
+                  version: 0.0.2
+                targetId: 1
+                artifactName: myApp
+              type: object
+              required:
+              - targetId
+              - artifactName
+              - applicationSource
+              properties:
+                targetId:
+                  type: integer
+                artifactName:
+                  type: string
+                applicationSource:
+                  anyOf:
+                  - type: object
+                    required:
+                    - id
+                    properties:
+                      source:
+                        enum:
+                        - HYBRID
+                      id: {}
+                  - type: object
+                    required:
+                    - groupId
+                    - artifactId
+                    - version
+                    properties:
+                      source:
+                        enum:
+                        - EXCHANGE
+                      groupId: {}
+                      artifactId: {}
+                      version: {}
+                  type: object
+                  properties:
+                    source:
+                      enum:
+                      - HYBRID
+                      - EXCHANGE
+                    id:
+                      type: integer
+                    groupId:
+                      type: string
+                    artifactId:
+                      type: string
+                    version:
+                      type: string
+          multipart/form-data:
+            schema:
+              example:
+                applicationSource:
+                  source: EXCHANGE
+                  groupId: com.mulesoft.hybrid
+                  artifactId: testApp
+                  version: 0.0.2
+                targetId: 1
+                artifactName: myApp
+              type: object
+              required:
+              - targetId
+              - artifactName
+              - applicationSource
+              properties:
+                targetId:
+                  type: integer
+                artifactName:
+                  type: string
+                applicationSource:
+                  anyOf:
+                  - type: object
+                    required:
+                    - id
+                    properties:
+                      source:
+                        enum:
+                        - HYBRID
+                      id: {}
+                  - type: object
+                    required:
+                    - groupId
+                    - artifactId
+                    - version
+                    properties:
+                      source:
+                        enum:
+                        - EXCHANGE
+                      groupId: {}
+                      artifactId: {}
+                      version: {}
+                  type: object
+                  properties:
+                    source:
+                      enum:
+                      - HYBRID
+                      - EXCHANGE
+                    id:
+                      type: integer
+                    groupId:
+                      type: string
+                    artifactId:
+                      type: string
+                    version:
+                      type: string
+        x-amf-mediaType: application/json
+        description: The applications data to create.
+      x-amf-requestPayloads:
+      - mediaType: multipart/form-data
+        schema:
+          type: object
+          additionalProperties: false
+          properties:
+            file:
+              description: The file to be uploaded.
+              type: file
+            artifactName:
+              description: The name of an artifact.
+              type: string
+            targetId:
+              description: The ID of the target.
+              type: string
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id031
+                  data:
+                    id: 42
+                    timeCreated: 1430777912941
+                    timeUpdated: 1430777916635
+                    serverArtifacts:
+                    - id: 35
+                      timeCreated: 1430777912955
+                      timeUpdated: 1430777912955
+                      artifactName: mule-app-test-54576
+                      artifact:
+                        id: 32
+                        type: APPLICATION
+                        name: mule-app-test-54576
+                      applicationId: 42
+                      serverId: 44
+                      lastReportedStatus: DEPLOYING
+                      desiredStatus: DEPLOYED
+                      message:
+                      discovered: false
+                    - id: 36
+                      timeCreated: 1430777912964
+                      timeUpdated: 1430777916611
+                      artifactName: mule-app-test-54576
+                      artifact:
+                        id: 32
+                        type: APPLICATION
+                        name: mule-app-test-54576
+                      applicationId: 42
+                      serverId: 43
+                      lastReportedStatus: DEPLOYING
+                      desiredStatus: DEPLOYED
+                      message:
+                      discovered: false
+                    desiredStatus: STARTED
+                    lastReportedStatus: STARTED
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    target:
+                      id: 45
+                      timeCreated: 1430777909414
+                      timeUpdated: 1430777918647
+                      name: test-mule-group-54576
+                      servers:
+                      - id: 44
+                        timeCreated: 1430777894462
+                        timeUpdated: 1430777910626
+                        name: test-mule-2-54576
+                        serverType: MULE
+                        muleVersion: 3.6.0
+                        agentVersion: 1.0.1-SNAPSHOT
+                        status: DISCONNECTED
+                        serverGroupId: 45
+                        serverGroupName: test-mule-group-54576
+                      - id: 43
+                        timeCreated: 1430777890063
+                        timeUpdated: 1430777918771
+                        name: test-mule-1-54576
+                        serverType: MULE
+                        muleVersion: 3.6.0
+                        agentVersion: 1.0.1-SNAPSHOT
+                        status: RUNNING
+                      discoveredArtifactNames: []
+                      status: PARTIAL
+              example: *id031
+        '202':
+          description: Request accepted for processing.
+      operationId: createApplications
+    get:
+      description: Get deployed applications that matches the query params.
+      parameters:
+      - name: applicationId
+        description: Retrieves a unique application.
+        in: query
+        schema:
+          type: number
+      - name: targetId
+        description: Retrieves all applications deployed to a target.
+        in: query
+        schema:
+          type: number
+      - name: status
+        description: Deployment status.
+        in: query
+        schema:
+          type: string
+          enum:
+          - STARTED
+          - STARTING
+          - UNDEPLOYED
+          - DEPLOYMENT_FAILED
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id032
+                  data:
+                  - id: 42
+                    timeCreated: 1430777912941
+                    timeUpdated: 1430777916635
+                    serverArtifacts:
+                    - id: 35
+                      timeCreated: 1430777912955
+                      timeUpdated: 1430777912955
+                      artifactName: mule-app-test-54576
+                      artifact:
+                        id: 32
+                        type: APPLICATION
+                        name: mule-app-test-54576
+                      applicationId: 42
+                      serverId: 44
+                      lastReportedStatus: DEPLOYING
+                      desiredStatus: DEPLOYED
+                      message:
+                      discovered: false
+                    - id: 36
+                      timeCreated: 1430777912964
+                      timeUpdated: 1430777916611
+                      artifactName: mule-app-test-54576
+                      artifact:
+                        id: 32
+                        type: APPLICATION
+                        name: mule-app-test-54576
+                      applicationId: 42
+                      serverId: 43
+                      lastReportedStatus: DEPLOYING
+                      desiredStatus: DEPLOYED
+                      message:
+                      discovered: false
+                    desiredStatus: STARTED
+                    lastReportedStatus: STARTED
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    target:
+                      id: 45
+                      timeCreated: 1430777909414
+                      timeUpdated: 1430777918647
+                      name: test-mule-group-54576
+                      servers:
+                      - id: 44
+                        timeCreated: 1430777894462
+                        timeUpdated: 1430777910626
+                        name: test-mule-2-54576
+                        serverType: MULE
+                        muleVersion: 3.6.0
+                        agentVersion: 1.0.1-SNAPSHOT
+                        status: DISCONNECTED
+                        serverGroupId: 45
+                        serverGroupName: test-mule-group-54576
+                      - id: 43
+                        timeCreated: 1430777890063
+                        timeUpdated: 1430777918771
+                        name: test-mule-1-54576
+                        serverType: MULE
+                        muleVersion: 3.6.0
+                        agentVersion: 1.0.1-SNAPSHOT
+                        status: RUNNING
+                      discoveredArtifactNames: []
+                      status: PARTIAL
+              example: *id032
+      operationId: getApplications
+  /applications/{applicationId}:
+    description: Operate over a single application.
+    get:
+      description: Get The application deployment and status information.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id033
+                  data: ''
+                  id: 42
+                  timeCreated: 1430777912941
+                  timeUpdated: 1430777916635
+                  serverArtifacts:
+                  - id: 35
+                    timeCreated: 1430777912955
+                    timeUpdated: 1430777912955
+                    artifactName: mule-app-test-54576
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    applicationId: 42
+                    serverId: 44
+                    lastReportedStatus: DEPLOYING
+                    desiredStatus: DEPLOYED
+                    message:
+                    discovered: false
+                  - id: 36
+                    timeCreated: 1430777912964
+                    timeUpdated: 1430777916611
+                    artifactName: mule-app-test-54576
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    applicationId: 42
+                    serverId: 43
+                    lastReportedStatus: DEPLOYING
+                    desiredStatus: DEPLOYED
+                    message:
+                    discovered: false
+                  desiredStatus: STARTED
+                  lastReportedStatus: STARTED
+                  artifact:
+                    id: 32
+                    type: APPLICATION
+                    name: mule-app-test-54576
+                  target:
+                    id: 45
+                    timeCreated: 1430777909414
+                    timeUpdated: 1430777918647
+                    name: test-mule-group-54576
+                    servers:
+                    - id: 44
+                      timeCreated: 1430777894462
+                      timeUpdated: 1430777910626
+                      name: test-mule-2-54576
+                      serverType: MULE
+                      muleVersion: 3.6.0
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 45
+                      serverGroupName: test-mule-group-54576
+                    - id: 43
+                      timeCreated: 1430777890063
+                      timeUpdated: 1430777918771
+                      name: test-mule-1-54576
+                      serverType: MULE
+                      muleVersion: 3.6.0
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: RUNNING
+                    discoveredArtifactNames: []
+                    status: PARTIAL
+              example: *id033
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id034
+                  message: application not found
+              example: *id034
+      operationId: getApplicationsByApplicationid
+    delete:
+      description: Undeploy artifact from all servers in deployment target and delete the deployment.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '204':
+          description: Undeployment is in progress.
+      operationId: deleteApplicationsByApplicationid
+    patch:
+      description: Redeploys the app with a new artifact. If the file is not specified in the request then Runtime Manager redeploys the same file that was already in the server. If the content type is application/json then it changes the status of the deployed application from started to stopped or from stopped to started. No other application status changes are allowed. If the file is not specified and the content-type of the request body is multipart/form-data the application is RESTARTED.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              example:
+                desiredStatus: STOPPED
+          application/json:
+            schema:
+              example:
+                desiredStatus: STOPPED
+        x-amf-mediaType: application/json
+        description: The applications data to update.
+      x-amf-requestPayloads:
+      - mediaType: multipart/form-data
+        schema:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          properties:
+            id:
+              description: The application id
+              type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id035
+                  id: 42
+                  timeCreated: 1430777912941
+                  timeUpdated: 1430777916635
+                  serverArtifacts:
+                  - id: 35
+                    timeCreated: 1430777912955
+                    timeUpdated: 1430777912955
+                    artifactName: mule-app-test-54576
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    applicationId: 42
+                    serverId: 44
+                    lastReportedStatus: DEPLOYING
+                    desiredStatus: DEPLOYED
+                    message:
+                    discovered: false
+                  - id: 36
+                    timeCreated: 1430777912964
+                    timeUpdated: 1430777916611
+                    artifactName: mule-app-test-54576
+                    artifact:
+                      id: 32
+                      type: APPLICATION
+                      name: mule-app-test-54576
+                    applicationId: 42
+                    serverId: 43
+                    lastReportedStatus: DEPLOYING
+                    desiredStatus: DEPLOYED
+                    message:
+                    discovered: false
+                  desiredStatus: STARTED
+                  lastReportedStatus: STARTED
+                  artifact:
+                    id: 32
+                    type: APPLICATION
+                    name: mule-app-test-54576
+                  target:
+                    id: 45
+                    timeCreated: 1430777909414
+                    timeUpdated: 1430777918647
+                    name: test-mule-group-54576
+                    servers:
+                    - id: 44
+                      timeCreated: 1430777894462
+                      timeUpdated: 1430777910626
+                      name: test-mule-2-54576
+                      serverType: MULE
+                      muleVersion: 3.6.0
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: DISCONNECTED
+                      serverGroupId: 45
+                      serverGroupName: test-mule-group-54576
+                    - id: 43
+                      timeCreated: 1430777890063
+                      timeUpdated: 1430777918771
+                      name: test-mule-1-54576
+                      serverType: MULE
+                      muleVersion: 3.6.0
+                      agentVersion: 1.0.1-SNAPSHOT
+                      status: RUNNING
+                    discoveredArtifactNames: []
+                    status: PARTIAL
+                type: object
+                required:
+                - id
+                - timeCreated
+                - timeUpdated
+                - serverArtifacts
+                - desiredStatus
+                - artifact
+                - target
+                - lastReportedStatus
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  serverArtifacts:
+                    type: array
+                    items:
+                      anyOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: integer
+                          timeCreated:
+                            type: number
+                          timeUpdated:
+                            type: number
+                          artifactName:
+                            type: string
+                          artifact:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              name:
+                                type: string
+                              fileName:
+                                type: string
+                              fileChecksum:
+                                type: string
+                              timeUpdated:
+                                type: number
+                          deploymentId:
+                            type: integer
+                          serverId:
+                            type: integer
+                          lastReportedStatus:
+                            type: string
+                          desiredStatus:
+                            type: string
+                          message:
+                            x-amf-union:
+                            - type: string
+                            - type: 'null'
+                          discovered:
+                            type: boolean
+                      - type: object
+                        properties:
+                          id:
+                            type: integer
+                          timeCreated:
+                            type: number
+                          timeUpdated:
+                            type: number
+                          artifactName:
+                            type: string
+                          artifact:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              name:
+                                type: string
+                              fileName:
+                                type: string
+                              fileChecksum:
+                                type: string
+                              timeUpdated:
+                                type: number
+                          deploymentId:
+                            type: integer
+                          serverId:
+                            type: integer
+                          lastReportedStatus:
+                            enum:
+                            - STARTING
+                            - PARTIALLY_STARTED
+                            - DEPLOYMENT_FAILED
+                            - STARTED
+                            - STOPPED
+                            - UNDEPLOYING
+                            - UNDEPLOYED
+                            - UPDATED
+                            - DEPLOYING
+                            type: string
+                          desiredStatus:
+                            enum:
+                            - DEPLOYED
+                            - STARTING
+                            - PARTIALLY_STARTED
+                            - DEPLOYMENT_FAILED
+                            - STARTED
+                            - STOPPED
+                            - UNDEPLOYING
+                            - UNDEPLOYED
+                            - UPDATED
+                            type: string
+                          message:
+                            x-amf-union:
+                            - type: string
+                            - type: 'null'
+                          discovered:
+                            type: boolean
+                  desiredStatus:
+                    enum:
+                    - DEPLOYED
+                    - STARTING
+                    - PARTIALLY_STARTED
+                    - DEPLOYMENT_FAILED
+                    - STARTED
+                    - STOPPED
+                    - UNDEPLOYING
+                    - UNDEPLOYED
+                    - UPDATED
+                    type: string
+                  artifact:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      fileName:
+                        type: string
+                      fileChecksum:
+                        type: string
+                      timeUpdated:
+                        type: number
+                  target:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      timeCreated:
+                        type: number
+                      timeUpdated:
+                        type: number
+                      name:
+                        type: string
+                      servers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            timeCreated:
+                              type: number
+                            timeUpdated:
+                              type: number
+                            name:
+                              type: string
+                            serverType:
+                              type: string
+                            type:
+                              type: string
+                            muleVersion:
+                              type: string
+                            agentVersion:
+                              type: string
+                            status:
+                              type: string
+                            serverGroupId:
+                              type: integer
+                            serverGroupName:
+                              type: string
+                            addresses:
+                              type: array
+                              items: {}
+                      type:
+                        enum:
+                        - SERVER
+                        - CLUSTER
+                        - SERVER_GROUP
+                        type: string
+                      status:
+                        type: string
+                  lastReportedStatus:
+                    enum:
+                    - STARTING
+                    - PARTIALLY_STARTED
+                    - DEPLOYMENT_FAILED
+                    - STARTED
+                    - STOPPED
+                    - UNDEPLOYING
+                    - UNDEPLOYED
+                    - UPDATED
+                    - DEPLOYING
+                    type: string
+              example: *id035
+      operationId: patchApplicationsByApplicationid
+  /applications/{applicationId}/artifact:
+    get:
+      description: Gets the artifact binary.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/octet-stream
+          content:
+            application/octet-stream:
+              schema: {}
+              example: (binary data)
+      operationId: getApplicationsByApplicationidArtifact
+    patch:
+      description: Redeploys the app with a new artifact from the provided source.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                applicationSource:
+                  source: EXCHANGE
+                  groupId: com.mulesoft.hybrid
+                  artifactId: testApp
+                  version: 0.0.3
+              type: object
+              required:
+              - applicationSource
+              properties:
+                applicationSource:
+                  anyOf:
+                  - type: object
+                    required:
+                    - id
+                    properties:
+                      source:
+                        enum:
+                        - HYBRID
+                      id: {}
+                  - type: object
+                    required:
+                    - groupId
+                    - artifactId
+                    - version
+                    properties:
+                      source:
+                        enum:
+                        - EXCHANGE
+                      groupId: {}
+                      artifactId: {}
+                      version: {}
+                  type: object
+                  properties:
+                    source:
+                      enum:
+                      - HYBRID
+                      - EXCHANGE
+                    id:
+                      type: integer
+                    groupId:
+                      type: string
+                    artifactId:
+                      type: string
+                    version:
+                      type: string
+        x-amf-mediaType: application/json
+        description: The artifact data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchApplicationsByApplicationidArtifact
+  /applications/{applicationId}/flows:
+    description: Default structure with which Mule applications are built.
+    get:
+      description: Gets all flows in the deployment's application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id036
+                  data:
+                  - id: 99589
+                    timeCreated: 1495470996320
+                    timeUpdated: 1495470996320
+                    name: api-main
+                    desiredStatus: UNMANAGED
+                    defaultStatus: STARTED
+                    targets:
+                    - id: 54456
+                      lastReportedStatus: STARTED
+              example: *id036
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id037
+                  message: Deployment does not exist in your organization
+              example: *id037
+      operationId: getApplicationsByApplicationidFlows
+    patch:
+      description: Updates the flows defined in the request body.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - id: 99589
+                desiredStatus: STARTED
+              type: array
+              items:
+                type: object
+                required:
+                - id
+                - desiredStatus
+                properties:
+                  id:
+                    description: Id of the flow stored in ARM
+                    type: integer
+                  desiredStatus:
+                    enum:
+                    - STARTED
+                    - STOPPED
+                    - UNMANAGED
+                    type: string
+        x-amf-mediaType: application/json
+        description: The flows data to update.
+      responses:
+        '202':
+          description: Configuration on the updated flows to apply.
+        '400':
+          description: Bad request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id038
+                  message: Application must be STARTED or PARTIALLY STARTED in order to perform this action.
+              example: *id038
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id039
+                  message: Deployment does not exist in your organization
+              example: *id039
+      operationId: patchApplicationsByApplicationidFlows
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The flows data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id040
+                  data:
+                    id: 99589
+                    timeCreated: 1495470996320
+                    timeUpdated: 1495470996320
+                    name: api-main
+                    desiredStatus: UNMANAGED
+                    defaultStatus: STARTED
+                    targets:
+                    - id: 54456
+                      lastReportedStatus: STARTED
+              example: *id040
+      operationId: createApplicationsByApplicationidFlows
+      description: Creates a flows.
+  /applications/{applicationId}/flows/{flowId}:
+    description: Get an entity representing a flow
+    get:
+      description: Gets the flow with the specified ID that belongs to the deployment's application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id041
+                  message: The given flow does not exist in this deployment.
+              example: *id041
+      operationId: getApplicationsByApplicationidFlowsByFlowid
+    patch:
+      description: Updates the flow with the specified ID.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                desiredStatus: STARTED
+              type: object
+              required:
+              - desiredStatus
+              properties:
+                desiredStatus:
+                  enum:
+                  - STARTED
+                  - STOPPED
+                  - UNMANAGED
+                  type: string
+        x-amf-mediaType: application/json
+        description: The flows data to update.
+      responses:
+        '202':
+          description: Applies the configuration to the updated flow.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id042
+                  id: 99589
+                  timeCreated: 1495470996320
+                  timeUpdated: 1495470996320
+                  name: api-main
+                  desiredStatus: UNMANAGED
+                  defaultStatus: STARTED
+                  targets:
+                  - id: 54456
+                    lastReportedStatus: STARTED
+                type: object
+                required:
+                - id
+                - timeCreated
+                - timeUpdated
+                - name
+                - desiredStatus
+                - defaultStatus
+                properties:
+                  id:
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  name:
+                    type: string
+                  desiredStatus:
+                    description: Eventualy the flow will get the desiredStatus and will fix the flow to keep it. If the value is UNMANAGED, ARM will not force any status.
+                    enum:
+                    - STARTED
+                    - STOPPED
+                    - UNMANAGED
+                    type: string
+                  defaultStatus:
+                    enum:
+                    - STARTED
+                    - STOPPED
+                    type: string
+                  targets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          description: Id of the target (server, server group or cluster) where the flow is deployed.
+                          type: integer
+                        lastReportedStatus:
+                          enum:
+                          - STARTED
+                          - STOPPED
+                          type: string
+              example: *id042
+        '400':
+          description: Bad request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id043
+                  value:
+                    message: 'You must provide a desiredStatus value. Possible values are: STARTED, STOPPED or UNMANAGED.'
+              example: *id043
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id044
+                  message: The given flow does not exist in this deployment.
+              example: *id044
+      operationId: patchApplicationsByApplicationidFlowsByFlowid
+  /applications/{applicationId}/schedulers:
+    description: Retrieves all discovered schedulers for an application with its corresponding configuration.
+    get:
+      description: Gets all schedulers for an application.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id045
+                  data:
+                  - - id: 89
+                      timeCreated: 1501019185832
+                      timeUpdated: 1501019185833
+                      deploymentId: 2034727
+                      flowId: 1395178
+                      name: polling://cronScheduler1/
+                      type: CRON
+                      enabled: true
+                      expression: 0 0/1 * 1/1 * ? *
+                      timeZone: America/Argentina/Buenos_Aires
+                    - id: 88
+                      timeCreated: 1501019185830
+                      timeUpdated: 1501019185832
+                      deploymentId: 2034727
+                      flowId: 1395177
+                      name: polling://fixedFrequencyScheduler1/
+                      type: FIXED_FREQUENCY
+                      enabled: true
+                      frequency: 2000
+                      startDelay: 0
+                      timeUnit: MILLISECONDS
+              example: *id045
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id046
+                  message: Deployment does not exist in your organization
+              example: *id046
+      operationId: getApplicationsByApplicationidSchedulers
+    patch:
+      description: Updates the schedulers specified in the request body.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+              - id: 1234
+                enabled: true
+                frequency: 2000
+                startDelay: 0
+                timeUnit: MILLISECONDS
+              - id: 1235
+                enabled: true
+                expression: 0 0/1 * 1/1 * ? *
+                timeZone: America/Argentina/Buenos_Aires
+              type: array
+              items:
+                type: object
+                required:
+                - id
+                - enabled
+                properties:
+                  id:
+                    description: Id of the scheduler stored in ARM
+                    type: integer
+                  expression:
+                    description: 'Any valid CRON expression. Validated with the Quartz library: http://www.quartz-scheduler.org/api/2.2.1/org/quartz/CronExpression.html'
+                    type: string
+                  timeZone:
+                    description: 'Any valid time zone. Validated with the java util TimeZone library: https://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html.'
+                    type: string
+                  frequency:
+                    description: Frequency to run the scheduler.
+                    type: integer
+                  startDelay:
+                    description: Time to wait in order to start the shceduler.
+                    type: integer
+                  timeUnit:
+                    description: Time unit used in the frequency and startDelay options.
+                    enum:
+                    - DAYS
+                    - HOURS
+                    - MINUTES
+                    - SECONDS
+                    - MILLISECONDS
+                    type: string
+                  enabled: {}
+        x-amf-mediaType: application/json
+        description: The schedulers data to update.
+      responses:
+        '202':
+          description: Applies the configuration to the updated scheduler.
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id047
+                  message: Scheduler does not exist in the specified deployment.
+              example: *id047
+      operationId: patchApplicationsByApplicationidSchedulers
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_applicationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The schedulers data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id048
+                  data:
+                  - id: 89
+                    timeCreated: 1501019185832
+                    timeUpdated: 1501019185833
+                    deploymentId: 2034727
+                    flowId: 1395178
+                    name: polling://cronScheduler1/
+                    type: CRON
+                    enabled: true
+                    expression: 0 0/1 * 1/1 * ? *
+                    timeZone: America/Argentina/Buenos_Aires
+                  - id: 88
+                    timeCreated: 1501019185830
+                    timeUpdated: 1501019185832
+                    deploymentId: 2034727
+                    flowId: 1395177
+                    name: polling://fixedFrequencyScheduler1/
+                    type: FIXED_FREQUENCY
+                    enabled: true
+                    frequency: 2000
+                    startDelay: 0
+                    timeUnit: MILLISECONDS
+              example: *id048
+      operationId: createApplicationsByApplicationidSchedulers
+      description: Creates a schedulers.
+  /alerts:
+    description: Alerts are the composition of a trigger and an event which is triggered based on conditions that are evaluated for Runtime Manager resources. This endpoint allows you to administrate the alerts that can be triggered by Runtime Manager.
+    get:
+      description: Get a list of alerts.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id049
+                  data:
+                  - id: 2312
+                    timeCreated: 342423432142342
+                    timeUpdated: 342423432154342
+                    severity: CRITICAL
+                    description: Notify when one server of cluster 45 went down
+                    enabled: true
+                    action:
+                      notification:
+                        recipients:
+                        - alex.tiavo
+                        - greg.kio
+                    condition:
+                      resourceType: CLUSTER
+                      resources:
+                      - 45
+                      event: DISCONNECTED
+              example: *id049
+      operationId: getAlerts
+    post:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The alerts data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id050
+                  data:
+                    id: 2312
+                    timeCreated: 342423432142342
+                    timeUpdated: 342423432154342
+                    severity: CRITICAL
+                    description: Notify when one server of cluster 45 went down
+                    enabled: true
+                    action:
+                      notification:
+                        recipients:
+                        - alex.tiavo
+                        - greg.kio
+                    condition:
+                      resourceType: CLUSTER
+                      resources:
+                      - 45
+                      event: DISCONNECTED
+              example: *id050
+      operationId: createAlerts
+      description: Creates alerts.
+  /alerts/{alertId}:
+    description: Get an entity representing a alert
+    get:
+      description: 'Get the alert
+
+        with id =
+
+        {alertId}
+
+        '
+      parameters:
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id051
+                  data: ''
+                  id: 2312
+                  timeCreated: 342423432142342
+                  timeUpdated: 342423432154342
+                  severity: CRITICAL
+                  description: Notify when one server of cluster 45 went down
+                  enabled: true
+                  action:
+                    notification:
+                      recipients:
+                      - alex.tiavo
+                      - greg.kio
+                  condition:
+                    resourceType: CLUSTER
+                    resources:
+                    - 45
+                    event: DISCONNECTED
+              example: *id051
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id052
+                  message: alert not found
+              example: *id052
+      operationId: getAlertsByAlertid
+    patch:
+      parameters:
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id053
+                  id: 2312
+                  timeCreated: 342423432142342
+                  timeUpdated: 342423432154342
+                  severity: CRITICAL
+                  description: Notify when one server of cluster 45 went down
+                  enabled: true
+                  action:
+                    notification:
+                      recipients:
+                      - alex.tiavo
+                      - greg.kio
+                  condition:
+                    resourceType: CLUSTER
+                    resources:
+                    - 45
+                    event: DISCONNECTED
+                type: object
+                required:
+                - id
+                - timeCreated
+                - timeUpdated
+                - action
+                - condition
+                properties:
+                  id:
+                    description: Id of the alert stored in ARM
+                    type: integer
+                  timeCreated:
+                    type: number
+                  timeUpdated:
+                    type: number
+                  description:
+                    description: Name of the alert free text to easy identify the alert.
+                    type: string
+                  enabled:
+                    type: boolean
+                  severity:
+                    description: Severity level.
+                    enum:
+                    - CRITICAL
+                    - WARNING
+                    - INFO
+                  action:
+                    type: object
+                    properties:
+                      notification:
+                        type: object
+                        properties:
+                          recipients:
+                            type: array
+                            items:
+                              type: string
+                  condition:
+                    oneOf:
+                    - type: object
+                      properties:
+                        resourceType:
+                          enum:
+                          - SERVER
+                        resources:
+                          type: array
+                          items:
+                            type: integer
+                        event:
+                          enum:
+                          - CONFIGURED
+                          - CREATED
+                          - DISCONNECTED
+                          - CONNECTED
+                          - CONNECTION_REJECTED
+                          - RUNTIME_VERSION_UPDATED
+                          - AGENT_VERSION_UPDATED
+                          - DELETED
+                    - type: object
+                      properties:
+                        resourceType:
+                          enum:
+                          - SERVER_GROUP
+                          - CLUSTER
+                        resources:
+                          type: array
+                          items:
+                            type: integer
+                        event:
+                          enum:
+                          - CONFIGURED
+                          - CREATED
+                          - DISCONNECTED
+                          - CONNECTED
+                          - CONNECTION_REJECTED
+                          - RUNTIME_VERSION_UPDATED
+                          - AGENT_VERSION_UPDATED
+                          - SIZE_REDUCED
+                          - SIZE_INCREASED
+                          - DELETED
+                    - type: object
+                      properties:
+                        resourceType:
+                          enum:
+                          - APPLICATION
+                        resources:
+                          type: array
+                          items:
+                            type: integer
+                        event:
+                          enum:
+                          - DEPLOYED
+                          - UNDEPLOYED
+                          - STOPPED
+                          - STARTED
+                          - DEPLOYMENT_FAILED
+                    type: object
+              example: *id053
+      operationId: patchAlertsByAlertid
+      description: Updates a alerts.
+  /alerts/{alertId}/history:
+    get:
+      description: Returns a list of the alert history for this particular alert id
+      parameters:
+      - name: alertId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The alert ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id054
+                  data:
+                  - triggeredAt: 1559656460396
+                    context:
+                      name: runtime-391-1100-prod
+                      location: https://anypoint.mulesoft.com/cloudhub/#/console/servers/server/937779/dashboard?orgId=a9ee3922-f172-452f-8eef-5db2e685eaa1&envId=749bfc7a-6e7a-4e6c-bdde-ee021c6c71f3
+                      resource: '937779'
+                      comparison: above
+                      currentValue: '120'
+                    severity: CRITICAL
+                    condition:
+                      type: server-memory
+                      resourceType: server
+                    actions:
+                    - state: success
+                      type: email
+              example: *id054
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getAlertsByAlertidHistory
+  /alerts/resources/{resourceId}/history:
+    get:
+      description: Returns a list of the alert history for this particular resource.
+      parameters:
+      - name: resourceId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The resource ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ENV_ID_Header'
+      - $ref: '#/components/parameters/XOrigin_X_ANYPNT_ORG_ID_Header'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id055
+                  data:
+                  - alertId: 39ae5fb8-169b-4dbd-8181-25c62f8626bd
+                    alertName: test-inc
+                    triggeredAt: 1559656903572
+                    severity: CRITICAL
+                    condition:
+                      type: server-down
+                      resourceType: server
+                  - alertId: fdcd12fe-98da-4ea0-9791-5487bd58dc4f
+                    alertName: server-cpu
+                    triggeredAt: 1559656490268
+                    severity: WARNING
+                    condition:
+                      type: server-cpu
+                      period: '1'
+                      operator: GREATER_THAN
+                      threshold: '10'
+                      resourceType: server
+                  - alertId: cd93d291-fec4-4c80-996e-79c2170a5e6c
+                    alertName: server-memory
+                    triggeredAt: 1559656460396
+                    severity: CRITICAL
+                    condition:
+                      type: server-memory
+                      period: '1'
+                      operator: GREATER_THAN
+                      threshold: '10'
+                      resourceType: server
+                  - alertId: 1edfabb7-3961-4f73-97bf-6991d3896500
+                    alertName: server-load
+                    triggeredAt: 1559656460316
+                    severity: CRITICAL
+                    condition:
+                      type: server-load-average
+                      period: '1'
+                      operator: GREATER_THAN
+                      threshold: '0'
+                      resourceType: server
+              example: *id055
+        '404':
+          description: Not Found.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getAlertsResourcesByResourceidHistory
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  requestBodies:
+    Generated:
+      content:
+        application/json:
+          schema: {}
+      x-amf-mediaType: application/json
+      description: Request payload for Generated operations.
+  parameters:
+    XOrigin_X_ANYPNT_ENV_ID_Header:
+      name: X-ANYPNT-ENV-ID
+      description: Identifier of the environment where the api user is currently working.
+      required: true
+      in: header
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+    XOrigin_X_ANYPNT_ORG_ID_Header:
+      name: X-ANYPNT-ORG-ID
+      description: Identifier of the sub org where the api user is currently working.
+      required: true
+      in: header
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    XOrigin_serverId_Path:
+      name: serverId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getServers
+        description: GET `/servers` in this API; use `id` values as `serverId`.
+        values: $.id
+        labels: $.name
+      description: The server ID to identify the target resource.
+    XOrigin_serverGroupId_Path:
+      name: serverGroupId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getServergroups
+        description: GET `/serverGroups` in this API; use `id` values as `serverGroupId`.
+        values: $.id
+        labels: $.name
+      description: The serverGroup ID to identify the target resource.
+    XOrigin_componentId_Path:
+      name: componentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getTargetsByTargetidComponents
+        description: GET `/targets/{targetId}/components` in this API; use `id` values as `componentId`.
+        values: $.id
+      description: The component ID to identify the target resource.
+    XOrigin_applicationId_Path:
+      name: applicationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getApplications
+        description: GET `/applications` in this API; use `id` values as `applicationId`.
+        values: $.id
+        labels: $.name
+      description: The application ID to identify the target resource.
+    XOrigin_flowId_Path:
+      name: flowId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getApplicationsByApplicationidFlows
+        description: GET `/applications/{applicationId}/flows` in this API; use `id` values as `flowId`.
+        values: $.id
+        labels: $.name
+      description: The flow ID to identify the target resource.

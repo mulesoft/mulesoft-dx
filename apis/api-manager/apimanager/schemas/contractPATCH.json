@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "tierId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "requestedTierId": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

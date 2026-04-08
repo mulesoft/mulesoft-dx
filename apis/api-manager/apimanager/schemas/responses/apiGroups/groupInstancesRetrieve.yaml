@@ -1,0 +1,50 @@
+type: object
+properties:
+  total:
+    type: number
+  instances:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: number
+        groupId:
+          type: number
+        groupVersionId:
+          type: number
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        environmentId:
+          type: string
+        exchangeAssetName:
+          type: string
+        instanceLabel: {}
+        assetGroupId:
+          type: string
+        assetId:
+          type: string
+        assetVersion:
+          type: string
+        productVersion:
+          type: string
+        groupInstanceLabel: {}
+        status:
+          type: string
+        deprecated:
+          type: boolean
+        groupName:
+          type: string
+        groupVersionName:
+          type: string
+        apiInstances:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              groupInstanceId:
+                type: number

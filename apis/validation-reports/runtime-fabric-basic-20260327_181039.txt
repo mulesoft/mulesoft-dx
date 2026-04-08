@@ -1,0 +1,1994 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./runtime-fabric
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/data#unreachable-asset
+	Severity:   Violation
+	Message:    Asset f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/ is unreachable
+	Location:   f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/
+	Position:   [(0,0)-(0,0)]
+	Link:       runtime-fabric/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/:0:0
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: 'fe01cd5a-89a1-11e7-bb31-be2e44b06b34'
+	Location:   file://api.yaml
+	Position:   [(1146,19)-(1146,55)]
+	Link:       runtime-fabric/api.yaml:1146:19
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The anypoint organization Id associated with the Runtime Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1168,2)-(1169,0)]
+	Link:       runtime-fabric/api.yaml:1168:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Last reported status.
+'
+	Location:   file://api.yaml
+	Position:   [(1176,2)-(1177,0)]
+	Link:       runtime-fabric/api.yaml:1176:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Desired version of the Runtime Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1181,2)-(1182,0)]
+	Link:       runtime-fabric/api.yaml:1181:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'If present, there is an new version available.
+'
+	Location:   file://api.yaml
+	Position:   [(1186,2)-(1187,0)]
+	Link:       runtime-fabric/api.yaml:1186:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Timestamp of last reported upgrade activity in EPOCH format.
+'
+	Location:   file://api.yaml
+	Position:   [(1191,2)-(1192,0)]
+	Link:       runtime-fabric/api.yaml:1191:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Timestamp in EPOCH format.
+'
+	Location:   file://api.yaml
+	Position:   [(1196,2)-(1197,0)]
+	Link:       runtime-fabric/api.yaml:1196:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'If present, describes the status of the last upgrade.
+'
+	Location:   file://api.yaml
+	Position:   [(1201,2)-(1202,0)]
+	Link:       runtime-fabric/api.yaml:1201:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'Last known status of the Agent upgrade.
+'
+	Location:   file://api.yaml
+	Position:   [(1207,2)-(1208,0)]
+	Link:       runtime-fabric/api.yaml:1207:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'Message describing the last reported upgrade of the Agent.
+'
+	Location:   file://api.yaml
+	Position:   [(1212,2)-(1213,0)]
+	Link:       runtime-fabric/api.yaml:1212:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Information of nodes that make up the cluster.
+'
+	Location:   file://api.yaml
+	Position:   [(1217,2)-(1218,0)]
+	Link:       runtime-fabric/api.yaml:1217:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Seconds since last reported heartbeat.
+'
+	Location:   file://api.yaml
+	Position:   [(1226,2)-(1227,0)]
+	Link:       runtime-fabric/api.yaml:1226:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          "stable" channel.
+'
+	Location:   file://api.yaml
+	Position:   [(1234,2)-(1235,0)]
+	Link:       runtime-fabric/api.yaml:1234:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          plane.
+'
+	Location:   file://api.yaml
+	Position:   [(1240,2)-(1241,0)]
+	Link:       runtime-fabric/api.yaml:1240:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          environment.
+'
+	Location:   file://api.yaml
+	Position:   [(1252,2)-(1253,0)]
+	Link:       runtime-fabric/api.yaml:1252:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          in cloud.
+'
+	Location:   file://api.yaml
+	Position:   [(1303,2)-(1304,0)]
+	Link:       runtime-fabric/api.yaml:1303:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          the Runtime Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1309,2)-(1310,0)]
+	Link:       runtime-fabric/api.yaml:1309:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          Fabric. Possible values: "production", "development", "unsupported"
+'
+	Location:   file://api.yaml
+	Position:   [(1321,2)-(1322,0)]
+	Link:       runtime-fabric/api.yaml:1321:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1327,2)-(1328,0)]
+	Link:       runtime-fabric/api.yaml:1327:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '    example:
+'
+	Location:   file://api.yaml
+	Position:   [(1341,2)-(1342,0)]
+	Link:       runtime-fabric/api.yaml:1341:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: 'Reached Maximum number of Resources'
+	Location:   file://api.yaml
+	Position:   [(1355,13)-(1355,48)]
+	Link:       runtime-fabric/api.yaml:1355:13
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Human readable error description.
+'
+	Location:   file://api.yaml
+	Position:   [(1361,2)-(1362,0)]
+	Link:       runtime-fabric/api.yaml:1361:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          failed. Only required in case
+'
+	Location:   file://api.yaml
+	Position:   [(1367,2)-(1368,0)]
+	Link:       runtime-fabric/api.yaml:1367:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          HTTP error code is not enough to describe the failure case.
+'
+	Location:   file://api.yaml
+	Position:   [(1369,2)-(1370,0)]
+	Link:       runtime-fabric/api.yaml:1369:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '                for cosumer
+'
+	Location:   file://api.yaml
+	Position:   [(1381,2)-(1382,0)]
+	Link:       runtime-fabric/api.yaml:1381:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '                code error handling.
+'
+	Location:   file://api.yaml
+	Position:   [(1383,2)-(1384,0)]
+	Link:       runtime-fabric/api.yaml:1383:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              description: 'Human readable error description.
+'
+	Location:   file://api.yaml
+	Position:   [(1388,2)-(1389,0)]
+	Link:       runtime-fabric/api.yaml:1388:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '    example:
+'
+	Location:   file://api.yaml
+	Position:   [(1393,2)-(1394,0)]
+	Link:       runtime-fabric/api.yaml:1393:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '1.0.0'
+	Location:   file://api.yaml
+	Position:   [(1396,11)-(1396,16)]
+	Link:       runtime-fabric/api.yaml:1396:11
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1435,2)-(1436,0)]
+	Link:       runtime-fabric/api.yaml:1435:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          Fabric cluster.
+'
+	Location:   file://api.yaml
+	Position:   [(1530,2)-(1531,0)]
+	Link:       runtime-fabric/api.yaml:1530:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1539,2)-(1540,0)]
+	Link:       runtime-fabric/api.yaml:1539:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1547,2)-(1548,0)]
+	Link:       runtime-fabric/api.yaml:1547:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1552,2)-(1553,0)]
+	Link:       runtime-fabric/api.yaml:1552:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          in this Runtime Fabric.
+'
+	Location:   file://api.yaml
+	Position:   [(1560,2)-(1561,0)]
+	Link:       runtime-fabric/api.yaml:1560:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1569,2)-(1570,0)]
+	Link:       runtime-fabric/api.yaml:1569:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1577,2)-(1578,0)]
+	Link:       runtime-fabric/api.yaml:1577:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1582,2)-(1583,0)]
+	Link:       runtime-fabric/api.yaml:1582:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          different replicas of application instances.
+'
+	Location:   file://api.yaml
+	Position:   [(1590,2)-(1591,0)]
+	Link:       runtime-fabric/api.yaml:1590:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1599,2)-(1600,0)]
+	Link:       runtime-fabric/api.yaml:1599:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1607,2)-(1608,0)]
+	Link:       runtime-fabric/api.yaml:1607:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1612,2)-(1613,0)]
+	Link:       runtime-fabric/api.yaml:1612:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The ability to see metrics and logs in Anypoint Monitoring.
+'
+	Location:   file://api.yaml
+	Position:   [(1619,2)-(1620,0)]
+	Link:       runtime-fabric/api.yaml:1619:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1628,2)-(1629,0)]
+	Link:       runtime-fabric/api.yaml:1628:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1636,2)-(1637,0)]
+	Link:       runtime-fabric/api.yaml:1636:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1641,2)-(1642,0)]
+	Link:       runtime-fabric/api.yaml:1641:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The ability to forward application logs to an external provider.
+'
+	Location:   file://api.yaml
+	Position:   [(1648,2)-(1649,0)]
+	Link:       runtime-fabric/api.yaml:1648:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1657,2)-(1658,0)]
+	Link:       runtime-fabric/api.yaml:1657:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1665,2)-(1666,0)]
+	Link:       runtime-fabric/api.yaml:1665:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1670,2)-(1671,0)]
+	Link:       runtime-fabric/api.yaml:1670:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Detailed status of the appliance, when applicable.
+'
+	Location:   file://api.yaml
+	Position:   [(1677,2)-(1678,0)]
+	Link:       runtime-fabric/api.yaml:1677:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1686,2)-(1687,0)]
+	Link:       runtime-fabric/api.yaml:1686:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1694,2)-(1695,0)]
+	Link:       runtime-fabric/api.yaml:1694:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1699,2)-(1700,0)]
+	Link:       runtime-fabric/api.yaml:1699:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          Fabric cluster.
+'
+	Location:   file://api.yaml
+	Position:   [(1707,2)-(1708,0)]
+	Link:       runtime-fabric/api.yaml:1707:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1716,2)-(1717,0)]
+	Link:       runtime-fabric/api.yaml:1716:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1724,2)-(1725,0)]
+	Link:       runtime-fabric/api.yaml:1724:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1729,2)-(1730,0)]
+	Link:       runtime-fabric/api.yaml:1729:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '          cluster.
+'
+	Location:   file://api.yaml
+	Position:   [(1737,2)-(1738,0)]
+	Link:       runtime-fabric/api.yaml:1737:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'True is the component is healthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1746,2)-(1747,0)]
+	Link:       runtime-fabric/api.yaml:1746:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              for Appliance probes.
+'
+	Location:   file://api.yaml
+	Position:   [(1754,2)-(1755,0)]
+	Link:       runtime-fabric/api.yaml:1754:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '              check.
+'
+	Location:   file://api.yaml
+	Position:   [(1759,2)-(1760,0)]
+	Link:       runtime-fabric/api.yaml:1759:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '    example:
+'
+	Location:   file://api.yaml
+	Position:   [(1802,2)-(1803,0)]
+	Link:       runtime-fabric/api.yaml:1802:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '8d72ee02-be83-4963-99c5-5837b8f7907b'
+	Location:   file://api.yaml
+	Position:   [(1805,18)-(1805,54)]
+	Link:       runtime-fabric/api.yaml:1805:18
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'Kubernetes node uid.
+'
+	Location:   file://api.yaml
+	Position:   [(1892,2)-(1893,0)]
+	Link:       runtime-fabric/api.yaml:1892:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The human readable name of the node.
+'
+	Location:   file://api.yaml
+	Position:   [(1897,2)-(1898,0)]
+	Link:       runtime-fabric/api.yaml:1897:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The version of the kubelet on the node.
+'
+	Location:   file://api.yaml
+	Position:   [(1902,2)-(1903,0)]
+	Link:       runtime-fabric/api.yaml:1902:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The version of the docker on the node.
+'
+	Location:   file://api.yaml
+	Position:   [(1907,2)-(1908,0)]
+	Link:       runtime-fabric/api.yaml:1907:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        description: 'The role of the node: controller or worker.
+'
+	Location:   file://api.yaml
+	Position:   [(1912,2)-(1913,0)]
+	Link:       runtime-fabric/api.yaml:1912:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'Indicates if the node is healthy or not.
+'
+	Location:   file://api.yaml
+	Position:   [(1920,2)-(1921,0)]
+	Link:       runtime-fabric/api.yaml:1920:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'Indicates if the node is ready or not.
+'
+	Location:   file://api.yaml
+	Position:   [(1925,2)-(1926,0)]
+	Link:       runtime-fabric/api.yaml:1925:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'Indicates if the node is schedulable or not.
+'
+	Location:   file://api.yaml
+	Position:   [(1930,2)-(1931,0)]
+	Link:       runtime-fabric/api.yaml:1930:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '            description: 'A list of warnings that makes the node unhealthy.
+'
+	Location:   file://api.yaml
+	Position:   [(1935,2)-(1936,0)]
+	Link:       runtime-fabric/api.yaml:1935:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Syntax error in the following text: '        type: integer
+'
+	Location:   file://api.yaml
+	Position:   [(2280,2)-(2281,0)]
+	Link:       runtime-fabric/api.yaml:2280:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    Duplicate key : 'name'
+	Location:   file://api.yaml
+	Position:   [(1803,2)-(1803,6)]
+	Link:       runtime-fabric/api.yaml:1803:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'id' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1105,2)-(1106,0)]
+	Link:       runtime-fabric/api.yaml:1105:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'name' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1106,2)-(1107,0)]
+	Link:       runtime-fabric/api.yaml:1106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'region' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1107,2)-(1108,0)]
+	Link:       runtime-fabric/api.yaml:1107:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'version' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1108,2)-(1109,0)]
+	Link:       runtime-fabric/api.yaml:1108:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'desiredVersion' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1109,2)-(1110,0)]
+	Link:       runtime-fabric/api.yaml:1109:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'kubernetesVersion' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1110,2)-(1111,0)]
+	Link:       runtime-fabric/api.yaml:1110:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'createdAt' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1111,2)-(1112,0)]
+	Link:       runtime-fabric/api.yaml:1111:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'appliance' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1112,2)-(1114,0)]
+	Link:       runtime-fabric/api.yaml:1112:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'nodes' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1114,2)-(1137,0)]
+	Link:       runtime-fabric/api.yaml:1114:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'capacity' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1137,2)-(1146,0)]
+	Link:       runtime-fabric/api.yaml:1137:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'activationToken' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1146,2)-(1147,0)]
+	Link:       runtime-fabric/api.yaml:1146:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'message' not supported in a OAS 3.0 components node
+	Location:   file://api.yaml
+	Position:   [(1342,2)-(1343,0)]
+	Link:       runtime-fabric/api.yaml:1342:2
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    YAML map expected
+	Location:   file://api.yaml
+	Position:   [(38,21)-(38,21)]
+	Link:       runtime-fabric/api.yaml:38:21
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(24,8)-(26,0)]
+	Link:       runtime-fabric/api.yaml:24:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(24,8)-(26,0)]
+	Link:       runtime-fabric/api.yaml:24:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(75,8)-(77,0)]
+	Link:       runtime-fabric/api.yaml:75:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(75,8)-(77,0)]
+	Link:       runtime-fabric/api.yaml:75:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(168,8)-(170,0)]
+	Link:       runtime-fabric/api.yaml:168:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(168,8)-(170,0)]
+	Link:       runtime-fabric/api.yaml:168:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(170,8)-(172,0)]
+	Link:       runtime-fabric/api.yaml:170:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(170,8)-(172,0)]
+	Link:       runtime-fabric/api.yaml:170:8
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    YAML map expected
+	Location:   file://api.yaml
+	Position:   [(205,21)-(205,21)]
+	Link:       runtime-fabric/api.yaml:205:21
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(195,8)-(197,0)]
+	Link:       runtime-fabric/api.yaml:195:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(195,8)-(197,0)]
+	Link:       runtime-fabric/api.yaml:195:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(197,8)-(199,0)]
+	Link:       runtime-fabric/api.yaml:197:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(197,8)-(199,0)]
+	Link:       runtime-fabric/api.yaml:197:8
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    YAML map expected
+	Location:   file://api.yaml
+	Position:   [(254,21)-(254,21)]
+	Link:       runtime-fabric/api.yaml:254:21
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(219,8)-(221,0)]
+	Link:       runtime-fabric/api.yaml:219:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(219,8)-(221,0)]
+	Link:       runtime-fabric/api.yaml:219:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(221,8)-(223,0)]
+	Link:       runtime-fabric/api.yaml:221:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(221,8)-(223,0)]
+	Link:       runtime-fabric/api.yaml:221:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(261,8)-(263,0)]
+	Link:       runtime-fabric/api.yaml:261:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(261,8)-(263,0)]
+	Link:       runtime-fabric/api.yaml:261:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(263,8)-(265,0)]
+	Link:       runtime-fabric/api.yaml:263:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(263,8)-(265,0)]
+	Link:       runtime-fabric/api.yaml:263:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(304,8)-(306,0)]
+	Link:       runtime-fabric/api.yaml:304:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(304,8)-(306,0)]
+	Link:       runtime-fabric/api.yaml:304:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(306,8)-(308,0)]
+	Link:       runtime-fabric/api.yaml:306:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(306,8)-(308,0)]
+	Link:       runtime-fabric/api.yaml:306:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(354,8)-(356,0)]
+	Link:       runtime-fabric/api.yaml:354:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(354,8)-(356,0)]
+	Link:       runtime-fabric/api.yaml:354:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(356,8)-(358,0)]
+	Link:       runtime-fabric/api.yaml:356:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(356,8)-(358,0)]
+	Link:       runtime-fabric/api.yaml:356:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(366,8)-(368,0)]
+	Link:       runtime-fabric/api.yaml:366:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(366,8)-(368,0)]
+	Link:       runtime-fabric/api.yaml:366:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(368,8)-(370,0)]
+	Link:       runtime-fabric/api.yaml:368:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(368,8)-(370,0)]
+	Link:       runtime-fabric/api.yaml:368:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(422,8)-(424,0)]
+	Link:       runtime-fabric/api.yaml:422:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(422,8)-(424,0)]
+	Link:       runtime-fabric/api.yaml:422:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(424,8)-(426,0)]
+	Link:       runtime-fabric/api.yaml:424:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(424,8)-(426,0)]
+	Link:       runtime-fabric/api.yaml:424:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(441,8)-(443,0)]
+	Link:       runtime-fabric/api.yaml:441:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(441,8)-(443,0)]
+	Link:       runtime-fabric/api.yaml:441:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(443,8)-(445,0)]
+	Link:       runtime-fabric/api.yaml:443:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(443,8)-(445,0)]
+	Link:       runtime-fabric/api.yaml:443:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(463,8)-(465,0)]
+	Link:       runtime-fabric/api.yaml:463:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(463,8)-(465,0)]
+	Link:       runtime-fabric/api.yaml:463:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(465,8)-(467,0)]
+	Link:       runtime-fabric/api.yaml:465:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(465,8)-(467,0)]
+	Link:       runtime-fabric/api.yaml:465:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(477,8)-(479,0)]
+	Link:       runtime-fabric/api.yaml:477:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_organizationId_Path
+	Location:   file://api.yaml
+	Position:   [(477,8)-(479,0)]
+	Link:       runtime-fabric/api.yaml:477:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(479,8)-(481,0)]
+	Link:       runtime-fabric/api.yaml:479:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricId_Path
+	Location:   file://api.yaml
+	Position:   [(479,8)-(481,0)]
+	Link:       runtime-fabric/api.yaml:479:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(551,8)-(553,0)]
+	Link:       runtime-fabric/api.yaml:551:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(551,8)-(553,0)]
+	Link:       runtime-fabric/api.yaml:551:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(570,8)-(572,0)]
+	Link:       runtime-fabric/api.yaml:570:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(570,8)-(572,0)]
+	Link:       runtime-fabric/api.yaml:570:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(572,8)-(574,0)]
+	Link:       runtime-fabric/api.yaml:572:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(572,8)-(574,0)]
+	Link:       runtime-fabric/api.yaml:572:8
+
+	Constraint: http://a.ml/vocabularies/amf/core#syaml-error
+	Severity:   Violation
+	Message:    YAML map expected
+	Location:   file://api.yaml
+	Position:   [(611,21)-(611,21)]
+	Link:       runtime-fabric/api.yaml:611:21
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(595,8)-(597,0)]
+	Link:       runtime-fabric/api.yaml:595:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(595,8)-(597,0)]
+	Link:       runtime-fabric/api.yaml:595:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(597,8)-(599,0)]
+	Link:       runtime-fabric/api.yaml:597:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(597,8)-(599,0)]
+	Link:       runtime-fabric/api.yaml:597:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(648,8)-(650,0)]
+	Link:       runtime-fabric/api.yaml:648:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(648,8)-(650,0)]
+	Link:       runtime-fabric/api.yaml:648:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(650,8)-(652,0)]
+	Link:       runtime-fabric/api.yaml:650:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(650,8)-(652,0)]
+	Link:       runtime-fabric/api.yaml:650:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(710,8)-(712,0)]
+	Link:       runtime-fabric/api.yaml:710:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(710,8)-(712,0)]
+	Link:       runtime-fabric/api.yaml:710:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(712,8)-(714,0)]
+	Link:       runtime-fabric/api.yaml:712:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(712,8)-(714,0)]
+	Link:       runtime-fabric/api.yaml:712:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(740,8)-(742,0)]
+	Link:       runtime-fabric/api.yaml:740:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(740,8)-(742,0)]
+	Link:       runtime-fabric/api.yaml:740:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(742,8)-(744,0)]
+	Link:       runtime-fabric/api.yaml:742:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(742,8)-(744,0)]
+	Link:       runtime-fabric/api.yaml:742:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(775,8)-(777,0)]
+	Link:       runtime-fabric/api.yaml:775:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(775,8)-(777,0)]
+	Link:       runtime-fabric/api.yaml:775:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(777,8)-(779,0)]
+	Link:       runtime-fabric/api.yaml:777:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_groupId_Path
+	Location:   file://api.yaml
+	Position:   [(777,8)-(779,0)]
+	Link:       runtime-fabric/api.yaml:777:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(793,8)-(795,0)]
+	Link:       runtime-fabric/api.yaml:793:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(793,8)-(795,0)]
+	Link:       runtime-fabric/api.yaml:793:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(805,8)-(807,0)]
+	Link:       runtime-fabric/api.yaml:805:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(805,8)-(807,0)]
+	Link:       runtime-fabric/api.yaml:805:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#parameter-name-required
+	Severity:   Violation
+	Message:    'name' property is required in a parameter.
+	Location:   file://api.yaml
+	Position:   [(831,8)-(833,0)]
+	Link:       runtime-fabric/api.yaml:831:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#unresolved-parameter
+	Severity:   Violation
+	Message:    Cannot find parameter or payload reference XOrigin_fabricOrganizationId_Path
+	Location:   file://api.yaml
+	Position:   [(831,8)-(833,0)]
+	Link:       runtime-fabric/api.yaml:831:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_1' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1343,0)-(1345,0)]
+	Link:       runtime-fabric/api.yaml:1343:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'amf_example_2' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1345,0)-(1347,0)]
+	Link:       runtime-fabric/api.yaml:1345:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'example_0' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1347,0)-(1349,0)]
+	Link:       runtime-fabric/api.yaml:1347:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#closed-shape
+	Severity:   Violation
+	Message:    Property 'bad-rq' not supported in a OAS 3.0 webApi node
+	Location:   file://api.yaml
+	Position:   [(1349,0)-(2360,0)]
+	Link:       runtime-fabric/api.yaml:1349:0
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/Association'
+	Location:   file://api.yaml
+	Position:   [(764,16)-(765,0)]
+	Link:       runtime-fabric/api.yaml:764:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'AssociationPost'
+	Location:   file://api.yaml
+	Position:   [(656,14)-(657,0)]
+	Link:       runtime-fabric/api.yaml:656:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'ExternalLogForwarding'
+	Location:   file://api.yaml
+	Position:   [(392,16)-(393,0)]
+	Link:       runtime-fabric/api.yaml:392:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'LogFowarding'
+	Location:   file://api.yaml
+	Position:   [(272,16)-(273,0)]
+	Link:       runtime-fabric/api.yaml:272:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(65,16)-(66,0)]
+	Link:       runtime-fabric/api.yaml:65:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(118,16)-(119,0)]
+	Link:       runtime-fabric/api.yaml:118:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(133,16)-(134,0)]
+	Link:       runtime-fabric/api.yaml:133:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(150,16)-(151,0)]
+	Link:       runtime-fabric/api.yaml:150:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(621,16)-(622,0)]
+	Link:       runtime-fabric/api.yaml:621:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(638,16)-(639,0)]
+	Link:       runtime-fabric/api.yaml:638:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(668,16)-(669,0)]
+	Link:       runtime-fabric/api.yaml:668:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(683,16)-(684,0)]
+	Link:       runtime-fabric/api.yaml:683:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/type'
+	Location:   file://api.yaml
+	Position:   [(700,16)-(701,0)]
+	Link:       runtime-fabric/api.yaml:700:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'FabricHealth'
+	Location:   file://api.yaml
+	Position:   [(488,16)-(489,0)]
+	Link:       runtime-fabric/api.yaml:488:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'ExternalLogFwdTestMessageResponse'
+	Location:   file://api.yaml
+	Position:   [(452,16)-(453,0)]
+	Link:       runtime-fabric/api.yaml:452:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'type'
+	Location:   file://api.yaml
+	Position:   [(48,16)-(49,0)]
+	Link:       runtime-fabric/api.yaml:48:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/LogFowarding'
+	Location:   file://api.yaml
+	Position:   [(322,16)-(323,0)]
+	Link:       runtime-fabric/api.yaml:322:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/LogFowarding'
+	Location:   file://api.yaml
+	Position:   [(312,14)-(313,0)]
+	Link:       runtime-fabric/api.yaml:312:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'ImageRegistryCredential'
+	Location:   file://api.yaml
+	Position:   [(840,16)-(841,0)]
+	Link:       runtime-fabric/api.yaml:840:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'FabricPost'
+	Location:   file://api.yaml
+	Position:   [(81,14)-(82,0)]
+	Link:       runtime-fabric/api.yaml:81:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/DownloadableArtifact'
+	Location:   file://api.yaml
+	Position:   [(993,20)-(994,0)]
+	Link:       runtime-fabric/api.yaml:993:20
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/DownloadableArtifact'
+	Location:   file://api.yaml
+	Position:   [(995,20)-(996,0)]
+	Link:       runtime-fabric/api.yaml:995:20
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/DownloadableArtifact'
+	Location:   file://api.yaml
+	Position:   [(997,20)-(998,0)]
+	Link:       runtime-fabric/api.yaml:997:20
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/Runtime'
+	Location:   file://api.yaml
+	Position:   [(901,16)-(902,0)]
+	Link:       runtime-fabric/api.yaml:901:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/FabricGroup'
+	Location:   file://api.yaml
+	Position:   [(581,16)-(582,0)]
+	Link:       runtime-fabric/api.yaml:581:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'Association'
+	Location:   file://api.yaml
+	Position:   [(727,16)-(728,0)]
+	Link:       runtime-fabric/api.yaml:727:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'FabricPatch'
+	Location:   file://api.yaml
+	Position:   [(227,14)-(228,0)]
+	Link:       runtime-fabric/api.yaml:227:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'AssociationPatch'
+	Location:   file://api.yaml
+	Position:   [(754,14)-(755,0)]
+	Link:       runtime-fabric/api.yaml:754:14
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/ExternalLogForwarding'
+	Location:   file://api.yaml
+	Position:   [(379,18)-(380,0)]
+	Link:       runtime-fabric/api.yaml:379:18
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'file://api.yaml#/components/schemas/RuntimeTag'
+	Location:   file://api.yaml
+	Position:   [(962,16)-(963,0)]
+	Link:       runtime-fabric/api.yaml:962:16
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'RuntimeTag'
+	Location:   file://api.yaml
+	Position:   [(930,18)-(931,0)]
+	Link:       runtime-fabric/api.yaml:930:18
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'DownloadableArtifact'
+	Location:   file://api.yaml
+	Position:   [(991,20)-(992,0)]
+	Link:       runtime-fabric/api.yaml:991:20
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'Runtime'
+	Location:   file://api.yaml
+	Position:   [(877,18)-(878,0)]
+	Link:       runtime-fabric/api.yaml:877:18
+
+	Constraint: http://a.ml/vocabularies/amf/core#unresolved-reference
+	Severity:   Violation
+	Message:    Unresolved reference 'FabricGroup'
+	Location:   file://api.yaml
+	Position:   [(562,18)-(563,0)]
+	Link:       runtime-fabric/api.yaml:562:18
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(19,2)-(157,0)]
+	Link:       runtime-fabric/api.yaml:19:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(157,2)-(257,0)]
+	Link:       runtime-fabric/api.yaml:157:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(157,2)-(257,0)]
+	Link:       runtime-fabric/api.yaml:157:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(257,2)-(362,0)]
+	Link:       runtime-fabric/api.yaml:257:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(257,2)-(362,0)]
+	Link:       runtime-fabric/api.yaml:257:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(362,2)-(430,0)]
+	Link:       runtime-fabric/api.yaml:362:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(362,2)-(430,0)]
+	Link:       runtime-fabric/api.yaml:362:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(430,2)-(457,0)]
+	Link:       runtime-fabric/api.yaml:430:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(430,2)-(457,0)]
+	Link:       runtime-fabric/api.yaml:430:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(457,2)-(471,0)]
+	Link:       runtime-fabric/api.yaml:457:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(457,2)-(471,0)]
+	Link:       runtime-fabric/api.yaml:457:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(471,2)-(547,0)]
+	Link:       runtime-fabric/api.yaml:471:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(471,2)-(547,0)]
+	Link:       runtime-fabric/api.yaml:471:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(547,2)-(567,0)]
+	Link:       runtime-fabric/api.yaml:547:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(567,2)-(590,0)]
+	Link:       runtime-fabric/api.yaml:567:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(567,2)-(590,0)]
+	Link:       runtime-fabric/api.yaml:567:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(590,2)-(707,0)]
+	Link:       runtime-fabric/api.yaml:590:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(590,2)-(707,0)]
+	Link:       runtime-fabric/api.yaml:590:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(707,2)-(790,0)]
+	Link:       runtime-fabric/api.yaml:707:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(707,2)-(790,0)]
+	Link:       runtime-fabric/api.yaml:707:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(790,2)-(802,0)]
+	Link:       runtime-fabric/api.yaml:790:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(802,2)-(826,0)]
+	Link:       runtime-fabric/api.yaml:802:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(826,2)-(847,0)]
+	Link:       runtime-fabric/api.yaml:826:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(24,8)-(26,0)]
+	Link:       runtime-fabric/api.yaml:24:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(75,8)-(77,0)]
+	Link:       runtime-fabric/api.yaml:75:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(168,8)-(170,0)]
+	Link:       runtime-fabric/api.yaml:168:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(170,8)-(172,0)]
+	Link:       runtime-fabric/api.yaml:170:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(195,8)-(197,0)]
+	Link:       runtime-fabric/api.yaml:195:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(197,8)-(199,0)]
+	Link:       runtime-fabric/api.yaml:197:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(219,8)-(221,0)]
+	Link:       runtime-fabric/api.yaml:219:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(221,8)-(223,0)]
+	Link:       runtime-fabric/api.yaml:221:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(261,8)-(263,0)]
+	Link:       runtime-fabric/api.yaml:261:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(263,8)-(265,0)]
+	Link:       runtime-fabric/api.yaml:263:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(304,8)-(306,0)]
+	Link:       runtime-fabric/api.yaml:304:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(306,8)-(308,0)]
+	Link:       runtime-fabric/api.yaml:306:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(354,8)-(356,0)]
+	Link:       runtime-fabric/api.yaml:354:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(356,8)-(358,0)]
+	Link:       runtime-fabric/api.yaml:356:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(366,8)-(368,0)]
+	Link:       runtime-fabric/api.yaml:366:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(368,8)-(370,0)]
+	Link:       runtime-fabric/api.yaml:368:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(422,8)-(424,0)]
+	Link:       runtime-fabric/api.yaml:422:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(424,8)-(426,0)]
+	Link:       runtime-fabric/api.yaml:424:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(441,8)-(443,0)]
+	Link:       runtime-fabric/api.yaml:441:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(443,8)-(445,0)]
+	Link:       runtime-fabric/api.yaml:443:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(463,8)-(465,0)]
+	Link:       runtime-fabric/api.yaml:463:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(465,8)-(467,0)]
+	Link:       runtime-fabric/api.yaml:465:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(477,8)-(479,0)]
+	Link:       runtime-fabric/api.yaml:477:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(479,8)-(481,0)]
+	Link:       runtime-fabric/api.yaml:479:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(551,8)-(553,0)]
+	Link:       runtime-fabric/api.yaml:551:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(570,8)-(572,0)]
+	Link:       runtime-fabric/api.yaml:570:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(572,8)-(574,0)]
+	Link:       runtime-fabric/api.yaml:572:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(595,8)-(597,0)]
+	Link:       runtime-fabric/api.yaml:595:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(597,8)-(599,0)]
+	Link:       runtime-fabric/api.yaml:597:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(648,8)-(650,0)]
+	Link:       runtime-fabric/api.yaml:648:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(650,8)-(652,0)]
+	Link:       runtime-fabric/api.yaml:650:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(710,8)-(712,0)]
+	Link:       runtime-fabric/api.yaml:710:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(712,8)-(714,0)]
+	Link:       runtime-fabric/api.yaml:712:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(740,8)-(742,0)]
+	Link:       runtime-fabric/api.yaml:740:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(742,8)-(744,0)]
+	Link:       runtime-fabric/api.yaml:742:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(775,8)-(777,0)]
+	Link:       runtime-fabric/api.yaml:775:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(777,8)-(779,0)]
+	Link:       runtime-fabric/api.yaml:777:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(793,8)-(795,0)]
+	Link:       runtime-fabric/api.yaml:793:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(805,8)-(807,0)]
+	Link:       runtime-fabric/api.yaml:805:8
+
+	Constraint: http://a.ml/vocabularies/amf/parser#Parameter-binding-minCount
+	Severity:   Violation
+	Message:    'in' property of a Parameter object is mandatory
+	Location:   file://api.yaml
+	Position:   [(831,8)-(833,0)]
+	Link:       runtime-fabric/api.yaml:831:8
+

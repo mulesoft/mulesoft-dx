@@ -1,0 +1,366 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./mule-agent-plugin
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter componentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(661,2)-(957,0)]
+	Link:       mule-agent-plugin/api.yaml:661:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter componentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(957,2)-(1041,0)]
+	Link:       mule-agent-plugin/api.yaml:957:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter componentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1041,2)-(1125,0)]
+	Link:       mule-agent-plugin/api.yaml:1041:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter componentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1125,2)-(1340,0)]
+	Link:       mule-agent-plugin/api.yaml:1125:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[8] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5051,0)-(5096,0)]
+	Link:       mule-agent-plugin/api.yaml:5051:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[5].value should be array
+configurableFields[5].value should be boolean
+configurableFields[5].value should be equal to one of the allowed values
+configurableFields[5].value should be integer
+configurableFields[5].value should be null
+configurableFields[5].value should be string
+configurableFields[5].value should have required property 'applicationName'
+configurableFields[5].value should have required property 'artifactName'
+configurableFields[5].value should have required property 'category'
+configurableFields[5].value should have required property 'endpoint'
+configurableFields[5].value should have required property 'filePath'
+configurableFields[5].value should have required property 'name'
+configurableFields[5].value should have required property 'schedulers'
+configurableFields[5].value should have required property 'scopeLoggingConfigurations'
+configurableFields[5].value should have required property 'security'
+configurableFields[5].value should have required property 'value'
+configurableFields[5].value should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(5129,0)-(5174,0)]
+	Link:       mule-agent-plugin/api.yaml:5129:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(875,0)-(884,0)]
+	Link:       mule-agent-plugin/api.yaml:875:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[11] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5694,0)-(5754,0)]
+	Link:       mule-agent-plugin/api.yaml:5694:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[1] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5834,0)-(5844,0)]
+	Link:       mule-agent-plugin/api.yaml:5834:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(689,0)-(698,0)]
+	Link:       mule-agent-plugin/api.yaml:689:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[2].value should be array
+configurableFields[2].value should be boolean
+configurableFields[2].value should be equal to one of the allowed values
+configurableFields[2].value should be integer
+configurableFields[2].value should be null
+configurableFields[2].value should be string
+configurableFields[2].value should have required property 'applicationName'
+configurableFields[2].value should have required property 'artifactName'
+configurableFields[2].value should have required property 'category'
+configurableFields[2].value should have required property 'endpoint'
+configurableFields[2].value should have required property 'filePath'
+configurableFields[2].value should have required property 'name'
+configurableFields[2].value should have required property 'schedulers'
+configurableFields[2].value should have required property 'scopeLoggingConfigurations'
+configurableFields[2].value should have required property 'security'
+configurableFields[2].value should have required property 'value'
+configurableFields[2].value should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(5263,0)-(5293,0)]
+	Link:       mule-agent-plugin/api.yaml:5263:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[5].value should be array
+configurableFields[5].value should be boolean
+configurableFields[5].value should be equal to one of the allowed values
+configurableFields[5].value should be integer
+configurableFields[5].value should be null
+configurableFields[5].value should be string
+configurableFields[5].value should have required property 'applicationName'
+configurableFields[5].value should have required property 'artifactName'
+configurableFields[5].value should have required property 'category'
+configurableFields[5].value should have required property 'endpoint'
+configurableFields[5].value should have required property 'filePath'
+configurableFields[5].value should have required property 'name'
+configurableFields[5].value should have required property 'schedulers'
+configurableFields[5].value should have required property 'scopeLoggingConfigurations'
+configurableFields[5].value should have required property 'security'
+configurableFields[5].value should have required property 'value'
+configurableFields[5].value should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(5846,0)-(5891,0)]
+	Link:       mule-agent-plugin/api.yaml:5846:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[2].value should be array
+configurableFields[2].value should be boolean
+configurableFields[2].value should be equal to one of the allowed values
+configurableFields[2].value should be integer
+configurableFields[2].value should be null
+configurableFields[2].value should be string
+configurableFields[2].value should have required property 'applicationName'
+configurableFields[2].value should have required property 'artifactName'
+configurableFields[2].value should have required property 'category'
+configurableFields[2].value should have required property 'endpoint'
+configurableFields[2].value should have required property 'filePath'
+configurableFields[2].value should have required property 'name'
+configurableFields[2].value should have required property 'schedulers'
+configurableFields[2].value should have required property 'scopeLoggingConfigurations'
+configurableFields[2].value should have required property 'security'
+configurableFields[2].value should have required property 'value'
+configurableFields[2].value should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(4532,0)-(4562,0)]
+	Link:       mule-agent-plugin/api.yaml:4532:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[9].value should be boolean
+configurableFields[9].value should be equal to one of the allowed values
+configurableFields[9].value should be integer
+configurableFields[9].value should be null
+configurableFields[9].value should be object
+configurableFields[9].value should be string
+configurableFields[9].value should match some schema in anyOf
+configurableFields[9].value[0] should have required property 'attribute'
+configurableFields[9].value[0] should have required property 'beanQueryPattern'
+configurableFields[9].value[0] should have required property 'flowConfigurations'
+configurableFields[9].value[0] should have required property 'monitorMessage'
+configurableFields[9].value[0] should have required property 'name'
+configurableFields[9].value[0] should have required property 'override'
+configurableFields[9].value[0] should have required property 'properties'
+configurableFields[9].value[0] should have required property 'trackedFlows'
+configurableFields[9].value[0] should have required property 'value'
+
+	Location:   file://api.yaml
+	Position:   [(4564,0)-(4646,0)]
+	Link:       mule-agent-plugin/api.yaml:4564:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[8] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5768,0)-(5813,0)]
+	Link:       mule-agent-plugin/api.yaml:5768:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(1154,0)-(1163,0)]
+	Link:       mule-agent-plugin/api.yaml:1154:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[9].value should be boolean
+configurableFields[9].value should be equal to one of the allowed values
+configurableFields[9].value should be integer
+configurableFields[9].value should be null
+configurableFields[9].value should be object
+configurableFields[9].value should be string
+configurableFields[9].value should match some schema in anyOf
+configurableFields[9].value[0] should have required property 'attribute'
+configurableFields[9].value[0] should have required property 'beanQueryPattern'
+configurableFields[9].value[0] should have required property 'flowConfigurations'
+configurableFields[9].value[0] should have required property 'monitorMessage'
+configurableFields[9].value[0] should have required property 'name'
+configurableFields[9].value[0] should have required property 'override'
+configurableFields[9].value[0] should have required property 'properties'
+configurableFields[9].value[0] should have required property 'trackedFlows'
+configurableFields[9].value[0] should have required property 'value'
+
+	Location:   file://api.yaml
+	Position:   [(5295,0)-(5377,0)]
+	Link:       mule-agent-plugin/api.yaml:5295:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(1167,0)-(1176,0)]
+	Link:       mule-agent-plugin/api.yaml:1167:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[11] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(4977,0)-(5037,0)]
+	Link:       mule-agent-plugin/api.yaml:4977:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be string
+	Location:   file://api.yaml
+	Position:   [(6012,18)-(6012,23)]
+	Link:       mule-agent-plugin/api.yaml:6012:18
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(676,0)-(685,0)]
+	Link:       mule-agent-plugin/api.yaml:676:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[1] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5039,0)-(5049,0)]
+	Link:       mule-agent-plugin/api.yaml:5039:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(1274,0)-(1283,0)]
+	Link:       mule-agent-plugin/api.yaml:1274:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[1] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5756,0)-(5766,0)]
+	Link:       mule-agent-plugin/api.yaml:5756:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(761,0)-(770,0)]
+	Link:       mule-agent-plugin/api.yaml:761:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(862,0)-(871,0)]
+	Link:       mule-agent-plugin/api.yaml:862:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(774,0)-(783,0)]
+	Link:       mule-agent-plugin/api.yaml:774:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[1] should have required property 'value'
+	Location:   file://api.yaml
+	Position:   [(5117,0)-(5127,0)]
+	Link:       mule-agent-plugin/api.yaml:5117:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    configurableFields[0] should have required property 'configurableType'
+configurableFields[0] should have required property 'description'
+configurableFields[0] should have required property 'name'
+configurableFields[0] should have required property 'value'
+configurableFields[0] should have required property 'valueType'
+
+	Location:   file://api.yaml
+	Position:   [(1261,0)-(1270,0)]
+	Link:       mule-agent-plugin/api.yaml:1261:0
+

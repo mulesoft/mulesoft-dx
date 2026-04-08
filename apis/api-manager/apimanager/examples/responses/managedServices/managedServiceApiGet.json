@@ -1,0 +1,20 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2020-12-11T14:10:27.146Z"
+      },
+      "updated": {}
+    },
+    "masterOrganizationId": "070659af-a980-4d20-85fe-206102776980",
+    "organizationId": "070659af-a980-4d20-85fe-206102776980",
+    "id": 1,
+    "providerId": null,
+    "endpointUri": "example.com",
+    "environmentId": "b90acb62-8d59-4d86-ad80-fc7aeaebe1e4",
+    "instanceLabel": null,
+    "endpoint": {
+      "uri": "http://my.api.com"
+    }
+  }
+}

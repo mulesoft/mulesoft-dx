@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "CloudHub 2.0 API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "cloudhub-20-api",
+  "version": "1.0.22",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "90fb29276c1c1548afd446f2ea121847d0a153e2",
+    "projectId": "2e3b6a09-0a9a-4313-b7a2-b3dde6a49747"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

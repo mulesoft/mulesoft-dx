@@ -1,0 +1,20 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2018-10-04T18:54:11.844Z"
+      },
+      "updated": {
+        "date": "2018-10-04T18:55:59.952Z"
+      }
+    },
+    "id": 9,
+    "organizationId": "r0c4b021-980e-4928-9430-e60e3a97c789",
+    "masterOrganizationId": "r0c4b021-980e-4928-9430-e60e3a97c789",
+    "inbound": {
+      "secretGroupId": "8f5c4947-feea-4683-aa38-42ad97584d51",
+      "tlsContextId": "1d3b677a-7c9f-4c9b-b143-cf257835f9a8"
+    },
+    "outbound": null
+  }
+}

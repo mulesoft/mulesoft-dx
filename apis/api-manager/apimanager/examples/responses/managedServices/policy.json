@@ -1,0 +1,26 @@
+{
+  "value": {
+    "assetId": "client-id-enforcement",
+    "assetVersion": "1.2.2",
+    "audit": {
+      "created": {
+        "date": "2021-01-14T19:56:48.538Z"
+      },
+      "updated": {}
+    },
+    "configurationData": {
+      "clientIdExpression": "#[attributes.headers['client_id']]",
+      "clientSecretExpression": "#[attributes.headers['client_secret']]",
+      "credentialsOriginHasHttpBasicAuthenticationHeader": "customExpression"
+    },
+    "disabled": false,
+    "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+    "id": 960668,
+    "managedServiceApiId": 1148719,
+    "masterOrganizationId": "a6490194-2d13-4d87-a42a-cee9eb39de4f",
+    "order": 1,
+    "organizationId": "a6490194-2d13-4d87-a42a-cee9eb39de4f",
+    "pointcutData": null,
+    "policyTemplateId": "1193"
+  }
+}

@@ -1,0 +1,183 @@
+Page:
+  type: object
+  properties:
+    path:
+      title: Path
+      type: string
+    name:
+      title: Name
+      type: string
+
+Pages:
+  type: array
+  items:
+    $ref: '#/Page'
+
+PortalPages:
+  type: object
+  properties:
+    draftStatus:
+      title: DraftStatus
+      type: string
+      enum:
+        - PUBLISHED
+        - NOT_PUBLISHED
+    pages:
+      title: Pages
+      $ref: '#/Pages'
+
+PortalDiffs:
+  type: array
+  title: Diffs
+  items:
+    title: Diff
+    type: object
+    properties:
+      changeType:
+        title: Change Type
+        type: string
+      diff:
+        title: Diff description
+        type: string
+      newMode:
+        title: New Mode
+        type: string
+      newPath:
+        title: New Path
+        type: string
+      oldMode:
+        title: Old Mode
+        type: string
+      oldPath:
+        title: Old Path
+        type: string
+
+CreatePage:
+  type: object
+  properties:
+    pagePath:
+      title: Page Path
+      type: string
+  required:
+    - pagePath
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+PortalPages1:
+  type: object
+  properties:
+    draftStatus:
+      title: DraftStatus
+      type: string
+      enum:
+        - PUBLISHED
+        - NOT_PUBLISHED
+    pages:
+      title: Pages
+      $ref: '#/Pages'
+
+PortalPages2:
+  type: object
+  properties:
+    draftStatus:
+      title: DraftStatus
+      type: string
+      enum:
+        - PUBLISHED
+        - NOT_PUBLISHED
+    pages:
+      title: Pages
+      $ref: '#/Pages'
+
+Page1:
+  type: object
+  properties:
+    path:
+      title: Path
+      type: string
+    name:
+      title: Name
+      type: string
+
+Page2:
+  type: object
+  properties:
+    path:
+      title: Path
+      type: string
+    name:
+      title: Name
+      type: string
+
+Page3:
+  type: object
+  properties:
+    path:
+      title: Path
+      type: string
+    name:
+      title: Name
+      type: string
+
+Page4:
+  type: object
+  properties:
+    path:
+      title: Path
+      type: string
+    name:
+      title: Name
+      type: string
+
+Pages1:
+  type: array
+  items:
+    $ref: '#/Page'
+
+Pages2:
+  type: array
+  items:
+    $ref: '#/Page'
+
+Pages3:
+  type: array
+  items:
+    $ref: '#/Page'
+
+Pages4:
+  type: array
+  items:
+    $ref: '#/Page'
+
+Pages5:
+  type: array
+  items:
+    $ref: '#/Page'
+
+CreatePage1:
+  type: object
+  properties:
+    pagePath:
+      title: Page Path
+      type: string
+  required:
+    - pagePath
+
+CreatePage2:
+  type: object
+  properties:
+    pagePath:
+      title: Page Path
+      type: string
+  required:
+    - pagePath
+
+CreatePage3:
+  type: object
+  properties:
+    pagePath:
+      title: Page Path
+      type: string
+  required:
+    - pagePath

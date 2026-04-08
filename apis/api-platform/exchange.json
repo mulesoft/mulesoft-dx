@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "API Platform API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "api-platform-api",
+  "version": "2.0.7",
+  "metadata": {
+    "branchId": "v2",
+    "commitId": "64982f3db3e7c726f5d569326f19291f0fa0903d",
+    "projectId": "633ccecf-4a02-43de-ab79-31678886a656"
+  },
+  "apiVersion": "v2",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

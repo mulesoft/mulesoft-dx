@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "description": "Client to be imported ID. Can be found in the external client provider",
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9-_.~]*$"
+    },
+    "providerId": {
+      "description": "External client provider ID. Can be obtained from Access Management",
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["clientId", "providerId"]
+}

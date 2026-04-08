@@ -1,0 +1,41 @@
+{
+  "value": {
+    "automatedPolicies": [
+      {
+        "audit": {
+          "created": {
+            "date": "2018-11-23T14:37:08.953Z"
+          },
+          "updated": {}
+        },
+        "id": 11,
+        "ruleOfApplication": {
+          "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+          "environmentId": "5d15a77c-0d35-400e-9a90-61d0beb09409",
+          "range": {
+            "from": "4.1.1",
+            "to": "4.3.x"
+          }
+        },
+        "policyTemplateId": "2",
+        "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+        "assetId": "rate-limiting",
+        "assetVersion": "1.0.0",
+        "configurationData": {
+          "rateLimits": [
+            {
+              "timePeriodInMilliseconds": 60000,
+              "maximumRequests": 3
+            }
+          ],
+          "clusterizable": true,
+          "exposeHeaders": true
+        },
+        "pointcutData": null,
+        "order": null,
+        "disabled": false
+      }
+    ],
+    "total": 1
+  }
+}

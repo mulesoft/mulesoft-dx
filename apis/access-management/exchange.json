@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Access Management API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "access-management-api",
+  "version": "1.0.45",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "6b4befb8568935f370f42d5daa0b9e9bc4f1f331",
+    "projectId": "3e832343-e433-4932-ac05-e7e48e6e742f"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

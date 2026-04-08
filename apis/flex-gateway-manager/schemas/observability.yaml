@@ -1,0 +1,29 @@
+components:
+  schemas:
+    # Base schemas
+    ObservabilityPayload:
+      type: object
+      properties:
+        data:
+          type: array
+        metadata:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                self:
+                  type: string
+                  format: uri
+                prev:
+                  type: string
+                  nullable: true
+                  format: uri
+                next:
+                  type: string
+                  nullable: true
+                  format: uri
+                queryMethod:
+                  type: string
+                query:
+                  type: string

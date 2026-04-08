@@ -1,0 +1,4803 @@
+openapi: 3.0.0
+info:
+  title: CH2 Management API
+  version: 1.0.0
+  description: Manage Private Spaces, connections, egress and ingress configurations, IAM roles, and logs for CloudHub 2.0.
+servers:
+- url: https://anypoint.mulesoft.com/runtimefabric/api
+- url: https://eu1.anypoint.mulesoft.com/runtimefabric/api
+- url: https://{region}.platform.mulesoft.com/runtimefabric/api
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations/{organizationId}/privatespaces:
+    description: The collection of privatespaces
+    get:
+      description: get the list of Private Spaces in the organization.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  private-space-list:
+                  - id: b72b876d-f63d-11e7-a06c-080027adee7c
+                    name: my-private-space-1
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7e
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7e
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules:
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8081
+                      toPort: 8081
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8082
+                      toPort: 8082
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 0
+                      toPort: 65535
+                      type: outbound
+                    environments:
+                      type: all
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      maxReadTimeout: 5000
+                  - id: b72b876d-f63d-11e7-a06c-080027adee7d
+                    name: my-private-space-2
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7e
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7e
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules: []
+                    environments:
+                      type: sandbox
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      maxReadTimeout: 5000
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidPrivatespaces
+    post:
+      description: create a Private Space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpacePost'
+        x-amf-mediaType: application/json
+        description: The privatespaces data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new privatespace can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: b72b876d-f63d-11e7-a06c-080027adee7c
+                    name: my-private-space
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules:
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8081
+                      toPort: 8081
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8082
+                      toPort: 8082
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 0
+                      toPort: 65535
+                      type: outbound
+                    environments:
+                      type: all
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      readResponseTimeout: 300
+                      logs:
+                        portLogLevel: ERROR
+                        filters: []
+                      protocol: https-redirect
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: createOrganizationsByOrganizationidPrivatespaces
+  /organizations/{organizationId}/privatespaces/supportedVpnConfigs:
+    get:
+      description: get supported vpn configs
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPrivatespacesSupportedvpnconfigs
+  /organizations/{organizationId}/privatespaces/monthlypatchwindow:
+    get:
+      description: get the latest upcoming monthly patch window schedule
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfraPatchWindowInfo'
+              example:
+                releaseYear: 2024
+                releaseMonth: MARCH
+                sandboxStartDate: &id005 2024-03-18 00:00:00+00:00
+                sandboxEndDate: &id006 2024-03-22 23:59:59.999000+00:00
+                productionStartDate: &id007 2024-03-23 00:00:00+00:00
+                productionEndDate: &id008 2024-03-24 23:59:59.999000+00:00
+      operationId: getOrganizationsByOrganizationidPrivatespacesMonthlypatchwindow
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}:
+    description: Get an entity representing a privatespace
+    delete:
+      description: delete the Private Space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceid
+    get:
+      description: get the Private Space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: b72b876d-f63d-11e7-a06c-080027adee7c
+                    name: my-private-space
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules:
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8081
+                      toPort: 8081
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8082
+                      toPort: 8082
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 0
+                      toPort: 65535
+                      type: outbound
+                    environments:
+                      type: all
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      readResponseTimeout: 300
+                      logs:
+                        portLogLevel: ERROR
+                        filters: []
+                      protocol: https-redirect
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceid
+    patch:
+      description: Update existing Private Space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpacePatch'
+        x-amf-mediaType: application/json
+        description: The privatespaces data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: b72b876d-f63d-11e7-a06c-080027adee7c
+                    name: my-private-space
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules:
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8081
+                      toPort: 8081
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8082
+                      toPort: 8082
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 0
+                      toPort: 65535
+                      type: outbound
+                    environments:
+                      type: all
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      readResponseTimeout: 300
+                      logs:
+                        portLogLevel: ERROR
+                        filters: []
+                      protocol: https-redirect
+              example: {}
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/associations:
+    post:
+      description: create associations for Private space with business groups and environments
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssociationPostPayload'
+        x-amf-mediaType: application/json
+        description: The associations data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                - id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                  environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                  organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                - id: 79810eb2-c999-4104-b650-31ea2962a200
+                  environmentId: 3e9d5bde-6ef7-4947-9f98-0f7c32d48909
+                  organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                type: array
+                items:
+                  $ref: '#/components/schemas/Association'
+              example: *id001
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidAssociations
+    get:
+      description: get all associations of a private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                - id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                  environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                  organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                - id: 79810eb2-c999-4104-b650-31ea2962a200
+                  environmentId: 3e9d5bde-6ef7-4947-9f98-0f7c32d48909
+                  organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                type: array
+                items:
+                  $ref: '#/components/schemas/Association'
+              example: *id002
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidAssociations
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/associations/{associationId}:
+    get:
+      description: get a specific associations of a private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: associationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The association ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+              example: &id009
+                id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidAssociationsByAssociationid
+    delete:
+      description: delete an association
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: associationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The association ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidAssociationsByAssociationid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/ports:
+    get:
+      description: Get the next set of available ports.
+      parameters:
+      - name: available
+        description: Return next free/available ports
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: count
+        description: Size of the available port list between 1 to 10
+        required: true
+        in: query
+        schema:
+          type: integer
+          maximum: 10
+          default: 1
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ports'
+              example:
+                ports:
+                - 0
+        '409':
+          description: All the available ports for the space are in use.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidPorts
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/iamroles:
+    get:
+      description: get the IAM roles associated with the space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IAMRole'
+              example:
+                roles:
+                - string
+                organizationId: string
+                spaceId: string
+                message: string
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidIamroles
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/accounts:
+    get:
+      description: get the AWS account Id a string value.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidAccounts
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/upgrade:
+    patch:
+      description: Either upgrade now or (re)schedule an upgrade later
+      parameters:
+      - name: date
+        required: false
+        in: query
+        schema:
+          type: string
+        description: The date query parameter.
+      - name: optIn
+        required: true
+        in: query
+        schema:
+          type: boolean
+        description: The optIn query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfraUpdateInfo'
+              example:
+                scheduledUpdateTime: &id003 2024-02-28 17:57:36+00:00
+                status: QUEUED
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidUpgrade
+    delete:
+      description: cancel a scheduled upgrade
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidUpgrade
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/upgradestatus:
+    get:
+      description: get the upgrade status of the space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfraUpdateInfo'
+              example:
+                scheduledUpdateTime: *id003
+                status: QUEUED
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidUpgradestatus
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/egress:
+    post:
+      description: create an egress rule group
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/EgressRuleGroupPayload'
+        description: The egress data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EgressRuleGroup'
+              example:
+                id: string
+                name: string
+                rules:
+                - id: string
+                  type: string
+                isDefault: true
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidEgress
+    get:
+      description: get all egress rule groups of a private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                - id: 65f106d7-5e39-474d-8224-28d92d00b210
+                  name: example-rule-group
+                  rules:
+                  - domains:
+                    - example.com
+                    protocol: tcp
+                    fromPort: 1
+                    toPort: 65535
+                    description: ''
+                type: array
+                items:
+                  $ref: '#/components/schemas/EgressRuleGroup'
+              example: *id004
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidEgress
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/egress/{ruleGroupId}:
+    delete:
+      description: delete egress rule group
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: ruleGroupId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The ruleGroup ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidEgressByRulegroupid
+    get:
+      description: get a specific egress rule group
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: ruleGroupId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The ruleGroup ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EgressRuleGroup'
+              example:
+                id: string
+                name: string
+                rules:
+                - id: string
+                  type: string
+                isDefault: true
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidEgressByRulegroupid
+    patch:
+      description: Update egress rule group.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: ruleGroupId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The ruleGroup ID to identify the target resource.
+      requestBody:
+        $ref: '#/components/requestBodies/EgressRuleGroupPayload'
+        description: The egress data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EgressRuleGroup'
+              example:
+                id: string
+                name: string
+                rules:
+                - id: string
+                  type: string
+                isDefault: true
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidEgressByRulegroupid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/routes:
+    get:
+      description: get the list of CIDR's in the private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrivateSpaceRoute'
+              example:
+              - id: string
+                type: string
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidRoutes
+    patch:
+      description: Update the CIDRs that the Cloudhub VPC will send traffic to via the IGW.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceNetworkRoutesPatch'
+        x-amf-mediaType: application/json
+        description: The routes data to update.
+      responses:
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrivateSpaceRoute'
+              example:
+              - id: string
+                type: string
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidRoutes
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/connections:
+    description: The collection of connections
+    get:
+      description: get the list of Connections inside the private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  private-space-list:
+                  - id: 83d77850-04ee-4368-8122-192f760913de
+                    name: hello-connection
+                    vpns:
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913de
+                      name: test-vpn-dev
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.4
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913df
+                      name: test-vpn-dev-bak
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.5
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
+    post:
+      description: create a Private Space Connection
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceConnectionPost'
+        x-amf-mediaType: application/json
+        description: The connections data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new connection can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: hello-connection
+                    vpns:
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913de
+                      name: test-vpn-dev
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.4
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+                    - id: vpn-1234556
+                      name: test-vpn-dev-bak
+                      vpnId: 83d77850-04ee-4368-8122-192f760913df
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.5
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/connections/{connectionId}:
+    description: Get an entity representing a connection
+    delete:
+      description: delete the Private Space Connection
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsByConnectionid
+    get:
+      description: get the Private Space Connection
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: hello-connection
+                    vpns:
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913de
+                      name: test-vpn-dev
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.4
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+                    - id: vpn-1234556
+                      name: test-vpn-dev-bak
+                      vpnId: 83d77850-04ee-4368-8122-192f760913df
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.5
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsByConnectionid
+    patch:
+      description: Update existing Private Space Connection
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceConnectionPatch'
+        x-amf-mediaType: application/json
+        description: The connections data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateSpaceConnection'
+              example:
+                id: string
+                name: string
+                vpns:
+                - id: string
+                  type: string
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: hello-connection
+                    vpns:
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913de
+                      name: test-vpn-dev
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.4
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+                    - id: vpn-1234556
+                      name: test-vpn-dev-bak
+                      vpnId: 83d77850-04ee-4368-8122-192f760913df
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.5
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+              example: {}
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsByConnectionid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/connections/vpns:
+    post:
+      description: add a vpn to an existing connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new vpn can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: hello-connection
+                    vpns:
+                    - id: vpn-1234556
+                      vpnId: 83d77850-04ee-4368-8122-192f760913de
+                      name: test-vpn-dev
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.4
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+                    - id: vpn-1234556
+                      name: test-vpn-dev-bak
+                      vpnId: 83d77850-04ee-4368-8122-192f760913df
+                      localAsn: 65001
+                      remoteAsn: 65002
+                      remoteIpAddress: 1.2.3.5
+                      connectionStatus: available
+                      staticRoutes: []
+                      vpnTunnels: []
+                      vpnTunnelsConfig: []
+              example: {}
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsVpns
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/connections/vpns/{vpnId}:
+    delete:
+      description: delete a vpn from a connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: vpnId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The vpn ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsVpnsByVpnid
+    patch:
+      description: delete a vpn from a connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: vpnId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The vpn ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceConnectionVpnPatch'
+        x-amf-mediaType: application/json
+        description: The vpns data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateSpaceConnectionVpnPatch'
+              example:
+                id: string
+                name: string
+                remoteAsn: 0.0
+                localAsn: 0.0
+                remoteIpAddress: string
+                staticRoutes:
+                - string
+                vpnTunnels:
+                - id: string
+                  type: string
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsVpnsByVpnid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/connections/vpns/{vpnId}/connectionGuide:
+    description: download connection guide for vpn.
+    get:
+      parameters:
+      - name: vendor
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The vendor query parameter.
+      - name: platform
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The platform query parameter.
+      - name: software
+        required: true
+        in: query
+        schema:
+          type: string
+        description: The software query parameter.
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: vpnId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The vpn ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnectionsVpnsByVpnidConnectionguide
+      description: Retrieves a connectionGuide.
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/transitgateways:
+    description: The collection of transitgateways
+    get:
+      description: get list of TGW connections assocated with a private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  private-space-tgw-connection-list:
+                  - id: 83d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha1
+                    spec:
+                      resourceShare:
+                        id: 5e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space1
+                    status:
+                      gateway: unknown
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+                  - id: 73d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha2
+                    spec:
+                      resourceShare:
+                        id: 4e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space2
+                    status:
+                      gateway: available
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+                  - id: 63d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha3
+                    spec:
+                      resourceShare:
+                        id: 3e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space3
+                    status:
+                      gateway: available
+                      attachment: Pending PrivateSpace Attachment
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgateways
+    post:
+      description: create a private space TGW connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceTransitGatewayPost'
+        x-amf-mediaType: application/json
+        description: The transitgateways data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new transitgateway can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha
+                    spec:
+                      resourceShare:
+                        id: 5e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      networkIds:
+                      - network-deployment-id1
+                      spaceName: space
+                    status:
+                      gateway: unknown
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgateways
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/transitgateways/{tgwId}:
+    description: Get an entity representing a transitgateway
+    delete:
+      description: Detach a Transit Gateway from the Private Space
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_tgwId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysByTgwid
+    patch:
+      description: patch the Private Space TGW Connection
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_tgwId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateSpaceTransitGatewayPatch'
+        x-amf-mediaType: application/json
+        description: The transitgateways data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateSpaceTransitGateway'
+              example:
+                id: string
+                name: string
+                accountId: string
+                spec:
+                  id: string
+                  type: string
+                status:
+                  id: string
+                  type: string
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha
+                    spec:
+                      resourceShare:
+                        id: 5e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      networkIds:
+                      - network-deployment-id1
+                      spaceName: space
+                    status:
+                      gateway: unknown
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+              example: {}
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysByTgwid
+    get:
+      description: 'Get the transitgateway
+
+        with id =
+
+        {transitgatewayId}
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_tgwId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 83d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha
+                    spec:
+                      resourceShare:
+                        id: 5e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      networkIds:
+                      - network-deployment-id1
+                      spaceName: space
+                    status:
+                      gateway: unknown
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysByTgwid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/transitgateways/{tgwId}/routes:
+    patch:
+      description: patch routes for a TGW connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_tgwId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        x-amf-mediaType: application/json
+        description: The routes data to update.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysByTgwidRoutes
+    get:
+      description: get TGW routes configured to tgw connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - $ref: '#/components/parameters/XOrigin_tgwId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysByTgwidRoutes
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/transitgateways/routes:
+    get:
+      description: get TGW routes configured to private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgatewaysRoutes
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/tlsContexts:
+    description: The collection of tlsContexts
+    get:
+      description: get the list of TLS contexts inside the private space.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  private-space-list:
+                  - id: 9b4832de-4177-4d0d-a665-6ce205c1e1be
+                    name: certs with trust store and key store
+                    trustStore:
+                      fileName: cert.pem
+                      expirationDate: 2022-08-13
+                      dnList:
+                      - issuer:
+                          commonName: www.example.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example
+                          organizationUnit: Engineering
+                          state: CA
+                        subject:
+                          commonName: www.example2.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example2
+                          organizationUnit: Engineering
+                          state: CA
+                        version: '3'
+                        serialNumber: CHD08323DSD
+                        signatureAlgorithm: SHA256WITHRSA
+                        publicKeyAlgorithm: RSA
+                        basicConstraints:
+                          certificateAuthority: true
+                        validity:
+                          notBefore: 2018-06-15 16:57:39
+                          notAfter: 2048-07-27 16:57:39
+                        keyUsage:
+                        - Digital Signature
+                        - Non Repudiation
+                        - Key CertSign
+                        - CRL Sign
+                        certificateType: X.509
+                      - issuer:
+                          commonName: www.example.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example
+                          organizationUnit: Engineering
+                          state: CA
+                        subject:
+                          commonName: www.example2.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example2
+                          organizationUnit: Engineering
+                          state: CA
+                        version: '3'
+                        serialNumber: CHD08323DSD
+                        signatureAlgorithm: SHA256WITHRSA
+                        publicKeyAlgorithm: RSA
+                        basicConstraints:
+                          certificateAuthority: true
+                        validity:
+                          notBefore: 2018-06-15 16:57:39
+                          notAfter: 2048-07-27 16:57:39
+                        keyUsage:
+                        - Digital Signature
+                        - Non Repudiation
+                        - Key CertSign
+                        - CRL Sign
+                        certificateType: X.509
+                      type: PEM
+                    keyStore:
+                      fileName: cert.pem
+                      type: PEM
+                      cn: www.example.com
+                      san: []
+                      expirationDate: 2022-08-13
+                    ciphers:
+                      aes128GcmSha256: true
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+                  - id: 46247f26-d1ca-44a5-aa48-13dc1dfc2211
+                    name: certs with key store
+                    keyStore:
+                      fileName: keyStore.pem
+                      type: PEM
+                      cn: '*.backend-service.com'
+                      san:
+                      - www.fantastic.com
+                      - '*.incredible.com'
+                      expirationDate: 2023-10-21
+                    ciphers:
+                      aes128GcmSha256: false
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+                  - id: 646d79fd-2e44-4701-b4b3-21f21653e270
+                    name: certs with key store
+                    keyStore:
+                      fileName: keyStore.jks
+                      type: JKS
+                      alias: special
+                      cn: '*.special.com'
+                      san:
+                      - '*.test.com'
+                      - shopper.example.com
+                      expirationDate: 2022-11-11
+                    ciphers:
+                      aes128GcmSha256: false
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+                  - id: 646d79fd-2e44-4701-b4b3-21f21653e270
+                    name: Default cert
+                    keyStore:
+                      fileName: keyStore.pem
+                      type: PEM
+                      cn: '*.test.cloudhub.io'
+                      san:
+                      - test.cloudhub.io
+                      expirationDate: 2021-08-11
+                    ciphers:
+                      aes128GcmSha256: false
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: default
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTlscontexts
+    post:
+      description: create a TLS context
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-amf-examples:
+                create-request-pem:
+                  name: test
+                  tlsConfig:
+                    keyStore:
+                      source: PEM
+                      certificate: '-----BEGIN CERTIFICATE-----
+
+                        replace with encrypted data
+
+                        -----END CERTIFICATE-----'
+                      key: '-----BEGIN ENCRYPTED PRIVATE KEY-----
+
+                        replace with encrypted data
+
+                        -----END ENCRYPTED PRIVATE KEY-----'
+                      keyPassphrase: password123
+                      keyFileName: test.pem
+                      certificateFileName: certificateF.pem
+                  ciphers:
+                    aes128GcmSha256: true
+                    aes128Sha256: false
+                    aes256GcmSha384: false
+                    aes256Sha256: false
+                    dheRsaAes128Sha256: false
+                    dheRsaAes256GcmSha384: false
+                    dheRsaAes256Sha256: false
+                    ecdheEcdsaAes128GcmSha256: true
+                    ecdheEcdsaAes128Sha1: false
+                    ecdheEcdsaAes256GcmSha384: true
+                    ecdheEcdsaAes256Sha1: false
+                    ecdheRsaAes128GcmSha256: true
+                    ecdheRsaAes128Sha1: false
+                    ecdheRsaAes256GcmSha384: true
+                    ecdheRsaAes256Sha1: false
+                    ecdheEcdsaChacha20Poly1305: false
+                    ecdheRsaChacha20Poly1305: false
+                    dheRsaChacha20Poly1305: false
+                    tlsAes256GcmSha384: true
+                    tlsChacha20Poly1305Sha256: true
+                    tlsAes128GcmSha256: true
+                create-request-jks:
+                  name: test
+                  tlsConfig:
+                    keyStore:
+                      source: JKS
+                      keystoreBase64: replace with base64 encoded keystore
+                      keyPassphrase: password123
+                      storePassphrase: password123
+                      alias: special
+                      keystoreFileName: special.jks
+                  ciphers:
+                    aes128GcmSha256: true
+                    aes128Sha256: false
+                    aes256GcmSha384: false
+                    aes256Sha256: false
+                    dheRsaAes128Sha256: false
+                    dheRsaAes256GcmSha384: false
+                    dheRsaAes256Sha256: false
+                    ecdheEcdsaAes128GcmSha256: true
+                    ecdheEcdsaAes128Sha1: false
+                    ecdheEcdsaAes256GcmSha384: true
+                    ecdheEcdsaAes256Sha1: false
+                    ecdheRsaAes128GcmSha256: true
+                    ecdheRsaAes128Sha1: false
+                    ecdheRsaAes256GcmSha384: true
+                    ecdheRsaAes256Sha1: false
+                    ecdheEcdsaChacha20Poly1305: false
+                    ecdheRsaChacha20Poly1305: false
+                    dheRsaChacha20Poly1305: false
+                    tlsAes256GcmSha384: true
+                    tlsChacha20Poly1305Sha256: true
+                    tlsAes128GcmSha256: true
+              x-amf-union:
+              - $ref: '#/components/schemas/PrivateSpaceTlsContextJksPost'
+              - $ref: '#/components/schemas/PrivateSpaceTlsContextPemPost'
+        x-amf-mediaType: application/json
+        description: The tlsContexts data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new tlsContext can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: 9b4832de-4177-4d0d-a665-6ce205c1e1be
+                    name: certs with trust store and key store
+                    trustStore:
+                      fileName: cert.pem
+                      expirationDate: 2022-08-13
+                      dnList:
+                      - issuer:
+                          commonName: www.example.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example
+                          organizationUnit: Engineering
+                          state: CA
+                        subject:
+                          commonName: www.example2.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example2
+                          organizationUnit: Engineering
+                          state: CA
+                        version: '3'
+                        serialNumber: CHD08323DSD
+                        signatureAlgorithm: SHA256WITHRSA
+                        publicKeyAlgorithm: RSA
+                        basicConstraints:
+                          certificateAuthority: true
+                        validity:
+                          notBefore: 2018-06-15 16:57:39
+                          notAfter: 2048-07-27 16:57:39
+                        keyUsage:
+                        - Digital Signature
+                        - Non Repudiation
+                        - Key CertSign
+                        - CRL Sign
+                        certificateType: X.509
+                      type: PEM
+                    keyStore:
+                      fileName: cert.pem
+                      type: PEM
+                      cn: www.example.com
+                      san: []
+                      expirationDate: 2022-08-13
+                    ciphers:
+                      aes128GcmSha256: true
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: createOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTlscontexts
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/tlsContexts/{contextId}:
+    description: Get an entity representing a tlsContext
+    delete:
+      description: delete the TLS context
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: contextId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The context ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTlscontextsByContextid
+    get:
+      description: get the TLS context
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: contextId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The context ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 9b4832de-4177-4d0d-a665-6ce205c1e1be
+                    name: certs with trust store and key store
+                    trustStore:
+                      fileName: cert.pem
+                      expirationDate: 2022-08-13
+                      dnList:
+                      - issuer:
+                          commonName: www.example.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example
+                          organizationUnit: Engineering
+                          state: CA
+                        subject:
+                          commonName: www.example2.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example2
+                          organizationUnit: Engineering
+                          state: CA
+                        version: '3'
+                        serialNumber: CHD08323DSD
+                        signatureAlgorithm: SHA256WITHRSA
+                        publicKeyAlgorithm: RSA
+                        basicConstraints:
+                          certificateAuthority: true
+                        validity:
+                          notBefore: 2018-06-15 16:57:39
+                          notAfter: 2048-07-27 16:57:39
+                        keyUsage:
+                        - Digital Signature
+                        - Non Repudiation
+                        - Key CertSign
+                        - CRL Sign
+                        certificateType: X.509
+                      type: PEM
+                    keyStore:
+                      fileName: cert.pem
+                      type: PEM
+                      cn: www.example.com
+                      san: []
+                      expirationDate: 2022-08-13
+                    ciphers:
+                      aes128GcmSha256: true
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+              example: {}
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+              example:
+                message: Operation completed successfully.
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTlscontextsByContextid
+    patch:
+      description: Update an existing TLS context
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      - name: contextId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The context ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateSpaceTlsContext'
+              example:
+                id: string
+                name: string
+                trustStore:
+                  id: string
+                  type: string
+                keyStore:
+                  id: string
+                  type: string
+                ciphers:
+                  id: string
+                  type: string
+                type: string
+        '202':
+          description: Request accepted for processing.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  response:
+                    id: 9b4832de-4177-4d0d-a665-6ce205c1e1be
+                    name: certs with trust store and key store
+                    trustStore:
+                      fileName: cert.pem
+                      expirationDate: 2022-08-13
+                      dnList:
+                      - issuer:
+                          commonName: www.example.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example
+                          organizationUnit: Engineering
+                          state: CA
+                        subject:
+                          commonName: www.example2.com
+                          countryName: US
+                          localityName: SF
+                          organizationName: Example2
+                          organizationUnit: Engineering
+                          state: CA
+                        version: '3'
+                        serialNumber: CHD08323DSD
+                        signatureAlgorithm: SHA256WITHRSA
+                        publicKeyAlgorithm: RSA
+                        basicConstraints:
+                          certificateAuthority: true
+                        validity:
+                          notBefore: 2018-06-15 16:57:39
+                          notAfter: 2048-07-27 16:57:39
+                        keyUsage:
+                        - Digital Signature
+                        - Non Repudiation
+                        - Key CertSign
+                        - CRL Sign
+                        certificateType: X.509
+                      type: PEM
+                    keyStore:
+                      fileName: cert.pem
+                      type: PEM
+                      cn: www.example.com
+                      san: []
+                      expirationDate: 2022-08-13
+                    ciphers:
+                      aes128GcmSha256: true
+                      aes128Sha256: false
+                      aes256GcmSha384: false
+                      aes256Sha256: false
+                      dheRsaAes128Sha256: false
+                      dheRsaAes256GcmSha384: false
+                      dheRsaAes256Sha256: false
+                      ecdheEcdsaAes128GcmSha256: true
+                      ecdheEcdsaAes256GcmSha384: true
+                      ecdheRsaAes128GcmSha256: true
+                      ecdheRsaAes256GcmSha384: true
+                      ecdheEcdsaChacha20Poly1305: false
+                      ecdheRsaChacha20Poly1305: false
+                      dheRsaChacha20Poly1305: false
+                      tlsAes256GcmSha384: true
+                      tlsChacha20Poly1305Sha256: true
+                      tlsAes128GcmSha256: true
+                    type: custom
+              example: {}
+      operationId: patchOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTlscontextsByContextid
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/logs:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+  /organizations/{organizationId}/privatespaces/{privateSpaceId}/logs/ingress:
+    get:
+      description: download ingress logs in ascending order
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_privateSpaceId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            transfer-encoding:
+              schema:
+                type: string
+                enum:
+                - chunked
+              description: The transfer-encoding response header value.
+          x-amf-mediaType: application/octet-stream
+          content:
+            application/octet-stream:
+              schema: {}
+              example: (binary data)
+      operationId: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidLogsIngress
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+  /organizations/{organizationId}/transitgateways:
+    description: The collection of transitgateways
+    get:
+      description: get list of TGW connections assocated with an organization.
+      parameters:
+      - name: region
+        required: false
+        in: query
+        schema:
+          type: string
+        description: The region query parameter.
+      - name: privateSpaceId
+        required: false
+        in: query
+        schema:
+          type: string
+        description: The privateSpace ID query parameter.
+      - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  private-space-tgw-connection-list:
+                  - id: 83d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha1
+                    spec:
+                      resourceShare:
+                        id: 5e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space1
+                    status:
+                      gateway: unknown
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+                  - id: 73d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha2
+                    spec:
+                      resourceShare:
+                        id: 4e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space2
+                    status:
+                      gateway: available
+                      attachment: unattached
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+                  - id: 63d77850-04ee-4368-8122-192f760913de
+                    name: rtf-kamboocha3
+                    spec:
+                      resourceShare:
+                        id: 3e409a9d-49a7-456c-82d7-a6254738a18d
+                        account: '25102306'
+                      region: us-east-1
+                      spaceName: space3
+                    status:
+                      gateway: available
+                      attachment: Pending PrivateSpace Attachment
+                      tgwResource: http://aws.tgw.link.com
+                      routes:
+                      - 10.0.0.0/21
+                      - 10.0.0.0/22
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidTransitgateways
+  /organizations/{organizationId}/transitgateways/{tgwId}:
+    delete:
+      description: Remove the Transit gateway from your Anypoint Platform organization
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_attachmentTgwId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: deleteOrganizationsByOrganizationidTransitgatewaysByTgwid
+  /organizations/{organizationId}/transitgateways/{tgwId}/routes:
+    get:
+      description: get TGW routes configured for a gateway
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_attachmentTgwId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getOrganizationsByOrganizationidTransitgatewaysByTgwidRoutes
+  /organizations/{organizationId}/targets:
+    description: The collection of targets
+    get:
+      description: get list of target deployments within an organization
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  targets-list:
+                  - id: 76824b98-919e-11e7-abc4-cec278b6b50a
+                    isAvailableForDeployments: true
+                    name: example
+                    version: 1.8.0
+                    type: runtime-fabric
+                    status: Active
+                    runtimes:
+                    - type: mule
+                      versions:
+                      - baseVersion: 3.8.0
+                        tag: 3.8.0-09992211
+                        releaseDate: 1528528781
+                        minimumTag: 3.8.0-09992210
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                      - baseVersion: 3.8.1
+                        tag: 3.8.1-555443
+                        releaseDate: 1528528781
+                        minimumTag: 3.8.1-555443
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                      - baseVersion: 4.0.0
+                        tag: 4.0.0-655443
+                        releaseDate: 1528528781
+                        minimumTag: 4.0.0-655440
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                    - type: tokenizer
+                      versions:
+                      - baseVersion: 12.5.0
+                        tag: 12.5.0
+                        releaseDate: 1528528781
+                        minimumTag: 12.5.0
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                    nodes:
+                    - id: 76824ed6-919e-11e7-abc4-cec278b6b50a
+                      location: uswest
+                      isAvailableForDeployments: false
+                    - id: 768254e4-919e-11e7-abc4-cec278b6b50a
+                      location: useast
+                      isAvailableForDeployments: true
+                    enhancedSecurity: true
+                    region: us-east-1
+                  - id: 16824b98-919e-11e7-abc4-cec278b6b50a
+                    isAvailableForDeployments: true
+                    name: example
+                    version: 1.1.15
+                    type: private-space
+                    status: Active
+                    runtimes:
+                    - type: mule
+                      versions:
+                      - baseVersion: 3.8.0
+                        tag: 3.8.0-09992211
+                        releaseDate: 1528528781
+                        minimumTag: 3.8.0-09992210
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                      - baseVersion: 3.8.1
+                        tag: 3.8.1-555443
+                        releaseDate: 1528528781
+                        minimumTag: 3.8.1-555443
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                      - baseVersion: 4.0.0
+                        tag: 4.0.0-655443
+                        releaseDate: 1528528781
+                        minimumTag: 4.0.0-655440
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                    - type: tokenizer
+                      versions:
+                      - baseVersion: 12.5.0
+                        tag: 12.5.0
+                        releaseDate: 1528528781
+                        minimumTag: 12.5.0
+                        minimumTagReleaseDate: 1528528000
+                        endOfStandardSupportDate: 1528528000
+                        endOfExtendedSupportDate: 1528528000
+                        endOfLifeSupportDate: 1528528000
+                        channel: legacy
+                    nodes:
+                    - id: 304372f2-30f8-4ba7-b206-af7cbda6a579
+                      location: uswest
+                      isAvailableForDeployments: true
+                    - id: 102272f2-30f8-4ba7-b206-af7cbda6a579
+                      location: useast
+                      isAvailableForDeployments: true
+                    enhancedSecurity: true
+                    region: us-east-1
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: getOrganizationsByOrganizationidTargets
+  /organizations/{organizationId}/targets/{id}:
+    get:
+      description: get the target
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_networkOrganizationId_Path'
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetInfo'
+              example:
+                id: string
+                name: string
+                version: string
+                type: string
+                vendor: string
+                runtimes:
+                - id: string
+                  type: string
+                egressRuleGroups:
+                - id: string
+                  type: string
+                status: string
+                environments:
+                - string
+                isAvailableForDeployments: true
+      operationId: getOrganizationsByOrganizationidTargetsById
+  /organizations/{organizationId}/migration:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_vpnOrganizationId_Path'
+  /organizations/{organizationId}/migration/vpcs/{vpcId}/privatespaces:
+    description: The collection of privatespaces
+    post:
+      description: create an equivalent Private Space for provided Cloudhub VPC
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_vpnOrganizationId_Path'
+      - name: vpcId
+        description: The id of Cloudhub VPC to upgrade
+        required: true
+        in: path
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:cloudhub-20
+          operation: GET /organizations/{organizationId}/migration/vpcs
+          description: GET `/organizations/{organizationId}/migration/vpcs` in this API; use `id` values as `vpcId`.
+          values: $.id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CH1PrivateSpacePost'
+        x-amf-mediaType: application/json
+        description: The privatespaces data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          headers:
+            Location:
+              description: URL where the new privatespace can be found
+              schema:
+                type: string
+            ETag:
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  create-response:
+                    id: b72b876d-f63d-11e7-a06c-080027adee7c
+                    name: my-private-space
+                    organizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    rootOrganizationId: b72b876d-f63d-11e7-a06c-080027adee7d
+                    status: Active
+                    network:
+                      region: us-east-1
+                      cidrBlock: 10.0.0.0/18
+                    firewallRules:
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8081
+                      toPort: 8081
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 8082
+                      toPort: 8082
+                      type: inbound
+                    - cidrBlock: 0.0.0.0/0
+                      protocol: tcp
+                      fromPort: 0
+                      toPort: 65535
+                      type: outbound
+                    environments:
+                      type: all
+                      businessGroups:
+                      - all
+                    logForwarding:
+                      anypointMonitoring: true
+                    ingressConfiguration:
+                      readResponseTimeout: 300
+                      logs:
+                        portLogLevel: ERROR
+                        filters: []
+                      protocol: https-redirect
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '403':
+          description: Forbidden. The authenticated user lacks the required permissions.
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: string
+                  message: string
+      operationId: createOrganizationsByOrganizationidMigrationVpcsByVpcidPrivatespaces
+  /organizations/{organizationId}/migration/vpcs:
+    get:
+      description: get Cloudhub VPCs upgrade eligibility information
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_vpnOrganizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Not found. The requested resource does not exist.
+      operationId: getOrganizationsByOrganizationidMigrationVpcs
+  /organizations/{organizationId}/migration/vpcs/{vpcId}:
+    get:
+      description: get Cloudhub VPC upgrade eligibility information
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_vpnOrganizationId_Path'
+      - name: vpcId
+        description: The id of Cloudhub VPC
+        required: true
+        in: path
+        schema:
+          type: string
+        x-origin:
+        - api: urn:api:cloudhub-20
+          operation: GET /organizations/{organizationId}/migration/vpcs
+          description: GET `/organizations/{organizationId}/migration/vpcs` in this API; use `id` values as `vpcId`.
+          values: $.id
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Not found. The requested resource does not exist.
+      operationId: getOrganizationsByOrganizationidMigrationVpcsByVpcid
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  requestBodies:
+    EgressRuleGroupPayload:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EgressRuleGroupPayload'
+      x-amf-mediaType: application/json
+      description: Request payload for EgressRuleGroupPayload operations.
+  schemas:
+    type:
+      x-amf-examples:
+        amf_example_1:
+          message: Not Supported  Content-Type
+        example_1:
+          message: Too Many Requests
+        amf_example_2:
+          message: You are not authorized to perform this request
+        example_0:
+          message: Invalid token
+        bad-rq:
+          message: Invalid Request
+          errors:
+          - code: XX005
+            message: Invalid Name Format.
+          - code: XX006
+            message: Reached Maximum number of Resources
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          description: 'Human readable error description.
+
+            '
+          type: string
+        errors:
+          description: 'Error list use to describe the set of validations that has failed. Only required in case
+
+            HTTP error code is not enough to describe the failure case.
+
+            '
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            - message
+            properties:
+              code:
+                description: 'Machine error description. Internal code representation for cosumer
+
+                  code error handling.
+
+                  '
+                type: string
+              message:
+                description: 'Human readable error description.
+
+                  '
+                type: string
+    PrivateSpacePost:
+      x-amf-examples:
+        create-request:
+          name: my-private-space
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: The name of the Private Space.
+          type: string
+        flavor:
+          description: The flavor of the Private Space.
+          type: string
+        environments:
+          description: 'Environment association for the Private Space
+
+            '
+          type: object
+          required:
+          - type
+          - businessGroups
+          properties:
+            type:
+              description: The type of environments. Possible values are all, sandbox, production
+              type: string
+            businessGroups:
+              description: The Ids of business groups.
+              type: array
+              items:
+                type: string
+        network:
+          description: 'Private space network configuration
+
+            '
+          type: object
+          properties:
+            region:
+              description: The region of the Private Space. Required when create a Private Space network.
+              type: string
+            vpcId:
+              description: 'The existing VPC where the Private Space will be created. Required when create a Private Space in existing Anypoint VPC.
+
+                '
+              type: string
+            cidrBlock:
+              description: 'The CIDR block of the VPC where the Private Space will be created. Required when create a Private Space in a new VPC.
+
+                Default is 10.0.0.0/16.
+
+                '
+              default: 10.0.0.0/16
+              type: string
+            reservedCidrs:
+              description: 'The list of reserved CIDR blocks for your private space to prevent IP address overlap. Required when you want
+
+                to connect your private space to your corporate network (either on-premises or in the cloud). Use CIDR notation
+
+                and commas: `192.168.0.0/16, 172.16.0.0/12`.
+
+                '
+              type: array
+              items:
+                type: string
+            internalDns:
+              description: 'The internal DNS config of the VPC that the Private Space uses.
+
+                '
+              type: object
+              required:
+              - dnsServers
+              - specialDomains
+              properties:
+                dnsServers:
+                  default: []
+                  type: array
+                  items:
+                    type: string
+                specialDomains:
+                  default: []
+                  type: array
+                  items:
+                    type: string
+        managedFirewallRules:
+          description: Deprecated
+          type: array
+          items:
+            $ref: '#/components/schemas/FirewallRule'
+        firewallRules:
+          description: 'The firewall rules for the Private Space
+
+            '
+          type: array
+          items:
+            $ref: '#/components/schemas/FirewallRule'
+    UserInfraPatchWindowInfo:
+      type: object
+      required:
+      - releaseYear
+      - releaseMonth
+      - sandboxStartDate
+      - sandboxEndDate
+      - productionStartDate
+      - productionEndDate
+      properties:
+        releaseYear:
+          description: Year of monthly patch releases
+          example: 2024
+          type: integer
+        releaseMonth:
+          description: Patch release month
+          example: MARCH
+          type: string
+        sandboxStartDate:
+          description: Start date for monthly patching in sandbox spaces
+          example: *id005
+          type: string
+        sandboxEndDate:
+          description: End date for monthly patching in sandbox spaces
+          example: *id006
+          type: string
+        productionStartDate:
+          description: Start date for monthly patching in production spaces
+          example: *id007
+          type: string
+        productionEndDate:
+          description: End date for monthly patching in production spaces
+          example: *id008
+          type: string
+    PrivateSpacePatch:
+      type: object
+      required:
+      - environments
+      - network
+      - firewallRules
+      - logForwarding
+      - ingressConfiguration
+      properties:
+        environments:
+          description: 'Environment association for the Private Space
+
+            '
+          type: object
+          required:
+          - type
+          - businessGroups
+          properties:
+            type:
+              description: The type of environments. Possible values are all, sandbox, production
+              type: string
+            businessGroups:
+              description: The Ids of business groups.
+              type: array
+              items:
+                type: string
+        network:
+          description: 'Private space network configuration
+
+            '
+          type: object
+          properties:
+            region:
+              description: The region of the Private Space. Required when create a Private Space network.
+              type: string
+            vpcId:
+              description: 'The existing VPC where the Private Space will be created. Required when create a Private Space in existing Anypoint VPC.
+
+                '
+              type: string
+            cidrBlock:
+              description: 'The CIDR block of the VPC where the Private Space will be created. Required when create a Private Space in a new VPC.
+
+                Default is 10.0.0.0/16.
+
+                '
+              default: 10.0.0.0/16
+              type: string
+            reservedCidrs:
+              description: 'The list of reserved CIDR blocks for your private space to prevent IP address overlap. Required when you want
+
+                to connect your private space to your corporate network (either on-premises or in the cloud). Use CIDR notation
+
+                and commas: `192.168.0.0/16, 172.16.0.0/12`.
+
+                '
+              type: array
+              items:
+                type: string
+            internalDns:
+              description: 'The internal DNS config of the VPC that the Private Space uses.
+
+                '
+              type: object
+              required:
+              - dnsServers
+              - specialDomains
+              properties:
+                dnsServers:
+                  default: []
+                  type: array
+                  items:
+                    type: string
+                specialDomains:
+                  default: []
+                  type: array
+                  items:
+                    type: string
+        managedFirewallRules:
+          description: Deprecated
+          type: array
+          items:
+            $ref: '#/components/schemas/FirewallRule'
+        firewallRules:
+          description: 'The firewall rules for the Private Space
+
+            '
+          type: array
+          items:
+            $ref: '#/components/schemas/FirewallRule'
+        logForwarding:
+          description: 'Private space log forwarding configuration
+
+            '
+          type: object
+          properties:
+            anypointMonitoring:
+              description: The desired action to push logs to Anypoint monitoring.
+              type: boolean
+            externalLogForwarding:
+              description: The desired action to push logs to external third party services.
+              type: object
+              required:
+              - azureConfig
+              - splunkConfig
+              - grayLogConfig
+              - elasticSearchConfig
+              - cloudWatchConfig
+              - syslogConfig
+              - dataDogConfig
+              - forwardLogs
+              properties:
+                azureConfig:
+                  $ref: '#/components/schemas/AzureConfig'
+                splunkConfig:
+                  $ref: '#/components/schemas/SplunkConfig'
+                grayLogConfig:
+                  $ref: '#/components/schemas/GrayLogConfig'
+                elasticSearchConfig:
+                  $ref: '#/components/schemas/ElasticSearchConfig'
+                cloudWatchConfig:
+                  $ref: '#/components/schemas/CloudWatchConfig'
+                syslogConfig:
+                  $ref: '#/components/schemas/SyslogConfig'
+                dataDogConfig:
+                  $ref: '#/components/schemas/DataDogConfig'
+                forwardLogs:
+                  $ref: '#/components/schemas/ForwardLogs'
+        ingressConfiguration:
+          description: 'Private space ingress configuration
+
+            '
+          type: object
+          properties:
+            readResponseTimeout:
+              default: 300
+              type: integer
+              minimum: 1
+              maximum: 3600
+            logs:
+              description: Ingress log level configuration
+              type: object
+              properties:
+                filters:
+                  default: []
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PrivateSpaceIngressConfigurationLogsFilter'
+                portLogLevel:
+                  description: Log levels
+                  default: ERROR
+                  type: string
+            protocol:
+              default: https-redirect
+              type: string
+            deployment:
+              type: object
+              required:
+              - status
+              - lastSeenTimestamp
+              properties:
+                status:
+                  type: string
+                lastSeenTimestamp:
+                  type: number
+            isIstioIngressEnabled:
+              default: false
+              type: boolean
+            isLoggingEnabledForIstio:
+              default: false
+              type: boolean
+        enableIAMRole:
+          description: If true, application deployed to this space will have the Private Space IAM role attached to the service account.
+          type: boolean
+        enableEgress:
+          type: boolean
+        edgeHpaConfigs:
+          description: hpa config for edge pods in rtf namespace
+          type: object
+          properties:
+            minReplicas:
+              default: 1
+              type: integer
+            maxReplicas:
+              default: 3
+              type: integer
+            targetCpu:
+              default: 60
+              type: integer
+    AssociationPostPayload:
+      example:
+        associations:
+        - organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+          environment: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+        - organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+          environment: 3e9d5bde-6ef7-4947-9f98-0f7c32d48909
+      type: object
+      required:
+      - associations
+      properties:
+        associations:
+          description: List of associations
+          type: array
+          items:
+            $ref: '#/components/schemas/AssociationPayload'
+    Association:
+      example: *id009
+      type: object
+      required:
+      - id
+      - environmentId
+      - organizationId
+      properties:
+        id:
+          description: The UUID of the association.
+          type: string
+        name:
+          type: string
+        environmentId:
+          description: The type of environment. Can be `all`, `sandbox`, `production`, or a specific environment UUID.
+          type: string
+        organizationId:
+          description: The type of organization. Can be  `all`, or specific organization UUID.
+          type: string
+        deploymentStatus:
+          type: string
+        errorMessage:
+          type: string
+    Ports:
+      type: object
+      required:
+      - ports
+      properties:
+        ports:
+          description: List of the ports to be leased by the owner
+          type: array
+          items:
+            type: integer
+    IAMRole:
+      type: object
+      required:
+      - roles
+      - organizationId
+      - spaceId
+      properties:
+        roles:
+          description: IAM roles associated with the space
+          type: array
+          items:
+            type: string
+        organizationId:
+          description: The parent organization ID of the space
+          type: string
+        spaceId:
+          description: id of the space.
+          type: string
+        message:
+          description: IAM roles associated with the space
+          type: string
+    UserInfraUpdateInfo:
+      type: object
+      required:
+      - status
+      properties:
+        scheduledUpdateTime:
+          description: Date of scheduled upgrade
+          example: *id003
+          type: string
+        status:
+          description: The status of the upgrade
+          example: QUEUED
+          type: string
+    EgressRuleGroupPayload:
+      x-amf-examples:
+        example_0:
+          name: example-rule-group
+          rules:
+          - domains:
+            - example.com
+            protocol: tcp
+            fromPort: 1
+            toPort: 65535
+            description: ''
+        example_1:
+          name: example-rule-group
+          rules:
+          - domains:
+            - example.com
+            protocol: tcp
+            fromPort: 1
+            toPort: 65535
+            description: ''
+          - domains:
+            - foo.com
+            protocol: tcp
+            fromPort: 80
+            toPort: 80
+            description: ''
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: The name of the rule group.
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/EgressRule'
+    EgressRuleGroup:
+      x-amf-examples:
+        example_0:
+          id: 65f106d7-5e39-474d-8224-28d92d00b210
+          name: example-rule-group
+          rules:
+          - domains:
+            - example.com
+            protocol: tcp
+            fromPort: 1
+            toPort: 65535
+            description: ''
+        example_1:
+          id: 65f106d7-5e39-474d-8224-28d92d00b210
+          name: example-rule-group
+          rules:
+          - domains:
+            - example.com
+            protocol: tcp
+            fromPort: 1
+            toPort: 65535
+            description: Allow all TCP traffic to example.com
+          - domains:
+            - foo.com
+            protocol: tcp
+            fromPort: 80
+            toPort: 80
+            description: Allow HTTP traffic to foo.com
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: string
+        name:
+          description: The name of the rule group.
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/EgressRule'
+        isDefault:
+          type: boolean
+    PrivateSpaceRoute:
+      type: object
+      required:
+      - destination
+      - status
+      - target
+      properties:
+        destination:
+          description: Destination of the configured route on vpc or vpn.
+          type: string
+        status:
+          description: Status of the configured route on vpc or vpn.
+          type: string
+        target:
+          description: Target type of the configured route on vpc or vpn.
+          type: string
+        connectionName:
+          description: Connection name of the configured route on vpc or vpn.
+          type: string
+        connectionId:
+          description: Connection id of the configured route on vpc or vpn.
+          type: string
+        errorLevel:
+          description: Connection name of the configured route on vpc or vpn.
+          type: string
+        errorMessage:
+          description: Connection name of the configured route on vpc or vpn.
+          type: string
+    PrivateSpaceNetworkRoutesPatch:
+      example:
+        networkGateways:
+        - routes:
+          - 172.16.0.0/12
+          - 172.18.0.0/12
+          target: IGW
+      type: object
+      required:
+      - networkGateways
+      properties:
+        networkGateways:
+          description: 'The CIDRs that the Cloudhub VPC will send traffic to via the IGW.
+
+            '
+          default: []
+          type: array
+          items:
+            $ref: '#/components/schemas/items'
+    PrivateSpaceConnectionPost:
+      x-amf-examples:
+        create-request:
+          name: hello-connection
+          vpns:
+          - id: vpn-1234556
+            name: test-vpn-dev
+            vpnId: 83d77850-04ee-4368-8122-192f760913de
+            localAsn: 65001
+            remoteAsn: 65002
+            remoteIpAddress: 1.2.3.4
+            staticRoutes: []
+            vpnTunnels: []
+            vpnTunnelsConfig: []
+          - id: vpn-1234556
+            vpnId: 83d77850-04ee-4368-8122-192f760913df
+            name: test-vpn-dev-bak
+            localAsn: 65001
+            remoteAsn: 65002
+            remoteIpAddress: 1.2.3.5
+            staticRoutes: []
+            vpnTunnels: []
+            vpnTunnelsConfig: []
+      type: object
+      required:
+      - name
+      - vpns
+      properties:
+        name:
+          type: string
+        vpns:
+          type: array
+          items:
+            $ref: '#/components/schemas/items_1'
+    PrivateSpaceConnectionPatch:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        staticRoutes:
+          description: 'The CIDRs that the Cloudhub VPC will send traffic to via the VPN.
+
+            '
+          default: []
+          type: array
+          items:
+            type: string
+    PrivateSpaceConnection:
+      type: object
+      required:
+      - id
+      - name
+      - vpns
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        vpns:
+          type: array
+          items:
+            $ref: '#/components/schemas/items_1'
+    PrivateSpaceConnectionVpnPatch:
+      type: object
+      required:
+      - id
+      - remoteIpAddress
+      - staticRoutes
+      - vpnTunnels
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        remoteAsn:
+          description: 'The ASN of the customer''s outside network, used by VPNs utilizing BGP for routes.
+
+            '
+          type: number
+        localAsn:
+          description: 'The ASN of the customer''s cloudhub network, used by VPNs utilizing BGP for routes.
+
+            '
+          type: number
+        remoteIpAddress:
+          description: 'The IP address of the customer''s VPN device on their outside network
+
+            '
+          type: string
+        staticRoutes:
+          description: 'The CIDRs that the Cloudhub VPC will send traffic to via the VPN.
+
+            '
+          default: []
+          type: array
+          items:
+            type: string
+        vpnTunnels:
+          description: 'VPN tunnel configuration that the customer wants to be applied to their VPN connection.
+
+            '
+          default: []
+          type: array
+          items:
+            $ref: '#/components/schemas/items_2'
+    PrivateSpaceTransitGatewayPost:
+      x-amf-examples:
+        create-request:
+          name: rtf-kamboocha
+          resourceShareId: 5e409a9d-49a7-456c-82d7-a6254738a18d
+          resourceShareAccount: '25102306'
+          region: us-east-1
+          routes:
+          - 10.0.0.0/19
+          - 10.0.0.0/20
+          - 10.0.0.0/21
+      type: object
+      required:
+      - name
+      - resourceShareId
+      - resourceShareAccount
+      - routes
+      properties:
+        name:
+          type: string
+        resourceShareId:
+          type: string
+        resourceShareAccount:
+          type: string
+        routes:
+          type: array
+          items:
+            type: string
+    PrivateSpaceTransitGatewayPatch:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+    PrivateSpaceTransitGateway:
+      type: object
+      required:
+      - id
+      - name
+      - spec
+      - status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        accountId:
+          type: string
+        spec:
+          $ref: '#/components/schemas/TgwSpec'
+        status:
+          $ref: '#/components/schemas/TgwStatus'
+    PrivateSpaceTlsContextJksPost:
+      type: object
+      required:
+      - name
+      - tlsConfig
+      - ciphers
+      properties:
+        name:
+          type: string
+        tlsConfig:
+          $ref: '#/components/schemas/TlsConfigJks'
+        ciphers:
+          $ref: '#/components/schemas/Ciphers'
+    PrivateSpaceTlsContextPemPost:
+      type: object
+      required:
+      - name
+      - tlsConfig
+      - ciphers
+      properties:
+        name:
+          type: string
+        tlsConfig:
+          $ref: '#/components/schemas/TlsConfigPem'
+        ciphers:
+          $ref: '#/components/schemas/Ciphers'
+    PrivateSpaceTlsContext:
+      type: object
+      required:
+      - id
+      - name
+      - keyStore
+      - ciphers
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        trustStore:
+          $ref: '#/components/schemas/TrustStore'
+        keyStore:
+          $ref: '#/components/schemas/KeyStoreResponse'
+        ciphers:
+          $ref: '#/components/schemas/Ciphers'
+        type:
+          description: '"custom" TLS context is managed by users, whereas "default" is managed by Cloudhub 2.0
+
+            '
+          type: string
+    TargetInfo:
+      type: object
+      required:
+      - id
+      - name
+      - version
+      - type
+      - runtimes
+      - status
+      - isAvailableForDeployments
+      - nodes
+      - region
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          description: The version of the target.
+          type: string
+        type:
+          description: The type of the target.
+          type: string
+        vendor:
+          description: The Kubernetes vendor of the Runtime Fabric.
+          type: string
+        runtimes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedRuntime'
+        egressRuleGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/EgressRuleGroup'
+        status:
+          type: string
+        environments:
+          description: If present determines if the target is restricted to a particular set of environments. If it is restricted to all environments then an empty list has to be provided. If not present then there is not target restriction over an environment.
+          type: array
+          maxItems: 10
+          minItems: 0
+          items:
+            type: string
+        isAvailableForDeployments:
+          description: Determines if a deployment can be perfomed in a particular target.
+          type: boolean
+        replicationStrategies:
+          description: Replication Strategies for this target per deployment type.
+          type: object
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeInfo'
+        defaults:
+          description: 'Default deployment settings for this target
+
+            '
+          type: object
+        enhancedSecurity:
+          description: 'Flag for whether the target supports enhanced security features.
+
+            '
+          type: boolean
+        featureFlags:
+          description: 'Supported Feature flags for the target
+
+            '
+          type: object
+        region:
+          description: 'Target Region
+
+            '
+          type: string
+    CH1PrivateSpacePost:
+      x-amf-examples:
+        create-request:
+          name: my-upgraded-private-space
+          reservedCidrs:
+          - 192.168.0.0/16
+          - 172.16.0.0/12
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: The name of the private space
+          type: string
+        reservedCidrs:
+          description: 'The list of reserved CIDR blocks for your private space to prevent IP address overlap. Required when you want
+
+            to connect your private space to your corporate network (either on-premises or in the cloud). Use CIDR notation
+
+            and commas: `192.168.0.0/16, 172.16.0.0/12`.
+
+            '
+          type: array
+          items:
+            type: string
+    FirewallRule:
+      type: object
+      required:
+      - cidrBlock
+      - protocol
+      - type
+      properties:
+        cidrBlock:
+          type: string
+        protocol:
+          type: string
+        fromPort:
+          type: integer
+        toPort:
+          type: integer
+        type:
+          description: Type of the firewall rule. Allowed values are [inbound, outbound]
+          default: inbound
+          type: string
+        description:
+          description: description of the rule.
+          type: string
+    AzureConfig:
+      type: object
+      required:
+      - Customer_ID
+      - Shared_Key
+      properties:
+        Customer_ID:
+          description: Customer ID or WorkspaceID string.
+          type: string
+        Shared_Key:
+          description: The primary or the secondary Connected Sources client authentication key.
+          type: string
+        Log_Type:
+          description: The name of the event type.
+          type: string
+    SplunkConfig:
+      type: object
+      required:
+      - Host
+      - Port
+      properties:
+        Host:
+          description: IP address or hostname of the target Splunk service.
+          type: string
+        Port:
+          description: TCP port of the target Splunk service.
+          type: string
+        Splunk_Token:
+          description: Specify the Authentication Token for the HTTP Event Collector interface.
+          type: string
+        Splunk_Send_Raw:
+          description: When enabled, the record keys and values are set in the top level of the map instead of under the event key.
+          type: string
+        Tls:
+          description: Enable or disable TLS support
+          type: string
+        HTTP_User:
+          description: Optional username for Basic Authentication on HEC
+          type: string
+        HTTP_Passwd:
+          description: Password for user defined in HTTP_User
+          type: string
+        CA_file_content:
+          type: string
+    GrayLogConfig:
+      type: object
+      required:
+      - Match
+      - Host
+      - Port
+      - Mode
+      - Gelf_Short_Message_Key
+      - Gelf_Host_Key
+      - Gelf_Full_Message_Key
+      properties:
+        Match:
+          description: Pattern to match which tags of logs to be outputted by this plugin
+          type: string
+        Host:
+          description: IP address or hostname of the target Graylog server
+          type: string
+        Port:
+          description: The port that your Graylog GELF input is listening on
+          type: string
+        Mode:
+          description: The protocol to use (tls, tcp or udp)
+          type: string
+        Tls:
+          description: Enable or disable TLS support
+          type: string
+        Gelf_Short_Message_Key:
+          description: A short descriptive message
+          type: string
+        Gelf_Timestamp_Key:
+          description: Your log timestamp
+          type: string
+        Gelf_Host_Key:
+          description: Key which its value is used as the name of the host, source or application that sent this message.
+          type: string
+        Gelf_Full_Message_Key:
+          description: Key to use as the long message that can i.e. contain a backtrace.
+          type: string
+        Gelf_Level_Key:
+          description: Key to be used as the log level. Its value must be in standard syslog levels (between 0 and 7).
+          type: string
+        Packet_Size:
+          description: If transport protocol is udp, you can set the size of packets to be sent.
+          type: string
+        Compress:
+          description: If transport protocol is udp, you can set this if you want your UDP packets to be compressed.
+          type: boolean
+        CA_file_content:
+          type: string
+    ElasticSearchConfig:
+      type: object
+      required:
+      - Host
+      - Port
+      - Index
+      properties:
+        Host:
+          description: IP address or hostname of the target Elasticsearch instance
+          type: string
+        Port:
+          description: TCP port of the target Elasticsearch instance
+          type: string
+        Index:
+          description: Index name
+          type: string
+        Tls:
+          description: Enable or disable TLS support
+          type: string
+        Path:
+          description: Elasticsearch accepts new data on HTTP query path "/_bulk". But it is also possible to serve Elasticsearch behind a reverse proxy on a subpath. This option defines such path on the fluent-bit side. It simply adds a path prefix in the indexing HTTP POST URI.
+          type: string
+        Buffer_Size:
+          description: Specify the buffer size used to read the response from the Elasticsearch HTTP service. This option is useful for debugging purposes where is required to read full responses, note that response size grows depending of the number of records inserted. To set an unlimited amount of memory set this value to False, otherwise the value must be according to the Unit Size specification.
+          type: string
+        HTTP_User:
+          description: Optional username credential for Elastic X-Pack access
+          type: string
+        HTTP_Passwd:
+          description: Password for user defined in HTTP_User
+          type: string
+        Type:
+          description: Type name
+          type: string
+        Logstash_Format:
+          description: 'Enable Logstash format compatibility. This option takes a boolean value: True/False, On/Off'
+          type: string
+        Logstash_Prefix:
+          description: 'When Logstash_Format is enabled, the Index name is composed using a prefix and the date, e.g: If Logstash_Prefix is equals to ''mydata'' your index will become ''mydata-YYYY.MM.DD''. The last string appended belongs to the date when the data is being generated.'
+          type: string
+        Logstash_DateFormat:
+          description: Time format (based on strftime) to generate the second part of the Index name.
+          type: string
+        Time_Key:
+          description: When Logstash_Format is enabled, each record will get a new timestamp field. The Time_Key property defines the name of that field.
+          type: string
+        Time_Key_Format:
+          description: When Logstash_Format is enabled, this property defines the format of the timestamp.
+          type: string
+        Include_Tag_Key:
+          description: When enabled, it append the Tag name to the record.
+          type: string
+        Tag_Key:
+          description: When Include_Tag_Key is enabled, this property defines the key name for the tag.
+          type: string
+        Generate_ID:
+          description: When enabled, generate _id for outgoing records. This prevents duplicate records when retrying ES.
+          type: string
+        Replace_Dots:
+          description: When enabled, replace field name dots with underscore, required by Elasticsearch 2.0-2.3.
+          type: string
+        Trace_Output:
+          description: When enabled print the elasticsearch API calls to stdout (for diag only)
+          type: string
+        Trace_Error:
+          description: When enabled print the elasticsearch API calls to stdout when elasticsearch returns an error
+          type: string
+        Current_Time_Index:
+          description: Use current time for index generation instead of message record
+          type: string
+        Logstash_Prefix_Key:
+          description: Prefix keys with this string
+          type: string
+        CA_file_content:
+          type: string
+    CloudWatchConfig:
+      type: object
+      required:
+      - region
+      - aws_access_key_id
+      - aws_secret_access_key
+      - log_group_name
+      properties:
+        region:
+          description: The AWS region where CloudWatch service is hosted.
+          type: string
+        aws_access_key_id:
+          description: Aws Access Key Id
+          type: string
+        aws_secret_access_key:
+          description: Aws Secret Access Key
+          type: string
+        log_group_name:
+          description: The name of the CloudWatch Log Group that you want log records sent to.
+          type: string
+        log_stream_name:
+          description: The name of the CloudWatch Log Stream that you want log records sent to. Either of Log stream name or Log stream prefix is required.
+          type: string
+        log_stream_prefix:
+          description: Prefix for the Log Stream name. The tag is appended to the prefix to construct the full log stream name. Not compatible with the log_stream_name option.
+          type: string
+        auto_create_group:
+          description: Automatically create the log group. Valid values are "true" or "false" (case insensitive). Defaults to false.
+          type: string
+        log_key:
+          description: If specified a key name with this option, then only the value of that key will be sent to CloudWatch. For example, if you are using the Fluentd Docker log driver, you can specify log_key log and only the log message will be sent to CloudWatch.
+          type: string
+        role_arn:
+          description: ARN of an IAM role to assume (for cross account access).
+          type: string
+    SyslogConfig:
+      type: object
+      required:
+      - Host
+      - Port
+      - Mode
+      properties:
+        Host:
+          description: Host name or IP address of the remote Syslog server
+          type: string
+        Port:
+          description: TCP or UDP port of the remote Syslog server
+          type: string
+        Mode:
+          description: The desired mode of transport protocol type
+          type: string
+        Syslog_Format:
+          description: Syslog protocol format to use
+          type: string
+        Syslog_Maxsize:
+          description: This integer value sets the maximum number of bytes allowed per message. Defaults to 1024 for rfc3164 and 2048 for rfc5424
+          type: string
+    DataDogConfig:
+      type: object
+      required:
+      - Host
+      - apikey
+      properties:
+        Host:
+          description: The Datadog server where user wants to send the logs
+          type: string
+        apikey:
+          description: Users Datadog API key
+          type: string
+        Tls:
+          description: End-to-end security communications security protocol.
+          type: string
+        compress:
+          description: Compresses the payload in Datadog supported formats. Datadog supports and recommends setting this to gzip.
+          type: string
+        dd_service:
+          description: The human readable name for your service generating the logs - the name of your application or database.
+          type: string
+        dd_source:
+          description: A human readable name for the underlying technology of your service. For example, postgres or nginx.
+          type: string
+        dd_tags:
+          description: The tags you want to assign to your logs in Datadog.
+          type: string
+    ForwardLogs:
+      type: object
+      properties:
+        muleApplications:
+          type: boolean
+        rtfComponents:
+          type: boolean
+        rtfAppliances:
+          type: boolean
+    PrivateSpaceIngressConfigurationLogsFilter:
+      type: object
+      additionalProperties: false
+      properties:
+        ip:
+          type: string
+        level:
+          type: string
+    AssociationPayload:
+      type: object
+      required:
+      - organizationId
+      - environment
+      properties:
+        id:
+          type: string
+        organizationId:
+          description: 'Select the organization to associate with a Runtime Fabric or Private Space.  The options include: `all`, or specific organization UUID.
+
+            '
+          type: string
+        environment:
+          description: 'Select the environment to associate with a Runtime Fabric or Private Space.  The options include: `all`, `sandbox`, `production`, or a specific environment UUID.'
+          type: string
+    EgressRule:
+      type: object
+      properties:
+        domains:
+          type: array
+          items:
+            type: string
+        cidrBlocks:
+          type: array
+          items:
+            type: string
+        protocol:
+          type: string
+        fromPort:
+          type: integer
+        toPort:
+          type: integer
+        description:
+          description: description of the rule.
+          type: string
+    items:
+      type: object
+      required:
+      - target
+      - routes
+      properties:
+        target:
+          description: Type of connection. Currently, only "IGW" (Internet Gateway) is supported through this endpoint
+          type: string
+        routes:
+          description: The list of routes that determine how to direct traffic from your private space for internet gateway
+          type: array
+          items:
+            type: string
+    items_1:
+      type: object
+      required:
+      - name
+      - remoteIpAddress
+      - staticRoutes
+      - vpnTunnels
+      properties:
+        name:
+          description: 'The name of the VPN.
+
+            '
+          type: string
+        vpnId:
+          description: 'The id of the VPN.
+
+            '
+          type: string
+        connectionId:
+          description: 'The connectionId associated to the vpn, to which it belongs.
+
+            '
+          type: string
+        connectionName:
+          description: 'The connectionName associated to the vpn, to which it belongs.
+
+            '
+          type: string
+        vpnConnectionStatus:
+          description: 'The status of vpn(pending | available | deleting | deleted).
+
+            '
+          type: string
+        remoteAsn:
+          description: 'The ASN of the customer''s outside network, used by VPNs utilizing BGP for routes.
+
+            '
+          type: number
+        localAsn:
+          description: 'The ASN of the customer''s cloudhub network, used by VPNs utilizing BGP for routes.
+
+            '
+          type: number
+        remoteIpAddress:
+          description: 'The IP address of the customer''s VPN device on their outside network
+
+            '
+          type: string
+        staticRoutes:
+          description: 'The CIDRs that the Cloudhub VPC will send traffic to via the VPN.
+
+            '
+          default: []
+          type: array
+          items:
+            type: string
+        vpnTunnels:
+          description: 'VPN tunnel actual state of customer''s VPN connection.
+
+            '
+          default: []
+          type: array
+          items:
+            $ref: '#/components/schemas/items_2'
+        awsId:
+          description: The aws id of the vpn
+          type: string
+        ch1VpnId:
+          description: The CH1 assigned id of the VPN.
+          type: string
+    items_2:
+      type: object
+      properties:
+        vpnConnectionId:
+          description: 'Connection id for the vpn.
+
+            '
+          type: string
+        psk:
+          description: 'The pre-shared key that the customer will use to make a connection.
+
+            '
+          type: string
+        ptpCidr:
+          description: 'The Point-To-Point CIDR range that the customer will use for connections.
+
+            '
+          type: string
+        localExternalIpAddress:
+          description: 'Local external ip address for the tunnel.
+
+            '
+          type: string
+        localPtpIpAddress:
+          description: 'Local Point-To-Point ip address for tunnel.
+
+            '
+          type: string
+        remotePtpIpAddress:
+          description: 'Remote Point-To-Point ip address for tunnel.
+
+            '
+          type: string
+        startupAction:
+          description: 'The action to take when the establishing the tunnel for the VPN connection. By default, CGW must initiate the IKE negotiation and bring up the tunnel. Specify start for AWS to initiate the IKE negotiation.
+
+            '
+          type: string
+        dPDTimeoutAction:
+          description: 'The action to take after Dead Peer Detection timeout occurs. Specify restart to restart the IKE initiation. Specify clear to end the IKE session.
+
+            '
+          type: string
+        rekeyMarginInSeconds:
+          description: 'The margin time, in seconds, before the phase 2 lifetime expires, during which the AWS side of the VPN connection performs an IKE rekey.
+
+            '
+          type: integer
+        rekeyFuzz:
+          description: 'The percentage of the rekey window (determined by RekeyMarginTimeSeconds) during which the rekey time is randomly selected.
+
+            '
+          type: integer
+        ikeVersions:
+          description: 'The IKE versions that are permitted for the VPN tunnel. Valid values: ikev1,ikev2
+
+            '
+          type: array
+          items:
+            type: string
+        phase1DhGroups:
+          description: 'One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel for phase 1 IKE negotiations. Valid values: 2,14,15,16,17,18,19,20,21,22,23,24
+
+            '
+          type: array
+          items:
+            type: integer
+        phase2DhGroups:
+          description: 'One or more Diffie-Hellman group numbers that are permitted for the VPN tunnel for phase 2 IKE negotiations. Valid values: 2,5,14,15,16,17,18,19,20,21,22,23,24
+
+            '
+          type: array
+          items:
+            type: integer
+        phase1EncryptionAlgorithms:
+          description: 'One or more encryption algorithms that are permitted for the VPN tunnel for phase 1 IKE negotiations. Valid values: AES128,AES256,AES128-GCM-16,AES256-GCM-16
+
+            '
+          type: array
+          items:
+            type: string
+        phase2EncryptionAlgorithms:
+          description: 'One or more encryption algorithms that are permitted for the VPN tunnel for phase 2 IKE negotiations. Valid values: AES128,AES256,AES128-GCM-16,AES256-GCM-16
+
+            '
+          type: array
+          items:
+            type: string
+        phase1IntegrityAlgorithms:
+          description: 'One or more integrity algorithms that are permitted for the VPN tunnel for phase 1 IKE negotiations. Valid values: SHA1,SHA2-256,SHA2-384,SHA2-512
+
+            '
+          type: array
+          items:
+            type: string
+        phase2IntegrityAlgorithms:
+          description: 'One or more integrity algorithms that are permitted for the VPN tunnel for phase 2 IKE negotiations. Valid values: SHA1,SHA2-256,SHA2-384,SHA2-512
+
+            '
+          type: array
+          items:
+            type: string
+        acceptedRouteCount:
+          description: 'Accepted route count for the tunnel.
+
+            '
+          type: number
+        lastStatusChange:
+          description: 'Last status change for the tunnel.
+
+            '
+          type: string
+        status:
+          description: 'Status for the tunnel.
+
+            '
+          type: string
+        statusMessage:
+          description: 'Status message for the tunnel.
+
+            '
+          type: string
+        isLogsEnabled:
+          description: If true, enable forwarding vpn logs to Cloudwatch log groups.
+          type: boolean
+        cloudWatchLogOptions:
+          description: If present, describes the CH1 Cloudwatch log options for a VPN
+          type: object
+          properties:
+            logEnabled:
+              description: Whether cloudwatch logs are enabled for a CH1 VPN
+              default: false
+              type: boolean
+    TgwSpec:
+      type: object
+      required:
+      - resourceShare
+      - region
+      properties:
+        resourceShare:
+          $ref: '#/components/schemas/ResourceShare'
+        region:
+          type: string
+        ch2AwsAccountId:
+          type: string
+        spaceName:
+          type: string
+    TgwStatus:
+      type: object
+      required:
+      - gateway
+      - attachment
+      - tgwResource
+      - routes
+      properties:
+        gateway:
+          type: string
+        attachment:
+          type: string
+        tgwResource:
+          type: string
+        routes:
+          type: array
+          items:
+            type: string
+    TlsConfigJks:
+      type: object
+      required:
+      - keyStore
+      properties:
+        keyStore:
+          $ref: '#/components/schemas/KeyStoreJks'
+        trustStore:
+          type: object
+    Ciphers:
+      type: object
+      required:
+      - aes128GcmSha256
+      - aes128Sha256
+      - aes256GcmSha384
+      - aes256Sha256
+      - dheRsaAes128Sha256
+      - dheRsaAes256GcmSha384
+      - dheRsaAes256Sha256
+      - ecdheEcdsaAes128GcmSha256
+      - ecdheEcdsaAes256GcmSha384
+      - ecdheRsaAes128GcmSha256
+      - ecdheRsaAes256GcmSha384
+      - ecdheEcdsaChacha20Poly1305
+      - ecdheRsaChacha20Poly1305
+      - dheRsaChacha20Poly1305
+      - tlsAes256GcmSha384
+      - tlsChacha20Poly1305Sha256
+      - tlsAes128GcmSha256
+      properties:
+        aes128GcmSha256:
+          default: false
+          type: boolean
+        aes128Sha256:
+          default: false
+          type: boolean
+        aes256GcmSha384:
+          default: false
+          type: boolean
+        aes256Sha256:
+          default: false
+          type: boolean
+        dheRsaAes128Sha256:
+          default: false
+          type: boolean
+        dheRsaAes256GcmSha384:
+          default: false
+          type: boolean
+        dheRsaAes256Sha256:
+          default: false
+          type: boolean
+        ecdheEcdsaAes128GcmSha256:
+          default: true
+          type: boolean
+        ecdheEcdsaAes256GcmSha384:
+          default: true
+          type: boolean
+        ecdheRsaAes128GcmSha256:
+          default: true
+          type: boolean
+        ecdheRsaAes256GcmSha384:
+          default: true
+          type: boolean
+        ecdheEcdsaChacha20Poly1305:
+          default: false
+          type: boolean
+        ecdheRsaChacha20Poly1305:
+          default: false
+          type: boolean
+        dheRsaChacha20Poly1305:
+          default: false
+          type: boolean
+        tlsAes256GcmSha384:
+          default: true
+          type: boolean
+        tlsChacha20Poly1305Sha256:
+          default: true
+          type: boolean
+        tlsAes128GcmSha256:
+          default: true
+          type: boolean
+    TlsConfigPem:
+      type: object
+      required:
+      - keyStore
+      properties:
+        keyStore:
+          $ref: '#/components/schemas/KeyStorePem'
+        trustStore:
+          type: object
+    TrustStore:
+      type: object
+      required:
+      - type
+      - dnList
+      - fileName
+      properties:
+        type:
+          type: string
+        dnList:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/items_3'
+        fileName:
+          description: name of the trust store file
+          type: string
+        expirationDate:
+          type: string
+    KeyStoreResponse:
+      type: object
+      required:
+      - type
+      - cn
+      - san
+      - fileName
+      properties:
+        type:
+          type: string
+        cn:
+          type: string
+        san:
+          type: array
+          minItems: 0
+          items:
+            type: string
+        alias:
+          type: string
+        fileName:
+          description: name of the key store file
+          type: string
+        keyFileName:
+          type: string
+          maxLength: 64
+        capathFileName:
+          type: string
+          maxLength: 64
+        expirationDate:
+          type: string
+    SupportedRuntime:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedRuntimeVersion'
+    NodeInfo:
+      type: object
+      required:
+      - id
+      - location
+      - isAvailableForDeployments
+      properties:
+        id:
+          type: string
+        location:
+          type: string
+        isAvailableForDeployments:
+          type: boolean
+        availability:
+          description: If set to "AVAILABLE" the cluster will accept deployments
+          type: string
+    ResourceShare:
+      type: object
+      required:
+      - id
+      - account
+      properties:
+        id:
+          type: string
+        account:
+          type: string
+    KeyStoreJks:
+      type: object
+      required:
+      - source
+      - keystoreBase64
+      - alias
+      - keyPassphrase
+      - storePassphrase
+      properties:
+        source:
+          type: string
+        keystoreBase64:
+          description: base64 encoded file contents
+          type: string
+          maxLength: 40960
+        alias:
+          type: string
+          maxLength: 64
+        keyPassphrase:
+          type: string
+          maxLength: 64
+        storePassphrase:
+          type: string
+          maxLength: 64
+        keystoreFileName:
+          type: string
+          maxLength: 64
+    KeyStorePem:
+      type: object
+      required:
+      - source
+      - certificate
+      - key
+      - keyPassphrase
+      properties:
+        source:
+          type: string
+        certificate:
+          type: string
+          maxLength: 4096
+        key:
+          type: string
+          maxLength: 6144
+        capath:
+          type: string
+          maxLength: 28672
+        certificateFileName:
+          type: string
+          maxLength: 64
+        keyFileName:
+          type: string
+          maxLength: 64
+        capathFileName:
+          type: string
+          maxLength: 64
+        keyPassphrase:
+          type: string
+          maxLength: 64
+    items_3:
+      description: Details of certificate.
+      type: object
+      required:
+      - issuer
+      - subject
+      - version
+      - serialNumber
+      - signatureAlgorithm
+      - publicKeyAlgorithm
+      - validity
+      - certificateType
+      properties:
+        issuer:
+          description: Details about the entity that issued the certificate.
+          type: object
+          required:
+          - commonName
+          - countryName
+          - localityName
+          - organizationName
+          - organizationUnit
+          - state
+          properties:
+            commonName:
+              type: string
+            countryName:
+              type: string
+            localityName:
+              type: string
+            organizationName:
+              type: string
+            organizationUnit:
+              type: string
+            state:
+              type: string
+        subject:
+          description: Details about the entity to which the certificate is issued.
+          type: object
+          required:
+          - commonName
+          - countryName
+          - localityName
+          - organizationName
+          - organizationUnit
+          - state
+          properties:
+            commonName:
+              type: string
+            countryName:
+              type: string
+            localityName:
+              type: string
+            organizationName:
+              type: string
+            organizationUnit:
+              type: string
+            state:
+              type: string
+        subjectAlternativeName:
+          description: Collection of subject alternative names from the SubjectAltName x509 extension
+          type: array
+          items:
+            type: string
+        version:
+          type: string
+        serialNumber:
+          description: Serial number assigned by the CA to this certificate, in hex format
+          type: string
+        signatureAlgorithm:
+          description: Name of the signature algorithm
+          type: string
+        publicKeyAlgorithm:
+          description: The standard algorithm name for the public key of this certificate
+          type: string
+        basicConstraints:
+          description: This identifies if the subject of the certificate is a CA
+          type: object
+          required:
+          - certificateAuthority
+          properties:
+            certificateAuthority:
+              description: If set to true, indicates that this is a CA certificate.
+              type: boolean
+        validity:
+          description: Details about validity period of this certificate
+          type: object
+          required:
+          - notBefore
+          - notAfter
+          properties:
+            notBefore:
+              type: string
+            notAfter:
+              type: string
+        keyUsage:
+          description: A list of values defining the purpose of the public key i.e. the key usage extensions from this certificate
+          type: array
+          maxItems: 9
+          minItems: 1
+          items:
+            enum:
+            - Digital Signature
+            - Non Repudiation
+            - Key Encipherment
+            - Data Encipherment
+            - Key Agreement
+            - Key CertSign
+            - CRL Sign
+            - Encipher Only
+            - Decipher Only
+            type: string
+        extendedKeyUsage:
+          description: A list of values providing details about the extended key usage extensions from this certificate.
+          type: array
+          maxItems: 9
+          minItems: 1
+          items:
+            enum:
+            - TLS Web server authentication
+            - TLS Web client authentication
+            - Code signing
+            - E-mail protection
+            - Timestamping
+            - OCSPstamping
+            - IP security end system
+            - IP security tunnel termination
+            - IP security user
+            type: string
+        certificateType:
+          description: The type of this certificate
+          type: string
+    SupportedRuntimeVersion:
+      type: object
+      required:
+      - baseVersion
+      - tag
+      - releaseDate
+      - minimumTag
+      - minimumTagReleaseDate
+      - endOfStandardSupportDate
+      - endOfExtendedSupportDate
+      - endOfLifeSupportDate
+      - channel
+      properties:
+        baseVersion:
+          description: Identifier of the Base Version of the Runtime. For example, in the case of a patched 3.8.0 Mule Runtime, the base version is 3.8.0. This is the version that is used in order to get feature validations by the Anypoint Management Center. This is the information shown to customers and the one that has to be used in order to make deployments.
+          type: string
+        tag:
+          description: Identifier of the actual version of the runtime that is used for deployments.
+          type: string
+        releaseDate:
+          description: Release date of the runtime tag that is used for deployments.
+          type: number
+        minimumTag:
+          description: Identifier of the oldest version of the runtime that can be used for deployments.
+          type: string
+        minimumTagReleaseDate:
+          description: Release date of the oldest version of the runtime tag that can be used for deployments.
+          type: number
+        endOfStandardSupportDate:
+          description: Date that marks the end of standard support for this version.
+          type: number
+        endOfExtendedSupportDate:
+          description: Date that marks the end of extended support for this version.
+          type: number
+        endOfLifeSupportDate:
+          description: Date that marks the end of life support for this version.
+          type: number
+        channel:
+          description: Identifies which release channel this version belongs to.
+          type: string
+        builds:
+          description: List of builds under this runtime version. Only set under the /targets/{id}/runtimes/mule/versions response.
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeVersionBuild'
+        href:
+          description: Href to get information about the particular asset. Only if supported.
+          type: string
+    RuntimeVersionBuild:
+      type: object
+      required:
+      - name
+      - jdkVersion
+      - releaseDate
+      - fromException
+      properties:
+        name:
+          description: Identifies the build number.
+          type: string
+        jdkVersion:
+          description: Identifies the JDK version
+          type: string
+        releaseDate:
+          description: Release date of this runtime build, formatted in milliseconds since January 1, 1970, 00:00:00 GMT.
+          type: number
+        fromException:
+          description: Whether or not the build is available due to a granted exception.
+          type: boolean
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      description: The Organization id where the Private Space lives.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    XOrigin_privateSpaceId_Path:
+      name: privateSpaceId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:cloudhub-20
+        operation: getOrganizationsByOrganizationidPrivatespaces
+        description: GET `/organizations/{organizationId}/privatespaces` in this API; use `id` values as `privateSpaceId`.
+        values: $.id
+        labels: $.name
+      description: The privateSpace ID to identify the target resource.
+    XOrigin_connectionId_Path:
+      name: connectionId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:cloudhub-20
+        operation: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
+        description: GET `/organizations/{organizationId}/privatespaces/{privateSpaceId}/connections` in this API; use `id` values as `connectionId`.
+        values: $.id
+        labels: $.name
+      description: The connection ID to identify the target resource.
+    XOrigin_tgwId_Path:
+      name: tgwId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:cloudhub-20
+        operation: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidTransitgateways
+        description: GET `/organizations/{organizationId}/privatespaces/{privateSpaceId}/transitgateways` in this API; use `id` values as `tgwId`.
+        values: $.id
+        labels: $.name
+      description: The tgw ID to identify the target resource.
+    XOrigin_networkOrganizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_attachmentTgwId_Path:
+      name: tgwId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:cloudhub-20
+        operation: getOrganizationsByOrganizationidTransitgateways
+        description: GET `/organizations/{organizationId}/transitgateways` in this API; use `id` values as `tgwId`.
+        values: $.id
+        labels: $.name
+      description: The tgw ID to identify the target resource.
+    XOrigin_vpnOrganizationId_Path:
+      name: organizationId
+      description: The Organization id where the Cloudhub VPC lives
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  

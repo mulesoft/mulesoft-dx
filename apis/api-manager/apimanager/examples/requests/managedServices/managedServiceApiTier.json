@@ -1,0 +1,16 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "managedServiceApiId": 193,
+    "limits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "name": "tier-name",
+    "description": "tier description"
+  }
+}

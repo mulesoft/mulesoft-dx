@@ -1,0 +1,702 @@
+openapi: 3.0.0
+info:
+  title: Object Store v2 API
+  version: 1.0.0
+  description: Manage object stores, partitions, and key-value entries across environments and regions in Object Store v2.
+servers:
+- url: https://object-store-us-east-1.anypoint.mulesoft.com/api/v1
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations: {}
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/stores:
+    description: Get list of object stores
+    get:
+      description: Get list of object stores in the given environment. If you are using connected app, either of "View Stores / Manage Stores / Manage Store Data" scopes  are needed.  Note that this API only returns the list of stores that currently exist. To retrieve a list of stores for a given timeframe (including stores that don't exist anymore), use the Object Store V2 Stats APIs.
+      parameters:
+      - name: nextPageToken
+        description: When requesting a series of result pages, specify which page this request should resume on.
+        required: false
+        in: query
+        schema:
+          type: string
+          default: ''
+      - name: pageSize
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      responses:
+        '200':
+          description: List of stores
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  value:
+                    values:
+                    - storeId: testStoreId
+                      encrypted: 'false'
+                      defaultTtlMillis: 120000
+                      defaultConfirmationTtlMillis: 10000
+                    - storeId: otherTestStoreId
+                      encrypted: 'false'
+                      defaultTtlMillis: 120000
+                      defaultConfirmationTtlMillis: 10000
+                    nextPageToken: otherTestStoreId
+              example: *id001
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStores
+  /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}:
+    description: Manage an object store.
+    get:
+      description: Get object store details. If you are using connected app, either of "View Stores / Manage Stores / Manage Store Data" scopes  are needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      responses:
+        '200':
+          description: Object store successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  storeId: testStoreId
+                  encrypted: 'false'
+                  defaultTtlMillis: 120000
+                  defaultConfirmationTtlMillis: 10000
+              example: *id002
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+    put:
+      description: Create an object store. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      responses:
+        '200':
+          description: Object store successfully created.
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+    patch:
+      description: Modify object store attributes. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      responses:
+        '200':
+          description: Object store successfully modified.
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+    delete:
+      description: Delete the object store. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      responses:
+        '204':
+          description: Object store successfully deleted.
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+  /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions:
+    description: Get list of keys in an object store
+    get:
+      description: Return a paginated list of keys in this store, along with a token for making a request for the next page of keys. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: nextPageToken
+        description: When requesting a series of result pages, specify which page this request should resume on.
+        required: false
+        in: query
+        schema:
+          type: string
+          default: ''
+      - name: pageSize
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      responses:
+        '200':
+          description: List of keys
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  value:
+                    values:
+                    - myList1
+                    - myList2
+                    - myList3
+                    nextPageToken: myList3/8
+              example: *id003
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitions
+  /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}:
+    description: Change object store values
+    head:
+      description: Check whether or not the given partition is already registered in this store. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: headOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+    get:
+      description: Retrieve the values stored for the given key. If you are using connected app, you need "Manage Store Data" scope.
+      parameters:
+      - name: inclusion
+        description: Defines what to fetch
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - metadata
+          - body
+          default: metadata
+      - name: nextPageToken
+        description: When requesting a series of result pages, specify which page this request should resume on.
+        required: false
+        in: query
+        schema:
+          type: string
+          default: ''
+      - name: pageSize
+        description: Limit the number of elements in the response.
+        required: false
+        in: query
+        schema:
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      responses:
+        '200':
+          description: Return the values for the given key.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  value:
+                    values:
+                    - index: 33
+                      metadata: ''
+                      stringValue: Somewhere in La Mancha, in a place whose name I do not care to remember
+                      valueType: STRING
+                    - index: 34
+                      metadata: ''
+                      stringValue: It was the best of times, it was the blurst of times
+                      valueType: STRING
+                    nextPageToken: '34'
+              example: *id004
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+    delete:
+      description: Remove the object and all the values in the contained list. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmable
+        description: 'Defines whether or not an operation should be confirmed.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+  /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys:
+    get:
+      description: Retrieve the given object. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: beginsWith
+        description: 'Searches the field from the left using the passed string.
+
+          '
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      responses:
+        '200':
+          description: List of keys belonging to the partition.
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeys
+  /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys/{keyId}:
+    description: Create, modify, or delete an object.
+    get:
+      description: Retrieve the given object. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmable
+        description: 'Defines whether or not an operation should be confirmed.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+    head:
+      description: Check if the object exists. "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmable
+        description: 'Defines whether or not an operation should be confirmed.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: headOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+    put:
+      description: Create/Modify the given object. Total object size must be 10MB or less, and metadata must be 4KB or less. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmable
+        description: 'Defines whether or not an operation should be confirmed.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                value:
+                  index: 33
+                  metadata:
+                    asdfsadf: QWerqwerqwe
+                  stringValue: Somewhere in La Mancha, in a place whose name I do not care to remember
+                  valueType: STRING
+        x-amf-mediaType: application/json
+        description: The keys data to update.
+      responses:
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+    post:
+      description: Alter the object in a non-idempotent fashion. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/vnd.objectstore.v1.numberoperation+json:
+            schema: {}
+        x-amf-mediaType: application/vnd.objectstore.v1.numberoperation+json
+        description: The keys data to create.
+      responses:
+        '409':
+          description: 'The resource already exists on this service.
+
+            '
+        '501':
+          description: 'There has been an unexpected error performing this request.
+
+            '
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+    delete:
+      description: Remove the object with the given ID. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmable
+        description: 'Defines whether or not an operation should be confirmed.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+  ? /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys/{keyId}/confirmations/{confirmationId}
+  : description: Change operation settings. If you are using connected app, "Manage Store Data" scope is needed.
+    post:
+      description: Ack the operation. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The confirmation ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+    patch:
+      description: Extend the operation's time to live. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The confirmation ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                ttl: 60
+        x-amf-mediaType: application/json
+        description: The confirmations data to update.
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+    delete:
+      description: Nack the operation. If you are using connected app, "Manage Store Data" scope is needed.
+      parameters:
+      - name: confirmationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The confirmation ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_storeId_Path'
+      - $ref: '#/components/parameters/XOrigin_keyId_Path'
+      - $ref: '#/components/parameters/XOrigin_partitionId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: 'Operation completed successfully.
+
+            '
+        '404':
+          description: 'The requested resource does not exist on this service.
+
+            '
+        '501':
+          description: 'This request is not implemented on this service.
+
+            '
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+  /organizations/{organizationId}/regions:
+    description: Get list of object store regions
+    get:
+      description: Retrieve a list of regions in which the service is available. If you are using connected app, no particular scope is needed.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successfully return a JSON array containing objects for each region.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                - id: mars-east-1
+                  name: Mars East (Elysium)
+                  url: http://object-store.mars-east-1.cloudhub.com
+                - id: mars-west-1
+                  name: Mars West (Oxia Palus)
+                  url: http://object-store.mars-west-1.cloudhub.com
+              example: *id005
+      operationId: getOrganizationsByOrganizationidRegions
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_storeId_Path:
+      name: storeId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:object-store-v2
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStores
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/stores` in this API; use `id` values as `storeId`.
+        values: $.id
+        labels: $.name
+      description: The store ID to identify the target resource.
+    XOrigin_partitionId_Path:
+      name: partitionId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:object-store-v2
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitions
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions` in this API; use `id` values as `partitionId`.
+        values: $.id
+        labels: $.name
+      description: The partition ID to identify the target resource.
+    XOrigin_keyId_Path:
+      name: keyId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:object-store-v2
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeys
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys` in this API; use `id` values as `keyId`.
+        values: $.id
+      description: The key ID to identify the target resource.

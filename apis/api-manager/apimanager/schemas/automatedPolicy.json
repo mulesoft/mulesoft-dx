@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "properties": {
+    "ruleOfApplication": {
+      "type": "object",
+      "properties": {
+        "organizationId": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+          "example": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a"
+        },
+        "environmentId": {
+          "type": "string",
+          "minLength": 1,
+          "example": "5d15a77c-0d35-400e-9a90-61d0beb09409"
+        },
+        "technologies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["mule4", "flexGateway"]
+          }
+        },
+        "range": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "example": "4.1.1"
+            },
+            "to": {
+              "type": "string",
+              "example": "4.1.1"
+            }
+          },
+          "required": ["from"]
+        }
+      },
+      "required": ["environmentId"]
+    },
+    "groupId": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "assetId": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "assetVersion": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "configurationData": {
+      "oneOf": [{ "type": "object" }, { "type": "array", "items": {} }]
+    },
+    "order": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "disabled": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "ruleOfApplication",
+    "groupId",
+    "assetId",
+    "assetVersion",
+    "configurationData"
+  ]
+}

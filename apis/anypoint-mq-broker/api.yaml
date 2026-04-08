@@ -1,0 +1,1156 @@
+openapi: 3.0.0
+info:
+  title: Courier Messaging API
+  version: 1.0.0
+  description: Publish, consume, and acknowledge messages on Anypoint MQ destinations. Manage message locks and delivery.
+servers:
+- url: http://mq-{REGION_ID}.anypoint.mulesoft.com/api/{version}
+  variables:
+    REGION_ID:
+      default: unknown
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://mq-{REGION_ID}.anypoint.mulesoft.com/api/{version}
+  variables:
+    REGION_ID:
+      default: unknown
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+security:
+- bearerAuth: []
+- clientAuth: []
+externalDocs:
+  url: http://
+  description: 'Introduction to the CourierREST API
+
+    ======================================
+
+
+    What Is Messaging?
+
+    --------------------------------------
+
+
+    With Messaging it is defined a kind of communication using middleware or services to communicate between components or applications....
+
+    '
+  x-amf-title: Introduction
+x-amf-userDocumentation:
+- url: http://
+  content: "The Message\n======================================\n\nThe primary goal of the CourierREST protocol is to produce and to consume messages. Therefore the Courier message plays a central role of the CourierREST protocol.\n\nCourier messages are not very different from other messaging protocols messages. A CourierREST message has three parts: headers, properties, and a payload.\n\n    ┌────────────────┐\n    │    Headers     │\n    ├────────────────┤\n    │   Properties   │\n    ├────────────────┤\n    │                │\n    │                │\n    │    Payload     │\n    │                │\n    │                │\n    └────────────────┘\n\nA Courier message has three elements: a header, properties, and a body. The mandatory parts are the properties and the body.\n\n* Headers, courier defined metadata\n* Properties, user defined metadata\n* Body, payload of the message\n\n\nHeaders\n--------------------------------------\n\nCourier message properties can be used to add custom information that does not belong, although it is probably related, to the payload.\n\n\n\nProperties\n--------------------------------------\n\nCourier-specific properties like `lockId`, `messageId`, or `deliveryCount`.\n\n\nPayload\n--------------------------------------\n\nCourier messages can only carry one kind of payload, a stream of uninterpreted bytes. This enables with proper encoding to send and to receive data in many different forms.\n"
+  title: The Message
+paths:
+  /organizations: {}
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/destinations:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: destinationId
+      description: 'Identifier of a destination.
+
+        '
+      required: true
+      in: path
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 127
+  /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages:
+    get:
+      description: 'Requests messages from the destination. If you are using connected app, "Destination subscriber for given environment" scope is needed.
+
+        '
+      x-optionalSecurity: true
+      parameters:
+      - name: pollingTime
+        description: 'Maximum time in milliseconds to wait for the expected message or messages.
+
+          '
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 20000
+          default: 10000
+      - name: batchSize
+        description: Maximum number of messages to receive in a single call. When set as 1, the response is an array containing only one element.
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+      - name: lockTtl
+        description: 'Defines the time to live of the created locks in milliseconds.
+
+          '
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 86400000
+          default: 120000
+      - name: payloadVisibility
+        description: 'Decides whether to show or hide message payload in response
+
+          '
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - full
+          - none
+          - conditional
+          default: full
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      responses:
+        '200':
+          description: 'OK, the message or messages has been fetched correctly.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/receiveBatchResponse'
+              example: &id005
+              - headers:
+                  messageId: 124312340-1234-4321-1236-1234123412344
+                  lockId: 110e8300-e32b-41d4-a716-664400445500
+                  ttl: '3600000'
+                  messageGroupId: OptionalHeaderWhenMessagesAreGroupedForFIFOQueues
+                  deliveryDelay: '10000'
+                  deliveryCount: '1'
+                  created: Sat, 1 Jan 2022 02:08:22 GMT
+                properties:
+                  userDefinedHeader: User defined stuff
+                  anotherUserDefinedHeader: Random stuff
+                  Content-Type: plain/text
+                body: This is a message payload
+        '204':
+          description: 'There are no messages ready to be fetched.
+
+            '
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+    put:
+      description: 'Publishes a batch of messages to the destination. Batch size must be at least 1 and at most 10.
+
+        If you are using connected app, "Destination publisher for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sendBatch'
+        x-amf-mediaType: application/json
+        description: The messages data to update.
+      responses:
+        '200':
+          description: 'Batch send delivered correctly. Find return status of each of the operations in a status header on each part.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sendBatchResponse'
+              example:
+              - messageId: string
+                status: successful
+                statusMessage: string
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: Destination not found. For example, this can be returned when trying to publish messages to a fallback queue after cross region fallback feature has been disabled on the primary queue.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  status: failure
+                  statusMessage: <reason for failure>
+              example: *id001
+        '413':
+          description: Request size too large. Returns a client error code, failure status, and error message.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sendBatchResponse'
+              example:
+              - messageId: string
+                status: successful
+                statusMessage: string
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+    delete:
+      description: 'Acknowledge a batch of messages. If you are using connected app, "Destination subscriber for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      requestBody:
+        $ref: '#/components/requestBodies/ackNackBatch'
+        description: The request payload for this messages operation.
+      responses:
+        '200':
+          description: 'Performs a negative acknowledge batch sent correctly. Find return status of each of the operations in a status header on each part.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ackNackBatchResponse'
+              example: &id002
+                messageId: 124312340-1234-4321-1236-1234123412344
+                lockId: 110e8300-e32b-41d4-a716-664400445500
+                status: successful
+                statusMessage: status message
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+  /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/locks:
+    patch:
+      description: 'Modifies the lock TTL of a batch of messages. If you are using connected app, "Destination publisher for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/modifyTtlBatch'
+        x-amf-mediaType: application/json
+        description: The locks data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/modifyTtlBatchResponse'
+              example: &id006
+              - messageId: 124312340-1234-4321-1236-1234123412344
+                lockId: 110e8300-e32b-41d4-a716-664400445500
+                status: successful
+                statusMessage: status message
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesLocks
+    delete:
+      description: 'Performs a batch negative acknowledge of messages. These are available again for this or other consumers.
+
+        If you are using connected app, "Destination subscriber for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      requestBody:
+        $ref: '#/components/requestBodies/ackNackBatch'
+        description: The request payload for this locks operation.
+      responses:
+        '200':
+          description: 'The operation has been successfully completed.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ackNackBatchResponse'
+              example: *id002
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesLocks
+  /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/{messageId}:
+    put:
+      description: 'Sends the message to the specified destination.
+
+        If you are using connected app, "Destination publisher for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      - name: messageId
+        description: 'Unique identifier for the message
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                headers:
+                  messageId: 124312340-1234-4321-1236-1234123412344
+                  messageGroupId: OptionalHeaderToGroupMessagesForFIFOQueues
+                  deliveryDelay: 20000
+                properties:
+                  userDefinedHeader: User defined stuff
+                  anotherUserDefinedHeader: Random stuff
+                body: This is a message payload
+        x-amf-mediaType: application/json
+        description: The messages data to update.
+      responses:
+        '201':
+          description: 'The message has been correctly sent to the destination.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sendResponse'
+              example:
+                messageId: string
+                status: successful
+                statusMessage: string
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: Destination not found. For example, this can be returned when trying to publish messages to a fallback queue after cross region fallback feature has been disabled on the primary queue.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  status: failure
+                  statusMessage: <reason for failure>
+              example: *id003
+        '413':
+          description: Request size too large. Returns a client error code, failure status, and error message.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sendResponse'
+              example:
+                messageId: string
+                status: successful
+                statusMessage: string
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageid
+    delete:
+      description: 'Performs an acknowledge of the message, effectively deleting it from the destination.
+
+        If you are using connected app, "Destination subscriber for given environment" scope is needed.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      - name: messageId
+        description: 'Unique identifier for the message
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ack'
+        x-amf-mediaType: application/json
+        description: The request payload for this messages operation.
+      responses:
+        '200':
+          description: 'The operation has been successfully completed.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ackNackResponse'
+              example: &id004
+                messageId: 124312340-1234-4321-1236-1234123412344
+                status: successful
+                statusMessage: status message
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageid
+  /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/{messageId}/locks:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: destinationId
+      description: 'Identifier of a destination.
+
+        '
+      required: true
+      in: path
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 127
+    - name: messageId
+      description: 'Unique identifier for the message
+
+        '
+      required: true
+      in: path
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 256
+  ? /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/{messageId}/locks/{lockId}
+  : patch:
+      description: 'Modifies the lock TTL. Typically occurs when the default TTL is not long enough to perform a particular operation.
+
+        If you are using connected app, "Destination publisher for given environment" scope is needed.
+
+        '
+      parameters:
+      - name: lockId
+        description: 'Identificator of a lock.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+      - name: messageId
+        description: 'Unique identifier for the message
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/modifyTtl'
+        x-amf-mediaType: application/json
+        description: The locks data to update.
+      responses:
+        '200':
+          description: 'The operation has been successfully completed.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/modifyTtlResponse'
+              example: &id007
+                messageId: 124312340-1234-4321-1236-1234123412344
+                status: successful
+                statusMessage: status message
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageidLocksByLockid
+    delete:
+      description: 'Performs a negative acknowledge of the message. The message is available again for this or other consumers.
+
+        If you are using connected app, "Destination subscriber for given environment" scope is needed.
+
+        '
+      parameters:
+      - name: lockId
+        description: 'Identificator of a lock.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+      - name: messageId
+        description: 'Unique identifier for the message
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: destinationId
+        description: 'Identifier of a destination.
+
+          '
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 127
+      responses:
+        '200':
+          description: 'The operation has been successfully completed.
+
+            '
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ackNackResponse'
+              example: *id004
+        '400':
+          description: 'Invalid request.
+
+            '
+        '403':
+          description: 'Forbidden. Not enough permissions to access the specified destination.
+
+            '
+        '404':
+          description: 'The destionation cannot be found.
+
+            '
+        '429':
+          description: 'You exceeded the quota allowed to your application.
+
+            '
+        '503':
+          description: 'The service is currently unavailable.
+
+            '
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageidLocksByLockid
+  /authorize:
+    post:
+      description: 'Obtains an access token using client credentials of the OAuth grant type.
+
+        This API is not supported with connectedApp.
+
+        '
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/authorize'
+        x-amf-mediaType: application/x-www-form-urlencoded
+        description: The authorize data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authorizeResponse'
+              example: &id008
+                access_token: aaaaaaa-bbbb-cccc-dddd-eeeeee
+                simple_client:
+                  envId: efbd5310-438b-47df-b3f7-fbce9652d403
+                  orgId: aaaaaaa-bbbb-cccc-ddd-ee
+                token_type: bearer
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema: {}
+      security:
+      - bearerAuth: []
+      - clientAuth: []
+      - {}
+      operationId: createAuthorize
+components:
+  requestBodies:
+    ackNackBatch:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ackNackBatch'
+      x-amf-mediaType: application/json
+      description: Request payload for ackNackBatch operations.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    receiveBatchResponse:
+      example: *id005
+      type: array
+      items:
+        type: object
+    sendBatch:
+      example:
+      - headers:
+          messageId: 124312340-1234-4321-1236-1234123412344
+          messageGroupId: OptionalHeaderToGroupMessagesForFIFOQueues
+          deliveryDelay: 20000
+        properties:
+          userDefinedHeader: User defined stuff
+          anotherUserDefinedHeader: Random stuff
+        body: This is a message payload
+      type: array
+      items:
+        type: object
+        required:
+        - headers
+        - body
+        properties:
+          headers:
+            type: object
+            required:
+            - messageId
+            properties:
+              messageId:
+                type: string
+              messageGroupId:
+                type: string
+              deliveryDelay:
+                type: integer
+          properties:
+            type: object
+          body:
+            type: string
+    sendBatchResponse:
+      example:
+      - messageId: 124312340-1234-4321-1236-1234123412344
+        status: successful
+        statusMessage: All went fine
+      type: array
+      items:
+        type: object
+        required:
+        - messageId
+        - status
+        - statusMessage
+        properties:
+          messageId:
+            type: string
+          status:
+            enum:
+            - successful
+            - failure
+            type: string
+          statusMessage:
+            type: string
+    ackNackBatch:
+      example:
+      - messageId: 124312340-1234-4321-1236-1234123412344
+        lockId: 110e8300-e32b-41d4-a716-664400445500
+      type: array
+      items:
+        type: object
+        properties:
+          messageId:
+            type: string
+          lockId:
+            type: string
+    ackNackBatchResponse:
+      example: *id002
+      type: object
+      required:
+      - messageId
+      - status
+      - statusMessage
+      properties:
+        messageId:
+          type: string
+        status:
+          enum:
+          - successful
+          - failure
+          type: string
+        statusMessage:
+          type: string
+    modifyTtlBatch:
+      example:
+      - messageId: 124312340-1234-4321-1236-1234123412344
+        lockId: 110e8300-e32b-41d4-a716-664400445500
+        ttl: 1000
+      type: array
+      items:
+        type: object
+        required:
+        - messageId
+        - lockId
+        - ttl
+        properties:
+          messageId:
+            type: string
+          lockId:
+            type: string
+          ttl:
+            description: Lock time to live in seconds. The maximum TTL allowed is 12 hours.
+            type: integer
+    modifyTtlBatchResponse:
+      example: *id006
+      type: array
+      items:
+        type: object
+        required:
+        - messageId
+        - lockId
+        - status
+        - statusMessage
+        properties:
+          messageId:
+            type: string
+          lockId:
+            type: string
+          status:
+            enum:
+            - successful
+            - failure
+            type: string
+          statusMessage:
+            type: string
+    sendResponse:
+      example:
+        messageId: 124312340-1234-4321-1236-1234123412344
+        status: successful
+        statusMessage: All went fine
+      type: object
+      required:
+      - messageId
+      - status
+      - statusMessage
+      properties:
+        messageId:
+          type: string
+        status:
+          enum:
+          - successful
+          - failure
+          type: string
+        statusMessage:
+          type: string
+    ack:
+      example:
+        lockId: 110e8300-e32b-41d4-a716-664400445500
+      type: object
+      properties:
+        lockId:
+          type: string
+    ackNackResponse:
+      example: *id004
+      type: object
+      required:
+      - messageId
+      - status
+      - statusMessage
+      properties:
+        messageId:
+          type: string
+        status:
+          enum:
+          - successful
+          - failure
+          type: string
+        statusMessage:
+          type: string
+    modifyTtl:
+      example:
+        ttl: 1000
+      type: object
+      required:
+      - ttl
+      properties:
+        ttl:
+          description: Lock time to live in seconds. The maximum TTL allowed is 12 hours.
+          type: integer
+    modifyTtlResponse:
+      example: *id007
+      type: object
+      required:
+      - messageId
+      - status
+      - statusMessage
+      properties:
+        messageId:
+          type: string
+        status:
+          enum:
+          - successful
+          - failure
+          type: string
+        statusMessage:
+          type: string
+    authorize:
+      example:
+        client_id: 8cdb7b136f3fg29b87963g2f76c
+        client_secret: 76a9g045a6514g6E1806Df3ggc4
+        grant_type: client_credentials
+      type: object
+      required:
+      - client_id
+      - client_secret
+      - grant_type
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        grant_type:
+          type: string
+    authorizeResponse:
+      example: *id008
+      type: object
+      properties:
+        access_token:
+          type: string
+        simple_client:
+          type: object
+          properties:
+            envId:
+              type: string
+            orgId:
+              type: string
+        token_type:
+          type: string
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.

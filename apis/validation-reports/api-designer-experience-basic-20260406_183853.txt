@@ -1,0 +1,199 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./api-designer-experience
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(179,2)-(309,0)]
+	Link:       api-designer-experience/api.yaml:179:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(309,2)-(421,0)]
+	Link:       api-designer-experience/api.yaml:309:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(421,2)-(458,0)]
+	Link:       api-designer-experience/api.yaml:421:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(458,2)-(511,0)]
+	Link:       api-designer-experience/api.yaml:458:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(511,2)-(548,0)]
+	Link:       api-designer-experience/api.yaml:511:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(548,2)-(585,0)]
+	Link:       api-designer-experience/api.yaml:548:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(585,2)-(637,0)]
+	Link:       api-designer-experience/api.yaml:585:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(637,2)-(700,0)]
+	Link:       api-designer-experience/api.yaml:637:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(700,2)-(743,0)]
+	Link:       api-designer-experience/api.yaml:700:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(743,2)-(790,0)]
+	Link:       api-designer-experience/api.yaml:743:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(790,2)-(880,0)]
+	Link:       api-designer-experience/api.yaml:790:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(880,2)-(936,0)]
+	Link:       api-designer-experience/api.yaml:880:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(936,2)-(984,0)]
+	Link:       api-designer-experience/api.yaml:936:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(984,2)-(1024,0)]
+	Link:       api-designer-experience/api.yaml:984:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1024,2)-(1064,0)]
+	Link:       api-designer-experience/api.yaml:1024:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1064,2)-(1125,0)]
+	Link:       api-designer-experience/api.yaml:1064:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1125,2)-(1294,0)]
+	Link:       api-designer-experience/api.yaml:1125:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1294,2)-(1309,0)]
+	Link:       api-designer-experience/api.yaml:1294:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1309,2)-(1330,0)]
+	Link:       api-designer-experience/api.yaml:1309:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1330,2)-(1355,0)]
+	Link:       api-designer-experience/api.yaml:1330:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1355,2)-(1396,0)]
+	Link:       api-designer-experience/api.yaml:1355:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter projectId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1396,2)-(1448,0)]
+	Link:       api-designer-experience/api.yaml:1396:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'commitId'
+[0] should have required property 'name'
+
+	Location:   file://api.yaml
+	Position:   [(416,0)-(418,0)]
+	Link:       api-designer-experience/api.yaml:416:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'createdBy'
+[0] should have required property 'createdDate'
+[0] should have required property 'name'
+[0] should have required property 'organizationId'
+[0] should have required property 'vcsType'
+[0].id should match pattern "^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"
+
+	Location:   file://api.yaml
+	Position:   [(119,0)-(121,0)]
+	Link:       api-designer-experience/api.yaml:119:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'name'
+should have required property 'originalFormatVersion'
+should have required property 'type'
+
+	Location:   file://api.yaml
+	Position:   [(1111,0)-(1122,0)]
+	Link:       api-designer-experience/api.yaml:1111:0
+

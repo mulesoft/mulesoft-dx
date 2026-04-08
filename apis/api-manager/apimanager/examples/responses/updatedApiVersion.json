@@ -1,0 +1,43 @@
+{
+  "value": {
+    "autodiscoveryInstanceName": "v2:test-api",
+    "instanceLabel": "new-label",
+    "pinned": false,
+    "order": 3,
+    "description": "changed description",
+    "endpoint": {
+      "audit": {
+        "created": {
+          "date": "2017-08-11T21:55:38.401Z"
+        },
+        "updated": {
+          "date": "2017-08-16T20:23:57.176Z"
+        }
+      },
+      "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+      "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+      "id": 22,
+      "type": "raml",
+      "uri": "http://my-ep-uri.com.ar",
+      "proxyUri": "http://0.0.0.0:8081/api",
+      "proxyRegistrationUri": null,
+      "lastActiveDate": null,
+      "isCloudHub": null,
+      "deploymentType": "RF",
+      "policiesVersion": "",
+      "referencesUserDomain": null,
+      "responseTimeout": null,
+      "apiId": 23
+    },
+    "id": 23,
+    "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+    "audit": {
+      "created": {},
+      "updated": {
+        "date": "2017-08-16T20:23:57.176Z"
+      }
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043"
+  }
+}

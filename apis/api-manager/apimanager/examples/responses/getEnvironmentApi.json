@@ -1,0 +1,74 @@
+{
+  "value": {
+    "audit": {
+      "created": {
+        "date": "2017-07-19T20:46:19.621Z"
+      },
+      "updated": {
+        "date": "2017-08-02T18:50:10.843Z"
+      }
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "apiId": 25,
+    "instanceLabel": null,
+    "autodiscoveryInstanceName": "dignissimos 25",
+    "assetVersion": null,
+    "productVersion": null,
+    "description": "eius esse sed voluptatem in est beatae dolorem et fugit sequi quia adipisci quam repudiandae in nemo provident eaque natus cum aut aut et sit aut rerum iusto et quia sunt voluptatem similique vero aut saepe nihil est quia molestiae nobis laudantium et commodi iure corrupti doloremque excepturi ab sed",
+    "tags": [
+      "quas",
+      "consectetur",
+      "quidem",
+      "et",
+      "veritatis",
+      "itaque",
+      "ipsum",
+      "ut",
+      "deleniti",
+      "voluptatem"
+    ],
+    "order": 5,
+    "deprecated": false,
+    "lastActiveDate": "2017-08-02T18:50:10.842Z",
+    "endpointUri": null,
+    "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+    "endpoint": {
+      "audit": {
+        "created": {},
+        "updated": {}
+      },
+      "id": 24,
+      "type": "http",
+      "uri": "http://example.com/24",
+      "proxyUri": "http://0.0.0.0:8081/api",
+      "proxyRegistrationUri": null,
+      "lastActiveDate": null,
+      "isCloudHub": null,
+      "deploymentType": "HY",
+      "policiesVersion": "",
+      "referencesUserDomain": null,
+      "responseTimeout": null,
+      "validation": "NOT_APPLICABLE"
+    },
+    "deployment": {
+      "audit": {
+        "created": {},
+        "updated": {}
+      },
+      "id": 3,
+      "applicationId": null,
+      "applicationName": "test-depl2",
+      "gatewayVersion": "3.8.0",
+      "environmentName": "ApiManagerEnv",
+      "environmentId": "1c9fec69-7f17-40c9-abcc-56a0bbed73d9",
+      "targetId": null,
+      "targetName": null,
+      "deploymentId": null,
+      "updatedDate": null,
+      "type": "CH",
+      "apiId": 77
+    },
+    "lastActiveDelta": 7462
+  }
+}

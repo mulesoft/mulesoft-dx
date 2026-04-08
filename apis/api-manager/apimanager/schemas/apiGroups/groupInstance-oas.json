@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "groupId": {
+      "type": "integer"
+    },
+    "groupVersionId": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string"
+    },
+    "groupInstanceLabel": {
+      "type": "string",
+      "nullable": true
+    },
+    "apiInstances": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "deprecated": {
+      "type": "boolean"
+    },
+    "promote": {
+      "type": "object",
+      "properties": {
+        "originGroupInstanceId": {
+          "type": "integer"
+        },
+        "tiers": {
+          "type": "object",
+          "properties": {
+            "allEntities": {
+              "type": "boolean"
+            }
+          },
+          "required": ["allEntities"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["originGroupInstanceId"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["apiInstances"],
+  "additionalProperties": false
+}

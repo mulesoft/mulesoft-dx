@@ -1,0 +1,208 @@
+openapi: 3.0.0
+info:
+  title: Tokenization Runtime Service API
+  description: Tokenize and detokenize sensitive data using configured tokenization services.
+  version: 1.0.0
+servers:
+  - url: https://mocksvc.mulesoft.com/mocks/df05479f-3577-4a01-ae7e-3abb92cb907f
+    description: Mock server
+security:
+  - bearerAuth: []
+  - clientAuth: []
+paths:
+  /AnypointSecurityTokenization/v1/{operation}:
+    post:
+      summary: Tokenize or detokenize data
+      description: Request tokenization service with body containing the data that Tokenization Service will operate against.
+      operationId: processTokenization
+      parameters:
+        - name: operation
+          in: path
+          required: true
+          description: What operation to perform on the list of data in body
+          schema:
+            type: string
+            enum:
+              - tokenization
+              - detokenization
+      requestBody:
+        description: Array of data items to tokenize or detokenize
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenizationServiceRequest'
+            examples:
+              tokenization:
+                summary: Tokenization example
+                value:
+                  - format: ssnonly
+                    data: '333-33-3333'
+                  - format: us_address
+                    data: '55 Washington Rd, Chicago, IL 60501'
+              tokenizationWithId:
+                summary: Tokenization with ID example
+                value:
+                  - format: ssnonly
+                    data: '333-33-3333'
+                    id: a1234
+                  - format: us_address
+                    data: '55 Washington Rd, Chicago, IL 60501'
+                    id: a1234
+              detokenization:
+                summary: Detokenization example
+                value:
+                  - format: ssnonly
+                    data: '555-55-5555'
+                  - format: us_address
+                    data: '37 geegpqhdjd w3, Ug34dkW, DS 23681'
+      responses:
+        '200':
+          description: Response of the tokenized/detokenized data where all elements in the array were able to be converted properly. If at least one item fails conversion a 422 will be generated instead.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenizationServiceResponse'
+              examples:
+                tokenization:
+                  summary: Tokenization success response
+                  value:
+                    - status: success
+                      data: '555-55-5555'
+                    - status: success
+                      data: '37 geegpqhdjd w3, Ug34dkW, DS 23681'
+                tokenizationWithId:
+                  summary: Tokenization with ID success response
+                  value:
+                    - status: success
+                      data: '555-55-5555'
+                      id: a1234
+                    - status: success
+                      data: '37 geegpqhdjd w3, Ug34dkW, DS 23681'
+                      id: a1234
+                detokenization:
+                  summary: Detokenization success response
+                  value:
+                    - status: success
+                      data: '333-33-3333'
+                    - status: success
+                      data: '55 Washington Rd, Chicago, IL 60501'
+        '400':
+          description: Message is completely bad, wrong content type, wrong method, unable to even start processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidJson:
+                  summary: Invalid JSON error
+                  value:
+                    errorcode: 1100
+                    error: Invalid json
+        '422':
+          description: At least one of the elements in the array had an error and could not be converted. Other items that could be converted correctly will be returned. The caller should expect to find at least one array item to contain a "status" of "failure".
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenizationServiceResponse'
+              examples:
+                partialFailure:
+                  summary: Partial failure response
+                  value:
+                    - data: '555-55-5555'
+                      status: success
+                    - data: ''
+                      status: failure
+                      errorcode: 1384
+                      error: 'There is no domain instance in this token exchange policy with a matching domain id [ssnonl].'
+        '500':
+          description: Internal server error - service not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serviceNotReady:
+                  summary: Service not ready error
+                  value:
+                    errorcode: 100
+                    error: '100: service not ready'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Bearer token authentication. Login endpoint:
+        https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: >
+        OAuth2 client credentials. Token endpoint:
+        https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    TokenizationServiceRequest:
+      type: array
+      description: Array of token requests for batch processing
+      items:
+        $ref: '#/components/schemas/TokenRequest'
+    TokenRequest:
+      type: object
+      description: Object with data to convert
+      required:
+        - format
+        - data
+      properties:
+        format:
+          type: string
+          description: Name of the format to use for tokenizing or detokenizing the data
+        data:
+          type: string
+          description: Data to be tokenized or detokenized
+        id:
+          type: string
+          description: Optional client provided id that will be the same in the response to make finding entries easier
+    TokenizationServiceResponse:
+      type: array
+      description: Array of token responses for batch processing results
+      items:
+        $ref: '#/components/schemas/TokenResponse'
+    TokenResponse:
+      type: object
+      description: Status of tokenized or detokenized data
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: Status of the operation
+          enum:
+            - success
+            - failure
+        data:
+          type: string
+          description: Data being tokenized or detokenized
+        error:
+          type: string
+          description: Information about why it failed
+        errorcode:
+          type: number
+          description: A number to help identify the origin of the error
+        id:
+          type: string
+          description: Optional field that will match the input id if provided
+    ErrorResponse:
+      type: object
+      description: Error message response
+      properties:
+        error:
+          type: string
+          description: More details about the error
+        errorcode:
+          type: number
+          description: A number to help identify the origin of the error

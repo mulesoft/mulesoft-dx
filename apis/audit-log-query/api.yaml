@@ -1,0 +1,1023 @@
+openapi: 3.0.0
+info:
+  title: Anypoint Platform Audit Log API
+  version: 2.0.0
+  description: Query audit log events, actions, and object types for organizations on the Anypoint Platform. Configure log retention settings.
+servers:
+- url: https://anypoint.mulesoft.com/audit/{version}
+  variables:
+    version:
+      default: v2
+      description: API version identifier.
+- url: https://eu1.anypoint.mulesoft.com/audit/{version}
+  variables:
+    version:
+      default: v2
+      description: API version identifier.
+- url: https://{region}.platform.mulesoft.com/audit/{version}
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+    version:
+      default: v2
+      description: API version identifier.
+security:
+- bearerAuth: []
+- clientAuth: []
+externalDocs:
+  url: http://
+  description: >-
+    1) Get an access token for the Audit Query API. The response will include an
+    access_token field with your token. This should be used in every request to
+    the Audit Query API. The token should be sent on the Authorization header.
+
+    ```
+
+    curl -s
+      https://anypoint.mulesoft.com/accounts/login -d "username=<YOUR-USERNAME>&password=<YOUR-PASSWORD>"
+    ```
+
+    Response :
+
+    ```
+
+    {
+      "access_token": "54545454-5454-5454-5454-545454545454",
+      "token_type": "Bearer",
+      "redirectUrl": "/home"
+    }
+
+    ```
+
+    2) API to get all platforms in an org :
+
+
+    ```
+
+    curl -X GET
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/platforms?include_internal=false
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      ```
+      3) Get supported object types for each platform :
+
+      ```
+    curl -X GET
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/objectTypes?include_internal=false
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      ```
+      4) Get a list of actions associated with every object type :
+
+      ```
+    curl -X GET
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/actions?include_internal=false
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      ```
+      5) Query for log entries for an org with different filters. Query parameters are documented in the logQuery schema. Entries returned will match the entries that were passed in, and are sorted in ascending timestamp order (oldest to newest). E.g. below query searches for log entries for a duration of 1 day regardless of any platform, object types or actions.
+
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?include_internal=false
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2018-01-28T21:45:41.609Z","endDate":"2018-01-29T21:45:41.609Z","platforms":[],"objectTypes":[],"actions":[],"objectIds":[],"userIds":[],"ascending":false,"organizationId":"f0c9b011-980e-4928-9430-e60e3a97c043","offset":0,"limit":25}'
+      ```
+      6) Get retention setting entries for an organization.
+
+      ```
+    curl -X GET
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/retentionSettings
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      ```
+      7) Set retention setting for an organization.
+
+      ```
+    curl -X PUT
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/retentionSettings
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"retentionPeriod":30,"effectiveFrom":"2022-09-29T21:45:41.609Z"}'
+
+    curl -X PUT
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/retentionSettings
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"retentionPeriod":365}'
+      ```
+      8) The following examples show a series of calls in a query loop for cursor based query.
+
+      The first call does not have a cursor in the body and does not request the total. The response returns the following data:
+
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?cursorPagination=true
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2018-01-28T21:45:41.609Z","endDate":"2018-01-29T21:45:41.609Z"}'
+      ```
+      Response:
+      ```
+      {
+         "data": [log entries],
+         "cursor": '123_abcd'
+      }
+      ```
+      You can use the cursor from the first call’s response in the next call to get the next set of rows.
+
+      9) The second call has a specific cursor in the request:
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?cursorPagination=true
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2018-01-28T21:45:41.609Z","endDate":"2018-01-29T21:45:41.609Z", "cursor": '123_abcd'}'
+      ```
+      Response:
+      ```
+      {
+         "data": [log entries],
+         "cursor": '123_xyz'
+      }
+      ```
+      10) The third call is the final call in a loop. Because there are no more logs to be returned, the response does not have a cursor and contains no data.
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?cursorPagination=true
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2018-01-28T21:45:41.609Z","endDate":"2018-01-29T21:45:41.609Z", "cursor": '123_xyz'}'
+      ```
+      Response:
+      ```
+      {
+         "data": []
+      }
+      ```
+      11) The following example shows how to use a cursor and request the total:
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?cursorPagination=true&doIncludeTotal=true
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2018-01-28T21:45:41.609Z","endDate":"2018-01-29T21:45:41.609Z", "cursor": '123_abcde'}'
+      ```
+      Response:
+      ```
+      {
+       "data": [logs],
+       "cursor": '123_asdfg'
+       "total": 50000
+      }
+      ```
+      12) This example shows how to opt-in to get logs with versioned object information that was captured when the audit logs were generated, instead of getting latest object information. Logs for objects created or updated on or after November 29, 2023 will return versioned object information; other logs will show no change in behavior.
+      ```
+    curl -X POST
+      https://anypoint.mulesoft.com/audit/v2/organizations/f0c9b011-980e-4928-9430-e60e3a97c043/query?getVersionedObjectsInLogs=true
+      -H 'Content-Type: application/json'
+      -H 'Authorization:Bearer <access_token>'
+      -d '{"startDate":"2024-01-28T21:45:41.609Z","endDate":"2024-01-29T21:45:41.609Z"}'
+      ```
+      Response:
+      ```
+      {
+        "data": [logs],
+        "total": 500
+      }
+      ```
+  x-amf-title: Usage Examples
+x-amf-userDocumentation:
+- url: http://
+  content: >-
+    # Log Entries
+
+
+    Log represent actions made by a user against an object. Events happen at a particular time, involve one or more objects, have an action, such as 'delete' or 'approve', and an optional payload which can store application-specific information, such as changed fields, environment information, and so on.
+
+    Events are queried by POSTing a query object to the /query endpoint. Note that this endpoint uses timespan ranges for paging, with a maximum return set of 200 log entries.
+
+
+    See the API reference for the annotated JSON schema for the query object structure, which can be found in the _/v1/organizations/{id}/_query POST endpoint, or below.
+
+
+
+    # Objects
+
+
+    Objects represent the entities about which actions are logged. Within an organization, objects are identified by a trio of properties:
+
+
+    **Platform:** The system that owns the object. Examples: "Runtime Manager", "api platform", "core services".
+
+
+    **Type:** The business entity that the object represents. Examples: "api", "api version", "permission", "environment".
+
+
+    **Id:** The system-local id of the object. Can be a uuid, a number or any other key representation used by the object's platform.
+
+
+    Note that the properties form a unique key, in the above order. So, for example, { "Runtime Manager", "widget", "21" } and { "api platform", "widget", "21" } would be two distinct objects.
+
+
+    In addition, objects have a Name which is used as a user-friendly identifier. The objects names are up-to-date with latest name of the object.
+
+
+    ## Object Hierarchies
+
+
+    In the real world, objects have parent-child relationships that are critical for querying and organizing log data. For example, when looking at api platform events, a user may wish to look at all events for a particular api. However, the api contains api versions as well as policies, portals, and other objects, whose events the user would need to see. To this end, objects have a parent id and a parent type, which acts as a key to their parent and enabled queries for the children of any entity. Parent id and parent type are optional.
+
+
+    See the API reference for complete information on object structure, which is embedded within the log entries schema.
+  title: Overview of Types
+- url: http://
+  content: >-
+    If the **Audit Log Query API** is not working please contact the [MuleSoft
+    Organization](https://support.mulesoft.com/s/login/) and provide
+    information about this issue.
+
+
+    If possible, please provide the following information in order to have a better understanding of the situation -
+
+
+    1) The operation that is not working correctly and the associated request.
+
+
+    2) Steps to reproduce the issue.
+  title: Support
+paths:
+  /organizations: {}
+  "/organizations/{id}":
+    description: The id of the organization whose data is being queried
+    parameters:
+    - name: id
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The id to identify the target resource.
+  "/organizations/{id}/query{mediaTypeExtension}":
+    post:
+      description: >
+        Searches for log entries. Query parameters are documented in the
+        logQuery schema.
+
+        Entries returned will match the entries that were passed in, and are sorted in
+
+        ascending timestamp order (oldest to newest).
+      parameters:
+      - name: cursorPagination
+        description: Use cursor based pagination
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: doIncludeTotal
+        description: Include total value in the response
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: getVersionedObjectsInLogs
+        description: >
+          Get versioned object from the time of log creation, instead of
+          latest object. 
+
+          Logs for objects created or updated on or after November 29, 2023 will return versioned object information;
+
+          Other logs will show no change in behavior.
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      - name: mediaTypeExtension
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - .csv
+        description: The mediaTypeExtension to identify the target resource.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/logQuery"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/logQuery"
+        x-amf-mediaType: application/json
+        description: The query{mediaTypeExtension} data to create.
+      x-amf-requestPayloads:
+      - mediaType: application/x-www-form-urlencoded
+        schema:
+          type: object
+          required:
+          - accessToken
+          - startDate
+          - full
+          - ascending
+          - limit
+          - offset
+          properties:
+            accessToken:
+              description: >
+                Since is a post made from a html form and the header cannot be
+                set the token is passed by parameter
+              type: string
+            startDate:
+              description: >
+                Starting time, expressed in ISO 8601 date, e.g.
+                '2011-10-10T14:48:00', inclusive of passed-in value.
+              type: string
+            endDate:
+              description: >
+                Ending time, expressed in ISO 8601 date, e.g.
+                '2011-10-10T14:48:00', inclusive of passed-in value.
+              type: string
+            anypointTransactionIds:
+              description: |
+                Propagated Anypoint Transaction IDs to search logs for.
+              type: array
+              items:
+                type: string
+            userIds:
+              description: >
+                Limits results to only log entries belonging to the given
+                users.
+              type: array
+              items:
+                type: string
+            clientIds:
+              description: >
+                Limits results to only log entries belonging to the given
+                clients.
+              type: array
+              items:
+                type: string
+            objectIds:
+              description: >
+                Limits results to only log entries containing at least one of
+                the given object ids
+              type: array
+              items:
+                type: string
+            environmentIds:
+              description: >
+                Limits results to only log entries containing objects
+                associated with one of the given environment ids
+              type: array
+              items:
+                type: string
+            parentIds:
+              description: >
+                Limits results to only log entries whose objects are children
+                of the given parent ids
+              type: array
+              items:
+                type: string
+            platforms:
+              description: |
+                Limits results to only log entries belonging to the platforms
+              type: array
+              items:
+                type: string
+            objectTypes:
+              description: >
+                Limits results to only log entries for objects of the given
+                types
+              type: array
+              items:
+                type: string
+            actions:
+              description: >
+                Limits results to only log entries describing one of the given
+                set of actions
+              type: array
+              items:
+                type: string
+            failed:
+              description: >
+                Limits results to only log entries with the given 'failed'
+                status
+              type: boolean
+            full:
+              description: Indicates whetever the response should be with or without payload
+              default: true
+              type: boolean
+            ascending:
+              description: Indicates if the result query should be sorted in ascending or descending timestamp order
+              default: true
+              type: boolean
+            limit:
+              description: Limits the number of log entries returned. Maximum and default limit is 200 for json query, 300000 for csv query.
+              default: 200
+              type: number
+              maximum: 200
+            offset:
+              description: Pagination parameter to start returning log entries from this position of matches
+              default: 0
+              type: number
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          x-amf-responsePayloads:
+          - mediaType: text/csv
+            schema: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/logQueryResult"
+              example:
+                data:
+                - {}
+                total: 0.0
+                cursor: string
+            text/csv:
+              schema:
+                $ref: "#/components/schemas/logQueryResult"
+              example:
+                data:
+                - {}
+                total: 0.0
+                cursor: string
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: createOrganizationsByIdQueryMediatypeextension
+  "/organizations/{id}/platforms":
+    get:
+      description: |
+        Gets all platforms of an organization
+      parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/platforms"
+              example: &id001
+                data:
+                - name: api-platform
+                  label: cloudhub
+                total: 2
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: getOrganizationsByIdPlatforms
+  "/organizations/{id}/objectTypes":
+    get:
+      description: |
+        Gets all objectTypes of an organization
+      parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/objectTypeResponse"
+              example: &id002
+                data:
+                - name: api
+                  platforms:
+                  - api-platform
+                  - cloudhub
+                - name: api version
+                  platforms:
+                  - api-platform
+                - name: contract
+                  platforms:
+                  - coreservices
+                - name: application
+                  platforms:
+                  - coreservices
+                total: 4
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: getOrganizationsByIdObjecttypes
+  "/organizations/{id}/objects":
+    get:
+      description: >
+        Query objects by objectTypes, platforms and search text passed as
+        parameters
+          example: |
+            /organizations/{id}/objects?objectType=XX&object_type=YY&search=test-application
+            /organizations/{id}/objects?platform=A-111&platform=B-222&search=test-application
+            /organizations/{id}/objects?platform=A-111&platform=B-222&object_type=YY
+      parameters:
+      - name: offset
+        description: Pagination parameter to start returning object from this position of matches
+        required: true
+        in: query
+        schema:
+          type: number
+      - name: objectType
+        description: Object type name, supports multiple object types
+        required: true
+        in: query
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: objectId
+        description: Object Id, supports multiple object ids
+        required: true
+        in: query
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: platform
+        description: Platform name, supports multiple platforms
+        required: true
+        in: query
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: limit
+        description: Limits the number of objects returned
+        required: true
+        in: query
+        schema:
+          type: number
+          maximum: 200
+      - name: search
+        description: The string to search for in object names
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/objects"
+              example: &id003
+                data:
+                - objectId: "9898"
+                  objectName: Test API
+                - objectId: "2342"
+                  objectName: v1.0
+                - objectId: "5379"
+                  objectName: Test Application
+                total: 3
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: getOrganizationsByIdObjects
+  "/organizations/{id}/actions":
+    get:
+      description: |
+        Gets all actions and object types associated with them.
+      parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/actionResponse"
+              example: &id004
+                data:
+                - name: create
+                  objectTypes:
+                  - api
+                  - api version
+                - name: start
+                  objectTypes:
+                  - application
+                - name: delete
+                  objectTypes:
+                  - page
+                  - policy
+                - name: login
+                  objectTypes:
+                  - user
+                total: 3
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: getOrganizationsByIdActions
+  "/organizations/{id}/retentionSettings":
+    get:
+      description: >
+        Gets retention setting entries for an organization including the current
+        retention period.
+      parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/retentionSettingsResponse"
+              example: &id005
+                data:
+                - retentionPeriod: 2190
+                  effectiveFrom:
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: getOrganizationsByIdRetentionsettings
+    put:
+      description: >
+        Sets retention setting for an organization. The organization id should
+        be a root organization id as retention period can not be set for a
+        sub-organization.
+      parameters:
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The id to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Set Retention Settings Request
+              description: Retention settings datatype to add a retention setting.
+              type: object
+              required:
+              - retentionPeriod
+              properties:
+                retentionPeriod:
+                  description: >
+                    Number of days for retaining logs. Valid range is from 30 to
+                    2190 which represents a maximum of 6 years.
+                  type: number
+                effectiveFrom:
+                  description: >
+                    The time from which this retention entry will be effective.
+                    This field is optional and default value is 7 days from the
+                    time the api is invoked. Similarly, when a custom time is
+                    provided, the value should be at least 7 days from the time
+                    the api is invoked. Any value earlier than that will be
+                    invalid. Format is ISO 8601, in UTC.
+                  type: string
+            examples:
+              example1:
+                value:
+                  retentionPeriod: 30
+                  effectiveFrom: 2022-09-29T21:45:41.609000Z
+              example2:
+                value:
+                  retentionPeriod: 365
+        x-amf-mediaType: application/json
+        description: The retentionSettings data to update.
+      responses:
+        "200":
+          description: The entry was recorded successfully.
+        "503":
+          description: |
+            The client reached the maximum number of requests per minute per IP.
+            The client should retry the request later.
+      operationId: updateOrganizationsByIdRetentionsettings
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Bearer token authentication. Login endpoint:
+        https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: >
+        OAuth2 client credentials. Token endpoint:
+        https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    logQuery:
+      title: Audit Log Query
+      description: Audit Log Query datatype. Queries for log entries. Note that all filters below will be ANDed to each other.
+      example:
+        startDate: 2011-10-10T14:48:00
+        actions:
+        - signin
+        userIds:
+        - abc-123
+        - def-456
+      type: object
+      required:
+      - startDate
+      properties:
+        startDate:
+          description: Starting time, expressed in Unix milliseconds or ISO 8601 date, e.g. '2011-10-10T14:48:00', inclusive of passed-in value.
+          x-amf-union:
+          - type: string
+          - type: integer
+        endDate:
+          description: Ending time, expressed in Unix milliseconds or ISO 8601 date, e.g. '2011-1-1', inclusive of passed-in value.
+          x-amf-union:
+          - type: string
+          - type: integer
+        userIds:
+          description: Limits results to only log entries belonging to the given users
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        objectIds:
+          description: Limits results to only log entries containing at least one of the given object ids
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        parentIds:
+          description: Limits results to only log entries whose objects are children of the given parent ids
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        platforms:
+          description: Limits results to only log entries belonging to the platforms
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        objectTypes:
+          description: Limits results to only log entries for objects of the given types
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        actions:
+          description: Limits results to only log entries describing one of the given set of actions
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        limit:
+          description: Limits the number of log entries returned. Note, For regular log query, no more than 200 entries will be returned from this service. For csv query, maximum value is 300000.
+          type: integer
+          minimum: 1
+          maximum: 200
+        offset:
+          description: Pagination parameter to start returning log entries from this position of matches
+          default: 0
+          type: integer
+          minimum: 0
+        failed:
+          description: Limits results to only log entries with the given 'failed' status
+          type: boolean
+        ascending:
+          description: Indicates if the result query should be sorted in ascending or descending timestamp order
+          default: true
+          type: boolean
+    logQueryResult:
+      title: Audit Log Query Response
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          description: Log entry - note that we cannot reference logEntry from here - see https://github.com/raml-org/raml-spec/issues/109. Maximum number of log entries returned is 200 for json query, 300000 for csv query.
+          type: array
+          minItems: 0
+          items:
+            type: object
+        total:
+          description: Total amount of entries that the query matches. Total will be returned when offset based pagination is used. When cursorPagination is set to true, the total will not be returned by default. To get the total in response, doIncludeTotal should be set to true.
+          type: number
+        cursor:
+          description: Cursor value in response. The cursor value should be used in the next query to get the next page of query results. Cursor will be returned only when cursorPagination is set to true in query. Cursor value corresponds to the last data entry in the response data set and so even with cursorPagination as true, a cursor will not be returned when the data object is empty.
+          type: string
+    platforms:
+      title: Platforms Type
+      example: *id001
+      type: object
+      required:
+      - data
+      - total
+      properties:
+        data:
+          title: Platforms Array
+          type: array
+          items:
+            $ref: "#/components/schemas/nameAndLabel"
+        total:
+          description: Total amount of platforms
+          type: number
+    objectTypeResponse:
+      title: Object Types Response
+      example: *id002
+      type: object
+      required:
+      - data
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            title: Name And Label
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - platforms
+            properties:
+              name:
+                type: string
+                minLength: 3
+                maxLength: 20
+              platforms:
+                description: The Anypoint platform service that generated the log entry
+                type: array
+                minItems: 1
+                items:
+                  type: string
+                  minLength: 3
+                  maxLength: 20
+              label:
+                description: The label to use in the UI for the final user, e.g. 'Access Management'. In the context of Actions, the label to use in the UI for the final user. E.g. 'Update' or 'Delete'
+                type: string
+                minLength: 3
+                maxLength: 50
+        total:
+          description: Total amount of objects types
+          type: number
+    objects:
+      title: Objects Query Response
+      example: *id003
+      type: object
+      required:
+      - data
+      - total
+      properties:
+        data:
+          title: Object Entry Array
+          type: array
+          items:
+            title: Object Entry
+            type: object
+            additionalProperties: false
+            required:
+            - objectId
+            - objectName
+            properties:
+              objectId:
+                description: Unique id of the object in its system of record
+                type: string
+                minLength: 1
+                maxLength: 36
+              objectName:
+                description: User-visible name of the object, e.g. 'Shipping API'
+                type: string
+                minLength: 1
+                maxLength: 255
+        total:
+          description: Total amount of objects that match the criteria
+          type: number
+    actionResponse:
+      title: Actions Response
+      example: *id004
+      type: object
+      required:
+      - data
+      - total
+      properties:
+        data:
+          description: Actions Entry Array
+          type: array
+          items:
+            title: Action Entry
+            type: object
+            additionalProperties: false
+            required:
+            - objectTypes
+            - name
+            properties:
+              objectTypes:
+                type: array
+                minItems: 1
+                items:
+                  description: Type of the object, e.g. 'api' or 'api version'
+                  type: string
+                  minLength: 3
+                  maxLength: 25
+              name:
+                type: string
+                minLength: 3
+                maxLength: 20
+              label:
+                description: The label to use in the UI for the final user, e.g. 'Access Management'. In the context of Actions, the label to use in the UI for the final user. E.g. 'Update' or 'Delete'
+                type: string
+                minLength: 3
+                maxLength: 50
+        total:
+          description: Total amount of actions
+          type: number
+    retentionSettingsResponse:
+      title: Retention Settings Response
+      example: *id005
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          description: Retention Entry Array
+          type: array
+          minItems: 1
+          items:
+            title: Retention Entry
+            type: object
+            additionalProperties: false
+            required:
+            - retentionPeriod
+            - effectiveFrom
+            properties:
+              retentionPeriod:
+                description: Number of days for retaining logs. Default is 2190 representing 6 years.
+                type: number
+              effectiveFrom:
+                description: This specifies the time from which this entry will be effective. Format is ISO 8601, in UTC. This will be null for the default 6 year retention period of an organization as there won't be a custom effective date chosen by the organization.
+                x-amf-union:
+                - type: string
+                - type: "null"
+    nameAndLabel:
+      title: Name And Label
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 20
+        label:
+          description: The label to use in the UI for the final user, e.g. 'Access Management'. In the context of Actions, the label to use in the UI for the final user. E.g. 'Update' or 'Delete'
+          type: string
+          minLength: 3
+          maxLength: 50

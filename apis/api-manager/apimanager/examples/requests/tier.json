@@ -1,0 +1,15 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "limits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "name": "tierName",
+    "description": "tier description"
+  }
+}

@@ -1,0 +1,4476 @@
+openapi: 3.0.0
+security:
+- bearerAuth: []
+- clientAuth: []
+info:
+  title: Tokenization Management API
+  version: 1.0.0
+  description: Manage tokenization services, formats, and deployments for data tokenization within Anypoint Security.
+servers:
+- url: https://anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+    organizationId:
+      default: unknown
+      description: The organization ID for the Anypoint Platform account.
+- url: https://eu1.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+    organizationId:
+      default: unknown
+      description: The organization ID for the Anypoint Platform account.
+- url: https://{region}.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+    organizationId:
+      default: unknown
+      description: The organization ID for the Anypoint Platform account.
+externalDocs:
+  url: http://
+  description: "Here's the flow for managing the lifecycle of a service :\n 1. Create one or more formats.\n 2. Create a service and associate the format(s) in the step above.\n 3. Update the service when required."
+  x-amf-title: Flow to create/update a tokenization service
+paths:
+  /formats:
+    description: 'A rule to define how to tokenization/detokenize a Compliance Domain data. Compliance Domain is a realm(for example Credit Card Number) where a tokenization/detokenization occurs.
+
+      '
+    post:
+      description: 'Create a new format.
+
+        '
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/formatRequest'
+        x-amf-mediaType: application/json
+        description: The formats data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/formatResponse'
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: createFormats
+    get:
+      description: Get a list of formats.
+      parameters:
+      - name: query
+        description: Filter the formats by providing a comma separate list of format uuids
+        required: false
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                x-amf-examples:
+                  format-collection:
+                  - name: decimalTest
+                    description: decimalTest
+                    type: decimal
+                    formatData:
+                      tokenRules:
+                        forceInvalid:
+                          from: right
+                          startOffset: 4
+                          width: 2
+                        preserveHeaderTrailer:
+                          headerPreserve: 0
+                          trailerPreserve: 4
+                      tokenFormat:
+                        variableLengthToken:
+                          maximumTokenLength: 10
+                    id: a312c74a-35d5-4541-b557-832803f0df5b
+                    isDeleted: false
+                    organizationId: f1c7d9a7-5827-4203-868f-131ec44ebe97
+                    createdAt: 2019-02-13 13:12:53.255000+00:00
+                    updatedAt: 2019-03-14 18:23:57.267000+00:00
+                  - name: emailTest
+                    description: email
+                    type: emailAddress
+                    formatData:
+                      tokenFormat:
+                        variableLengthToken:
+                          maximumTokenLength: 20
+                    id: a312c74a-35d5-4541-b557-832803f0df5b
+                    isDeleted: false
+                    organizationId: f1c7d9a7-5827-4203-868f-131ec44ebe97
+                    createdAt: 2019-02-13 13:12:53.255000+00:00
+                    updatedAt: 2019-03-14 18:23:57.267000+00:00
+                  - name: laxalphanumericTest
+                    description: lax alphanumeric
+                    type: laxAlphanumeric
+                    formatData:
+                      tokenRules:
+                        preserveHeaderTrailer:
+                          headerPreserve: 4
+                          trailerPreserve: 4
+                      tokenFormat:
+                        variableLengthToken:
+                          maximumTokenLength: 21
+                    id: a312c74a-35d5-4541-b557-832803f0df5b
+                    isDeleted: false
+                    organizationId: f1c7d9a7-5827-4203-868f-131ec44ebe97
+                    createdAt: 2019-02-13 13:12:53.255000+00:00
+                    updatedAt: 2019-03-14 18:23:57.267000+00:00
+                type: array
+                items:
+                  $ref: '#/components/schemas/formatResponse'
+              example:
+              - id: string
+                type: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getFormats
+  /formats/{formatId}:
+    description: Get an entity representing a format
+    get:
+      description: 'Get the format
+
+        with id =
+
+        {formatId}
+
+        '
+      parameters:
+      - name: formatId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The format ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/formatResponse'
+              example: {}
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getFormatsByFormatid
+    put:
+      parameters:
+      - name: formatId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The format ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/formatRequestUpdate'
+        x-amf-mediaType: application/json
+        description: The formats data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/formatResponse'
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: updateFormatsByFormatid
+      description: Replaces a formats.
+    delete:
+      parameters:
+      - name: formatId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The format ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable entity. The request body contains semantic errors.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: deleteFormatsByFormatid
+      description: Deletes a formats.
+  /services:
+    description: The collection of services
+    get:
+      description: Get a list of services.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                type: object
+                x-amf-mediaType: application/xml
+                x-amf-schema: <<itemType>>[]
+              example: {}
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getServices
+  /environments/{envId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_envId_Path'
+  /environments/{envId}/services:
+    description: "Service is used to config tokenization funcionality and manage it's runtime life cycle. A service can have one of the following status:\n* CREATING - A new tokenization service is being created, update of a service is not possible when in this stage\n* FAILED - creation of VDP table failed. The user is free to retry creation\n* READY - The service is either ready for deployment or is already deployed(refer to deploymentInfo property in raml              for more information)\n* UPDATING - An update of an existing tokenization service which was previously in READY or UPDATE_FAILED: stage is in            progress, update of service is not possible when in this stage.\n* UPDATE_FAILED: The update of service failed, the user can retry to update the service now.\n* REKEYING: rekey of VDP table operation in progess.\n* REKEY_FAILED: rekey of VDP table operation has failed, the user can retry to operation now. \nNOTE: If a unexpected failure occurs, the service can be stuck in CREATING or UPDATING or REKEYING stage. If this happens, the api                will run a scheduled task and mark the status as FAILED or UPDATE_FAILED respectively after the service has been in that state for a long time(roughly between an two to four hours)\n"
+    post:
+      description: 'Create a new service.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Service'
+        x-amf-mediaType: application/json
+        description: The services data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+              example:
+                id:
+                  id: string
+                  type: string
+                ipAddress:
+                  id: string
+                  type: string
+                status:
+                  id: string
+                  type: string
+                serviceData:
+                  id: string
+                  type: string
+                logs:
+                  id: string
+                  type: string
+                environmentId:
+                  id: string
+                  type: string
+                organizationId:
+                  id: string
+                  type: string
+                vdpOperationInfo:
+                  status:
+                    id: string
+                    type: string
+                  finishTimestamp: string
+                  processTimestamp: string
+                  runnerNode: string
+                  generalResponse: string
+                  vdpResponse:
+                    id: string
+                    type: string
+                  csmResponse:
+                    id: string
+                    type: string
+                  exchangeResponse:
+                    id: string
+                    type: string
+                vdpUpdateOperationInfo: {}
+                deploymentInfo: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '503':
+          description: Service unavailable.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: createEnvironmentsByEnvidServices
+    get:
+      description: Get a list of services.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                x-amf-examples:
+                  service-collection:
+                    value:
+                    - id: 16ea20a0-2867-4110-b690-4d251da7d5e7
+                      status: READY
+                      serviceData:
+                        name: ssnServiceTestNew102
+                        muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                        formats:
+                        - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+                        - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+                        numberOfInstances: 1
+                        esgVersion: v0.3.153
+                        cpu:
+                          min: 1.7
+                      vdpOperationInfo:
+                        processTimestamp: 2018-09-04 22:14:20+00:00
+                        status: CSM_DONE
+                        runnerNode: eth0@10.7.1.51
+                        vdpResponse:
+                          domains:
+                          - socialSecurityNumber
+                          outputLocation: vdp_1536099261002.vdp
+                        exchangeResponse:
+                          organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                          groupId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                          assetId: ssnServiceTestNew102-1536099264443
+                          version: 1.0.1536099264
+                          classifier: vdp
+                          versionGroup: 1.0.1536099264
+                          metadata:
+                            name: ssnServiceTestNew102
+                            type: vdp
+                            classifier: vdp
+                            tags:
+                            - value: vdp
+                        csmResponse:
+                          secretGroupId: ff635e41-68b6-445b-8dea-8ea9551a7f09
+                          secretType: sharedSecrets
+                          secretId: 4fdf1d5e-b364-4c2c-8d6e-0182e742e414
+                          packaging: secret
+                          type: GLOBAL
+                        finishTimestamp: 2018-09-04 22:14:29+00:00
+                      logs:
+                        portLogLevel: WARNING
+                        filters: []
+                      organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                      environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                      deploymentInfo:
+                        deploymentId: e4e3b493-b08f-11e8-b77b-3fcd72d14ce6
+                        deployerCallSuccessful: true
+                      createdAt: 2019-01-14 13:23:57.267000+00:00
+                      updatedAt: 2019-03-14 10:23:57.267000+00:00
+                      downloadedAt: 1980-01-01 00:00:00+00:00
+                      audit:
+                        enabled: true
+                    - id: ce977640-2ae9-4571-8463-41ffb5a55aa7
+                      status: UPDATE_FAILED
+                      serviceData:
+                        name: ssnServiceTestNew30
+                        muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                        formats:
+                        - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+                        numberOfInstances: 1
+                        esgVersion: v0.3.153
+                        cpu:
+                          min: 2
+                      vdpOperationInfo:
+                        processTimestamp: 2018-08-31 03:18:07+00:00
+                        status: CREATING
+                        runnerNode: eth0@10.7.1.51
+                        finishTimestamp: 2018-08-31 03:18:07+00:00
+                      logs:
+                        portLogLevel: WARNING
+                        filters: []
+                      organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                      environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                      createdAt: 2019-03-14 18:23:57.267000+00:00
+                      updatedAt: 2019-03-14 18:23:57.267000+00:00
+                      downloadedAt: 1980-01-01 00:00:00+00:00
+                      audit:
+                        enabled: true
+                    - id: 8f7dde19-c22e-4ff1-b48f-239100760370
+                      status: FAILED
+                      serviceData:
+                        name: ccnServiceTest2
+                        muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                        formats:
+                        - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+                        numberOfInstances: 1
+                        cpu:
+                          min: 0.5
+                      vdpOperationInfo:
+                        processTimestamp: 2018-04-27 20:09:52+00:00
+                        status: CREATING
+                        runnerNode: eth0@10.7.21.78
+                      logs:
+                        portLogLevel: WARNING
+                        filters: []
+                      organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                      environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                      createdAt: 2019-02-14 18:23:57.267000+00:00
+                      updatedAt: 2019-03-13 06:23:57.267000+00:00
+                      downloadedAt: 1980-01-01 00:00:00+00:00
+                      audit:
+                        enabled: true
+                    - id: d8e18981-87e7-47a9-a612-e49f40c65ea6
+                      status: FAILED
+                      serviceData:
+                        name: ssnServiceTestNew108
+                        muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                        formats:
+                        - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+                        - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+                        numberOfInstances: 1
+                        esgVersion: v0.3.153
+                        cpu:
+                          min: 16
+                      vdpOperationInfo:
+                        processTimestamp: 2018-09-07 18:23:21+00:00
+                        status: EXCHANGE_FAILED
+                        vdpResponse:
+                          domains:
+                          - creditCardNumber
+                          - decimal
+                          - laxDecimal
+                          - socialSecurityNumber
+                          outputLocation: vdp_1536344601478.vdp
+                        exchangeResponse:
+                          message: 'Unable to create an asset in 91d6681d-e388-4972-9dd9-74ee44a5088a, StatusCodeError: 502 - {"name":"BadGatewayError","status":502,"details":[{"arguments":[{"key":"service","value":"custom-assets-facade"},{"key":"asset","value":{"organizationId":"91d6681d-e388-4972-9dd9-74ee44a5088a","groupId":"91d6681d-e388-4972-9dd9-74ee44a5088a","assetId":"ssnServiceTestNew108-1536344928122","version":"1.0.1536344928"}}],"code":"CUSTOM_ASSET_INIT","message":"The asset cannot be created."},{"code":"UNKNOWN_ERROR","message":"An error occurred while communicating to the Authentication Service: ServiceUnavailableError: Service over capacity. Please try again.","arguments":[{"key":"status","value":502}]}],"message":"The asset cannot be created. An error occurred while communicating to the Authentication Service: ServiceUnavailableError: Service over capacity. Please try again."}'
+                          code: 2000
+                        finishTimestamp: 2018-09-07 18:28:48+00:00
+                      logs:
+                        portLogLevel: WARNING
+                        filters: []
+                      organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                      environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                      createdAt: 2019-03-14 18:23:57.267000+00:00
+                      updatedAt: 2019-03-14 18:23:57.267000+00:00
+                      downloadedAt: 1980-01-01 00:00:00+00:00
+                      audit:
+                        enabled: false
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceResponse'
+              example:
+              - id: string
+                type: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getEnvironmentsByEnvidServices
+  /environments/{envId}/services/{serviceId}:
+    description: Get an entity representing a service
+    get:
+      description: 'Get the service
+
+        with id =
+
+        {serviceId}
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: serviceId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The service ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+              example:
+                id:
+                  id: string
+                  type: string
+                ipAddress:
+                  id: string
+                  type: string
+                status:
+                  id: string
+                  type: string
+                serviceData:
+                  id: string
+                  type: string
+                logs:
+                  id: string
+                  type: string
+                environmentId:
+                  id: string
+                  type: string
+                organizationId:
+                  id: string
+                  type: string
+                vdpOperationInfo:
+                  status:
+                    id: string
+                    type: string
+                  finishTimestamp: string
+                  processTimestamp: string
+                  runnerNode: string
+                  generalResponse: string
+                  vdpResponse:
+                    id: string
+                    type: string
+                  csmResponse:
+                    id: string
+                    type: string
+                  exchangeResponse:
+                    id: string
+                    type: string
+                vdpUpdateOperationInfo: {}
+                deploymentInfo: {}
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getEnvironmentsByEnvidServicesByServiceid
+    patch:
+      description: To perform rekey of a VDP table associated with a service.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: serviceId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The service ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id001
+                  value:
+                    id: 9f5d4e9a-9847-426b-8dc5-ce8db56647d2
+                    ipAddress:
+                    status: UPDATING
+                    serviceData:
+                      name: ssnServiceTestNew108
+                      muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                      formats:
+                      - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+                      - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+                      numberOfInstances: 1
+                      esgVersion: v0.3.153
+                    vdpOperationInfo:
+                      processTimestamp: 2018-09-06 15:01:59+00:00
+                      status: CSM_DONE
+                      runnerNode: eth0@10.7.1.51
+                      vdpResponse:
+                        domains:
+                        - creditCardNumber
+                        - decimal
+                        - laxDecimal
+                        - socialSecurityNumber
+                        outputLocation: vdp_1536246119750.vdp
+                      exchangeResponse:
+                        organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                        groupId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                        assetId: ssnServiceTestNew108-1536246400714
+                        version: 1.0.1536246400
+                        classifier: vdp
+                        versionGroup: 1.0.1536246400
+                        metadata:
+                          name: ssnServiceTestNew108
+                          type: vdp
+                          classifier: vdp
+                          tags:
+                          - value: vdp
+                      csmResponse:
+                        secretGroupId: ff635e41-68b6-445b-8dea-8ea9551a7f09
+                        secretType: sharedSecrets
+                        secretId: 28d6c3ba-a144-4285-8a3b-756a74fb48eb
+                        packaging: secret
+                        type: GLOBAL
+                      finishTimestamp: 2018-09-06 15:06:55+00:00
+                    logs:
+                      portLogLevel: WARNING
+                      filters: []
+                    organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                    environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                    vdpUpdateOperationInfo:
+                    deploymentInfo:
+                      deploymentId: a3dd5aca-b1e5-11e8-b36d-fb58563a0a93
+                      deployerCallSuccessful: true
+                    createdAt: 2019-01-14 18:23:57.267000+00:00
+                    updatedAt: 2019-03-14 18:23:57.267000+00:00
+                    downloadedAt: 2019-02-14 18:23:57.267000+00:00
+                    audit:
+                      enabled: false
+              example: *id001
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '503':
+          description: Service unavailable.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: patchEnvironmentsByEnvidServicesByServiceid
+    put:
+      parameters:
+      - name: desiredStatus
+        description: The desired state of service.
+        required: false
+        in: query
+        schema:
+          type: string
+          enum:
+          - STARTED
+          - STOPPED
+      - name: rtfUpdate
+        description: Set to true if the rtf needs to be changed.
+        required: false
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: serviceId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The service ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdate'
+        x-amf-mediaType: application/json
+        description: The services data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id002
+                  value:
+                    id: 9f5d4e9a-9847-426b-8dc5-ce8db56647d2
+                    ipAddress:
+                    status: UPDATING
+                    serviceData:
+                      name: ssnServiceTestNew108
+                      muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+                      formats:
+                      - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+                      - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+                      numberOfInstances: 1
+                      esgVersion: v0.3.153
+                    vdpOperationInfo:
+                      processTimestamp: 2018-09-06 15:01:59+00:00
+                      status: CSM_DONE
+                      runnerNode: eth0@10.7.1.51
+                      vdpResponse:
+                        domains:
+                        - creditCardNumber
+                        - decimal
+                        - laxDecimal
+                        - socialSecurityNumber
+                        outputLocation: vdp_1536246119750.vdp
+                      exchangeResponse:
+                        organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                        groupId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                        assetId: ssnServiceTestNew108-1536246400714
+                        version: 1.0.1536246400
+                        classifier: vdp
+                        versionGroup: 1.0.1536246400
+                        metadata:
+                          name: ssnServiceTestNew108
+                          type: vdp
+                          classifier: vdp
+                          tags:
+                          - value: vdp
+                      csmResponse:
+                        secretGroupId: ff635e41-68b6-445b-8dea-8ea9551a7f09
+                        secretType: sharedSecrets
+                        secretId: 28d6c3ba-a144-4285-8a3b-756a74fb48eb
+                        packaging: secret
+                        type: GLOBAL
+                      finishTimestamp: 2018-09-06 15:06:55+00:00
+                    logs:
+                      portLogLevel: WARNING
+                      filters: []
+                    organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                    environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+                    vdpUpdateOperationInfo:
+                    deploymentInfo:
+                      deploymentId: a3dd5aca-b1e5-11e8-b36d-fb58563a0a93
+                      deployerCallSuccessful: true
+                    createdAt: 2019-01-14 18:23:57.267000+00:00
+                    updatedAt: 2019-03-14 18:23:57.267000+00:00
+                    downloadedAt: 2019-02-14 18:23:57.267000+00:00
+                    audit:
+                      enabled: false
+              example: *id002
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '503':
+          description: Service unavailable.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: updateEnvironmentsByEnvidServicesByServiceid
+      description: Replaces a services.
+    delete:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: serviceId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The service ID to identify the target resource.
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: deleteEnvironmentsByEnvidServicesByServiceid
+      description: Deletes a services.
+  /environments/{envId}/deployments:
+    get:
+      description: Get deployer information for tokenization services.
+      parameters:
+      - name: tragetId
+        description: 'This is a required parameter. This is a , separated list of all runtime fabric uuids
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id003
+                - id: 4b81bb7e-d35e-11e8-a1c5-670c909cda8c
+                  type: Tokenizer
+                  target:
+                    id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                    provider: MC
+                  name: ccnServiceTest7
+                  scope:
+                    organization: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+                  labels:
+                    owner: TokenizerService
+                  specVersion: 4b81bb80-d35e-11e8-a1c5-89789b0436b6
+                  status:
+                    status: FAILED
+                    lastSuccessfulSpec:
+                    nodes:
+                    - id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                      status: FAILED
+                      replicas:
+                      - currentVersion: 4b81bb80-d35e-11e8-a1c5-89789b0436b6
+                        state: FAILED
+                        reason: Failed to pull securityfabric-tokenizer:v0.3.148
+                  createdAt: 1539926258198
+                  updatedAt: 1539926258198
+                - id: 87e42d25-d337-11e8-a4c6-79986f4f0474
+                  type: Tokenizer
+                  target:
+                    id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                    provider: MC
+                  name: ccnServiceTest6
+                  scope:
+                    organization: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+                  labels:
+                    owner: TokenizerService
+                  specVersion: 87e42d27-d337-11e8-a4c6-f590e575a82c
+                  status:
+                    status: FAILED
+                    lastSuccessfulSpec:
+                    nodes:
+                    - id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                      status: FAILED
+                      replicas:
+                      - currentVersion: 87e42d27-d337-11e8-a4c6-f590e575a82c
+                        state: FAILED
+                        reason: Failed to pull securityfabric-tokenizer:v0.3.148
+                  createdAt: 1539909609134
+                  updatedAt: 1539909609134
+                - id: 41760a5f-d2f7-11e8-a1c5-ed8fb7e98892
+                  type: Tokenizer
+                  target:
+                    id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                    provider: MC
+                  name: ssnService1
+                  scope:
+                    organization: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+                  labels:
+                    owner: TokenizerService
+                  specVersion: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+                  status:
+                    status: APPLIED
+                    lastSuccessfulSpec: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+                    nodes:
+                    - id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                      status: APPLIED
+                      replicas:
+                      - currentVersion: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+                        state: STARTED
+                        reason:
+                  createdAt: 1539882003181
+                  updatedAt: 1539890556993
+                - id: d0ff583c-d189-11e8-a1c5-657a5fa20489
+                  type: Tokenizer
+                  target:
+                    id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                    provider: MC
+                  name: ccnService1
+                  scope:
+                    organization: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+                  labels:
+                    owner: TokenizerService
+                  specVersion: 82c6e715-d18c-11e8-a1c5-4f85b90ed03c
+                  status:
+                    status: APPLIED
+                    lastSuccessfulSpec: 82c6e715-d18c-11e8-a1c5-4f85b90ed03c
+                    nodes:
+                    - id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+                      status: APPLIED
+                      replicas:
+                      - currentVersion: 82c6e715-d18c-11e8-a1c5-4f85b90ed03c
+                        state: STARTED
+                        reason:
+                  createdAt: 1539725048192
+                  updatedAt: 1539726205449
+              example: *id003
+        '400':
+          description: Bad request. The request was malformed or contains invalid parameters.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/error-response'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getEnvironmentsByEnvidDeployments
+  /environments/{envId}/deployments/{deploymentId}:
+    description: 'Access detailed operations of a particular deployment.
+
+      '
+    get:
+      description: 'Get the deployment
+
+        with id =
+
+        {deploymentId}
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - $ref: '#/components/parameters/XOrigin_deploymentId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/DeploymentDetail'
+              example:
+                id: string
+                type:
+                  id: string
+                  type: string
+                target:
+                  id: string
+                  provider: MC
+                name: string
+                scope:
+                  id: string
+                  type: string
+                strategies:
+                  id: string
+                  type: string
+                labels:
+                  id: string
+                  type: string
+                specVersion:
+                  id: string
+                  type: string
+                status:
+                  id: string
+                  type: string
+                createdAt: 0
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getEnvironmentsByEnvidDeploymentsByDeploymentid
+  /environments/{envId}/deployments/{deploymentId}/specs:
+    description: Get an entity representing a spec
+    get:
+      description: 'Get the list of specs defined for a particular deployment. The specs that will appear in this list are:
+
+
+        1) The desired spec referenced by the specVersion attribute of the deployment.
+
+
+        2) The former spec.
+
+
+        3) All the specs that are applied in any target node.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - $ref: '#/components/parameters/XOrigin_deploymentId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            ETag:
+              x-amf-required: false
+              description: The current value of the entity tag for the requested variant
+              schema:
+                type: string
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/DeploymentSpec'
+              example:
+                target:
+                  id: string
+                  type: string
+        '401':
+          description: Unauthorized. Authentication credentials are missing or invalid.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getEnvironmentsByEnvidDeploymentsByDeploymentidSpecs
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    formatRequest:
+      x-amf-examples:
+        format-request:
+          name: emailTest
+          description: email
+          type: emailAddress
+          formatData:
+            tokenFormat:
+              variableLengthToken:
+                maximumTokenLength: 20
+      x-amf-union:
+      - $ref: '#/components/schemas/EmailAddress'
+      - $ref: '#/components/schemas/SocialSecurityNumber'
+      - $ref: '#/components/schemas/Decimal'
+      - $ref: '#/components/schemas/LaxDecimal'
+      - $ref: '#/components/schemas/LaxAlphanumeric'
+      - $ref: '#/components/schemas/LaxLowerCaseDecimalPreserving'
+      - $ref: '#/components/schemas/LaxUpperCaseDecimalPreserving'
+      - $ref: '#/components/schemas/LaxUpperCaseLowerCaseDecimalPreserving'
+      - $ref: '#/components/schemas/StringType'
+      - $ref: '#/components/schemas/CreditCardNumber'
+      - $ref: '#/components/schemas/Masking'
+    formatResponse:
+      x-amf-examples:
+        example_0:
+          id: 02102aad-b6ac-44fd-951f-797150b4a53f
+          name: Mye-mailformat
+          type: emailAddress
+          description: Just an e-mail format
+          formatData:
+            tokenFormat:
+              variableLengthToken:
+                maximumTokenLength: 21
+          isDeleted: false
+          organizationId: 13b07de5-8430-4d94-968e-f051fde59da9
+          createdAt: 2019-02-13 13:12:53.255000+00:00
+          updatedAt: 2019-03-14 18:23:57.267000+00:00
+        example_1:
+          id: 02102aad-b6ac-44fd-951f-797150b4a53f
+          name: Mye-mailformat
+          type: emailAddress
+          description: Just an e-mail format
+          formatData:
+            tokenFormat:
+              variableLengthToken:
+                maximumTokenLength: 20
+          isDeleted: false
+          organizationId: 13b07de5-8430-4d94-968e-f051fde59da9
+          createdAt: 2019-02-13 13:12:53.255000+00:00
+          updatedAt: 2019-03-14 18:23:57.267000+00:00
+      x-amf-union:
+      - $ref: '#/components/schemas/EmailAddressResponse'
+      - $ref: '#/components/schemas/SocialSecurityNumberResponse'
+      - $ref: '#/components/schemas/DecimalResponse'
+      - $ref: '#/components/schemas/LaxDecimalResponse'
+      - $ref: '#/components/schemas/LaxAlphanumericResponse'
+      - $ref: '#/components/schemas/LaxLowerCaseDecimalPreservingResponse'
+      - $ref: '#/components/schemas/LaxUpperCaseDecimalPreservingResponse'
+      - $ref: '#/components/schemas/LaxUpperCaseLowerCaseDecimalPreservingResponse'
+      - $ref: '#/components/schemas/StringTypeResponse'
+      - $ref: '#/components/schemas/CreditCardNumberResponse'
+      - $ref: '#/components/schemas/MaskingResponse'
+    type:
+      x-amf-examples:
+        example_59:
+          message: Not Supported  Content-Type
+        example_43:
+          value:
+            message: Your request does not have the correct values
+        example_52:
+          message: deployment
+        example_2:
+          message: Error in format
+        example_1:
+          message: You are not authorized to perform this request
+        example_16:
+          message: format
+        bad-rq:
+          message: Invalid Request
+          errors:
+          - code: 1000
+            message: Invalid Name Format.
+          - code: 2000
+            message: Reached Maximum number of Resources
+        unprocessable-rq:
+          message: Unprocessable entity
+          errors:
+          - message: Invalid Name Format.
+          - code: 4000
+            message: Error validating input
+        example_57:
+          message: spec
+        example_58:
+          message: Unauthorized
+        example_27:
+          message: Error in service
+        example_60:
+          message: Too Many Requests
+        example_0:
+          message: Invalid Bearer Token
+        example_44:
+          message: service
+      type: object
+      additionalProperties: true
+      required:
+      - message
+      properties:
+        message:
+          description: 'Human readable error description.
+
+            '
+          type: string
+        errors:
+          description: 'Error list use to describe the set of validations that has failed. Only required in case
+
+            HTTP error code is not enough to describe the failure case.
+
+            '
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required:
+            - message
+            properties:
+              code:
+                description: 'Machine error description. Internal code representation for consumer
+
+                  code error handling.
+
+                  '
+                type: integer
+              field:
+                description: 'field that caused the error.
+
+                  '
+                type: string
+              message:
+                description: 'Human readable error description.
+
+                  '
+                type: string
+    formatRequestUpdate:
+      x-amf-examples:
+        format-put:
+          name: Mye-mailformat
+          description: Just an e-mail format
+          formatData:
+            tokenFormat:
+              variableLengthToken:
+                maximumTokenLength: 21
+      x-amf-union:
+      - $ref: '#/components/schemas/EmailAddressUpdate'
+      - $ref: '#/components/schemas/SocialSecurityNumberUpdate'
+      - $ref: '#/components/schemas/DecimalUpdate'
+      - $ref: '#/components/schemas/LaxDecimalUpdate'
+      - $ref: '#/components/schemas/LaxAlphanumericUpdate'
+      - $ref: '#/components/schemas/LaxLowerCaseDecimalPreservingUpdate'
+      - $ref: '#/components/schemas/LaxUpperCaseDecimalPreservingUpdate'
+      - $ref: '#/components/schemas/LaxUpperCaseLowerCaseDecimalPreservingUpdate'
+      - $ref: '#/components/schemas/StringTypeUpdate'
+      - $ref: '#/components/schemas/CreditCardNumberUpdate'
+      - $ref: '#/components/schemas/MaskingUpdate'
+    error-response:
+      x-amf-examples:
+        value:
+          message: Unprocessable entity
+          errors:
+          - message: Invalid Name Format.
+          - code: 4000
+            message: Error validating input
+      type: object
+      additionalProperties: true
+      required:
+      - message
+      properties:
+        message:
+          description: 'Human readable error description.
+
+            '
+          type: string
+        errors:
+          description: 'Error list use to describe the set of validations that has failed. Only required in case
+
+            HTTP error code is not enough to describe the failure case.
+
+            '
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required:
+            - message
+            properties:
+              code:
+                description: 'Machine error description. Internal code representation for consumer
+
+                  code error handling.
+
+                  '
+                type: integer
+              field:
+                description: 'field that caused the error.
+
+                  '
+                type: string
+              message:
+                description: 'Human readable error description.
+
+                  '
+                type: string
+    Service:
+      x-amf-examples:
+        service-request:
+          serviceData:
+            name: NewService27
+            muleCloudID: 34485630-6ec2-41fd-a1df-58eb9620d195
+            formats:
+            - ca8f8db8-9335-4b40-a326-eacc8d9e300b
+            - 9e048bd1-76a2-4bbc-a9c0-54180269441d
+            numberOfInstances: 1
+          logs:
+            portLogLevel: WARNING
+            filters: []
+      type: object
+      additionalProperties: false
+      required:
+      - serviceData
+      properties:
+        serviceData:
+          $ref: '#/components/schemas/ServiceDataRequest'
+        logs:
+          $ref: '#/components/schemas/Logs'
+        audit:
+          $ref: '#/components/schemas/Audit'
+    ServiceResponse:
+      x-amf-examples:
+        example_0:
+          value:
+            id: 9f5d4e9a-9847-426b-8dc5-ce8db56647d2
+            ipAddress:
+            status: READY
+            serviceData:
+              name: ssnServiceTestNew108
+              muleCloudID: 291d8f46-b24f-4caa-92d3-6671de72b20a
+              formats:
+              - 3259bfc6-d361-4cb4-abc3-13d9741ce1e5
+              - 3c6bdd6c-2ef2-4850-8392-a8de4d03025c
+              numberOfInstances: 1
+              esgVersion: v0.3.153
+              cpu:
+                min: 1.7
+            vdpOperationInfo:
+              processTimestamp: 2018-09-06 15:01:59+00:00
+              status: CSM_DONE
+              runnerNode: eth0@10.7.1.51
+              vdpResponse:
+                domains:
+                - creditCardNumber
+                - decimal
+                - laxDecimal
+                - socialSecurityNumber
+                outputLocation: vdp_1536246119750.vdp
+              exchangeResponse:
+                organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                groupId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+                assetId: ssnServiceTestNew108-1536246400714
+                version: 1.0.1536246400
+                classifier: vdp
+                versionGroup: 1.0.1536246400
+                metadata:
+                  name: ssnServiceTestNew108
+                  type: vdp
+                  classifier: vdp
+                  tags:
+                  - value: vdp
+              csmResponse:
+                secretGroupId: ff635e41-68b6-445b-8dea-8ea9551a7f09
+                secretType: sharedSecrets
+                secretId: 28d6c3ba-a144-4285-8a3b-756a74fb48eb
+                packaging: secret
+                type: GLOBAL
+              finishTimestamp: 2018-09-06 15:06:55+00:00
+            logs:
+              portLogLevel: WARNING
+              filters: []
+            organizationId: 91d6681d-e388-4972-9dd9-74ee44a5088a
+            environmentId: 29627ca0-fd5b-456c-8bae-7dfd5ddabe8b
+            vdpUpdateOperationInfo:
+            deploymentInfo:
+              deploymentId: e4e3b493-b08f-11e8-b77b-3fcd72d14ce6
+              deployerCallSuccessful: true
+            createdAt: 2019-03-14 18:23:57.267000+00:00
+            updatedAt: 2019-03-14 18:23:57.267000+00:00
+            downloadedAt: 1980-01-01 00:00:00+00:00
+            audit:
+              enabled: true
+        service-item:
+          value:
+            id: 8b672275-090a-4177-9ccc-4a2175ae0bc6
+            status: READY
+            serviceData:
+              name: ssnTest
+              muleCloudID: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+              formats:
+              - 771f233f-5f14-43b9-b558-336421561f1d
+              numberOfInstances: 1
+              cpu:
+                min: 0.5
+              esgVersion: v1.0.95
+              serviceURL: https://ssnTest-tokenizer:3443
+            vdpOperationInfo:
+              processTimestamp: 2019-07-12 20:48:41+00:00
+              status: CSM_DONE
+              runnerNode: eth0@10.6.1.41
+              exchangeResponse:
+                organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                groupId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                assetId: ssnTest-1562964525
+                version: 1.0.1562964525
+                versionGroup: 1.0.1562964525
+                classifier: vdp
+                metadata:
+                  name: ssnTest
+                  type: vdp
+                  classifier: vdp
+                  tags:
+                  - value: vdp
+              csmResponse:
+                secretGroupId: 70e65b7b-1013-4dba-80ac-9fe93cb3d089
+                secretType: sharedSecrets
+                secretId: b9563b7d-0335-4e2c-a761-4f5f37480e7c
+                packaging: secret
+                type: GLOBAL
+              vdpResponse:
+                domains:
+                - socialSecurityNumber
+                outputLocation: vdp_1562964521981.vdp
+                tableSize: '3'
+              finishTimestamp: 2019-07-12 20:48:47+00:00
+            logs:
+              portLogLevel: WARNING
+              filters: []
+            organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+            environmentId: 953566f5-84a4-409e-adb0-a6251342cac6
+            deploymentInfo:
+              deploymentId: 72260b69-a4e6-11e9-91d5-5580f6d5a206
+              deployerCallSuccessful: true
+            createdAt: 2019-07-12 20:48:41.949000+00:00
+            updatedAt: 2019-07-12 20:48:47.977000+00:00
+            downloadedAt: 2019-07-12 20:48:47.977000+00:00
+            audit:
+              enabled: true
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - ipAddress
+      - status
+      - serviceData
+      - environmentId
+      - organizationId
+      - vdpOperationInfo
+      - deploymentInfo
+      - createdAt
+      - updatedAt
+      - downloadedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        ipAddress:
+          $ref: '#/components/schemas/IpAddress'
+        status:
+          $ref: '#/components/schemas/Status'
+        serviceData:
+          $ref: '#/components/schemas/ServiceDataResponse'
+        logs:
+          $ref: '#/components/schemas/Logs'
+        environmentId:
+          $ref: '#/components/schemas/UUID'
+        organizationId:
+          $ref: '#/components/schemas/UUID'
+        vdpOperationInfo:
+          description: 'Used during the creation of a tokenization service. Can be used to know more about the reason for the failure of service call.
+
+            '
+          type: object
+          additionalProperties: true
+          required:
+          - status
+          - processTimestamp
+          properties:
+            status:
+              $ref: '#/components/schemas/VDPStatus'
+            finishTimestamp:
+              type: string
+            processTimestamp:
+              type: string
+            runnerNode:
+              type: string
+            generalResponse:
+              type: string
+            vdpResponse:
+              $ref: '#/components/schemas/default'
+            csmResponse:
+              $ref: '#/components/schemas/default_1'
+            exchangeResponse:
+              $ref: '#/components/schemas/default_2'
+        vdpUpdateOperationInfo:
+          description: 'Used during the update of an existing tokenization service. Can be used to know more about the reason for the failure of update service call.
+
+            '
+          x-amf-union:
+          - $ref: '#/components/schemas/VDPCode'
+          - type: 'null'
+        deploymentInfo:
+          description: 'Represents the deployment information. If null the deployer was not called or the call failed so there is no associated deployment for this service. If a value of DeploymentInfoObject exists then there is an ''deployerId'' associated which means that a deployment request is created for this service and any further manipulation of the service will lead to update of the an object associated to this ''deploymentId''. The field ''deployerCallSuccessful'' indicates whether the last call to the deployer was made successfully. This is especially helpful in scenarios where an update of service happened and we want to confirm that deployer request went through.
+
+            '
+          x-amf-union:
+          - $ref: '#/components/schemas/DeploymentInfoObject'
+          - type: 'null'
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        downloadedAt:
+          type: string
+    ServiceUpdate:
+      x-amf-examples:
+        service-put:
+          serviceData:
+            formats:
+            - 02102aad-b6ac-44fd-951f-797150b4a53f
+            numberOfInstances: 2
+          logs:
+            portLogLevel: WARNING
+            filters: []
+          audit:
+            enabled: false
+      type: object
+      additionalProperties: false
+      required:
+      - serviceData
+      properties:
+        serviceData:
+          $ref: '#/components/schemas/ServiceDataRequestUpdate'
+        logs:
+          $ref: '#/components/schemas/Logs'
+        audit:
+          $ref: '#/components/schemas/Audit'
+    DeploymentDetail:
+      x-amf-examples:
+        get-deployment:
+          id: 41760a5f-d2f7-11e8-a1c5-ed8fb7e98892
+          type: Tokenizer
+          target:
+            id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+            provider: MC
+          name: ssnService1
+          scope:
+            organization: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+            environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+          labels:
+            owner: TokenizerService
+          specVersion: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+          strategies: {}
+          spec:
+            target:
+              replicas: 1
+              desiredStatus: STARTED
+              runtimeVersion: v1.0.46
+              configuration:
+                logging:
+                  level: WARNING
+                  filters: []
+                formats:
+                - id: 771f233f-5f14-43b9-b558-336421561f1d
+                  name: ssnTest
+                  type: socialSecurityNumber
+                  isDeleted: false
+                  formatData:
+                    forceInvalid:
+                      from: left
+                      width: 1
+                      enabled: true
+                      startOffset: 5
+                    preserveSsnSerialNumber: true
+                  description: ''
+                assets:
+                  vdp-key:
+                    secretType: sharedSecrets
+                    secretGroup: ca7530f2-fe58-42b7-9569-44ef75376e3f
+                    secretId: fd9a89f5-94c6-4f77-83da-6c6d6eb05fc5
+                  vdp-binary:
+                    groupId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    artifactId: ssnService1-1539882000145
+                    version: 1.0.1539881999
+                    classifier: vdp
+                    packaging: vdp
+              environment:
+                cpuMax: 1700m
+                memoryMax: 553Mi
+                cpuReserved: 500m
+                memoryReserved: 503Mi
+              createdAt: 1539890556994
+          status:
+            status: APPLIED
+            lastSuccessfulSpec: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+            nodes:
+            - id: 6fbcddb7-5676-4b7d-adb2-923e80355b12
+              status: APPLIED
+              replicas:
+              - currentVersion: 2bee5283-d30b-11e8-a1c5-459e04a7ab08
+                state: STARTED
+          createdAt: 1539882003181
+          updatedAt: 1539890556993
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - type
+      - target
+      - name
+      - scope
+      - specVersion
+      - status
+      - createdAt
+      - updatedAt
+      properties:
+        id:
+          description: 'ID of the deployment that was created.
+
+            '
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        type:
+          $ref: '#/components/schemas/DeploymentType'
+        target:
+          description: 'Deployment Target
+
+            '
+          type: object
+          additionalProperties: true
+          required:
+          - id
+          - provider
+          properties:
+            id:
+              description: 'The identifier of the deployment target
+
+                '
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            provider:
+              description: 'The id of the provider of the deployment target
+
+                '
+              enum:
+              - MC
+              type: string
+        name:
+          type: string
+        scope:
+          $ref: '#/components/schemas/Scope'
+        strategies:
+          $ref: '#/components/schemas/DeploymentStrategies'
+        labels:
+          $ref: '#/components/schemas/Labels'
+        specVersion:
+          $ref: '#/components/schemas/UUID_3'
+        status:
+          $ref: '#/components/schemas/ResponseSpec'
+        createdAt:
+          type: integer
+        updatedAt:
+          type: integer
+        spec:
+          $ref: '#/components/schemas/DeploymentSpec'
+    DeploymentSpec:
+      x-amf-examples:
+        get-deployment:
+          version: 37c52f81-c9d4-11e9-a53b-359d1ee39e1b
+          createdAt: 1567024891743
+          spec:
+            target:
+              minReplicas: 2
+              replicas: 2
+              maxReplicas: 2
+              desiredStatus: STARTED
+              runtimeVersion: v1.0.98
+              configuration:
+                logging:
+                  level: WARNING
+                  filters: []
+                auditing: true
+                formats:
+                - id: 771f233f-5f14-43b9-b558-336421561f1d
+                  name: ssnTest
+                  type: socialSecurityNumber
+                  isDeleted: false
+                  formatData:
+                    forceInvalid:
+                      from: right
+                      width: 2
+                      enabled: true
+                      startOffset: 5
+                    preserveSsnSerialNumber: false
+                  description: ''
+                assets:
+                  vdp-key:
+                    secretType: sharedSecrets
+                    secretGroup: 70e65b7b-1013-4dba-80ac-9fe93cb3d089
+                    secretId: adae718b-7618-42c8-bddd-a2fdfbe8389d
+                  vdp-binary:
+                    groupId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    artifactId: snnTest8-1566844369
+                    version: 1.0.1566844369
+                    classifier: vdp
+                    packaging: vdp
+              environment:
+                cpuMax: 500m
+                memoryMax: 553Mi
+                cpuReserved: 500m
+                memoryReserved: 503Mi
+              createdAt: 1567024891743
+      type: object
+      additionalProperties: true
+      properties:
+        target:
+          $ref: '#/components/schemas/Spec'
+    EmailAddress:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - emailAddress
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    SocialSecurityNumber:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - forceInvalid
+              - preserveSsnSerialNumber
+              properties:
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+                preserveSsnSerialNumber:
+                  type: boolean
+        type:
+          enum:
+          - socialSecurityNumber
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    Decimal:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - decimal
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxDecimal:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxDecimal
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxAlphanumeric:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxAlphanumeric
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxLowerCaseDecimalPreserving:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxLowerCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxUpperCaseDecimalPreserving:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxUpperCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxUpperCaseLowerCaseDecimalPreserving:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxUpperCaseLowerCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    StringType:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: true
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - string
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    CreditCardNumber:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          - creditCards
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              type: object
+              additionalProperties: false
+              required:
+              - ccnFormat
+              properties:
+                ccnFormat:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - validLuhnDigit
+                  properties:
+                    validLuhnDigit:
+                      type: boolean
+            creditCards:
+              type: array
+              minItems: 0
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - name
+                - startPrefix
+                - endPrefix
+                - luhnCheck
+                - numberOfDigits
+                properties:
+                  name:
+                    type: string
+                  startPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  endPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  luhnCheck:
+                    type: boolean
+                  numberOfDigits:
+                    type: integer
+                    minimum: 12
+                    maximum: 19
+        type:
+          enum:
+          - creditCardNumber
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    Masking:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - maskRules
+          properties:
+            maskRules:
+              type: object
+              additionalProperties: false
+              required:
+              - maskChar
+              - preserveHeaderTrailer
+              properties:
+                maskChar:
+                  type: string
+                  minLength: 1
+                  maxLength: 1
+                ignoreChars:
+                  type: string
+                  minLength: 0
+                  maxLength: 10
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+        type:
+          enum:
+          - maskCharacter
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    EmailAddressResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - emailAddress
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    SocialSecurityNumberResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - forceInvalid
+              - preserveSsnSerialNumber
+              properties:
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+                preserveSsnSerialNumber:
+                  type: boolean
+        type:
+          enum:
+          - socialSecurityNumber
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    DecimalResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - decimal
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    LaxDecimalResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxDecimal
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    LaxAlphanumericResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxAlphanumeric
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    LaxLowerCaseDecimalPreservingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxLowerCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    LaxUpperCaseDecimalPreservingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxUpperCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    LaxUpperCaseLowerCaseDecimalPreservingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxUpperCaseLowerCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    StringTypeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: true
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - string
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    CreditCardNumberResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          - creditCards
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              type: object
+              additionalProperties: false
+              required:
+              - ccnFormat
+              properties:
+                ccnFormat:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - validLuhnDigit
+                  properties:
+                    validLuhnDigit:
+                      type: boolean
+            creditCards:
+              type: array
+              minItems: 0
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - name
+                - startPrefix
+                - endPrefix
+                - luhnCheck
+                - numberOfDigits
+                properties:
+                  name:
+                    type: string
+                  startPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  endPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  luhnCheck:
+                    type: boolean
+                  numberOfDigits:
+                    type: integer
+                    minimum: 12
+                    maximum: 19
+        type:
+          enum:
+          - creditCardNumber
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    MaskingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - isDeleted
+      - name
+      - createdAt
+      - updatedAt
+      - formatData
+      - type
+      properties:
+        isDeleted:
+          type: boolean
+        name:
+          $ref: '#/components/schemas/Name'
+        createdAt:
+          type: string
+        id:
+          $ref: '#/components/schemas/Id'
+        updatedAt:
+          type: string
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - maskRules
+          properties:
+            maskRules:
+              type: object
+              additionalProperties: false
+              required:
+              - maskChar
+              - preserveHeaderTrailer
+              properties:
+                maskChar:
+                  type: string
+                  minLength: 1
+                  maxLength: 1
+                ignoreChars:
+                  type: string
+                  minLength: 0
+                  maxLength: 10
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+        type:
+          enum:
+          - maskCharacter
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        organizationId:
+          $ref: '#/components/schemas/OrganizationId'
+    EmailAddressUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    SocialSecurityNumberUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - forceInvalid
+              - preserveSsnSerialNumber
+              properties:
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+                preserveSsnSerialNumber:
+                  type: boolean
+        description:
+          $ref: '#/components/schemas/Description'
+    DecimalUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxDecimalUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxAlphanumericUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxLowerCaseDecimalPreservingUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      - type
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        type:
+          enum:
+          - laxLowerCaseDecimalPreserving
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxUpperCaseDecimalPreservingUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    LaxUpperCaseLowerCaseDecimalPreservingUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    StringTypeUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: true
+              required:
+              - preserveHeaderTrailer
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+            tokenFormat:
+              $ref: '#/components/schemas/TokenFormat_variableLengthToken'
+        description:
+          $ref: '#/components/schemas/Description'
+    CreditCardNumberUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - tokenFormat
+          - creditCards
+          properties:
+            tokenRules:
+              type: object
+              additionalProperties: false
+              required:
+              - preserveHeaderTrailer
+              - forceInvalid
+              properties:
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+                forceInvalid:
+                  $ref: '#/components/schemas/ForceInvalid'
+            tokenFormat:
+              type: object
+              additionalProperties: false
+              required:
+              - ccnFormat
+              properties:
+                ccnFormat:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - validLuhnDigit
+                  properties:
+                    validLuhnDigit:
+                      type: boolean
+            creditCards:
+              type: array
+              minItems: 0
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - name
+                - startPrefix
+                - endPrefix
+                - luhnCheck
+                - numberOfDigits
+                properties:
+                  name:
+                    type: string
+                  startPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  endPrefix:
+                    type: integer
+                    minimum: 0
+                    maximum: 2147483647
+                  luhnCheck:
+                    type: boolean
+                  numberOfDigits:
+                    type: integer
+                    minimum: 12
+                    maximum: 19
+        description:
+          $ref: '#/components/schemas/Description'
+    MaskingUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - formatData
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        formatData:
+          type: object
+          additionalProperties: false
+          required:
+          - maskRules
+          properties:
+            maskRules:
+              type: object
+              additionalProperties: false
+              required:
+              - maskChar
+              - preserveHeaderTrailer
+              properties:
+                maskChar:
+                  type: string
+                  minLength: 1
+                  maxLength: 1
+                ignoreChars:
+                  type: string
+                  minLength: 0
+                  maxLength: 10
+                preserveHeaderTrailer:
+                  $ref: '#/components/schemas/PreserveHeaderTrailer'
+        description:
+          $ref: '#/components/schemas/Description'
+    ServiceDataRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - formats
+      - name
+      - numberOfInstances
+      - muleCloudID
+      properties:
+        cpu:
+          type: object
+          additionalProperties: true
+          required:
+          - min
+          properties:
+            min:
+              default: 0.5
+              type: number
+              minimum: 0.5
+              maximum: 32
+              multipleOf: 0.1
+        formats:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        name:
+          type: string
+          pattern: ^[a-zA-Z][-a-zA-Z0-9]*$
+          minLength: 3
+          maxLength: 24
+        numberOfInstances:
+          type: integer
+          minimum: 1
+          maximum: 8
+        muleCloudID:
+          $ref: '#/components/schemas/UUID'
+        esgVersion:
+          type: string
+    Logs:
+      type: object
+      additionalProperties: false
+      properties:
+        filters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              IP:
+                type: string
+              level:
+                $ref: '#/components/schemas/LogLevels'
+        portLogLevel:
+          $ref: '#/components/schemas/LogLevels'
+    Audit:
+      type: object
+      additionalProperties: false
+      required:
+      - enabled
+      properties:
+        enabled:
+          default: true
+          type: boolean
+    UUID:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    IpAddress:
+      x-amf-union:
+      - type: string
+      - type: 'null'
+    Status:
+      enum:
+      - CREATING
+      - FAILED
+      - READY
+      - UPDATING
+      - UPDATE_FAILED
+      type: string
+    ServiceDataResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - formats
+      - name
+      - numberOfInstances
+      - muleCloudID
+      properties:
+        cpu:
+          type: object
+          additionalProperties: true
+          required:
+          - min
+          properties:
+            min:
+              default: 0.5
+              type: number
+              minimum: 0.5
+              maximum: 32
+              multipleOf: 0.1
+        formats:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        name:
+          type: string
+          pattern: ^[a-zA-Z][-a-zA-Z0-9]*$
+          minLength: 3
+          maxLength: 24
+        serviceURL:
+          type: string
+        numberOfInstances:
+          type: integer
+          minimum: 1
+          maximum: 8
+        muleCloudID:
+          $ref: '#/components/schemas/UUID'
+        esgVersion:
+          type: string
+    VDPStatus:
+      enum:
+      - CREATING
+      - FAILED_VALIDATION
+      - CSM_DONE
+      - VDP_DONE
+      - EXCHANGE_DONE
+      - VDP_FAILED
+      - EXCHANGE_FAILED
+      - CSM_FAILED
+      type: string
+    default:
+      x-amf-union:
+      - $ref: '#/components/schemas/VDPCode'
+      - $ref: '#/components/schemas/VDPResponseObject'
+    default_1:
+      x-amf-union:
+      - $ref: '#/components/schemas/VDPCode'
+      - $ref: '#/components/schemas/CSMResponseObject'
+    default_2:
+      x-amf-union:
+      - $ref: '#/components/schemas/VDPCode'
+      - $ref: '#/components/schemas/ExchangeResponseObject'
+    VDPCode:
+      type: object
+      additionalProperties: true
+      required:
+      - message
+      - code
+      properties:
+        message:
+          type: string
+        code:
+          enum:
+          - 1000
+          - 2000
+          - 3000
+          type: integer
+        reason:
+          type: object
+          additionalProperties: true
+        httpStatus:
+          type: integer
+          minimum: 100
+          maximum: 599
+    DeploymentInfoObject:
+      type: object
+      additionalProperties: true
+      required:
+      - deployerCallSuccessful
+      properties:
+        deploymentId:
+          $ref: '#/components/schemas/UUID'
+        deployerCallSuccessful:
+          type: boolean
+    ServiceDataRequestUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - formats
+      - numberOfInstances
+      properties:
+        cpu:
+          type: object
+          additionalProperties: true
+          required:
+          - min
+          properties:
+            min:
+              default: 0.5
+              type: number
+              minimum: 0.5
+              maximum: 32
+              multipleOf: 0.1
+        formats:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        numberOfInstances:
+          type: integer
+          minimum: 1
+          maximum: 8
+        muleCloudID:
+          $ref: '#/components/schemas/UUID'
+        esgVersion:
+          type: string
+    DeploymentType:
+      description: 'Deployment Type that has to be defined in atlas.
+
+        '
+      enum:
+      - Tokenizer
+      type: string
+    Scope:
+      type: object
+      additionalProperties: true
+      required:
+      - organization
+      properties:
+        environment:
+          description: 'The Anypoint Environment on which the deployment takes place. This is
+
+            an optional value as there might be deployments that are not associated
+
+            with an environment.
+
+            '
+          type: string
+        organization:
+          description: 'The Anypoint Organization on which the deployment takes place.
+
+            '
+          type: string
+    DeploymentStrategies:
+      description: 'Object with keys containing the name of a deployment strategy and a value containing the configuration of the strategy.
+
+        '
+      type: object
+      additionalProperties: true
+    Labels:
+      description: 'Key value pair of labels that are used to allow custom filtering of deployments.
+
+        '
+      type: object
+      additionalProperties: true
+    UUID_3:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    ResponseSpec:
+      type: object
+      additionalProperties: true
+      required:
+      - status
+      - lastSuccessfulSpec
+      - nodes
+      properties:
+        status:
+          $ref: '#/components/schemas/DeploymentStatus'
+        lastSuccessfulSpec:
+          $ref: '#/components/schemas/UUID_3'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeResponse'
+    Spec:
+      description: 'Definition of a deployment configuration
+
+        '
+      type: object
+      additionalProperties: true
+      required:
+      - runtimeVersion
+      - createdAt
+      properties:
+        replicas:
+          description: 'Number of replicas of the deployment. The replica number define the number of times
+
+            a deployment must be replicated in a particular Targets node. This is not related to
+
+            the number of Nodes of a Target. If a Target has two nodes and the replica number is two
+
+            then four replicas total of the same deployment will be running.
+
+            '
+          default: 1
+          type: integer
+          minimum: 1
+        desiredStatus:
+          description: 'The desired status of the deployment replicas that will identified as the deployment to be applied.
+
+            This is a free text that will depend on the deployment type. The allowed string has to be registered in
+
+            atlas. If not defined then APPLIED is taken as default.
+
+            '
+          default: APPLIED
+          type: string
+        runtimeVersion:
+          description: 'The version of the runtime where the deployment has to be performed.
+
+            '
+          type: string
+        configuration:
+          description: 'Deployment configuration. This is the configuration that is specific to the deployment no matter which is
+
+            the deployment target. A field called `assets` should be present here, containing a map from refId to Asset.
+
+            '
+          type: object
+          additionalProperties: true
+        environment:
+          description: 'The deployment will be performed in one particualr target provided by a Target provider. The environment
+
+            configuration is the configuration required by a deployment that is specific to a target provider. For example,
+
+            the service bindings in a PCF deployment.
+
+            '
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: integer
+    Name:
+      type: string
+      pattern: ^[a-zA-Z][-a-zA-Z0-9]*$
+      minLength: 3
+      maxLength: 64
+    Description:
+      type: string
+    TokenFormat_variableLengthToken:
+      title: TokenFormat
+      type: object
+      additionalProperties: false
+      properties:
+        variableLengthToken:
+          title: variableLengthToken
+          type: object
+          additionalProperties: false
+          required:
+          - maximumTokenLength
+          properties:
+            maximumTokenLength:
+              title: maximumTokenLength
+              default: 32
+              type: integer
+              minimum: 2
+              maximum: 8192
+    ForceInvalid:
+      title: ForceInvalid
+      type: object
+      additionalProperties: false
+      required:
+      - width
+      - startOffset
+      - from
+      properties:
+        width:
+          title: width
+          type: integer
+          minimum: 1
+          maximum: 2
+        startOffset:
+          title: startOffset
+          type: integer
+          minimum: 0
+          maximum: 99
+        from:
+          title: from
+          enum:
+          - left
+          - right
+          type: string
+    PreserveHeaderTrailer:
+      title: PreserveHeaderTrailer
+      type: object
+      additionalProperties: false
+      properties:
+        headerPreserve:
+          title: headerPreserve
+          type: integer
+          minimum: 0
+          maximum: 12
+        trailerPreserve:
+          title: trailerPreserve
+          type: integer
+          minimum: 0
+          maximum: 12
+    Id:
+      type: string
+    OrganizationId:
+      type: string
+    LogLevels:
+      enum:
+      - TRACE
+      - DEBUG
+      - VERBOSE
+      - INFO
+      - WARNING
+      - ERROR
+      - FATAL
+      type: string
+    VDPResponseObject:
+      type: object
+      additionalProperties: true
+      required:
+      - domains
+      - outputLocation
+      properties:
+        domains:
+          type: array
+          items:
+            $ref: '#/components/schemas/Domain'
+        outputLocation:
+          type: string
+    CSMResponseObject:
+      type: object
+      additionalProperties: true
+      required:
+      - secretGroupId
+      - secretType
+      - secretId
+      - packaging
+      properties:
+        secretGroupId:
+          type: string
+        secretType:
+          enum:
+          - sharedSecrets
+          type: string
+        secretId:
+          $ref: '#/components/schemas/UUID'
+        packaging:
+          enum:
+          - secret
+          type: string
+    ExchangeResponseObject:
+      type: object
+      additionalProperties: true
+      required:
+      - organizationId
+      - groupId
+      - assetId
+      - version
+      - classifier
+      - versionGroup
+      - metadata
+      properties:
+        organizationId:
+          $ref: '#/components/schemas/UUID'
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        assetId:
+          type: string
+        version:
+          type: string
+        classifier:
+          enum:
+          - vdp
+          type: string
+        versionGroup:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          required:
+          - name
+          - type
+          - classifier
+          - tags
+          properties:
+            name:
+              type: string
+            type:
+              enum:
+              - vdp
+              type: string
+            classifier:
+              enum:
+              - vdp
+              type: string
+            tags:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExchangeTags'
+    DeploymentStatus:
+      description: 'Deployment Status is not a free text, it is calculated based on the status of the
+
+        deployment on each node.
+
+        1) APPLIED: All the replicas achieve the final status with desired Version.
+
+        2) APPLYING: One of the replicas is not in the final status or desired version.
+
+        3) FAILED: One of the replicas failed to appy the desired version.
+
+        '
+      enum:
+      - APPLYING
+      - APPLIED
+      - FAILED
+      type: string
+    NodeResponse:
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - status
+      - replicas
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID_3'
+        status:
+          $ref: '#/components/schemas/DeploymentStatus'
+        replicas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReplicaStatus'
+    Domain:
+      enum:
+      - creditCardNumber
+      - decimal
+      - laxDecimal
+      - socialSecurityNumber
+      - emailAddress
+      - laxAlphanumeric
+      - string
+      - laxUpperCaseLowerCaseDecimalPreserving
+      - laxUpperCaseDecimalPreserving
+      - laxLowerCaseDecimalPreserving
+      - maskCharacter
+      type: string
+    ExchangeTags:
+      type: object
+      additionalProperties: true
+      required:
+      - value
+      properties:
+        value:
+          enum:
+          - vdp
+          type: string
+    ReplicaStatus:
+      type: object
+      additionalProperties: true
+      required:
+      - currentVersion
+      - state
+      - reason
+      properties:
+        currentVersion:
+          $ref: '#/components/schemas/UUID_3'
+        state:
+          type: string
+        reason:
+          x-amf-union:
+          - type: string
+          - type: 'null'
+  parameters:
+    XOrigin_envId_Path:
+      name: envId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The env ID to identify the target resource.
+    XOrigin_deploymentId_Path:
+      name: deploymentId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:tokenization-creation-and-mgmt
+        operation: getEnvironmentsByEnvidDeployments
+        description: GET `/environments/{envId}/deployments` in this API; use `id` values as `deploymentId`.
+        values: $.id
+        labels: $.name
+      description: The deployment ID to identify the target resource.

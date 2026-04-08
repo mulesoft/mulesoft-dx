@@ -1,0 +1,170 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["spec"],
+          "properties": {
+            "spec": {
+              "type": "object",
+              "required": ["groupId", "assetId", "version"],
+              "properties": {
+                "groupId": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "assetId": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "version": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["promote"],
+          "properties": {
+            "promote": {
+              "type": "object",
+              "required": ["originApiId"],
+              "properties": {
+                "originApiId": {
+                  "type": "integer"
+                },
+                "policies": {
+                  "type": "object",
+                  "required": ["allEntities"],
+                  "properties": {
+                    "allEntities": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "tiers": {
+                  "type": "object",
+                  "required": ["allEntities"],
+                  "properties": {
+                    "allEntities": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "contracts": {
+                  "type": "object",
+                  "required": ["allEntities"],
+                  "properties": {
+                    "allEntities": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "alerts": {
+                  "type": "object",
+                  "required": ["allEntities"],
+                  "properties": {
+                    "allEntities": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "properties": {
+        "instanceLabel": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "endpoint": {
+          "type": "object",
+          "required": ["uri", "proxyUri", "isCloudHub"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "nullable": true,
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "proxyUri": {
+              "type": "string",
+              "nullable": true,
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "isCloudHub": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "referencesUserDomain": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "responseTimeout": {
+              "type": "integer",
+              "nullable": true
+            },
+            "deploymentType": {
+              "$ref": "./constants.yaml#/deploymentTypes"
+            },
+            "muleVersion4OrAbove": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "proxyTemplate": {
+              "type": "object",
+              "nullable": true,
+              "properties": {
+                "assetId": {
+                  "type": "string",
+                  "nullable": true,
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "assetVersion": {
+                  "type": "string",
+                  "nullable": true,
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "groupId": {
+                  "type": "string",
+                  "nullable": true,
+                  "maxLength": 256,
+                  "minLength": 1
+                }
+              }
+            },
+            "validation": {
+              "$ref": "./constants.yaml#/endpointValidationOptions"
+            }
+          }
+        },
+        "providerId": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "technology": {
+          "$ref": "./constants.yaml#/technologies"
+        }
+      }
+    }
+  ]
+}

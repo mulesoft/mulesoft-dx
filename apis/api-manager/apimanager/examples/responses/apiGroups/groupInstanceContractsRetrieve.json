@@ -1,0 +1,59 @@
+{
+  "value": {
+    "total": 1,
+    "contracts": [
+      {
+        "audit": {
+          "created": {
+            "date": "2019-06-10T17:59:22.648Z"
+          },
+          "updated": {}
+        },
+        "masterOrganizationId": "df698af3-9b43-4a73-91b2-643dc774b88f",
+        "organizationId": "df698af3-9b43-4a73-91b2-643dc774b88f",
+        "id": 90161,
+        "status": "APPROVED",
+        "approvedDate": "2019-06-10T17:59:22.743Z",
+        "rejectedDate": null,
+        "revokedDate": null,
+        "applicationId": 95543,
+        "application": {
+          "audit": {
+            "created": {
+              "date": "2019-01-25T18:13:39.391Z"
+            },
+            "updated": {}
+          },
+          "id": 95543,
+          "name": "testApp",
+          "description": null,
+          "coreServicesId": "08e71e20c16946ca886551c2bc1ef15a",
+          "url": null
+        },
+        "tier": null,
+        "tierId": null,
+        "requestedTierId": null,
+        "requestedTier": null,
+        "terms": null,
+        "groupInstanceId": 193283,
+        "groupInstances": {
+          "audit": {
+            "created": {},
+            "updated": {}
+          },
+          "id": 193283,
+          "groupVersionId": 1073,
+          "organizationId": "df698af3-9b43-4a73-91b2-643dc774b88f",
+          "environmentId": "22126179-3dae-43f5-ac23-cbc9ecc29c53",
+          "assetGroupId": null,
+          "assetId": null,
+          "assetVersion": null,
+          "groupInstanceLabel": null
+        },
+        "partyId": null,
+        "partyName": null,
+        "condition": "GROUP"
+      }
+    ]
+  }
+}

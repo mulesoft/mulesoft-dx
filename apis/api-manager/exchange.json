@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "API Manager API",
+  "classifier": "oas",
+  "tags": [],
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "api-manager-api",
+  "version": "1.0.22",
+  "apiVersion": "v1",
+  "backwardsCompatible": false,
+  "originalFormatVersion": "3.0",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "metadata": {
+    "projectId": "046fae0a-92e8-454f-a09e-2661c116d260",
+    "branchId": "master",
+    "commitId": "87c9d4dc0a2a0c7d48be49809ed0859ade991844"
+  }
+}

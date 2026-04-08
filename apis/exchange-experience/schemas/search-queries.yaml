@@ -1,0 +1,356 @@
+SearchQuery:
+  type: object
+  properties:
+    name:
+      type: string
+    types:
+      type: array
+      items:
+        type: string
+    search:
+      type: string
+    updatedAt:
+      type: string
+    categories:
+      type: array
+      items:
+        type: string
+    tags:
+      type: array
+      items:
+        type: string
+    status:
+      type: array
+      items:
+        type: string
+    sort:
+      type: string
+    organizationIds:
+      type: array
+      items:
+        type: string
+
+SearchQueries:
+  type: array
+  items:
+    $ref: '#/SearchQuery'
+
+CreateSearchQuery:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 64
+    types:
+      type: array
+      minItems: 0
+      maxItems: 16
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+    search:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    updatedAt:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    categories:
+      type: array
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    tags:
+      type: array
+      title: Tags
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    status:
+      type: array
+      title: Status
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    sort:
+      type: string
+      title: Sorting
+      minLength: 0
+      maxLength: 16
+    organizationIds:
+      type: array
+      title: Organizations
+      items:
+        type: string
+        minLength: 0
+        maxLength: 64
+  minProperties: 2
+  required:
+    - name
+
+UpdateSearchQuery:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 64
+    types:
+      type: array
+      minItems: 0
+      maxItems: 16
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+    search:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    updatedAt:
+      type: string
+      title: Updated at
+      minLength: 0
+      maxLength: 1024
+    categories:
+      type: array
+      title: Categories
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    fields:
+      type: array
+      title: Fields
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    tags:
+      type: array
+      title: Tags
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    status:
+      type: array
+      title: Status
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    sort:
+      type: string
+      title: Sorting
+      minLength: 0
+      maxLength: 16
+    organizationIds:
+      type: array
+      title: Organizations
+      items:
+        type: string
+        minLength: 0
+        maxLength: 64
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+CreateSearchQuery1:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 64
+    types:
+      type: array
+      minItems: 0
+      maxItems: 16
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+    search:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    updatedAt:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    categories:
+      type: array
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    tags:
+      type: array
+      title: Tags
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    status:
+      type: array
+      title: Status
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    sort:
+      type: string
+      title: Sorting
+      minLength: 0
+      maxLength: 16
+    organizationIds:
+      type: array
+      title: Organizations
+      items:
+        type: string
+        minLength: 0
+        maxLength: 64
+  minProperties: 2
+  required:
+    - name
+
+SearchQuery1:
+  type: object
+  properties:
+    name:
+      type: string
+    types:
+      type: array
+      items:
+        type: string
+    search:
+      type: string
+    updatedAt:
+      type: string
+    categories:
+      type: array
+      items:
+        type: string
+    tags:
+      type: array
+      items:
+        type: string
+    status:
+      type: array
+      items:
+        type: string
+    sort:
+      type: string
+    organizationIds:
+      type: array
+      items:
+        type: string
+
+SearchQuery2:
+  type: object
+  properties:
+    name:
+      type: string
+    types:
+      type: array
+      items:
+        type: string
+    search:
+      type: string
+    updatedAt:
+      type: string
+    categories:
+      type: array
+      items:
+        type: string
+    tags:
+      type: array
+      items:
+        type: string
+    status:
+      type: array
+      items:
+        type: string
+    sort:
+      type: string
+    organizationIds:
+      type: array
+      items:
+        type: string
+
+SearchQueries1:
+  type: array
+  items:
+    $ref: '#/SearchQuery'
+
+UpdateSearchQuery1:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 64
+    types:
+      type: array
+      minItems: 0
+      maxItems: 16
+      items:
+        type: string
+        minLength: 1
+        maxLength: 64
+    search:
+      type: string
+      minLength: 0
+      maxLength: 1024
+    updatedAt:
+      type: string
+      title: Updated at
+      minLength: 0
+      maxLength: 1024
+    categories:
+      type: array
+      title: Categories
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    fields:
+      type: array
+      title: Fields
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    tags:
+      type: array
+      title: Tags
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    status:
+      type: array
+      title: Status
+      items:
+        type: string
+        minLength: 0
+        maxLength: 256
+    sort:
+      type: string
+      title: Sorting
+      minLength: 0
+      maxLength: 16
+    organizationIds:
+      type: array
+      title: Organizations
+      items:
+        type: string
+        minLength: 0
+        maxLength: 64

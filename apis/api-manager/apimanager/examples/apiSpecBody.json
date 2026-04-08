@@ -1,0 +1,24 @@
+{
+  "value": {
+    "instanceLabel": "My label",
+    "spec": {
+      "groupId": "com.mulesoft",
+      "assetId": "ramlspec",
+      "version": "1.0.0"
+    },
+    "endpoint": {
+      "uri": "https://some.implementation.com",
+      "proxyUri": "http://0.0.0.0:8081/",
+      "isCloudHub": false,
+      "deploymentType": "RF",
+      "tlsContexts": {
+        "inbound": {
+          "secretGroupId": "8f5c4947-feea-4683-aa38-42ad97584d51",
+          "tlsContextId": "1d3b677a-7c9f-4c9b-b143-cf257835f9a8"
+        },
+        "outbound": null
+      }
+    },
+    "technology": "mule3"
+  }
+}

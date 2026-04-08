@@ -1,0 +1,41 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./analytics-event-export
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(384,2)-(389,0)]
+	Link:       analytics-event-export/api.yaml:384:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(389,2)-(541,0)]
+	Link:       analytics-event-export/api.yaml:389:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be object
+	Location:   file://api.yaml
+	Position:   [(368,0)-(380,0)]
+	Link:       analytics-event-export/api.yaml:368:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should be object
+	Location:   file://api.yaml
+	Position:   [(526,0)-(538,0)]
+	Link:       analytics-event-export/api.yaml:526:0
+

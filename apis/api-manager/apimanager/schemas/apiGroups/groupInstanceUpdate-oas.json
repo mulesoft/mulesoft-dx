@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "groupInstanceLabel": {
+      "type": "string",
+      "nullable": true
+    },
+    "apiInstances": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "deprecated": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

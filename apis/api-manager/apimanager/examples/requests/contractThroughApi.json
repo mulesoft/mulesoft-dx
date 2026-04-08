@@ -1,0 +1,12 @@
+{
+  "value": {
+    "applicationId": 3,
+    "partyId": "",
+    "partyName": "",
+    "acceptedTerms": false,
+    "requestedTierId": 48,
+    "requestAccessInfo": {
+      "reason": "This is the request reason"
+    }
+  }
+}

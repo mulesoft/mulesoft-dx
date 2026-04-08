@@ -1,0 +1,91 @@
+{
+  "type": "object",
+  "required": ["name", "status"],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "groupVersionId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "nullable": true,
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "autoApprove": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "DEPRECATED"]
+    },
+    "defaultLimits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["maximumRequests", "timePeriodInMilliseconds", "visible"],
+        "properties": {
+          "maximumRequests": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "timePeriodInMilliseconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "limitsByApi": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["apiId", "limits"],
+        "properties": {
+          "apiId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "maximumRequests",
+                "timePeriodInMilliseconds",
+                "visible"
+              ],
+              "properties": {
+                "maximumRequests": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "timePeriodInMilliseconds": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "visible": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

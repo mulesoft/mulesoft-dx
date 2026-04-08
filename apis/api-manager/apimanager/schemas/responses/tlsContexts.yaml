@@ -1,0 +1,29 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties:
+          date:
+            type: string
+  id:
+    type: number
+  organizationId:
+    type: string
+  masterOrganizationId:
+    type: string
+  inbound:
+    type: object
+    properties:
+      secretGroupId:
+        type: string
+      tlsContextId:
+        type: string
+  outbound: {}

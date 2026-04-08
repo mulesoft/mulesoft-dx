@@ -1,0 +1,19 @@
+{
+  "main": "api.yaml",
+  "name": "AMC Application  Manager",
+  "classifier": "oas",
+  "tags": [],
+  "dependencies": [],
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "amc-application-manager",
+  "version": "4.1.2",
+  "apiVersion": "2.1.3",
+  "backwardsCompatible": false,
+  "originalFormatVersion": "3.0",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "metadata": {
+    "projectId": "a1b2ae9d-4d80-4bc6-9e3a-ca69fa64a2a3",
+    "branchId": "master",
+    "commitId": "3af086f8019b08c80a366c89fbd484acf29b11d5"
+  }
+}

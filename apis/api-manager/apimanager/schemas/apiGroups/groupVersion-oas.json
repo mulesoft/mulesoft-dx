@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 45,
+      "minLength": 1
+    },
+    "instances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "apiInstances": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "environmentId": {
+            "type": "string"
+          },
+          "groupInstanceLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "deprecated": {
+            "type": "boolean"
+          }
+        },
+        "required": ["apiInstances", "environmentId"]
+      }
+    }
+  },
+  "required": ["name", "instances"],
+  "additionalProperties": false
+}

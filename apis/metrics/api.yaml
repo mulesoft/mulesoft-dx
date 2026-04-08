@@ -1,0 +1,505 @@
+openapi: 3.0.0
+info:
+  title: Metrics API
+  version: 1.0.0
+  description: Search and describe metric types for the Anypoint Observability platform.
+servers:
+- url: https://anypoint.mulesoft.com/observability/api/v1
+- url: https://eu1.anypoint.mulesoft.com/observability/api/v1
+- url: https://{region}.platform.mulesoft.com/observability/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /metric_types:
+    get:
+      operationId: getMetricTypes
+      description: Get a list of all supported metric names and descriptions.
+      parameters:
+      - name: Authorization
+        required: true
+        in: header
+        schema:
+          type: string
+        description: Bearer token for API authentication.
+      responses:
+        "200":
+          description: Request processed successfully. The response contains list of metric types.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                - name: mulesoft.app
+                  label: Application Inbound Metrics
+                  description: Mulesoft Application inbound request metrics
+                - name: mulesoft.app.outbound
+                  label: Application Outbound Metrics
+                  description: Mulesoft Application outbound request traffic metrics
+                - name: mulesoft.message
+                  label: Mule Messages
+                  description: Mulesoft Application outbound request traffic metrics
+                - name: mulesoft.api
+                  label: API Metrics
+                  description: Mulesoft API traffic metrics
+                - name: mulesoft.api.client_ip
+                  label: API Client IP Metrics
+                  description: Mulesoft API traffic metrics with client ip attributes
+                - name: mulesoft.entity
+                  label: Entity Metrics
+                  description: Mulesoft Entity traffic metrics
+                - name: mulesoft.app.jvm.cpu
+                  label: Application CPU
+                  description: Mulesoft App JVM cpu metrics
+                - name: mulesoft.app.jvm.memory
+                  label: Application JVM Memory
+                  description: Mulesoft App JVM memory metrics
+                - name: mulesoft.app.jvm.classes
+                  label: JVM Classes
+                  description: Mulesoft App JVM class loader metrics
+                - name: mulesoft.app.jvm.gc
+                  label: Garbage Collector
+                  description: Mulesoft App GC metrics
+                - name: mulesoft.app.threads
+                  label: Application Threads
+                  description: Mulesoft App Thread metrics
+                - name: mulesoft.app.memory
+                  label: Virtual Memory
+                  description: Mulesoft App VirtualMemory metric
+                type: array
+                items:
+                  $ref: "#/components/schemas/MetricType"
+              example: *id001
+        "400":
+          description: The request is invalid. This response code indicates that the server attempted to process the request, but some aspect of the request is invalid.
+        "401":
+          description: Authorization information is missing or invalid in the request. A valid token must be passed in header 'Authorization'.
+        "405":
+          description: The requested resource doesn't support the request method used.
+        "429":
+          description: Exceeded service rate limit. Wait and try again.
+        "500":
+          description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
+  "/metric_types/{metricTypeName}:describe":
+    get:
+      operationId: getMetricTypesMetrictypenameDescribe
+      description: Get the metric descriptor by a metric type name.
+      parameters:
+      - name: metricTypeName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The metricTypeName to identify the target resource.
+      - name: Authorization
+        description: Authorization token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricDescriptor"
+              example:
+                name: mulesoft.app
+                label: Application Inbound Metrics
+                description: Mulesoft Application inbound request metrics
+                attributes:
+                - name: flow.id
+                  data_type: string
+                  label: Flow ID
+                  description: Invoked flow
+                measurements:
+                - name: requests
+                  data_type: number
+                  label: Request Counts
+                  description: Request Count in a particular time interval
+        "400":
+          description: The request is invalid. This code returns after the server has attempts to process the request, but some aspect of the request is not valid.
+        "401":
+          description: Authorization information is missing or invalid from the request. A valid token must be passed in header 'Authorization'.
+        "405":
+          description: Requested resource does not support the request method used.
+        "429":
+          description: Exceeded service rate limit. Wait and try again.
+        "500":
+          description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
+  /metrics:search:
+    post:
+      description: Fetch metrics with rich filtering and aggregation capabilities.
+      parameters:
+      - name: limit
+        description: Set a query limit as part of URI instead of the body. Primarily used for pagination. If different limits are defined for the body and query parameter, the API returns "400 Bad Request" due to the collision.
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2000
+      - name: offset
+        description: Sets a query offset for result set. Primarily used for pagination. If different offset values are defined for the body and query parameter, the API returns "400 Bad Request" due to the collision.
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+      - name: Authorization
+        description: Authorization token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchQuery"
+        x-amf-mediaType: application/json
+        description: The metrics:search data to create.
+      responses:
+        "200":
+          description: "Successful operation."
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+              example:
+                data:
+                - {}
+                metadata:
+                  pagination:
+                    self: string
+                    prev: string
+                    next: string
+                    queryMethod: POST
+                    query:
+                      query: select timestamp, count(requests) as totalCount from "mulesoft.api" where timestamp between 1686087009573 and 1686088299573
+        "400":
+          description: The request is invalid. This code returns if the server attempts to process the request, but some aspect of the request is not valid.
+        "401":
+          description: Authorization information is missing or invalid in the request. A valid token must be passed in header 'Authorization'.
+        "405":
+          description: Requested resource does not support request method used.
+        "429":
+          description: Exceeded service rate limit. Wait and try again.
+        "500":
+          description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
+      operationId: createMetricsSearch
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Bearer token authentication. Login endpoint:
+        https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: >
+        OAuth2 client credentials. Token endpoint:
+        https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    MetricType:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: Name of MetricType
+          example: mulesoft.app
+          type: string
+        label:
+          example: Application Inbound Metrics
+          type: string
+        description:
+          example: Mule app inbound request metrics
+          type: string
+    MetricDescriptor:
+      description: Defines your event shape. You can think of this shape as a schema for your table in storage.
+      example:
+        name: mulesoft.app
+        label: Application Inbound Metrics
+        description: Mulesoft Application inbound request metrics
+        attributes:
+        - name: flow.id
+          label: Flow ID
+          description: Invoked flow
+          data_type: string
+        - name: timestamp
+          label: event time
+          description: Event timestamp
+          data_type: timestamp
+        - name: response.status
+          label: Response Status
+          data_type: string
+        - name: server.id
+          label: Server ID
+          data_type: string
+        - name: http.route
+          label: HTTP Path
+          data_type: string
+        - name: worker.id
+          label: Worker ID
+          data_type: string
+        - name: http.status_code
+          label: HTTP Status Code
+          data_type: string
+        - name: http.status_code_group
+          label: HTTP Status Code Group
+          data_type: string
+        - name: cluster.id
+          label: Cluster ID
+          data_type: string
+        - name: env.id
+          label: Environment ID
+          data_type: string
+        - name: http.scheme
+          label: HTTP Protocol
+          description: http | https
+          data_type: string
+        - name: endpoint.operation
+          label: Endpoint Operation
+          data_type: string
+        - name: app.id
+          label: Application ID
+          data_type: string
+        - name: endpoint.type
+          label: Endpoint Type
+          description: anypoint-mq | http | db | salesforce | objectstore | other
+          data_type: string
+        - name: http.method
+          label: HTTP Method
+          data_type: string
+        - name: entity.type
+          label: Entity Type
+          data_type: string
+        - name: client.id
+          label: Client ID
+          data_type: string
+        - name: mule_remote_addr
+          label: Mule Remote Address
+          data_type: string
+        - name: deployment.type
+          label: Deployment Type
+          description: CLOUDHUB | HYBRID | RTF
+          data_type: string
+        - name: entity.id
+          label: Entity ID
+          data_type: string
+        - name: sub_org.id
+          label: Business Group ID
+          data_type: string
+        measurements:
+        - name: requests
+          label: Request Counts
+          description: Request Count in a particular time interval
+          data_type: number
+        - name: response_time
+          label: Response Time
+          description: Response time for inbound request
+          data_type: histogram
+      type: object
+      required:
+      - name
+      - attributes
+      - measurements
+      properties:
+        name:
+          example: mulesoft.app
+          type: string
+        label:
+          example: Application Inbound Metrics
+          type: string
+        description:
+          example: Mulesoft Application inbound request metrics
+          type: string
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricAttribute"
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricMeasurement"
+    SearchQuery:
+      description: Accepts a complex JSON object with SQL-like approach to define a query with selections, aggregations (with grouping), filtering, sorting, and pagination.
+      example:
+        query: select timestamp, "http.status_code_group" as status_code_group, count(requests) as totalCount from "mulesoft.api.summary" where timestamp between 1686087009573 and 1686088299573 group by "http.status_code_group" timeseries
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          description: >
+            Specifies the search query to execute. 
+
+            * The query must select from the `metric_type` from the list of supported metrics.
+
+            * The query must select at least one aggregated value.
+
+            * The WHERE clause must contain timestamp filter.
+          type: string
+          pattern: ^select (.*) from (.*) where timestamp between ([0-9]+) and ([0-9]+)(.*)$
+          minLength: 1
+    SearchResult:
+      description: Query response structure that contains the data and metadata.
+      example:
+        data:
+        - time: 1651104000000
+          status_code_group: 2xx
+          totalCount: 1668
+        - time: 1651107600000
+          status_code_group: 2xx
+          totalCount: 1028
+        - time: 1651111200000
+          status_code_group: 2xx
+          totalCount: 3611
+        - time: 1651111200000
+          status_code_group: 4xx
+          totalCount: 1684600
+        - time: 1651111200000
+          status_code_group: 5xx
+          totalCount: 2715
+        - time: 1651114800000
+          status_code_group: 2xx
+          totalCount: 1934
+        - time: 1651118400000
+          status_code_group: 2xx
+          totalCount: 3248
+        - time: 1651118400000
+          status_code_group: 4xx
+          totalCount: 84
+        - time: 1651118400000
+          status_code_group: 5xx
+          totalCount: 1
+        - time: 1651122000000
+          status_code_group: 2xx
+          totalCount: 1381
+        - time: 1651125600000
+          status_code_group: 2xx
+          totalCount: 1901
+        - time: 1651129200000
+          status_code_group: 2xx
+          totalCount: 3379
+        - time: 1651132800000
+          status_code_group: 2xx
+          totalCount: 3346
+        metadata:
+          pagination:
+            self: https://anypoint.mulesoft.com/observability/api/v1/metrics:search?limit=50&offset=0
+            next: https://anypoint.mulesoft.com/observability/api/v1/metrics:search?limit=50&offset=50
+            queryMethod: POST
+            query:
+              query: select "http.status_code_group" as status_code_group, count(requests) as totalCount from "mulesoft.api.summary" where timestamp between 1686087009573 and 1686088299573 group by "http.status_code_group"
+      type: object
+      required:
+      - data
+      - metadata
+      properties:
+        data:
+          description: An array of results with a shape defined by `Search Query.SelectClause` section.
+          type: array
+          items:
+            type: object
+        metadata:
+          description: Contains metadata about the response.
+          type: object
+          required:
+          - pagination
+          properties:
+            pagination:
+              description: Contains metadata about pagination for the result set. Contains links (`self`, `prev`, `next`) and the request method and payload.
+              type: object
+              required:
+              - self
+              - queryMethod
+              - query
+              properties:
+                self:
+                  description: Contains a link to the page with current result set range.
+                  type: string
+                prev:
+                  description: Contains a link to the page with previous result set range.
+                  type: string
+                next:
+                  description: Contains a link to the page with next result set range.
+                  type: string
+                queryMethod:
+                  description: Contains an HTTP method type to use for querying the result set data for one of those pages.
+                  enum:
+                  - POST
+                  type: string
+                query:
+                  description: Contains an HTTP request payload to use for querying the result set data for one of those pages.
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    query:
+                      description: >
+                        Specifies the search query to execute. 
+
+                        * The query must select from the `metric_type` from the list of supported metrics.
+
+                        * The query must select at least one aggregated value.
+
+                        * The WHERE clause must contain timestamp filter.
+                      type: string
+                      pattern: ^select (.*) from (.*) where timestamp between ([0-9]+) and ([0-9]+)(.*)$
+                      minLength: 1
+    MetricAttribute:
+      type: object
+      required:
+      - name
+      - data_type
+      properties:
+        name:
+          $ref: "#/components/schemas/MetricAttributeName"
+        data_type:
+          enum:
+          - string
+          - number
+          - boolean
+          - timestamp
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+    MetricMeasurement:
+      example:
+        name: duration
+        data_type: number
+      type: object
+      required:
+      - name
+      - data_type
+      properties:
+        name:
+          $ref: "#/components/schemas/MetricAttributeName"
+        data_type:
+          enum:
+          - number
+          - histogram
+          type: string
+    MetricAttributeName:
+      description: Unique field name in your metric's type (namespace).
+      type: string
+      pattern: ^[a-zA-Z][a-zA-Z0-9_-].*$
+      minLength: 1
+      maxLength: 128

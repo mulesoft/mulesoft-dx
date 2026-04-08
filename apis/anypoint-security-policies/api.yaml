@@ -1,0 +1,3255 @@
+openapi: 3.0.0
+info:
+  title: Anypoint Security Policies API
+  version: 2.0.0
+  description: Manage edge security policies, TLS contexts, virtual servers, and deployments for Anypoint Security.
+servers:
+- url: https://anypoint.mulesoft.com/securityfabric/api/{version}/organizations
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://eu1.anypoint.mulesoft.com/securityfabric/api/{version}/organizations
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://{region}.platform.mulesoft.com/securityfabric/api/{version}/organizations
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /{organizationId}:
+    delete:
+      description: Deletes all the data belonging to an organization, sub-organization from Security Fabric Edge and Anypoint Security Policies
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '204':
+          description: Successful. Returns zero length body.
+      operationId: deleteByOrganizationid
+  /{organizationId}/environments/{envId}:
+    delete:
+      description: Deletes all the data belonging to an environments from Security Fabric Edge
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '204':
+          description: Successful. Returns zero length body.
+      operationId: deleteByOrganizationidEnvironmentsByEnvid
+  /{organizationId}/environments/{envId}/agents/{agentId}/domains:
+    get:
+      description: Get all CN (common name) and SANs (Subject Alternate Name) list
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id001
+                  type: https
+                  domains:
+                  - acme.com
+                  - medical.acme.com
+                  - foo.com
+                type: object
+                additionalProperties: true
+                required:
+                - type
+                - domains
+                properties:
+                  type:
+                    enum:
+                    - https
+                    - http
+                    type: string
+                  domains:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Domains'
+              example: *id001
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id002
+                  name: NotFoundError
+                  status: 404
+                  message: Edge Config for the given Runtime Fabric id does not exist
+                  details: {}
+              example: *id002
+      operationId: getByOrganizationidEnvironmentsByEnvidAgentsByAgentidDomains
+  /{organizationId}/environments/{envId}/tlsContexts:
+    get:
+      description: Get TLS contexts configured for the enviorment
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_envId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id003
+                - - name: Test-SecretGroup
+                    meta:
+                      id: fd0e0b7c-8635-4ec4-9902-8a451d8d91a7
+                      createdAt: 2018-04-27 06:58:38.963000
+                      modifiedAt: 2018-04-27 06:58:38.963000
+                      modifiedBy: kanchan_12345
+                      locked: false
+                      lockedBy:
+                      currentState: Clear
+                  - - name: SAN-CN-Test-TLS
+                      expirationDate: 2019-05-02
+                      meta:
+                        id: 5a92ba4c-59ce-4970-908a-ed10e800e3f2
+                        path: tlsContexts/5a92ba4c-59ce-4970-908a-ed10e800e3f2
+                      acceptableTlsVersions:
+                        tlsV1Dot1: false
+                        tlsV1Dot2: true
+                      target: SecurityFabric
+                      keystore:
+                        path: keystores/191a1c47-be45-4ce1-b381-cf0bbc85fd85
+                        name: SAN-CN-Test-Keystore
+                        details:
+                          certificate:
+                            issuer:
+                              commonName: testgslab.com
+                              organizationUnit: GS
+                              organizationName: TEST-GS Lab
+                              localityName: PUNE
+                              state: MAHARASTRA
+                              countryName: IN
+                            subject:
+                              commonName: testgslab.com
+                              organizationUnit: GS
+                              organizationName: TEST-GS Lab
+                              localityName: PUNE
+                              state: MAHARASTRA
+                              countryName: IN
+                            subjectAlternativeName:
+                            - DNSName:test123.com
+                            - DNSName:gslab4356.com
+                            - DNSName:mysite890.net
+                            version: '3'
+                            serialNumber: F102B9D8E25A5078
+                            signatureAlgorithm: SHA256withRSA
+                            publicKeyAlgorithm: RSA
+                            basicConstraints:
+                            validity:
+                              notBefore: 2018-04-27 07:07:49
+                              notAfter: 2019-04-27 07:07:49
+                            keyUsage:
+                            - Digital Signature
+                            - Non Repudiation
+                            - Key Encipherment
+                            - Data Encipherment
+                            extendedKeyUsage:
+                            certificateType: X.509
+                          capath:
+                      truststore:
+                      enableMutualAuthentication: false
+                      acceptableCipherSuites:
+                        aes128Sha1: false
+                        aes256Sha1: false
+                        camellia128Sha1: false
+                        camellia256Sha1: false
+                        desCbc3Sha1: false
+                        dheDssAes128GcmSha256: false
+                        dheDssAes128Sha1: false
+                        dheDssAes128Sha256: false
+                        dheDssAes256GcmSha384: false
+                        dheDssAes256Sha1: false
+                        dheDssAes256Sha256: false
+                        dheDssCamellia128Sha1: false
+                        dheDssCamellia256Sha1: false
+                        dheRsaAes128Sha1: false
+                        dheRsaAes256Sha1: false
+                        ecdheEcdsaAes128GcmSha256: true
+                        ecdheEcdsaAes128Sha1: false
+                        ecdheEcdsaAes256GcmSha384: false
+                        ecdheEcdsaAes256Sha1: false
+                        ecdheEcdsaDesCbc3Sha1: false
+                        ecdheRsaAes128Sha1: false
+                        ecdheRsaAes256Sha1: false
+                        ecdheRsaDesCbc3Sha1: false
+                        ecdheRsaAes256GcmSha384: true
+                        ecdheRsaAes128GcmSha256: true
+                        dheRsaAes256GcmSha384: false
+                        dheRsaAes128GcmSha256: false
+                        dheRsaAes256Sha256: false
+                        dheRsaAes128Sha256: false
+                        aes256GcmSha384: false
+                        aes128GcmSha256: false
+                        aes256Sha256: false
+                        aes128Sha256: false
+                      mutualAuthentication:
+                - - name: Test-SecretGroup-2
+                    meta:
+                      id: 703e1b8a-2bba-4baf-aab2-b358d80af71d
+                      createdAt: 2018-04-23 08:36:32.264000
+                      modifiedAt: 2018-04-23 08:36:32.264000
+                      modifiedBy: kanchan_12345
+                      locked: false
+                      lockedBy:
+                      currentState: Clear
+                  - - name: tlscontext1
+                      expirationDate: 2018-04-30
+                      meta:
+                        id: e4348977-6a4c-49f2-8405-e75543eafa01
+                        path: tlsContexts/e4348977-6a4c-49f2-8405-e75543eafa01
+                      acceptableTlsVersions:
+                        tlsV1Dot1: false
+                        tlsV1Dot2: true
+                      target: SecurityFabric
+                      keystore:
+                        path: keystores/336993b2-95ea-4f3f-8a19-6031a1ab99f2
+                        name: Test-Keystore
+                        details:
+                          certificate:
+                            issuer:
+                              commonName: testgslab.com
+                              organizationUnit: GS
+                              organizationName: TEST-GS Lab
+                              localityName: PUNE
+                              state: MAHARASTRA
+                              countryName: IN
+                            subject:
+                              commonName: testgslab.com
+                              organizationUnit: GS
+                              organizationName: TEST-GS Lab
+                              localityName: PUNE
+                              state: MAHARASTRA
+                              countryName: IN
+                            subjectAlternativeName:
+                            - DNSName:test123.com
+                            - DNSName:gslab4356.com
+                            - DNSName:mysite890.net
+                            version: '3'
+                            serialNumber: F102B9D8E25A5078
+                            signatureAlgorithm: SHA256withRSA
+                            publicKeyAlgorithm: RSA
+                            basicConstraints:
+                            validity:
+                              notBefore: 2018-04-27 07:07:49
+                              notAfter: 2019-04-27 07:07:49
+                            keyUsage:
+                            - Digital Signature
+                            - Non Repudiation
+                            - Key Encipherment
+                            - Data Encipherment
+                            extendedKeyUsage:
+                            certificateType: X.509
+                          capath:
+                      truststore:
+                        path: truststores/076dbd89-3ad9-48a7-a66c-50aa91abe9ed
+                        name: truststore1
+                      enableMutualAuthentication: true
+                      acceptableCipherSuites:
+                        aes128Sha1: false
+                        aes256Sha1: false
+                        camellia128Sha1: false
+                        camellia256Sha1: false
+                        desCbc3Sha1: false
+                        dheDssAes128GcmSha256: false
+                        dheDssAes128Sha1: false
+                        dheDssAes128Sha256: false
+                        dheDssAes256GcmSha384: false
+                        dheDssAes256Sha1: false
+                        dheDssAes256Sha256: false
+                        dheDssCamellia128Sha1: true
+                        dheDssCamellia256Sha1: true
+                        dheRsaAes128Sha1: false
+                        dheRsaAes256Sha1: false
+                        ecdheEcdsaAes128GcmSha256: true
+                        ecdheEcdsaAes128Sha1: false
+                        ecdheEcdsaAes256GcmSha384: false
+                        ecdheEcdsaAes256Sha1: false
+                        ecdheEcdsaDesCbc3Sha1: true
+                        ecdheRsaAes128Sha1: true
+                        ecdheRsaAes256Sha1: false
+                        ecdheRsaDesCbc3Sha1: true
+                        ecdheRsaAes256GcmSha384: true
+                        ecdheRsaAes128GcmSha256: true
+                        dheRsaAes256GcmSha384: false
+                        dheRsaAes128GcmSha256: false
+                        dheRsaAes256Sha256: false
+                        dheRsaAes128Sha256: false
+                        aes256GcmSha384: false
+                        aes128GcmSha256: false
+                        aes256Sha256: false
+                        aes128Sha256: false
+                      mutualAuthentication:
+                        certCheckingStrength: Lax
+                        verificationDepth: 1
+                        performDomainChecking: false
+                        certificatePolicyChecking: false
+                        requireInitialExplicitPolicy: false
+                        certificatePolicies:
+                        revocationChecking: false
+                        revocationCheckingMethod:
+                        crlDistributorConfig:
+                        requireCrlForAllCa: false
+                        certificatePinning:
+                          certificatePinset:
+                          performCertificatePinning: false
+                        sendTruststore: true
+                        authenticationOverrides:
+                          certificateBadFormat: false
+                          certificateBadSignature: false
+                          certificateNotYetValid: false
+                          certificateHasExpired: false
+                          allowSelfSigned: false
+                          certificateUnresolved: false
+                          certificateUntrusted: false
+                          invalidCa: false
+                          invalidPurpose: false
+                          other: false
+                        ocspResponderConfig:
+                type: array
+                items: {}
+              example: *id003
+      operationId: getByOrganizationidEnvironmentsByEnvidTlscontexts
+  /{organizationId}/agents/{agentId}/virtualServers:
+    description: The collection of virtualServers
+    get:
+      description: Get all configured virtual servers for a given agent
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                x-amf-examples:
+                  get-vs-by-agentId-response:
+                  - id: c35e3fae-3987-489c-9b51-ae946bea0b5f
+                    name: Virtual-Server-1594325497373-0
+                    commonName: sample
+                    tlsConfig:
+                      source: SECRETS-MANAGER
+                      environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+                      securityNSID: fd4c90ed-f208-4f38-95b0-e713dc121e11
+                      tlsContextID: 2d00c608-2952-44da-a193-cdd8bab193a9
+                      expirationDate: 2019-10-05
+                    sanList:
+                      san: []
+                    isDeleted: false
+                    organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    createdAt: 2020-04-11 00:00:00+00:00
+                    updatedAt: 2020-04-11 00:00:00+00:00
+                    certificate:
+                      issuer:
+                        commonName: sample
+                        organizationUnit: sample
+                        organizationName: sampleO
+                        localityName: SamL
+                        state: IL
+                        countryName: US
+                      subject:
+                        commonName: sample
+                        organizationUnit: sample
+                        organizationName: sampleO
+                        localityName: SamL
+                        state: IL
+                        countryName: US
+                      version: '3'
+                      serialNumber: 5BB78B5E
+                      signatureAlgorithm: SHA256withRSA
+                      publicKeyAlgorithm: RSA
+                      validity:
+                        notBefore: 2018-10-05 16:03:42
+                        notAfter: 2019-10-05 16:03:42
+                      certificateType: X.509
+                    alias: sample
+                    keystoreFileName: NewKeyStore.jks
+                    tlsContextName: test
+                  - id: 3adceda2-5503-4d8a-9213-7cd94d9b0cf1
+                    name: Virtual-Server-1594325497373-1
+                    commonName: devx.acme.com
+                    tlsConfig:
+                      securityNSID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                      tlsContextID: 8b3ac695-6fb0-4b4a-a25b-30ed0568d5e2
+                      source: PEM
+                      certificateFileName: cert1219.pem
+                      keyFileName: key1219.pem
+                      expirationDate: 2020-12-11
+                    sanList:
+                      san: []
+                    isDeleted: false
+                    organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    simplifiedTlsConfig:
+                      pem:
+                        securityNSID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                        keystoreId: 9f7f8803-5d6d-4fff-b823-f3d9f3a84cb4
+                      tlsContextID: 8b3ac695-6fb0-4b4a-a25b-30ed0568d5e2
+                      tlsContextSGID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                      source: PEM
+                    createdAt: 2020-04-11 00:00:00+00:00
+                    updatedAt: 2020-04-11 00:00:00+00:00
+                    certificate:
+                      issuer:
+                        commonName: devx.acme.com
+                        organizationUnit: Mule
+                        organizationName: Sales
+                        localityName: Naper
+                        state: IL
+                        countryName: US
+                      subject:
+                        commonName: devx.acme.com
+                        organizationUnit: Mule
+                        organizationName: Sales
+                        localityName: Naper
+                        state: IL
+                        countryName: US
+                      version: '1'
+                      serialNumber: E702EC84AE0D2FAE
+                      signatureAlgorithm: SHA256WITHRSA
+                      publicKeyAlgorithm: RSA
+                      validity:
+                        notBefore: 2019-12-12 18:08:12
+                        notAfter: 2020-12-11 18:08:12
+                      certificateType: X.509
+                  - id: 71baeadc-3f96-4d9e-826c-5fc9f0d91477
+                    name: Virtual-Server-1594325497373-2
+                    commonName: special
+                    tlsConfig:
+                      securityNSID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                      tlsContextID: 965b0182-e409-45b2-b7c4-c2f69981913c
+                      source: JKS
+                      alias: special
+                      keystoreFileName: special.jks
+                      expirationDate: 2029-11-15
+                    sanList:
+                      san:
+                      - '*.il.mulesoft.com'
+                      - nimit.goyal@salesforce.com
+                      - hello-world.example.com
+                      - 10.230.36.104
+                    isDeleted: false
+                    organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+                    simplifiedTlsConfig:
+                      jks:
+                        securityNSID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                        keystoreId: 86550888-e543-4ba7-90b3-6d2fdb018a74
+                      tlsContextID: 965b0182-e409-45b2-b7c4-c2f69981913c
+                      tlsContextSGID: 29d0fcde-31dc-49b3-9b58-f59cb72e1327
+                      source: JKS
+                    createdAt: 2020-04-11 00:00:00+00:00
+                    updatedAt: 2020-04-11 00:00:00+00:00
+                    certificate:
+                      issuer:
+                        commonName: special-ica4
+                        organizationUnit: MgmtPki
+                        organizationName: Mulesoft
+                        localityName: San Francisco
+                        state: California
+                        countryName: US
+                      subject:
+                        commonName: special
+                        organizationUnit: MgmtPki
+                        organizationName: Mulesoft
+                        localityName: San Francisco
+                        state: California
+                        countryName: US
+                      subjectAlternativeName:
+                      - DNSName:*.il.mulesoft.com
+                      - DNSName:nimit.goyal@salesforce.com
+                      - DNSName:hello-world.example.com
+                      - DNSName:10.230.36.104
+                      version: '3'
+                      serialNumber: 3B6ED8E98C521BCE60DD3F7049B714CBBFADF186
+                      signatureAlgorithm: SHA256withRSA
+                      publicKeyAlgorithm: RSA
+                      validity:
+                        notBefore: 2019-11-18 21:38:01
+                        notAfter: 2029-11-15 21:38:01
+                      keyUsage:
+                      - Digital Signature
+                      - Non Repudiation
+                      - Key Encipherment
+                      extendedKeyUsage:
+                      - TLS Web server authentication
+                      - TLS Web client authentication
+                      certificateType: X.509
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              example:
+              - {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getByOrganizationidAgentsByAgentidVirtualservers
+  /{organizationId}/agents/{agentId}/edge:
+    description: The collection of edge
+    get:
+      description: Get edge configured for the given runtime fabric id
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/EdgeConfigResponse'
+              example: {}
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getByOrganizationidAgentsByAgentidEdge
+    post:
+      description: create Edge configuration for the given runtime fabric
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdgeConfigRequest'
+        x-amf-mediaType: application/json
+        description: The edge data to create.
+      x-amf-requestPayloads:
+      - mediaType: multipart/form-data
+        schema:
+          $ref: '#/components/schemas/EdgeConfigRequest'
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/EdgeConfigResponse'
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: createByOrganizationidAgentsByAgentidEdge
+  /{organizationId}/agents/{agentId}/edge/{edgeConfigId}:
+    description: Get an entity representing a edge
+    put:
+      description: Update Edge configuration details for the given edge configurtaion id d
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_edgeConfigId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdgeConfigUpdateRequest'
+        x-amf-mediaType: application/json
+        description: The edge data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/EdgeConfigResponse'
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: updateByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+    patch:
+      description: Except TLS config, update other configuration if PEM/JKS is selected d
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_edgeConfigId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdgeConfigPatchRequest'
+        x-amf-mediaType: application/json
+        description: The edge data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/EdgeConfigResponse'
+              example: {}
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: patchByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+    delete:
+      description: Delete Edge configuration for the given edge configuration id
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_edgeConfigId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id004
+                  result: Edge config deleted successfully
+                  deploymentData: {}
+              example: *id004
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: deleteByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+  /{organizationId}/agents/{agentId}/edge/{edgeConfigId}/deployments:
+    get:
+      description: Get the edge deployement status
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: agentId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent ID to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_edgeConfigId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/DeployementStatusResponse'
+              example: &id007
+                status: APPLYING
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id005
+                  name: NotFoundError
+                  status: 404
+                  message: Edge Config for the given Runtime Fabric id does not exist
+                  details: {}
+              example: *id005
+        '502':
+          description: Bad gateway.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id006
+                  message: Error while trying to get deployment data from deployer
+                  errors: []
+              example: *id006
+      operationId: getByOrganizationidAgentsByAgentidEdgeByEdgeconfigidDeployments
+  /{organizationId}/policies:
+    description: The collection of policies
+    post:
+      description: Create new policy with type 'DOS (Denial of Service)' or 'CAP (Content Attack Prevention)' or 'ACL(Access Control List)' or 'WAF (Web Application Firewall), SID (Sensitive Information Detection)'
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/PolicyCreateRequest'
+        description: The policies data to create.
+      responses:
+        '201':
+          description: Resource created successfully.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+              example:
+                id:
+                  id: string
+                  type: string
+                type: CAP
+                policyData:
+                  id: string
+                  type: string
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: createByOrganizationidPolicies
+    get:
+      description: Get all the policies
+      parameters:
+      - name: type
+        description: 'Filter polices based on type. If type does not match return all policies.
+
+          '
+        required: true
+        in: query
+        schema:
+          type: string
+          enum:
+          - DOS
+          - CAP
+          - ACL
+          - WAF
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                x-amf-examples:
+                  get-all-policies-response:
+                  - id: 9e7ff8ab-9f2e-46df-b607-9e449c823aa4
+                    type: CAP
+                    policyData:
+                      name: Test-CAP
+                      maxBodyLength: 104857600
+                      maxRequestLineLength: 4096
+                      maxHeaderLength: 16384
+                      maxNumberHeadersTrailers: 32
+                      maxTrailerLength: 16384
+                      allowMethods:
+                      - GET
+                      - POST
+                      - DELETE
+                      - TRACE
+                      - HEAD
+                      - PATCH
+                      - PUT
+                  - id: b7d931ee-d543-4994-97d8-24a5d5213053
+                    type: DOS
+                    policyData:
+                      name: TestDosPolicy
+                      window1TimePeriod: 60
+                      maxSourcesToMonitor: 35345
+                      summaryNotificationPeriod: 900
+                      alertPeriod: 60
+                      excessiveTrafficEventTrigger: 0
+                      rejectMessageAction: drop-silently
+                      protocolErrors:
+                        window1:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                        window2:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                        window3:
+                          action: block-interval
+                          threshold: 1
+                          numberOfPrecedingWindows: 1
+                          rate: 0
+                      routingErrors:
+                        window1:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                        window2:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                        window3:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                      authenticationErrors:
+                        window1:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                        window2:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                        window3:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                      qosErrors:
+                        window1:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                        window2:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                        window3:
+                          threshold: 1
+                          numberOfPrecedingWindows: 1
+                          action: none
+                          rate: 0
+                      contentErrors:
+                        window1:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 3
+                        window2:
+                          action: block-forever
+                          threshold: 1
+                          numberOfPrecedingWindows: 1
+                          rate: 3
+                        window3:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                      wafErrors:
+                        window1:
+                          action: shape-interval
+                          threshold: 1
+                          rate: 3
+                        window2:
+                          action: block-forever
+                          threshold: 1
+                          numberOfPrecedingWindows: 1
+                          rate: 3
+                        window3:
+                          action: shape-forever
+                          threshold: 1
+                          rate: 1
+                          numberOfPrecedingWindows: 1
+                  - id: 1ba393fa-e359-49b8-a822-ced8b110cda8
+                    type: ACL
+                    policyData:
+                      name: Test-ACL-Policy
+                      ipWhiteList:
+                      - ip: 1.1.1.0/24
+                      - ip: 192.168.100.14/24
+                      - ip: 1.1.1.0/27
+                  - id: 534fa846-6436-4c4b-aa50-344130a4936f
+                    type: ACL
+                    policyData:
+                      name: Test-ACL-policy2
+                      ipWhiteList:
+                      - ip: 1.1.1.0/21
+                  - id: f44301ab-d572-437f-83b5-cfacb208fdb9
+                    type: WAF
+                    policyData:
+                      name: testWAF01
+                      request:
+                        categories:
+                          reqSidPiiCore: Disable
+                          reqSidPiiEnhanced: Disable
+                          reqSidPci: Disable
+                          reqSidPhi: Disable
+                          scannerDetection: Disable
+                          protocolEnforcement: Disable
+                          protocolAttack: Disable
+                          applicationAttackLfi: Disable
+                          applicationAttackRfi: Disable
+                          applicationAttackRce: Disable
+                          applicationAttackPhp: Disable
+                          applicationAttackXss: Disable
+                          applicationAttackSqli: Disable
+                          applicationAttackSessionFixation: Disable
+                        performanceOptions:
+                          enableRequestBodyInspection: true
+                      response:
+                        categories:
+                          rspSidPiiCore: Disable
+                          rspSidPiiEnhanced: Disable
+                          rspSidPci: Disable
+                          rspSidPhi: Disable
+                          dataLeakages: Disable
+                          dataLeakagesSql: Disable
+                          dataLeakagesJava: Disable
+                          dataLeakagesPhp: Disable
+                          dataLeakagesIis: Disable
+                        performanceOptions:
+                          enableResponseBodyInspection: true
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyResponse'
+              example:
+              - id: string
+                type: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal Server Error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getByOrganizationidPolicies
+  /{organizationId}/policies/{policyId}:
+    description: Get an entity representing a policy
+    get:
+      description: Get policy using id
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+              example:
+                id:
+                  id: string
+                  type: string
+                type: CAP
+                policyData:
+                  id: string
+                  type: string
+        '404':
+          description: Not found. The requested resource does not exist.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: getByOrganizationidPoliciesByPolicyid
+    put:
+      description: Update policy by id
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/PolicyCreateRequest'
+        description: The policies data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+              example:
+                id:
+                  id: string
+                  type: string
+                type: CAP
+                policyData:
+                  id: string
+                  type: string
+        '400':
+          description: Bad Request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '422':
+          description: Unprocessable Entity.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '500':
+          description: Internal server error.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: updateByOrganizationidPoliciesByPolicyid
+    delete:
+      description: Delete policy by id
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_policyId_Path'
+      responses:
+        '415':
+          description: Unsupported media type.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+        '429':
+          description: Too many requests. Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Number of seconds to wait before retrying the request.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/type'
+              example:
+                message: string
+                errors:
+                - code: 0
+                  field: string
+                  message: string
+      operationId: deleteByOrganizationidPoliciesByPolicyid
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  requestBodies:
+    PolicyCreateRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PolicyCreateRequest'
+      x-amf-mediaType: application/json
+      description: Request payload for PolicyCreateRequest operations.
+  schemas:
+    Domains:
+      type: string
+      pattern: ^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$
+    type:
+      x-amf-examples:
+        example_21:
+          message: Error in policy
+        example_35:
+          message: Not Supported  Content-Type
+        example_31:
+          value:
+            message: Your request does not have the correct values
+        example_16:
+          message: Error in edge
+        example_12:
+          message: edge
+        example_2:
+          message: virtualServer
+        bad-rq:
+          value:
+            message: Invalid Request
+            errors:
+            - code: 1000
+              message: Invalid value for number of replicas
+            - code: 2000
+              message: Reached maximum number of resources
+        example_32:
+          message: policy
+        example_0:
+          message: Unauthorized
+        unprocessable-rq:
+          message: Unprocessable entity
+          errors:
+          - code: 4000
+            message: Error validating input
+        example_36:
+          message: Too Many Requests
+        example_1:
+          message: Forbidden
+      type: object
+      additionalProperties: true
+      required:
+      - message
+      properties:
+        message:
+          description: 'Human readable error description.
+
+            '
+          type: string
+        errors:
+          description: 'Error list use to describe the set of validations that has failed. Only required in case
+
+            HTTP error code is not enough to describe the failure case.
+
+            '
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required:
+            - message
+            properties:
+              code:
+                description: 'Machine error description. Internal code representation for consumer
+
+                  code error handling.
+
+                  '
+                type: integer
+              field:
+                description: 'field that caused the error.
+
+                  '
+                type: string
+              message:
+                description: 'Human readable error description.
+
+                  '
+                type: string
+    EdgeConfigResponse:
+      x-amf-examples:
+        edge-item:
+          id: bc9af2b9-499f-477a-b836-280066ba9755
+          port:
+            securePort: 443
+            nonSecure:
+              port: 80
+              type: redirect
+          advancedOption:
+            maxConnections: 512
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            readResponseTimeout: 300
+            writeResponseTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+            mode: shared
+          logs:
+            portLogLevel: ERROR
+            filters: []
+          virtualServerIds:
+          - 20192d0f-2afe-4dfb-8c30-7f95fcdc00bc
+          - 5cb4951b-459b-4518-8b75-5134c6421b3f
+          organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+          dosPolicyId: 97ce41e6-4725-406b-a16b-714f5cab94d4
+          capPolicyId: d1743deb-3882-465c-a8d8-fb10ad333501
+          aclPolicyId: 9584778f-98b4-4216-a255-72d3dd170a21
+          wafPolicyId: 6387910c-85e1-4048-bcbf-a8d3cee9c19f
+        create-http-response:
+          id: 310fc306-4e47-46e7-87ad-f9e3ba2617bb
+          advancedOption:
+            maxConnections: 512
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+            mode: shared
+          logs:
+            portLogLevel: ERROR
+            filters: []
+          httpDomains:
+          - '*.testCool.com'
+          - www.example.com
+          - '*.testWeb.com'
+          organizationId: 1c9c4eba-5d30-40a8-9ba4-e81c75266530
+      x-amf-union:
+      - $ref: '#/components/schemas/EdgeHTTPResponse'
+      - $ref: '#/components/schemas/EdgeConfigMultipleVSResponse'
+    EdgeConfigRequest:
+      x-amf-examples:
+        create-multiple-vs-request-csm:
+          port:
+            securePort: 443
+            nonSecure:
+              port: 80
+              type: redirect
+          advancedOption:
+            maxConnections: 888
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+          logs:
+            portLogLevel: ERROR
+            filters: []
+          tlsConfigs:
+          - environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+            securityNSID: fd4c90ed-f208-4f38-95b0-e713dc121e11
+            tlsContextID: 2d00c608-2952-44da-a193-cdd8bab193a9
+            source: SECRETS-MANAGER
+        create-http-request:
+          advancedOption:
+            maxConnections: 512
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+            mode: shared
+          logs:
+            portLogLevel: ERROR
+            filters: []
+          httpDomains:
+          - '*.test.com'
+          - www.example.com
+          - '*.testWeb.com'
+      x-amf-union:
+      - $ref: '#/components/schemas/EdgeHTTPRequest'
+      - $ref: '#/components/schemas/EdgeConfigMultipleVSRequest'
+    EdgeConfigUpdateRequest:
+      x-amf-examples:
+        egde-put:
+          port:
+            securePort: 443
+            nonSecure:
+              port: 80
+              type: redirect
+          advancedOption:
+            maxConnections: 888
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+          logs:
+            portLogLevel: ERROR
+            filters: []
+          tlsConfigs:
+          - environment: 9adfafe3-0b50-43f8-971a-f3445e7c260d
+            securityNSID: fd4c90ed-f208-4f38-95b0-e713dc121e11
+            tlsContextID: 2d00c608-2952-44da-a193-cdd8bab193a9
+            source: SECRETS-MANAGER
+          virtualServerIds:
+          - 20192d0f-2afe-4dfb-8c30-7f95fcdc00bc
+          - 5cb4951b-459b-4518-8b75-5134c6421b3f
+      x-amf-union:
+      - $ref: '#/components/schemas/EdgeHTTPRequest_1'
+      - $ref: '#/components/schemas/EdgeConfigMultipleVSUpdateRequest'
+    EdgeConfigPatchRequest:
+      x-amf-examples:
+        egde-patch:
+          advancedOption:
+            maxConnections: 888
+            maxRequestPerConnection: 1000
+            connectionIdleTimeout: 15
+            requestLifetime: 60
+            startRequestStreamingPayloadSize: 10240
+            startResponseStreamingPayloadSize: 10240
+            enableProxyProtocol: false
+            readRequestTimeout: 10
+            maxPipelineDepth: 10
+            cores: 0.25
+            memory: 0.5
+      type: object
+      additionalProperties: false
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        httpDomains:
+          type: array
+          items:
+            $ref: '#/components/schemas/Domains'
+        port:
+          $ref: '#/components/schemas/Port'
+        virtualServerIds:
+          $ref: '#/components/schemas/VirtualServerIds'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    DeployementStatusResponse:
+      example: *id007
+      type: object
+      additionalProperties: true
+      required:
+      - status
+      properties:
+        status:
+          type: string
+    PolicyCreateRequest:
+      x-amf-examples:
+        CAP:
+          type: CAP
+          policyData:
+            name: Test-CAP
+            maxBodyLength: 104857600
+            maxRequestLineLength: 4096
+            maxHeaderLength: 16384
+            maxNumberHeadersTrailers: 32
+            maxTrailerLength: 16384
+            allowMethods:
+            - GET
+            - POST
+            - DELETE
+            - TRACE
+            - HEAD
+            - PATCH
+            - PUT
+            - OPTIONS
+        DOS:
+          type: DOS
+          policyData:
+            name: TestDosPolicy
+            window1TimePeriod: 60
+            maxSourcesToMonitor: 35345
+            summaryNotificationPeriod: 900
+            alertPeriod: 60
+            excessiveTrafficEventTrigger: 0
+            rejectMessageAction: drop-silently
+            protocolErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: block-interval
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 0
+            routingErrors:
+              window1:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            authenticationErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            qosErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: none
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 0
+            contentErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 3
+              window2:
+                action: block-forever
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 3
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            wafErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 3
+              window2:
+                action: block-forever
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 3
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+        ACL:
+          type: ACL
+          policyData:
+            name: Test-ACL-Policy
+            ipWhiteList:
+            - ip: 1.1.1.0/24
+            - ip: 192.168.100.14/24
+            - ip: 1.1.1.0/27
+        WAF:
+          type: WAF
+          policyData:
+            name: testWAF01
+            request:
+              categories:
+                reqSidPiiCore: Disable
+                reqSidPiiEnhanced: Disable
+                reqSidPci: Disable
+                reqSidPhi: Disable
+                scannerDetection: Disable
+                protocolEnforcement: Disable
+                protocolAttack: Disable
+                applicationAttackLfi: Disable
+                applicationAttackRfi: Disable
+                applicationAttackRce: Disable
+                applicationAttackPhp: Disable
+                applicationAttackXss: Disable
+                applicationAttackSqli: Disable
+                applicationAttackSessionFixation: Disable
+              performanceOptions:
+                enableRequestBodyInspection: true
+            response:
+              categories:
+                rspSidPiiCore: Disable
+                rspSidPiiEnhanced: Disable
+                rspSidPci: Disable
+                rspSidPhi: Disable
+                dataLeakages: Disable
+                dataLeakagesSql: Disable
+                dataLeakagesJava: Disable
+                dataLeakagesPhp: Disable
+                dataLeakagesIis: Disable
+              performanceOptions:
+                enableResponseBodyInspection: true
+      x-amf-union:
+      - $ref: '#/components/schemas/CAPPolicyType'
+      - $ref: '#/components/schemas/DOSPolicyType'
+      - $ref: '#/components/schemas/ACLPolicyType'
+      - $ref: '#/components/schemas/WAFPolicyType'
+    PolicyResponse:
+      x-amf-examples:
+        CAP:
+          id: 9e7ff8ab-9f2e-46df-b607-9e449c823aa4
+          type: CAP
+          policyData:
+            name: Test-CAP
+            maxBodyLength: 104857600
+            maxRequestLineLength: 4096
+            maxHeaderLength: 16384
+            maxNumberHeadersTrailers: 32
+            maxTrailerLength: 16384
+            allowMethods:
+            - GET
+            - POST
+            - DELETE
+            - TRACE
+            - HEAD
+            - PATCH
+            - PUT
+        DOS:
+          id: b7d931ee-d543-4994-97d8-24a5d5213053
+          type: DOS
+          policyData:
+            name: TestDosPolicy
+            window1TimePeriod: 60
+            maxSourcesToMonitor: 35345
+            summaryNotificationPeriod: 900
+            alertPeriod: 60
+            excessiveTrafficEventTrigger: 0
+            rejectMessageAction: drop-silently
+            protocolErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: block-interval
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 1
+            routingErrors:
+              window1:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            authenticationErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            qosErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: none
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            contentErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 1
+              window2:
+                action: block-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+            wafErrors:
+              window1:
+                action: shape-interval
+                threshold: 1
+                rate: 3
+              window2:
+                action: block-forever
+                threshold: 1
+                numberOfPrecedingWindows: 1
+                rate: 3
+              window3:
+                action: shape-forever
+                threshold: 1
+                rate: 1
+                numberOfPrecedingWindows: 1
+        ACL:
+          id: 1ba393fa-e359-49b8-a822-ced8b110cda8
+          type: ACL
+          policyData:
+            name: Test-ACL-Policy
+            ipWhiteList:
+            - ip: 1.1.1.0/24
+            - ip: 192.168.100.14/24
+            - ip: 1.1.1.0/27
+        WAF:
+          id: f44301ab-d572-437f-83b5-cfacb208fdb9
+          type: WAF
+          policyData:
+            name: testWAF01
+            request:
+              categories:
+                reqSidPiiCore: Disable
+                reqSidPiiEnhanced: Disable
+                reqSidPci: Disable
+                reqSidPhi: Disable
+                scannerDetection: Disable
+                protocolEnforcement: Disable
+                protocolAttack: Disable
+                applicationAttackLfi: Disable
+                applicationAttackRfi: Disable
+                applicationAttackRce: Disable
+                applicationAttackPhp: Disable
+                applicationAttackXss: Disable
+                applicationAttackSqli: Disable
+                applicationAttackSessionFixation: Disable
+              performanceOptions:
+                enableRequestBodyInspection: true
+            response:
+              categories:
+                rspSidPiiCore: Disable
+                rspSidPiiEnhanced: Disable
+                rspSidPci: Disable
+                rspSidPhi: Disable
+                dataLeakages: Disable
+                dataLeakagesSql: Disable
+                dataLeakagesJava: Disable
+                dataLeakagesPhp: Disable
+                dataLeakagesIis: Disable
+              performanceOptions:
+                enableResponseBodyInspection: true
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - type
+      - policyData
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        type:
+          description: ''
+          enum:
+          - CAP
+          - DOS
+          - ACL
+          - WAF
+          type: string
+        policyData:
+          $ref: '#/components/schemas/default'
+    EdgeHTTPResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - httpDomains
+      - id
+      - logs
+      - organizationId
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        httpDomains:
+          description: 'List of domains (including wildcard domains, and subdomains) that can be used to when accessing the APPs deployed in this RTF/RTFC. For example: acme.com,*.acme.com, sales.acme.com, *.sales.acme.com'
+          type: array
+          items:
+            $ref: '#/components/schemas/Domains'
+        id:
+          $ref: '#/components/schemas/UUID'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        organizationId:
+          $ref: '#/components/schemas/UUID'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    EdgeConfigMultipleVSResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - id
+      - virtualServerIds
+      - logs
+      - organizationId
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        id:
+          $ref: '#/components/schemas/UUID'
+        port:
+          $ref: '#/components/schemas/Port'
+        virtualServerIds:
+          $ref: '#/components/schemas/VirtualServerIds'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        organizationId:
+          $ref: '#/components/schemas/UUID'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    EdgeHTTPRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - httpDomains
+      - logs
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        httpDomains:
+          description: 'List of domains (including wildcard domains, and subdomains) that can be used to when accessing the APPs deployed in this RTF/RTFC. For example: acme.com,*.acme.com, sales.acme.com, *.sales.acme.com'
+          type: array
+          items:
+            $ref: '#/components/schemas/Domains'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    EdgeConfigMultipleVSRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - tlsConfigs
+      - port
+      - logs
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tlsConfigs:
+          description: Each item in the array represents a way of creating virtual server for edge. A virtual server can be created in one of the three ways. 1 -> By refering a secret of type tls configuration from secrets manager. 2 -> uploading a PEM and key file with optional ca path file. 3 -> uploading a JKS file.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/default_2'
+        port:
+          $ref: '#/components/schemas/Port'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      patternProperties:
+        ^(keys\[[0-9]\])$:
+          description: The encrypted private key. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', keys[0] should be used to indicate key file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(keyStores\[[0-9]\])$:
+          description: File containing one or more certificate entries. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'JKS', keyStores[0] should be used to indicate keyStore file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(certificates\[[0-9]\])$:
+          description: The public certificate. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', certificates[0] should be used to indicate certificate file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(capaths\[[0-9]\])$:
+          description: The concatenated chain of CA certificates, except the leaf, leading up to the root CA. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', capaths[0] should be used to indicate ca path file for tlsConfigs[0]
+          type: string
+          format: binary
+    EdgeHTTPRequest_1:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - httpDomains
+      - logs
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        httpDomains:
+          description: 'List of domains (including wildcard domains, and subdomains) that can be used to when accessing the APPs deployed in this RTF/RTFC. For example: acme.com,*.acme.com, sales.acme.com, *.sales.acme.com'
+          type: array
+          items:
+            $ref: '#/components/schemas/Domains'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    EdgeConfigMultipleVSUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - advancedOption
+      - tlsConfigs
+      - port
+      - virtualServerIds
+      - logs
+      properties:
+        capPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        advancedOption:
+          $ref: '#/components/schemas/AdvancedOption'
+        wafPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tlsConfigs:
+          description: Each item in the array represents a way of creating virtual server for edge. A virtual server can be created in one of the three ways. 1 -> By refering a secret of type tls configuration from secrets manager. 2 -> uploading a PEM and key file with optional ca path file. 3 -> uploading a JKS file.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/default_2'
+        port:
+          $ref: '#/components/schemas/Port'
+        virtualServerIds:
+          $ref: '#/components/schemas/VirtualServerIds'
+        aclPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        logs:
+          $ref: '#/components/schemas/Logs'
+        dosPolicyId:
+          description: The anypoint security policies are getting revamped. This field is going to be deprecated in a future release. If this policy is not used, then this element should not be included.
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      patternProperties:
+        ^(keyStores\[[0-9]\])$:
+          description: File containing one or more certificate entries. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'JKS', keyStores[0] should be used to indicate keyStore file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(keys\[[0-9]\])$:
+          description: The encrypted private key. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', keys[0] should be used to indicate key file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(certificates\[[0-9]\])$:
+          description: The public certificate. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', certificates[0] should be used to indicate certificate file for tlsConfigs[0]
+          type: string
+          format: binary
+        ^(capaths\[[0-9]\])$:
+          description: The concatenated chain of CA certificates, except the leaf, leading up to the root CA. The index used should match the index of 'tlsConfigs'. So if tlsConfigs[0].source = 'PEM', capaths[0] should be used to indicate ca path file for tlsConfigs[0]
+          type: string
+          format: binary
+    AdvancedOption:
+      description: Controls the gateway connection parameters for the client request
+      type: object
+      additionalProperties: false
+      required:
+      - maxConnections
+      - maxRequestPerConnection
+      - connectionIdleTimeout
+      - requestLifetime
+      - startRequestStreamingPayloadSize
+      - startResponseStreamingPayloadSize
+      - enableProxyProtocol
+      - readRequestTimeout
+      - maxPipelineDepth
+      - cores
+      - memory
+      properties:
+        mode:
+          description: This field describes the way edge is configured to run. In 'shared' mode, the internal load balancer runs on the controller nodes. Make sure ports 80 and 443 are open. In 'dedicated' mode, it runs on load balancer nodes.
+          default: shared
+          enum:
+          - shared
+          - dedicated
+          type: string
+        maxConnections:
+          default: 512
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        maxRequestPerConnection:
+          default: 1000
+          type: integer
+          minimum: 1
+          maximum: 4194304
+        connectionIdleTimeout:
+          default: 15
+          type: integer
+          minimum: 1
+          maximum: 2592000
+        requestLifetime:
+          default: 60
+          type: integer
+          minimum: 1
+          maximum: 14400
+        startRequestStreamingPayloadSize:
+          default: 10240
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        startResponseStreamingPayloadSize:
+          default: 10240
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        enableProxyProtocol:
+          default: false
+          type: boolean
+        readRequestTimeout:
+          default: 10
+          type: integer
+          minimum: 1
+          maximum: 1200
+        readResponseTimeout:
+          default: 300
+          type: integer
+          minimum: 1
+          maximum: 3600
+        writeResponseTimeout:
+          default: 10
+          type: integer
+          minimum: 1
+          maximum: 3600
+        maxPipelineDepth:
+          default: 10
+          type: integer
+          minimum: 1
+          maximum: 1000
+        clientIpAddressFromHttpHeaderName:
+          $ref: '#/components/schemas/default_3'
+        cores:
+          description: This field is not required for mode type 'dedicated'. If provided with type 'dedicated', this value will be ignored.
+          default: 0.25
+          type: number
+          minimum: 0.25
+        memory:
+          description: This field is not required for mode type 'dedicated'. If provided with type 'dedicated', this value will be ignored.
+          default: 0.5
+          type: number
+          minimum: 0.5
+          maximum: 4
+        dosAction:
+          description: DOS commands to log and unblock blocked IPs, this configuration is accepeted only if DOS policy is configured for the Edge
+          type: object
+          additionalProperties: true
+          required:
+          - view
+          - undo
+          properties:
+            view:
+              description: Command info to log all the blocked IP's with this specified timestamp
+              example: Thu Jan 24 14:40:25 CST 2019
+              type: string
+            undo:
+              description: Command info to ublock blocked IP's
+              type: object
+              additionalProperties: true
+              required:
+              - ip
+              - timestamp
+              properties:
+                ip:
+                  description: IP to unblock which got affected due to DOS policy
+                  example: 1.2.3.4/30, 1.2.3.4/20
+                  type: string
+                timestamp:
+                  example: Thu Jan 24 14:40:25 CST 2019
+                  type: string
+        defaultBackEnd:
+          description: Additional configuration to support migration to RTF-C
+          type: object
+          additionalProperties: true
+          required:
+          - serviceName
+          - servicePort
+          - secure
+          - sniViaProxy
+          properties:
+            serviceName:
+              description: Service name to forward
+              example: lab.acme.com
+              type: string
+            servicePort:
+              description: Port of the service
+              example: 8080
+              type: integer
+            secure:
+              description: Secure connection
+              example: true
+              type: boolean
+            sniViaProxy:
+              description: Preserve the original host header while forwarding to backend service
+              example: true
+              type: boolean
+    Port:
+      description: port configuration for deployement of edge
+      type: object
+      additionalProperties: false
+      required:
+      - securePort
+      - nonSecure
+      properties:
+        securePort:
+          default: 443
+          type: integer
+        nonSecure:
+          type: object
+          additionalProperties: false
+          required:
+          - port
+          properties:
+            port:
+              default: 80
+              type: integer
+            type:
+              enum:
+              - accept
+              - redirect
+              type: string
+    VirtualServerIds:
+      description: An array of virutal server ids that are configured this agent. To remove an entry from the array skip the entires that you want to remove in update request call.
+      type: array
+      items:
+        $ref: '#/components/schemas/UUID'
+    Logs:
+      description: Log level configuration used by edge for logging
+      type: object
+      additionalProperties: false
+      properties:
+        filters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              ip:
+                type: string
+              level:
+                $ref: '#/components/schemas/LogLevels'
+        portLogLevel:
+          $ref: '#/components/schemas/LogLevels'
+    CAPPolicyType:
+      description: Content attack prevention policy also named as HTTP Limits
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - policyData
+      properties:
+        type:
+          default: CAP
+          enum:
+          - CAP
+          type: string
+        policyData:
+          $ref: '#/components/schemas/CAPPolicyData'
+    DOSPolicyType:
+      description: Denial of Service policy
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - policyData
+      properties:
+        type:
+          enum:
+          - DOS
+          type: string
+        policyData:
+          $ref: '#/components/schemas/DOSPolicyData'
+    ACLPolicyType:
+      description: Access Control List policy also named as IP Whitelist is to define White Listed IP adrress in CIDR formats
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - policyData
+      properties:
+        type:
+          description: ''
+          default: ACL
+          type: string
+        policyData:
+          $ref: '#/components/schemas/ACLPolicyData'
+    WAFPolicyType:
+      description: Web Application Firewall policy. See ./WafRules for RuleSet details.
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - policyData
+      properties:
+        type:
+          default: WAF
+          enum:
+          - WAF
+          type: string
+        policyData:
+          $ref: '#/components/schemas/WAFPolicyData'
+    UUID:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+    default:
+      x-amf-union:
+      - $ref: '#/components/schemas/CAPPolicyData'
+      - $ref: '#/components/schemas/ACLPolicyData'
+      - $ref: '#/components/schemas/DOSPolicyData'
+      - $ref: '#/components/schemas/WAFPolicyData'
+    default_2:
+      x-amf-union:
+      - $ref: '#/components/schemas/CSM_SOURCE'
+      - $ref: '#/components/schemas/PEM_SOURCE'
+      - $ref: '#/components/schemas/JKS_SOURCE'
+    default_3:
+      x-amf-union:
+      - type: string
+      - type: 'null'
+    LogLevels:
+      description: Log levels
+      enum:
+      - TRACE
+      - DEBUG
+      - VERBOSE
+      - INFO
+      - WARNING
+      - ERROR
+      - FATAL
+      type: string
+    CAPPolicyData:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - maxBodyLength
+      - maxRequestLineLength
+      - maxHeaderLength
+      - maxNumberHeadersTrailers
+      - maxTrailerLength
+      - allowMethods
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        maxBodyLength:
+          default: 104857600
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        maxRequestLineLength:
+          default: 4096
+          type: integer
+          minimum: 256
+          maximum: 65535
+        maxHeaderLength:
+          default: 16384
+          type: integer
+          minimum: 256
+          maximum: 65535
+        maxNumberHeadersTrailers:
+          default: 32
+          type: integer
+          minimum: 1
+          maximum: 32768
+        maxTrailerLength:
+          default: 16384
+          type: integer
+          minimum: 256
+          maximum: 65535
+        allowMethods:
+          type: array
+          items:
+            type: string
+    DOSPolicyData:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - window1TimePeriod
+      - maxSourcesToMonitor
+      - summaryNotificationPeriod
+      - alertPeriod
+      - rejectMessageAction
+      - excessiveTrafficEventTrigger
+      - protocolErrors
+      - routingErrors
+      - authenticationErrors
+      - qosErrors
+      - contentErrors
+      - wafErrors
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        window1TimePeriod:
+          default: 60
+          type: integer
+          minimum: 60
+          maximum: 3600
+        maxSourcesToMonitor:
+          default: 35345
+          type: integer
+          minimum: 5000
+          maximum: 500000
+        summaryNotificationPeriod:
+          default: 900
+          type: integer
+          minimum: 60
+          maximum: 3600
+        alertPeriod:
+          default: 60
+          type: integer
+          minimum: 60
+          maximum: 3600
+        rejectMessageAction:
+          default: drop-silently
+          enum:
+          - send-HTTP-503
+          - drop-silently
+          type: string
+        excessiveTrafficEventTrigger:
+          default: 0
+          type: integer
+          minimum: 0
+          maximum: 1267898754
+        protocolErrors:
+          $ref: '#/components/schemas/DOSError'
+        routingErrors:
+          $ref: '#/components/schemas/DOSError'
+        authenticationErrors:
+          $ref: '#/components/schemas/DOSError'
+        qosErrors:
+          $ref: '#/components/schemas/DOSError'
+        contentErrors:
+          $ref: '#/components/schemas/DOSError'
+        wafErrors:
+          $ref: '#/components/schemas/DOSError'
+    ACLPolicyData:
+      type: object
+      additionalProperties: true
+      required:
+      - name
+      - ipWhiteList
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        ipWhiteList:
+          description: White Listed ip adress(es) in IP4 and IPv6 CIDR format
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required:
+            - ip
+            properties:
+              ip:
+                type: string
+                pattern: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))?$
+    WAFPolicyData:
+      type: object
+      additionalProperties: true
+      required:
+      - name
+      - request
+      - response
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        request:
+          type: object
+          additionalProperties: false
+          required:
+          - categories
+          - performanceOptions
+          properties:
+            categories:
+              type: object
+              additionalProperties: true
+              required:
+              - scannerDetection
+              - protocolEnforcement
+              - protocolAttack
+              - applicationAttackLfi
+              - applicationAttackRfi
+              - applicationAttackRce
+              - applicationAttackPhp
+              - applicationAttackXss
+              - applicationAttackSqli
+              - applicationAttackSessionFixation
+              - reqSidPiiCore
+              - reqSidPiiEnhanced
+              - reqSidPci
+              - reqSidPhi
+              properties:
+                scannerDetection:
+                  $ref: '#/components/schemas/WafAction'
+                protocolEnforcement:
+                  $ref: '#/components/schemas/WafAction'
+                protocolAttack:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackLfi:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackRfi:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackRce:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackPhp:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackXss:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackSqli:
+                  $ref: '#/components/schemas/WafAction'
+                applicationAttackSessionFixation:
+                  $ref: '#/components/schemas/WafAction'
+                reqSidPiiCore:
+                  $ref: '#/components/schemas/WafAction'
+                reqSidPiiEnhanced:
+                  $ref: '#/components/schemas/WafAction'
+                reqSidPci:
+                  $ref: '#/components/schemas/WafAction'
+                reqSidPhi:
+                  $ref: '#/components/schemas/WafAction'
+            performanceOptions:
+              type: object
+              additionalProperties: true
+              required:
+              - enableRequestBodyInspection
+              properties:
+                enableRequestBodyInspection:
+                  type: boolean
+        response:
+          type: object
+          additionalProperties: false
+          required:
+          - categories
+          - performanceOptions
+          properties:
+            categories:
+              type: object
+              additionalProperties: true
+              required:
+              - dataLeakages
+              - dataLeakagesSql
+              - dataLeakagesJava
+              - dataLeakagesPhp
+              - dataLeakagesIis
+              - rspSidPiiCore
+              - rspSidPiiEnhanced
+              - rspSidPci
+              - rspSidPhi
+              properties:
+                dataLeakages:
+                  $ref: '#/components/schemas/WafAction'
+                dataLeakagesSql:
+                  $ref: '#/components/schemas/WafAction'
+                dataLeakagesJava:
+                  $ref: '#/components/schemas/WafAction'
+                dataLeakagesPhp:
+                  $ref: '#/components/schemas/WafAction'
+                dataLeakagesIis:
+                  $ref: '#/components/schemas/WafAction'
+                rspSidPiiCore:
+                  $ref: '#/components/schemas/WafAction'
+                rspSidPiiEnhanced:
+                  $ref: '#/components/schemas/WafAction'
+                rspSidPci:
+                  $ref: '#/components/schemas/WafAction'
+                rspSidPhi:
+                  $ref: '#/components/schemas/WafAction'
+            performanceOptions:
+              type: object
+              additionalProperties: true
+              required:
+              - enableResponseBodyInspection
+              properties:
+                enableResponseBodyInspection:
+                  type: boolean
+        disabledRuleIds:
+          description: Rules which should be disabled
+          type: array
+          items:
+            type: integer
+    CSM_SOURCE:
+      description: Defines the SSL security policy which is configured at CSM sever
+      type: object
+      additionalProperties: false
+      required:
+      - securityNSID
+      - tlsContextID
+      - environment
+      properties:
+        securityNSID:
+          description: The secret group id, generated during creation of the secret group from CSM sever
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tlsContextID:
+          description: The TLS context id, which is selected from the secret group
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        environment:
+          $ref: '#/components/schemas/UUID'
+        source:
+          default: SECRETS-MANAGER
+          enum:
+          - SECRETS-MANAGER
+          type: string
+    PEM_SOURCE:
+      description: ''
+      type: object
+      additionalProperties: true
+      required:
+      - source
+      - keyPassphrase
+      properties:
+        source:
+          default: PEM
+          enum:
+          - PEM
+          type: string
+        keyPassphrase:
+          description: Passphrase with which private key for a particular alias is protected
+          type: string
+    JKS_SOURCE:
+      description: ''
+      type: object
+      additionalProperties: true
+      required:
+      - source
+      - keyPassphrase
+      - storePassphrase
+      - alias
+      properties:
+        source:
+          default: JKS
+          enum:
+          - JKS
+          type: string
+        keyPassphrase:
+          description: Passphrase with which private key for a particular alias is protected
+          type: string
+          maxLength: 64
+        storePassphrase:
+          description: Passphrase with which keystore is protected
+          type: string
+          maxLength: 64
+        alias:
+          description: The alias name of the entry that contains the certificate
+          type: string
+          maxLength: 64
+    Name:
+      type: string
+      pattern: ^[a-zA-Z][-a-zA-Z0-9]*$
+      minLength: 3
+      maxLength: 35
+    DOSError:
+      type: object
+      additionalProperties: false
+      required:
+      - window1
+      - window2
+      - window3
+      properties:
+        window1:
+          $ref: '#/components/schemas/Window1'
+        window2:
+          $ref: '#/components/schemas/Window2'
+        window3:
+          $ref: '#/components/schemas/Window3'
+    WafAction:
+      description: Action to take when WAF rule is triggered
+      enum:
+      - Disable
+      - DetectAndReject
+      - DetectAndAllow
+      type: string
+    Window1:
+      description: Lowest escalation level DoS window where an administrator defined period of time in which Edge determines that a DoS attack is occurring and automatically applies a DoS action to the DoS attacker’s message requests.
+      type: object
+      additionalProperties: false
+      required:
+      - action
+      - threshold
+      - rate
+      properties:
+        action:
+          $ref: '#/components/schemas/Actions'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        rate:
+          $ref: '#/components/schemas/Rate'
+    Window2:
+      description: Supersede escalation level DoS window where an administrator defined period of time in which Edge determines that a DoS attack is occurring and automatically applies a DoS action to the DoS attacker’s message requests.
+      type: object
+      additionalProperties: false
+      required:
+      - action
+      - threshold
+      - rate
+      - numberOfPrecedingWindows
+      properties:
+        action:
+          $ref: '#/components/schemas/Actions'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        rate:
+          $ref: '#/components/schemas/Rate'
+        numberOfPrecedingWindows:
+          $ref: '#/components/schemas/NumberOfPrecedingWindows'
+    Window3:
+      description: Highest escalation level DoS window where an administrator defined period of time in which Edge determines that a DoS attack is occurring and automatically applies a DoS action to the DoS attacker’s message requests.
+      type: object
+      additionalProperties: false
+      required:
+      - action
+      - threshold
+      - rate
+      - numberOfPrecedingWindows
+      properties:
+        action:
+          $ref: '#/components/schemas/Actions'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        rate:
+          $ref: '#/components/schemas/Rate'
+        numberOfPrecedingWindows:
+          $ref: '#/components/schemas/NumberOfPrecedingWindows'
+    Actions:
+      description: A Runtime activity to take upon a client
+      enum:
+      - none
+      - shape-interval
+      - shape-forever
+      - block-interval
+      - block-forever
+      type: string
+    Threshold:
+      description: Number to trigger the action within a window.
+      default: 1
+      type: integer
+      minimum: 1
+      maximum: 65535
+    Rate:
+      default: 1
+      type: integer
+      minimum: 0
+      maximum: 2000
+    NumberOfPrecedingWindows:
+      default: 1
+      type: integer
+      minimum: 1
+      maximum: 32
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      description: The organization id
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    XOrigin_envId_Path:
+      name: envId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The env ID to identify the target resource.
+    XOrigin_edgeConfigId_Path:
+      name: edgeConfigId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-security-policies
+        operation: getByOrganizationidAgentsByAgentidEdge
+        description: GET `/{organizationId}/agents/{agentId}/edge` in this API; use `id` values as `edgeConfigId`.
+        values: $.id
+        labels: $.name
+      description: The edgeConfig ID to identify the target resource.
+    XOrigin_policyId_Path:
+      name: policyId
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-security-policies
+        operation: getByOrganizationidPolicies
+        description: GET `/{organizationId}/policies` in this API; use `[].id` values as `policyId`.
+        values: $[*].id
+        labels: $[*].name
+      description: The policy ID to identify the target resource.

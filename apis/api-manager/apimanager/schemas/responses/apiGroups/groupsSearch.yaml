@@ -1,0 +1,110 @@
+type: object
+properties:
+  total:
+    type: number
+  groups:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        assetGroupId:
+          type: string
+        assetId:
+          type: string
+        versions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              groupId:
+                type: number
+              name:
+                type: string
+              masterOrganizationId:
+                type: string
+              organizationId:
+                type: string
+              isPublic:
+                type: boolean
+              assetVersion:
+                type: string
+              productVersion:
+                type: string
+              instances:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    audit:
+                      type: object
+                      properties:
+                        created:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                        updated:
+                          type: object
+                          properties: {}
+                    id:
+                      type: number
+                    groupId:
+                      type: number
+                    groupVersionId:
+                      type: number
+                    masterOrganizationId:
+                      type: string
+                    organizationId:
+                      type: string
+                    environmentId:
+                      type: string
+                    assetGroupId: {}
+                    assetId: {}
+                    assetVersion: {}
+                    productVersion: {}
+                    groupInstanceLabel: {}
+                    status:
+                      type: string
+                    deprecated:
+                      type: boolean
+                    apiInstances:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: number
+                          groupInstanceId:
+                            type: number
+              audit:
+                type: object
+                properties:
+                  created:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                  updated:
+                    type: object
+                    properties: {}
+        audit:
+          type: object
+          properties:
+            created:
+              type: object
+              properties:
+                date:
+                  type: string
+            updated:
+              type: object
+              properties: {}

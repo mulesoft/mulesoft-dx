@@ -1,0 +1,19 @@
+{
+  "value": {
+    "total": 1,
+    "apis": [
+      {
+        "id": 15,
+        "isPublic": false,
+        "groupId": "c44be829-3d89-4b70-80be-277b7633bc5a",
+        "assetId": "ultimate-open-weather",
+        "assetVersion": "1.0.4",
+        "productVersion": "1.0",
+        "environmentId": "fc3322cf-1e42-4b86-a11b-d6a3550af30e",
+        "endpointUri": null,
+        "instanceName": "external",
+        "instanceLabel": "external"
+      }
+    ]
+  }
+}

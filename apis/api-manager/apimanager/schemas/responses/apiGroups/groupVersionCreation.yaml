@@ -1,0 +1,57 @@
+type: object
+properties:
+  id:
+    type: number
+  groupId:
+    type: number
+  name:
+    type: string
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  createdDate:
+    type: string
+  instances:
+    type: array
+    items:
+      type: object
+      properties:
+        audit:
+          type: object
+          properties:
+            created:
+              type: object
+              properties:
+                date:
+                  type: string
+            updated:
+              type: object
+              properties: {}
+        id:
+          type: number
+        groupId:
+          type: number
+        groupVersionId:
+          type: number
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        environmentId:
+          type: string
+        apiInstances:
+          type: array
+          items:
+            type: number
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}

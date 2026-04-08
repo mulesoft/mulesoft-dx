@@ -1,10 +1,25 @@
 # README
 
-A repo containing all the basic file templates and general guidelines for any open source project at Salesforce.
+This repository is the **single source of truth** for all public Anypoint Platform API specifications. It contains OpenAPI (OAS) specifications for all production-accessible APIs.
 
-## Usage
+## Purpose
 
-It's required that all files must be placed at the top level of your repository.
+- Centralized registry of all public Anypoint Platform APIs
+- Ensures API specifications are validated and compliant with AI-agent-friendly standards
+- Enables API discovery and consumption through standardized, well-documented specs
+- Provides version control and change tracking for API specifications
 
-> **NOTE** Your README should contain detailed, useful information about the project!
+## Repository Structure
+
+Each API service has its own directory containing:
+```
+<service-name>/
+├── api.yaml           # Main OpenAPI specification file
+├── exchange.json      # Exchange metadata (groupId, assetId, version, etc.)
+├── schemas/           # Reusable schema definitions (optional)
+├── examples/          # Request/response examples (optional)
+└── skills/            # JTBD workflow skills (optional)
+```
+
+
 

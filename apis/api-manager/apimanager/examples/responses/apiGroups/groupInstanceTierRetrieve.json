@@ -1,0 +1,36 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "defaultLimits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "limitsByApi": [
+      {
+        "apiId": 3,
+        "limits": [
+          {
+            "visible": true,
+            "maximumRequests": 5,
+            "timePeriodInMilliseconds": 1
+          }
+        ]
+      }
+    ],
+    "name": "tierName",
+    "description": "tier description",
+    "masterOrganizationId": "dba62d01-b878-4816-a908-9703bd0c1fac",
+    "organizationId": "dba62d01-b878-4816-a908-9703bd0c1fac",
+    "id": 131529,
+    "groupInstanceId": 1072,
+    "applicationCount": 0,
+    "audit": {
+      "created": "",
+      "updated": ""
+    }
+  }
+}

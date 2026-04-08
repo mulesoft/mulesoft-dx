@@ -1,0 +1,57 @@
+{
+  "value": {
+    "total": 2,
+    "instances": [
+      {
+        "id": 1,
+        "groupId": 1066,
+        "groupVersionId": 1073,
+        "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "environmentId": "f81fb343-3649-4990-832e-27de26ee649e",
+        "exchangeAssetName": "Facebook API",
+        "instanceLabel": null,
+        "assetGroupId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "assetId": "facebook-api",
+        "assetVersion": "1.0.0",
+        "productVersion": "v1",
+        "groupInstanceLabel": null,
+        "status": "DRAFT",
+        "deprecated": false,
+        "groupName": "test",
+        "groupVersionName": "v1",
+        "apiInstances": [
+          {
+            "id": 312440,
+            "groupInstanceId": 1072
+          }
+        ]
+      },
+      {
+        "id": 45,
+        "groupId": 1066,
+        "groupVersionId": 1073,
+        "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "environmentId": "5d15a77c-0d35-400e-9a90-61d0beb09409",
+        "exchangeAssetName": "Instagram API",
+        "instanceLabel": null,
+        "assetGroupId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "assetId": "instagram-api",
+        "assetVersion": "1.0.1",
+        "productVersion": "v1",
+        "groupInstanceLabel": null,
+        "status": "DRAFT",
+        "deprecated": false,
+        "groupName": "test",
+        "groupVersionName": "v1",
+        "apiInstances": [
+          {
+            "id": 312440,
+            "groupInstanceId": 1072
+          }
+        ]
+      }
+    ]
+  }
+}

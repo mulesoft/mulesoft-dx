@@ -1,0 +1,57 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties: {}
+  id:
+    type: number
+  ruleOfApplication:
+    type: object
+    properties:
+      organizationId:
+        type: string
+      environmentId:
+        type: string
+      range:
+        type: object
+        properties:
+          from:
+            type: string
+          to:
+            type: string
+  policyTemplateId:
+    type: string
+  groupId:
+    type: string
+  assetId:
+    type: string
+  assetVersion:
+    type: string
+  configurationData:
+    type: object
+    properties:
+      rateLimits:
+        type: array
+        items:
+          type: object
+          properties:
+            timePeriodInMilliseconds:
+              type: number
+            maximumRequests:
+              type: number
+      clusterizable:
+        type: boolean
+      exposeHeaders:
+        type: boolean
+  pointcutData: {}
+  order: {}
+  disabled:
+    type: boolean

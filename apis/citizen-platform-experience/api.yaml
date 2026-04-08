@@ -1,0 +1,2879 @@
+openapi: 3.0.0
+info:
+  title: Citizen Platform Experience API
+  version: 0.1.0
+  description: Manage flows, connections, connectors, and metadata for Anypoint Composer.
+servers:
+- url: http://composer.mulesoft.com/citizen-xapi/api/v1
+- url: https://composer.mulesoft.com/citizen-xapi/api/v1
+externalDocs:
+  url: http://
+  description: 'Welcome to the Citizen Platform xAPI API_ Documentation.
+
+    '
+  x-amf-title: Citizen Platform xAPI
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations:
+    description: Core Services User
+  /organizations/{organizationId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/flows:
+    description: Gets the authenticated user Flows.
+    get:
+      description: Gets the authenticated user Flows.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: User flows with pagination.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default'
+              example: &id019
+                pagination:
+                  page: 1
+                  size: 10
+                results:
+                - id: 1f0e83c8-f2e3-43a4-864f-64a41882ec92
+                  name: Citizen Integration
+                  owner:
+                    id:
+                    name: meli
+                    organizationId: d1428a95-c05d-4c18-9010-c699db28af50
+                  description:
+                  status: running
+                  createdDate: 2020-04-10 03:15:46
+                  lastUpdatedDate: 2020-04-10 03:15:46
+                - id: d9284c62-f20b-4bca-91e9-30d25415623d
+                  name: Flow example
+                  owner:
+                    id:
+                    name: meli
+                    organizationId: d1428a95-c05d-4c18-9010-c699db28af50
+                  description: Testing Citizen
+                  status: running
+                  createdDate: 2020-04-10 03:15:46
+                  lastUpdatedDate: 2020-04-09 03:19:14
+        '401':
+          description: Unauthorized user.
+      operationId: getOrganizationsByOrganizationidFlows
+    post:
+      description: Creates a new flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '201':
+          description: User flow was successfully created.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_1'
+              example: &id020
+                flowId: 476db727-a3ac-44bb-9d18-1720c72cb566
+        '400':
+          description: Please insert valid values.
+        '401':
+          description: Unauthorized user.
+        '409':
+          description: Duplicated flow name.
+      operationId: createOrganizationsByOrganizationidFlows
+  /organizations/{organizationId}/flows/{flowId}:
+    description: Retrieves a flow.
+    get:
+      description: Retrieves a flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: User flow was successfully retrieved.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_2'
+              example: &id021
+                value:
+                  id: 787f43a8-18ee-4ede-a048-0bb2c74db285
+                  name: Citizen Integration Test
+                  description: Listen new salesforce connections and create a new one.
+                  type: citizenbuilder
+                  connectors:
+                  - salesforce
+                  trigger:
+                    index: 0
+                    id: fc7f54f8-11de-4789-93dd-ab5b2bbc25e7
+                    name: onNewRecord
+                    type: TRIGGER
+                    connector: Salesforce
+                    connectionId: 0e5aaf64-5143-4e46-a5c3-3f06c59d71c5
+                    fieldValues:
+                      fields: LastName,FirstName,AccountId
+                      objectType: Contact
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+                  steps:
+                  - index: 1
+                    id: 1578712e-f1ef-4b13-ab80-d0368dee78ca
+                    name: createRecord
+                    type: ACTION
+                    connector: Salesforce
+                    connectionId: 99372ea9-17dc-49c3-8a88-d76cb275719f
+                    fieldValues:
+                      LastName: '#[dataPill(salesforce.0.LastName)]'
+                      FirstName: '#[dataPill(salesforce.0.FirstName)]'
+                      AccountId: '#[dataPill(salesforce.0.AccountId)]'
+                      objectType: Contact
+                    dynamicFields:
+                      AccountId:
+                        name: AccountId
+                        label: Account Id
+                        type: STRING
+                        required: false
+                        visible: false
+                        componentType: TEXT
+                        supportsExpression: true
+                        changesDynamicInput: false
+                        changesDynamicOutput: false
+                      LastName:
+                        name: LastName
+                        label: Last Name
+                        type: STRING
+                        required: true
+                        visible: true
+                        componentType: TEXT
+                        supportsExpression: true
+                        changesDynamicInput: false
+                        changesDynamicOutput: false
+                      FirstName:
+                        name: FirstName
+                        label: Last Name
+                        type: STRING
+                        required: false
+                        visible: false
+                        componentType: TEXT
+                        supportsExpression: true
+                        changesDynamicInput: false
+                        changesDynamicOutput: false
+                      Salutation:
+                        name: Salutation
+                        label: Salutation
+                        type: STRING
+                        required: false
+                        visible: true
+                        componentType: SELECT
+                        supportsExpression: true
+                        changesDynamicInput: false
+                        changesDynamicOutput: false
+                        dataProvider:
+                          options:
+                          - value: Mr.
+                            label: Mr.
+                          - value: Ms
+                            label: Ms.
+                          - value: Mrs.
+                            label: Mrs.
+                          - value: Dr.
+                            label: Dr.
+                          - value: Prof.
+                            label: Prof.
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+                  createdDate: 2020-05-18 09:22:19.297000+00:00
+                  lastUpdatedDate: 2020-05-18 09:22:19.297000+00:00
+      operationId: getOrganizationsByOrganizationidFlowsByFlowid
+    put:
+      description: Save changes in a flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/default_3'
+        x-amf-mediaType: application/json
+        description: The flows data to update.
+      responses:
+        '200':
+          description: User flow was successfully saved.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_4'
+              example: &id022
+                value:
+                  changeDetail:
+                    message: a message
+                  flow:
+                    id: 787f43a8-18ee-4ede-a048-0bb2c74db285
+                    name: Citizen Integration Test
+                    description: Listen new salesforce connections and create a new one.
+                    type: citizenbuilder
+                    connectors:
+                    - salesforce
+                    trigger:
+                      index: 0
+                      id: fc7f54f8-11de-4789-93dd-ab5b2bbc25e7
+                      name: onNewRecord
+                      type: TRIGGER
+                      connector: Salesforce
+                      connectionId: 0e5aaf64-5143-4e46-a5c3-3f06c59d71c5
+                      fieldValues:
+                        fields: LastName,FirstName,AccountId
+                        objectType: Contact
+                      dynamicResults:
+                      - name: LastName
+                        label: Last Name
+                        type: STRING
+                        componentType: TEXT
+                      - name: FirstName
+                        label: First Name
+                        type: STRING
+                        componentType: TEXT
+                      - name: AccountId
+                        label: Account Id
+                        type: STRING
+                        componentType: TEXT
+                    steps:
+                    - index: 1
+                      id: 1578712e-f1ef-4b13-ab80-d0368dee78ca
+                      name: createRecord
+                      type: ACTION
+                      connector: Salesforce
+                      connectionId: 99372ea9-17dc-49c3-8a88-d76cb275719f
+                      fieldValues:
+                        LastName: '#[dataPill(salesforce.0.LastName)]'
+                        FirstName: '#[dataPill(salesforce.0.FirstName)]'
+                        AccountId: '#[dataPill(salesforce.0.AccountId)]'
+                        objectType: Contact
+                      dynamicFields:
+                        AccountId:
+                          name: AccountId
+                          label: Account Id
+                          type: STRING
+                          required: false
+                          visible: false
+                          componentType: TEXT
+                          supportsExpression: true
+                          changesDynamicInput: false
+                          changesDynamicOutput: false
+                        LastName:
+                          name: LastName
+                          label: Last Name
+                          type: STRING
+                          required: true
+                          visible: true
+                          componentType: TEXT
+                          supportsExpression: true
+                          changesDynamicInput: false
+                          changesDynamicOutput: false
+                        FirstName:
+                          name: FirstName
+                          label: Last Name
+                          type: STRING
+                          required: false
+                          visible: false
+                          componentType: TEXT
+                          supportsExpression: true
+                          changesDynamicInput: false
+                          changesDynamicOutput: false
+                        Salutation:
+                          name: Salutation
+                          label: Salutation
+                          type: STRING
+                          required: false
+                          visible: true
+                          componentType: SELECT
+                          supportsExpression: true
+                          changesDynamicInput: false
+                          changesDynamicOutput: false
+                          dataProvider:
+                            options:
+                            - value: Mr.
+                              label: Mr.
+                            - value: Ms
+                              label: Ms.
+                            - value: Mrs.
+                              label: Mrs.
+                            - value: Dr.
+                              label: Dr.
+                            - value: Prof.
+                              label: Prof.
+                      dynamicResults:
+                      - name: LastName
+                        label: Last Name
+                        type: STRING
+                        componentType: TEXT
+                      - name: FirstName
+                        label: First Name
+                        type: STRING
+                        componentType: TEXT
+                      - name: AccountId
+                        label: Account Id
+                        type: STRING
+                        componentType: TEXT
+                    createdDate: 2020-05-18 09:22:19.297000+00:00
+                    lastUpdatedDate: 2020-05-18 09:22:19.297000+00:00
+        '400':
+          description: Please input a valid flow ID.
+        '403':
+          description: You are not the owner of this flow.
+        '404':
+          description: Flow not found.
+      operationId: updateOrganizationsByOrganizationidFlowsByFlowid
+    delete:
+      description: Deletes a flow
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '204':
+          description: User flow was successfully deleted.
+      operationId: deleteOrganizationsByOrganizationidFlowsByFlowid
+  /organizations/{organizationId}/flows/{flowId}/clone:
+    description: Clones a Flow
+    post:
+      description: Clones a Flow with the same content as the previous flow
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example: ''
+        x-amf-mediaType: application/json
+        description: The clone data to create.
+      responses:
+        '201':
+          description: Flow was cloned successfully
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_5'
+              example: &id023
+                flowId: 476db727-a3ac-44bb-9d18-1720c72cb566
+        '409':
+          description: The name is already in use
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema: {}
+      operationId: createOrganizationsByOrganizationidFlowsByFlowidClone
+  /organizations/{organizationId}/flows/{flowId}/execute:
+    description: ''
+    post:
+      description: Leaves a flow running.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The execute data to create.
+      responses:
+        '202':
+          description: Flow execution is being started.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id001
+                  timestamp: 2020-10-15 04:14:26.702000+00:00
+                  path: /api/v1/organizations/5fd5e1b9-02cf-44ec-9fb2-3cc17974df9f/flows/845100d0-eac0-4746-8da3-709f12d0b6b6/execute
+                  method: POST
+                  response: 202
+                  description: Flow execution started
+              example: *id001
+        '404':
+          description: Flow not found.
+        '409':
+          description: Flow already running or it is being started/stopped.
+      operationId: createOrganizationsByOrganizationidFlowsByFlowidExecute
+  /organizations/{organizationId}/flows/{flowId}/stop:
+    description: ''
+    post:
+      description: Stops the execution of a given flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      requestBody:
+        $ref: '#/components/requestBodies/Generated'
+        description: The stop data to create.
+      responses:
+        '202':
+          description: Flow is being stopped.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id002
+                  timestamp: 2020-10-15 04:14:26.702000+00:00
+                  path: /api/v1/organizations/5fd5e1b9-02cf-44ec-9fb2-3cc17974df9f/flows/845100d0-eac0-4746-8da3-709f12d0b6b6/stop
+                  method: POST
+                  response: 202
+                  description: Flow being stopped
+              example: *id002
+        '404':
+          description: Flow not found.
+        '409':
+          description: Flow is not running or it is being stopped.
+      operationId: createOrganizationsByOrganizationidFlowsByFlowidStop
+  /organizations/{organizationId}/flows/{flowId}/status:
+    description: ''
+    get:
+      description: Returns the status of a given flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      responses:
+        '200':
+          description: Flow's status was successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_6'
+              example: &id024
+                status: STOPPED
+                timestamp: 2020-10-15 04:24:30.732000+00:00
+                path: /api/v1/organizations/5fd5e1b9-02cf-44ec-9fb2-3cc17974df9f/flows/845100d0-eac0-4746-8da3-709f12d0b6b6/status
+                method: GET
+                response: 200
+                description: Status available
+        '404':
+          description: Flow not found.
+      operationId: getOrganizationsByOrganizationidFlowsByFlowidStatus
+  /organizations/{organizationId}/flows/{flowId}/test:
+    post:
+      description: Starts a test for a flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                value:
+                  id: 787f43a8-18ee-4ede-a048-0bb2c74db285
+                  name: Citizen Integration Test
+                  description: Listen new salesforce connections and create a new one.
+                  type: Mule Application
+                  connectors:
+                  - salesforce
+                  trigger:
+                    index: 0
+                    id: fc7f54f8-11de-4789-93dd-ab5b2bbc25e7
+                    name: onNewRecord
+                    type: TRIGGER
+                    connector: org.mule.connectors:salesforce-connector:1.5.4
+                    connectionId: 0e5aaf64-5143-4e46-a5c3-3f06c59d71c5
+                    fieldValues:
+                      fields: LastName,FirstName,AccountId
+                      objectType: Contact
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+                  steps:
+                  - index: 1
+                    id: 1578712e-f1ef-4b13-ab80-d0368dee78ca
+                    name: createRecord
+                    type: ACTION
+                    connector: org.mule.connectors:salesforce-connector:1.5.4
+                    connectionId: 99372ea9-17dc-49c3-8a88-d76cb275719f
+                    fieldValues:
+                      LastName: '#[dataPill(salesforce.0.LastName)]'
+                      FirstName: '#[dataPill(salesforce.0.FirstName)]'
+                      AccountId: '#[dataPill(salesforce.0.AccountId)]'
+                      objectType: Contact
+                    dynamicFields:
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      required: false
+                      visible: false
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      required: true
+                      visible: true
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: FirstName
+                      label: Last Name
+                      type: STRING
+                      required: false
+                      visible: false
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: Salutation
+                      label: Salutation
+                      type: STRING
+                      required: false
+                      visible: true
+                      componentType: SELECT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider:
+                        options:
+                        - value: Mr.
+                          label: Mr.
+                        - value: Ms
+                          label: Ms.
+                        - value: Mrs.
+                          label: Mrs.
+                        - value: Dr.
+                          label: Dr.
+                        - value: Prof.
+                          label: Prof.
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+        x-amf-mediaType: application/json
+        description: The test data to create.
+      responses:
+        '200':
+          description: Test successfully started.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id003
+                  timestamp: 2020-08-10 12:51:17.789000+00:00
+                  path: /api/v1/organizations/10eb6323-4267-45bf-a1c2-ac745f73cf9a/design/test
+                  method: POST
+                  description: Flow test started
+              example: *id003
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Flow does not exists.
+        '409':
+          description: Flow already running.
+      operationId: createOrganizationsByOrganizationidFlowsByFlowidTest
+    delete:
+      description: Stops a test for a flow.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      responses:
+        '200':
+          description: Test successfully stopped.
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Flow does not exists.
+        '409':
+          description: Flow not running.
+      operationId: deleteOrganizationsByOrganizationidFlowsByFlowidTest
+  /organizations/{organizationId}/flows/{flowId}/test-status:
+    get:
+      description: Returns the status of a flow test.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      responses:
+        '200':
+          description: Flow test status successfully retrieved.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id004
+                  testStatus: PENDING
+                  creationTime: 1598457303376
+                  message: Why it is working, or failed
+              example: *id004
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Flow does not exist.
+        '429':
+          description: Quota Limit reached for concurrent Design Operations.
+      operationId: getOrganizationsByOrganizationidFlowsByFlowidTestStatus
+  /organizations/{organizationId}/flows/{flowId}/test-messages:
+    get:
+      description: Returns the messages of a flow test.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_flowId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      responses:
+        '200':
+          description: Flow test messages successfully retrieved.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id005
+                  messages:
+                  - cardId: 13123-123123-123123
+                    inputMessage:
+                      message: Input message for cardId 13123-123123-123123
+                      createdDate: 1598457303376
+                      error: false
+                    outputMessage: {}
+                  - cardId: 456567-6567567-567555
+                    inputMessage:
+                      message: Input message for cardId 456567-6567567-567555
+                      createdDate: 1598457303376
+                      error: false
+                    outputMessage:
+                      message: Error message for cardID 456567-6567567-567555
+                      createdDate: 1598457303376
+                      error: true
+              example: *id005
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Flow does not exist.
+        '429':
+          description: Quota Limit reached for concurrent Design Operations.
+      operationId: getOrganizationsByOrganizationidFlowsByFlowidTestMessages
+  /organizations/{organizationId}/connectors:
+    description: List the available systems that the user can choose from.
+    get:
+      description: Returns all the connectors available for the current user.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: Connectors were successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/default_7'
+              example: &id025
+              - name: salesforce
+                label: Salesforce
+                description: Provides integration with Salesforce
+                iconUrl: https://exchange2-asset-manager-kprod.s3.amazonaws.com/com.mulesoft.connectors/2bbb4ef0b7bde3f559df8c885833c4dcc0c53c5de7d6712853d77afc586f67d0.svg
+                hasConnection: 'true'
+                hasTrigger: 'true'
+                hasAction: 'true'
+      operationId: getOrganizationsByOrganizationidConnectors
+  /organizations/{organizationId}/connectors/{connectorName}:
+    description: Returns the citizen model for a given connector.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Name of the connectors whose citizen model will be returned
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: Citizen model successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id006
+                  name: salesforce
+                  label: Salesforce
+                  description: Some description
+                  dataProviders:
+                  - name: getObjectTypes
+                  - name: getObjectTypeFields
+                    parameters:
+                    - objectType
+                  triggers:
+                  - name: onNewRecord
+                    label: On new record
+                    description: Some description
+                    fields:
+                    - name: objectType
+                      label: Object Type
+                      description: Some description
+                      type: STRING
+                      required: true
+                      visible: true
+                      componentType: SELECT
+                      supportsExpression: false
+                      changesDynamicInput: false
+                      changesDynamicOutput: true
+                      dataProvider:
+                        name: getObjectTypes
+                      affects:
+                      - fields
+                      affectedBy: []
+                    - name: fields
+                      label: Result fields
+                      description: Filters the record fields to be returned. All fields are returned by default
+                      type: ARRAY
+                      itemType: STRING
+                      required: false
+                      visible: true
+                      componentType: RESULT_FILTER
+                      supportsExpression: false
+                      changesDynamicInput: false
+                      changesDynamicOutput: true
+                      dataProvider:
+                        name: getObjectTypeFields
+                      affects: []
+                      affectedBy:
+                      - fields
+                    hasDynamicOutput: true
+                    requiresConnection: true
+                  actions:
+                  - hasDynamicFields: true
+                    name: createRecord
+                    label: Create a new record
+                    description: Some description
+                    fields:
+                    - name: objectType
+                      label: Object Type
+                      description: Some description
+                      type: STRING
+                      required: true
+                      visible: true
+                      componentType: SELECT
+                      supportsExpression: false
+                      changesDynamicInput: true
+                      changesDynamicOutput: false
+                      dataProvider:
+                        name: getObjectTypes
+                      affects: []
+                      affectedBy: []
+                    - name: record
+                      label: Record
+                      description: Record to be added
+                      type: OBJECT
+                      required: true
+                      visible: true
+                      componentType: DYNAMIC_MAPPER
+                      supportsExpression: false
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider:
+                      affects: []
+                      affectedBy:
+                      - objectType
+                    results:
+                    - name: id
+                      label: Record ID
+                      description: Identifies the created record
+                      type: STRING
+                      componentType: TEXT
+                    hasDynamicOutput: false
+                    requiresConnection: true
+                  iconUrl: some icon URL
+              example: *id006
+        '404':
+          description: Connector not found.
+      operationId: getOrganizationsByOrganizationidConnectorsByConnectorname
+      description: Retrieves a connectors.
+  /organizations/{organizationId}/connectors/{connectorName}/sample-data:
+    description: Returns the sample data for a connector element associated with a given connection.
+    post:
+      description: Returns the sample data for a connector.
+      parameters:
+      - name: refresh
+        description: Indicates if cache should be invalidated or not
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Name of the connectors whose citizen model will be returned
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                sampleDataProviderName: ObjectSampleDataProvider
+                connectionId: e882efaf-cc52-4164-ad96-b94182f96ad1
+                parameters:
+                  objectType: Account
+        x-amf-mediaType: application/json
+        description: The sample data data to create.
+      responses:
+        '200':
+          description: Metadata was successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id007
+                  output:
+                    LastModifiedDate: 2020-02-10 21:12:22+00:00
+                    Languages__c: English
+                    AccountId: 0016g00000C5JBrAAN
+                    Email: rose@edge.com
+                    type: Contact
+                    MobilePhone: (512) 757-9340
+                    Name: Rose Gonzalez
+                    Department: Procurement
+                    CreatedById: 0056g000004PtecAAC
+                    PhotoUrl: /services/images/photo/0036g00000AWbyJAAT
+                    IsDeleted: 'false'
+                    IsEmailBounced: 'false'
+                    Birthdate: 1968-01-23
+                    CleanStatus: Pending
+                    LeadSource: Trade Show
+                    CreatedDate: 2020-02-10 21:12:22+00:00
+                    Id: 0036g00000AWbyJAAT
+                    LastName: Gonzalez
+                    MailingStreet: '313 Constitution Place
+
+                      Austin, TX 78767
+
+                      USA'
+                    Salutation: Ms.
+                    Level__c: Primary
+                    OwnerId: 0056g000004PtecAAC
+                    Phone: (512) 757-6000
+                    FirstName: Rose
+                    Title: SVP, Procurement
+                    MailingAddress:
+                      street: '313 Constitution Place
+
+                        Austin, TX 78767
+
+                        USA'
+                    SystemModstamp: 2020-02-10 21:12:22+00:00
+                    Fax: (512) 757-9000
+                    LastModifiedById: 0056g000004PtecAAC
+                  outputAttributes:
+                    LastModifiedDate: 2020-02-10 21:12:22+00:00
+                    Languages__c: English
+                    AccountId: 0016g00000C5JBrAAN
+                    Email: rose@edge.com
+                    type: Contact
+                    MobilePhone: (512) 757-9340
+                    Name: Rose Gonzalez
+                    Department: Procurement
+                    CreatedById: 0056g000004PtecAAC
+                    PhotoUrl: /services/images/photo/0036g00000AWbyJAAT
+                    IsDeleted: 'false'
+                    IsEmailBounced: 'false'
+                    Birthdate: 1968-01-23
+                    CleanStatus: Pending
+                    LeadSource: Trade Show
+                    CreatedDate: 2020-02-10 21:12:22+00:00
+                    Id: 0036g00000AWbyJAAT
+                    LastName: Gonzalez
+                    MailingStreet: '313 Constitution Place
+
+                      Austin, TX 78767
+
+                      USA'
+                    Salutation: Ms.
+                    Level__c: Primary
+                    OwnerId: 0056g000004PtecAAC
+                    Phone: (512) 757-6000
+                    FirstName: Rose
+                    Title: SVP, Procurement
+                    MailingAddress:
+                      street: '313 Constitution Place
+
+                        Austin, TX 78767
+
+                        USA'
+                    SystemModstamp: 2020-02-10 21:12:22+00:00
+                    Fax: (512) 757-9000
+                    LastModifiedById: 0056g000004PtecAAC
+              example: *id007
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Connection not found.
+        '429':
+          description: Quota Limit reached for concurrent Design Operations.
+      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameSampleData
+  /organizations/{organizationId}/connectors/{connectorName}/entity-provider:
+    description: Returns the entity provider data for a connector element associated with a given connection.
+    post:
+      description: Returns the entity provider data for a connector.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Name of the connectors whose citizen model will be returned
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                connectionId: '123'
+                typeId: Contact
+        x-amf-mediaType: application/json
+        description: The entity provider data to create.
+      responses:
+        '200':
+          description: Entity provider was successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id008
+                  Account:
+                  - name: Id
+                    label: Id
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: IsDeleted
+                    label: IsDeleted
+                    description: ''
+                    type: BOOLEAN
+                    itemType:
+                    results: []
+                  - name: MasterRecordId
+                    label: MasterRecordId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Name
+                    label: Name
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Type
+                    label: Type
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ParentId
+                    label: ParentId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingStreet
+                    label: BillingStreet
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingCity
+                    label: BillingCity
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingState
+                    label: BillingState
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingPostalCode
+                    label: BillingPostalCode
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingCountry
+                    label: BillingCountry
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingLatitude
+                    label: BillingLatitude
+                    description: ''
+                    type: NUMBER
+                    itemType:
+                    results: []
+                  - name: BillingLongitude
+                    label: BillingLongitude
+                    description: ''
+                    type: NUMBER
+                    itemType:
+                    results: []
+                  - name: BillingGeocodeAccuracy
+                    label: BillingGeocodeAccuracy
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: BillingAddress
+                    label: BillingAddress
+                    description: ''
+                    type: OBJECT
+                    itemType:
+                    results:
+                    - name: city
+                      label: city
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: country
+                      label: country
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: countryCode
+                      label: countryCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: latitude
+                      label: latitude
+                      description: ''
+                      type: NUMBER
+                      itemType:
+                      results: []
+                    - name: longitude
+                      label: longitude
+                      description: ''
+                      type: NUMBER
+                      itemType:
+                      results: []
+                    - name: postalCode
+                      label: postalCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: state
+                      label: state
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: stateCode
+                      label: stateCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: street
+                      label: street
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                  - name: ShippingStreet
+                    label: ShippingStreet
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingCity
+                    label: ShippingCity
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingState
+                    label: ShippingState
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingPostalCode
+                    label: ShippingPostalCode
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingCountry
+                    label: ShippingCountry
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingLatitude
+                    label: ShippingLatitude
+                    description: ''
+                    type: NUMBER
+                    itemType:
+                    results: []
+                  - name: ShippingLongitude
+                    label: ShippingLongitude
+                    description: ''
+                    type: NUMBER
+                    itemType:
+                    results: []
+                  - name: ShippingGeocodeAccuracy
+                    label: ShippingGeocodeAccuracy
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: ShippingAddress
+                    label: ShippingAddress
+                    description: ''
+                    type: OBJECT
+                    itemType:
+                    results:
+                    - name: city
+                      label: city
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: country
+                      label: country
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: countryCode
+                      label: countryCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: latitude
+                      label: latitude
+                      description: ''
+                      type: NUMBER
+                      itemType:
+                      results: []
+                    - name: longitude
+                      label: longitude
+                      description: ''
+                      type: NUMBER
+                      itemType:
+                      results: []
+                    - name: postalCode
+                      label: postalCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: state
+                      label: state
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: stateCode
+                      label: stateCode
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                    - name: street
+                      label: street
+                      description: ''
+                      type: STRING
+                      itemType:
+                      results: []
+                  - name: Phone
+                    label: Phone
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Fax
+                    label: Fax
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: AccountNumber
+                    label: AccountNumber
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Website
+                    label: Website
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: PhotoUrl
+                    label: PhotoUrl
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Sic
+                    label: Sic
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Industry
+                    label: Industry
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: AnnualRevenue
+                    label: AnnualRevenue
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Ownership
+                    label: Ownership
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: TickerSymbol
+                    label: TickerSymbol
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Description
+                    label: Description
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Rating
+                    label: Rating
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Site
+                    label: Site
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: OwnerId
+                    label: OwnerId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: CreatedDate
+                    label: CreatedDate
+                    description: ''
+                    type: DATE_TIME
+                    itemType:
+                    results: []
+                  - name: CreatedById
+                    label: CreatedById
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: LastModifiedDate
+                    label: LastModifiedDate
+                    description: ''
+                    type: DATE_TIME
+                    itemType:
+                    results: []
+                  - name: LastModifiedById
+                    label: LastModifiedById
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: SystemModstamp
+                    label: SystemModstamp
+                    description: ''
+                    type: DATE_TIME
+                    itemType:
+                    results: []
+                  - name: LastActivityDate
+                    label: LastActivityDate
+                    description: ''
+                    type: DATE
+                    itemType:
+                    results: []
+                  - name: LastViewedDate
+                    label: LastViewedDate
+                    description: ''
+                    type: DATE_TIME
+                    itemType:
+                    results: []
+                  - name: LastReferencedDate
+                    label: LastReferencedDate
+                    description: ''
+                    type: DATE_TIME
+                    itemType:
+                    results: []
+                  - name: Jigsaw
+                    label: Jigsaw
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: JigsawCompanyId
+                    label: JigsawCompanyId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: CleanStatus
+                    label: CleanStatus
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: AccountSource
+                    label: AccountSource
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: DunsNumber
+                    label: DunsNumber
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Tradestyle
+                    label: Tradestyle
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: NaicsCode
+                    label: NaicsCode
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: NaicsDesc
+                    label: NaicsDesc
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: YearStarted
+                    label: YearStarted
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: SicDesc
+                    label: SicDesc
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: DandbCompanyId
+                    label: DandbCompanyId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: OperatingHoursId
+                    label: OperatingHoursId
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: CustomerPriority__c
+                    label: CustomerPriority__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: SLA__c
+                    label: SLA__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: Active__c
+                    label: Active__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: NumberofLocations__c
+                    label: NumberofLocations__c
+                    description: ''
+                    type: NUMBER
+                    itemType:
+                    results: []
+                  - name: UpsellOpportunity__c
+                    label: UpsellOpportunity__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: SLASerialNumber__c
+                    label: SLASerialNumber__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: SLAExpirationDate__c
+                    label: SLAExpirationDate__c
+                    description: ''
+                    type: DATE
+                    itemType:
+                    results: []
+                  - name: Great_Divide_Id__c
+                    label: Great_Divide_Id__c
+                    description: ''
+                    type: STRING
+                    itemType:
+                    results: []
+                  - name: fieldsToNull
+                    label: FieldsToNull
+                    description: ''
+                    type: ARRAY
+                    itemType: STRING
+                    results: []
+              example: *id008
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameEntityProvider
+  /organizations/{organizationId}/connectors/{connectorName}/connections:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - name: connectorName
+      description: Name of the connectors whose citizen model will be returned
+      required: true
+      in: path
+      schema:
+        type: string
+  /organizations/{organizationId}/connectors/{connectorName}/connections/{connectionId}:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - name: connectorName
+      description: Name of the connectors whose citizen model will be returned
+      required: true
+      in: path
+      schema:
+        type: string
+    - name: connectionId
+      required: true
+      in: path
+      schema:
+        type: string
+      description: The connection ID to identify the target resource.
+  /organizations/{organizationId}/connectors/{connectorName}/connections/{connectionId}/value-resolver:
+    description: Returns the data from a data provider when executed on the connection with the supplied parameters.
+    post:
+      description: Returns the data from a data provider.
+      parameters:
+      - name: refresh
+        description: Indicates if cache should be invalidated or not
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Name of the connectors whose citizen model will be returned
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: connectionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The connection ID to identify the target resource.
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                component: onNewRecord
+                dataProvider: getObjectTypes
+        x-amf-mediaType: application/json
+        description: The value resolver data to create.
+      responses:
+        '200':
+          description: Connectors data provider was successfully executed.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id009
+                  value:
+                    results:
+                    - value: Account
+                      label: Account
+                    - value: Contact
+                      label: Contact
+                    - value: Lead
+                      label: Lead
+              example: *id009
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Connection not found.
+        '429':
+          description: Quota Limit reached for concurrent Design Operations.
+      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameConnectionsByConnectionidValueResolver
+  /organizations/{organizationId}/connectors/{connectorName}/connections/{connectionId}/metadata:
+    description: Returns the metadata for a connector element associated with a given connection.
+    post:
+      description: Returns the metadata for a connector.
+      parameters:
+      - name: refresh
+        description: Indicates if cache should be invalidated or not
+        required: false
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Name of the connectors whose citizen model will be returned
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: connectionId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The connection ID to identify the target resource.
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      - name: X-Session-Id
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The X Session  ID header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                component: onNewRecord
+                fieldValues:
+                  objectType: Contact
+        x-amf-mediaType: application/json
+        description: The metadata data to create.
+      responses:
+        '200':
+          description: Metadata was successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id010
+                  inputFields:
+                    record:
+                    - name: objectType
+                      label: Object Type
+                      type: STRING
+                      componentType: TEXT
+                      description: Object type input field description
+                      required: false
+                      visible: true
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider: {}
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                      description: Contact first name
+                      required: false
+                      visible: true
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider: {}
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+                      description: Id number for the account
+                      required: false
+                      visible: true
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider: {}
+                  outputFields:
+                  - name: LastName
+                    label: Last Name
+                    type: STRING
+                    componentType: TEXT
+                    description: Contact Last name
+                  - name: FirstName
+                    label: First Name
+                    type: STRING
+                    componentType: TEXT
+                    description: Contact First name
+                  - name: AccountId
+                    label: Account Id
+                    type: STRING
+                    componentType: TEXT
+                    description: Id number for the account
+                  - name: address
+                    label: Address
+                    type: OBJECT
+                    description: Personal address
+                    fields:
+                    - name: street
+                      label: Street
+                      type: STRING
+                      componentType: TEXT
+                      description: Street name
+                    - name: number
+                      label: Number
+                      type: STRING
+                      componentType: TEXT
+                      description: Address number
+              example: *id010
+        '400':
+          description: Bad request.
+        '401':
+          description: Unauthorized.
+        '404':
+          description: Connection not found.
+        '429':
+          description: Quota Limit reached for concurrent Design Operations.
+      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameConnectionsByConnectionidMetadata
+  /organizations/{organizationId}/connection-schemas:
+    description: Represent the avaliable connection schemas.
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/connection-schemas/connectors:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/connection-schemas/connectors/{connectorName}:
+    get:
+      description: Get all available connector connection schemas.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The connectorName to identify the target resource.
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: Connection schemas were successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id011
+                - groupId: com.mulesoft.schemas
+                  artifactId: mule-salesforce-connector-platform-oauth
+                  version: '1.0'
+                  schemaId: ae3a114b-33d7-430f-bbac-629770ee1efe
+              example: *id011
+        '400':
+          description: Bad Request.
+      operationId: getOrganizationsByOrganizationidConnectionSchemasConnectorsByConnectorname
+  /organizations/{organizationId}/connections:
+    description: Manage connections.
+    get:
+      description: Get all available connections.
+      parameters:
+      - name: offset
+        description: First ordered item that you want to retrieve
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: limit
+        description: Maximum number of items returned
+        required: false
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 100
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: Connections were successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id012
+                  total: 2
+                  data:
+                  - id: af759cc1-4e47-462d-ab27-f4ad700943fd3
+                    name: My Salesforce connection 1
+                    connectorName: salesforce
+                    labels:
+                      description: This is my new Salesforce connection
+                    schema:
+                      id: ae3a114b-33d7-430f-bbac-629770ee1efe
+                      labels:
+                        type: PlatformManagedOAuthConnection
+                        system: Salesforce
+                        connectionProvider: platformManagedOauth
+                        serviceProviderName: salesforce
+                  - id: 68b9cfa8-dc01-11ea-87d0-0242ac130003
+                    name: My Salesforce connection 2
+                    connectorName: salesforce
+                    schema:
+                      id: ae3a114b-33d7-430f-bbac-629770ee1efe
+                      labels:
+                        type: PlatformManagedOAuthConnection
+                        system: Salesforce
+                        connectionProvider: platformManagedOauth
+                        serviceProviderName: salesforce
+              example: *id012
+        '400':
+          description: Bad Request.
+      operationId: getOrganizationsByOrganizationidConnections
+    post:
+      description: Creates a new **non-OAuth** connection. For starting OAuth dance, please use `/ocs-connections`.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: The connection was successfully created.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id013
+                  $schema: http://json-schema.org/draft-04/schema#
+                  type: object
+                  properties:
+                    connector:
+                      type: string
+                    connectionId:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - connector
+                  - connectionId
+                  - name
+              example: *id013
+        '400':
+          description: Bad Request.
+      operationId: createOrganizationsByOrganizationidConnections
+  /organizations/{organizationId}/connections/connectors:
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/connections/connectors/{connectorName}:
+    description: Retrieve the connector connections.
+    get:
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: connectorName
+        description: Identifies the connector name.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: Connector connections were successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id014
+                - connectionId: 68b9cfa8-dc01-11ea-87d0-0242ac130003
+                  name: My SFDC OAuth connection
+                  connectionSchema:
+                    schemaId: 76fc51e4-dc01-11ea-87d0-0242ac130003
+                    name: salesforce-ocs-1.0
+                - connectionId: 70fa49fe-dc01-11ea-87d0-0242ac130003
+                  name: My SFDC Basic connection
+                  connectionSchema:
+                    schemaId: 8a264824-dc01-11ea-87d0-0242ac130003
+                    name: salesforce-basic-1.0
+              example: *id014
+        '400':
+          description: Bad Request.
+      operationId: getOrganizationsByOrganizationidConnectionsConnectorsByConnectorname
+      description: Retrieves a connectors.
+  /organizations/{organizationId}/connections/{connectionId}:
+    get:
+      description: Retrive a single connection by ID.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '200':
+          description: A connections was successfully obtained.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id015
+                  connectionId: 68b9cfa8-dc01-11ea-87d0-0242ac130003
+                  name: My SFDC OAuth connection
+                  connectionSchema:
+                    schemaId: 76fc51e4-dc01-11ea-87d0-0242ac130003
+                    name: salesforce-ocs-1.0
+              example: *id015
+        '400':
+          description: Bad Request.
+      operationId: getOrganizationsByOrganizationidConnectionsByConnectionid
+    patch:
+      description: Update a connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                value:
+                  name: My new connection name
+                  labels:
+                    key: value
+        x-amf-mediaType: application/json
+        description: The connections data to update.
+      responses:
+        '204':
+          description: Connection was successfully updated.
+        '400':
+          description: Bad Request.
+      operationId: patchOrganizationsByOrganizationidConnectionsByConnectionid
+    delete:
+      description: Delete a connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '204':
+          description: Delete success, no response content.
+        '401':
+          description: Unauthorized.
+        '429':
+          description: Quota Limit reached.
+      operationId: deleteOrganizationsByOrganizationidConnectionsByConnectionid
+  /organizations/{organizationId}/connections/{connectionId}/test:
+    post:
+      description: Test the connectivity of an existing connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
+      - name: x-session-id
+        description: Flow session ID.
+        required: false
+        in: header
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                connectorName: tableau
+        x-amf-mediaType: application/json
+        description: The test data to create.
+      responses:
+        '200':
+          description: Test connectivity result was obtained (either successful or not).
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id016
+                  success: true
+                  errorInfo: {}
+              example: *id016
+        '400':
+          description: Bad Request.
+      operationId: createOrganizationsByOrganizationidConnectionsByConnectionidTest
+  /organizations/{organizationId}/connections/test:
+    post:
+      description: Test the connectivity of a draft connection.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: x-session-id
+        description: Flow session ID.
+        required: false
+        in: header
+        schema:
+          type: string
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                schemaId: 2eb5846a-7377-4aa0-a3b1-c51b27e14200
+                connectorName: tableau
+                content:
+                  serverUrl: https://tableau.server.com
+                  personalAccessTokenName: 05d861a0-a177-41dc-9e26-08ad91bed1dc
+                  personalAccessTokenSecret: 263a1e80-2ed1-11eb-adc1-0242ac120002
+                  contentUrl: https://tableau.content.com
+        x-amf-mediaType: application/json
+        description: The test data to create.
+      responses:
+        '200':
+          description: Test connectivity result was obtained (either successful or not).
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id017
+                  success: true
+                  errorInfo: {}
+              example: *id017
+        '400':
+          description: Bad Request.
+      operationId: createOrganizationsByOrganizationidConnectionsTest
+  /organizations/{organizationId}/ocs-connections:
+    description: Handles the process for creating OAuth connections.
+    post:
+      description: Starts the OAuth dance (OCS).
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - name: Access-Control-Allow-Origin
+        required: true
+        in: header
+        schema:
+          type: string
+          default: '*'
+        description: The Access Control Allow Origin header value.
+      responses:
+        '202':
+          description: Successfully started the OAuth dance.
+          x-amf-mediaType: application/json
+          content:
+            '*/*':
+              schema:
+                example: &id018
+                  location: https://login.salesforce.com/...
+              example: *id018
+        '400':
+          description: Bad Request.
+      operationId: createOrganizationsByOrganizationidOcsConnections
+components:
+  requestBodies:
+    Generated:
+      content:
+        application/json:
+          schema:
+            example:
+              value:
+                flow:
+                  id: 787f43a8-18ee-4ede-a048-0bb2c74db285
+                  name: Citizen Integration Test
+                  description: Listen new salesforce connections and create a new one.
+                  type: citizenbuilder
+                  connectors:
+                  - salesforce
+                  trigger:
+                    index: 0
+                    id: fc7f54f8-11de-4789-93dd-ab5b2bbc25e7
+                    name: onNewRecord
+                    displayName: Salesforce record created
+                    type: TRIGGER
+                    connector: Salesforce
+                    connectionId: 0e5aaf64-5143-4e46-a5c3-3f06c59d71c5
+                    fieldValues:
+                      fields: LastName,FirstName,AccountId
+                      objectType: Contact
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+                  steps:
+                  - index: 1
+                    id: 1578712e-f1ef-4b13-ab80-d0368dee78ca
+                    name: createRecord
+                    displayName: Salesforce create new record
+                    type: ACTION
+                    connector: Salesforce
+                    connectionId: 99372ea9-17dc-49c3-8a88-d76cb275719f
+                    fieldValues:
+                      LastName: '#[dataPill(salesforce.0.LastName)]'
+                      FirstName: '#[dataPill(salesforce.0.FirstName)]'
+                      AccountId: '#[dataPill(salesforce.0.AccountId)]'
+                      objectType: Contact
+                    dynamicFields:
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      required: false
+                      visible: false
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      required: true
+                      visible: true
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: FirstName
+                      label: Last Name
+                      type: STRING
+                      required: false
+                      visible: false
+                      componentType: TEXT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                    - name: Salutation
+                      label: Salutation
+                      type: STRING
+                      required: false
+                      visible: true
+                      componentType: SELECT
+                      supportsExpression: true
+                      changesDynamicInput: false
+                      changesDynamicOutput: false
+                      dataProvider:
+                        options:
+                        - value: Mr.
+                          label: Mr.
+                        - value: Ms
+                          label: Ms.
+                        - value: Mrs.
+                          label: Mrs.
+                        - value: Dr.
+                          label: Dr.
+                        - value: Prof.
+                          label: Prof.
+                    dynamicResults:
+                    - name: LastName
+                      label: Last Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: FirstName
+                      label: First Name
+                      type: STRING
+                      componentType: TEXT
+                    - name: AccountId
+                      label: Account Id
+                      type: STRING
+                      componentType: TEXT
+      x-amf-mediaType: application/json
+      description: Request payload for Generated operations.
+  schemas:
+    default:
+      example: *id019
+      type: object
+      additionalProperties: true
+      required:
+      - pagination
+      properties:
+        pagination:
+          type: object
+          additionalProperties: true
+          properties:
+            page:
+              type: number
+            size:
+              type: number
+        result:
+          type: array
+          items: {}
+    default_1:
+      example: *id020
+      type: object
+      additionalProperties: true
+      required:
+      - flowId
+      properties:
+        flowId:
+          type: string
+    default_2:
+      example: *id021
+      type: object
+      additionalProperties: true
+      required:
+      - name
+      - createdDate
+      - lastUpdatedDate
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        trigger:
+          type: object
+          additionalProperties: true
+          required:
+          - index
+          - id
+          - type
+          - connector
+          - name
+          properties:
+            index:
+              type: integer
+            id:
+              type: string
+            configuration:
+              type: object
+              additionalProperties: true
+            type:
+              enum:
+              - TRIGGER
+              type: string
+            connectionId:
+              type: string
+            connector:
+              type: string
+            name:
+              type: string
+        steps:
+          type: array
+          items:
+            oneOf:
+            - type: object
+              additionalProperties: true
+              required:
+              - index
+              - id
+              - type
+              - connector
+              - name
+              properties:
+                index:
+                  type: integer
+                id:
+                  type: string
+                configuration:
+                  type: object
+                  additionalProperties: true
+                type:
+                  enum:
+                  - ACTION
+                  type: string
+                connectionId:
+                  type: string
+                connector:
+                  type: string
+                name:
+                  type: string
+        createdDate:
+          type: string
+        lastUpdatedDate:
+          type: string
+        connectors:
+          type: array
+          items:
+            type: string
+        connectionIds:
+          type: array
+          items:
+            type: string
+    default_3:
+      example:
+        value:
+          changeDetail:
+            message: a message
+          flow:
+            id: 787f43a8-18ee-4ede-a048-0bb2c74db285
+            name: Citizen Integration Test
+            description: Listen new salesforce connections and create a new one.
+            type: citizenbuilder
+            connectors:
+            - salesforce
+            trigger:
+              index: 0
+              id: fc7f54f8-11de-4789-93dd-ab5b2bbc25e7
+              name: onNewRecord
+              type: TRIGGER
+              connector: Salesforce
+              connectionId: 0e5aaf64-5143-4e46-a5c3-3f06c59d71c5
+              fieldValues:
+                fields: LastName,FirstName,AccountId
+                objectType: Contact
+              dynamicResults:
+              - name: LastName
+                label: Last Name
+                type: STRING
+                componentType: TEXT
+              - name: FirstName
+                label: First Name
+                type: STRING
+                componentType: TEXT
+              - name: AccountId
+                label: Account Id
+                type: STRING
+                componentType: TEXT
+            steps:
+            - index: 1
+              id: 1578712e-f1ef-4b13-ab80-d0368dee78ca
+              name: createRecord
+              type: ACTION
+              connector: Salesforce
+              connectionId: 99372ea9-17dc-49c3-8a88-d76cb275719f
+              fieldValues:
+                LastName: '#[dataPill(salesforce.0.LastName)]'
+                FirstName: '#[dataPill(salesforce.0.FirstName)]'
+                AccountId: '#[dataPill(salesforce.0.AccountId)]'
+                objectType: Contact
+              dynamicFields:
+                AccountId:
+                  name: AccountId
+                  label: Account Id
+                  type: STRING
+                  required: false
+                  visible: false
+                  componentType: TEXT
+                  supportsExpression: true
+                  changesDynamicInput: false
+                  changesDynamicOutput: false
+                LastName:
+                  name: LastName
+                  label: Last Name
+                  type: STRING
+                  required: true
+                  visible: true
+                  componentType: TEXT
+                  supportsExpression: true
+                  changesDynamicInput: false
+                  changesDynamicOutput: false
+                FirstName:
+                  name: FirstName
+                  label: Last Name
+                  type: STRING
+                  required: false
+                  visible: false
+                  componentType: TEXT
+                  supportsExpression: true
+                  changesDynamicInput: false
+                  changesDynamicOutput: false
+                Salutation:
+                  name: Salutation
+                  label: Salutation
+                  type: STRING
+                  required: false
+                  visible: true
+                  componentType: SELECT
+                  supportsExpression: true
+                  changesDynamicInput: false
+                  changesDynamicOutput: false
+                  dataProvider:
+                    options:
+                    - value: Mr.
+                      label: Mr.
+                    - value: Ms
+                      label: Ms.
+                    - value: Mrs.
+                      label: Mrs.
+                    - value: Dr.
+                      label: Dr.
+                    - value: Prof.
+                      label: Prof.
+              dynamicResults:
+              - name: LastName
+                label: Last Name
+                type: STRING
+                componentType: TEXT
+              - name: FirstName
+                label: First Name
+                type: STRING
+                componentType: TEXT
+              - name: AccountId
+                label: Account Id
+                type: STRING
+                componentType: TEXT
+            createdDate: 2020-05-18 09:22:19.297000+00:00
+            lastUpdatedDate: 2020-05-18 09:22:19.297000+00:00
+      type: object
+      additionalProperties: true
+      properties:
+        changeDetail:
+          type: object
+          additionalProperties: true
+          properties:
+            message:
+              type: string
+        flow:
+          type: object
+          additionalProperties: true
+          required:
+          - name
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            connectors:
+              type: array
+              items:
+                type: string
+            connectionIds:
+              type: array
+              items:
+                type: string
+            flow:
+              type: object
+              additionalProperties: true
+              properties:
+                trigger:
+                  type: object
+                  additionalProperties: true
+                  required:
+                  - order
+                  - id
+                  - type
+                  - connector
+                  - name
+                  properties:
+                    order:
+                      type: integer
+                    id:
+                      type: string
+                    configuration:
+                      type: object
+                      additionalProperties: true
+                    type:
+                      enum:
+                      - TRIGGER
+                      type: string
+                    connectionId:
+                      type: string
+                    connector:
+                      type: string
+                    name:
+                      type: string
+                steps:
+                  type: array
+                  items:
+                    oneOf:
+                    - type: object
+                      additionalProperties: true
+                      required:
+                      - order
+                      - id
+                      - type
+                      - connector
+                      - name
+                      properties:
+                        order:
+                          type: integer
+                        id:
+                          type: string
+                        configuration:
+                          type: object
+                          additionalProperties: true
+                        type:
+                          enum:
+                          - ACTION
+                          type: string
+                        connectionId:
+                          type: string
+                        connector:
+                          type: string
+                        name:
+                          type: string
+    default_4:
+      example: *id022
+      type: object
+      additionalProperties: true
+      properties:
+        change_detail:
+          type: object
+          additionalProperties: true
+          properties:
+            message:
+              type: string
+        application_data:
+          type: object
+          additionalProperties: true
+          required:
+          - name
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            connectors:
+              type: array
+              items:
+                type: string
+            connectionIds:
+              type: array
+              items:
+                type: string
+            flow:
+              type: object
+              additionalProperties: true
+              properties:
+                trigger:
+                  type: object
+                  additionalProperties: true
+                  required:
+                  - order
+                  - id
+                  - type
+                  - connector
+                  - name
+                  properties:
+                    order:
+                      type: integer
+                    id:
+                      type: string
+                    configuration:
+                      type: object
+                      additionalProperties: true
+                    type:
+                      enum:
+                      - TRIGGER
+                      type: string
+                    connectionId:
+                      type: string
+                    connector:
+                      type: string
+                    name:
+                      type: string
+                steps:
+                  type: array
+                  items:
+                    oneOf:
+                    - type: object
+                      additionalProperties: true
+                      required:
+                      - order
+                      - id
+                      - type
+                      - connector
+                      - name
+                      properties:
+                        order:
+                          type: integer
+                        id:
+                          type: string
+                        configuration:
+                          type: object
+                          additionalProperties: true
+                        type:
+                          enum:
+                          - ACTION
+                          type: string
+                        connectionId:
+                          type: string
+                        connector:
+                          type: string
+                        name:
+                          type: string
+    default_5:
+      example: *id023
+      type: object
+      additionalProperties: true
+      required:
+      - flowId
+      properties:
+        flowId:
+          type: string
+    default_6:
+      example: *id024
+      type: object
+      additionalProperties: true
+      properties:
+        status:
+          enum:
+          - STARTING
+          - RUNNING
+          - STOPPING
+          - STOPPED
+          - DEPLOYMENT_ERROR
+          - RUNTIME_ERROR
+          - N/A
+          type: string
+        timestamp:
+          type: string
+        path:
+          type: string
+        method:
+          type: string
+        response:
+          type: integer
+        description:
+          type: string
+    default_7:
+      example: *id025
+      type: array
+      items: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      description: Identifies the Master Organization Id of the user.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+    XOrigin_flowId_Path:
+      name: flowId
+      description: Identifies the flow to be opened.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:citizen-platform-experience
+        operation: getOrganizationsByOrganizationidFlows
+        description: GET `/organizations/{organizationId}/flows` in this API; use `id` values as `flowId`.
+        values: $.id
+        labels: $.name
+    XOrigin_connectionId_Path:
+      name: connectionId
+      description: Identifies the connection.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:citizen-platform-experience
+        operation: getOrganizationsByOrganizationidConnections
+        description: GET `/organizations/{organizationId}/connections` in this API; use `id` values as `connectionId`.
+        values: $.id
+        labels: $.name
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using JWT
+    clientAuth:
+      type: oauth2
+      description: OAuth 2.0 client credentials flow
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}

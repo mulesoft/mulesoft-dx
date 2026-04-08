@@ -1,0 +1,25 @@
+{
+  "value": {
+    "status": "ACTIVE",
+    "autoApprove": true,
+    "apiId": 25,
+    "limits": [
+      {
+        "visible": true,
+        "maximumRequests": 5,
+        "timePeriodInMilliseconds": 1
+      }
+    ],
+    "name": "tierName",
+    "description": "tier description",
+    "audit": {
+      "created": {
+        "date": "2017-08-03T21:33:57.041Z"
+      },
+      "updated": {}
+    },
+    "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "organizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+    "id": 190
+  }
+}

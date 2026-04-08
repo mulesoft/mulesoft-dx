@@ -1,0 +1,31 @@
+type: object
+properties:
+  audit:
+    type: object
+    properties:
+      created:
+        type: object
+        properties:
+          date:
+            type: string
+      updated:
+        type: object
+        properties:
+          date:
+            type: string
+  masterOrganizationId:
+    type: string
+  organizationId:
+    type: string
+  id:
+    type: number
+  providerId: {}
+  endpointUri:
+    type: string
+  environmentId:
+    type: string
+  endpoint:
+    type: object
+    properties:
+      uri:
+        type: string

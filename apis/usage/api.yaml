@@ -1,0 +1,361 @@
+openapi: 3.0.0
+info:
+  title: Usage API
+  version: 1.0.0
+  description: Query and search platform usage meters and consumption metrics for the Anypoint Platform.
+servers:
+- url: https://anypoint.mulesoft.com/metering/usage/api/v1
+- url: https://eu1.anypoint.mulesoft.com/metering/usage/api/v1
+- url: https://{region}.platform.mulesoft.com/metering/usage/api/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /meters:describe:
+    get:
+      description: Get all Meters from usage api
+      parameters:
+      - name: Authorization
+        description: Authorization token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  meters:
+                  - name: runtime_flow_count
+                    description: Meter that tracks the number of flow in Mule Runtime
+                    dimensions:
+                    - name: org_id
+                      label: Business Group ID
+                      description: Business Group associated with the Mule Runtime
+                      enrichment:
+                      - name: org_name
+                        label: Business Group
+                        description: Business Group associated with the Mule Runtime
+                    - name: asset_id
+                      label: Application ID
+                      description: Id of the Mule Runtime Asset
+                      enrichment:
+                      - name: deployment_model
+                        label: Deployment Type
+                        description: Deployment model of Mule Application
+                      - name: target_type
+                        label: Target Type
+                        description: Target Type
+                      - name: target_name
+                        label: Cluster/ Target
+                        description: Cluster/ Target
+                      - name: app_name
+                        label: Application
+                        description: Name of the Mule Application
+                      - name: target_id
+                        label: Target Id
+                        description: Target Id
+                    - name: env_id
+                      label: Environment ID
+                      description: Environment associated with the Mule Runtime
+                      enrichment:
+                      - name: env_type
+                        label: Environment Type
+                        description: Environment type associated with the Mule Runtime
+                      - name: env_name
+                        label: Environment Name
+                        description: Environment associated with the Mule Runtime
+                    - name: asset_sideloaded
+                      label: Is Sideloaded App
+                      description: Describes if side loaded app
+                    measurements:
+                    - name: mule_flow_count
+                      label: Mule Flows
+                      description: Number of Mule Flows
+                    - name: num_workers
+                      label: Worker Count
+                      description: Number of workers in the Mule App
+                    - name: max_concurrent_time
+                      label: Max Concurrent Time
+                      description: Time at which the Peak occurred
+                    supportedTimeSeries:
+                    - P1D
+                    - P1M
+                    productName: Mule Application
+                    productLabel: Mule Application
+                    meterType: MAX_CONCURRENT
+                  - name: runtime_network_bytes_count
+                    description: Meter that tracks the network usage on Mule Runtime
+                    dimensions:
+                    - name: org_id
+                      label: Business Group ID
+                      description: Business Group associated with the Mule Runtime
+                      enrichment:
+                      - name: org_name
+                        label: Business Group
+                        description: Business Group associated with the Mule Runtime
+                    - name: asset_id
+                      label: Application ID
+                      description: Id of the Mule Runtime Asset
+                      enrichment:
+                      - name: app_name
+                        label: Application
+                        description: Name of the Mule Application
+                      - name: deployment_model
+                        label: Deployment Type
+                        description: Deployment model of Mule Application
+                    - name: env_id
+                      label: Environment ID
+                      description: Environment associated with the Mule Runtime
+                      enrichment:
+                      - name: env_name
+                        label: Environment Name
+                        description: Environment associated with the Mule Runtime
+                      - name: env_type
+                        label: Environment Type
+                        description: Environment type associated with the Mule Runtime
+                    measurements:
+                    - name: network_bytes_count
+                      label: Data Throughput
+                      description: Network usage on Mule Runtime
+                    supportedTimeSeries:
+                    - P1D
+                    - P1M
+                    productName: Mule Application
+                    productLabel: Mule Application
+                    meterType: SUM
+                  - name: runtime_mule_message_count
+                    description: Meter that tracks the count of messages on Mule Runtime
+                    dimensions:
+                    - name: asset_id
+                      label: Application ID
+                      description: Id of the Mule Runtime Asset
+                      enrichment:
+                      - name: target_name
+                        label: Cluster/ Target
+                        description: Cluster/ Target
+                      - name: deployment_model
+                        label: Deployment Type
+                        description: Deployment model of Mule Application
+                      - name: app_name
+                        label: Application
+                        description: Name of the Mule Application
+                      - name: target_id
+                        label: Target Id
+                        description: Target Id
+                      - name: target_type
+                        label: Target Type
+                        description: Target Type
+                    - name: asset_sideloaded
+                      label: Is Sideloaded App
+                      description: Describes if side loaded app
+                    - name: org_id
+                      label: Business Group ID
+                      description: Business Group associated with the Mule Runtime
+                      enrichment:
+                      - name: org_name
+                        label: Business Group
+                        description: Business Group associated with the Mule Runtime
+                    - name: env_id
+                      label: Environment ID
+                      description: Environment associated with the Mule Runtime
+                      enrichment:
+                      - name: env_name
+                        label: Environment Name
+                        description: Environment associated with the Mule Runtime
+                      - name: env_type
+                        label: Environment Type
+                        description: Environment type associated with the Mule Runtime
+                    measurements:
+                    - name: mule_message_count
+                      label: Mule Messages
+                      description: Number of Mule Messages
+                    supportedTimeSeries:
+                    - P1D
+                    - P1M
+                    productName: Mule Application
+                    productLabel: Mule Application
+                    meterType: SUM
+              example: {}
+        "400":
+          description: Bad Request. The request was malformed or invalid.
+        "401":
+          description: Unauthorized. Authentication is required or failed.
+        "405":
+          description: Method Not Allowed. The HTTP method is not supported for this endpoint.
+        "429":
+          description: Too Many Requests. Rate limit exceeded.
+        "500":
+          description: Internal Server Error. An unexpected error occurred.
+      operationId: getMetersDescribe
+  "/meters/{meter-name}:describe":
+    get:
+      description: Get particular meter description from usage api
+      parameters:
+      - name: meter-name
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The meter name to identify the target resource.
+      - name: Authorization
+        description: Authorization token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  meter:
+                    name: runtime_flow_count
+                    description: Meter that tracks the number of flow in Mule Runtime
+                    dimensions:
+                    - name: org_id
+                      label: Business Group ID
+                      description: Business Group associated with the Mule Runtime
+                      enrichment:
+                      - name: org_name
+                        label: Business Group
+                        description: Business Group associated with the Mule Runtime
+                    - name: asset_id
+                      label: Application ID
+                      description: Id of the Mule Runtime Asset
+                      enrichment:
+                      - name: deployment_model
+                        label: Deployment Type
+                        description: Deployment model of Mule Application
+                      - name: target_type
+                        label: Target Type
+                        description: Target Type
+                      - name: target_name
+                        label: Cluster/ Target
+                        description: Cluster/ Target
+                      - name: app_name
+                        label: Application
+                        description: Name of the Mule Application
+                      - name: target_id
+                        label: Target Id
+                        description: Target Id
+                    - name: env_id
+                      label: Environment ID
+                      description: Environment associated with the Mule Runtime
+                      enrichment:
+                      - name: env_type
+                        label: Environment Type
+                        description: Environment type associated with the Mule Runtime
+                      - name: env_name
+                        label: Environment Name
+                        description: Environment associated with the Mule Runtime
+                    - name: asset_sideloaded
+                      label: Is Sideloaded App
+                      description: Describes if side loaded app
+                    measurements:
+                    - name: mule_flow_count
+                      label: Mule Flows
+                      description: Number of Mule Flows
+                    - name: num_workers
+                      label: Worker Count
+                      description: Number of workers in the Mule App
+                    - name: max_concurrent_time
+                      label: Max Concurrent Time
+                      description: Time at which the Peak occurred
+                    supportedTimeSeries:
+                    - P1D
+                    - P1M
+                    - PT1H
+                    productName: Mule Application
+                    productLabel: Mule Application
+                    meterType: MAX_CONCURRENT
+              example: {}
+        "400":
+          description: Bad Request. The request was malformed or invalid.
+        "401":
+          description: Unauthorized. Authentication is required or failed.
+        "405":
+          description: Method Not Allowed. The HTTP method is not supported for this endpoint.
+        "429":
+          description: Too Many Requests. Rate limit exceeded.
+        "500":
+          description: Internal Server Error. An unexpected error occurred.
+      operationId: getMetersMeterNameDescribe
+  /meters:search:
+    post:
+      description: Search meters from usage api
+      parameters:
+      - name: Authorization
+        description: Authorization token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-amf-examples:
+                search:
+                  query: SELECT org_id, org_name, mule_flow_count FROM runtime_flow_count WHERE TIMESTAMP between 1746061200000 and 1748735999000 TIMESERIES P1M
+        x-amf-mediaType: application/json
+        description: The meters:search data to create.
+      responses:
+        "200":
+          description: Successful request.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                x-amf-examples:
+                  results:
+                    data:
+                    - mule_flow_count: 5
+                      org_id: 46b827bc-2028-421f-8a55-b1252d2823e4
+                      org_name: org-1
+                      timestamp: 1748735999000
+                    - mule_flow_count: 5
+                      org_id: 46b827bc-2028-421f-8a55-ct252d2823e4
+                      org_name: org-2
+                      timestamp: 1748735999000
+              example: {}
+        "400":
+          description: Bad Request. The request was malformed or invalid.
+        "401":
+          description: Unauthorized. Authentication is required or failed.
+        "405":
+          description: Method Not Allowed. The HTTP method is not supported for this endpoint.
+        "429":
+          description: Too Many Requests. Rate limit exceeded.
+        "500":
+          description: Internal Server Error. An unexpected error occurred.
+      operationId: createMetersSearch
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Bearer token authentication. Login endpoint:
+        https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: >
+        OAuth2 client credentials. Token endpoint:
+        https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}

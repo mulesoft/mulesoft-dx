@@ -1,0 +1,98 @@
+type: object
+properties:
+  total:
+    type: integer
+  assets:
+    type: array
+    items:
+      type: object
+      properties:
+        audit:
+          type: object
+          properties:
+            created:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+            updated:
+              type: object
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        id:
+          type: integer
+        name:
+          type: string
+        groupId:
+          type: string
+          nullable: true
+        assetId:
+          type: string
+          nullable: true
+        apis:
+          type: array
+          items:
+            type: object
+            properties:
+              audit:
+                type: object
+                properties:
+                  created:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                  updated:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+              masterOrganizationId:
+                type: string
+              organizationId:
+                type: string
+              id:
+                type: integer
+              instanceLabel:
+                type: string
+                nullable: true
+              autodiscoveryInstanceName:
+                type: string
+              assetVersion:
+                type: string
+                nullable: true
+              productVersion:
+                type: string
+                nullable: true
+              description:
+                type: string
+              tags:
+                type: array
+                items:
+                  type: string
+              order:
+                type: integer
+              deprecated:
+                type: boolean
+              lastActiveDate:
+                type: string
+                format: date-time
+                nullable: true
+              endpointUri:
+                type: string
+                nullable: true
+              environmentId:
+                type: string
+              lastActiveDelta:
+                type: integer
+              pinned:
+                type: boolean
+              activeContractsCount:
+                type: integer
+        totalApis:
+          type: integer

@@ -1,0 +1,91 @@
+type: object
+properties:
+  total:
+    type: number
+  contracts:
+    type: array
+    items:
+      type: object
+      properties:
+        audit:
+          type: object
+          properties:
+            created:
+              type: object
+              properties:
+                date:
+                  type: string
+            updated:
+              type: object
+              properties: {}
+        masterOrganizationId:
+          type: string
+        organizationId:
+          type: string
+        id:
+          type: number
+        status:
+          type: string
+        approvedDate:
+          type: string
+        rejectedDate: {}
+        revokedDate: {}
+        applicationId:
+          type: number
+        application:
+          type: object
+          properties:
+            audit:
+              type: object
+              properties:
+                created:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                updated:
+                  type: object
+                  properties: {}
+            id:
+              type: number
+            name:
+              type: string
+            description: {}
+            coreServicesId:
+              type: string
+            url: {}
+        tier: {}
+        tierId: {}
+        requestedTierId: {}
+        requestedTier: {}
+        terms: {}
+        groupInstanceId:
+          type: number
+        groupInstances:
+          type: object
+          properties:
+            audit:
+              type: object
+              properties:
+                created:
+                  type: object
+                  properties: {}
+                updated:
+                  type: object
+                  properties: {}
+            id:
+              type: number
+            groupVersionId:
+              type: number
+            organizationId:
+              type: string
+            environmentId:
+              type: string
+            assetGroupId: {}
+            assetId: {}
+            assetVersion: {}
+            groupInstanceLabel: {}
+        partyId: {}
+        partyName: {}
+        condition:
+          type: string

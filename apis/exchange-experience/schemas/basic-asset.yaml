@@ -1,0 +1,112 @@
+type: object
+properties:
+  id:
+    type: string
+  groupId:
+    type: string
+  assetId:
+    type: string
+  version:
+    type: string
+  isPublic:
+    type: boolean
+  productAPIVersion:
+    type: string
+  versionGroup:
+    type: string
+  description:
+    type: string
+  name:
+    type: string
+  type:
+    type: string
+  createdAt:
+    type: string
+  modifiedAt:
+    type: string
+  runtimeVersion:
+    type: string
+  assetLink:
+    type: string
+  icon:
+    type: string
+  rating:
+    type: number
+  numberOfRates:
+    type: integer
+  tags:
+    type: array
+    items:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+        key:
+          type: string
+          nullable: true
+  files:
+    type: array
+    items:
+      type: object
+      properties:
+        classifier:
+          type: string
+        packaging:
+          type: string
+        externalLink:
+          type: string
+        md5:
+          type: string
+        createdDate:
+          type: string
+  createdBy:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      username:
+        type: string
+      profilePhoto:
+        type: string
+        nullable: true
+  organization:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      domain:
+        type: string
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+      ownerId:
+        type: string
+      clientId:
+        type: string
+      idprovider_id:
+        type: string
+      isFederated:
+        type: boolean
+      parentOrganizationIds:
+        type: array
+        items:
+          type: string
+      subOrganizationIds:
+        type: array
+        items:
+          type: string
+      tenantOrganizationIds:
+        type: array
+        items:
+          type: string
+      isRoot:
+        type: boolean
+      isMaster:
+        type: boolean
+

@@ -1,0 +1,10 @@
+{
+    "main": "api.yaml",
+    "name": "Tokenization API",
+    "classifier": "oas",
+    "tags": [],
+    "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+    "assetId": "tokenization-runtime-service-api",
+    "version": "1.0.3",
+    "apiVersion": "1.0.0"
+}

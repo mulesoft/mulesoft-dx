@@ -1,0 +1,2090 @@
+PublicAssetWithProductVersion:
+  type: object
+  properties:
+    productApiVersion:
+      type: string
+
+PublicAssetWithVersionGroup:
+  type: object
+  properties:
+    versionGroup:
+      type: string
+
+UpdatePublicAssetVersion:
+  anyOf:
+    - $ref: '#/PublicAssetWithProductVersion'
+    - $ref: '#/PublicAssetWithVersionGroup'
+
+UpdatePublicAssetVersions:
+  type: array
+  items:
+    $ref: '#/UpdatePublicAssetVersion'
+
+PublicAssetVersion:
+  type: object
+  properties:
+    productAPIVersion:
+      type: string
+    versionGroup:
+      type: string
+
+PublicAssetVersions:
+  type: array
+  items:
+    $ref: '#/PublicAssetVersion'
+
+
+AssetMetadata:
+  type: object
+  properties:
+    name:
+      type: string
+
+CreateAsset:
+  type: object
+  format: binary
+  properties:
+    organizationId:
+      type: string
+      description: The id of the organization the asset will belong to
+      example: 777cd8d1-2cda-4da0-a13c-fb5b38e6c3c2
+    groupId:
+      type: string
+      description: The id of the business group the asset will belong to
+      example: 777cd8d1-2cda-4da0-a13c-fb5b38e6c3c2
+    assetId:
+      type: string
+      description: The id of the asset
+      example: mule-policies-api
+    version:
+      type: string
+      description: The version of the asset being created (must follow Semver syntax)
+      example: 1.4.0
+    name:
+      type: string
+      description: The visible name of the asset
+      example: Mule Policies API
+    classifier:
+      type: string
+      description: The type of the asset to be created
+      enum:
+        - raml-fragment
+        - raml
+        - oas
+        - wsdl
+        - http
+        - custom
+    assetLink:
+      type: string
+      description: The link of the asset. Required for "wsdl" or "http" assets
+      example: https://some.implementation.com
+    apiVersion:
+      type: string
+      description: The product version of API assets. Required for "raml", "oas", "wsdl" and "http" assets
+      example: v1
+    main:
+      type: string
+      description: The main file of the asset. Required for "raml", "raml-fragment", "oas" and "wsdl".
+      example: index.yaml
+    dependencies:
+      type: string
+      description: |
+        Required for "api-group" classifier only, They are APIs included in it, as a JSON array of objects.
+        Because the field must be of String type, the stringified value of the JSON array must be passed as parameter.
+      example:
+        - groupId: 49caac89-75da-42fc-ad33-30db3884ad97,
+          assetId: store-api
+          version: 1.0.0
+        - groupId: 49caac89-75da-42fc-ad33-30db3884ad97,
+          assetId: transactions-api
+          version: 1.5.0
+    asset:
+      description: The asset file. Required for "raml", "raml-fragment", "oas" and "wsdl". Maximum size of 5 MB. This must be the last field of the multipart.
+      type: string
+      format: binary
+    originalFormatVersion:
+      description: The version of the format of the api specification. ie ‘2.0’  for OAS 2.0
+      type: string
+    metadata:
+      description: A design center object describing asset projectId, branchId and commitId. Because the field must be of String type, the stringified value of the JSON object must be passed as parameter.
+      type: string
+    tags:
+      description: An array of strings to be saved as asset's tags. Because the field must be of String type, the stringified value of the JSON array must be passed as parameter.
+      type: string
+    status:
+      description: The asset status
+      enum:
+        - development
+        - published
+      type: string
+  required:
+    - organizationId
+    - groupId
+    - assetId
+    - version
+    - name
+    - classifier
+
+PatchAsset:
+  anyOf:
+    - type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 256
+          minLength: 1
+    - type: object
+      required: [description]
+      properties:
+        description:
+          type: string
+          maxLength: 255
+    - type: object
+      required: [contactName]
+      properties:
+        contactName:
+          type: string
+          maxLength: 255
+    - type: object
+      required: [contactEmail]
+      properties:
+        contactEmail:
+          type: string
+          maxLength: 255
+
+Asset:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Assets:
+  type: array
+  items:
+    $ref: '#/Asset'
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+Asset1:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Asset2:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Asset3:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Asset4:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Asset5:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Asset6:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    groupId:
+      title: Group Id
+      type: string
+    assetId:
+      title: Asset Id
+      type: string
+    version:
+      title: Version
+      type: string
+    isPublic:
+      title: isPublic
+      type: boolean
+    productAPIVersion:
+      title: productAPIVersion
+      type: string
+    description:
+      title: Description
+      type: string
+    name:
+      title: Name
+      type: string
+    contactEmail:
+      title: Asset's contact email
+      type: string
+    contactName:
+      title: Asset's contact name
+      type: string
+    type:
+      title: Type
+      type: string
+    createdAt:
+      title: Created at date
+      type: string
+    modifiedAt:
+      title: Modified at date
+      type: string
+    runtimeVersion:
+      title: runtimeVersion
+      type: string
+    assetLink:
+      title: assetLink
+      type: string
+    icon:
+      title: Icon
+      type: string
+    status:
+      title: Status
+      type: string
+    rating:
+      title: Rating
+      type: number
+    isSnapshot:
+      title: Whether the asset is a snapshot or not
+      type: boolean
+    numberOfRates:
+      title: Number of rates
+      type: integer
+    versions:
+      title: Versions
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+    tags:
+      title: Tags
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            title: Value
+            type: string
+          key:
+            title: Key
+            type: string
+    dependencies:
+      title: Dependencies
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          version:
+            title: Version
+            type: string
+          muleVersionId:
+            title: MuleVersion Id
+            type: string
+          type:
+            title: Type
+            type: string
+          name:
+            title: Name
+            type: string
+    files:
+      title: Files
+      type: array
+      items:
+        type: object
+        properties:
+          classifier:
+            title: classifier
+            type: string
+          packaging:
+            title: packaging
+            type: string
+          externalLink:
+            title: External Link
+            type: string
+          md5:
+            title: md5
+            type: string
+          createdDate:
+            title: created date
+            type: string
+    instances:
+      title: Instances
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          groupId:
+            title: Group Id
+            type: string
+          assetId:
+            title: Asset Id
+            type: string
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          version:
+            title: Version
+            type: string
+          environmentId:
+            title: Environment Id
+            type: string
+          providerId:
+            title: Provider Id
+            type: string
+          endpointUri:
+            title: Endpoint Uri
+            type: string
+          name:
+            title: Name
+            type: string
+          isPublic:
+            title: Is public
+            type: boolean
+          type:
+            title: Type
+            type: string
+          fullname:
+            title: Full name
+            type: string
+    productAPIVersions:
+      title: Product API Versions
+      type: array
+      items:
+        type: object
+        properties:
+          productAPIVersion:
+            title: Product API Version
+            type: string
+          versions:
+            title: Versions
+            type: array
+            items: {}
+    metadata:
+      title: Metadata
+      type: object
+      properties:
+        productApiVersion:
+          title: Product API Version
+          type: string
+    createdBy:
+      title: Created by
+      type: object
+      properties:
+        firstName:
+          title: First Name
+          type: string
+        lastName:
+          title: Last Name
+          type: string
+        username:
+          title: Username
+          type: string
+        profilePhoto:
+          title: Profile Photo
+          type: string
+    permissions:
+      title: Permissions
+      type: array
+      items:
+        type: string
+    organization:
+      title: Organization
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        domain:
+          title: Domain
+          type: string
+        createdAt:
+          title: Created at
+          type: string
+        updatedAt:
+          title: Updated at
+          type: string
+        ownerId:
+          title: Owner Id
+          type: string
+        clientId:
+          title: Client ID
+          type: string
+        idprovider_id:
+          title: Provider Id
+          type: string
+        isFederated:
+          title: Is Federated
+          type: boolean
+        parentOrganizationIds:
+          title: Parent Organization ids
+          type: array
+          items: {}
+        subOrganizationIds:
+          title: Sub organization Ids
+          type: array
+          items: {}
+        tenantOrganizationIds:
+          title: Tentant organization ids
+          type: array
+          items: {}
+        isMaster:
+          title: Is master
+          type: boolean
+
+Assets1:
+  type: array
+  items:
+    $ref: '#/Asset'
+
+PublicAssetVersions1:
+  type: array
+  items:
+    $ref: '#/PublicAssetVersion'

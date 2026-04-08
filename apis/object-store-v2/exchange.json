@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Object Store V2",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "object-store-v2",
+  "version": "1.0.8",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "710d12e2329e79e96ea52fffe5049e6d1f0475e8",
+    "projectId": "52a9f948-fdd2-4301-bd41-488b3171b8cc"
+  },
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

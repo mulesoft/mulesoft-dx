@@ -1,0 +1,236 @@
+ClientApplication:
+  type: object
+  properties:
+    masterOrganizationId:
+      title: Master organization id
+      type: string
+    id:
+      title: Id
+      type: integer
+    name:
+      title: Name
+      type: string
+    description:
+      title: Description
+      type: string
+    grantTypes:
+      title: Grant Types
+      type: array
+      items:
+        type: string
+    redirectUri:
+      title: Redirect Uri
+      type: array
+      items:
+        type: string
+    contract:
+      title: Contracts
+      type: object
+      properties:
+        id:
+          title: Id
+          type: integer
+        status:
+          title: Status
+          type: string
+        tier:
+          type: object
+          properties:
+            id:
+              title: Id
+              type: integer
+            name:
+              title: Name
+              type: string
+            description:
+              title: Description
+              type: string
+              nullable: true
+            limits:
+              title: Limits
+              type: array
+              items:
+                type: object
+                properties:
+                  timePeriodInMilliseconds:
+                    title: Time period in milliseconds
+                    type: integer
+                  maximumRequests:
+                    title: Maximum requests
+                    type: integer
+            status:
+              title: Status
+              type: string
+
+ClientApplications:
+  type: array
+  items:
+    $ref: '#/ClientApplication'
+
+Contract:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: integer
+    status:
+      title: Status
+      type: string
+    requestedTier:
+      title: Requested Tier
+      type: object
+      properties:
+        id:
+          title: Id
+          type: integer
+        name:
+          title: Name
+          type: string
+        description:
+          type: string
+          nullable: true
+        limits:
+          title: Limits
+          type: array
+          items:
+            type: object
+            properties:
+              maximumRequests:
+                title: Maximum requests
+                type: integer
+              timePeriodInMilliseconds:
+                title: Timeperiod in milliseconds
+                type: integer
+
+Contracts:
+  type: array
+  items:
+    $ref: '#/Contract'
+
+BaseCreateContract:
+  type: object
+  properties:
+    masterOrganizationId:
+      type: string
+      format: uuid
+    applicationId:
+      type: integer
+    acceptedTerms:
+      type: boolean
+    apiId:
+      type: string
+    environmentId:
+      type: string
+      nullable: true
+    requestedTierId:
+      type: integer
+      nullable: true
+    organizationId:
+      type: string
+      format: uuid
+    groupId:
+      type: string
+    assetId:
+      type: string
+    version:
+      type: string
+
+CreateContractWithAPIVersion:
+  allOf:
+    - $ref: '#/BaseCreateContract'
+    - type: object
+      properties:
+        productAPIVersion:
+            type: string
+            maxLength: 128
+      required: [productAPIVersion]
+
+
+CreateContractWithVersionGroup:
+  allOf:
+    - $ref: '#/BaseCreateContract'
+    - type: object
+      properties:
+        versionGroup:
+            type: string
+            maxLength: 128
+      required: [versionGroup]
+
+CreateContract:
+  anyOf:
+    - $ref: '#/CreateContractWithAPIVersion'
+    - $ref: '#/CreateContractWithVersionGroup'
+
+BaseCreateContractV2:
+  type: object
+  required:
+    - acceptedTerms
+    - instanceType
+    - organizationId
+    - groupId
+    - assetId
+    - version
+    - versionGroup
+  properties:
+    acceptedTerms:
+      type: boolean
+    instanceType:
+      type: string
+      enum: [api, api-group]
+    environmentId:
+      type: string
+      maxLength: 256
+    requestedTierId:
+      type: integer
+      minimum: 1
+    organizationId:
+      title: OrganizationId
+      type: string
+      format: uuid
+    groupId:
+      title: GroupId
+      type: string
+      maxLength: 256
+    assetId:
+      title: AssetId
+      type: string
+      maxLength: 256
+    version:
+      title: Version
+      type: string
+      maxLength: 256
+    versionGroup:
+      title: VersionGroup
+      type: string
+      maxLength: 256
+
+CreateContractForAPIV2:
+  allOf:
+    - $ref: '#/BaseCreateContractV2'
+    - type: object
+      properties:
+        apiId:
+          type: string
+          minLength: 1
+        instanceType:
+          type: string
+          enum: [api]
+      required: [instanceType, apiId]
+
+CreateContractForAPIGroupV2:
+  allOf:
+    - $ref: '#/BaseCreateContractV2'
+    - type: object
+      properties:
+        apiGroupInstanceId:
+          type: integer
+          minimum: 1
+        instanceType:
+            type: string
+            enum: [api-group]
+      required: [instanceType, apiGroupInstanceId]
+
+CreateContractV2:
+  anyOf:
+    - $ref: '#/CreateContractForAPIV2'
+    - $ref: '#/CreateContractForAPIGroupV2'

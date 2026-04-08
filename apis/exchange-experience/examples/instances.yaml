@@ -1,0 +1,170 @@
+ExternalInstance:
+  value:
+    id: 3defc266-c001-431c-88d2-7cc83928efca
+    groupId: com.mulesoft
+    assetId: salesforce
+    productApiVersion: v1
+    environmentId: "1234"
+    providerId: ed687558-f86e-465f-bf88-45c989f0c2ad
+    name: Instance name
+    endpointUri: https://www.yes.com/dog
+    createdBy: e1dd88f8-dG6e-4443-93a1-bd074603e118
+    createdDate: 2017-09-22T19:26:00.815Z
+    updatedDate: 2017-09-22T19:26:00.815Z
+    isPublic: true
+    type: external
+
+Instances:
+  value:
+  - version: 1.0.0
+    audit:
+      created:
+        date: 2019-10-07T14:16:27.528Z
+      updated:
+        date: 2019-12-20T17:57:59.147Z
+    masterOrganizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    organizationId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    id: 300853
+    apiId: 242148
+    portalId: null
+    name: v1:300853
+    instanceLabel: null
+    groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+    assetId: facebook
+    assetVersion: 1.0.0
+    productVersion: v1
+    description: null
+    tags: []
+    order: 1
+    rootFileId: null
+    deprecated: false
+    lastActiveDate: null
+    endpointUri: null
+    environmentId: 90b78656-99e5-4754-a2ec-09f2eefc7d02
+    isPublic: true
+    stage: release
+    terms: null
+    termsDate: null
+    fullname: Facebook - QAx- v1:300853
+    assetName: Facebook
+    environmentName: QAx
+
+ExternalInstances:
+  value:
+  - id: 3defc266-c001-431c-88d2-7cc83928efca
+    groupId: com.mulesoft
+    assetId: salesforce
+    productApiVersion: v1
+    environmentId: "1234"
+    endpointUri: https://www.yes.com/dog
+    name: Instance name
+    isPublic: true
+    type: external
+    createdBy: e1dd88f8-dG6e-4443-93a1-bd074603e118
+    createdDate: 2017-09-22T19:26:00.815Z
+    updatedDate: 2017-09-22T19:26:00.815Z
+    providerId: aaf409a9-08c3-4c32-bb66-d6f2e4dba153
+    deprecated: false
+  - id: 96ccd7af-c88b-40b9-af89-bad8c039a353
+    groupId: com.mulesoft
+    assetId: salesforce
+    productApiVersion: v2
+    environmentId: "1234568"
+    endpointUri: https://www.no.com/cat
+    name: Another instance name
+    isPublic: false
+    type: external
+    createdBy: e1dd88f8-dG6e-4443-93a1-bd074603e118
+    createdDate: 2016-12-27T20:47:46.470Z
+    updatedDate: 2016-12-27T20:47:46.470Z
+    providerId: aaf409a9-08c3-4c32-bb66-d6f2e4dba153
+    deprecated: false
+
+CreateExternalInstance:
+  value:
+    name: Production - US
+    endpointUri: http://dog.domain.tld.com/much/doge
+    isPublic: true
+
+UpdateExternalInstance:
+  value:
+    name: Production - US
+    isPublic: false
+
+UpdateManagedInstance:
+  value:
+    name: Production - US
+    endpointUri: http://dog.domain.tld.com/much/doge
+    isPublic: true
+
+APIGroupInstances:
+  value:
+  - id: 22
+    name: Social Media
+    assetVersion: 1.0.0
+    isPublic: true
+    deprecated: true
+    instances:
+      - groupId: ba3dd49c-9bd3-43a3-bb54-226715e9c57a
+        assetId: facebook-api
+        assetVersion: 1.0.0
+        productApiVersion: v1
+        apiVersionId: 1
+        instanceName: Instance 1
+        environmentName: Prod
+        environmentId: f81fb343-3649-4990-832e-27de26ee649e
+        providerId: ed687558-f86e-465f-bf88-45c989f0c2ad
+        isPublic: true
+        endpointUri: ""
+        deprecated: false
+      - groupId: ba3dd49c-9bd3-43a3-bb54-226715e9c57a
+        assetId: instagram-api
+        assetVersion: 1.0.1
+        productApiVersion: v1
+        apiVersionId: 2
+        instanceName: Instance 2
+        environmentName: Prod
+        environmentId: 5d15a77c-0d35-400e-9a90-61d0beb09409
+        providerId: ed687558-f86e-465f-bf88-45c989f0c2ad
+        isPublic: true
+        endpointUri: ""
+        deprecated: false
+
+Terms:
+  value:
+    - groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      assetId: inimputability
+      assetVersion: 1.0.0
+      versionGroup: v1
+      id: 7183
+      underlyingTerms:
+        - groupId: be1e07e2-a230-424b-93c4-a95829767d5d
+          assetId: american-flights
+          minorVersion: "2.0"
+          version: 2.0.2
+          name: American Flights
+          termsText: |
+            <h2>Dwelling and speedily ignorant any steepest</h2>
+            <p>His followed carriage proposal entrance directly had elegance.</p>
+        - groupId: be1e07e2-a230-424b-93c4-a95829767d5d
+          assetId: delta-flights
+          minorVersion: "1.0"
+          version: 1.0.0
+          name: Delta Flights
+          termsText: |
+            <h2>Dwelling and speedily ignorant any steepest</h2>
+            <p>His followed carriage proposal entrance directly had elegance.</p>
+    - groupId: f68e6165-99ce-4499-97e2-2d1d45498c73
+      assetId: inimputability
+      assetVersion: 1.0.0
+      versionGroup: v1
+      id: 7184
+      underlyingTerms:
+        - groupId: be1e07e2-a230-424b-93c4-a95829767d5d
+          assetId: delta-flights
+          minorVersion: "1.1"
+          version: 1.1.1
+          name: Delta Flights
+          termsText: |
+            <h2>Dwelling and speedily ignorant any steepest</h2>
+            <p>His followed carriage proposal entrance directly had elegance.</p>

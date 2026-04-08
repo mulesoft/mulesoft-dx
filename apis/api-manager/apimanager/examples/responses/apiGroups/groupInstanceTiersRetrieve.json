@@ -1,0 +1,63 @@
+{
+  "value": {
+    "total": 1,
+    "tiers": [
+      {
+        "audit": {
+          "created": {
+            "date": "2017-08-04T15:11:13.070Z"
+          },
+          "updated": {}
+        },
+        "masterOrganizationId": "40fbc081-bb0d-4aff-9fb7-f3a48fdeb958",
+        "organizationId": "643c5d65-93ab-404d-9c13-efab34cf2a60",
+        "id": 23,
+        "groupInstanceId": 34,
+        "name": "Free",
+        "description": "This is some description text",
+        "defaultLimits": [
+          {
+            "visible": true,
+            "maximumRequests": 5,
+            "timePeriodInMilliseconds": 1
+          }
+        ],
+        "limitsByApi": [
+          {
+            "apiId": 2,
+            "limits": [
+              {
+                "maximumRequests": 100000,
+                "timePeriodInMilliseconds": 86400000,
+                "visible": false
+              },
+              {
+                "maximumRequests": 1000000,
+                "timePeriodInMilliseconds": 604800000,
+                "visible": true
+              }
+            ]
+          },
+          {
+            "apiId": 3,
+            "limits": [
+              {
+                "maximumRequests": 10,
+                "timePeriodInMilliseconds": 86400000,
+                "visible": true
+              },
+              {
+                "maximumRequests": 1000000,
+                "timePeriodInMilliseconds": 2592000000,
+                "visible": true
+              }
+            ]
+          }
+        ],
+        "status": "ACTIVE",
+        "autoApprove": false,
+        "applicationCount": 0
+      }
+    ]
+  }
+}

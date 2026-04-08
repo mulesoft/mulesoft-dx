@@ -1,0 +1,17 @@
+UpdateOrgLevelSettings:
+  type: object
+  properties:
+    deletionSettings:
+      type: object
+      properties:
+        hardDeletionEnabled:
+          type: boolean
+          additionalProperties: false
+          minProperties: 1
+        assetRoleAssignmentSettings:
+          type: boolean
+          additionalProperties: false
+          minProperties: 1
+  additionalProperties: false
+  minProperties: 1
+

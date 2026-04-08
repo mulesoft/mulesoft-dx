@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Citizen Platform Experience API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "citizen-platform-experience-api",
+  "version": "0.7.0",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "60be7ac2a22cf69d4675d44aff72a5be60c7ff7a",
+    "projectId": "62938a6a-ddf0-4c25-97ea-de69648c7116"
+  },
+  "apiVersion": "0.1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

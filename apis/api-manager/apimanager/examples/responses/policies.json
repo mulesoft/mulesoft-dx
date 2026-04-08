@@ -1,0 +1,47 @@
+{
+  "value": [
+    {
+      "audit": {
+        "created": {
+          "date": "2017-03-17T12:00:00Z"
+        },
+        "updated": {}
+      },
+      "masterOrganizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+      "organizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+      "id": 2620780,
+      "policyTemplateId": "1939",
+      "configurationData": {
+        "rateLimits": [
+          {
+            "maximumRequests": 100,
+            "timePeriodInMilliseconds": 60000
+          }
+        ],
+        "exposeHeaders": true,
+        "clusterizable": true
+      },
+      "order": 1,
+      "disabled": false,
+      "pointcutData": [
+        {
+          "methodRegex": "GET",
+          "uriTemplateRegex": "v1"
+        }
+      ],
+      "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+      "assetId": "rate-limiting",
+      "assetVersion": "1.4.0",
+      "implementationAsset": {
+        "assetId": "rate-limiting-mule",
+        "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+        "version": "1.4.0",
+        "technology": "mule4",
+        "minRuntimeVersion": "4.1.0",
+        "supportedJavaVersions": ["8", "17", "11"]
+      },
+      "type": "system",
+      "apiId": 4040871
+    }
+  ]
+}

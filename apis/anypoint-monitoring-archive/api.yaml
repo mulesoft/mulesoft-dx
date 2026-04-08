@@ -1,0 +1,743 @@
+openapi: 3.0.0
+info:
+  title: Anypoint Monitoring Archive API
+  description: List and retrieve archived Anypoint Monitoring metrics and logs organized by organization, environment, and runtime entity.
+  version: 1.0.0
+servers:
+- url: https://monitoring.anypoint.mulesoft.com/monitoring/archive/api/{version}
+  variables:
+    version:
+      default: v1
+      description: API version identifier.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations:
+    get:
+      description: 'Returns a list of organization identifiers for the organizations that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id001
+                  resources:
+                  - id: 6A02A43C-0B7A-4AF6-A777-D4455989F627
+                  - id: E9BE2F2C-4EEC-408F-9CB0-16686980A63B
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Organization'
+              example: *id001
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizations
+  /organizations/{organization}/environments:
+    get:
+      description: 'Returns a list of environment identifiers for the environments that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id002
+                  resources:
+                  - id: 19f3df44-4953-4b5c-bf8f-45a937b6c1c9
+                  - id: 5e72883d-198b-49b5-ab39-0e62f98dce01
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Environment'
+              example: *id002
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironments
+  /organizations/{organization}/environments/{environment}:
+    get:
+      description: 'Returns a list of entity type identifiers for the entity types that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id003
+                  resources:
+                  - id: apis
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/EntityType'
+              example: *id003
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironment
+  /organizations/{organization}/environments/{environment}/{entityType}:
+    get:
+      description: 'Returns a list of entity identifiers for the entities that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      responses:
+        '200':
+          description: The returned list of entity identifiers is for the provided entity type.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id004
+                  resources:
+                  - id: '125435'
+                  - id: '212544'
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Entity'
+              example: *id004
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytype
+  /organizations/{organization}/environments/{environment}/{entityType}/{entityID}:
+    get:
+      description: 'Returns a list of file type identifiers for the file types that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      responses:
+        '200':
+          description: The returned list of available file types for this entity.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/FileType'
+              example:
+                resources:
+                - id:
+                    id: string
+                    type: string
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityid
+  /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}:
+    get:
+      description: 'Returns a list of year identifiers for the years that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - name: fileType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - raw
+          - summary
+          - ip
+          - path
+          - logs
+        description: The fileType to identify the target resource.
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id005
+                  resources:
+                  - id: 2019
+                  - id: 2020
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Year'
+              example: *id005
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletype
+  /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}:
+    get:
+      description: 'Returns a list of month identifiers for the months that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - name: year
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 2000
+          maximum: 9999
+        description: The year to identify the target resource.
+      - name: fileType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - raw
+          - summary
+          - ip
+          - path
+          - logs
+        description: The fileType to identify the target resource.
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id006
+                  resources:
+                  - id: '03'
+                  - id: '04'
+                  - id: '11'
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Month'
+              example: *id006
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYear
+  /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}:
+    get:
+      description: 'Returns a list of day identifiers for the days that have archived data.  If this path contains no
+
+        data, then an empty list is returned.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - name: year
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 2000
+          maximum: 9999
+        description: The year to identify the target resource.
+      - name: fileType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - raw
+          - summary
+          - ip
+          - path
+          - logs
+        description: The fileType to identify the target resource.
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      - name: month
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: ^[0-1][0-9]$
+        description: The month to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id007
+                  resources:
+                  - id: '29'
+                  - id: '30'
+                  - id: '31'
+                type: object
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/Day'
+              example: *id007
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonth
+  /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}/{dayOfMonth}:
+    get:
+      description: 'Returns a list of data files under this node with each file containing archived metric data.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - name: dayOfMonth
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: ^[0-3][0-9]$
+        description: The dayOfMonth to identify the target resource.
+      - name: year
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 2000
+          maximum: 9999
+        description: The year to identify the target resource.
+      - name: fileType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - raw
+          - summary
+          - ip
+          - path
+          - logs
+        description: The fileType to identify the target resource.
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      - name: month
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: ^[0-1][0-9]$
+        description: The month to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                example: &id008
+                  resources:
+                  - id: 5cbaf563-d91a-4970-8169-b7f90044a4f1.2020-03-05T21.26.part0.txt
+                    time: 2020-03-05 21:26:55+00:00
+                    size: 1934
+                  - id: 239cae2a-70bc-4738-b444-bfbd71404330.2020-03-05T22.26.part1.txt
+                    time: 2020-03-05 22:26:26+00:00
+                    size: 20312
+                type: object
+                additionalProperties: true
+                required:
+                - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DataFile'
+              example: *id008
+        '429':
+          description: The client is sending more than the allowed number of requests per unit time
+        '504':
+          description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonthByDayofmonth
+  ? /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}/{dayOfMonth}/{fileName}
+  : get:
+      description: Retrieve the contents of the given data file.  A data file contains either metric data.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organization_Path'
+      - name: dayOfMonth
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: ^[0-3][0-9]$
+        description: The dayOfMonth to identify the target resource.
+      - name: year
+        required: true
+        in: path
+        schema:
+          type: integer
+          minimum: 2000
+          maximum: 9999
+        description: The year to identify the target resource.
+      - name: fileName
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The fileName to identify the target resource.
+      - name: fileType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - raw
+          - summary
+          - ip
+          - path
+          - logs
+        description: The fileType to identify the target resource.
+      - name: entityType
+        required: true
+        in: path
+        schema:
+          type: string
+          enum:
+          - apis
+          - applications
+          - servers
+        description: The entityType to identify the target resource.
+      - $ref: '#/components/parameters/XOrigin_environment_Path'
+      - $ref: '#/components/parameters/XOrigin_entityID_Path'
+      - name: month
+        required: true
+        in: path
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: ^[0-1][0-9]$
+        description: The month to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: text/plain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricData'
+              example: string
+        '404':
+          description: The given file is not found.
+      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonthByDayofmonthByFilename
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  schemas:
+    Organization:
+      type: string
+    Environment:
+      type: string
+    EntityType:
+      enum:
+      - apis
+      - applications
+      - servers
+      type: string
+    Entity:
+      type: string
+    FileType:
+      enum:
+      - raw
+      - summary
+      - ip
+      - path
+      - logs
+      type: string
+    Year:
+      type: integer
+      minimum: 2000
+      maximum: 9999
+    Month:
+      type: string
+      pattern: ^[0-1][0-9]$
+      minLength: 2
+      maxLength: 2
+    Day:
+      type: string
+      pattern: ^[0-3][0-9]$
+      minLength: 2
+      maxLength: 2
+    DataFile:
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - time
+      - size
+      properties:
+        id:
+          description: The name of a data file containing the archived metric or log.
+          example: 312bc026-2f5d-49bc-ae9f-5940cf4ad9a6.2013-04-18T10.00.tag_worker0.part0.txt
+          type: string
+        time:
+          description: The date and time when this data file is created.
+          example: 2016-02-28 16:41:41.090000+00:00
+          type: string
+          format: date-time
+        size:
+          description: The size of the data file in bytes.
+          example: 125423
+          type: integer
+    MetricData:
+      description: "Contains metric data using JSON lines (JSONL), also known as new-line-delimited JSON (NDJSON) and \nline-delimited JSON (LDJSON).  Each line contains a JSON object.  This JSON object contains\none or more metrics events.  A metric event contains either an individual sampled value or \naggregated sampled values from the sampling window.\n\nSee [**Metric Data**](https://anypoint.mulesoft.com/exchange/portals/anypoint-platform/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/anypoint-monitoring-archive-api/minor/1.0/pages/Metric%20Data/) for more information about the structure of metric.\n\nHere is an example showing multiple lines of JSON, each holding metric events:\n```javascript\n...\n{\"format\":\"v2\",\"time\":1585082947062,\"type\":\"api_summary_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204393\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":2,\"request_size.min\":6,\"status_code\":\"200\",\"method\":\"POST\",\"response_time.max\":4,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":2,\"response_time.min\":4,\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":36,\"client_id\":\"eb30101d7394407ea86f0643e1c63331\",\"response_time.count\":1,\"response_time.sum\":4,\"request_size.max\":6,\"request_disposition\":\"processed\",\"response_time.sos\":16,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":2,\"request_size.sum\":6,\"response_size.sos\":4}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n{\"format\":\"v2\",\"time\":1585082947068,\"type\":\"api_client_ip_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204393\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":2,\"request_size.min\":6,\"status_code\":\"200\",\"method\":\"POST\",\"response_time.max\":4,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":2,\"response_time.min\":4,\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":36,\"client_id\":\"eb30101d7394407ea86f0643e1c63331\",\"response_time.count\":1,\"remote_host\":\"81.17.62.205\",\"response_time.sum\":4,\"request_size.max\":6,\"request_disposition\":\"processed\",\"response_time.sos\":16,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":2,\"request_size.sum\":6,\"response_size.sos\":4}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n{\"format\":\"v2\",\"time\":1585082947070,\"type\":\"api_path_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204393\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":2,\"request_size.min\":6,\"status_code\":\"200\",\"method\":\"POST\",\"response_time.max\":4,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":2,\"response_time.min\":4,\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":36,\"client_id\":\"eb30101d7394407ea86f0643e1c63331\",\"response_time.count\":1,\"response_time.sum\":4,\"request_size.max\":6,\"request_disposition\":\"processed\",\"path\":\"/API/X/policy_sla_rate_limit/X\",\"response_time.sos\":16,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":2,\"request_size.sum\":6,\"response_size.sos\":4}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n{\"format\":\"v2\",\"time\":1585082947061,\"type\"\
+        :\"api_summary_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204393\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":34,\"request_size.min\":3,\"status_code\":\"401\",\"policy_id\":\"203140\",\"method\":\"PUT\",\"response_time.max\":5,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":34,\"response_time.min\":5,\"policy_name\":\"Rate Limiting SLA Based\",\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":9,\"response_time.count\":1,\"response_time.sum\":5,\"request_size.max\":3,\"request_disposition\":\"blocked\",\"response_time.sos\":25,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":34,\"request_size.sum\":3,\"response_size.sos\":1156},{\"response_size.max\":0,\"request_size.min\":0,\"status_code\":\"429\",\"policy_id\":\"203140\",\"method\":\"GET\",\"response_time.max\":1,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":0,\"response_time.min\":1,\"policy_name\":\"Rate Limiting SLA Based\",\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":0,\"client_id\":\"eb30101d7394407ea86f0643e1c63331\",\"response_time.count\":1,\"response_time.sum\":1,\"request_size.max\":0,\"request_disposition\":\"blocked\",\"response_time.sos\":1,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":0,\"request_size.sum\":0,\"response_size.sos\":0}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n{\"format\":\"v2\",\"time\":1585082947064,\"type\":\"api_client_ip_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204393\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":34,\"request_size.min\":3,\"status_code\":\"401\",\"policy_id\":\"203140\",\"method\":\"PUT\",\"response_time.max\":5,\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_size.sum\":34,\"response_time.min\":5,\"policy_name\":\"Rate Limiting SLA Based\",\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":9,\"response_time.count\":1,\"remote_host\":\"81.17.62.205\",\"response_time.sum\":5,\"request_size.max\":3,\"request_disposition\":\"blocked\",\"response_time.sos\":25,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"response_size.min\":34,\"request_size.sum\":3,\"response_size.sos\":1156},{\"response_size.max\":0,\"status_code\":\"429\",\"policy_id\":\"203140\",\"api_version_id\":\"223337\",\"response_size.count\":1,\"response_time.min\":1,\"client_id\":\"eb30101d7394407ea86f0643e1c63331\",\"response_time.sum\":1,\"request_size.max\":0,\"request_disposition\":\"blocked\",\"response_time.sos\":1,\"response_size.min\":0,\"response_size.sos\":0,\"request_size.min\":0,\"method\":\"GET\",\"response_time.max\":1,\"response_size.sum\":0,\"policy_name\":\"Rate Limiting SLA Based\",\"request_size.count\":1,\"api_version\":\"v1:223337\",\"request_size.sos\":0,\"response_time.count\":1,\"remote_host\":\"81.17.62.205\",\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_sla_rate_limit\",\"request_size.sum\":0}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n{\"format\":\"v2\",\"time\":1585082947064,\"type\":\"api_client_ip_metric\",\"commons\":{\"deployment_type\":\"RTF\",\"api_id\":\"204458\",\"cluster_id\":\"rtf\",\"env_id\":\"env\",\"public_ip\":\"127.0.0.1\",\"org_id\":\"org\",\"worker_id\":\"worker-1\"},\"events\":[{\"response_size.max\":2,\"request_size.min\":0,\"status_code\":\"200\",\"method\":\"GET\",\"response_time.max\":6,\"api_version_id\":\"223412\",\"response_size.count\":3,\"\
+        response_size.sum\":6,\"response_time.min\":4,\"request_size.count\":3,\"api_version\":\"v1:223412\",\"request_size.sos\":0,\"client_id\":\"b66b4ef4d0764257a9c5aafc0b17ccb3\",\"response_time.count\":3,\"remote_host\":\"81.17.62.205\",\"response_time.sum\":15,\"request_size.max\":0,\"request_disposition\":\"processed\",\"response_time.sos\":77,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_client_id_enforcement\",\"response_size.min\":2,\"request_size.sum\":0,\"response_size.sos\":12},{\"response_size.max\":80,\"request_size.min\":5,\"status_code\":\"403\",\"policy_id\":\"203196\",\"method\":\"POST\",\"response_time.max\":18,\"api_version_id\":\"223412\",\"response_size.count\":1,\"response_size.sum\":80,\"response_time.min\":18,\"policy_name\":\"Client Id Enforcement\",\"request_size.count\":1,\"api_version\":\"v1:223412\",\"request_size.sos\":25,\"response_time.count\":1,\"remote_host\":\"81.17.62.205\",\"response_time.sum\":18,\"request_size.max\":5,\"request_disposition\":\"blocked\",\"response_time.sos\":324,\"api_name\":\"groupId:6046b96d-c9aa-4cb2-9b30-90a54fc01a7b:assetId:policy_client_id_enforcement\",\"response_size.min\":80,\"request_size.sum\":5,\"response_size.sos\":6400}],\"metadata\":{\"batch_id\":0,\"aggregated\":true,\"limited\":false,\"producer_name\":\"analytics-metrics-collector-mule3\",\"producer_version\":\"2.2.2-SNAPSHOT\"}}\n...\n```"
+      type: string
+  parameters:
+    XOrigin_organization_Path:
+      name: organization
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization to identify the target resource.
+    XOrigin_environment_Path:
+      name: environment
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment to identify the target resource.
+    XOrigin_entityID_Path:
+      name: entityID
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-monitoring-archive
+        operation: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytype
+        description: GET `/organizations/{organization}/environments/{environment}/{entityType}` in this API; use `resources[].id` values as `entityID`.
+        values: $.resources[*].id
+        labels: $.resources[*].name
+      description: The entityID to identify the target resource.

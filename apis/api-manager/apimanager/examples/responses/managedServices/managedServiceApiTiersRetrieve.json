@@ -1,0 +1,33 @@
+{
+  "value": {
+    "total": 1,
+    "tiers": [
+      {
+        "audit": {
+          "created": {
+            "date": "2020-10-26T15:36:20.600Z"
+          },
+          "updated": {
+            "date": "2020-10-26T15:37:06.564Z"
+          }
+        },
+        "masterOrganizationId": "f0c9b011-980e-4928-9430-e60e3a97c043",
+        "organizationId": "4b1240fd-e1df-44a8-9949-6778c3d3dd91",
+        "id": 307,
+        "name": "tier-1603726626",
+        "description": "tier description",
+        "limits": [
+          {
+            "visible": true,
+            "maximumRequests": 40,
+            "timePeriodInMilliseconds": 1
+          }
+        ],
+        "status": "ACTIVE",
+        "autoApprove": true,
+        "applicationCount": 0,
+        "managedServiceApiId": 193
+      }
+    ]
+  }
+}

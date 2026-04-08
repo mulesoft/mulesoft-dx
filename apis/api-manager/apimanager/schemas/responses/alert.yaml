@@ -1,0 +1,65 @@
+type: object
+properties:
+  apiAlertsVersion:
+    type: string
+  api:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+  condition:
+    type: object
+    properties:
+      aggregate:
+        type: string
+      operator:
+        type: string
+      value:
+        type: number
+      resourceType:
+        type: string
+  createdAt:
+    type: number
+  enabled:
+    type: boolean
+  environmentId:
+    type: string
+  id:
+    type: string
+  lastModified:
+    type: number
+  name:
+    type: string
+  organizationId:
+    type: string
+  period:
+    type: object
+    properties:
+      repeat:
+        type: number
+      duration:
+        type: object
+        properties:
+          count:
+            type: number
+          weight:
+            type: string
+  recipients:
+    type: array
+    items:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+        lastName:
+          type: string
+        firstName:
+          type: string
+  severity:
+    type: string
+  type:
+    type: string

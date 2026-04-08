@@ -1,0 +1,134 @@
+BasicCategory:
+  type: object
+  properties:
+    assetTypeRestrictions:
+      type: array
+      maxItems: 100
+      items:
+        type: string
+    acceptedValues:
+      type: array
+      maxItems: 500
+      items:
+        type: string
+
+CategoryWithDisplayName:
+  allOf:
+    - $ref: '#/BasicCategory'
+    - type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 512
+      required: [displayName]
+
+CategoryWithTagKey:
+  allOf:
+    - $ref: '#/BasicCategory'
+    - type: object
+      properties:
+        tagKey:
+          description: The tag key, should be a kebab cased string
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          maxLength: 512
+      required: [tagKey]
+
+UpdateCategoryConfiguration:
+  anyOf:
+    - $ref: '#/CategoryWithDisplayName'
+    - $ref: '#/CategoryWithTagKey'
+
+CategoryConfiguration:
+  type: object
+  properties:
+    displayName:
+      type: string
+      maxLength: 512
+    tagKey:
+      description: The tag key, should be a kebab cased string
+      type: string
+      pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+      maxLength: 512
+    assetTypeRestrictions:
+      type: array
+      maxItems: 100
+      items:
+        type: string
+    acceptedValues:
+      type: array
+      maxItems: 500
+      items:
+        type: string
+
+BasicFieldConfiguration:
+  type: object
+  properties:
+    dataType:
+      type: string
+    assetTypeRestrictions:
+      type: array
+      maxItems: 100
+      items:
+        type: string
+    acceptedValues:
+      type: array
+      maxItems: 500
+      items:
+        type: string
+
+FieldConfigurationWithDisplayName:
+  allOf:
+    - $ref: '#/BasicFieldConfiguration'
+    - type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 512
+      required: [displayName]
+
+FieldConfigurationWithTagKey:
+  allOf:
+    - $ref: '#/BasicFieldConfiguration'
+    - type: object
+      properties:
+        tagKey:
+          description: The tag key, should be a kebab cased string
+          type: string
+          pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+          maxLength: 512
+      required: [tagKey]
+
+UpdateFieldConfiguration:
+  anyOf:
+    - $ref: '#/FieldConfigurationWithDisplayName'
+    - $ref: '#/FieldConfigurationWithTagKey'
+
+FieldConfiguration:
+  type: object
+  properties:
+    displayName:
+      type: string
+      maxLength: 512
+    dataType:
+      type: string
+    tagKey:
+      description: The tag key, should be a kebab cased string
+      type: string
+      pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
+      maxLength: 512
+    assetTypeRestrictions:
+      type: array
+      maxItems: 100
+      items:
+        type: string
+    acceptedValues:
+      type: array
+      maxItems: 500
+      items:
+        type: string
+
+FieldsConfigurations:
+  type: array
+  items:
+    $ref: '#/FieldConfiguration'

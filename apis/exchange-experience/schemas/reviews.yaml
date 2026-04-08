@@ -1,0 +1,306 @@
+Review:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    userId:
+      title: User Id
+      type: string
+    version:
+      title: Version
+      type: string
+    organizationId:
+      title: Organization Id
+      type: string
+    rating:
+      title: Rating
+      type: integer
+    text:
+      title: Text
+      type: string
+    createdDate:
+      title: Created date
+      type: string
+    updatedDate:
+      title: Updated date
+      type: string
+    comments:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          userId:
+            title: User id
+            type: string
+          comment:
+            title: Comment
+            type: string
+          createdDate:
+            title: Created date
+            type: string
+          updatedDate:
+            title: Updated date
+            type: string
+
+Reviews:
+  type: array
+  items:
+    $ref: '#/Review'
+
+CreateReview:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    text:
+      type: string
+      minLength: 1
+      maxLength: 2048
+    title:
+      type: string
+      minLength: 1
+      maxLength: 30
+  required:
+    - rating
+    - text
+
+UpdateReview:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    text:
+      type: string
+      maxLength: 2048
+
+CreateReviewComment:
+  type: object
+  properties:
+    text:
+      type: string
+      maxLength: 2048
+  required:
+      - text
+
+UpdateReviewComment:
+  type: object
+  properties:
+    text:
+      type: string
+      maxLength: 2048
+
+# ************************************************ #
+# Duplicated objects
+# ************************************************ #
+Review1:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    userId:
+      title: User Id
+      type: string
+    version:
+      title: Version
+      type: string
+    organizationId:
+      title: Organization Id
+      type: string
+    rating:
+      title: Rating
+      type: integer
+    text:
+      title: Text
+      type: string
+    createdDate:
+      title: Created date
+      type: string
+    updatedDate:
+      title: Updated date
+      type: string
+    comments:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          userId:
+            title: User id
+            type: string
+          comment:
+            title: Comment
+            type: string
+          createdDate:
+            title: Created date
+            type: string
+          updatedDate:
+            title: Updated date
+            type: string
+
+Review2:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    userId:
+      title: User Id
+      type: string
+    version:
+      title: Version
+      type: string
+    organizationId:
+      title: Organization Id
+      type: string
+    rating:
+      title: Rating
+      type: integer
+    text:
+      title: Text
+      type: string
+    createdDate:
+      title: Created date
+      type: string
+    updatedDate:
+      title: Updated date
+      type: string
+    comments:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          userId:
+            title: User id
+            type: string
+          comment:
+            title: Comment
+            type: string
+          createdDate:
+            title: Created date
+            type: string
+          updatedDate:
+            title: Updated date
+            type: string
+
+Review3:
+  type: object
+  properties:
+    id:
+      title: Id
+      type: string
+    userId:
+      title: User Id
+      type: string
+    version:
+      title: Version
+      type: string
+    organizationId:
+      title: Organization Id
+      type: string
+    rating:
+      title: Rating
+      type: integer
+    text:
+      title: Text
+      type: string
+    createdDate:
+      title: Created date
+      type: string
+    updatedDate:
+      title: Updated date
+      type: string
+    comments:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            title: Id
+            type: string
+          userId:
+            title: User id
+            type: string
+          comment:
+            title: Comment
+            type: string
+          createdDate:
+            title: Created date
+            type: string
+          updatedDate:
+            title: Updated date
+            type: string
+
+Reviews1:
+  type: array
+  items:
+    $ref: '#/Review'
+
+Reviews2:
+  type: array
+  items:
+    $ref: '#/Review'
+
+Reviews3:
+  type: array
+  items:
+    $ref: '#/Review'
+
+CreateReview1:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    text:
+      type: string
+      minLength: 1
+      maxLength: 2048
+    title:
+      type: string
+      minLength: 1
+      maxLength: 30
+  required:
+    - rating
+    - text
+
+UpdateReview1:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    text:
+      type: string
+      maxLength: 2048
+
+CreateReviewComment1:
+  type: object
+  properties:
+    text:
+      type: string
+      maxLength: 2048
+  required:
+      - text
+
+UpdateReviewComment1:
+  type: object
+  properties:
+    text:
+      type: string
+      maxLength: 2048

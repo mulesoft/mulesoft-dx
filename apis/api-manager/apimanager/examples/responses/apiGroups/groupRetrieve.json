@@ -1,0 +1,62 @@
+{
+  "value": {
+    "id": 4,
+    "name": "Social Media",
+    "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+    "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+    "assetGroupId": "",
+    "assetId": "",
+    "versions": [
+      {
+        "id": 49,
+        "groupId": 4,
+        "name": "v1",
+        "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+        "assetVersion": "",
+        "productVersion": "",
+        "instances": [
+          {
+            "audit": {
+              "created": {
+                "date": "2019-03-21T18:40:23.955Z"
+              },
+              "updated": {}
+            },
+            "id": 1072,
+            "groupId": 4,
+            "groupVersionId": 49,
+            "masterOrganizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+            "organizationId": "ba3dd49c-9bd3-43a3-bb54-226715e9c57a",
+            "environmentId": "22126179-3dae-43f5-ac23-cbc9ecc29c53",
+            "assetGroupId": null,
+            "assetId": null,
+            "assetVersion": null,
+            "productVersion": null,
+            "groupInstanceLabel": null,
+            "status": "DRAFT",
+            "deprecated": false,
+            "apiInstances": [
+              {
+                "id": 312440,
+                "groupInstanceId": 1072
+              }
+            ]
+          }
+        ],
+        "audit": {
+          "created": {
+            "date": "2019-03-21T18:40:23.955Z"
+          },
+          "updated": {}
+        }
+      }
+    ],
+    "audit": {
+      "created": {
+        "date": "2019-03-21T18:40:23.955Z"
+      },
+      "updated": {}
+    }
+  }
+}

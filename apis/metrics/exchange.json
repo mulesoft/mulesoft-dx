@@ -1,0 +1,18 @@
+{
+  "main": "api.yaml",
+  "name": "Anypoint Monitoring Metrics API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "metrics-api",
+  "version": "1.0.2",
+  "metadata": {
+    "branchId": "master",
+    "commitId": "65973b8cb2d6e8bea3ab50ffcb6c716821743d40",
+    "projectId": "c60452a4-4d36-463a-b423-2e86992684c7"
+  },
+  "apiVersion": "1.0.0",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

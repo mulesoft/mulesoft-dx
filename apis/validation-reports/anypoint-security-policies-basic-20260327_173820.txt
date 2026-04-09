@@ -1,0 +1,287 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./anypoint-security-policies
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(26,2)-(37,0)]
+	Link:       anypoint-security-policies/api.yaml:26:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(37,2)-(50,0)]
+	Link:       anypoint-security-policies/api.yaml:37:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(37,2)-(50,0)]
+	Link:       anypoint-security-policies/api.yaml:37:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(50,2)-(106,0)]
+	Link:       anypoint-security-policies/api.yaml:50:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(50,2)-(106,0)]
+	Link:       anypoint-security-policies/api.yaml:50:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(106,2)-(342,0)]
+	Link:       anypoint-security-policies/api.yaml:106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(106,2)-(342,0)]
+	Link:       anypoint-security-policies/api.yaml:106:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(342,2)-(564,0)]
+	Link:       anypoint-security-policies/api.yaml:342:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(564,2)-(733,0)]
+	Link:       anypoint-security-policies/api.yaml:564:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(733,2)-(993,0)]
+	Link:       anypoint-security-policies/api.yaml:733:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter edgeConfigId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(733,2)-(993,0)]
+	Link:       anypoint-security-policies/api.yaml:733:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(993,2)-(1040,0)]
+	Link:       anypoint-security-policies/api.yaml:993:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter edgeConfigId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(993,2)-(1040,0)]
+	Link:       anypoint-security-policies/api.yaml:993:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1040,2)-(1384,0)]
+	Link:       anypoint-security-policies/api.yaml:1040:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1384,2)-(1604,0)]
+	Link:       anypoint-security-policies/api.yaml:1384:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter policyId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1384,2)-(1604,0)]
+	Link:       anypoint-security-policies/api.yaml:1384:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'policyData'
+[0].id should match pattern "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+[0].type should be equal to one of the allowed values
+
+	Location:   file://api.yaml
+	Position:   [(1337,0)-(1339,0)]
+	Link:       anypoint-security-policies/api.yaml:1337:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'advancedOption'
+should have required property 'httpDomains'
+should have required property 'id'
+should have required property 'logs'
+should have required property 'organizationId'
+should have required property 'virtualServerIds'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(661,23)-(661,25)]
+	Link:       anypoint-security-policies/api.yaml:661:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    id should be string
+policyData should NOT have additional properties
+policyData should have required property 'alertPeriod'
+policyData should have required property 'allowMethods'
+policyData should have required property 'authenticationErrors'
+policyData should have required property 'contentErrors'
+policyData should have required property 'excessiveTrafficEventTrigger'
+policyData should have required property 'ipWhiteList'
+policyData should have required property 'maxBodyLength'
+policyData should have required property 'maxHeaderLength'
+policyData should have required property 'maxNumberHeadersTrailers'
+policyData should have required property 'maxRequestLineLength'
+policyData should have required property 'maxSourcesToMonitor'
+policyData should have required property 'maxTrailerLength'
+policyData should have required property 'name'
+policyData should have required property 'protocolErrors'
+policyData should have required property 'qosErrors'
+policyData should have required property 'rejectMessageAction'
+policyData should have required property 'request'
+policyData should have required property 'response'
+policyData should have required property 'routingErrors'
+policyData should have required property 'summaryNotificationPeriod'
+policyData should have required property 'wafErrors'
+policyData should have required property 'window1TimePeriod'
+policyData should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(1061,0)-(1068,0)]
+	Link:       anypoint-security-policies/api.yaml:1061:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    id should be string
+policyData should NOT have additional properties
+policyData should have required property 'alertPeriod'
+policyData should have required property 'allowMethods'
+policyData should have required property 'authenticationErrors'
+policyData should have required property 'contentErrors'
+policyData should have required property 'excessiveTrafficEventTrigger'
+policyData should have required property 'ipWhiteList'
+policyData should have required property 'maxBodyLength'
+policyData should have required property 'maxHeaderLength'
+policyData should have required property 'maxNumberHeadersTrailers'
+policyData should have required property 'maxRequestLineLength'
+policyData should have required property 'maxSourcesToMonitor'
+policyData should have required property 'maxTrailerLength'
+policyData should have required property 'name'
+policyData should have required property 'protocolErrors'
+policyData should have required property 'qosErrors'
+policyData should have required property 'rejectMessageAction'
+policyData should have required property 'request'
+policyData should have required property 'response'
+policyData should have required property 'routingErrors'
+policyData should have required property 'summaryNotificationPeriod'
+policyData should have required property 'wafErrors'
+policyData should have required property 'window1TimePeriod'
+policyData should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(1486,0)-(1493,0)]
+	Link:       anypoint-security-policies/api.yaml:1486:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'advancedOption'
+should have required property 'httpDomains'
+should have required property 'id'
+should have required property 'logs'
+should have required property 'organizationId'
+should have required property 'virtualServerIds'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(865,23)-(865,25)]
+	Link:       anypoint-security-policies/api.yaml:865:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'advancedOption'
+should have required property 'httpDomains'
+should have required property 'id'
+should have required property 'logs'
+should have required property 'organizationId'
+should have required property 'virtualServerIds'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(585,23)-(585,25)]
+	Link:       anypoint-security-policies/api.yaml:585:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    id should be string
+policyData should NOT have additional properties
+policyData should have required property 'alertPeriod'
+policyData should have required property 'allowMethods'
+policyData should have required property 'authenticationErrors'
+policyData should have required property 'contentErrors'
+policyData should have required property 'excessiveTrafficEventTrigger'
+policyData should have required property 'ipWhiteList'
+policyData should have required property 'maxBodyLength'
+policyData should have required property 'maxHeaderLength'
+policyData should have required property 'maxNumberHeadersTrailers'
+policyData should have required property 'maxRequestLineLength'
+policyData should have required property 'maxSourcesToMonitor'
+policyData should have required property 'maxTrailerLength'
+policyData should have required property 'name'
+policyData should have required property 'protocolErrors'
+policyData should have required property 'qosErrors'
+policyData should have required property 'rejectMessageAction'
+policyData should have required property 'request'
+policyData should have required property 'response'
+policyData should have required property 'routingErrors'
+policyData should have required property 'summaryNotificationPeriod'
+policyData should have required property 'wafErrors'
+policyData should have required property 'window1TimePeriod'
+policyData should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(1402,0)-(1409,0)]
+	Link:       anypoint-security-policies/api.yaml:1402:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'advancedOption'
+should have required property 'httpDomains'
+should have required property 'id'
+should have required property 'logs'
+should have required property 'organizationId'
+should have required property 'virtualServerIds'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(764,23)-(764,25)]
+	Link:       anypoint-security-policies/api.yaml:764:23
+

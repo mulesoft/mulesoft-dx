@@ -1,0 +1,90 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./arm-rest-services
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter serverId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(196,2)-(381,0)]
+	Link:       arm-rest-services/api.yaml:196:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter serverId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(381,2)-(416,0)]
+	Link:       arm-rest-services/api.yaml:381:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter serverGroupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(592,2)-(779,0)]
+	Link:       arm-rest-services/api.yaml:592:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter serverGroupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(779,2)-(924,0)]
+	Link:       arm-rest-services/api.yaml:779:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter componentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1364,2)-(1469,0)]
+	Link:       arm-rest-services/api.yaml:1364:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1784,2)-(2192,0)]
+	Link:       arm-rest-services/api.yaml:1784:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2192,2)-(2270,0)]
+	Link:       arm-rest-services/api.yaml:2192:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2270,2)-(2383,0)]
+	Link:       arm-rest-services/api.yaml:2270:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2383,2)-(2512,0)]
+	Link:       arm-rest-services/api.yaml:2383:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter flowId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2383,2)-(2512,0)]
+	Link:       arm-rest-services/api.yaml:2383:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter applicationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(2512,2)-(2663,0)]
+	Link:       arm-rest-services/api.yaml:2512:2
+

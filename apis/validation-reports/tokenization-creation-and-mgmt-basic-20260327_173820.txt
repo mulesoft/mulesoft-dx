@@ -1,0 +1,314 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./tokenization-creation-and-mgmt
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(646,2)-(650,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:646:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(650,2)-(1060,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:650:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1060,2)-(1608,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1060:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1608,2)-(1756,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1608:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1756,2)-(1883,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1756:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter deploymentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1756,2)-(1883,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1756:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter envId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1883,2)-(1993,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1883:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter deploymentId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1883,2)-(1993,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1883:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    status.nodes[0].replicas[0] should have required property 'reason'
+	Location:   file://api.yaml
+	Position:   [(2482,0)-(2545,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:2482:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#unsupported-example-media-type-warning
+	Severity:   Warning
+	Message:    Unsupported validation for mediatype: text/vnd.yaml and shape file://api.yaml#/endpoint/%2Fservices/supportedOperation/get/getServices/returns/resp/200/payload/*%2F*/schema/schema
+	Location:   file://api.yaml
+	Position:   [(587,23)-(587,25)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:587:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    target should have required property 'createdAt'
+target should have required property 'runtimeVersion'
+
+	Location:   file://api.yaml
+	Position:   [(1919,0)-(1922,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1919:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'ipAddress'
+[1] should have required property 'deploymentInfo'
+[1] should have required property 'ipAddress'
+[2] should have required property 'deploymentInfo'
+[2] should have required property 'ipAddress'
+[3] should have required property 'deploymentInfo'
+[3] should have required property 'ipAddress'
+
+	Location:   file://api.yaml
+	Position:   [(849,0)-(996,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:849:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'createdAt'
+[0] should have required property 'deploymentInfo'
+[0] should have required property 'downloadedAt'
+[0] should have required property 'environmentId'
+[0] should have required property 'ipAddress'
+[0] should have required property 'organizationId'
+[0] should have required property 'serviceData'
+[0] should have required property 'status'
+[0] should have required property 'updatedAt'
+[0] should have required property 'vdpOperationInfo'
+[0].id should match pattern "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
+	Location:   file://api.yaml
+	Position:   [(1000,0)-(1002,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1000:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'createdAt'
+[0] should have required property 'formatData'
+[0] should have required property 'isDeleted'
+[0] should have required property 'name'
+[0] should have required property 'updatedAt'
+[0] should match some schema in anyOf
+[0].type should be equal to one of the allowed values
+
+	Location:   file://api.yaml
+	Position:   [(225,0)-(227,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:225:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    deploymentInfo should be null
+deploymentInfo should have required property 'deployerCallSuccessful'
+deploymentInfo should match some schema in anyOf
+environmentId should be string
+id should be string
+ipAddress should be null
+ipAddress should be string
+ipAddress should match some schema in anyOf
+logs should NOT have additional properties
+organizationId should be string
+serviceData should NOT have additional properties
+serviceData should have required property 'formats'
+serviceData should have required property 'muleCloudID'
+serviceData should have required property 'name'
+serviceData should have required property 'numberOfInstances'
+should have required property 'createdAt'
+should have required property 'downloadedAt'
+should have required property 'updatedAt'
+status should be equal to one of the allowed values
+status should be string
+vdpOperationInfo.csmResponse should have required property 'code'
+vdpOperationInfo.csmResponse should have required property 'message'
+vdpOperationInfo.csmResponse should have required property 'packaging'
+vdpOperationInfo.csmResponse should have required property 'secretGroupId'
+vdpOperationInfo.csmResponse should have required property 'secretId'
+vdpOperationInfo.csmResponse should have required property 'secretType'
+vdpOperationInfo.csmResponse should match some schema in anyOf
+vdpOperationInfo.exchangeResponse should have required property 'assetId'
+vdpOperationInfo.exchangeResponse should have required property 'classifier'
+vdpOperationInfo.exchangeResponse should have required property 'code'
+vdpOperationInfo.exchangeResponse should have required property 'groupId'
+vdpOperationInfo.exchangeResponse should have required property 'message'
+vdpOperationInfo.exchangeResponse should have required property 'metadata'
+vdpOperationInfo.exchangeResponse should have required property 'organizationId'
+vdpOperationInfo.exchangeResponse should have required property 'version'
+vdpOperationInfo.exchangeResponse should have required property 'versionGroup'
+vdpOperationInfo.exchangeResponse should match some schema in anyOf
+vdpOperationInfo.status should be equal to one of the allowed values
+vdpOperationInfo.status should be string
+vdpOperationInfo.vdpResponse should have required property 'code'
+vdpOperationInfo.vdpResponse should have required property 'domains'
+vdpOperationInfo.vdpResponse should have required property 'message'
+vdpOperationInfo.vdpResponse should have required property 'outputLocation'
+vdpOperationInfo.vdpResponse should match some schema in anyOf
+vdpUpdateOperationInfo should be null
+vdpUpdateOperationInfo should have required property 'code'
+vdpUpdateOperationInfo should have required property 'message'
+vdpUpdateOperationInfo should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(1094,0)-(1134,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1094:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    deploymentInfo should be null
+deploymentInfo should have required property 'deployerCallSuccessful'
+deploymentInfo should match some schema in anyOf
+environmentId should be string
+id should be string
+ipAddress should be null
+ipAddress should be string
+ipAddress should match some schema in anyOf
+logs should NOT have additional properties
+organizationId should be string
+serviceData should NOT have additional properties
+serviceData should have required property 'formats'
+serviceData should have required property 'muleCloudID'
+serviceData should have required property 'name'
+serviceData should have required property 'numberOfInstances'
+should have required property 'createdAt'
+should have required property 'downloadedAt'
+should have required property 'updatedAt'
+status should be equal to one of the allowed values
+status should be string
+vdpOperationInfo.csmResponse should have required property 'code'
+vdpOperationInfo.csmResponse should have required property 'message'
+vdpOperationInfo.csmResponse should have required property 'packaging'
+vdpOperationInfo.csmResponse should have required property 'secretGroupId'
+vdpOperationInfo.csmResponse should have required property 'secretId'
+vdpOperationInfo.csmResponse should have required property 'secretType'
+vdpOperationInfo.csmResponse should match some schema in anyOf
+vdpOperationInfo.exchangeResponse should have required property 'assetId'
+vdpOperationInfo.exchangeResponse should have required property 'classifier'
+vdpOperationInfo.exchangeResponse should have required property 'code'
+vdpOperationInfo.exchangeResponse should have required property 'groupId'
+vdpOperationInfo.exchangeResponse should have required property 'message'
+vdpOperationInfo.exchangeResponse should have required property 'metadata'
+vdpOperationInfo.exchangeResponse should have required property 'organizationId'
+vdpOperationInfo.exchangeResponse should have required property 'version'
+vdpOperationInfo.exchangeResponse should have required property 'versionGroup'
+vdpOperationInfo.exchangeResponse should match some schema in anyOf
+vdpOperationInfo.status should be equal to one of the allowed values
+vdpOperationInfo.status should be string
+vdpOperationInfo.vdpResponse should have required property 'code'
+vdpOperationInfo.vdpResponse should have required property 'domains'
+vdpOperationInfo.vdpResponse should have required property 'message'
+vdpOperationInfo.vdpResponse should have required property 'outputLocation'
+vdpOperationInfo.vdpResponse should match some schema in anyOf
+vdpUpdateOperationInfo should be null
+vdpUpdateOperationInfo should have required property 'code'
+vdpUpdateOperationInfo should have required property 'message'
+vdpUpdateOperationInfo should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(691,0)-(731,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:691:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'createdAt'
+should have required property 'formatData'
+should have required property 'isDeleted'
+should have required property 'name'
+should have required property 'type'
+should have required property 'updatedAt'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(63,23)-(63,25)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:63:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    id should match pattern "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+scope should have required property 'organization'
+should have required property 'updatedAt'
+specVersion should be string
+status should have required property 'lastSuccessfulSpec'
+status should have required property 'nodes'
+status should have required property 'status'
+target.id should match pattern "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+type should be equal to one of the allowed values
+type should be string
+
+	Location:   file://api.yaml
+	Position:   [(1788,0)-(1812,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:1788:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'createdAt'
+should have required property 'formatData'
+should have required property 'isDeleted'
+should have required property 'name'
+should have required property 'type'
+should have required property 'updatedAt'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(411,23)-(411,25)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:411:23
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'ipAddress'
+	Location:   file://api.yaml
+	Position:   [(2315,0)-(2369,0)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:2315:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'createdAt'
+should have required property 'formatData'
+should have required property 'isDeleted'
+should have required property 'name'
+should have required property 'type'
+should have required property 'updatedAt'
+should match some schema in anyOf
+
+	Location:   file://api.yaml
+	Position:   [(316,23)-(316,25)]
+	Link:       tokenization-creation-and-mgmt/api.yaml:316:23
+

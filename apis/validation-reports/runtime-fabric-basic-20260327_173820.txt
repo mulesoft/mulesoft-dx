@@ -1,0 +1,386 @@
+Validating Api Project... ✅
+Command api-project:validate flags:
+- client_id: bebebe51b5af4514ae51a42240b0766e
+- host: anypoint.mulesoft.com
+- collectMetrics: true
+- skip-environment: false
+- local-ruleset: 
+- ruleset: 
+- location: ./runtime-fabric
+- centralized-rulesets: false
+- junit-loc: ./
+- local-policy: 
+- policy: 
+	Constraint: http://a.ml/vocabularies/data#unreachable-asset
+	Severity:   Violation
+	Message:    Asset f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/ is unreachable
+	Location:   f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/
+	Position:   [(0,0)-(0,0)]
+	Link:       runtime-fabric/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-library/0.0.12/:0:0
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(19,2)-(226,0)]
+	Link:       runtime-fabric/api.yaml:19:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(226,2)-(810,0)]
+	Link:       runtime-fabric/api.yaml:226:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(226,2)-(810,0)]
+	Link:       runtime-fabric/api.yaml:226:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(810,2)-(915,0)]
+	Link:       runtime-fabric/api.yaml:810:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(810,2)-(915,0)]
+	Link:       runtime-fabric/api.yaml:810:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(915,2)-(983,0)]
+	Link:       runtime-fabric/api.yaml:915:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(915,2)-(983,0)]
+	Link:       runtime-fabric/api.yaml:915:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(983,2)-(1010,0)]
+	Link:       runtime-fabric/api.yaml:983:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(983,2)-(1010,0)]
+	Link:       runtime-fabric/api.yaml:983:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1010,2)-(1024,0)]
+	Link:       runtime-fabric/api.yaml:1010:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1010,2)-(1024,0)]
+	Link:       runtime-fabric/api.yaml:1010:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1024,2)-(1100,0)]
+	Link:       runtime-fabric/api.yaml:1024:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter fabricId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1024,2)-(1100,0)]
+	Link:       runtime-fabric/api.yaml:1024:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1100,2)-(1120,0)]
+	Link:       runtime-fabric/api.yaml:1100:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1120,2)-(1143,0)]
+	Link:       runtime-fabric/api.yaml:1120:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1120,2)-(1143,0)]
+	Link:       runtime-fabric/api.yaml:1120:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1143,2)-(1272,0)]
+	Link:       runtime-fabric/api.yaml:1143:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1143,2)-(1272,0)]
+	Link:       runtime-fabric/api.yaml:1143:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1272,2)-(1355,0)]
+	Link:       runtime-fabric/api.yaml:1272:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter groupId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1272,2)-(1355,0)]
+	Link:       runtime-fabric/api.yaml:1272:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1355,2)-(1367,0)]
+	Link:       runtime-fabric/api.yaml:1355:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1367,2)-(1391,0)]
+	Link:       runtime-fabric/api.yaml:1367:2
+
+	Constraint: http://a.ml/vocabularies/amf/parser#WebAPI-endpoints-pathParameterDefinitionCheck
+	Severity:   Warning
+	Message:    Path parameter organizationId must be defined in the parameters object
+	Location:   file://api.yaml
+	Position:   [(1391,2)-(1412,0)]
+	Link:       runtime-fabric/api.yaml:1391:2
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'deploymentStatus'
+[0] should have required property 'environmentId'
+[0] should have required property 'name'
+[0] should have required property 'organizationId'
+
+	Location:   file://api.yaml
+	Position:   [(1178,0)-(1180,0)]
+	Link:       runtime-fabric/api.yaml:1178:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'createdAt'
+should have required property 'nodes'
+
+	Location:   file://api.yaml
+	Position:   [(171,0)-(181,0)]
+	Link:       runtime-fabric/api.yaml:171:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    externalLogForwarding.azureConfig should have required property 'Customer_ID'
+externalLogForwarding.azureConfig should have required property 'Shared_Key'
+externalLogForwarding.cloudWatchConfig should have required property 'aws_access_key_id'
+externalLogForwarding.cloudWatchConfig should have required property 'aws_secret_access_key'
+externalLogForwarding.cloudWatchConfig should have required property 'log_group_name'
+externalLogForwarding.cloudWatchConfig should have required property 'region'
+externalLogForwarding.dataDogConfig should have required property 'Host'
+externalLogForwarding.dataDogConfig should have required property 'apikey'
+externalLogForwarding.elasticSearchConfig should have required property 'Host'
+externalLogForwarding.elasticSearchConfig should have required property 'Index'
+externalLogForwarding.elasticSearchConfig should have required property 'Port'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Full_Message_Key'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Host_Key'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Short_Message_Key'
+externalLogForwarding.grayLogConfig should have required property 'Host'
+externalLogForwarding.grayLogConfig should have required property 'Match'
+externalLogForwarding.grayLogConfig should have required property 'Mode'
+externalLogForwarding.grayLogConfig should have required property 'Port'
+externalLogForwarding.splunkConfig should have required property 'Host'
+externalLogForwarding.splunkConfig should have required property 'Port'
+externalLogForwarding.syslogConfig should have required property 'Host'
+externalLogForwarding.syslogConfig should have required property 'Mode'
+externalLogForwarding.syslogConfig should have required property 'Port'
+
+	Location:   file://api.yaml
+	Position:   [(827,0)-(853,0)]
+	Link:       runtime-fabric/api.yaml:827:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    associations[0] should have required property 'deploymentStatus'
+associations[0] should have required property 'environmentId'
+associations[0] should have required property 'name'
+associations[0] should have required property 'organizationId'
+
+	Location:   file://api.yaml
+	Position:   [(1136,0)-(1141,0)]
+	Link:       runtime-fabric/api.yaml:1136:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    externalLogForwarding.azureConfig should have required property 'Customer_ID'
+externalLogForwarding.azureConfig should have required property 'Shared_Key'
+externalLogForwarding.cloudWatchConfig should have required property 'aws_access_key_id'
+externalLogForwarding.cloudWatchConfig should have required property 'aws_secret_access_key'
+externalLogForwarding.cloudWatchConfig should have required property 'log_group_name'
+externalLogForwarding.cloudWatchConfig should have required property 'region'
+externalLogForwarding.dataDogConfig should have required property 'Host'
+externalLogForwarding.dataDogConfig should have required property 'apikey'
+externalLogForwarding.elasticSearchConfig should have required property 'Host'
+externalLogForwarding.elasticSearchConfig should have required property 'Index'
+externalLogForwarding.elasticSearchConfig should have required property 'Port'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Full_Message_Key'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Host_Key'
+externalLogForwarding.grayLogConfig should have required property 'Gelf_Short_Message_Key'
+externalLogForwarding.grayLogConfig should have required property 'Host'
+externalLogForwarding.grayLogConfig should have required property 'Match'
+externalLogForwarding.grayLogConfig should have required property 'Mode'
+externalLogForwarding.grayLogConfig should have required property 'Port'
+externalLogForwarding.splunkConfig should have required property 'Host'
+externalLogForwarding.splunkConfig should have required property 'Port'
+externalLogForwarding.syslogConfig should have required property 'Host'
+externalLogForwarding.syslogConfig should have required property 'Mode'
+externalLogForwarding.syslogConfig should have required property 'Port'
+
+	Location:   file://api.yaml
+	Position:   [(877,0)-(903,0)]
+	Link:       runtime-fabric/api.yaml:877:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    azureConfig should have required property 'Customer_ID'
+azureConfig should have required property 'Shared_Key'
+cloudWatchConfig should have required property 'aws_access_key_id'
+cloudWatchConfig should have required property 'aws_secret_access_key'
+cloudWatchConfig should have required property 'log_group_name'
+cloudWatchConfig should have required property 'region'
+dataDogConfig should have required property 'Host'
+dataDogConfig should have required property 'apikey'
+elasticSearchConfig should have required property 'Host'
+elasticSearchConfig should have required property 'Index'
+elasticSearchConfig should have required property 'Port'
+grayLogConfig should have required property 'Gelf_Full_Message_Key'
+grayLogConfig should have required property 'Gelf_Host_Key'
+grayLogConfig should have required property 'Gelf_Short_Message_Key'
+grayLogConfig should have required property 'Host'
+grayLogConfig should have required property 'Match'
+grayLogConfig should have required property 'Mode'
+grayLogConfig should have required property 'Port'
+splunkConfig should have required property 'Host'
+splunkConfig should have required property 'Port'
+syslogConfig should have required property 'Host'
+syslogConfig should have required property 'Mode'
+syslogConfig should have required property 'Port'
+
+	Location:   file://api.yaml
+	Position:   [(947,0)-(971,0)]
+	Link:       runtime-fabric/api.yaml:947:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    should have required property 'createdAt'
+should have required property 'nodes'
+
+	Location:   file://api.yaml
+	Position:   [(550,0)-(560,0)]
+	Link:       runtime-fabric/api.yaml:550:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'createdAt'
+[0] should have required property 'name'
+[0] should have required property 'nodes'
+[0] should have required property 'region'
+[0] should have required property 'version'
+
+	Location:   file://api.yaml
+	Position:   [(109,0)-(111,0)]
+	Link:       runtime-fabric/api.yaml:109:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    agent should have required property 'name'
+agent should have required property 'updatedAt'
+agent should have required property 'url'
+agent should have required property 'version'
+package should have required property 'name'
+package should have required property 'updatedAt'
+package should have required property 'url'
+package should have required property 'version'
+rtfctl should have required property 'name'
+rtfctl should have required property 'updatedAt'
+rtfctl should have required property 'url'
+rtfctl should have required property 'version'
+scripts should have required property 'name'
+scripts should have required property 'updatedAt'
+scripts should have required property 'url'
+scripts should have required property 'version'
+
+	Location:   file://api.yaml
+	Position:   [(1564,0)-(1576,0)]
+	Link:       runtime-fabric/api.yaml:1564:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    [0] should have required property 'associations'
+[0] should have required property 'name'
+
+	Location:   file://api.yaml
+	Position:   [(1117,0)-(1119,0)]
+	Link:       runtime-fabric/api.yaml:1117:0
+
+	Constraint: http://a.ml/vocabularies/amf/validation#example-validation-error
+	Severity:   Warning
+	Message:    anypointMonitoring.failedProbes[0] should have required property 'lastTransitionAt'
+anypointMonitoring.failedProbes[0] should have required property 'name'
+anypointMonitoring.failedProbes[0] should have required property 'reason'
+appliance.failedProbes[0] should have required property 'lastTransitionAt'
+appliance.failedProbes[0] should have required property 'name'
+appliance.failedProbes[0] should have required property 'reason'
+clusterMonitoring.failedProbes[0] should have required property 'lastTransitionAt'
+clusterMonitoring.failedProbes[0] should have required property 'name'
+clusterMonitoring.failedProbes[0] should have required property 'reason'
+externalLogForwarding.failedProbes[0] should have required property 'lastTransitionAt'
+externalLogForwarding.failedProbes[0] should have required property 'name'
+externalLogForwarding.failedProbes[0] should have required property 'reason'
+infrastructure.failedProbes[0] should have required property 'lastTransitionAt'
+infrastructure.failedProbes[0] should have required property 'name'
+infrastructure.failedProbes[0] should have required property 'reason'
+loadBalancing.failedProbes[0] should have required property 'lastTransitionAt'
+loadBalancing.failedProbes[0] should have required property 'name'
+loadBalancing.failedProbes[0] should have required property 'reason'
+manageDeployments.failedProbes[0] should have required property 'lastTransitionAt'
+manageDeployments.failedProbes[0] should have required property 'name'
+manageDeployments.failedProbes[0] should have required property 'reason'
+persistentGateway.failedProbes[0] should have required property 'lastTransitionAt'
+persistentGateway.failedProbes[0] should have required property 'name'
+persistentGateway.failedProbes[0] should have required property 'reason'
+
+	Location:   file://api.yaml
+	Position:   [(1043,0)-(1099,0)]
+	Link:       runtime-fabric/api.yaml:1043:0
+

@@ -87,7 +87,8 @@ validate-all: $(REPORT_DIR)
 	@passed=0; failed=0; \
 	for api in $(API_DIRS); do \
 		echo "$(BLUE)Validating:$(NC) $$api"; \
-		report=$(REPORT_DIR)/$$api-basic-$(TIMESTAMP).txt; \
+		api_name=$$(basename $$api); \
+		report=$(REPORT_DIR)/$$api_name-basic-$(TIMESTAMP).txt; \
 		if $(ANYPOINT_CLI) api-project validate --location=./$$api > "$$report" 2>&1; then \
 			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
 			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
@@ -124,8 +125,9 @@ validate-all-governed: $(REPORT_DIR)
 	fi; \
 	passed=0; failed=0; skipped=0; \
 	for api in $(API_DIRS); do \
+		api_name=$$(basename $$api); \
 		skip=false; \
-		for s in $(SKIP_GOVERNED); do [ "$$api" = "$$s" ] && skip=true; done; \
+		for s in $(SKIP_GOVERNED); do [ "$$api_name" = "$$s" ] && skip=true; done; \
 		if $$skip; then \
 			echo "$(YELLOW)Skipping:$(NC) $$api (in SKIP_GOVERNED list)"; \
 			skipped=$$((skipped + 1)); \
@@ -133,7 +135,7 @@ validate-all-governed: $(REPORT_DIR)
 			continue; \
 		fi; \
 		echo "$(BLUE)Validating:$(NC) $$api"; \
-		report=$(REPORT_DIR)/$$api-governed-$(TIMESTAMP).txt; \
+		report=$(REPORT_DIR)/$$api_name-governed-$(TIMESTAMP).txt; \
 		if $(ANYPOINT_CLI) api-project validate --location=./$$api --local-ruleset=$(RULESET) > "$$report" 2>&1; then \
 			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
 			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
@@ -170,27 +172,28 @@ validate-api:
 		exit 1; \
 	fi
 	@mkdir -p $(REPORT_DIR)
+	$(eval API_NAME := $(shell basename $(API)))
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(CYAN)  Validating: $(API)$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@echo "$(BLUE)Step 1: Basic OAS Validation$(NC)"
-	@$(ANYPOINT_CLI) api-project validate --location=./$(API) > $(REPORT_DIR)/$(API)-basic-$(TIMESTAMP).txt 2>&1 || true
-	@violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
-	warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
+	@$(ANYPOINT_CLI) api-project validate --location=./$(API) > $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>&1 || true
+	@violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
+	warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 	echo "  Violations: $$violations"; \
 	echo "  Warnings: $$warnings"; \
 	echo ""
 	@echo "$(BLUE)Step 2: Governance Rules Validation$(NC)"
 	@if [ -f $(RULESET) ]; then \
-		$(ANYPOINT_CLI) api-project validate --location=./$(API) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API)-governed-$(TIMESTAMP).txt 2>&1 || true; \
-		violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
-		warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
+		$(ANYPOINT_CLI) api-project validate --location=./$(API) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>&1 || true; \
+		violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
+		warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 		echo "  Violations: $$violations"; \
 		echo "  Warnings: $$warnings"; \
 		echo ""; \
 		echo "$(BLUE)Top Violation Categories:$(NC)"; \
-		grep "Constraint:.*ruleset.yaml" $(REPORT_DIR)/$(API)-governed-$(TIMESTAMP).txt 2>/dev/null | \
+		grep "Constraint:.*ruleset.yaml" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null | \
 			sed 's/.*#\/encodes\/validations\///' | sort | uniq -c | sort -rn | head -5 | \
 			while read count type; do echo "  $$count  $$type"; done; \
 	else \
@@ -198,8 +201,8 @@ validate-api:
 	fi
 	@echo ""
 	@echo "$(GREEN)Reports saved to:$(NC)"
-	@echo "  $(REPORT_DIR)/$(API)-basic-$(TIMESTAMP).txt"
-	@echo "  $(REPORT_DIR)/$(API)-governed-$(TIMESTAMP).txt"
+	@echo "  $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt"
+	@echo "  $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt"
 	@echo ""
 
 # Generate comprehensive report

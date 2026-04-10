@@ -1,0 +1,29 @@
+{% from "operations/operation_detail.html" import render_operation %}
+
+{% if api.operations %}
+<div id="operations-container">
+    <div id="operations-placeholder" class="operations-placeholder">
+        <div class="placeholder-content">
+            <h3>Select an operation from the sidebar</h3>
+            <p>Click on any operation in the left sidebar to view its details including parameters, request body, and responses.</p>
+        </div>
+    </div>
+    {% for op in api.operations %}
+    {{ render_operation(op, icons_path) }}
+    {% endfor %}
+</div>
+
+<!-- X-Origin Modal (single instance for entire page) -->
+<div class="xorigin-modal" id="xorigin-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="xorigin-modal-title">
+    <div class="xorigin-modal-overlay" onclick="closeXOriginModal()"></div>
+    <div class="xorigin-modal-content">
+        <div class="xorigin-modal-header">
+            <h3 id="xorigin-modal-title">Fetch Values</h3>
+            <button class="btn-close-modal" onclick="closeXOriginModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="xorigin-modal-body" id="xorigin-modal-body">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+</div>
+{% endif %}

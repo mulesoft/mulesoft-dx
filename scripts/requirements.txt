@@ -1,0 +1,7 @@
+ruamel.yaml
+python-frontmatter
+Jinja2
+markdown-it-py
+pytest
+beautifulsoup4
+jsonschema

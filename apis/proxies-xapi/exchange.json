@@ -1,0 +1,17 @@
+{
+  "main": "api.yaml",
+  "name": "Proxies",
+  "classifier": "oas",
+  "tags": [],
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "proxies-xapi",
+  "version": "1.0.4",
+  "apiVersion": "v1",
+  "originalFormatVersion": "3.0",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "metadata": {
+    "projectId": "cf25a21a-4863-4231-a7b8-a3428f3b4a52",
+    "branchId": "master",
+    "commitId": "7caf9ae9870746aafde7fa19f4f5da663715732d"
+  }
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="build-label" content="{{ build_label|default('unknown') }}">
+    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust.min.css">
+    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust-mulesoft-custom.css">
+    
+    <script>  
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://www.mulesoft.com/oneTrust/scripttemplates/otSDKStub.js';   
+    script.setAttribute('data-domain-script', 'fc594183-7384-4f03-8c43-1f81571521b7');
+    document.getElementsByTagName('body')[0].appendChild(script);
+    
+    function OptanonWrapper() {
+        localStorage.setItem('otsettings', OptanonActiveGroups);
+    }
+    </script>
+    <link rel="alternate" type="application/json" href="{{ base_url|default('') }}/registry.json" title="Document Registry">
+    <link rel="help" href="{{ base_url|default('') }}/AGENTS.md" title="Agent Guide">
+    <link rel="help" type="text/plain" href="{{ base_url|default('') }}/llms.txt" title="LLM Discovery (llmstxt.org)">
+    <meta name="robots" content="index, follow">
+    <title>{% block title %}Anypoint Platform APIs{% endblock %}</title>
+    {% if chrome and chrome.dependencies %}
+    {{ chrome.dependencies|safe }}
+    {% endif %}
+    <link rel="stylesheet" href="{{ css_path }}">
+
+    <!-- Ace Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/theme-textmate.min.js"></script>
+    <style>
+        .ace_editor {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 0.8125rem;
+            border: 1px solid var(--lume-color-neutral-5);
+            border-radius: var(--lume-radius-small);
+            min-height: 200px;
+        }
+        .ace_editor.ace_focus {
+            outline: 2px solid rgba(1, 118, 211, 0.15);
+            border-color: var(--lume-color-brand);
+        }
+    </style>
+    <script>
+        window.aceEditors = {};
+    </script>
+    {% block head_scripts %}{% endblock %}
+</head>
+<body{% block body_attrs %}{% endblock %}>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    {% if chrome and chrome.header %}
+    {{ chrome.header|safe }}
+    {% endif %}
+    {% block header %}{% endblock %}
+    {% block content %}{% endblock %}
+    {% if chrome and chrome.footer %}
+    {{ chrome.footer|safe }}
+    {% endif %}
+    {% block footer %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

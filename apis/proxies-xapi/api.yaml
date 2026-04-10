@@ -1,0 +1,405 @@
+openapi: 3.0.0
+info:
+  title: Proxies API
+  version: 1.0.0
+  description: Manage API proxy deployments and deployment targets for CloudHub, CloudHub 2.0, and Runtime Fabric.
+servers:
+- url: https://anypoint.mulesoft.com/proxies/xapi/v1
+- url: https://eu1.anypoint.mulesoft.com/proxies/xapi/v1
+- url: https://{region}.platform.mulesoft.com/proxies/xapi/v1
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/proxy:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      description: Gets a proxy.
+      parameters:
+      - name: gatewayVersion
+        in: query
+        schema:
+          default: 3.8.0
+          type: string
+        description: The gatewayVersion query parameter.
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidProxy
+    parameters:
+    - name: environmentApiId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The environmentApi ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/active:
+    post:
+      responses:
+        '201':
+          description: Resource created successfully.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: false
+        description: The active data to create.
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidActive
+      description: Creates a active.
+    parameters:
+    - name: environmentApiId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The environmentApi ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/deployments:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/deployments.json
+              example: ./responses/deployments.json
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+      description: Retrieves a deployments.
+    post:
+      responses:
+        '201':
+          description: Resource created successfully.
+          content:
+            application/json:
+              schema:
+                example: ./responses/deployment.json
+              example: ./responses/deployment.json
+      requestBody:
+        content:
+          application/json:
+            example: ./requests/ch-hy-deployment-example.json
+            schema:
+              $ref: ./requests/inbound-deployment-body.json
+        required: true
+        description: The deployments data to create.
+      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+      description: Creates a deployments.
+    parameters:
+    - name: environmentApiId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The environmentApi ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/deployments/{proxyDeploymentId}:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/deployment.json
+              example: ./responses/deployment.json
+      description: Returns a deployment (And sync it with deployment targets)
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+    put:
+      responses:
+        '201':
+          description: Resource created successfully.
+      requestBody:
+        content:
+          application/json:
+            example: ./requests/ch-hy-deployment-example.json
+            schema:
+              $ref: ./requests/inbound-deployment-body.json
+        required: true
+        description: The deployments data to update.
+      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+      description: Replaces a deployments.
+    patch:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/deployment.json
+              example: ./responses/deployment.json
+      requestBody:
+        content:
+          application/json:
+            example: ./requests/ch-hy-deployment-example.json
+            schema:
+              type: object
+        required: true
+        description: The deployments data to update.
+      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+      description: Updates a deployments.
+    parameters:
+    - name: proxyDeploymentId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The proxyDeployment ID to identify the target resource.
+    - name: environmentApiId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The environmentApi ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - name: checkAutomatedPolicies
+      in: query
+      schema:
+        type: boolean
+      description: The checkAutomatedPolicies query parameter.
+  ? /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/deployments/{proxyDeploymentId}/status
+  : get:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/deploymentStatus.json
+              example: ./responses/deploymentStatus.json
+      description: Retrieves the deployment details of a version (And sync it with deployment targets).
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentidStatus
+    parameters:
+    - name: proxyDeploymentId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The proxyDeployment ID to identify the target resource.
+    - name: environmentApiId
+      in: path
+      required: true
+      schema:
+        minimum: 1
+        maximum: 2147483647
+        type: integer
+      description: The environmentApi ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/deployment-targets:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      operationId: getOrganizationsByOrganizationidDeploymentTargets
+      description: Retrieves a deployment targets.
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/targets/{targetId}/runtimes/mule/versions:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      parameters:
+      - name: operation
+        in: query
+        schema:
+          type: string
+          enum:
+          - newdeployment
+          - redeployment
+          - rollback
+        description: The operation query parameter.
+      operationId: getOrganizationsByOrganizationidTargetsByTargetidRuntimesMuleVersions
+      description: Retrieves a versions.
+    parameters:
+    - name: targetId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The target ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/providers/{providerId}/runtime-fabric-deployment-targets:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      operationId: getOrganizationsByOrganizationidProvidersByProvideridRuntimeFabricDeploymentTargets
+      description: Retrieves a runtime fabric deployment targets.
+    parameters:
+    - name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The provider ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/providers/{providerId}/cloudhub2-deployment-targets:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_environmentId_Query'
+      - name: returnAllTargets
+        in: query
+        schema:
+          type: boolean
+        description: The returnAllTargets query parameter.
+      operationId: getOrganizationsByOrganizationidProvidersByProvideridCloudhub2DeploymentTargets
+      description: Retrieves a cloudhub2 deployment targets.
+    parameters:
+    - name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The provider ID to identify the target resource.
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /ch-domains/{domainName}:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getChDomainsByDomainname
+      description: Retrieves a ch domains.
+    parameters:
+    - name: domainName
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The domainName to identify the target resource.
+  /status/echo:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/echo.json
+              example: ./responses/echo.json
+      operationId: getStatusEcho
+      description: Lists echo.
+  /status/version:
+    get:
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                example: ./responses/version.json
+              example: ./responses/version.json
+      description: Retrieves the date and commit of the deployed version.
+      operationId: getStatusVersion
+components:
+  schemas: {}
+  responses: {}
+  parameters:
+    XOrigin_environmentId_Path:
+      name: environmentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    XOrigin_organizationId_Path:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]  
+      description: The organization ID to identify the target resource.
+    XOrigin_environmentId_Query:
+      name: environmentId
+      in: query
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID query parameter.
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
+
+        '
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  links: {}
+  callbacks: {}

@@ -1,0 +1,172 @@
+# AGENTS.md — Anypoint Platform API Portal
+
+> Machine-readable API reference for MuleSoft's Anypoint Platform.
+> This file is the entry point for AI agents. It explains the site structure,
+> discovery mechanisms, and how to resolve references found in skills and specs.
+
+## Quick Start
+
+1. Fetch `{{ base_url }}/registry.json` to discover all documents
+2. Filter by `kind` to find APIs (`oas`), skills (`agent-skill`), or schemas (`json-schema` / `schema-doc`)
+3. Use the `href` field to fetch raw source files (OpenAPI YAML, SKILL.md, JSON Schema)
+4. Use the `docs` field for rendered HTML documentation
+
+## Site Structure
+
+```
+{{ base_url }}/
+├── AGENTS.md              # This file — agent entry point
+├── llms.txt               # LLM discovery file (llmstxt.org convention)
+├── registry.json          # Document registry (all APIs, skills, schemas)
+├── index.html             # Human-readable homepage
+├── apis/
+│   ├── {slug}.html        # API documentation page
+│   └── {slug}/
+│       └── api.yaml       # Raw OpenAPI 3.0 spec
+├── skills/
+│   ├── {slug}.html        # Skill documentation page
+│   └── {slug}/
+│       └── SKILL.md       # Raw skill definition
+└── schemas/
+    ├── x-origin.schema.json   # JSON Schema for x-origin extension
+    ├── x-origin-schema.md     # x-origin documentation
+    ├── jtbd-schema.md         # JTBD skill format documentation
+    └── jtbd-template.md       # Template for creating new skills
+```
+
+## Registry Format
+
+`registry.json` is a flat JSON array. Each entry has:
+
+| Field | Type | Description |
+|---|---|---|
+| `$id` | string | Unique URN identifier |
+| `kind` | string | `oas`, `agent-skill`, `json-schema`, or `schema-doc` |
+| `slug` | string | URL-safe short name |
+| `name` | string | Human-readable name |
+| `description` | string | Brief description |
+| `href` | string | Relative path to raw source file |
+| `docs` | string | Relative path to rendered HTML |
+| `version` | string | Semantic version (APIs only) |
+| `category` | string | Grouping category (APIs only) |
+| `apis` | string[] | Referenced API slugs (skills only) |
+
+All `href` and `docs` paths are relative to `{{ base_url }}/`.
+
+## URN Scheme
+
+Documents are identified by URNs:
+
+- **APIs:** `urn:api:{slug}` — e.g., `urn:api:api-manager`
+- **Skills:** `urn:skill:{slug}` — e.g., `urn:skill:deploy-api-with-rate-limiting`
+- **Schemas:** `urn:schema:{name}` — e.g., `urn:schema:x-origin`
+
+### Resolving URNs to URLs
+
+| URN Pattern | URL Template |
+|---|---|
+| `urn:api:{slug}` | `{{ base_url }}/apis/{slug}/api.yaml` |
+| `urn:skill:{slug}` | `{{ base_url }}/skills/{slug}/SKILL.md` |
+| `urn:schema:x-origin` | `{{ base_url }}/schemas/x-origin.schema.json` |
+| `urn:schema:jtbd` | `{{ base_url }}/schemas/jtbd-schema.md` |
+
+## API Specs (OpenAPI 3.0)
+
+Each API is an OpenAPI 3.0 specification. Key conventions:
+
+- **Operations** have unique `operationId` values in camelCase
+- **Parameters** with dynamic enum values use the `x-origin` extension (see schema below)
+- **Server URLs** use `{region}` variable for multi-region support
+- **Authentication** is via Bearer token or OAuth2 client credentials
+
+### x-origin Extension
+
+Parameters whose valid values come from another API's response carry an `x-origin` annotation:
+
+```yaml
+x-origin:
+  - api: urn:api:access-management
+    operation: listEnvironments
+    values: "$.data[*].id"
+    labels: "$.data[*].name"
+```
+
+Full schema: `{{ base_url }}/schemas/x-origin.schema.json`
+Documentation: `{{ base_url }}/schemas/x-origin-schema.md`
+
+## Skills (JTBD Format)
+
+Skills are multi-step API workflows in markdown. Each `SKILL.md` has:
+
+1. **YAML frontmatter** with `name` (kebab-case) and `description` (includes trigger terms for agent matching)
+2. **Numbered steps** (`## Step N: Title`) each containing a YAML code block:
+   ```yaml
+   api: urn:api:{slug}
+   operationId: someOperation
+   inputs:
+     paramName:
+       from:
+         step: Previous Step Title
+         output: outputName
+       description: What this parameter is
+   outputs:
+     - name: resultName
+       path: $.jsonpath.expression
+       description: What this output represents
+   ```
+3. **Prose sections**: Overview, Prerequisites, Completion Checklist, Tips, Troubleshooting
+
+### Input Types
+
+| Type | Key | Description |
+|---|---|---|
+| From previous step | `from.step` + `from.output` | Output from an earlier workflow step |
+| From API | `from.api` + `from.operation` + `from.field` | Value fetched from an API call |
+| User-provided | `userProvided: true` | Must be supplied by the user/agent |
+| Literal | `value: "..."` | Static constant |
+
+Full schema: `{{ base_url }}/schemas/jtbd-schema.md`
+Template: `{{ base_url }}/schemas/jtbd-template.md`
+
+## Common Agent Workflows
+
+### Discover all APIs
+
+```
+GET {{ base_url }}/registry.json
+Filter: entries where kind == "oas"
+```
+
+### Find skills for a specific API
+
+```
+GET {{ base_url }}/registry.json
+Filter: entries where kind == "agent-skill" AND apis contains "{api-slug}"
+```
+
+### Execute a skill
+
+1. Fetch the skill: `GET {{ base_url }}/skills/{slug}/SKILL.md`
+2. Parse YAML frontmatter and step blocks
+3. For each step, resolve the API spec: `GET {{ base_url }}/apis/{slug}/api.yaml`
+4. Find the operation by `operationId`, build the request from inputs
+5. Chain outputs from one step into the next step's inputs
+
+### Resolve x-origin dynamic values
+
+1. Read the parameter's `x-origin` array
+2. For each source, fetch the referenced API spec via `urn:api:{slug}`
+3. Call the referenced `operation` with required parameters
+4. Apply JSONPath `values` (and `labels` if present) to extract options
+
+## Current Inventory
+
+**{{ stats.api_count }} APIs** across {{ stats.categories|length }} categories, **{{ stats.skill_count }} skills**, {{ stats.endpoint_count }} total endpoints.
+{% for api in apis %}
+- [`{{ api.name }}`](apis/{{ api.slug }}/api.yaml) ({{ api.version }}) — {{ api.description|truncate(100, True) }}
+{%- endfor %}
+
+### Skills
+{% for skill in all_skills %}
+- [`{{ skill.name }}`](skills/{{ skill.slug }}.html) — {{ skill.description|truncate(100, True) }}
+{%- endfor %}

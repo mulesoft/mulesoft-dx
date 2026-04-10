@@ -1,0 +1,33 @@
+<div class="catalog-controls">
+    <div class="search-and-filter">
+        <div class="tag-search-wrapper">
+            <div class="tag-search-input-container" id="tagSearchInputContainer">
+                <div class="selected-tags" id="selectedTags"></div>
+                <input type="text"
+                       id="tagSearchInput"
+                       class="tag-search-input"
+                       placeholder="Search by tags"
+                       aria-label="Search by tags"
+                       autocomplete="off">
+            </div>
+            <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
+        </div>
+    </div>
+    <div class="view-toggle" role="group" aria-label="View mode">
+        <button class="view-toggle-btn active" data-view="grid" aria-label="Grid view" title="Grid view">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="1" width="6" height="6" rx="1"/>
+                <rect x="9" y="1" width="6" height="6" rx="1"/>
+                <rect x="1" y="9" width="6" height="6" rx="1"/>
+                <rect x="9" y="9" width="6" height="6" rx="1"/>
+            </svg>
+        </button>
+        <button class="view-toggle-btn" data-view="list" aria-label="List view" title="List view">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="2" width="14" height="2" rx="1"/>
+                <rect x="1" y="7" width="14" height="2" rx="1"/>
+                <rect x="1" y="12" width="14" height="2" rx="1"/>
+            </svg>
+        </button>
+    </div>
+</div>

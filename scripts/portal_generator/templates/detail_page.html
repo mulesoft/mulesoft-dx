@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ api.name }} - Anypoint Platform APIs{% endblock %}
+
+{% block body_attrs %} class="detail-page"{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
+<script src="../assets/jsonpath-plus.min.js" defer></script>
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% set api_name = api.name %}
+{% set api_version = api.version %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "partials/sidebar.html" %}
+
+    <main class="detail-content" id="main-content">
+        {% include "partials/overview.html" %}
+        {% include "operations/operations_container.html" %}
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__API_META__ = {{ api_meta|tojson_raw }};
+window.__OP_LOOKUP__ = {{ op_lookup|tojson_raw }};
+window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+</script>
+{% endblock %}

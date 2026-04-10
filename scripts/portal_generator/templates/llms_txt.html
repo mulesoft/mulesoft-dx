@@ -1,0 +1,28 @@
+# Anypoint Platform API Portal
+
+> Machine-readable API reference for MuleSoft's Anypoint Platform.
+> Contains OpenAPI 3.0 specs, agent skills (JTBD workflows), and dynamic enum schemas.
+
+## Agent Guide
+
+- [AGENTS.md]({{ base_url }}/AGENTS.md): Complete guide for AI agents — site structure, URN scheme, discovery, skill format
+
+## Discovery
+
+- [registry.json]({{ base_url }}/registry.json): Document registry with URN-based IDs for all APIs, skills, and schemas
+
+## Schemas
+
+- [x-origin JSON Schema]({{ base_url }}/schemas/x-origin.schema.json): Dynamic enum source extension for OpenAPI parameters
+- [JTBD Skill Schema]({{ base_url }}/schemas/jtbd-schema.md): Agent skill / Jobs-to-be-Done format definition
+- [Skill Template]({{ base_url }}/schemas/jtbd-template.md): Template for creating new SKILL.md files
+
+## APIs
+{% for api in apis %}
+- [{{ api.name }}]({{ base_url }}/apis/{{ api.slug }}/api.yaml): {{ api.description|truncate(120, True) }}
+{%- endfor %}
+
+## Skills
+{% for skill in all_skills %}
+- [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.html): {{ skill.description|truncate(120, True) }}
+{%- endfor %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "skills/skill_detail.html" import render_skill %}
+
+{% block title %}{{ skill_name }} - Anypoint Platform APIs{% endblock %}
+
+{% block body_attrs %} class="detail-page skill-page"{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
+<script src="../assets/jsonpath-plus.min.js" defer></script>
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% set api_name = skill_name %}
+{% set api_version = skill.step_count ~ ' steps' %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "partials/skill_sidebar.html" %}
+
+    <main class="detail-content" id="main-content">
+        {{ render_skill(skill) }}
+    </main>
+</div>
+
+<!-- X-Origin Modal (single instance for entire page) -->
+<div class="xorigin-modal" id="xorigin-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="xorigin-modal-title">
+    <div class="xorigin-modal-overlay" onclick="closeXOriginModal()"></div>
+    <div class="xorigin-modal-content">
+        <div class="xorigin-modal-header">
+            <h3 id="xorigin-modal-title">Fetch Values</h3>
+            <button class="btn-close-modal" onclick="closeXOriginModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="xorigin-modal-body" id="xorigin-modal-body">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__API_META__ = {{ api_meta|tojson_raw }};
+window.__OP_LOOKUP__ = {{ op_lookup|tojson_raw }};
+window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+window.__API_LINK_PREFIX__ = '../apis/';
+</script>
+{% endblock %}

@@ -1,1 +1,6 @@
+.vscode/
+validation-reports/
+portal/
+__pycache__
 .DS_Store
+node_modules/

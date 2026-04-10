@@ -2957,7 +2957,7 @@ components:
       - api: urn:api:api-manager
         operation: listOrganizationsEnvironmentsApis
         values: $.assets[*].apis[*].id
-        labels: $.assets[*].apis[*].name
+        labels: $.assets[*].apis[*].instanceLabel
     param_exchange_asset_id_query:
       name: assetId
       in: query

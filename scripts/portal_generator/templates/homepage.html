@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Anypoint Platform APIs{% endblock %}
+
+{% block head_scripts %}
+<script src="assets/jsonpath-plus.min.js" defer></script>
+<script src="assets/portal.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<main id="main-content">
+    <section class="hero">
+        <div class="hero-background"></div>
+        <div class="hero-illustration"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">MuleSoft developer AI Portal</h1>
+            <p class="hero-subtitle">Discover, explore, and integrate with MuleSoft APIs on Anypoint Platform. Access interactive playgrounds and API documentation designed for both developers and AI agents.</p>
+
+            <div class="hero-tabs">
+                <button class="hero-tab active" data-filter="all">All</button>
+                <button class="hero-tab" data-filter="api">APIs</button>
+                <button class="hero-tab" data-filter="skill">Skills</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="catalog-main-content">
+        <div class="catalog-controls-wrapper">
+            <div class="catalog-search-row">
+                <div class="tag-search-wrapper">
+                    <div class="tag-search-input-container" id="tagSearchInputContainer">
+                        <div class="selected-tags" id="selectedTags"></div>
+                        <input type="text"
+                               id="tagSearchInput"
+                               class="tag-search-input"
+                               placeholder="Search by tags"
+                               aria-label="Search by tags"
+                               autocomplete="off">
+                    </div>
+                    <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="catalog-results-header">
+                <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
+                <div class="catalog-controls-right">                 
+                    <div class="view-toggle" role="group" aria-label="View mode">
+                        <button class="view-toggle-btn active" data-view="grid" aria-label="Grid view" title="Grid view">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <rect x="1" y="1" width="6" height="6" rx="1"/>
+                                <rect x="9" y="1" width="6" height="6" rx="1"/>
+                                <rect x="1" y="9" width="6" height="6" rx="1"/>
+                                <rect x="9" y="9" width="6" height="6" rx="1"/>
+                            </svg>
+                        </button>
+                        <button class="view-toggle-btn" data-view="list" aria-label="List view" title="List view">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <rect x="1" y="2" width="14" height="2" rx="1"/>
+                                <rect x="1" y="7" width="14" height="2" rx="1"/>
+                                <rect x="1" y="12" width="14" height="2" rx="1"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section id="catalog" class="unified-catalog">
+            <div class="catalog-grid" id="catalogGrid">
+                {% for api in apis %}
+                {% include "homepage/api_card.html" %}
+                {% endfor %}
+                {% if all_skills %}
+                {% for skill in all_skills %}
+                {% include "homepage/skill_card.html" %}
+                {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+</main>
+{% endblock %}
+
+{% block footer %}
+<footer class="footer">
+    <div class="container">
+        <p>Generated from OpenAPI 3.0 specifications</p>
+    </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% macro render_examples(examples) %}
+{% if examples %}
+{% for ct, named in examples.items() %}
+{% for name, json_str in named.items() %}
+<details class="example-block">
+    <summary>Example: {{ name if name != 'Default' else ct }}</summary>
+    <pre class="example-code"><code>{{ json_str }}</code></pre>
+</details>
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endmacro %}

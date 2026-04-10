@@ -1,0 +1,122 @@
+{% from "operations/macros.html" import param_type, x_origin, tags, breadcrumb %}
+{% from "operations/schema_table.html" import render_schema_table %}
+{% from "operations/examples.html" import render_examples %}
+{% from "operations/try_it_out.html" import render_try_it_out %}
+
+{% macro render_operation(operation, icons_path='assets/icons') %}
+{% set method_class = operation.method|lower %}
+<section id="op-{{ operation.operationId }}" class="content-section operation-detail"
+         data-path="{{ operation.path }}"
+         data-method="{{ operation.method }}">
+    {{ breadcrumb(operation.path) }}
+    <div class="operation-header-detail">
+        <div class="operation-title-row">
+            <span class="method method-{{ method_class }}">{{ operation.method }}</span>
+            <code class="operation-url-bar" data-op-id="{{ operation.operationId }}" data-path="{{ operation.path }}"></code>
+            {% if operation.deprecated %}<span class="badge badge-deprecated">DEPRECATED</span>{% endif %}
+        </div>
+        {% if operation.summary %}<h3>{{ operation.summary }}</h3>{% endif %}
+        {{ tags(operation.tags|default([])) }}
+    </div>
+
+    <div class="operation-content-wrapper" id="op-container-{{ operation.operationId }}">
+        <div class="operation-try-panel">
+            <div class="try-panel-header">
+                <h4>Try it out</h4>
+                <div class="try-header-actions">
+                    <span class="try-spinner" id="spinner-{{ operation.operationId }}" style="display:none" aria-live="polite">Sending</span>
+                    <div class="btn-group-send">
+                        <button class="btn-send-main" onclick="sendRequest('{{ operation.operationId }}')">Send</button>
+                        <button class="btn-send-dropdown" onclick="toggleSendDropdown('{{ operation.operationId }}')" aria-label="More actions">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <div class="send-dropdown-menu" id="send-dropdown-{{ operation.operationId }}" style="display:none">
+                            <button class="send-dropdown-item" onclick="copyCurlCommand('{{ operation.operationId }}')">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span id="copy-text-{{ operation.operationId }}">Copy cURL</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn-expand-try" onclick="toggleTryItOutExpand('{{ operation.operationId }}')"
+                            aria-label="Expand try it out panel" title="Expand">
+                        <img src="{{ icons_path }}/expand.svg" alt="" width="16" height="16">
+                    </button>
+                </div>
+            </div>
+            {{ render_try_it_out(operation) }}
+        </div>
+
+        <div class="operation-main-content">
+            {% set desc = operation.description|default('') or operation.summary|default('') %}
+            {% if desc %}
+            <div class="operation-description">{{ desc|md }}</div>
+            {% endif %}
+
+            <div class="operation-meta-detail">
+                <code class="operation-id">Operation ID: {{ operation.operationId }}</code>
+            </div>
+
+            {% if operation.parameters %}
+            <div class="operation-subsection">
+                <h4>Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Type</th><th scope="col">Description</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for param in operation.parameters %}
+                        <tr>
+                            <td><code>{{ param.name }}</code>{% if param.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</td>
+                            <td><span class="param-in">{{ param['in'] }}</span></td>
+                            <td>{{ param_type(param.schema|default({})) }}</td>
+                            <td>{{ param.description|default('')|md }}{{ x_origin(param) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if operation.requestBody %}
+            {% set rb = operation.requestBody %}
+            <div class="operation-subsection">
+                <h4>Request Body{% if rb.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</h4>
+                {% set content_types_str = rb.content_types|default([])|join(', ') %}
+                {% if content_types_str %}
+                <p><strong>Content Types:</strong> <code>{{ content_types_str }}</code></p>
+                {% endif %}
+                {% for ct, props in rb.schemas|default({})|items %}
+                {{ render_schema_table(props, 'Schema (' ~ ct ~ ')') }}
+                {% endfor %}
+                {{ render_examples(rb.examples|default({})) }}
+            </div>
+            {% endif %}
+
+            {% if operation.responses %}
+            <div class="operation-subsection">
+                <h4>Responses</h4>
+                {% for status, response in operation.responses|dictsort %}
+                {% set content_types = response.content_types|default([]) %}
+                {% set ct_str = content_types|join(', ') if content_types else '-' %}
+                <div class="response-block">
+                    <div class="response-header">
+                        <code class="status-code status-{{ status|string|first }}xx">{{ status }}</code>
+                        <span class="response-desc">{{ response.description|md }}</span>
+                        <span class="response-ct">{{ ct_str }}</span>
+                    </div>
+                    {% for ct, props in response.schemas|default({})|items %}
+                    {{ render_schema_table(props) }}
+                    {% endfor %}
+                    {{ render_examples(response.examples|default({})) }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endmacro %}

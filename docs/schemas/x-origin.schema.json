@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://anypoint.mulesoft.com/schemas/x-origin.schema.json",
+  "title": "x-origin Extension Schema (v2)",
+  "description": "Defines dynamic enum sources for OpenAPI parameters. Specifies which API operation provides the enum values and how to extract both identifiers (values) and display names (labels) from the response.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": ["api", "operation", "values"],
+    "properties": {
+      "api": {
+        "type": "string",
+        "pattern": "^urn:api:[a-z0-9-]+$",
+        "description": "API URN identifying the source API (e.g., 'urn:api:access-management')",
+        "examples": [
+          "urn:api:access-management",
+          "urn:api:api-manager",
+          "urn:api:exchange-experience"
+        ]
+      },
+      "operation": {
+        "type": "string",
+        "minLength": 1,
+        "description": "The operationId in the source API to invoke",
+        "examples": [
+          "getOrganizations",
+          "listEnvironments",
+          "getAssetsSearch"
+        ]
+      },
+      "values": {
+        "description": "JSONPath expression(s) to extract value(s) from the operation response. Can be a single string or array of strings for multiple extraction paths.",
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\$",
+            "examples": [
+              "$.data[*].id",
+              "$.id",
+              "$.assets[*].id"
+            ]
+          },
+          {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^\\$"
+            },
+            "examples": [
+              ["$.id", "$.subOrganizationIds[*]"]
+            ]
+          }
+        ]
+      },
+      "labels": {
+        "description": "JSONPath expression(s) to extract label(s) from the operation response. Must match the structure of 'values' (same type and array length). Optional - if omitted, values are displayed as-is.",
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\$",
+            "examples": [
+              "$.data[*].name",
+              "$.name",
+              "$.assets[*].name"
+            ]
+          },
+          {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^\\$"
+            },
+            "examples": [
+              ["$.name", "$.subOrganizations[*].name"]
+            ]
+          }
+        ]
+      },
+      "description": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Human-readable context about this source",
+        "examples": [
+          "Organization GUID from user's accessible orgs",
+          "Environment identifier for the selected organization"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Short label for this source in UIs",
+        "examples": [
+          "All Environments",
+          "Current Organization",
+          "Root Organization"
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "not": {
+      "anyOf": [
+        {
+          "required": ["field"],
+          "description": "v1 deprecated: 'field' has been replaced by 'values' and 'labels'"
+        },
+        {
+          "required": ["note"],
+          "description": "v1 deprecated: 'note' has been replaced by 'description'"
+        },
+        {
+          "required": ["parameters"],
+          "description": "v1 deprecated: 'parameters' should not be duplicated in x-origin"
+        },
+        {
+          "required": ["requiresPathParams"],
+          "description": "v1 deprecated: 'requiresPathParams' should not be duplicated in x-origin"
+        },
+        {
+          "required": ["requiresSamePathAs"],
+          "description": "v1 deprecated: 'requiresSamePathAs' should not be duplicated in x-origin"
+        },
+        {
+          "required": ["alternateOperation"],
+          "description": "v1 deprecated: 'alternateOperation' should use multiple source objects instead"
+        },
+        {
+          "required": ["alternateRequiresPathParams"],
+          "description": "v1 deprecated: 'alternateRequiresPathParams' should use multiple source objects instead"
+        },
+        {
+          "required": ["businessGroup"],
+          "description": "v1 deprecated: 'businessGroup' should be expressed using descriptions"
+        },
+        {
+          "required": ["relatedParameters"],
+          "description": "v1 deprecated: 'relatedParameters' should be expressed using multiple sources"
+        },
+        {
+          "required": ["semantic"],
+          "description": "v1 deprecated: 'semantic' should be clarified in description"
+        }
+      ]
+    }
+  },
+  "examples": [
+    [
+      {
+        "api": "urn:api:access-management",
+        "operation": "getOrganizations",
+        "values": "$.data[*].id",
+        "labels": "$.data[*].name",
+        "description": "Business Group selection"
+      }
+    ],
+    [
+      {
+        "api": "urn:api:access-management",
+        "operation": "getOrganizations",
+        "name": "Organization and Sub-Organizations",
+        "description": "Extracts both parent organization ID and all sub-organization IDs from the same response",
+        "values": [
+          "$.id",
+          "$.subOrganizationIds[*]"
+        ]
+      }
+    ],
+    [
+      {
+        "api": "urn:api:access-management",
+        "operation": "listEnvironments",
+        "values": "$.data[*].id",
+        "labels": "$.data[*].name",
+        "name": "All Environments",
+        "description": "All environments in the organization"
+      },
+      {
+        "api": "urn:api:cloudhub",
+        "operation": "getEnvironmentDetails",
+        "values": "$.id",
+        "labels": "$.name",
+        "name": "Current Environment",
+        "description": "Currently active environment"
+      }
+    ]
+  ]
+}

@@ -1,0 +1,52 @@
+{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set slug = skill.slug %}
+{% set step_details = skill.step_details|default([]) %}
+
+<aside class="detail-sidebar" id="detailSidebar">
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <li>
+                <a href="#skill-{{ slug }}" class="nav-link active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path
+                            d="M13.9998 5.20117V14.043L12.5125 15L7.99976 11.8408L3.48804 15L1.99976 14.042V5.20117L7.99976 1L13.9998 5.20117ZM2.99976 5.72168V13.4961L3.4646 13.7959L7.99976 10.6201L12.5359 13.7959L12.9998 13.4971V5.72168L7.99976 2.2207L2.99976 5.72168ZM11.9998 10.1855V11.4062L7.99976 8.60449V7.38379L11.9998 10.1855ZM11.9998 7.39453V8.61621L7.99976 5.81445V4.59375L11.9998 7.39453Z"
+                            fill="#234774" />
+                    </svg>
+                    Overview
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <span class="search-icon" aria-hidden="true">&#128269;</span>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search..."
+                    aria-label="Filter steps" onkeyup="filterSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearSidebarSearch()" style="display:none"
+                    aria-label="Clear search">&#10005;</button>
+            </div>
+        </div>
+        <div class="sidebar-tabs" role="tablist">
+            <button class="sidebar-tab active" role="tab" aria-selected="true" aria-controls="steps-panel"
+                data-tab="steps" onclick="switchSidebarTab('steps')">
+                Steps <span class="tab-count" id="steps-count" style="display: none;"></span>
+            </button>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <div id="steps-panel" class="sidebar-panel active" role="tabpanel" aria-labelledby="steps-tab">
+                {% for step in step_details %}
+                <li>
+                    <a href="#step-{{ slug }}-{{ loop.index0 }}" class="nav-link nav-skill-step"
+                        title="{{ step.title }}">
+                        <span class="step-number">{{ loop.index }}</span>
+                        <span class="step-title-short">{{ step.title|replace('Step ' ~ loop.index ~ ':', '')|truncate(40, True) }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </div>
+        </ul>
+    </nav>
+</aside>

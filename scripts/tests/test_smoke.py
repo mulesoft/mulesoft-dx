@@ -1,0 +1,396 @@
+"""End-to-end smoke test for the portal generator."""
+
+import json
+from pathlib import Path
+
+import pytest
+from bs4 import BeautifulSoup
+
+from portal_generator import PortalGenerator
+from tests.conftest import (
+    MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
+    setup_schema_docs,
+)
+
+
+@pytest.fixture
+def generated_portal(tmp_path):
+    """Run the full generator against a minimal fixture and return the output dir."""
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+
+    # APIs now live under apis/ folder
+    apis_dir = repo / 'apis'
+    apis_dir.mkdir()
+
+    api_dir = apis_dir / 'test-api'
+    api_dir.mkdir()
+    (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+    (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+    skill_dir = repo / 'skills' / 'deploy-app'
+    skill_dir.mkdir(parents=True)
+    (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
+
+    setup_schema_docs(repo)
+
+    output = tmp_path / 'portal_output'
+    generator = PortalGenerator(output, base_url='https://test-api-portal.example.com')
+    generator.generate(repo)
+    return output
+
+
+class TestGeneratedFiles:
+    def test_index_html_exists(self, generated_portal):
+        assert (generated_portal / 'index.html').exists()
+
+    def test_detail_page_exists(self, generated_portal):
+        assert (generated_portal / 'apis' / 'test-api.html').exists()
+
+    def test_css_exists(self, generated_portal):
+        css = generated_portal / 'assets' / 'styles.css'
+        assert css.exists()
+        assert css.stat().st_size > 0
+
+    def test_portal_js_exists(self, generated_portal):
+        js = generated_portal / 'assets' / 'portal.js'
+        assert js.exists()
+        assert js.stat().st_size > 0
+
+    def test_jsonpath_js_exists(self, generated_portal):
+        assert (generated_portal / 'assets' / 'jsonpath-plus.min.js').exists()
+
+
+class TestHomepageStructure:
+    @pytest.fixture(autouse=True)
+    def _parse_homepage(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_has_main_element(self):
+        main = self.soup.find('main')
+        assert main is not None
+
+    def test_has_title(self):
+        title = self.soup.find('title')
+        assert title is not None
+        assert len(title.string.strip()) > 0
+
+    def test_contains_api_card(self):
+        assert self.soup.find(string=lambda t: t and 'Test API' in t) is not None
+
+    def test_links_to_detail_page(self):
+        link = self.soup.find('a', href=lambda h: h and 'test-api' in h)
+        assert link is not None
+
+
+class TestDetailPageStructure:
+    @pytest.fixture(autouse=True)
+    def _parse_detail(self, generated_portal):
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_has_main_element(self):
+        main = self.soup.find('main')
+        assert main is not None
+
+    def test_has_sidebar_nav(self):
+        nav = self.soup.find('nav')
+        assert nav is not None
+
+    def test_contains_operation_ids(self):
+        html_text = str(self.soup)
+        assert 'listResources' in html_text
+        assert 'createResource' in html_text
+
+    def test_contains_api_title(self):
+        assert self.soup.find(string=lambda t: t and 'Test API' in t) is not None
+
+    def test_links_to_skill_page(self):
+        link = self.soup.find('a', href=lambda h: h and 'skills/deploy-app.html' in h)
+        assert link is not None
+
+
+class TestSkillPageStructure:
+    @pytest.fixture(autouse=True)
+    def _parse_skill_page(self, generated_portal):
+        html = (generated_portal / 'skills' / 'deploy-app.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_skill_page_exists(self, generated_portal):
+        assert (generated_portal / 'skills' / 'deploy-app.html').exists()
+
+    def test_has_main_element(self):
+        assert self.soup.find('main') is not None
+
+    def test_contains_skill_content(self):
+        html_text = str(self.soup)
+        assert 'deploy-app' in html_text
+        assert 'List targets' in html_text
+
+    def test_has_sidebar(self):
+        assert self.soup.find('aside') is not None
+
+    def test_has_xorigin_modal(self):
+        modal = self.soup.find('div', id='xorigin-modal')
+        assert modal is not None
+
+    def test_has_api_link_prefix(self):
+        scripts = self.soup.find_all('script')
+        script_text = ' '.join(s.string or '' for s in scripts)
+        assert "__API_LINK_PREFIX__" in script_text
+
+
+class TestHomepageSkillLinks:
+    @pytest.fixture(autouse=True)
+    def _parse_homepage(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_skill_card_links_to_skill_page(self):
+        link = self.soup.find('a', href=lambda h: h and h == 'skills/deploy-app.html')
+        assert link is not None
+
+    def test_skill_card_has_skill_badge(self):
+        badge = self.soup.find('span', class_='badge-api-type', string='Skill')
+        assert badge is not None
+
+
+class TestRegistryStructure:
+    def test_registry_exists(self, generated_portal):
+        assert (generated_portal / 'registry.json').exists()
+
+    def test_skill_docs_points_to_skill_page(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        skill_entries = [e for e in registry if e['kind'] == 'agent-skill']
+        assert len(skill_entries) > 0
+        for entry in skill_entries:
+            assert entry['docs'].startswith('skills/')
+            assert entry['docs'].endswith('.html')
+
+    def test_registry_has_api_and_skill_entries(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        kinds = {e['kind'] for e in registry}
+        assert 'oas' in kinds
+        assert 'agent-skill' in kinds
+
+    def test_skill_entries_are_unique(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        skill_entries = [e for e in registry if e['kind'] == 'agent-skill']
+        slugs = [e['slug'] for e in skill_entries]
+        assert len(slugs) == len(set(slugs)), "Skills should appear once, not duplicated per API"
+
+    def test_skill_entries_have_apis_array(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        skill_entries = [e for e in registry if e['kind'] == 'agent-skill']
+        assert len(skill_entries) > 0
+        for entry in skill_entries:
+            assert 'apis' in entry, "Skill entries should have 'apis' array, not 'api' string"
+            assert isinstance(entry['apis'], list)
+            assert 'api' not in entry
+
+    def test_skill_href_is_flat_path(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        skill_entries = [e for e in registry if e['kind'] == 'agent-skill']
+        for entry in skill_entries:
+            parts = entry['href'].split('/')
+            assert len(parts) == 3, f"Expected skills/{{slug}}/SKILL.md, got {entry['href']}"
+            assert parts[0] == 'skills'
+            assert parts[2] == 'SKILL.md'
+
+    def test_registry_has_schema_entries(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        schema_entries = [e for e in registry if e['kind'] in ('json-schema', 'schema-doc')]
+        assert len(schema_entries) == 2
+        ids = {e['$id'] for e in schema_entries}
+        assert 'urn:schema:x-origin' in ids
+        assert 'urn:schema:jtbd' in ids
+
+    def test_registry_schema_href_points_to_files(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        for entry in registry:
+            if entry['$id'] == 'urn:schema:x-origin':
+                assert entry['href'] == 'schemas/x-origin.schema.json'
+                assert entry['docs'] == 'schemas/x-origin-schema.md'
+            elif entry['$id'] == 'urn:schema:jtbd':
+                assert entry['href'] == 'schemas/jtbd-schema.md'
+
+
+class TestAgentFiles:
+    """Verify AGENTS.md, llms.txt, and schema files are generated."""
+
+    def test_agents_md_exists(self, generated_portal):
+        agents_md = generated_portal / 'AGENTS.md'
+        assert agents_md.exists()
+        content = agents_md.read_text(encoding='utf-8')
+        assert 'registry.json' in content
+        assert 'urn:api:' in content
+
+    def test_agents_md_uses_base_url(self, generated_portal):
+        content = (generated_portal / 'AGENTS.md').read_text(encoding='utf-8')
+        assert 'https://test-api-portal.example.com' in content
+
+    def test_agents_md_lists_apis(self, generated_portal):
+        content = (generated_portal / 'AGENTS.md').read_text(encoding='utf-8')
+        assert 'Test API' in content
+
+    def test_llms_txt_exists(self, generated_portal):
+        llms_txt = generated_portal / 'llms.txt'
+        assert llms_txt.exists()
+        content = llms_txt.read_text(encoding='utf-8')
+        assert 'AGENTS.md' in content
+        assert 'registry.json' in content
+
+    def test_llms_txt_uses_base_url(self, generated_portal):
+        content = (generated_portal / 'llms.txt').read_text(encoding='utf-8')
+        assert 'https://test-api-portal.example.com' in content
+
+    def test_schemas_directory_exists(self, generated_portal):
+        schemas_dir = generated_portal / 'schemas'
+        assert schemas_dir.is_dir()
+        assert (schemas_dir / 'x-origin.schema.json').exists()
+        assert (schemas_dir / 'x-origin-schema.md').exists()
+        assert (schemas_dir / 'jtbd-schema.md').exists()
+        assert (schemas_dir / 'jtbd-template.md').exists()
+
+
+class TestSkillPreamble:
+    """Verify SKILL.md portal copies include the agent directive after frontmatter."""
+
+    def test_skill_copy_has_agent_directive(self, generated_portal):
+        skill_md = generated_portal / 'skills' / 'deploy-app' / 'SKILL.md'
+        assert skill_md.exists()
+        content = skill_md.read_text(encoding='utf-8')
+        assert '> **Agent context:**' in content
+        assert 'AGENTS.md' in content
+
+    def test_directive_is_after_frontmatter(self, generated_portal):
+        content = (generated_portal / 'skills' / 'deploy-app' / 'SKILL.md').read_text(encoding='utf-8')
+        fm_end = content.index('---', content.index('---') + 3) + 3
+        after_fm = content[fm_end:]
+        assert '> **Agent context:**' in after_fm
+
+    def test_skill_copy_preserves_original_content(self, generated_portal):
+        content = (generated_portal / 'skills' / 'deploy-app' / 'SKILL.md').read_text(encoding='utf-8')
+        assert 'name: deploy-app' in content
+        assert 'urn:api:test-api' in content
+
+
+class TestHtmlLinkTags:
+    """Verify HTML pages include agent-discovery link tags."""
+
+    @pytest.fixture(autouse=True)
+    def _parse_homepage(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_has_registry_link(self):
+        link = self.soup.find('link', rel='alternate', type='application/json')
+        assert link is not None
+        assert 'registry.json' in link.get('href', '')
+
+    def test_has_agents_link(self):
+        link = self.soup.find('link', attrs={'title': 'Agent Guide'})
+        assert link is not None
+        assert 'AGENTS.md' in link.get('href', '')
+
+    def test_has_robots_meta(self):
+        meta = self.soup.find('meta', attrs={'name': 'robots'})
+        assert meta is not None
+        assert meta.get('content') == 'index, follow'
+
+
+class TestHomepageAgentLinks:
+    """Verify the homepage has <link> tags in <head> for agent discovery."""
+
+    @pytest.fixture(autouse=True)
+    def _parse_homepage(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_has_agents_md_head_link(self):
+        link = self.soup.find('link', attrs={'href': lambda v: v and 'AGENTS.md' in v})
+        assert link is not None
+        assert link.get('rel') == ['help']
+
+    def test_has_llms_txt_head_link(self):
+        link = self.soup.find('link', attrs={'href': lambda v: v and 'llms.txt' in v})
+        assert link is not None
+        assert link.get('type') == 'text/plain'
+
+    def test_has_registry_json_head_link(self):
+        link = self.soup.find('link', attrs={'href': lambda v: v and 'registry.json' in v})
+        assert link is not None
+        assert link.get('type') == 'application/json'
+
+
+class TestSkillPageRawLink:
+    """Verify skill pages have a link to the raw SKILL.md file."""
+
+    @pytest.fixture(autouse=True)
+    def _parse_skill_page(self, generated_portal):
+        html = (generated_portal / 'skills' / 'deploy-app.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_has_skill_md_link(self):
+        link = self.soup.find('a', class_='btn-skill-raw')
+        assert link is not None
+        assert 'SKILL.md' in link.get('href', '')
+
+
+class TestGenerationWithoutSkills:
+    """Verify the generator works with an API that has no skills."""
+
+    def test_generates_without_skills(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+
+        # APIs now live under apis/ folder
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        api_dir = apis_dir / 'simple-api'
+        api_dir.mkdir()
+        (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+
+        assert (output / 'index.html').exists()
+        assert (output / 'apis' / 'simple-api.html').exists()
+        assert (output / 'AGENTS.md').exists()
+        assert (output / 'llms.txt').exists()
+
+
+class TestGenerationMultipleApis:
+    """Verify the generator handles multiple APIs."""
+
+    def test_multiple_apis_produce_separate_pages(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+
+        # APIs now live under apis/ folder
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        for name in ['alpha-api', 'beta-api']:
+            api_dir = apis_dir / name
+            api_dir.mkdir()
+            (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+            (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+
+        assert (output / 'apis' / 'alpha-api.html').exists()
+        assert (output / 'apis' / 'beta-api.html').exists()
+
+        index_html = (output / 'index.html').read_text(encoding='utf-8')
+        assert 'alpha-api' in index_html
+        assert 'beta-api' in index_html

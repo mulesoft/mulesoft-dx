@@ -1,0 +1,59 @@
+{% macro param_type(schema) %}
+{% if schema %}
+{% set ptype = schema.type|default('') %}
+{% set fmt = schema.format|default('') %}
+{% if fmt %}{% set ptype = ptype ~ '(' ~ fmt ~ ')' %}{% endif %}
+{% if ptype %}<code class="param-type">{{ ptype }}</code>{% endif %}
+{% if schema.enum %}
+<span class="param-enum">Enum: {% for v in schema.enum %}<code>{{ v }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</span>
+{% endif %}
+{% if schema.default is not none and schema.default is defined %}
+<span class="param-default">Default: <code>{{ schema.default }}</code></span>
+{% endif %}
+{% set constraints = [] %}
+{% if schema.minimum is not none and schema.minimum is defined %}{% set _ = constraints.append('min: ' ~ schema.minimum) %}{% endif %}
+{% if schema.maximum is not none and schema.maximum is defined %}{% set _ = constraints.append('max: ' ~ schema.maximum) %}{% endif %}
+{% if schema.minLength is not none and schema.minLength is defined %}{% set _ = constraints.append('minLen: ' ~ schema.minLength) %}{% endif %}
+{% if schema.maxLength is not none and schema.maxLength is defined %}{% set _ = constraints.append('maxLen: ' ~ schema.maxLength) %}{% endif %}
+{% if schema.pattern %}{% set _ = constraints.append('pattern') %}{% endif %}
+{% if constraints %}<span class="param-constraints">{{ constraints|join(', ') }}</span>{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro x_origin(param) %}
+{% if param['x-origin'] %}
+{% set origins = param['x-origin'] if param['x-origin'] is iterable and param['x-origin'] is not string and param['x-origin'] is not mapping else [param['x-origin']] %}
+<div class="x-origin-links">
+{% for origin in origins %}
+{% if origin is mapping %}
+{% set api_name = origin.get('api', '')|replace('urn:api:', '') %}
+{% set op_name = origin.get('operation', '') %}
+{% set values_path = origin.get('values', '') %}
+{% set labels_path = origin.get('labels', '') %}
+{% if api_name and op_name %}
+{% set label = api_name ~ '#' ~ op_name %}
+{% if values_path %}{% set label = label ~ '.' ~ values_path %}{% endif %}
+{% set title = 'Value comes from ' ~ label %}
+{% if labels_path %}{% set title = title ~ ' (labels: ' ~ labels_path ~ ')' %}{% endif %}
+<a href="{{ api_name }}.html#op-{{ op_name }}" class="x-origin-badge" title="{{ title }}">{{ label }}</a>
+{% endif %}
+{% endif %}
+{% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro tags(tag_list) %}
+{% if tag_list %}
+<div class="operation-tags">
+{% for t in tag_list %}<span class="tag-badge">{{ t }}</span>{% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro breadcrumb(path) %}
+{% set segments = path.split('/')|reject('equalto', '')|list %}
+{% if segments %}
+<nav class="operation-breadcrumb" aria-label="API path"><span class="breadcrumb-sep">/</span> {% for s in segments %}<span class="breadcrumb-segment">{{ s }}</span>{% if not loop.last %} <span class="breadcrumb-sep">/</span> {% endif %}{% endfor %}</nav>
+{% endif %}
+{% endmacro %}

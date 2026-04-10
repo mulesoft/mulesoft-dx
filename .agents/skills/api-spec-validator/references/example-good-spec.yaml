@@ -1,0 +1,243 @@
+openapi: 3.0.2
+info:
+  title: E-Commerce API
+  version: 1.0.0
+  description: Well-documented API following all validation rules
+
+paths:
+  /users/{userId}/orders:
+    get:
+      operationId: getUserOrderHistory
+      summary: Get User Order History
+      description: Retrieves complete order history for a specific user, including status and payment information.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the user
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, processing, shipped, delivered, cancelled]
+          description: Filter orders by status
+      responses:
+        '200':
+          description: Successfully retrieved order history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    description: List of orders for the user
+                    items:
+                      type: object
+                      properties:
+                        orderId:
+                          type: string
+                          description: Unique order identifier
+                        status:
+                          type: string
+                          enum: [pending, processing, shipped, delivered, cancelled]
+                          description: "Current order status. Transitions: pending → processing → shipped → delivered"
+                        total:
+                          type: number
+                          format: float
+                          description: Total order amount in USD
+                        v1_tier_code:
+                          type: string
+                          description: "INTERNAL MAPPING: Customer loyalty tier. Map 'A' to Gold, 'B' to Silver, 'C' to Bronze."
+                      required:
+                        - orderId
+                        - status
+                        - total
+                required:
+                  - orders
+              examples:
+                successExample:
+                  summary: Successful order history retrieval
+                  value:
+                    orders:
+                      - orderId: "ORD-12345"
+                        status: "delivered"
+                        total: 99.99
+                        v1_tier_code: "A"
+                      - orderId: "ORD-12346"
+                        status: "processing"
+                        total: 149.50
+                        v1_tier_code: "A"
+
+  /orders:
+    post:
+      operationId: createNewOrder
+      summary: Create New Order
+      description: "Creates a new order for a user. WARNING: This endpoint processes payment and may take up to 3 seconds. Do not retry before 5 seconds."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the user placing the order
+                items:
+                  type: array
+                  description: List of items to order
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                        description: Unique product identifier
+                      quantity:
+                        type: integer
+                        minimum: 1
+                        description: Number of units to order
+                    required:
+                      - productId
+                      - quantity
+                shippingMethod:
+                  type: string
+                  enum: [standard, express, overnight]
+                  description: Shipping speed option
+                deliveryDate:
+                  type: string
+                  format: date
+                  description: Requested delivery date in YYYY-MM-DD format
+              required:
+                - userId
+                - items
+                - shippingMethod
+            examples:
+              newOrderExample:
+                summary: Create order with express shipping
+                value:
+                  userId: "USER-789"
+                  items:
+                    - productId: "PROD-001"
+                      quantity: 2
+                    - productId: "PROD-042"
+                      quantity: 1
+                  shippingMethod: "express"
+                  deliveryDate: "2026-03-20"
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                    description: Newly created order ID
+                  status:
+                    type: string
+                    enum: [pending]
+                    description: Initial order status (always 'pending' on creation)
+                  estimatedDelivery:
+                    type: string
+                    format: date
+                    description: Estimated delivery date in ISO 8601 format
+                required:
+                  - orderId
+                  - status
+                  - estimatedDelivery
+              examples:
+                createdOrderExample:
+                  summary: Successful order creation
+                  value:
+                    orderId: "ORD-99999"
+                    status: "pending"
+                    estimatedDelivery: "2026-03-15"
+        '400':
+          description: "Bad Request. RECOVERY INSTRUCTIONS: If the response contains 'ERR_04', the date format was wrong - re-try using YYYY-MM-DD format. If 'ERR_12', the order amount exceeded maximum limit - reduce total to under $10,000. If 'ERR_22', product is out of stock - remove that productId from items array."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorCode:
+                    type: string
+                    enum: [ERR_04, ERR_12, ERR_22]
+                    description: Error code indicating the type of validation failure
+                  message:
+                    type: string
+                    description: Human-readable error message
+                  field:
+                    type: string
+                    description: Field name that caused the error (if applicable)
+                required:
+                  - errorCode
+                  - message
+              examples:
+                dateFormatError:
+                  summary: Invalid date format
+                  value:
+                    errorCode: "ERR_04"
+                    message: "Invalid date format in deliveryDate field"
+                    field: "deliveryDate"
+                amountExceededError:
+                  summary: Order amount too high
+                  value:
+                    errorCode: "ERR_12"
+                    message: "Order total exceeds maximum limit of $10,000"
+
+  /rpc/v2/action_4:
+    post:
+      operationId: cancelSubscription
+      summary: "Cancel User Subscription"
+      description: Cancels an active subscription and processes refund if applicable. This is a legacy endpoint path maintained for backwards compatibility.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscriptionId:
+                  type: string
+                  description: ID of subscription to cancel
+                reason:
+                  type: string
+                  enum: [too_expensive, not_using, found_alternative, other]
+                  description: Reason for cancellation
+              required:
+                - subscriptionId
+            examples:
+              cancelExample:
+                summary: Cancel subscription
+                value:
+                  subscriptionId: "SUB-5678"
+                  reason: "not_using"
+      responses:
+        '200':
+          description: Subscription cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether cancellation succeeded
+                  refundAmount:
+                    type: number
+                    format: float
+                    description: Amount refunded in USD (0 if no refund)
+                required:
+                  - success
+                  - refundAmount
+              examples:
+                cancelSuccessExample:
+                  summary: Successful cancellation with refund
+                  value:
+                    success: true
+                    refundAmount: 29.99

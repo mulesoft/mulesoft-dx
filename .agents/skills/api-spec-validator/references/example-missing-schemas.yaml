@@ -1,0 +1,94 @@
+openapi: 3.0.2
+info:
+  title: Example API with Missing Schemas
+  version: 1.0.0
+  description: |
+    This example shows an API spec that has examples but missing schemas.
+    Use the schema inference tool to generate schemas from these examples.
+
+paths:
+  /users:
+    post:
+      operationId: createUser
+      description: Creates a new user in the system
+      requestBody:
+        description: User data
+        content:
+          application/json:
+            examples:
+              newUser:
+                summary: Create a new user
+                value:
+                  name: "Jane Smith"
+                  email: "jane@example.com"
+                  age: 28
+                  role: "developer"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              example:
+                id: "usr-12345"
+                name: "Jane Smith"
+                email: "jane@example.com"
+                createdAt: "2024-03-11"
+                status: "active"
+
+  /users/{userId}:
+    get:
+      operationId: getUserById
+      description: Retrieves a user by their ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              example:
+                id: "usr-12345"
+                name: "Jane Smith"
+                email: "jane@example.com"
+                age: 28
+                role: "developer"
+                createdAt: "2024-03-11"
+                status: "active"
+                preferences:
+                  theme: "dark"
+                  notifications: true
+                  language: "en"
+
+  /orders:
+    get:
+      operationId: listOrders
+      description: Lists all orders
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              example:
+                - id: "ord-001"
+                  userId: "usr-12345"
+                  total: 99.99
+                  status: "pending"
+                  items:
+                    - productId: "prod-123"
+                      name: "Widget"
+                      quantity: 2
+                      price: 49.99
+                - id: "ord-002"
+                  userId: "usr-12345"
+                  total: 149.99
+                  status: "shipped"
+                  items:
+                    - productId: "prod-456"
+                      name: "Gadget"
+                      quantity: 1
+                      price: 149.99

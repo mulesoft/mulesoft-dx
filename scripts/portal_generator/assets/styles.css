@@ -1483,38 +1483,58 @@ code {
     text-align: center;
 }
 
-/* Method colors from Figma design */
-.method-get {
+/* Method colors from Figma design - default state (subtle) */
+.method-get,
+.method-post,
+.method-put,
+.method-patch,
+.method-delete,
+.method-head,
+.method-options {
+    background: transparent;
+    color: #6b7280;
+    transition: all 0.15s ease;
+}
+
+/* Method colors from Figma design - on hover or when active */
+.nav-link:hover .method-get,
+.nav-link.active .method-get {
     background: #ecfdf5;
     color: #047857;
 }
 
-.method-post {
+.nav-link:hover .method-post,
+.nav-link.active .method-post {
     background: #eff6ff;
     color: #1d4ed8;
 }
 
-.method-put {
+.nav-link:hover .method-put,
+.nav-link.active .method-put {
     background: #fffbeb;
     color: #b45309;
 }
 
-.method-patch {
+.nav-link:hover .method-patch,
+.nav-link.active .method-patch {
     background: #f5f3ff;
     color: #6d28d9;
 }
 
-.method-delete {
+.nav-link:hover .method-delete,
+.nav-link.active .method-delete {
     background: #fef2f2;
     color: #b91c1c;
 }
 
-.method-head {
+.nav-link:hover .method-head,
+.nav-link.active .method-head {
     background: #f9fafb;
     color: #374151;
 }
 
-.method-options {
+.nav-link:hover .method-options,
+.nav-link.active .method-options {
     background: #f9fafb;
     color: #374151;
 }

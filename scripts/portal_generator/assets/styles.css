@@ -1483,60 +1483,81 @@ code {
     text-align: center;
 }
 
-/* Method colors from Figma design - default state (subtle) */
-.method-get,
-.method-post,
-.method-put,
-.method-patch,
-.method-delete,
-.method-head,
-.method-options {
-    background: transparent;
-    color: #6b7280;
+/* Method colors from Figma design - default state (light backgrounds) */
+.method-get {
+    background: #ecfdf5;
+    color: #047857;
     transition: all 0.15s ease;
 }
 
-/* Method colors from Figma design - on hover or when active */
+.method-post {
+    background: #eff6ff;
+    color: #1d4ed8;
+    transition: all 0.15s ease;
+}
+
+.method-put {
+    background: #fffbeb;
+    color: #b45309;
+    transition: all 0.15s ease;
+}
+
+.method-patch {
+    background: #f5f3ff;
+    color: #6d28d9;
+    transition: all 0.15s ease;
+}
+
+.method-delete {
+    background: #fef2f2;
+    color: #b91c1c;
+    transition: all 0.15s ease;
+}
+
+.method-head,
+.method-options {
+    background: #f9fafb;
+    color: #374151;
+    transition: all 0.15s ease;
+}
+
+/* Method colors - on hover or when active (darker backgrounds) */
 .nav-link:hover .method-get,
 .nav-link.active .method-get {
-    background: #ecfdf5;
-    color: #047857;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .nav-link:hover .method-post,
 .nav-link.active .method-post {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .nav-link:hover .method-put,
 .nav-link.active .method-put {
-    background: #fffbeb;
-    color: #b45309;
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .nav-link:hover .method-patch,
 .nav-link.active .method-patch {
-    background: #f5f3ff;
-    color: #6d28d9;
+    background: #ede9fe;
+    color: #5b21b6;
 }
 
 .nav-link:hover .method-delete,
 .nav-link.active .method-delete {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .nav-link:hover .method-head,
-.nav-link.active .method-head {
-    background: #f9fafb;
-    color: #374151;
-}
-
+.nav-link.active .method-head,
 .nav-link:hover .method-options,
 .nav-link.active .method-options {
-    background: #f9fafb;
-    color: #374151;
+    background: #f3f4f6;
+    color: #1f2937;
 }
 
 .path {

@@ -1114,7 +1114,6 @@ code {
     font-size: var(--lume-font-size-2);
     font-weight: var(--lume-font-weight-regular);
     line-height: 1.25;
-    background: #F0F7FF;
 }
 
 .badge-version {

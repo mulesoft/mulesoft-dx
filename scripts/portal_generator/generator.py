@@ -117,6 +117,7 @@ class PortalGenerator:
         self.base_url = base_url.rstrip('/')
         self.env = create_env()
         self.apis = []
+        self.public_apis = []
         self.stats = {}
         self.all_skills = []
         self.repo_root = None
@@ -132,14 +133,15 @@ class PortalGenerator:
 
         # Discover APIs and skills
         self.apis = discover_apis(repo_root)
+        self.public_apis = [a for a in self.apis if not a.get('private')]
         self.stats = calculate_stats(self.apis)
 
         # Pre-compute data for templates
         _prepare_operations(self.apis)
 
-        # Collect unique skills (a skill may appear under multiple APIs)
+        # Collect unique skills from public APIs only
         seen_slugs = set()
-        for api in self.apis:
+        for api in self.public_apis:
             for skill in api['skills']:
                 if skill['slug'] not in seen_slugs:
                     seen_slugs.add(skill['slug'])
@@ -190,7 +192,7 @@ class PortalGenerator:
         html = template.render(
             css_path='assets/styles.css',
             icons_path='assets/icons',
-            apis=self.apis,
+            apis=self.public_apis,
             stats=self.stats,
             all_skills=self.all_skills,
             proxy_url=self.proxy_url,
@@ -236,13 +238,13 @@ class PortalGenerator:
         return lookup
 
     def _generate_detail_pages(self):
-        """Generate individual API pages"""
-        print(f"  ✓ Generating {len(self.apis)} API detail pages...")
+        """Generate individual API pages (public APIs only)"""
+        print(f"  ✓ Generating {len(self.public_apis)} API detail pages...")
 
         op_lookup = self._build_operation_lookup()
         template = self.env.get_template('detail_page.html')
 
-        for api in self.apis:
+        for api in self.public_apis:
             api_meta = _build_api_meta(api)
             operation_tree = build_operation_tree(api['operations'])
             html = template.render(
@@ -268,6 +270,7 @@ class PortalGenerator:
         full_op_lookup = self._build_operation_lookup()
         # Build a lookup from api slug to api data for api_meta
         api_by_slug = {api['slug']: api for api in self.apis}
+        private_api_slugs = {api['slug'] for api in self.apis if api.get('private')}
 
         template = self.env.get_template('skill_page.html')
 
@@ -290,6 +293,7 @@ class PortalGenerator:
                 api_meta=api_meta,
                 op_lookup=op_lookup,
                 api_link_prefix='../apis/',
+                private_api_slugs=private_api_slugs,
                 proxy_url=self.proxy_url,
                 chrome=self.chrome,
                 build_label=self.build_label,
@@ -328,7 +332,7 @@ class PortalGenerator:
             urn = f"urn:api:{slug}"
 
             # Copy source api.yaml to output
-            source_yaml = self.repo_root / slug / 'api.yaml'
+            source_yaml = self.repo_root / 'apis' / slug / 'api.yaml'
             if source_yaml.exists():
                 api_output_dir = self.output_dir / 'apis' / slug
                 api_output_dir.mkdir(parents=True, exist_ok=True)
@@ -344,8 +348,11 @@ class PortalGenerator:
                 'category': api.get('category', ''),
                 'description': api.get('description', ''),
                 'href': f"apis/{slug}/api.yaml",
-                'docs': f"apis/{slug}.html",
             }
+
+            # Only public APIs get a docs link (private APIs have no HTML page)
+            if not api.get('private'):
+                entry['docs'] = f"apis/{slug}.html"
 
             registry.append(entry)
 
@@ -432,7 +439,7 @@ class PortalGenerator:
         template = self.env.get_template('agents_md.html')
         content = template.render(
             base_url=self.base_url,
-            apis=self.apis,
+            apis=self.public_apis,
             all_skills=self.all_skills,
             stats=self.stats,
             build_label=self.build_label,
@@ -447,7 +454,7 @@ class PortalGenerator:
         template = self.env.get_template('llms_txt.html')
         content = template.render(
             base_url=self.base_url,
-            apis=self.apis,
+            apis=self.public_apis,
             all_skills=self.all_skills,
         )
         output_path = self.output_dir / 'llms.txt'

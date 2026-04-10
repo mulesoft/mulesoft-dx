@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
-    setup_schema_docs,
+    PRIVATE_EXCHANGE_JSON, setup_schema_docs,
 )
 
 
@@ -394,3 +394,67 @@ class TestGenerationMultipleApis:
         index_html = (output / 'index.html').read_text(encoding='utf-8')
         assert 'alpha-api' in index_html
         assert 'beta-api' in index_html
+
+
+class TestPrivateApiExclusion:
+    """Verify private APIs are excluded from portal but included in registry."""
+
+    @pytest.fixture
+    def portal_with_private_api(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        # Public API
+        public_dir = apis_dir / 'public-api'
+        public_dir.mkdir()
+        (public_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (public_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        # Private API
+        private_dir = apis_dir / 'private-api'
+        private_dir.mkdir()
+        (private_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (private_dir / 'exchange.json').write_text(PRIVATE_EXCHANGE_JSON)
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+        return output
+
+    def test_private_api_not_on_homepage(self, portal_with_private_api):
+        html = (portal_with_private_api / 'index.html').read_text(encoding='utf-8')
+        assert 'private-api.html' not in html
+
+    def test_public_api_on_homepage(self, portal_with_private_api):
+        html = (portal_with_private_api / 'index.html').read_text(encoding='utf-8')
+        assert 'public-api' in html
+
+    def test_private_api_no_detail_page(self, portal_with_private_api):
+        assert not (portal_with_private_api / 'apis' / 'private-api.html').exists()
+
+    def test_public_api_has_detail_page(self, portal_with_private_api):
+        assert (portal_with_private_api / 'apis' / 'public-api.html').exists()
+
+    def test_private_api_in_registry(self, portal_with_private_api):
+        registry = json.loads((portal_with_private_api / 'registry.json').read_text())
+        api_entries = [e for e in registry if e['kind'] == 'oas']
+        slugs = [e['slug'] for e in api_entries]
+        assert 'private-api' in slugs
+
+    def test_private_api_registry_has_no_docs(self, portal_with_private_api):
+        registry = json.loads((portal_with_private_api / 'registry.json').read_text())
+        private_entry = [e for e in registry if e.get('slug') == 'private-api'][0]
+        assert 'docs' not in private_entry
+        assert 'href' in private_entry
+
+    def test_public_api_registry_has_docs(self, portal_with_private_api):
+        registry = json.loads((portal_with_private_api / 'registry.json').read_text())
+        public_entry = [e for e in registry if e.get('slug') == 'public-api'][0]
+        assert 'docs' in public_entry
+
+    def test_private_api_yaml_copied(self, portal_with_private_api):
+        assert (portal_with_private_api / 'apis' / 'private-api' / 'api.yaml').exists()

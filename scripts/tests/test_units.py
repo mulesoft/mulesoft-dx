@@ -641,6 +641,16 @@ class TestCalculateStats:
         assert stats['skill_count'] == 3
         assert stats['categories'] == ['Runtime', 'Security']
 
+    def test_private_apis_excluded_from_stats(self):
+        apis = [
+            {'operation_count': 5, 'category': 'Runtime', 'skills': []},
+            {'operation_count': 3, 'category': 'Security', 'skills': [], 'private': True},
+        ]
+        stats = calculate_stats(apis)
+        assert stats['api_count'] == 1
+        assert stats['endpoint_count'] == 5
+        assert stats['categories'] == ['Runtime']
+
 
 # ============================================================================
 # skill_parser._extract_related_jobs

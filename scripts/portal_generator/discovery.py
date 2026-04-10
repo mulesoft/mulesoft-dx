@@ -6,6 +6,7 @@ Skills live in a top-level ``skills/`` directory and are associated with APIs
 by parsing ``urn:api:<slug>`` references inside their YAML step blocks.
 """
 
+import json
 import re
 from pathlib import Path
 from typing import Dict, List
@@ -112,6 +113,16 @@ def discover_apis(repo_root: Path) -> List[Dict]:
         if not oas_data:
             continue
 
+        # Read exchange.json for visibility metadata
+        is_private = False
+        exchange_file = api_dir / 'exchange.json'
+        if exchange_file.exists():
+            try:
+                exchange_data = json.loads(exchange_file.read_text(encoding='utf-8'))
+                is_private = exchange_data.get('visibility') == 'private'
+            except (json.JSONDecodeError, OSError):
+                pass
+
         # Look up skills that reference this API
         skills = skills_by_api.get(api_dir.name, [])
 
@@ -131,7 +142,8 @@ def discover_apis(repo_root: Path) -> List[Dict]:
             'security_schemes': oas_data['security_schemes'],
             'tags': oas_data['tags'],
             'skills': skills,
-            'skill_count': len(skills)
+            'skill_count': len(skills),
+            'private': is_private,
         }
 
         if skills:
@@ -144,18 +156,19 @@ def discover_apis(repo_root: Path) -> List[Dict]:
 
 
 def calculate_stats(apis: List[Dict]) -> Dict:
-    """Calculate portal statistics"""
-    total_operations = sum(api['operation_count'] for api in apis)
+    """Calculate portal statistics (excludes private APIs)."""
+    public = [a for a in apis if not a.get('private')]
+    total_operations = sum(api['operation_count'] for api in public)
     # Count unique skills (a skill may appear under multiple APIs)
     seen = set()
-    for api in apis:
+    for api in public:
         for skill in api.get('skills', []):
             seen.add(skill['slug'])
     total_skills = len(seen)
 
     return {
-        'api_count': len(apis),
+        'api_count': len(public),
         'endpoint_count': total_operations,
         'skill_count': total_skills,
-        'categories': sorted(set(api['category'] for api in apis))
+        'categories': sorted(set(api['category'] for api in public))
     }

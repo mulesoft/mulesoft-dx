@@ -1,4 +1,4 @@
-{% macro input_source(input_def) %}
+{% macro input_source(input_def, private_api_slugs=[], api_link_prefix='') %}
 {% if input_def is string %}
 {{ input_def }}
 {% elif input_def is mapping %}
@@ -14,7 +14,11 @@
 {% set field = src.field|default('') %}
 {% set label = api_name ~ '#' ~ op %}
 {% if field %}{% set label = label ~ '.' ~ field %}{% endif %}
+{% if api_name in private_api_slugs|default([]) %}
+<span class="input-from-api">{{ label }}</span>
+{% else %}
 <a href="{{ api_link_prefix|default('') }}{{ api_name }}.html#op-{{ op }}" class="input-from-api">{{ label }}</a>
+{% endif %}
 {% endif %}
 {% endif %}
 {% if input_def.userProvided %}<span class="input-user">User provided</span>{% endif %}

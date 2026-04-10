@@ -39,6 +39,7 @@ CATEGORY_MAPPING = {
     'tokenization-creation-and-mgmt': 'Security',
     'tokenization-runtime-service': 'Security',
     'usage': 'Monitoring',
+    'api-portal-xapi': 'Platform',
 }
 
 

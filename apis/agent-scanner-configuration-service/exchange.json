@@ -1,0 +1,13 @@
+{
+  "main": "api.yaml",
+  "name": "Agent Scanner Configuration API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "agent-scanner-configuration-api",
+  "version": "1.0.0",
+  "apiVersion": "v1",
+  "classifier": "oas",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

@@ -1,6 +1,6 @@
 {% from "skills/macros.html" import input_source %}
 
-{% macro render_step_yaml(yaml_data) %}
+{% macro render_step_yaml(yaml_data, private_api_slugs=[], api_link_prefix='') %}
 {% if yaml_data %}
 {% set api = yaml_data.api|default('')|replace('urn:api:', '') %}
 {% set operation_id = yaml_data.operationId|default('') %}
@@ -9,7 +9,11 @@
 <div class="step-api-call">
     <div class="step-api-header">
         <span class="step-api-label">API Call:</span>
+        {% if api in private_api_slugs|default([]) %}
+        <span class="step-api-link">{{ api }} &rarr; {{ operation_id }}</span>
+        {% else %}
         <a href="{{ api_link_prefix|default('') }}{{ api }}.html#op-{{ operation_id }}" class="step-api-link">{{ api }} &rarr; {{ operation_id }}</a>
+        {% endif %}
     </div>
     {% if inputs and inputs is mapping %}
     <details class="step-inputs">
@@ -20,7 +24,7 @@
                 {% for name, defn in inputs.items() %}
                 <tr>
                     <td><code>{{ name }}</code></td>
-                    <td>{{ input_source(defn) }}</td>
+                    <td>{{ input_source(defn, private_api_slugs, api_link_prefix) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

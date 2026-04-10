@@ -272,6 +272,17 @@ MINIMAL_EXCHANGE_JSON = json.dumps({
     'organizationId': '00000000-0000-0000-0000-000000000000',
 })
 
+PRIVATE_EXCHANGE_JSON = json.dumps({
+    'main': 'api.yaml',
+    'name': 'Private API',
+    'groupId': 'com.example.anypoint-platform',
+    'assetId': 'private-api',
+    'version': '1.0.0',
+    'apiVersion': 'v1',
+    'organizationId': '00000000-0000-0000-0000-000000000000',
+    'visibility': 'private',
+})
+
 
 def setup_schema_docs(repo_root: Path):
     """Create minimal schema doc files under a repo root for testing."""

@@ -1,7 +1,7 @@
 {% from "skills/step_yaml.html" import render_step_yaml %}
 {% from "skills/workflow_step_try.html" import render_workflow_step_try %}
 
-{% macro render_skill(skill) %}
+{% macro render_skill(skill, private_api_slugs=[], api_link_prefix='') %}
 {% set skill_name = skill.name|replace('-', ' ')|title %}
 {% set slug = skill.slug %}
 
@@ -79,7 +79,7 @@
                     {{ step.prose_before_html|safe }}
                 </div>
                 {% endif %}
-                {{ render_step_yaml(yaml_data) }}
+                {{ render_step_yaml(yaml_data, private_api_slugs, api_link_prefix) }}
                 {{ wf_try }}
                 {% if step.prose_after_html %}
                 <div class="step-prose step-prose-after">

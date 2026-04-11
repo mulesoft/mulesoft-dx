@@ -2531,7 +2531,8 @@ function buildUrlBar(bar, opId, path, servers) {
 }
 
 function toggleServerDropdown(bar, opId, servers) {
-    var existing = bar.querySelector('.server-dropdown');
+    // Dropdown lives on document.body (outside overflow:hidden on bar)
+    var existing = document.querySelector('.server-dropdown');
     if (existing) {
         existing.remove();
         return;
@@ -2540,6 +2541,11 @@ function toggleServerDropdown(bar, opId, servers) {
 
     var dropdown = document.createElement('div');
     dropdown.className = 'server-dropdown';
+
+    // Position below the bar using viewport coordinates
+    var rect = bar.getBoundingClientRect();
+    dropdown.style.top = rect.bottom + 'px';
+    dropdown.style.left = rect.left + 'px';
 
     var activeIdx = getActiveServerIndex(opId, servers);
 
@@ -2556,7 +2562,7 @@ function toggleServerDropdown(bar, opId, servers) {
         dropdown.appendChild(btn);
     });
 
-    bar.appendChild(dropdown);
+    document.body.appendChild(dropdown);
 }
 
 function closeAllServerDropdowns() {

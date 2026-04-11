@@ -2577,11 +2577,7 @@ button.nav-group-header {
 
 /* Operation title header with operationId */
 .operation-title-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
     margin-bottom: var(--space-md);
-    gap: var(--space-md);
 }
 
 .operation-title {
@@ -2589,7 +2585,9 @@ button.nav-group-header {
     font-weight: 600;
     color: #000;
     margin: 0;
-    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
 }
 
 .operation-id-inline {
@@ -2597,7 +2595,7 @@ button.nav-group-header {
     font-style: italic;
     color: #6b7280;
     font-family: var(--font-mono);
-    white-space: nowrap;
+    font-weight: 400;
 }
 
 /* Paragraph-based parameters layout - Claude API style */
@@ -2628,6 +2626,11 @@ button.nav-group-header {
     color: #111827;
 }
 
+.param-type-inline {
+    font-weight: 400;
+    color: #6b7280;
+}
+
 .param-badge {
     display: inline-flex;
     align-items: center;
@@ -2643,18 +2646,6 @@ button.nav-group-header {
     background-color: #fef2f2;
     color: #b91c1c;
     border: 1px solid #fecaca;
-}
-
-.param-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.param-type {
-    font-size: 0.8125rem;
-    color: #6b7280;
-    font-family: var(--font-mono);
 }
 
 .param-description {

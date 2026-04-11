@@ -51,8 +51,10 @@
 
         <div class="operation-main-content">
             <div class="operation-title-header">
-                <h3 class="operation-title">{{ operation.operationId|titleize_operation }}</h3>
-                <code class="operation-id-inline">{{ operation.operationId }}</code>
+                <h3 class="operation-title">
+                    {{ operation.operationId|titleize_operation }}
+                    <span class="operation-id-inline">{{ operation.operationId }}</span>
+                </h3>
             </div>
 
             {% set desc = operation.description|default('') or operation.summary|default('') %}
@@ -79,11 +81,8 @@
                         {% for param in params_by_location[location] %}
                         <div class="param-item">
                             <div class="param-header">
-                                <code class="param-name">{{ param.name }}</code>
+                                <code class="param-name">{{ param.name }}:<span class="param-type-inline">{{ param_type(param.schema|default({})) }}</span></code>
                                 {% if param.required %}<span class="param-badge param-badge-required">required</span>{% endif %}
-                            </div>
-                            <div class="param-meta">
-                                <span class="param-type">{{ param_type(param.schema|default({})) }}</span>
                             </div>
                             {% if param.description %}
                             <div class="param-description">{{ param.description|md }}{{ x_origin(param) }}</div>

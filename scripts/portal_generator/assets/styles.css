@@ -2600,36 +2600,29 @@ button.nav-group-header {
     white-space: nowrap;
 }
 
-/* Paragraph-based parameters layout */
+/* Paragraph-based parameters layout - Claude API style */
 .params-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
-    margin-top: var(--space-md);
+    gap: 1.5rem;
+    margin-top: 1rem;
 }
 
 .param-item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
-    padding-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--lume-color-neutral-4);
-}
-
-.param-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+    gap: 0.5rem;
 }
 
 .param-header {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
 .param-name {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     font-family: var(--font-mono);
     color: #111827;
@@ -2638,41 +2631,36 @@ button.nav-group-header {
 .param-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.6875rem;
     font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    text-transform: lowercase;
+    letter-spacing: 0;
 }
 
 .param-badge-required {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-
-.param-badge-in {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    text-transform: lowercase;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
 }
 
 .param-meta {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: 0.5rem;
 }
 
 .param-type {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: #6b7280;
     font-family: var(--font-mono);
 }
 
 .param-description {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     line-height: 1.6;
-    color: #374151;
+    color: #4b5563;
 }
 
 .param-description p {
@@ -2685,6 +2673,14 @@ button.nav-group-header {
 
 .param-description p:last-child {
     margin-bottom: 0;
+}
+
+.param-description code {
+    font-size: 0.8125rem;
+    background: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    font-family: var(--font-mono);
 }
 
 /* Lume Design System - Tables */

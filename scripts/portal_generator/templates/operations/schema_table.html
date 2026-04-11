@@ -5,7 +5,7 @@
     {% for prop in properties %}
     <div class="param-item">
         <div class="param-header">
-            <code class="param-name">{{ prop.name }}{% if prop.required %} *{% endif %} : </code>
+            <code class="param-name">{{ prop.name }}{% if prop.required %}*{% endif %}:</code>
             <code class="param-type-inline">{{ prop.type|default('') }}</code>
         </div>
         {% if prop.description %}
@@ -15,16 +15,26 @@
         <div class="param-constraints-container">
             {% for constraint in prop.constraints %}
             {% if constraint.startswith('enum:') %}
-            <div class="enum-values-list">
-                {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
-                {% for value in enum_values %}
-                <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
+            {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
+            {% set show_count = 7 %}
+            <div class="enum-preview">
+                {% for value in enum_values[:show_count] %}
+                <code class="enum-value-inline">{{ value }}</code>{% if not loop.last %}, {% endif %}
                 {% endfor %}
+                {% if enum_values|length > show_count %}
+                <span class="enum-more"> and {{ enum_values|length - show_count }} more</span>
+                {% endif %}
             </div>
-            {% elif constraint.startswith('pattern') %}
-            <div class="param-pattern-container">
-                <code class="param-pattern">{{ constraint }}</code>
-            </div>
+            <details class="enum-details">
+                <summary class="enum-summary">Expand to see all possible options</summary>
+                <div class="enum-values-list">
+                    {% for value in enum_values %}
+                    <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
+                    {% endfor %}
+                </div>
+            </details>
+            {% elif constraint.startswith('pattern:') %}
+            <code class="param-pattern">{{ constraint }}</code>
             {% else %}
             <span class="constraint-item">{{ constraint }}</span>
             {% endif %}

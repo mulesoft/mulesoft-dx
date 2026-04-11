@@ -81,10 +81,10 @@
                         {% for param in params_by_location[location] %}
                         <div class="param-item">
                             <div class="param-header">
-                                <code class="param-name">{{ param.name }}{% if param.required %} *{% endif %} : </code>
+                                <code class="param-name">{{ param.name }}{% if param.required %}*{% endif %}:</code>
                                 <code class="param-type-inline">{{ param_type(param.schema|default({})) }}</code>
                                 {% if param.schema and param.schema.get('pattern') %}
-                                <code class="param-pattern">{{ param.schema.pattern }}</code>
+                                <code class="param-pattern">pattern: {{ param.schema.pattern }}</code>
                                 {% endif %}
                             </div>
                             {% if param.description or param.get('x-origin') %}
@@ -94,11 +94,24 @@
                             </div>
                             {% endif %}
                             {% if param.schema and param.schema.get('enum') %}
-                            <div class="enum-values-list">
-                                {% for value in param.schema.enum %}
-                                <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
+                            {% set enum_values = param.schema.enum %}
+                            {% set show_count = 7 %}
+                            <div class="enum-preview">
+                                {% for value in enum_values[:show_count] %}
+                                <code class="enum-value-inline">{{ value }}</code>{% if not loop.last %}, {% endif %}
                                 {% endfor %}
+                                {% if enum_values|length > show_count %}
+                                <span class="enum-more"> and {{ enum_values|length - show_count }} more</span>
+                                {% endif %}
                             </div>
+                            <details class="enum-details">
+                                <summary class="enum-summary">Expand to see all possible options</summary>
+                                <div class="enum-values-list">
+                                    {% for value in enum_values %}
+                                    <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
+                                    {% endfor %}
+                                </div>
+                            </details>
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -124,24 +137,25 @@
             {% endif %}
 
             {% if operation.responses %}
+            {% for status, response in operation.responses|dictsort %}
             <div class="operation-subsection">
-                <h4>Responses</h4>
-                {% for status, response in operation.responses|dictsort %}
-                {% set content_types = response.content_types|default([]) %}
-                {% set ct_str = content_types|join(', ') if content_types else '-' %}
-                <div class="response-block">
-                    <div class="response-header">
-                        <code class="status-code status-{{ status|string|first }}xx">{{ status }}</code>
-                        <span class="response-desc">{{ response.description|md }}</span>
-                        <span class="response-ct">{{ ct_str }}</span>
-                    </div>
-                    {% for ct, props in response.schemas|default({})|items %}
-                    {{ render_schema_table(props) }}
-                    {% endfor %}
-                    {{ render_examples(response.examples|default({})) }}
-                </div>
+                <h4>{{ status }} Response</h4>
+                {% if response.description %}
+                <div class="param-description">{{ response.description|md }}</div>
+                {% endif %}
+                {% for ct, props in response.schemas|default({})|items %}
+                {{ render_schema_table(props) }}
                 {% endfor %}
+                {% if response.examples %}
+                <details class="response-examples-section">
+                    <summary class="examples-summary">Examples</summary>
+                    <div class="examples-container">
+                        {{ render_examples(response.examples) }}
+                    </div>
+                </details>
+                {% endif %}
             </div>
+            {% endfor %}
             {% endif %}
         </div>
     </div>

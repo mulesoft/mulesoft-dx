@@ -2,10 +2,29 @@
 {% if examples %}
 {% for ct, named in examples.items() %}
 {% for name, json_str in named.items() %}
-<details class="example-block">
-    <summary>Example: {{ name if name != 'Default' else ct }}</summary>
-    <pre class="example-code"><code>{{ json_str }}</code></pre>
-</details>
+{% set example_id = 'example-' ~ name|replace(' ', '-')|replace('/', '-')|lower ~ '-' ~ range(1000, 9999)|random %}
+<div class="example-block">
+    <div class="example-header">
+        <span class="example-title">{{ name if name != 'Default' else ct }}</span>
+    </div>
+    <div id="{{ example_id }}" class="ace-editor-container">{{ json_str }}</div>
+    <script>
+        (function() {
+            var editor = ace.edit('{{ example_id }}');
+            editor.setTheme('ace/theme/github');
+            editor.session.setMode('ace/mode/json');
+            editor.setReadOnly(true);
+            editor.setOptions({
+                maxLines: 30,
+                minLines: 5,
+                highlightActiveLine: false,
+                highlightGutterLine: false,
+                showPrintMargin: false,
+                fontSize: '13px'
+            });
+        })();
+    </script>
+</div>
 {% endfor %}
 {% endfor %}
 {% endif %}

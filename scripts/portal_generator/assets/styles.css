@@ -2684,9 +2684,51 @@ button.nav-group-header {
     font-family: var(--font-mono);
 }
 
-/* Enum values display - Claude API style */
-.enum-values-list {
+/* Enum values display - inline preview and collapsible */
+.enum-preview {
     margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.enum-value-inline {
+    font-size: 0.875rem;
+    background: transparent;
+    color: #111827;
+    padding: 0;
+    border: none;
+    font-family: var(--font-mono);
+    font-weight: 400;
+}
+
+.enum-more {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.enum-details {
+    margin-top: 0.5rem;
+}
+
+.enum-summary {
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #2563eb;
+    font-weight: 400;
+    user-select: none;
+    list-style: none;
+}
+
+.enum-summary::-webkit-details-marker {
+    display: none;
+}
+
+.enum-summary:hover {
+    color: #1d4ed8;
+}
+
+.enum-values-list {
+    margin-top: 0.75rem;
     margin-left: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -2735,6 +2777,64 @@ button.nav-group-header {
     font-weight: 600;
     color: #374151;
     margin: 0 0 1rem 0;
+}
+
+/* Response examples section */
+.response-examples-section {
+    margin-top: 1.5rem;
+}
+
+.examples-summary {
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    user-select: none;
+    list-style: none;
+    padding: 0.5rem 0;
+}
+
+.examples-summary::-webkit-details-marker {
+    display: none;
+}
+
+.examples-summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.2s;
+    font-weight: normal;
+}
+
+details[open] .examples-summary::before {
+    transform: rotate(90deg);
+}
+
+.examples-summary:hover {
+    color: #2563eb;
+}
+
+.examples-container {
+    margin-top: 1rem;
+}
+
+.example-block {
+    margin-bottom: 1.5rem;
+}
+
+.example-header {
+    margin-bottom: 0.5rem;
+}
+
+.example-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.ace-editor-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 /* Lume Design System - Tables */

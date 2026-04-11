@@ -1,3 +1,5 @@
+{% from "operations/macros.html" import param_type %}
+
 {% macro render_schema_table(properties, title='') %}
 {% if properties %}
 {% if title %}<h5 class="schema-title">{{ title }}</h5>{% endif %}
@@ -5,25 +7,34 @@
     {% for prop in properties %}
     <div class="param-item">
         <div class="param-header">
+            {% if prop.children and prop.children|length > 0 %}
+            <button class="nested-prop-toggle" onclick="toggleNestedProps('{{ prop.name|replace(' ', '-')|replace('.', '-')|lower }}-{{ loop.index }}')" aria-label="Toggle nested properties">
+                <svg class="toggle-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            {% endif %}
             <code class="param-name">{{ prop.name }}{% if prop.required %}*{% endif %}:</code>
-            <code class="param-type-inline">{{ prop.type|default('') }}</code>
+            <code class="param-type-inline">{{ param_type(prop.schema|default({})) }}</code>
         </div>
         {% if prop.description %}
         <div class="param-description">{{ prop.description|md }}</div>
         {% endif %}
-        {% if prop.constraints %}
-        <div class="param-constraints-container">
-            {% for constraint in prop.constraints %}
-            {% if constraint.startswith('enum:') %}
-            <div class="param-enum-constraint">
-                <span class="constraint-item">{{ constraint }}</span>
+        {% if prop.children and prop.children|length > 0 %}
+        <div class="nested-properties" id="{{ prop.name|replace(' ', '-')|replace('.', '-')|lower }}-{{ loop.index }}" style="display:none">
+            <div class="params-list nested-params-list">
+                {% for child in prop.children %}
+                <div class="param-item">
+                    <div class="param-header">
+                        <code class="param-name">{{ child.name }}{% if child.required %}*{% endif %}:</code>
+                        <code class="param-type-inline">{{ param_type(child.schema|default({})) }}</code>
+                    </div>
+                    {% if child.description %}
+                    <div class="param-description">{{ child.description|md }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
-            {% elif constraint.startswith('pattern:') %}
-            <code class="param-pattern">{{ constraint }}</code>
-            {% else %}
-            <span class="constraint-item">{{ constraint }}</span>
-            {% endif %}
-            {% endfor %}
         </div>
         {% endif %}
     </div>

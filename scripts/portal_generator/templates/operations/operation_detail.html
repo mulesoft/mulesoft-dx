@@ -1,6 +1,6 @@
 {% from "operations/macros.html" import param_type, x_origin, tags, breadcrumb %}
 {% from "operations/schema_table.html" import render_schema_table %}
-{% from "operations/examples.html" import render_examples %}
+{% from "operations/examples.html" import render_examples, render_examples_summary %}
 {% from "operations/try_it_out.html" import render_try_it_out %}
 
 {% macro render_operation(operation, icons_path='assets/icons') %}
@@ -101,38 +101,82 @@
             {% if operation.requestBody %}
             {% set rb = operation.requestBody %}
             <div class="operation-subsection">
-                <h4>Request Body{% if rb.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</h4>
-                {% set content_types_str = rb.content_types|default([])|join(', ') %}
-                {% if content_types_str %}
-                <p><strong>Content Types:</strong> <code>{{ content_types_str }}</code></p>
-                {% endif %}
+                <div class="section-header-with-badge">
+                    <h4>Request Body{% if rb.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</h4>
+                    {% set content_types = rb.content_types|default([]) %}
+                    {% if 'application/json' in content_types %}
+                    <span class="content-type-badge">json</span>
+                    {% elif content_types %}
+                    <span class="content-type-badge">{{ content_types[0]|replace('application/', '')|replace('text/', '') }}</span>
+                    {% endif %}
+                </div>
                 {% for ct, props in rb.schemas|default({})|items %}
-                {{ render_schema_table(props, 'Schema (' ~ ct ~ ')') }}
+                {{ render_schema_table(props, '') }}
                 {% endfor %}
-                {{ render_examples(rb.examples|default({})) }}
-            </div>
-            {% endif %}
-
-            {% if operation.responses %}
-            {% for status, response in operation.responses|dictsort %}
-            <div class="operation-subsection">
-                <h4>{{ status }} Response</h4>
-                {% if response.description %}
-                <div class="param-description">{{ response.description|md }}</div>
-                {% endif %}
-                {% for ct, props in response.schemas|default({})|items %}
-                {{ render_schema_table(props) }}
-                {% endfor %}
-                {% if response.examples %}
+                {% if rb.examples %}
                 <details class="response-examples-section">
-                    <summary class="examples-summary">Examples</summary>
+                    <summary class="examples-summary">{{ render_examples_summary() }}</summary>
                     <div class="examples-container">
-                        {{ render_examples(response.examples) }}
+                        {{ render_examples(rb.examples) }}
                     </div>
                 </details>
                 {% endif %}
             </div>
-            {% endfor %}
+            {% endif %}
+
+            {% if operation.responses %}
+            <div class="operation-subsection">
+                {% set first_status = operation.responses.keys()|list|first %}
+                {% set first_response = operation.responses[first_status] %}
+                {% set first_response_content_types = first_response.schemas.keys()|list if first_response.schemas else [] %}
+                <div class="response-header-with-selector">
+                    <h4>Response</h4>
+                    <div class="response-header-controls">
+                        <div class="response-status-selector">
+                            <button class="status-selector-button" onclick="toggleStatusDropdown('{{ operation.operationId }}')" aria-label="Select response status">
+                                <span class="selected-status" id="selected-status-{{ operation.operationId }}">
+                                    {% set status_num = first_status|string %}
+                                    <span class="status-dot status-dot-{% if status_num.startswith('2') %}2xx{% elif status_num.startswith('4') %}4xx{% else %}default{% endif %}"></span>
+                                    {{ first_status }}
+                                </span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <div class="status-dropdown-menu" id="status-dropdown-{{ operation.operationId }}" style="display:none">
+                                {% for status in operation.responses.keys()|sort %}
+                                {% set status_num = status|string %}
+                                <button class="status-dropdown-item" onclick="selectResponseStatus('{{ operation.operationId }}', '{{ status }}')">
+                                    <span class="status-dot status-dot-{% if status_num.startswith('2') %}2xx{% elif status_num.startswith('4') %}4xx{% else %}default{% endif %}"></span>
+                                    {{ status }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <span class="content-type-badge" id="content-type-badge-{{ operation.operationId }}" style="{% if 'application/json' not in first_response_content_types and not first_response_content_types %}display:none{% endif %}">
+                            {% if 'application/json' in first_response_content_types %}json{% elif first_response_content_types %}{{ first_response_content_types[0]|replace('application/', '')|replace('text/', '') }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% for status, response in operation.responses|dictsort %}
+                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|e }}" {% if not loop.first %}style="display:none"{% endif %}>
+                    {% if response.description %}
+                    <div class="param-description">{{ response.description|md }}</div>
+                    {% endif %}
+                    {% for ct, props in response.schemas|default({})|items %}
+                    {{ render_schema_table(props) }}
+                    {% endfor %}
+                    {% if response.examples %}
+                    <details class="response-examples-section">
+                        <summary class="examples-summary">{{ render_examples_summary() }}</summary>
+                        <div class="examples-container">
+                            {{ render_examples(response.examples) }}
+                        </div>
+                    </details>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
             {% endif %}
         </div>
     </div>

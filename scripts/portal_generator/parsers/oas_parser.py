@@ -161,7 +161,7 @@ def resolve_schema(schema: Dict, base_dir: Path, depth: int = 0) -> Dict:
 
 def extract_schema_properties(schema: Dict, base_dir: Path) -> List[Dict]:
     """Extract a flat list of property definitions from a schema for rendering.
-    Returns list of {name, type, required, description, constraints}."""
+    Returns list of {name, type, required, description, constraints, children}."""
     resolved = resolve_schema(schema, base_dir)
     if not isinstance(resolved, dict):
         return []
@@ -208,12 +208,19 @@ def extract_schema_properties(schema: Dict, base_dir: Path) -> List[Dict]:
         if prop.get('pattern'):
             constraints.append(f"pattern: {prop['pattern']}")
 
+        # Extract nested properties for object types
+        children = []
+        if prop.get('type') == 'object' and 'properties' in prop:
+            children = extract_schema_properties(prop, base_dir)
+
         result.append({
             'name': str(name),
             'type': prop_type,
             'required': str(name) in required_fields,
             'description': prop.get('description', ''),
             'constraints': constraints,
+            'children': children,
+            'schema': prop,  # Include raw schema for template macro
         })
 
     return result

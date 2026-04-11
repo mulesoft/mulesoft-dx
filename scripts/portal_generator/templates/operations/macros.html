@@ -5,20 +5,20 @@
 {% if fmt %}{% set ptype = ptype ~ '(' ~ fmt ~ ')' %}{% endif %}
 {% if ptype %}<code class="param-type">{{ ptype }}</code>{% endif %}
 {% if schema.enum %}
-<span class="param-enum">Enum: {% for v in schema.enum %}<code>{{ v }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</span>
-{% endif %}
-{% if schema.default is not none and schema.default is defined %}
-<span class="param-default">Default: <code>{{ schema.default }}</code></span>
+<span class="param-constraint">Enum: {% for v in schema.enum %}<code>{{ v }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</span>
 {% endif %}
 {% if schema.pattern %}
-<span class="param-pattern">Pattern: <code>{{ schema.pattern }}</code></span>
+<span class="param-constraint">Pattern: <code>{{ schema.pattern }}</code></span>
+{% endif %}
+{% if schema.default is not none and schema.default is defined %}
+<span class="param-constraint">Default: <code>{{ schema.default }}</code></span>
 {% endif %}
 {% set constraints = [] %}
 {% if schema.minimum is not none and schema.minimum is defined %}{% set _ = constraints.append('min: ' ~ schema.minimum) %}{% endif %}
 {% if schema.maximum is not none and schema.maximum is defined %}{% set _ = constraints.append('max: ' ~ schema.maximum) %}{% endif %}
 {% if schema.minLength is not none and schema.minLength is defined %}{% set _ = constraints.append('minLen: ' ~ schema.minLength) %}{% endif %}
 {% if schema.maxLength is not none and schema.maxLength is defined %}{% set _ = constraints.append('maxLen: ' ~ schema.maxLength) %}{% endif %}
-{% if constraints %}<span class="param-constraints">{{ constraints|join(', ') }}</span>{% endif %}
+{% if constraints %}<span class="param-constraint">{{ constraints|join(', ') }}</span>{% endif %}
 {% endif %}
 {% endmacro %}
 

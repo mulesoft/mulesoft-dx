@@ -2916,6 +2916,120 @@ function closeSendDropdown(opId) {
     }
 }
 
+// ============================================================================
+// Response Status Selector
+// ============================================================================
+
+function toggleStatusDropdown(opId) {
+    var dropdown = document.getElementById('status-dropdown-' + opId);
+    if (!dropdown) return;
+
+    var isVisible = dropdown.style.display !== 'none';
+
+    // Close all other status dropdowns first
+    document.querySelectorAll('.status-dropdown-menu').forEach(function(d) {
+        d.style.display = 'none';
+    });
+
+    dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
+function selectResponseStatus(opId, status) {
+    // Update the selected status display
+    var selectedDisplay = document.getElementById('selected-status-' + opId);
+    if (selectedDisplay) {
+        var statusNum = String(status);
+        var dotClass = 'status-dot-default';
+        if (statusNum.startsWith('2')) {
+            dotClass = 'status-dot-2xx';
+        } else if (statusNum.startsWith('4')) {
+            dotClass = 'status-dot-4xx';
+        }
+
+        selectedDisplay.innerHTML = '<span class="status-dot ' + dotClass + '"></span>' + escapeHtml(status);
+    }
+
+    // Hide all response content for this operation
+    document.querySelectorAll('[id^="response-' + opId + '-"]').forEach(function(content) {
+        content.style.display = 'none';
+    });
+
+    // Show the selected response content
+    var selectedContent = document.getElementById('response-' + opId + '-' + status);
+    if (selectedContent) {
+        selectedContent.style.display = 'block';
+
+        // Update content type badge
+        var contentTypeBadge = document.getElementById('content-type-badge-' + opId);
+        if (contentTypeBadge) {
+            var contentTypesJson = selectedContent.getAttribute('data-content-types');
+            if (contentTypesJson) {
+                try {
+                    var contentTypes = JSON.parse(contentTypesJson);
+                    if (contentTypes && contentTypes.length > 0) {
+                        if (contentTypes.indexOf('application/json') !== -1) {
+                            contentTypeBadge.textContent = 'json';
+                        } else {
+                            contentTypeBadge.textContent = contentTypes[0].replace('application/', '').replace('text/', '');
+                        }
+                        contentTypeBadge.style.display = '';
+                    } else {
+                        contentTypeBadge.style.display = 'none';
+                    }
+                } catch (e) {
+                    contentTypeBadge.style.display = 'none';
+                }
+            } else {
+                contentTypeBadge.style.display = 'none';
+            }
+        }
+    }
+
+    // Close the dropdown
+    var dropdown = document.getElementById('status-dropdown-' + opId);
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Close status dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.response-status-selector')) {
+        document.querySelectorAll('.status-dropdown-menu').forEach(function(d) {
+            d.style.display = 'none';
+        });
+    }
+});
+
+// ============================================================================
+// Nested Properties Toggle
+// ============================================================================
+
+function toggleNestedProps(id) {
+    var nested = document.getElementById(id);
+    if (!nested) return;
+
+    var button = nested.previousElementSibling;
+    while (button && !button.classList.contains('param-header')) {
+        button = button.previousElementSibling;
+    }
+    if (button) {
+        button = button.querySelector('.nested-prop-toggle');
+    }
+
+    if (nested.style.display === 'none' || nested.style.display === '') {
+        nested.style.display = 'block';
+        if (button) {
+            button.classList.add('expanded');
+        }
+    } else {
+        nested.style.display = 'none';
+        if (button) {
+            button.classList.remove('expanded');
+        }
+    }
+}
+
 function switchResponseTab(opId, tabName) {
     var responseDiv = document.getElementById('response-' + opId);
     if (!responseDiv) return;

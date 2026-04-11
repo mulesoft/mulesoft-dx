@@ -61,22 +61,22 @@
             {% endif %}
 
             {% if operation.parameters %}
-            {% set params_by_type = {} %}
+            {% set params_by_location = {} %}
             {% for param in operation.parameters %}
                 {% set param_in = param['in'] %}
-                {% if param_in not in params_by_type %}
-                    {% set _ = params_by_type.__setitem__(param_in, []) %}
+                {% if param_in not in params_by_location %}
+                    {% set _ = params_by_location.__setitem__(param_in, []) %}
                 {% endif %}
-                {% set _ = params_by_type[param_in].append(param) %}
+                {% set _ = params_by_location[param_in].append(param) %}
             {% endfor %}
 
             {% set param_order = ['path', 'query', 'header', 'cookie'] %}
-            {% for param_type in param_order %}
-                {% if param_type in params_by_type %}
+            {% for location in param_order %}
+                {% if location in params_by_location %}
                 <div class="operation-subsection">
-                    <h4>{{ param_type|capitalize }} Parameters</h4>
+                    <h4>{{ location|capitalize }} Parameters</h4>
                     <div class="params-list">
-                        {% for param in params_by_type[param_type] %}
+                        {% for param in params_by_location[location] %}
                         <div class="param-item">
                             <div class="param-header">
                                 <code class="param-name">{{ param.name }}</code>

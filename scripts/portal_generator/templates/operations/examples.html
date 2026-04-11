@@ -1,0 +1,38 @@
+{% macro render_examples_summary() %}
+<svg class="examples-toggle-icon" width="16" height="16" viewBox="0 0 12 12" fill="none">
+    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<span>Examples</span>
+{% endmacro %}
+
+{% macro render_examples(examples) %}
+{% if examples %}
+{% for ct, named in examples.items() %}
+{% for name, json_str in named.items() %}
+{% set example_id = 'example-' ~ name|replace(' ', '-')|replace('/', '-')|lower ~ '-' ~ range(1000, 9999)|random %}
+<div class="example-block">
+    <div class="example-header">
+        <span class="example-title">{{ name if name != 'Default' else ct }}</span>
+    </div>
+    <div id="{{ example_id }}" class="ace-editor-container">{{ json_str }}</div>
+    <script>
+        (function() {
+            var editor = ace.edit('{{ example_id }}');
+            editor.setTheme('ace/theme/github');
+            editor.session.setMode('ace/mode/json');
+            editor.setReadOnly(true);
+            editor.setOptions({
+                maxLines: 30,
+                minLines: 5,
+                highlightActiveLine: false,
+                highlightGutterLine: false,
+                showPrintMargin: false,
+                fontSize: '13px'
+            });
+        })();
+    </script>
+</div>
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endmacro %}

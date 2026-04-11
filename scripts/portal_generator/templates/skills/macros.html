@@ -1,0 +1,48 @@
+{% macro input_source(input_def, private_api_slugs=[], api_link_prefix='') %}
+{% if input_def is string %}
+{{ input_def }}
+{% elif input_def is mapping %}
+{% if input_def['from'] is defined and input_def['from'] is mapping %}
+{% set src = input_def['from'] %}
+{% if src.step is defined %}
+{% set ref = 'Step: ' ~ src.step %}
+{% if src.output %}{% set ref = ref ~ ' → ' ~ src.output %}{% elif src.input %}{% set ref = ref ~ ' → ' ~ src.input %}{% endif %}
+<span class="input-from-step">{{ ref }}</span>
+{% elif src.api is defined %}
+{% set api_name = src.api|default('')|replace('urn:api:', '') %}
+{% set op = src.operation|default('') %}
+{% set field = src.field|default('') %}
+{% set label = api_name ~ '#' ~ op %}
+{% if field %}{% set label = label ~ '.' ~ field %}{% endif %}
+{% if api_name in private_api_slugs|default([]) %}
+<span class="input-from-api">{{ label }}</span>
+{% else %}
+<a href="{{ api_link_prefix|default('') }}{{ api_name }}.html#op-{{ op }}" class="input-from-api">{{ label }}</a>
+{% endif %}
+{% endif %}
+{% endif %}
+{% if input_def.userProvided %}<span class="input-user">User provided</span>{% endif %}
+{% if input_def.value is defined %}<code class="input-value">{{ input_def.value }}</code>{% endif %}
+{% if input_def.example %}<span class="input-example">e.g. <code>{{ input_def.example }}</code></span>{% endif %}
+{% if input_def.description %}<span class="input-desc">{{ input_def.description }}</span>{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro source_hint(input_def) %}
+{% if input_def is mapping %}
+{% if input_def['from'] is defined and input_def['from'] is mapping %}
+{% set src = input_def['from'] %}
+{% if src.step is defined %}
+{% set target = src.output|default('') or src.input|default('') %}
+from Step: {{ src.step }} → {{ target }}
+{% elif src.api is defined %}
+{% set api_name = src.api|default('')|replace('urn:api:', '') %}
+from {{ api_name }}#{{ src.operation|default('') }}
+{% endif %}
+{% elif input_def.userProvided %}
+user provided
+{% elif input_def.value is defined %}
+static: {{ input_def.value }}
+{% endif %}
+{% endif %}
+{% endmacro %}

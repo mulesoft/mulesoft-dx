@@ -1,0 +1,111 @@
+{% macro tree_node(key, node, level=0, parent_path='') %}
+{% if node.operations|length == 0 and node.children|length == 1 and level > 1 %}
+{# Pass-through single-child nodes #}
+{% set child_key = node.children.keys()|list|first %}
+{{ tree_node(child_key, node.children[child_key], level, parent_path ~ '/' ~ node.segment) }}
+{% else %}
+{% set display_name = parent_path ~ '/' ~ node.segment if parent_path else node.segment %}
+{% set node_id = node.full_path|replace('/', '-')|replace('{', '')|replace('}', '') %}
+{% set node_id = node_id.lstrip('-') %}
+{% set total_ops = count_tree_operations(node) %}
+{% set effective_level = [level, 3]|min %}
+<li class="nav-group tree-level-{{ effective_level }}">
+    <button class="nav-group-header tree-node" onclick="toggleGroup('{{ node_id }}')" aria-expanded="false"
+        aria-controls="group-{{ node_id }}">
+        <img class="group-toggle" id="toggle-{{ node_id }}" src="{{ icons_path }}/expand.svg" alt="" aria-hidden="true">
+        <span class="group-name">{{ display_name }}</span>
+        <span class="group-count">({{ total_ops }})</span>
+    </button>
+    <ul class="nav-group-items" id="group-{{ node_id }}" style="display: none;">
+        {% for op in node.operations|sort(attribute='method') %}
+        {% set method_class = op.method|lower %}
+        {% set summary = op.summary|default('') or op.operationId %}
+        {% set summary = summary[:47] ~ '...' if summary|length > 50 else summary %}
+        <li>
+            <a href="#op-{{ op.operationId }}" class="nav-link nav-operation" title="{{ op.path }}
+{{ op.summary|default('') }}">
+                <span class="method-badge method-{{ method_class }}">{{ op.method }}</span>
+                <span class="op-summary-only">{{ summary }}</span>
+            </a>
+        </li>
+        {% endfor %}
+        {% for child_key in node.children.keys()|sort %}
+        {{ tree_node(child_key, node.children[child_key], level + 1, '') }}
+        {% endfor %}
+    </ul>
+</li>
+{% endif %}
+{% endmacro %}
+
+<aside class="detail-sidebar" id="detailSidebar">
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <li>
+                <a href="#overview" class="nav-link active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path
+                            d="M13.9998 5.20117V14.043L12.5125 15L7.99976 11.8408L3.48804 15L1.99976 14.042V5.20117L7.99976 1L13.9998 5.20117ZM2.99976 5.72168V13.4961L3.4646 13.7959L7.99976 10.6201L12.5359 13.7959L12.9998 13.4971V5.72168L7.99976 2.2207L2.99976 5.72168ZM11.9998 10.1855V11.4062L7.99976 8.60449V7.38379L11.9998 10.1855ZM11.9998 7.39453V8.61621L7.99976 5.81445V4.59375L11.9998 7.39453Z"
+                            fill="#234774" />
+                    </svg>
+                    Overview
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search…"
+                    aria-label="Filter operations" onkeyup="filterSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearSidebarSearch()" style="display:none"
+                    aria-label="Clear search">✕</button>
+            </div>
+        </div>
+        <div class="sidebar-tabs" role="tablist">
+            <button class="sidebar-tab active" role="tab" aria-selected="true" aria-controls="operations-panel"
+                data-tab="operations" onclick="switchSidebarTab('operations')">
+                Operations <span class="tab-count" id="operations-count" style="display: none;"></span>
+            </button>
+            {% if api.skills %}
+            <button class="sidebar-tab" role="tab" aria-selected="false" aria-controls="skills-panel"
+                data-tab="skills" onclick="switchSidebarTab('skills')">
+                Skills <span class="tab-count" id="skills-count" style="display: none;"></span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <div id="operations-panel" class="sidebar-panel active" role="tabpanel"
+                aria-labelledby="operations-tab">
+                {% for op in api.operations|sort(attribute='summary') %}
+                {% set method_class = op.method|lower %}
+                {% set summary = op.summary|default('') or op.operationId %}
+                {% set display_name = op.summary if op.summary else (op.operationId|titleize_operation) %}
+                <li>
+                    <a href="#op-{{ op.operationId }}" class="nav-link nav-operation nav-operation-flat" title="{{ op.path }}
+{{ op.summary|default('') }}">
+                        <span class="op-name">{{ display_name }}</span>
+                        <span class="method-badge method-{{ method_class }}">{{ op.method }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </div>
+            {% if api.skills %}
+            <div id="skills-panel" class="sidebar-panel" role="tabpanel" aria-labelledby="skills-tab" style="display: none;">
+                {% for skill in api.skills %}
+                {% set skill_name = skill.name|replace('-', ' ')|title %}
+                {% set step_count = skill.step_details|length %}
+                <li>
+                    <a href="../skills/{{ skill.slug }}.html" class="nav-link nav-operation-flat">
+                        <span class="op-name">{{ skill_name }}</span>
+                        <span class="group-count">({{ step_count }} steps)</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </ul>
+    </nav>
+</aside>

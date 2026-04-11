@@ -1,0 +1,232 @@
+openapi: 3.0.0
+info:
+  title: API Portal Experience API
+  version: 1.0.0
+  description: Retrieve policy templates from Exchange and manage gateway targets across organizations and environments within the Anypoint Platform API Manager experience layer.
+servers:
+- url: https://anypoint.mulesoft.com
+- url: https://eu1.anypoint.mulesoft.com
+- url: https://{region}.platform.mulesoft.com
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /apimanager/xapi/v1/organizations/{organizationId}/exchange-policy-templates:
+    get:
+      description: Retrieve all policy templates (OOTB or custom) stored in Exchange for a given organization. Optionally filter by environment, API instance, Mule runtime version, or automation scope.
+      operationId: getExchangePolicyTemplates
+      parameters:
+      - name: apiInstanceId
+        in: query
+        description: Filter policy templates compatible with this API instance.
+        schema:
+          minimum: 1
+          maximum: 2147483647
+          type: integer
+      - name: environmentId
+        in: query
+        description: Filter policy templates scoped to this environment.
+        allowReserved: true
+        schema:
+          minLength: 1
+          type: string
+      - name: latest
+        in: query
+        description: When true, return only the latest version of each policy template.
+        schema:
+          default: false
+          type: boolean
+      - name: muleVersion
+        in: query
+        description: Filter policy templates compatible with this Mule runtime version (semver format).
+        allowReserved: true
+        schema:
+          pattern: "^\\d+(.\\d+)?(.\\d+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+[0-9A-Za-z-]+)?$"
+          type: string
+      - name: splitModel
+        in: query
+        description: When true, split policy templates into separate resource and operation level entries.
+        schema:
+          default: false
+          type: boolean
+      - name: includeConfiguration
+        in: query
+        description: When true, include the configuration schema for each policy template.
+        schema:
+          default: true
+          type: boolean
+      - name: automatedOnly
+        in: query
+        description: When true, return only policy templates that support automated application.
+        schema:
+          default: false
+          type: boolean
+      responses:
+        '200':
+          description: Success. Returns the list of exchange policy templates matching the specified filters.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/exchangePolicyTemplates.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/gateway-targets:
+    get:
+      description: Retrieve a paged list of gateway targets registered in a given environment. Optionally filter by gateway name, kind, or status.
+      operationId: getGatewayTargets
+      responses:
+        '200':
+          description: Success. Returns a paged list of gateway targets for the specified environment.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/gatewayTargets.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: name
+      in: query
+      description: Filter gateway targets by name.
+      required: false
+      schema:
+        type: string
+    - name: pageNumber
+      in: query
+      description: Page number to fetch (zero-based).
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+    - name: pageSize
+      in: query
+      description: Number of gateway targets per page.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    - name: kind
+      in: query
+      description: Filter gateway targets by kind (e.g. flex, mule).
+      required: false
+      schema:
+        type: string
+    - name: excludeStatus
+      in: query
+      description: Exclude gateway targets with this status from the response.
+      required: false
+      schema:
+        type: string
+components:
+  schemas: {}
+  responses: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: Each element of subOrganizationIds in the same response is a child Business Group GUID; use as organizationId when APIs are scoped to that subgroup.
+        values:
+          - $.id
+          - $.subOrganizationIds[*]
+        labels:
+          - $.name
+          - $.subOrganizationIds[*]
+      description: The organization ID (Business Group GUID) to scope the request.
+    XOrigin_environmentId_Path:
+      name: environmentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to scope the request.
+    trait_searchable_offset:
+      name: offset
+      in: query
+      required: false
+      description: Skip over a number of elements by specifying an offset value for the query.
+      schema:
+        default: 0
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+    trait_searchable_limit:
+      name: limit
+      in: query
+      required: false
+      description: Limit the number of elements on the response.
+      schema:
+        default: 100
+        minimum: 1
+        maximum: 250
+        type: integer
+    trait_searchable_sort:
+      name: sort
+      in: query
+      required: false
+      description: Property to sort by.
+      schema:
+        type: string
+    trait_searchable_ascending:
+      name: ascending
+      in: query
+      required: false
+      description: Order for sorting.
+      schema:
+        allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+    trait_searchable_query:
+      name: query
+      in: query
+      required: false
+      description: Search criteria.
+      allowReserved: true
+      schema:
+        type: string
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login'
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token'
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  links: {}
+  callbacks: {}

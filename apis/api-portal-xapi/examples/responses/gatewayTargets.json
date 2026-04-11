@@ -1,0 +1,27 @@
+{
+  "total": 2,
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "flex-gateway-prod",
+      "kind": "flex",
+      "status": "connected",
+      "organizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+      "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+      "lastConnectedDate": "2024-03-15T08:30:00.000Z",
+      "version": "1.6.0",
+      "replicas": 2
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "mule-gateway-staging",
+      "kind": "mule",
+      "status": "disconnected",
+      "organizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+      "environmentId": "b0f02fea-b5e9-4bf1-aef8-a2d4027eca5d",
+      "lastConnectedDate": "2024-03-10T12:00:00.000Z",
+      "version": "4.6.0",
+      "replicas": 1
+    }
+  ]
+}

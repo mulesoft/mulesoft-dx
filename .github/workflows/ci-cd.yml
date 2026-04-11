@@ -1,0 +1,215 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - master
+
+# Disable concurrent builds
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Send notifications to Slack on failure (production branches only)
+# Note: You'll need to set up a Slack webhook integration
+# https://github.com/marketplace/actions/slack-send
+
+jobs:
+  test-portal-generator:
+    name: Test Portal Generator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/package-lock.json
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Install Node.js dependencies
+        run: cd scripts && npm install --ignore-scripts
+
+      - name: Run portal generator tests
+        run: make test-portal
+
+  generate-portal:
+    name: Generate Portal
+    needs: test-portal-generator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Generate portal
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}"'
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+
+      - name: Upload portal artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal
+          path: portal/
+          retention-days: 30
+
+  validate-specs:
+    name: Validate Specs
+    needs: generate-portal
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Anypoint CLI
+        run: |
+          npm install -g anypoint-cli-v4
+          anypoint-cli-v4 plugins:install anypoint-cli-api-project-plugin
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Run validation
+        run: |
+          make validate-all-governed SKIP_GOVERNED="arm-monitoring-query"
+          make validate-xorigin
+          make validate-jtbd
+        env:
+          ANYPOINT_USERNAME: ${{ secrets.ANYPOINT_USERNAME }}
+          ANYPOINT_PASSWORD: ${{ secrets.ANYPOINT_PASSWORD }}
+
+  deploy-to-test:
+    name: Deploy to Test
+    needs: validate-specs
+    runs-on: ubuntu-latest
+    # Only run on master branch
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: test
+      url: https://test-api-portal.mulesoft.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Generate portal for test
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-api-portal.mulesoft.com'
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+
+      - name: Deploy to Akamai test
+        run: |
+          echo "Deploying portal to TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
+          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit"
+        env:
+          AKAMAI_HOST: 564243.ftp.upload.akamai.com
+          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+
+  deploy-to-production:
+    name: Deploy to Production
+    needs: validate-specs
+    runs-on: ubuntu-latest
+    # Only run on release branches (release/*)
+    if: startsWith(github.ref, 'refs/heads/release/')
+    environment:
+      name: production
+      url: https://api-portal.mulesoft.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+        
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Generate portal for production
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://api-portal.mulesoft.com'
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+
+      - name: Deploy to Akamai production
+        run: |
+          echo "Deploying portal to PRODUCTION environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
+          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit"
+        env:
+          AKAMAI_HOST: 564243.ftp.upload.akamai.com
+          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+
+  notify-on-failure:
+    name: Notify on Failure
+    needs: [test-portal-generator, generate-portal, validate-specs, deploy-to-test, deploy-to-production]
+    runs-on: ubuntu-latest
+    if: |
+      failure() &&
+      (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/'))
+
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.25.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: '{"text":"Pipeline failed: ${{ github.repository }} - Branch: ${{ github.ref_name }} - Commit: ${{ github.sha }} - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

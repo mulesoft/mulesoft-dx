@@ -1,0 +1,13 @@
+{% if all_skills %}
+<section id="skills" class="skills-catalog">
+    <div class="catalog-header">
+        <h2>Skills &amp; Workflows</h2>
+        <p class="catalog-subtitle">Pre-built multi-step API workflows across all APIs</p>
+    </div>
+    <div class="skills-grid" id="skillsGrid">
+        {% for skill in all_skills %}
+        {% include "homepage/skill_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

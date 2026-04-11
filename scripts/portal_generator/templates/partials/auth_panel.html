@@ -1,0 +1,92 @@
+<div class="auth-panel-header-bar" id="authPanelHeader">
+    <div class="auth-panel-left">
+        <a href="../index.html" class="back-link">&larr; Back to Home</a>
+    </div>
+    <div class="auth-panel-center">
+        <h1 class="api-title">{{ api_name }}</h1>
+        <span class="badge badge-version">{{ api_version }}</span>
+    </div>
+    <div class="auth-panel-right">
+        <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">
+            <span class="auth-status-container" id="authStatusContainer">
+                <img class="auth-status-dot" id="authStatusDot" src="{{ icons_path }}/status-dot-red.svg" alt="" aria-hidden="true">
+                <span class="auth-status-text" id="authStatusText">Not authenticated</span>
+                <img class="auth-lock-icon" id="authLockIcon" src="{{ icons_path }}/lock-red.svg" alt="" aria-hidden="true">
+            </span>
+            <span class="auth-info-container">
+                <span class="auth-user-section" id="authUserSection" style="display:none">
+                    <span class="auth-summary-label">User</span>
+                    <span class="auth-summary-value" id="authUserText">—</span>
+                </span>
+                <span class="auth-info-separator" id="authInfoSeparator" style="display:none">|</span>
+                <span class="auth-region-section">
+                    <span class="auth-summary-label">Region</span>
+                    <span class="auth-summary-value" id="authRegionText">US</span>
+                </span>
+            </span>
+        </button>
+    </div>
+</div>
+
+<div class="auth-modal" id="authModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="auth-modal-overlay" onclick="closeAuthModal()"></div>
+    <div class="auth-modal-content">
+        <div class="auth-modal-header">
+            <h3 id="authModalTitle">Authentication & Context</h3>
+            <button class="btn-close-modal" onclick="closeAuthModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="auth-modal-body" id="authPanelBody">
+            <!-- Server Selection Section -->
+            <div class="auth-section server-section">
+                <h4>Server</h4>
+                <div class="server-config">
+                    <div class="server-select-wrapper">
+                        <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select Anypoint Platform Server">
+                            <option value="us">anypoint.mulesoft.com (US)</option>
+                            <option value="eu">eu1.anypoint.mulesoft.com (EU)</option>
+                            <option value="platform">Regional (platform.mulesoft.com)</option>
+                        </select>
+                    </div>
+                    <div class="server-region-row" id="serverRegionRow" style="display:none">
+                        <select id="regionPreset" onchange="onRegionPresetChange()" class="server-select region-preset-select" aria-label="Select region">
+                            <option value="ca1">Canada (ca1)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. ca1" style="display:none" aria-label="Custom region">
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-divider"><span>Authentication Methods</span></div>
+
+            <div class="auth-methods">
+                <div class="auth-method">
+                    <h4>Bearer Token (User)</h4>
+                    <div class="auth-form">
+                        <input id="authUsername" type="text" placeholder="Username" autocomplete="username" aria-label="Username">
+                        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
+                        <button class="btn-auth-login" onclick="loginBearer()">Login</button>
+                    </div>
+                </div>
+                <div class="auth-divider-vertical"><span>OR</span></div>
+                <div class="auth-method">
+                    <h4>OAuth2 (Client)</h4>
+                    <div class="auth-form">
+                        <input id="authClientId" type="text" placeholder="Client ID" aria-label="Client ID">
+                        <input id="authClientSecret" type="password" placeholder="Client Secret" aria-label="Client Secret">
+                        <button class="btn-auth-login" onclick="loginOAuth2()">Get Token</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="env-vars-section">
+                <div class="env-vars-header">
+                    <h4>Environment Variables</h4>
+                    <button class="btn-env-add" onclick="addEnvVar()">+ Add Variable</button>
+                </div>
+                <div class="env-vars-list" id="envVarsList"></div>
+            </div>
+            <div class="auth-message" id="authMessage"></div>
+        </div>
+    </div>
+</div>

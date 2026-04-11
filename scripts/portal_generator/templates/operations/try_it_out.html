@@ -1,0 +1,135 @@
+{% macro render_try_it_out(operation) %}
+{% set op_id = operation.operationId %}
+<div class="try-it-out" id="try-{{ op_id }}">
+    <div class="try-form-container">
+        <!-- Server Variables (non-region, populated by JS) -->
+        <div class="try-server-vars" id="server-vars-{{ op_id }}" style="display:none">
+        </div>
+
+        {% for location, label in [('path', 'Path Parameters'), ('query', 'Query Parameters'), ('header', 'Header Parameters')] %}
+    {% set params = [] %}
+    {% for p in operation.parameters|default([]) %}
+    {% if p['in'] == location %}{% set _ = params.append(p) %}{% endif %}
+    {% endfor %}
+    {% if params %}
+    {% set has_required = namespace(value=false) %}
+    {% for p in params %}
+    {% if p.required|default(false) %}{% set has_required.value = true %}{% endif %}
+    {% endfor %}
+    <details class="try-params"{% if has_required.value %} open{% endif %}>
+        <summary>{{ label }}</summary>
+        <div class="try-params-content">
+        {% for p in params %}
+        {% set name = p.name|default('') %}
+        {% set schema = p.schema|default({}) %}
+        {% set ptype = schema.type|default('string') %}
+        {% set default_val = schema.default|default('') %}
+        {% set required = p.required|default(false) %}
+        {% set description = p.description|default('') %}
+        <div class="try-param-row">
+            {% if p['x-origin'] %}
+            {% set origins = p['x-origin'] if p['x-origin'] is iterable and p['x-origin'] is not string and p['x-origin'] is not mapping else [p['x-origin']] %}
+            <label>
+                <span class="param-name-wrapper">
+                    <button type="button" class="param-with-xorigin"
+                          onclick="event.stopPropagation(); openXOriginModal('{{ op_id }}', '{{ name }}', '{{ location }}'); return false;"
+                          title="Fetch values from {{ origins|length }} source(s)">{{ name }}</button>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}
+                </span>
+                {% if description %}
+                <span class="param-info-wrapper" data-tooltip="{{ description }}">
+                    <span class="param-info-icon" aria-label="more-info"></span>
+                </span>
+                {% endif %}
+            </label>
+            <input type="text"
+                   data-param="{{ name }}"
+                   data-in="{{ location }}"
+                   {% autoescape false %}data-x-origins="{{ origins|tojson|replace('"', '&quot;') }}"{% endautoescape %}
+                   id="param-{{ op_id }}-{{ name }}"
+                   placeholder="{{ ptype }}"
+                   value="{{ default_val }}"
+                   {% if required %}required{% endif %}>
+            {% elif schema.enum %}
+            <label>
+                <span class="param-name-wrapper">
+                    <code>{{ name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}
+                </span>
+                {% if description %}
+                <span class="param-info-wrapper" data-tooltip="{{ description }}">
+                    <span class="param-info-icon" aria-label="more-info"></span>
+                </span>
+                {% endif %}
+            </label>
+            <select data-param="{{ name }}" data-in="{{ location }}"{% if required %} required{% endif %}>
+                {% for v in schema.enum %}
+                <option value="{{ v }}"{% if v|string == default_val|string %} selected{% endif %}>{{ v }}</option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <label>
+                <span class="param-name-wrapper">
+                    <code>{{ name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}
+                </span>
+                {% if description %}
+                <span class="param-info-wrapper" data-tooltip="{{ description }}">
+                    <span class="param-info-icon" aria-label="more-info"></span>
+                </span>
+                {% endif %}
+            </label>
+            <input type="text" data-param="{{ name }}" data-in="{{ location }}" placeholder="{{ ptype }}" value="{{ default_val }}"{% if required %} required{% endif %}>
+            {% endif %}
+        </div>
+        {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+    {% endfor %}
+
+    <!-- Custom Query Parameters -->
+    <details class="try-params try-custom-params">
+        <summary>Custom Query Parameters</summary>
+        <div class="try-params-content">
+            <div id="custom-query-{{ op_id }}" class="custom-params-container"></div>
+            <button type="button" class="btn-add-custom-param" onclick="addCustomParam('{{ op_id }}', 'query')">+ Add Query Parameter</button>
+        </div>
+    </details>
+
+    <!-- Custom Headers -->
+    <details class="try-params try-custom-params">
+        <summary>Custom Headers</summary>
+        <div class="try-params-content">
+            <div id="custom-header-{{ op_id }}" class="custom-params-container"></div>
+            <button type="button" class="btn-add-custom-param" onclick="addCustomParam('{{ op_id }}', 'header')">+ Add Header</button>
+        </div>
+    </details>
+
+    {% if operation.requestBody %}
+    {% set rb = operation.requestBody %}
+    {% set content_types = rb.content_types|default([]) %}
+    {% set ct_default = content_types[0] if content_types else 'application/json' %}
+    <details class="try-body" open>
+        <summary>Request Body <code>{{ ct_default }}</code></summary>
+        <div class="try-body-content">
+            <div id="body-{{ op_id }}" class="try-request-editor-cm" data-content-type="{{ ct_default }}" data-example-body="{{ operation._example_body|default('')|e }}"></div>
+        </div>
+    </details>
+    {% endif %}
+
+    </div>
+
+    <div class="try-response" id="response-{{ op_id }}" style="display:none" aria-live="polite">
+        <div class="try-response-header">
+            <h5>Response</h5>
+            <span class="response-status-badge" id="status-{{ op_id }}"></span>
+        </div>
+        <div class="try-response-tabs">
+            <button class="try-tab-btn active" onclick="switchResponseTab('{{ op_id }}', 'body')">Body</button>
+            <button class="try-tab-btn" onclick="switchResponseTab('{{ op_id }}', 'headers')">Headers</button>
+        </div>
+        <div class="try-response-content">
+            <div class="try-response-body active" id="respbody-{{ op_id }}"></div>
+            <div class="try-response-headers" id="respheaders-{{ op_id }}"></div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

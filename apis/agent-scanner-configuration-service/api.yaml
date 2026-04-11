@@ -1,0 +1,1649 @@
+openapi: 3.1.0
+info:
+  title: Agent Scanner Configuration Service API
+  description: REST API for Agent Scanner Configuration Service
+  version: 0.0.1-SNAPSHOT
+servers:
+- url: https://anypoint.mulesoft.com/agent-scanner
+- url: https://eu1.anypoint.mulesoft.com/agent-scanner
+- url: https://{region}.platform.mulesoft.com/agent-scanner
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearer-jwt:
+  - read
+  - write
+tags:
+- name: Connectivity
+  description: Endpoints for managing connections
+- name: Scanner Runs
+  description: Endpoints for managing scanner run history
+- name: Organization
+  description: Endpoints for organization information
+- name: Scanner Configuration
+  description: Endpoints for managing scanner configuration
+paths:
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}:
+    put:
+      tags:
+      - Scanner Configuration
+      summary: Update Scanner Configurations
+      description: Returns an updated scanner configuration
+      operationId: updateScanConfiguration
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: scannerConfigurationId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScannerConfigurationDTO"
+        required: true
+      responses:
+        "200":
+          description: Successfully updated Scanner Configurations
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Scanner Configurations Minimum Required Fields are missing
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+        "401":
+          description: If user is not authorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+        "404":
+          description: Scanner Configurations not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+    delete:
+      tags:
+      - Scanner Configuration
+      summary: Delete Scanner Configuration by id
+      description: Starts an asynchronous workflow to delete the scanner configuration.
+        Returns 200 OK when the deletion workflow is started successfully.
+      operationId: deleteScannerConfiguration
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: X-Delete-Agents
+        in: header
+        required: false
+        schema:
+          type: boolean
+          default: true
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: scannerConfigurationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Delete workflow started successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "400":
+          description: Scanner Configuration ID is invalid
+          content:
+            '*/*':
+              schema:
+                type: object
+        "401":
+          description: If user is not authorized
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Scanner Configuration not found
+          content:
+            '*/*':
+              schema:
+                type: object
+        "500":
+          description: Failed to start delete workflow
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/organizations/{organizationId}/connectivity/connections/{connectionId}:
+    put:
+      tags:
+      - Connectivity
+      summary: Updates a connection
+      description: Updates a connection
+      operationId: updateConnection
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionDTO"
+        required: true
+      responses:
+        "202":
+          description: Connection updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Connection"
+        "400":
+          description: Bad request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Connection"
+        "404":
+          description: Organization or TargetSystem not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Connection"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Connection"
+    delete:
+      tags:
+      - Connectivity
+      summary: Deletes a connection
+      description: Deletes a connection
+      operationId: deleteConnection
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Connection deleted
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations:
+    get:
+      tags:
+      - Scanner Configuration
+      summary: Get Scanner Configurations of a specific organization
+      description: Returns a list of scanner configuration for a specific organization
+      operationId: getScanConfigurations
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10000
+      responses:
+        "200":
+          description: Successfully retrieved Scanner Configurations
+          content:
+            application/json:
+              schema:
+                type: string
+        "401":
+          description: If user is not authorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageScannerConfiguration"
+        "404":
+          description: Scanner Configurations not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageScannerConfiguration"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageScannerConfiguration"
+    post:
+      tags:
+      - Scanner Configuration
+      summary: Create Scanner Configurations
+      description: Returns the scanner configuration created
+      operationId: createScanConfigurations
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScannerConfigurationDTO"
+        required: true
+      responses:
+        "200":
+          description: Successfully created Scanner Configurations
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Scanner Configurations Minimum Required Fields are missing
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+        "401":
+          description: If user is not authorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScannerConfigurationDTO"
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/execute:
+    post:
+      tags:
+      - Scanner Configuration
+      summary: Execute workflow from scanner configuration
+      description: Starts a scan workflow based on the specified
+        scanner configuration ID
+      operationId: executeWorkflowFromConfiguration
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: scannerConfigurationId
+        in: path
+        description: Scanner configuration ID
+        required: true
+        schema:
+          type: string
+        example: 12345678-1234-1234-1234-122456789abc
+      responses:
+        "202":
+          description: Workflow started successfully
+        "400":
+          description: Invalid configuration or parameters
+        "401":
+          description: If user is not authorized
+        "404":
+          description: Scanner configuration not found
+        "409":
+          description: Workflow already running for this scanner configuration
+        "503":
+          description: Scan workflows not enabled
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/abort:
+    post:
+      tags:
+      - Scanner Configuration
+      summary: Abort workflow from scanner configuration
+      description: Cancels a running scan based on the specified scanner configuration
+        ID
+      operationId: abortWorkflowFromConfiguration
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: scannerConfigurationId
+        in: path
+        description: Scanner configuration ID
+        required: true
+        schema:
+          type: string
+        example: 12345678-1234-1234-1234-122456789abc
+      responses:
+        "202":
+          description: Workflow aborted successfully
+        "400":
+          description: Invalid configuration or parameters
+        "401":
+          description: If user is not authorized
+        "404":
+          description: Scanner configuration not found
+        "503":
+          description: Scan workflows not enabled
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/connectivity/{targetSystemType}/test:
+    post:
+      tags:
+      - Connectivity
+      summary: Test connection
+      description: Tests connectivity to a target system type using provided connection
+        parameters. Requires authentication.
+      operationId: testConnection
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: targetSystemType
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+        required: true
+      responses:
+        "200":
+          description: Connection successful
+        "401":
+          description: Unauthorized - Invalid credentials
+        "503":
+          description: Service unavailable - Connection failed
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/connectivity/connections:
+    get:
+      tags:
+      - Connectivity
+      summary: Get Connections of a specific organization
+      description: Returns a list of connections for a specific organization
+      operationId: getConnections
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved Connections
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Connection"
+    post:
+      tags:
+      - Connectivity
+      summary: Adds a connection
+      description: Adds a connection
+      operationId: createConnection
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionDTO"
+        required: true
+      responses:
+        "201":
+          description: Connection created
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+        "400":
+          description: Bad request
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+        "404":
+          description: Organization or TargetSystem not found
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+  /api/v1/organizations/{organizationId}/scanner/{scannerId}/runs:
+    get:
+      tags:
+      - Scanner Runs
+      summary: Get scanner run history
+      description: Returns a paginated list of scanner runs for a specific scanner
+      operationId: getScannerRunHistory
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        description: Organization identifier
+        required: true
+        schema:
+          type: string
+      - name: scannerId
+        in: path
+        description: Scanner identifier
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Successfully retrieved scanner runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Page"
+        "400":
+          description: Bad request - invalid scannerId parameter
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageScanRunDTO"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageScanRunDTO"
+  /api/v1/organizations/{organizationId}/scanner/{scannerId}/runs/{scanRunId}/assets:
+    get:
+      tags:
+      - Scanner Runs
+      summary: Get staging assets for a scan run
+      description: Returns a paginated list of staging assets for a specific scan
+        run. Use size=0 to get all results without pagination.
+      operationId: getStagingAssetsByScanRunId
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: scannerId
+        in: path
+        description: Scanner identifier
+        required: true
+        schema:
+          type: string
+      - name: scanRunId
+        in: path
+        description: Scan run identifier
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        description: Page size (use 0 to get all results)
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Successfully retrieved staging assets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Page"
+        "400":
+          description: Bad request - invalid scanRunId parameter
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageStagingAssetDTO"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageStagingAssetDTO"
+  /api/v1/organizations/{organizationId}/info:
+    get:
+      tags:
+      - Organization
+      summary: Get organization information
+      description: Returns organization information including total managed agents
+        and capacity limit
+      operationId: getOrganizationInfo
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved organization information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationInfoDTO"
+              example:
+                totalManagedAgents: 150
+                capacityAgentsLimit: 10000
+        "401":
+          description: If user is not authorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OrganizationInfoDTO"
+        "404":
+          description: Organization not found or not registered in the system
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OrganizationInfoDTO"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OrganizationInfoDTO"
+  /api/v1/organizations/{organizationId}/connectivity/target-systems:
+    get:
+      tags:
+      - Connectivity
+      summary: Get target systems
+      description: Returns a list of available target systems for connections. Requires
+        authentication.
+      operationId: getTargetSystems
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved target systems
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetSystemResponse"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetSystemResponse"
+components:
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      description: The organization ID (Business Group GUID).
+      required: true
+      in: path
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+        - api: urn:api:access-management
+          operation: listMe
+          values: $.user.organization.id
+          labels: $.user.organization.name
+          name: rootOrg
+          description: "GET /me; use user.organization.id as the caller's primary Business Group GUID."
+    XOrigin_scannerConfigurationId_Path:
+      name: scannerConfigurationId
+      description: The scanner configuration ID.
+      required: true
+      in: path
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+        - api: urn:api:agent-scanner-configuration
+          operation: getScanConfigurations
+          values: $.content[*].id
+          labels: $.content[*].name
+          description: "GET /scanner-configurations; use content[*].id as the scanner configuration ID."
+    XOrigin_scannerId_Path:
+      name: scannerId
+      description: The scanner identifier (same as scanner configuration ID).
+      required: true
+      in: path
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+        - api: urn:api:agent-scanner-configuration
+          operation: getScanConfigurations
+          values: $.content[*].id
+          labels: $.content[*].name
+          description: "GET /scanner-configurations; use content[*].id as the scanner ID."
+    XOrigin_scanRunId_Path:
+      name: scanRunId
+      description: The scan run identifier.
+      required: true
+      in: path
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+        - api: urn:api:agent-scanner-configuration
+          operation: getScannerRunHistory
+          values: $.content[*].id
+          labels: $.content[*].id
+          description: "GET /scanner/{scannerId}/runs; use content[*].id as the scan run ID."
+    XOrigin_connectionId_Path:
+      name: connectionId
+      description: The connection identifier.
+      required: true
+      in: path
+      schema:
+        type: string
+        format: uuid
+      x-origin:
+        - api: urn:api:agent-scanner-configuration
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].name
+          description: "GET /connectivity/connections; use [*].id as the connection ID."
+    XOrigin_targetSystemType_Path:
+      name: targetSystemType
+      description: The target system type.
+      required: true
+      in: path
+      schema:
+        type: string
+      x-origin:
+        - api: urn:api:agent-scanner-configuration
+          operation: getTargetSystems
+          values: $[*].type
+          labels: $[*].name
+          description: "GET /connectivity/target-systems; use [*].type as the target system type."
+  schemas:
+    AuthSchemeFormDescriptor:
+      type: object
+      properties:
+        name:
+          type: string
+        authScheme:
+          type: string
+        fields:
+          type: array
+          items:
+            oneOf:
+            - $ref: "#/components/schemas/ChipInputFormField"
+            - $ref: "#/components/schemas/DynamicSelectFormField"
+            - $ref: "#/components/schemas/PasswordFormField"
+            - $ref: "#/components/schemas/StaticSelectFormField"
+            - $ref: "#/components/schemas/TextFormField"
+    ChipInputFormField:
+      allOf:
+      - $ref: "#/components/schemas/FormField"
+      - type: object
+        properties:
+          separator:
+            type: string
+          maxItems:
+            type: integer
+            format: int32
+    Connection:
+      type: object
+      description: Represents the connection needed to run a scan
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the connection
+        name:
+          type: string
+          description: Name of the connection
+        orgId:
+          type: string
+          format: uuid
+          description: Organization Id
+        environment:
+          type: string
+          description: Environment
+        authScheme:
+          type: string
+          description: Authentication Scheme for the connection
+        lastTestedAt:
+          type: string
+          format: date-time
+          description: Date when the connection was tested for the last time
+        status:
+          type: string
+          description: Status of the connection
+          enum:
+          - SUCCESSFUL
+          - FAILED
+          - UNTESTED
+        statusMessage:
+          type: string
+          description: Status message of the connection
+        authParameters:
+          type: string
+          description: Auth connection data stored as JSON
+        createdAt:
+          type: string
+          format: date-time
+          description: Scanner creation date
+        updatedAt:
+          type: string
+          format: date-time
+          description: Scanner updated date
+        targetSystem:
+          $ref: "#/components/schemas/TargetSystem"
+          description: Connection Target System
+    ConnectionDTO:
+      type: object
+      properties:
+        authParameters:
+          type: string
+        id:
+          type: string
+          format: uuid
+        authScheme:
+          type: string
+        targetSystemId:
+          type: string
+          minLength: 1
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        statusMessage:
+          type: string
+        environment:
+          type: string
+        orgId:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        status:
+          type: string
+          enum:
+          - SUCCESSFUL
+          - FAILED
+          - UNTESTED
+        name:
+          type: string
+        lastTestedAt:
+          type: string
+          format: date-time
+        type:
+          type: string
+      required:
+      - targetSystemId
+    DataSource:
+      type: object
+      properties:
+        resource:
+          type: string
+        valueKey:
+          type: string
+        labelKey:
+          type: string
+    DynamicSelectFormField:
+      allOf:
+      - $ref: "#/components/schemas/FormField"
+      - type: object
+        properties:
+          dataSource:
+            $ref: "#/components/schemas/DataSource"
+    FormField:
+      type: object
+      discriminator:
+        propertyName: type
+      properties:
+        id:
+          type: string
+        formFieldKey:
+          type: string
+        type:
+          type: string
+        label:
+          type: string
+        placeholderIn:
+          $ref: "#/components/schemas/ModeConfigString"
+        requiredIn:
+          $ref: "#/components/schemas/ModeConfigBoolean"
+        validation:
+          $ref: "#/components/schemas/Validation"
+    ModeConfigBoolean:
+      type: object
+      properties:
+        create:
+          type: boolean
+        edit:
+          type: boolean
+    ModeConfigString:
+      type: object
+      properties:
+        create:
+          type: string
+        edit:
+          type: string
+    Option:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+    PasswordFormField:
+      allOf:
+      - $ref: "#/components/schemas/FormField"
+    ScannerConfiguration:
+      type: object
+      description: Represents a scanner configuration for agent scanning operations
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the scanner configuration
+        name:
+          type: string
+          description: Name of the scanner configuration
+        schedule:
+          type: string
+          description: Schedule for running the scanner
+        parameters:
+          type: string
+          description: Custom parameters for thescanner configuration
+        runPolicy:
+          type: string
+          description: Run policy for the scanner configuration
+        state:
+          type: string
+          description: Current status of the scanner configuration
+          enum:
+          - RUNNING
+          - SCHEDULED
+          - STOPPED
+          - QUEUED
+          - IMPORTING
+          - PAUSED
+          - DELETING
+          - PARTIALLY_DELETED
+        lastRunAt:
+          type: string
+          format: date-time
+          description: Date when the scanner was last executed
+        lastRunStatus:
+          type: string
+          description: Status of the scanner last run
+          enum:
+          - RUNNING
+          - IMPORTING
+          - ABORTED
+          - PARTIALSUCCESS
+          - COMPLETED
+          - FAILED
+        lastSuccessfulRunAt:
+          type: string
+          format: date-time
+          description: Date when the scanner was last successfully executed
+        nextRunAt:
+          type: string
+          format: date-time
+          description: Date when the scanner is scheduled to run next
+        lastSuccessfulRunSummary:
+          type: string
+          description: Summary of the scanner last successful run
+        description:
+          type: string
+          description: Scanner Configuration description
+        createdAt:
+          type: string
+          format: date-time
+          description: Scanner creation date
+        updatedAt:
+          type: string
+          format: date-time
+          description: Scanner updated date
+        orgId:
+          type: string
+          format: uuid
+          description: Organization Id
+        lastRunStatusDetail:
+          type: string
+          description: Scanner Configuration last Run status detail
+        rootOrgId:
+          type: string
+          format: uuid
+          description: Root Organization ID
+        ownerId:
+          type: string
+          format: uuid
+          description: Owner identifier - the user who owns and initiated this scanning
+            activity
+        emails:
+          type: string
+          description: Email addresses to notify
+        connection:
+          $ref: "#/components/schemas/Connection"
+          description: Connection
+        notificationEnabled:
+          type: boolean
+        emailsList:
+          type: array
+          items:
+            type: string
+        deleted:
+          type: boolean
+    ScannerConfigurationDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        id:
+          type: string
+          format: uuid
+        schedule:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        parameters:
+          type: string
+        state:
+          type: string
+          enum:
+          - RUNNING
+          - SCHEDULED
+          - STOPPED
+          - QUEUED
+          - IMPORTING
+          - PAUSED
+          - DELETING
+          - PARTIALLY_DELETED
+        runPolicy:
+          type: string
+          minLength: 1
+        lastRunAt:
+          type: string
+          format: date-time
+        lastSuccessfulRunAt:
+          type: string
+          format: date-time
+        lastRunStatus:
+          type: string
+          enum:
+          - RUNNING
+          - IMPORTING
+          - ABORTED
+          - PARTIALSUCCESS
+          - COMPLETED
+          - FAILED
+        nextRunAt:
+          type: string
+          format: date-time
+        lastSuccessfulRunSummary:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        rootOrgId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        orgId:
+          type: string
+          format: uuid
+        lastRunStatusDetail:
+          type: string
+        connection:
+          $ref: "#/components/schemas/ConnectionDTO"
+        ownerId:
+          type: string
+          format: uuid
+        emails:
+          type: string
+        notificationEnabled:
+          type: boolean
+        scannerConfigurationFromDTO:
+          $ref: "#/components/schemas/ScannerConfiguration"
+        deleted:
+          type: boolean
+      required:
+      - name
+      - runPolicy
+      - schedule
+    StaticSelectFormField:
+      allOf:
+      - $ref: "#/components/schemas/FormField"
+      - type: object
+        properties:
+          options:
+            type: array
+            items:
+              $ref: "#/components/schemas/Option"
+    TargetSystem:
+      type: object
+      description: Represents a target system for scanning configuration
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the target system
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          description: Name of the target system
+          example: AWS Bedrock
+        description:
+          type: string
+          description: Description of the target system
+          example: Amazon Bedrock AI service
+        type:
+          type: string
+          description: Scanner type of the target system
+          enum:
+          - bedrock
+          - agentcore
+          - agentcoremcp
+          - awsapigw
+          - mscopilot
+          - azureaifoundry
+          - azureaifoundrymcp
+          - azureapim
+          - ms365copilot
+          - vertex
+          - vertexmcp
+          - geminiagent
+          - geminimcp
+          - googleapigee
+          - godaddyans
+          example: BEDROCK
+        provider:
+          type: string
+          description: Cloud provider
+          enum:
+          - aws
+          - microsoft
+          - google
+          - godaddy
+          example: aws
+        platform:
+          type: string
+          description: Platform within the provider
+          enum:
+          - bedrock_agents
+          - agentcore_runtime
+          - api_gateway
+          - copilot_studio
+          - azure_foundry
+          - azure_apim
+          - ms365_copilot
+          - vertex_ai
+          - gemini
+          - apigee
+          - godaddy_ans
+          example: bedrock_agents
+        assetType:
+          type: string
+          description: Type of asset scanned
+          enum:
+          - agent
+          - mcp
+          - rest-api
+          example: agent
+        authSchemeFormFields:
+          type: array
+          description: Auth Scheme Form Fields
+          items:
+            $ref: "#/components/schemas/AuthSchemeFormDescriptor"
+        supportedAuthSchemes:
+          type: string
+          description: Supported authentication schemes
+          example: "OAuth2,ApiKey"
+        version:
+          type: string
+          description: Version of the target system
+          example: 1.0.0
+        createdAt:
+          type: string
+          format: date-time
+          description: Date when the target system was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date when the target system was last updated
+    TextFormField:
+      allOf:
+      - $ref: "#/components/schemas/FormField"
+    Validation:
+      type: object
+      properties:
+        pattern:
+          type: string
+        errorMessage:
+          type: string
+    Page:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items: {}
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        unsorted:
+          type: boolean
+        sorted:
+          type: boolean
+    PageScanRunDTO:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScanRunDTO"
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    ScanRunDTO:
+      type: object
+      description: Represents a scanner run with its metadata and status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the scanner run
+          example: 123e4567-e89b-12d3-a456-426614174000
+        status:
+          type: string
+          description: Current scanner run status
+          enum:
+          - RUNNING
+          - IMPORTING
+          - ABORTED
+          - PARTIALSUCCESS
+          - COMPLETED
+          - FAILED
+          example: COMPLETED
+        startedAt:
+          type: string
+          format: date-time
+          description: Scanner run start time in ISO-8601 format
+        endedAt:
+          type: string
+          format: date-time
+          description: Scanner run end time in ISO-8601 format (null if still running)
+        summary:
+          type: string
+          description: Scanner run summary as JSON
+        createdAt:
+          type: string
+          format: date-time
+          description: Scanner run creation time in ISO-8601 format
+        ownerId:
+          type: string
+          format: uuid
+          description: Owner identifier - the user who owns and initiated this scanning
+            activity
+          example: 123e4567-e89b-12d3-a456-426614174000
+    PageStagingAssetDTO:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/StagingAssetDTO"
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    StagingAssetDTO:
+      type: object
+      description: Represents a staging asset with its metadata and status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the staging asset
+          example: 123e4567-e89b-12d3-a456-426614174000
+        externalId:
+          type: string
+          description: External id of the asset
+        organizationId:
+          type: string
+          format: uuid
+          description: Organization id of the asset
+          example: 123e4567-e89b-12d3-a456-426614174000
+        assetId:
+          type: string
+          description: Asset id of the asset in Exchange
+        name:
+          type: string
+          description: Asset name
+        description:
+          type: string
+          description: Asset description
+        version:
+          type: string
+          description: Asset version
+        status:
+          type: string
+          description: Asset status
+        rawMetadata:
+          type: string
+          description: Asset raw metadata as JSON
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: Date when the asset was last seen in ISO-8601 format
+        lastSeenInRunId:
+          type: string
+          format: uuid
+          description: Run ID when the asset was last seen
+          example: 123e4567-e89b-12d3-a456-426614174000
+        scanRunId:
+          type: string
+          format: uuid
+          description: Scan run ID associated with this staging asset
+          example: 123e4567-e89b-12d3-a456-426614174000
+        operationPerformed:
+          type: string
+          description: "Operation performed on this staging asset (e.g., CREATE, UPDATE,\
+            \ DELETE, SKIP)"
+        stagingStatus:
+          type: string
+          description: "Status of the staging asset (e.g., NEW, EXISTING, PUBLISHED,\
+            \ FAILED, DELETED, PENDING_DELETE, PENDING_UPDATE)"
+        createdAt:
+          type: string
+          format: date-time
+          description: Asset creation date in ISO-8601 format
+        updatedAt:
+          type: string
+          format: date-time
+          description: Asset updated date in ISO-8601 format
+        summary:
+          type: string
+          description: Summary about run asset status
+        assetPayload:
+          type: string
+          description: "Asset payload as JSON (e.g. A2A card). When sending JSON,\
+            \ you may use assetPayload, agentCard, or assetDescriptor. Responses include\
+            \ both assetPayload and agentCard (same value) for backward compatibility."
+        agentCard:
+          type: string
+          description: Same JSON as assetPayload (legacy name)
+          readOnly: true
+    PageScannerConfiguration:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScannerConfiguration"
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    OrganizationInfoDTO:
+      type: object
+      properties:
+        totalManagedAgents:
+          type: integer
+          format: int64
+        capacityAgentsLimit:
+          type: integer
+          format: int64
+    TargetSystemResponse:
+      type: object
+      description: Response representation of a target system with essential fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the target system
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          description: Name of the target system
+          example: AWS Bedrock
+        description:
+          type: string
+          description: Description of the target system
+          example: Amazon Bedrock AI service
+        type:
+          type: string
+          description: Scanner type of the target system
+          enum:
+          - bedrock
+          - agentcore
+          - agentcoremcp
+          - awsapigw
+          - mscopilot
+          - azureaifoundry
+          - azureaifoundrymcp
+          - azureapim
+          - ms365copilot
+          - vertex
+          - vertexmcp
+          - geminiagent
+          - geminimcp
+          - googleapigee
+          - godaddyans
+          example: BEDROCK
+        provider:
+          type: string
+          description: Cloud provider
+          enum:
+          - aws
+          - microsoft
+          - google
+          - godaddy
+          example: aws
+        platform:
+          type: string
+          description: Platform within the provider
+          enum:
+          - bedrock_agents
+          - agentcore_runtime
+          - api_gateway
+          - copilot_studio
+          - azure_foundry
+          - azure_apim
+          - ms365_copilot
+          - vertex_ai
+          - gemini
+          - apigee
+          - godaddy_ans
+          example: bedrock_agents
+        assetType:
+          type: string
+          description: Type of asset scanned
+          enum:
+          - agent
+          - mcp
+          - rest-api
+          example: agent
+        authSchemeFormFields:
+          type: array
+          description: Auth Scheme Form Fields
+          items:
+            $ref: "#/components/schemas/AuthSchemeFormDescriptor"
+  securitySchemes:
+    bearer-jwt:
+      type: http
+      name: Authorization
+      in: header
+      scheme: bearer
+      bearerFormat: JWT

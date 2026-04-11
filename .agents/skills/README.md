@@ -1,0 +1,1 @@
+The source of truth of the skills is in: https://git.soma.salesforce.com/mulesoft/claude-code-marketplace/tree/master/plugins/mulesoft-api-development/skills. 

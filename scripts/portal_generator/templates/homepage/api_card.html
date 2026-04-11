@@ -1,0 +1,16 @@
+<a href="apis/{{ api.slug }}.html" class="catalog-card-link" data-category="{{ api.category }}" data-name="{{ api.name|lower }}" data-type="api">
+    <article class="catalog-card">
+        <div class="catalog-card-header">
+            <h3 class="catalog-card-title">{{ api.name }}</h3>
+            <span class="card-version-badge">{{ api.version }}</span>
+        </div>
+        <p class="catalog-card-description">{{ api.description|truncate(150) }}</p>
+        <div class="catalog-card-footer">
+            <span class="badge badge-api-type">REST API</span>
+            <span class="badge badge-count">{{ api.operation_count }} endpoint{{ 's' if api.operation_count != 1 else '' }}</span>
+            {% if api.skill_count > 0 %}
+            <span class="badge badge-skills">{{ api.skill_count }} skill{{ 's' if api.skill_count > 1 else '' }}</span>
+            {% endif %}
+        </div>
+    </article>
+</a>

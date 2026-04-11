@@ -1,0 +1,184 @@
+{% from "operations/macros.html" import param_type, x_origin, tags, breadcrumb %}
+{% from "operations/schema_table.html" import render_schema_table %}
+{% from "operations/examples.html" import render_examples, render_examples_summary %}
+{% from "operations/try_it_out.html" import render_try_it_out %}
+
+{% macro render_operation(operation, icons_path='assets/icons') %}
+{% set method_class = operation.method|lower %}
+<section id="op-{{ operation.operationId }}" class="content-section operation-detail"
+         data-path="{{ operation.path }}"
+         data-method="{{ operation.method }}">
+    {{ breadcrumb(operation.path) }}
+    <div class="operation-header-detail">
+        <div class="operation-title-row">
+            <span class="method method-{{ method_class }}">{{ operation.method }}</span>
+            <code class="operation-url-bar" data-op-id="{{ operation.operationId }}" data-path="{{ operation.path }}"></code>
+            {% if operation.deprecated %}<span class="badge badge-deprecated">DEPRECATED</span>{% endif %}
+        </div>
+        {{ tags(operation.tags|default([])) }}
+    </div>
+
+    <div class="operation-content-wrapper" id="op-container-{{ operation.operationId }}">
+        <div class="operation-try-panel">
+            <div class="try-panel-header">
+                <h4>Try it out</h4>
+                <div class="try-header-actions">
+                    <span class="try-spinner" id="spinner-{{ operation.operationId }}" style="display:none" aria-live="polite">Sending</span>
+                    <div class="btn-group-send">
+                        <button class="btn-send-main" onclick="sendRequest('{{ operation.operationId }}')">Send</button>
+                        <button class="btn-send-dropdown" onclick="toggleSendDropdown('{{ operation.operationId }}')" aria-label="More actions">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <div class="send-dropdown-menu" id="send-dropdown-{{ operation.operationId }}" style="display:none">
+                            <button class="send-dropdown-item" onclick="copyCurlCommand('{{ operation.operationId }}')">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span id="copy-text-{{ operation.operationId }}">Copy cURL</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn-expand-try" onclick="toggleTryItOutExpand('{{ operation.operationId }}')"
+                            aria-label="Expand try it out panel" title="Expand">
+                        <img src="{{ icons_path }}/expand.svg" alt="" width="16" height="16">
+                    </button>
+                </div>
+            </div>
+            {{ render_try_it_out(operation) }}
+        </div>
+
+        <div class="operation-main-content">
+            <div class="operation-title-header">
+                <h3 class="operation-title">
+                    {{ operation.operationId|titleize_operation }}
+                    <span class="operation-id-inline">{{ operation.operationId }}</span>
+                </h3>
+            </div>
+
+            {% set desc = operation.description|default('') or operation.summary|default('') %}
+            {% if desc %}
+            <div class="operation-description">{{ desc|md }}</div>
+            {% endif %}
+
+            {% if operation.parameters %}
+            {% set params_by_location = {} %}
+            {% for param in operation.parameters %}
+                {% set param_in = param['in'] %}
+                {% if param_in not in params_by_location %}
+                    {% set _ = params_by_location.__setitem__(param_in, []) %}
+                {% endif %}
+                {% set _ = params_by_location[param_in].append(param) %}
+            {% endfor %}
+
+            {% set param_order = ['path', 'query', 'header', 'cookie'] %}
+            {% for location in param_order %}
+                {% if location in params_by_location %}
+                <div class="operation-subsection">
+                    <h4>{{ location|capitalize }} Parameters</h4>
+                    <div class="params-list">
+                        {% for param in params_by_location[location] %}
+                        <div class="param-item">
+                            <div class="param-header">
+                                <code class="param-name">{{ param.name }}{% if param.required %}*{% endif %}:</code>
+                                <code class="param-type-inline">{{ param_type(param.schema|default({})) }}</code>
+                            </div>
+                            {% if param.description or param.get('x-origin') %}
+                            <div class="param-description">
+                                {{ param.description|md if param.description }}
+                                {{ x_origin(param) }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% endif %}
+
+            {% if operation.requestBody %}
+            {% set rb = operation.requestBody %}
+            <div class="operation-subsection">
+                <div class="section-header-with-badge">
+                    <h4>Request Body{% if rb.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</h4>
+                    {% set content_types = rb.content_types|default([]) %}
+                    {% if 'application/json' in content_types %}
+                    <span class="content-type-badge">json</span>
+                    {% elif content_types %}
+                    <span class="content-type-badge">{{ content_types[0]|replace('application/', '')|replace('text/', '') }}</span>
+                    {% endif %}
+                </div>
+                {% for ct, props in rb.schemas|default({})|items %}
+                {{ render_schema_table(props, '') }}
+                {% endfor %}
+                {% if rb.examples %}
+                <details class="response-examples-section">
+                    <summary class="examples-summary">{{ render_examples_summary() }}</summary>
+                    <div class="examples-container">
+                        {{ render_examples(rb.examples) }}
+                    </div>
+                </details>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if operation.responses %}
+            <div class="operation-subsection">
+                {% set first_status = operation.responses.keys()|list|first %}
+                {% set first_response = operation.responses[first_status] %}
+                {% set first_response_content_types = first_response.schemas.keys()|list if first_response.schemas else [] %}
+                <div class="response-header-with-selector">
+                    <h4>Response</h4>
+                    <div class="response-header-controls">
+                        <div class="response-status-selector">
+                            <button class="status-selector-button" onclick="toggleStatusDropdown('{{ operation.operationId }}')" aria-label="Select response status">
+                                <span class="selected-status" id="selected-status-{{ operation.operationId }}">
+                                    {% set status_num = first_status|string %}
+                                    <span class="status-dot status-dot-{% if status_num.startswith('2') %}2xx{% elif status_num.startswith('4') %}4xx{% else %}default{% endif %}"></span>
+                                    {{ first_status }}
+                                </span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <div class="status-dropdown-menu" id="status-dropdown-{{ operation.operationId }}" style="display:none">
+                                {% for status in operation.responses.keys()|sort %}
+                                {% set status_num = status|string %}
+                                <button class="status-dropdown-item" onclick="selectResponseStatus('{{ operation.operationId }}', '{{ status }}')">
+                                    <span class="status-dot status-dot-{% if status_num.startswith('2') %}2xx{% elif status_num.startswith('4') %}4xx{% else %}default{% endif %}"></span>
+                                    {{ status }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <span class="content-type-badge" id="content-type-badge-{{ operation.operationId }}" style="{% if 'application/json' not in first_response_content_types and not first_response_content_types %}display:none{% endif %}">
+                            {% if 'application/json' in first_response_content_types %}json{% elif first_response_content_types %}{{ first_response_content_types[0]|replace('application/', '')|replace('text/', '') }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% for status, response in operation.responses|dictsort %}
+                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|e }}" {% if not loop.first %}style="display:none"{% endif %}>
+                    {% if response.description %}
+                    <div class="param-description">{{ response.description|md }}</div>
+                    {% endif %}
+                    {% for ct, props in response.schemas|default({})|items %}
+                    {{ render_schema_table(props) }}
+                    {% endfor %}
+                    {% if response.examples %}
+                    <details class="response-examples-section">
+                        <summary class="examples-summary">{{ render_examples_summary() }}</summary>
+                        <div class="examples-container">
+                            {{ render_examples(response.examples) }}
+                        </div>
+                    </details>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endmacro %}

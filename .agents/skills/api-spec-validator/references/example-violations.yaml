@@ -1,0 +1,175 @@
+openapi: 3.0.2
+info:
+  title: Bad API Example
+  version: 1.0.0
+  description: This spec demonstrates common violations of the validation rules
+
+paths:
+  /data:
+    # ❌ VIOLATION: Generic operation ID
+    get:
+      operationId: get_data
+      # ❌ VIOLATION: Missing description
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          # ❌ VIOLATION: Missing description on property
+                        status:
+                          # ❌ VIOLATION: Naked string (should use enum)
+                          type: string
+                          description: "Status can be active or inactive"
+                        v1_code:
+                          type: string
+                          # ❌ VIOLATION: Legacy field without INTERNAL MAPPING explanation
+                          description: "Legacy status code"
+                # ❌ VIOLATION: Missing required array
+              # ❌ VIOLATION: Missing examples
+
+  /users:
+    post:
+      operationId: create
+      # ❌ VIOLATION: Generic operation ID ("create" - create what?)
+      summary: Create user
+      description: Creates a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: User name
+                email:
+                  type: string
+                  description: User email
+                role:
+                  # ❌ VIOLATION: Naked string with clear options
+                  type: string
+                  description: "User role (admin, user, or guest)"
+              # ❌ VIOLATION: Missing required array
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+              # ❌ VIOLATION: Missing examples
+
+  /rpc/v2/action_17:
+    # ❌ VIOLATION: Cryptic path without AI alias summary
+    post:
+      operationId: processAction17
+      description: Process special action
+      # ❌ VIOLATION: No summary field to explain cryptic path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+              # ❌ VIOLATION: Missing required array
+      responses:
+        '200':
+          description: Success
+          # ❌ VIOLATION: Missing response schema
+
+  /orders/{orderId}:
+    put:
+      operationId: update
+      # ❌ VIOLATION: Too generic ("update" - update what?)
+      description: Update order
+      # ⚠️  Should warn about slow endpoint but doesn't
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  # ❌ VIOLATION: Should use enum
+                  description: "New status (pending, shipped, delivered, cancelled)"
+                priority:
+                  type: string
+                  # ❌ VIOLATION: Should use enum
+                  description: "Priority level: low, medium, high"
+              # ❌ VIOLATION: Missing required array
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    # Property has description - this is good ✓
+              # ❌ VIOLATION: Missing examples
+        '400':
+          # ❌ VIOLATION: Has error codes but missing RECOVERY INSTRUCTIONS
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorCode:
+                    type: string
+                    enum: [ERR_01, ERR_02]
+                  message:
+                    type: string
+
+# SUMMARY OF VIOLATIONS IN THIS SPEC:
+#
+# Rule 2: Operation ID violations
+#   - get_data (too generic)
+#   - create (too generic, missing context)
+#   - update (too generic, missing context)
+#   - processAction17 (doesn't explain what action 17 does)
+#
+# Rule 3: Description violations
+#   - /data GET: Missing operation description
+#   - /rpc/v2/action_17: Cryptic path without summary AI alias
+#   - v1_code field: Missing INTERNAL MAPPING explanation
+#   - /orders PUT: 400 response has error codes but missing RECOVERY INSTRUCTIONS
+#
+# Rule 4: Examples violations
+#   - All endpoints missing examples
+#
+# Rule 5: Type documentation violations
+#   - /data response: id property missing description
+#
+# Rule 7: Naked strings violations
+#   - /data response: status field (should use enum)
+#   - /users POST: role field (should use enum)
+#   - /orders PUT: status field (should use enum)
+#   - /orders PUT: priority field (should use enum)
+#
+# Rule 8: Required fields violations
+#   - All schemas missing required arrays

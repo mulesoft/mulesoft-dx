@@ -1,0 +1,22 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "This directory contains validation scripts for maintaining quality across the API specification repository.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:js": "jest",
+    "test:py": "python3 -m pytest tests/ -v"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0"
+  }
+}

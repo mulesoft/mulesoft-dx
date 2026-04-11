@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "properties": {
+    "type" : {
+      "type": "string",
+      "enum": ["CH", "HY", "RF", "CH2"]
+    },
+    "environmentName": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+     "environmentId": {
+      "type": "string",
+      "description": "UUID (or 24 alphanumeric for legacy environments)",
+      "maxLength": 40,
+      "minLength": 1
+    },
+    "gatewayVersion": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+    "targetId": {
+      "oneOf": [
+        {"type": "integer"},
+        {"type": "string"}
+      ]
+    },
+    "targetName": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+    "targetType": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+    "overwrite": {
+      "type": "boolean",
+      "nullable": true
+    },
+    "applicationName": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1
+    },
+    "target": {
+      "type": "object",
+      "required": [ "targetId", "deploymentSettings" ],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "deploymentSettings": {
+          "type": "object",
+          "properties": {
+            "runtimeVersion": {
+              "type": "string",
+              "maxLength": 150,
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["type"]
+}

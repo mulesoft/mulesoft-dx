@@ -1,0 +1,225 @@
+#%Validation Profile 1.0
+profile: machaval
+description: >
+  Default description for generated profile. Update this content with the
+  desired documentation text. 
+violation:
+  - api-info-description
+  - api-title-ends-with-api
+  - api-version-semver
+  - input-types-described
+  #- no-naked-strings
+  - oas-only
+  - operation-description
+  - operation-examples
+  - operation-id-camel-case
+  - output-response-description
+  - output-types-described
+  - request-body-description
+  #- schema-property-description
+  #- schema-required-block
+validations:
+  api-info-description:
+    message: API info must have a non-empty description explaining the API's domain and purpose.
+    documentation: >
+      The info.description is the first signal an AI agent uses for API-level
+      discovery. When choosing among many APIs, this description determines
+      whether the agent selects the right one. It must clearly explain the
+      API's domain, capabilities, and intended use cases.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.description:
+        minCount: 1
+  api-title-ends-with-api:
+    message: >
+      API info.title '{{core.name}}' must end with 'API'.
+      Rename to a clear, descriptive title ending with 'API'
+      (e.g. 'Secrets Manager API', 'Object Store API').
+    documentation: >
+      All API specification titles (info.title) must end with the word 'API'
+      to ensure consistent naming across the developer portal and documentation.
+      Use a descriptive name that conveys the API's domain followed by 'API'.
+      Avoid suffixes like 'Service', 'Reference', 'xAPI', or version numbers.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.name:
+        pattern: "API$"
+  api-version-semver:
+    message: >
+      API info.version '{{core.version}}' must use semantic versioning (x.x.x).
+      Use the format MAJOR.MINOR.PATCH (e.g. 1.0.0, 2.1.3). Do not prefix with
+      'v' or 'V', and always include all three components.
+    documentation: >
+      The info.version field must follow Semantic Versioning (semver) with exactly
+      three numeric components: MAJOR.MINOR.PATCH (e.g. 1.0.0, 2.1.3, 0.7.0).
+      This ensures consistency across all API specifications and enables reliable
+      version comparison and sorting. Avoid formats like 'v1', 'V1', '1.0',
+      '1', or 'v1.0.0'.
+    targetClass: apiContract.WebAPI
+    propertyConstraints:
+      core.version:
+        minCount: 1
+        pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+  input-types-described:
+    message: Parameter '{{core.name}}' must have a description.
+    documentation: >
+      All endpoint input parameters (query, path, header) must be documented
+      with a description.
+    targetClass: apiContract.Parameter
+    propertyConstraints:
+      core.description:
+        minCount: 1
+  no-naked-strings:
+    message: >
+      Scalar type '{{shacl.name}}' must have an enum or format; avoid naked
+      strings with no constraints.
+    documentation: >
+      If a field has a limited set of options, it must use an enum. Avoid
+      unconstrained string types
+
+      (naked strings) so that APIs and AI consumers have explicit allowed values.
+    targetClass: shapes.ScalarShape
+    or:
+      - propertyConstraints:
+          shacl.in:
+            minCount: 1
+      - propertyConstraints:
+          shapes.format:
+            minCount: 1
+  oas-only:
+    message: API specification must be OpenAPI (OAS), not RAML. Use OAS 2.0 or OAS 3.0.
+    documentation: >
+      This rule ensures the API specification is written in OpenAPI
+      Specification (OAS) format.
+
+      RAML specifications are not allowed. Only OAS 2.0 and OAS 3.0 are accepted.
+    targetClass: doc.APIContractProcessingData
+    propertyConstraints:
+      doc.sourceSpec:
+        in:
+          - OAS 2.0
+          - OAS 3.0
+  operation-description:
+    message: Operation '{{apiContract.method}}' must have a description.
+    documentation: >
+      Every endpoint operation must include a description to document its
+      purpose and behavior.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      core.description:
+        minCount: 1
+  operation-examples:
+    message: Operation '{{apiContract.method}}' must have at least one response with
+      an example.
+    documentation: >
+      Every endpoint must provide at least one example (in a response) so
+      consumers can understand the response shape.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      apiContract.returns:
+        atLeast:
+          count: 1
+          validation:
+            propertyConstraints:
+              apiContract.payload / shapes.schema:
+                nested:
+                  propertyConstraints:
+                    apiContract.examples:
+                      minCount: 1
+  operation-id-camel-case:
+    message: >
+      Operation '{{apiContract.method}}' must have an operationId in camelCase
+      (e.g. calculateTaxRate, provisionCloudServer).
+
+      Avoid snake_case (get_data) and generic single words (update).
+    documentation: >
+      Every endpoint operation must have an operationId. The value must be
+      descriptive and in camelCase:
+
+      preferred examples are calculateTaxRate, provisionCloudServer. Avoid snake_case like get_data
+
+      and generic verbs like get_data or update.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      apiContract.operationId:
+        minCount: 1
+        pattern: ^[a-z][a-z0-9]*[A-Z][a-zA-Z0-9]*$
+    examples:
+      valid: |
+        paths:
+          /tax:
+            post:
+              operationId: calculateTaxRate
+              responses:
+                '200':
+                  description: OK
+      invalid: |
+        paths:
+          /items:
+            put:
+              operationId: update
+              responses:
+                '200':
+                  description: OK
+  output-response-description:
+    message: Response '{{apiContract.statusCode}}' must have a description.
+    documentation: |
+      Every endpoint response must include a description of the output.
+    targetClass: apiContract.Response
+    propertyConstraints:
+      core.description:
+        minCount: 1
+  output-types-described:
+    message: Response '{{apiContract.statusCode}}' must have a description.
+    documentation: |
+      Every endpoint response must include a description of the output.
+    targetClass: apiContract.Response
+    propertyConstraints:
+      core.description:
+        minCount: 1
+  request-body-description:
+    message: Request body must have a description when present.
+    documentation: >
+      When an operation has a request body, it must include a description of the
+      input.
+    targetClass: apiContract.Request
+    if:
+      propertyConstraints:
+        apiContract.payload:
+          minCount: 1
+    then:
+      propertyConstraints:
+        core.description:
+          minCount: 1
+  schema-property-description:
+    message: Schema property '{{shacl.name}}' must have a description.
+    documentation: >
+      All properties in response and request schemas must be documented with a
+      description.
+    targetClass: shacl.PropertyShape
+    propertyConstraints:
+      shapes.range / core.description:
+        minCount: 1
+  schema-required-block:
+    message: >
+      Object schema must explicitly list at least one required field (use the
+      'required' array) to prevent optional parameters from being guessed.
+    documentation: >
+      Always explicitly list required fields in the schema. When an object has
+      required properties,
+
+      list them in the 'required' array so that API and AI consumers do not guess optional parameters.
+    targetClass: shacl.NodeShape
+    if:
+      propertyConstraints:
+        shacl.property:
+          minCount: 1
+    then:
+      propertyConstraints:
+        shacl.property:
+          atLeast:
+            count: 1
+            validation:
+              propertyConstraints:
+                shacl.minCount:
+                  minInclusive: 1

@@ -1,0 +1,52 @@
+[
+  {
+    "audit": {
+      "created": {
+        "date": "2024-01-15T10:00:00.000Z"
+      },
+      "updated": {}
+    },
+    "organizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+    "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+    "assetId": "rate-limiting",
+    "assetVersion": "1.4.0",
+    "name": "Rate Limiting",
+    "description": "Limits the number of requests an API can receive within a given period of time.",
+    "type": "system",
+    "category": "Quality of Service",
+    "configuration": [
+      {
+        "propertyName": "rateLimits",
+        "name": "Rate Limits",
+        "type": "rateLimits",
+        "description": "Number of requests allowed per time period"
+      }
+    ],
+    "supportedPoliciesVersions": ">=v1"
+  },
+  {
+    "audit": {
+      "created": {
+        "date": "2024-02-20T14:30:00.000Z"
+      },
+      "updated": {}
+    },
+    "organizationId": "e9a32dc8-5568-4211-9760-fd96392e4025",
+    "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+    "assetId": "client-id-enforcement",
+    "assetVersion": "1.3.0",
+    "name": "Client ID Enforcement",
+    "description": "Enforces the requirement for a valid client ID and client secret.",
+    "type": "system",
+    "category": "Security",
+    "configuration": [
+      {
+        "propertyName": "credentialsOriginHasHttpBasicAuthenticationHeader",
+        "name": "Credentials Origin",
+        "type": "radio",
+        "description": "Origin of the client credentials"
+      }
+    ],
+    "supportedPoliciesVersions": ">=v1"
+  }
+]

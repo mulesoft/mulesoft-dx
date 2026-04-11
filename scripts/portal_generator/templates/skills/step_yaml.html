@@ -1,0 +1,64 @@
+{% from "skills/macros.html" import input_source %}
+
+{% macro render_step_yaml(yaml_data, private_api_slugs=[], api_link_prefix='') %}
+{% if yaml_data %}
+{% set api = yaml_data.api|default('')|replace('urn:api:', '') %}
+{% set operation_id = yaml_data.operationId|default('') %}
+{% set inputs = yaml_data.inputs|default({}) %}
+{% set outputs = yaml_data.outputs|default([]) %}
+<div class="step-api-call">
+    <div class="step-api-header">
+        <span class="step-api-label">API Call:</span>
+        {% if api in private_api_slugs|default([]) %}
+        <span class="step-api-link">{{ api }} &rarr; {{ operation_id }}</span>
+        {% else %}
+        <a href="{{ api_link_prefix|default('') }}{{ api }}.html#op-{{ operation_id }}" class="step-api-link">{{ api }} &rarr; {{ operation_id }}</a>
+        {% endif %}
+    </div>
+    {% if inputs and inputs is mapping %}
+    <details class="step-inputs">
+        <summary><h5>Inputs</h5></summary>
+        <table class="step-io-table">
+            <thead><tr><th scope="col">Parameter</th><th scope="col">Source</th></tr></thead>
+            <tbody>
+                {% for name, defn in inputs.items() %}
+                <tr>
+                    <td><code>{{ name }}</code></td>
+                    <td>{{ input_source(defn, private_api_slugs, api_link_prefix) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+    {% if outputs and outputs is iterable and outputs is not string and outputs is not mapping %}
+    {% set output_rows = [] %}
+    {% for out in outputs %}
+    {% if out is mapping %}{% set _ = output_rows.append(out) %}{% endif %}
+    {% endfor %}
+    {% if output_rows %}
+    <details class="step-outputs">
+        <summary><h5>Outputs</h5></summary>
+        <table class="step-io-table">
+            <thead><tr><th scope="col">Name</th><th scope="col">Path</th><th scope="col">Description</th></tr></thead>
+            <tbody>
+                {% for out in output_rows %}
+                <tr>
+                    <td><code>{{ out.name|default('') }}</code></td>
+                    <td>
+                        <code>{{ out.path|default('') }}</code>
+                        {% if out.labels is defined and out.labels %}
+                        <span class="step-output-labels-hint">labels: <code>{{ out.labels }}</code></span>
+                        {% endif %}
+                    </td>
+                    <td>{{ out.description|default('')|md }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}

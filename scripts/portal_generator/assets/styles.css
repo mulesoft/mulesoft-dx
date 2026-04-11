@@ -2575,6 +2575,118 @@ button.nav-group-header {
     overflow-x: auto;
 }
 
+/* Operation title header with operationId */
+.operation-title-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: var(--space-md);
+    gap: var(--space-md);
+}
+
+.operation-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
+    flex: 1;
+}
+
+.operation-id-inline {
+    font-size: 0.875rem;
+    font-style: italic;
+    color: #6b7280;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+/* Paragraph-based parameters layout */
+.params-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
+}
+
+.param-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--lume-color-neutral-4);
+}
+
+.param-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.param-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.param-name {
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    color: #111827;
+}
+
+.param-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.param-badge-required {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.param-badge-in {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    text-transform: lowercase;
+}
+
+.param-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.param-type {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-family: var(--font-mono);
+}
+
+.param-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.param-description p {
+    margin: 0.5em 0;
+}
+
+.param-description p:first-child {
+    margin-top: 0;
+}
+
+.param-description p:last-child {
+    margin-bottom: 0;
+}
+
 /* Lume Design System - Tables */
 .params-table,
 .responses-table {

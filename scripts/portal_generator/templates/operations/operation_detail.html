@@ -15,7 +15,6 @@
             <code class="operation-url-bar" data-op-id="{{ operation.operationId }}" data-path="{{ operation.path }}"></code>
             {% if operation.deprecated %}<span class="badge badge-deprecated">DEPRECATED</span>{% endif %}
         </div>
-        {% if operation.summary %}<h3>{{ operation.summary }}</h3>{% endif %}
         {{ tags(operation.tags|default([])) }}
     </div>
 
@@ -51,33 +50,36 @@
         </div>
 
         <div class="operation-main-content">
+            <div class="operation-title-header">
+                <h3 class="operation-title">{{ operation.summary|default(operation.operationId|titleize_operation) }}</h3>
+                <code class="operation-id-inline">{{ operation.operationId }}</code>
+            </div>
+
             {% set desc = operation.description|default('') or operation.summary|default('') %}
             {% if desc %}
             <div class="operation-description">{{ desc|md }}</div>
             {% endif %}
 
-            <div class="operation-meta-detail">
-                <code class="operation-id">Operation ID: {{ operation.operationId }}</code>
-            </div>
-
             {% if operation.parameters %}
             <div class="operation-subsection">
                 <h4>Parameters</h4>
-                <table class="params-table">
-                    <thead>
-                        <tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Type</th><th scope="col">Description</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for param in operation.parameters %}
-                        <tr>
-                            <td><code>{{ param.name }}</code>{% if param.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</td>
-                            <td><span class="param-in">{{ param['in'] }}</span></td>
-                            <td>{{ param_type(param.schema|default({})) }}</td>
-                            <td>{{ param.description|default('')|md }}{{ x_origin(param) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="params-list">
+                    {% for param in operation.parameters %}
+                    <div class="param-item">
+                        <div class="param-header">
+                            <code class="param-name">{{ param.name }}</code>
+                            {% if param.required %}<span class="param-badge param-badge-required">required</span>{% endif %}
+                            <span class="param-badge param-badge-in">{{ param['in'] }}</span>
+                        </div>
+                        <div class="param-meta">
+                            <span class="param-type">{{ param_type(param.schema|default({})) }}</span>
+                        </div>
+                        {% if param.description %}
+                        <div class="param-description">{{ param.description|md }}{{ x_origin(param) }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
 

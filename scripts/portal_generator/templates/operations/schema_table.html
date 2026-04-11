@@ -1,19 +1,38 @@
 {% macro render_schema_table(properties, title='') %}
 {% if properties %}
-{% if title %}<h5>{{ title }}</h5>{% endif %}
-<table class="schema-table">
-    <thead>
-        <tr><th scope="col">Property</th><th scope="col">Type</th><th scope="col">Description</th></tr>
-    </thead>
-    <tbody>
-        {% for prop in properties %}
-        <tr>
-            <td><code>{{ prop.name }}</code>{% if prop.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}</td>
-            <td><code class="param-type">{{ prop.type|default('') }}</code></td>
-            <td>{{ prop.description|default('')|md }}{% if prop.constraints %}<br><span class="param-constraints">{{ prop.constraints|join('; ') }}</span>{% endif %}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% if title %}<h5 class="schema-title">{{ title }}</h5>{% endif %}
+<div class="params-list">
+    {% for prop in properties %}
+    <div class="param-item">
+        <div class="param-header">
+            <code class="param-name">
+                {{ prop.name }}{% if prop.required %}*{% endif %}:<span class="param-type-inline">{{ prop.type|default('') }}</span>
+            </code>
+        </div>
+        {% if prop.description %}
+        <div class="param-description">{{ prop.description|md }}</div>
+        {% endif %}
+        {% if prop.constraints %}
+        <div class="param-constraints">
+            {% for constraint in prop.constraints %}
+            {% if constraint.startswith('enum:') %}
+            <details class="enum-details">
+                <summary class="enum-summary">Show possible values</summary>
+                <div class="enum-values">
+                    {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
+                    {% for value in enum_values %}
+                    <code class="enum-value">{{ value }}</code>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            </details>
+            {% else %}
+            <span class="constraint-item">{{ constraint }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 {% endif %}
 {% endmacro %}

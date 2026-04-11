@@ -81,11 +81,22 @@
                         {% for param in params_by_location[location] %}
                         <div class="param-item">
                             <div class="param-header">
-                                <code class="param-name">{{ param.name }}:<span class="param-type-inline">{{ param_type(param.schema|default({})) }}</span></code>
-                                {% if param.required %}<span class="param-badge param-badge-required">required</span>{% endif %}
+                                <code class="param-name">
+                                    {{ param.name }}{% if param.required %}*{% endif %}:<span class="param-type-inline">{{ param_type(param.schema|default({})) }}</span>
+                                </code>
                             </div>
                             {% if param.description %}
                             <div class="param-description">{{ param.description|md }}{{ x_origin(param) }}</div>
+                            {% endif %}
+                            {% if param.schema and param.schema.get('enum') %}
+                            <details class="enum-details">
+                                <summary class="enum-summary">Show possible values</summary>
+                                <div class="enum-values">
+                                    {% for value in param.schema.enum %}
+                                    <code class="enum-value">{{ value }}</code>{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </details>
                             {% endif %}
                         </div>
                         {% endfor %}

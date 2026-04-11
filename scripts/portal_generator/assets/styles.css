@@ -2674,6 +2674,82 @@ button.nav-group-header {
     font-family: var(--font-mono);
 }
 
+/* Enum values display */
+.enum-details {
+    margin-top: 0.5rem;
+}
+
+.enum-summary {
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: #2563eb;
+    font-weight: 500;
+    user-select: none;
+    list-style: none;
+}
+
+.enum-summary::-webkit-details-marker {
+    display: none;
+}
+
+.enum-summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+details[open] .enum-summary::before {
+    transform: rotate(90deg);
+}
+
+.enum-summary:hover {
+    color: #1d4ed8;
+}
+
+.enum-values {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.enum-value {
+    display: inline-block;
+    font-size: 0.8125rem;
+    background: white;
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    font-family: var(--font-mono);
+}
+
+/* Constraints display */
+.param-constraints {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.constraint-item {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    font-family: var(--font-mono);
+}
+
+/* Schema title */
+.schema-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 1rem 0;
+}
+
 /* Lume Design System - Tables */
 .params-table,
 .responses-table {

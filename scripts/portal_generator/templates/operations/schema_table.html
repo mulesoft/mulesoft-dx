@@ -15,24 +15,9 @@
         <div class="param-constraints-container">
             {% for constraint in prop.constraints %}
             {% if constraint.startswith('enum:') %}
-            {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
-            {% set show_count = 7 %}
-            <div class="enum-preview">
-                {% for value in enum_values[:show_count] %}
-                <code class="enum-value-inline">{{ value }}</code>{% if not loop.last %}, {% endif %}
-                {% endfor %}
-                {% if enum_values|length > show_count %}
-                <span class="enum-more"> and {{ enum_values|length - show_count }} more</span>
-                {% endif %}
+            <div class="param-enum-constraint">
+                <span class="constraint-item">{{ constraint }}</span>
             </div>
-            <details class="enum-details">
-                <summary class="enum-summary">Expand to see all possible options</summary>
-                <div class="enum-values-list">
-                    {% for value in enum_values %}
-                    <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
-                    {% endfor %}
-                </div>
-            </details>
             {% elif constraint.startswith('pattern:') %}
             <code class="param-pattern">{{ constraint }}</code>
             {% else %}

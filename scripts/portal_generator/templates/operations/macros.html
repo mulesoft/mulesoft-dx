@@ -10,12 +10,14 @@
 {% if schema.default is not none and schema.default is defined %}
 <span class="param-default">Default: <code>{{ schema.default }}</code></span>
 {% endif %}
+{% if schema.pattern %}
+<span class="param-pattern">Pattern: <code>{{ schema.pattern }}</code></span>
+{% endif %}
 {% set constraints = [] %}
 {% if schema.minimum is not none and schema.minimum is defined %}{% set _ = constraints.append('min: ' ~ schema.minimum) %}{% endif %}
 {% if schema.maximum is not none and schema.maximum is defined %}{% set _ = constraints.append('max: ' ~ schema.maximum) %}{% endif %}
 {% if schema.minLength is not none and schema.minLength is defined %}{% set _ = constraints.append('minLen: ' ~ schema.minLength) %}{% endif %}
 {% if schema.maxLength is not none and schema.maxLength is defined %}{% set _ = constraints.append('maxLen: ' ~ schema.maxLength) %}{% endif %}
-{% if schema.pattern %}{% set _ = constraints.append('pattern') %}{% endif %}
 {% if constraints %}<span class="param-constraints">{{ constraints|join(', ') }}</span>{% endif %}
 {% endif %}
 {% endmacro %}

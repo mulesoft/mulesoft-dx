@@ -83,9 +83,6 @@
                             <div class="param-header">
                                 <code class="param-name">{{ param.name }}{% if param.required %}*{% endif %}:</code>
                                 <code class="param-type-inline">{{ param_type(param.schema|default({})) }}</code>
-                                {% if param.schema and param.schema.get('pattern') %}
-                                <code class="param-pattern">pattern: {{ param.schema.pattern }}</code>
-                                {% endif %}
                             </div>
                             {% if param.description or param.get('x-origin') %}
                             <div class="param-description">

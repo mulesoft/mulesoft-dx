@@ -2614,21 +2614,31 @@ button.nav-group-header {
 
 .param-header {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: baseline;
+    gap: 0.25rem;
     flex-wrap: wrap;
 }
 
 .param-name {
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 400;
     font-family: var(--font-mono);
     color: #111827;
 }
 
 .param-type-inline {
+    font-size: 0.875rem;
     font-weight: 400;
     color: #6b7280;
+    font-family: var(--font-mono);
+}
+
+.param-pattern {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #9ca3af;
+    font-family: var(--font-mono);
+    margin-left: 0.5rem;
 }
 
 .param-badge {
@@ -2674,58 +2684,35 @@ button.nav-group-header {
     font-family: var(--font-mono);
 }
 
-/* Enum values display */
-.enum-details {
+/* Enum values display - Claude API style */
+.enum-values-list {
     margin-top: 0.5rem;
-}
-
-.enum-summary {
-    cursor: pointer;
-    font-size: 0.8125rem;
-    color: #2563eb;
-    font-weight: 500;
-    user-select: none;
-    list-style: none;
-}
-
-.enum-summary::-webkit-details-marker {
-    display: none;
-}
-
-.enum-summary::before {
-    content: '▸ ';
-    display: inline-block;
-    transition: transform 0.2s;
-}
-
-details[open] .enum-summary::before {
-    transform: rotate(90deg);
-}
-
-.enum-summary:hover {
-    color: #1d4ed8;
-}
-
-.enum-values {
-    margin-top: 0.5rem;
-    padding: 0.75rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    margin-left: 1.5rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.enum-value-item {
+    position: relative;
+    padding-left: 0;
+}
+
+.enum-value-item::before {
+    content: '•';
+    position: absolute;
+    left: -1rem;
+    color: #6b7280;
 }
 
 .enum-value {
-    display: inline-block;
-    font-size: 0.8125rem;
-    background: white;
-    color: #374151;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #d1d5db;
+    font-size: 0.875rem;
+    background: transparent;
+    color: #111827;
+    padding: 0;
+    border: none;
     font-family: var(--font-mono);
+    font-weight: 400;
 }
 
 /* Constraints display */
@@ -3080,25 +3067,42 @@ details[open] .enum-summary::before {
    x-origin Links
    ============================================================================ */
 
+.x-origin-container {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.x-origin-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
 .x-origin-links {
-    margin-top: var(--space-xs);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .x-origin-badge {
     display: inline-block;
-    font-size: 0.7rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    color: var(--color-primary);
+    font-size: 0.8125rem;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    color: #2563eb;
     text-decoration: none;
-    margin-right: var(--space-xs);
+    font-family: var(--font-mono);
 }
 
 .x-origin-badge:hover {
-    background: var(--color-primary);
+    background: #2563eb;
     color: white;
+    border-color: #2563eb;
     text-decoration: none;
 }
 

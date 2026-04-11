@@ -5,26 +5,26 @@
     {% for prop in properties %}
     <div class="param-item">
         <div class="param-header">
-            <code class="param-name">
-                {{ prop.name }}{% if prop.required %}*{% endif %}:<span class="param-type-inline">{{ prop.type|default('') }}</span>
-            </code>
+            <code class="param-name">{{ prop.name }}{% if prop.required %} *{% endif %} : </code>
+            <code class="param-type-inline">{{ prop.type|default('') }}</code>
         </div>
         {% if prop.description %}
         <div class="param-description">{{ prop.description|md }}</div>
         {% endif %}
         {% if prop.constraints %}
-        <div class="param-constraints">
+        <div class="param-constraints-container">
             {% for constraint in prop.constraints %}
             {% if constraint.startswith('enum:') %}
-            <details class="enum-details">
-                <summary class="enum-summary">Show possible values</summary>
-                <div class="enum-values">
-                    {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
-                    {% for value in enum_values %}
-                    <code class="enum-value">{{ value }}</code>{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </div>
-            </details>
+            <div class="enum-values-list">
+                {% set enum_values = constraint.replace('enum: ', '').split(', ') %}
+                {% for value in enum_values %}
+                <div class="enum-value-item"><code class="enum-value">{{ value }}</code></div>
+                {% endfor %}
+            </div>
+            {% elif constraint.startswith('pattern') %}
+            <div class="param-pattern-container">
+                <code class="param-pattern">{{ constraint }}</code>
+            </div>
             {% else %}
             <span class="constraint-item">{{ constraint }}</span>
             {% endif %}

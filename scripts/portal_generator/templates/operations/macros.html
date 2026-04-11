@@ -23,6 +23,8 @@
 {% macro x_origin(param) %}
 {% if param['x-origin'] %}
 {% set origins = param['x-origin'] if param['x-origin'] is iterable and param['x-origin'] is not string and param['x-origin'] is not mapping else [param['x-origin']] %}
+<div class="x-origin-container">
+<span class="x-origin-label">Related Operations:</span>
 <div class="x-origin-links">
 {% for origin in origins %}
 {% if origin is mapping %}
@@ -39,6 +41,7 @@
 {% endif %}
 {% endif %}
 {% endfor %}
+</div>
 </div>
 {% endif %}
 {% endmacro %}

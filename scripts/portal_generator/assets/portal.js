@@ -4009,12 +4009,12 @@ function captureVariablesFromResponse(panel, result) {
     if (!stepWrapper) return;
 
     var stepId = stepWrapper.id;
-    var match = stepId.match(/playground-step-([^-]+)-/);
+    // Match playground-step-<slug>-<step-index>
+    var match = stepId.match(/^playground-step-(.+)-(\d+)$/);
     if (!match) return;
 
     var slug = match[1];
-    var stepIndex = stepId.match(/-(\d+)$/);
-    var stepNumber = stepIndex ? parseInt(stepIndex[1]) + 1 : '?';
+    var stepNumber = parseInt(match[2]) + 1;
 
     // Parse response body
     var responseBody = result.body;

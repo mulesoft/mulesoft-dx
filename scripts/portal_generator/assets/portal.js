@@ -5324,17 +5324,11 @@ async function sendPlaygroundRequestActual(sid) {
         }
         
         // Prepare headers
-        var headers = Object.assign({}, headerParams);
-        
-        // Add auth header from panel if available
-        var authToken = getAuthToken();
-        if (authToken) {
-            headers['Authorization'] = 'Bearer ' + authToken;
-        }
-        
-        if (bodyContent && !headers['Content-Type']) {
-            headers['Content-Type'] = 'application/json';
-        }
+        var headers = Object.assign(
+            {'Content-Type': 'application/json'},
+            getAuthHeaders(),
+            headerParams
+        );
         
         // Make the API call through proxy
         var PROXY_URL = window.__PROXY_CONFIG__ ? window.__PROXY_CONFIG__.url : '/proxy';

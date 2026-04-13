@@ -91,7 +91,7 @@ function openXOriginModal(opId, paramName, location) {
         return;
     }
 
-    currentXOriginModal = { opId: opId, paramName: paramName, location: location };
+    currentXOriginModal = { opId: opId, paramName: paramName, location: location, origins: origins };
 
     var modal = document.getElementById('xorigin-modal');
     var title = document.getElementById('xorigin-modal-title');
@@ -139,9 +139,12 @@ function openXOriginModal(opId, paramName, location) {
         if (opMeta) {
             var xoriginServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
 
-            // Operation header (method + URL)
+            // Operation header (method + URL + Execute button)
             html += '<div class="xorigin-operation-header">';
+            html += '<div class="xorigin-header-left">';
             html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
+            html += '</div>';
+            html += '<button class="btn-execute-xorigin" onclick="executeXOriginSource(' + idx + ')">Execute</button>';
             html += '</div>';
 
             // Add Information section
@@ -177,16 +180,14 @@ function openXOriginModal(opId, paramName, location) {
             html += '</div>';
             html += '</details>';
 
-            // Use shared panel renderer for two-column layout
+            // Use shared panel renderer for two-column layout (no execute button, it's in header)
             var xoriginOpId = 'xorigin-' + idx;
             html += renderOperationPanel(xoriginOpId, opMeta, {
                 yamlInputs: {},
                 enableVariableRefs: false,
                 slug: '',
                 contextType: 'xorigin',
-                showExecuteButton: true,
-                executeButtonText: 'Execute',
-                executeButtonClick: 'executeXOriginSource(' + idx + ')'
+                showExecuteButton: false
             });
         }
 
@@ -233,7 +234,8 @@ async function executeXOriginSource(sourceIdx) {
     }
 
     var xoriginOpId = 'xorigin-' + sourceIdx;
-    var btn = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"] .btn-send-main');
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    var btn = sourceDiv ? sourceDiv.querySelector('.btn-execute-xorigin') : null;
     var responseDiv = document.getElementById('response-' + xoriginOpId);
     var statusSpan = document.getElementById('status-' + xoriginOpId);
     var respBodyDiv = document.getElementById('respbody-' + xoriginOpId);
@@ -243,22 +245,24 @@ async function executeXOriginSource(sourceIdx) {
         return;
     }
 
-    // Get the origin configuration
-    var input = document.getElementById('param-' + currentXOriginModal.opId + '-' + currentXOriginModal.paramName);
-    var originsJson = input.getAttribute('data-x-origins');
-    var origins = JSON.parse(originsJson);
+    // Get the origin configuration from stored modal state
+    var origins = currentXOriginModal.origins;
+    if (!origins || !origins[sourceIdx]) {
+        console.error('No origin configuration found for source index:', sourceIdx);
+        return;
+    }
     var origin = origins[sourceIdx];
 
     // Check authentication
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
     if (isTokenExpired()) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -271,15 +275,15 @@ async function executeXOriginSource(sourceIdx) {
     var opLookup = window.__OP_LOOKUP__ || {};
     var apiEntry = opLookup[apiSlug];
     if (!apiEntry) {
-        resultDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
     var opMeta = apiEntry.ops[operationId];
     if (!opMeta) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -306,8 +310,8 @@ async function executeXOriginSource(sourceIdx) {
     });
 
     if (missingParams.length > 0) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -321,8 +325,8 @@ async function executeXOriginSource(sourceIdx) {
     // Check for any remaining unsubstituted path parameters
     var unresolvedParams = (path.match(/\{([^}]+)\}/g) || []);
     if (unresolvedParams.length > 0) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
-        resultDiv.style.display = 'block';
+        respBodyDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 

@@ -5348,6 +5348,41 @@ button.param-with-xorigin {
  * No additional styling needed - inherits from .try-params above.
  */
 
+/* X-Origin Operation Header */
+.xorigin-operation-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.xorigin-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-execute-xorigin {
+    flex-shrink: 0;
+    padding: 0.5rem 1.5rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--lume-radius-small);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+
+.btn-execute-xorigin:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-execute-xorigin:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* X-Origin Information Section */
 .xorigin-info-section {
     margin-bottom: 1rem;

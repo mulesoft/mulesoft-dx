@@ -460,7 +460,7 @@ async function executeXOriginSource(sourceIdx) {
                     } else {
                         valuesHtml += '<code class="xorigin-value-display">' + escapeHtml(valueStr) + '</code>';
                     }
-                    valuesHtml += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', ' + escapeHtml(JSON.stringify(valueStr)) + ')">Use</button>';
+                    valuesHtml += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', ' + escapeHtml(JSON.stringify(valueStr)) + ')">Select</button>';
                     valuesHtml += '</div>';
                 });
                 valuesHtml += '</div>';

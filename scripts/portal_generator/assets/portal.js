@@ -4210,13 +4210,28 @@ function captureVariablesFromResponse(panel, result) {
 
 // Update tooltips and resolved value displays on input fields that contain variable references
 function updateVariableTooltips(slug) {
-    console.log('updateVariableTooltips called for slug:', slug);
+    console.log('=== updateVariableTooltips START ===');
+    console.log('slug:', slug);
+    console.log('skillVariables[' + slug + ']:', skillVariables[slug]);
+
     // Find all steps for this skill
     var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
-    steps.forEach(function(step) {
-        // Find ALL text inputs in this step, not just those with has-variable-ref class
-        var allInputs = step.querySelectorAll('input[type="text"]');
-        console.log('Found', allInputs.length, 'text inputs');
+    console.log('Found', steps.length, 'steps');
+
+    steps.forEach(function(step, stepIndex) {
+        console.log('Processing step', stepIndex);
+
+        // Find the playground panel within this step
+        var panel = step.querySelector('[id^="playground-panel-"]');
+        if (!panel) {
+            console.log('  No panel found in this step');
+            return;
+        }
+        console.log('  Panel found:', panel.id);
+
+        // Find ALL text inputs in this panel
+        var allInputs = panel.querySelectorAll('input[type="text"]');
+        console.log('  Found', allInputs.length, 'text inputs in panel');
 
         allInputs.forEach(function(input) {
             var value = input.value;
@@ -4271,6 +4286,7 @@ function updateVariableTooltips(slug) {
             }
         });
     });
+    console.log('=== updateVariableTooltips END ===\n');
 }
 
 // Substitute variable references in a value
@@ -4315,6 +4331,34 @@ function extractValueByPath(obj, path) {
 
     for (var i = 0; i < parts.length; i++) {
         var part = parts[i];
+
+        // Handle array wildcard like data[*].id
+        var wildcardMatch = part.match(/^(.+)\[\*\]$/);
+        if (wildcardMatch) {
+            var arrayName = wildcardMatch[1];
+            current = current[arrayName];
+            if (!current || !Array.isArray(current)) return undefined;
+
+            // If this is the last part, return the array itself
+            if (i === parts.length - 1) {
+                return current;
+            }
+
+            // Otherwise, collect the next property from each array element
+            var remaining = parts.slice(i + 1);
+            var results = [];
+            for (var j = 0; j < current.length; j++) {
+                var item = current[j];
+                for (var k = 0; k < remaining.length; k++) {
+                    if (item === undefined) break;
+                    item = item[remaining[k]];
+                }
+                if (item !== undefined) {
+                    results.push(item);
+                }
+            }
+            return results.length > 0 ? results : undefined;
+        }
 
         // Handle array indexing like items[0]
         var arrayMatch = part.match(/^(.+)\[(\d+)\]$/);

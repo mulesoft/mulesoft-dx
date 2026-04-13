@@ -4078,54 +4078,57 @@ details[open] .examples-toggle-icon {
     border: 1px solid #3e3e3e;
     border-radius: var(--lume-radius-medium);
     padding: var(--lume-space-medium);
+    padding-top: 3rem;
     overflow-x: auto;
     margin-bottom: var(--lume-space-medium);
     position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Terminal-style prompt for curl commands */
-.skill-view-markdown pre code::before {
-    content: '$ ';
-    color: #4ec9b0;
-    font-weight: bold;
-    user-select: none;
-}
-
-.skill-view-markdown pre code {
-    background: transparent;
-    padding: 0;
-    font-size: var(--lume-font-size-2);
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-    color: #d4d4d4;
-    display: block;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.skill-view-markdown pre:has(code:contains("curl")) {
-    background: #1e1e1e;
-}
-
-/* Better contrast for code blocks */
-.skill-view-markdown pre {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Terminal window styling - subtle header */
+/* Terminal window header */
 .skill-view-markdown pre::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 28px;
+    height: 32px;
     background: #2d2d2d;
     border-bottom: 1px solid #3e3e3e;
     border-radius: var(--lume-radius-medium) var(--lume-radius-medium) 0 0;
 }
 
-.skill-view-markdown pre {
-    padding-top: 40px;
+/* Terminal window dots */
+.skill-view-markdown pre::after {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ff5f56;
+    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+}
+
+.skill-view-markdown pre code {
+    background: transparent;
+    padding: 0;
+    font-size: 0.875rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    color: #d4d4d4;
+    display: block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.6;
+}
+
+/* Terminal-style prompt */
+.skill-view-markdown pre code::before {
+    content: '$ ';
+    color: #4ec9b0;
+    font-weight: bold;
+    user-select: none;
 }
 
 /* Inline code (not in pre blocks) */
@@ -6835,16 +6838,17 @@ button.param-with-xorigin {
 
 .variables-sidebar {
     position: sticky;
-    top: 90px;
-    width: 280px;
+    top: 100px;
+    width: 300px;
     flex-shrink: 0;
-    max-height: calc(100vh - 110px);
+    max-height: calc(100vh - 120px);
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 6px;
     padding: var(--space-md);
     align-self: flex-start;
+    z-index: 10;
 }
 
 .variables-sidebar-header {
@@ -6940,31 +6944,16 @@ button.param-with-xorigin {
     overflow-x: hidden;
 }
 
-.playground-panel-header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: var(--space-md);
-}
-
-.playground-title-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .playground-operation-link {
     text-decoration: none;
     color: inherit;
 }
 
-.playground-operation-link:hover .playground-operation-title {
+.playground-operation-link:hover h4 {
     color: #0176D3;
 }
 
-.playground-operation-title {
+.playground-operation-link h4 {
     margin: 0;
     font-family: var(--font-mono);
     font-size: 1rem;
@@ -6972,14 +6961,39 @@ button.param-with-xorigin {
     color: var(--color-text);
 }
 
-.playground-header-actions {
+.xorigin-operation-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.xorigin-operation-link:hover h4 {
+    color: #0176D3;
+}
+
+.xorigin-operation-link h4 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.xorigin-title-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+}
+
+.xorigin-xpath-info {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    font-size: 0.75rem;
 }
 
-.playground-operation-header {
-    margin-top: var(--space-xs);
+.operation-url-bar-container {
+    margin-top: var(--space-sm);
 }
 
 /* Variable reference hints */

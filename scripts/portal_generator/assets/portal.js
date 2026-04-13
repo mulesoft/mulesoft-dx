@@ -139,39 +139,43 @@ function openXOriginModal(opId, paramName, location) {
         if (opMeta) {
             var xoriginServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
 
-            // Panel header (like try-it-out panel header)
+            // Panel header matching try-panel-header structure (title and Send in same row)
             var linkPrefix = window.__API_LINK_PREFIX__ || '';
-            html += '<div class="xorigin-panel-header">';
+            html += '<div class="try-panel-header">';
 
-            // Title with link and xpath info in one line
-            html += '<div class="xorigin-title-line">';
+            // Left side: operationId as link (with xpath info if available)
+            html += '<div class="xorigin-title-section">';
             html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="xorigin-operation-link">';
-            html += '<h4 class="xorigin-operation-title">' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+            html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
             html += '</a>';
             // Xpath expressions inline
-            if (origin.values) {
-                html += '<span class="xorigin-path-inline">';
-                html += '<span class="xorigin-path-label">values:</span>';
-                html += '<code class="xorigin-path-value">' + escapeHtml(origin.values) + '</code>';
-                html += '</span>';
-            }
-            if (origin.labels) {
-                html += '<span class="xorigin-path-inline">';
-                html += '<span class="xorigin-path-label">labels:</span>';
-                html += '<code class="xorigin-path-value">' + escapeHtml(origin.labels) + '</code>';
+            if (origin.values || origin.labels) {
+                html += '<span class="xorigin-xpath-info">';
+                if (origin.values) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">values:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.values) + '</code>';
+                    html += '</span>';
+                }
+                if (origin.labels) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">labels:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.labels) + '</code>';
+                    html += '</span>';
+                }
                 html += '</span>';
             }
             html += '</div>';
 
-            // Execute button with dropdown (like try-it-out)
-            html += '<div class="xorigin-header-actions">';
+            // Right side: actions (spinner + send button + dropdown)
+            html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
             html += '<div class="btn-group-send">';
             html += '<button class="btn-send-main" onclick="executeXOriginSource(' + idx + ')">';
             html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
             html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
             html += '</svg>';
-            html += 'Execute';
+            html += 'Send';
             html += '</button>';
             html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'xorigin-' + idx + '\')" aria-label="More actions">';
             html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
@@ -190,8 +194,8 @@ function openXOriginModal(opId, paramName, location) {
             html += '</div>';
             html += '</div>';
 
-            // Operation header with method + URL
-            html += '<div class="xorigin-operation-header">';
+            // Operation URL bar (below header)
+            html += '<div class="operation-url-bar-container">';
             html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
             html += '</div>';
 
@@ -3604,15 +3608,47 @@ function clearVariables(slug) {
 
 // Scroll to the step that defines a variable
 function scrollToVariableSource(slug, varName) {
-    // Find which step defines this variable by looking at the playground steps
-    // For now, just scroll to the first step that might have it
-    // TODO: Implement proper variable tracking to know which step defined each variable
     console.log('Scrolling to source of variable:', varName);
 
-    // Placeholder implementation - we'll enhance this when we implement variable capture
+    // Look through all playground steps to find which one outputs this variable
     var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
-    playgroundSteps.forEach(function(step) {
-        // For now, just highlight variables panel to indicate the feature exists
+    var foundStep = null;
+
+    playgroundSteps.forEach(function(stepWrapper) {
+        var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
+        if (!panel) return;
+
+        // Check if this step has outputs defined (these are the variables it captures)
+        var outputsAttr = panel.getAttribute('data-wf-outputs');
+        if (outputsAttr) {
+            try {
+                var outputs = JSON.parse(outputsAttr);
+                // Check if this variable is in the outputs
+                if (outputs && outputs[varName]) {
+                    foundStep = stepWrapper;
+                    return;
+                }
+            } catch (e) {
+                console.error('Error parsing outputs:', e);
+            }
+        }
+    });
+
+    if (foundStep) {
+        // Scroll to the step
+        foundStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Highlight the step briefly
+        foundStep.style.outline = '3px solid #0176D3';
+        foundStep.style.outlineOffset = '6px';
+        foundStep.style.borderRadius = '8px';
+        setTimeout(function() {
+            foundStep.style.outline = '';
+            foundStep.style.outlineOffset = '';
+            foundStep.style.borderRadius = '';
+        }, 2500);
+    } else {
+        // Variable source not found, just highlight variables panel
         var variablesPanel = document.getElementById('variables-sidebar-' + slug);
         if (variablesPanel) {
             variablesPanel.style.animation = 'highlight-pulse 1s ease';
@@ -3620,7 +3656,7 @@ function scrollToVariableSource(slug, varName) {
                 variablesPanel.style.animation = '';
             }, 1000);
         }
-    });
+    }
 }
 
 function initializePlaygroundSteps() {
@@ -3673,19 +3709,17 @@ function initializePlaygroundStep(sid) {
 
     var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
 
-    // Build header with title and execute button (matching x-origin structure exactly)
+    // Build header matching try-panel-header structure exactly (title and Send in same row)
     var linkPrefix = window.__API_LINK_PREFIX__ || '';
-    var html = '<div class="playground-panel-header">';
+    var html = '<div class="try-panel-header">';
 
-    // Title line with apiSlug.operationId
-    html += '<div class="playground-title-line">';
+    // Left side: operationId as link
     html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="playground-operation-link">';
-    html += '<h4 class="playground-operation-title">' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+    html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
     html += '</a>';
-    html += '</div>';
 
-    // Execute button with dropdown
-    html += '<div class="playground-header-actions">';
+    // Right side: actions (spinner + send button + dropdown)
+    html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
     html += '<div class="btn-group-send">';
     html += '<button class="btn-send-main" onclick="executePlaygroundStep(\'' + sid + '\')">';
@@ -3711,8 +3745,8 @@ function initializePlaygroundStep(sid) {
     html += '</div>';
     html += '</div>';
 
-    // Operation URL bar (inside header area)
-    html += '<div class="playground-operation-header">';
+    // Operation URL bar (below header)
+    html += '<div class="operation-url-bar-container">';
     html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
     html += '</div>';
 
@@ -5131,4 +5165,31 @@ document.addEventListener('DOMContentLoaded', function() {
             syncScroll(textarea);
         });
     });
+
+    // Highlight curl commands in documentation
+    highlightCurlCommands();
 });
+
+// Function to add syntax highlighting to curl commands
+function highlightCurlCommands() {
+    var codeBlocks = document.querySelectorAll('.skill-view-markdown pre code');
+    codeBlocks.forEach(function(codeBlock) {
+        var text = codeBlock.textContent;
+
+        // Check if it contains curl command
+        if (text.includes('curl')) {
+            var highlighted = text
+                // Highlight curl command
+                .replace(/(^|\s)(curl)(\s)/g, '$1<span style="color:#c586c0">$2</span>$3')
+                // Highlight flags (-X, -H, etc.)
+                .replace(/(\s)(-[A-Za-z]+)(\s)/g, '$1<span style="color:#9cdcfe">$2</span>$3')
+                // Highlight URLs (https://...)
+                .replace(/(https?:\/\/[^\s"']+)/g, '<span style="color:#ce9178">$1</span>')
+                // Highlight strings in quotes
+                .replace(/("[^"]*")/g, '<span style="color:#ce9178">$1</span>')
+                .replace(/('[^']*')/g, '<span style="color:#ce9178">$1</span>');
+
+            codeBlock.innerHTML = highlighted;
+        }
+    });
+}

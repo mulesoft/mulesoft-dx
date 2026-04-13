@@ -7160,6 +7160,17 @@ input.has-variable-ref:focus {
     outline-offset: 2px !important;
 }
 
+/* Resolved variable value shown next to input */
+.variable-resolved-value {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: #9ca3af;
+    font-style: italic;
+    vertical-align: middle;
+}
+
 .playground-operation-title {
     margin: 0;
     font-size: 1rem;

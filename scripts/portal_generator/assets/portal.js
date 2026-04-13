@@ -3563,15 +3563,22 @@ function renderOperationForm(opId, opMeta, options) {
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
 
-                    // Add tooltip showing substituted value if in playground with variables
+                    var hasVarRef = false;
+                    var substitutedValue = yamlValue;
+                    // Add class and tooltip if has variable references
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        var substitutedValue = substituteVariables(yamlValue, slug);
+                        substitutedValue = substituteVariables(yamlValue, slug);
                         if (substitutedValue !== yamlValue) {
                             html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
+                            hasVarRef = true;
                         }
                     }
 
                     html += '>';
+                    // Show resolved value in grey italic if variable reference
+                    if (hasVarRef && substitutedValue !== yamlValue) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
+                    }
                     // Magnifier button
                     html += '<button type="button" class="btn-xorigin-search" ';
                     html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
@@ -3621,15 +3628,22 @@ function renderOperationForm(opId, opMeta, options) {
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
 
-                    // Add tooltip showing substituted value if in playground with variables
+                    var hasVarRef = false;
+                    var substitutedValue = yamlValue;
+                    // Add class and tooltip if has variable references
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        var substitutedValue = substituteVariables(yamlValue, slug);
+                        substitutedValue = substituteVariables(yamlValue, slug);
                         if (substitutedValue !== yamlValue) {
                             html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
+                            hasVarRef = true;
                         }
                     }
 
                     html += '>';
+                    // Show resolved value in grey italic if variable reference
+                    if (hasVarRef && substitutedValue !== yamlValue) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
+                    }
                 }
 
                 html += '</div>';
@@ -3818,7 +3832,12 @@ function previousStep(slug) {
         if (prevIndex < steps.length) {
             var step = steps[prevIndex];
             var stepTitle = step.querySelector('.playground-step-title');
-            var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + (prevIndex + 1);
+            var stepName = 'Step ' + (prevIndex + 1);
+            if (stepTitle) {
+                stepName = stepTitle.textContent.trim();
+                // Remove all "Step N:" prefixes (in case there are duplicates)
+                stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+            }
             updateExecutingStepDisplay(slug, stepName);
         }
     }
@@ -3846,9 +3865,14 @@ function executeStepByIndex(slug, index) {
 
     var sid = panel.id.replace('playground-panel-', '');
 
-    // Get step title (remove "Step N:" prefix)
+    // Get step title (remove "Step N:" prefix - may appear multiple times)
     var stepTitle = step.querySelector('.playground-step-title');
-    var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + (index + 1);
+    var stepName = 'Step ' + (index + 1);
+    if (stepTitle) {
+        stepName = stepTitle.textContent.trim();
+        // Remove all "Step N:" prefixes (in case there are duplicates)
+        stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+    }
 
     // Update variables panel header with current step
     updateExecutingStepDisplay(slug, stepName);
@@ -4093,10 +4117,15 @@ function captureVariablesFromResponse(panel, result) {
     var stepIndex = parseInt(match[2]);
     var stepNumber = stepIndex + 1;
 
-    // Get step title for source
+    // Get step title for source (remove all "Step N:" prefixes)
     var stepWrapper = panel.closest('[id^="playground-step-"]');
     var stepTitle = stepWrapper ? stepWrapper.querySelector('.playground-step-title') : null;
-    var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + stepNumber;
+    var stepName = 'Step ' + stepNumber;
+    if (stepTitle) {
+        stepName = stepTitle.textContent.trim();
+        // Remove all "Step N:" prefixes (in case there are duplicates)
+        stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+    }
 
     // Parse response body
     var responseBody = result.body;
@@ -4175,18 +4204,45 @@ function captureVariablesFromResponse(panel, result) {
     updateVariableTooltips(slug);
 }
 
-// Update tooltips on input fields that contain variable references
+// Update tooltips and resolved value displays on input fields that contain variable references
 function updateVariableTooltips(slug) {
+    console.log('updateVariableTooltips called for slug:', slug);
     // Find all steps for this skill
     var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
     steps.forEach(function(step) {
         var inputs = step.querySelectorAll('input.has-variable-ref');
+        console.log('Found', inputs.length, 'inputs with variable references');
         inputs.forEach(function(input) {
             var value = input.value;
             if (detectVariableReferences(value).length > 0) {
                 var substitutedValue = substituteVariables(value, slug);
+                console.log('Updating tooltip for input with value:', value, 'substituted:', substitutedValue);
                 if (substitutedValue !== value) {
                     input.title = 'Resolves to: ' + substitutedValue;
+
+                    // Update or create the resolved value span
+                    var nextSibling = input.nextElementSibling;
+                    if (nextSibling && nextSibling.classList.contains('variable-resolved-value')) {
+                        nextSibling.textContent = substitutedValue;
+                    } else if (nextSibling && nextSibling.classList.contains('btn-xorigin-search')) {
+                        // For x-origin fields, the button comes first, check after it
+                        var spanAfterButton = nextSibling.nextElementSibling;
+                        if (spanAfterButton && spanAfterButton.classList.contains('variable-resolved-value')) {
+                            spanAfterButton.textContent = substitutedValue;
+                        } else {
+                            // Create new span after the button
+                            var span = document.createElement('span');
+                            span.className = 'variable-resolved-value';
+                            span.textContent = substitutedValue;
+                            nextSibling.parentNode.insertBefore(span, nextSibling.nextSibling);
+                        }
+                    } else {
+                        // Create new span
+                        var span = document.createElement('span');
+                        span.className = 'variable-resolved-value';
+                        span.textContent = substitutedValue;
+                        input.parentNode.insertBefore(span, input.nextSibling);
+                    }
                 } else {
                     input.title = 'Variable not yet captured';
                 }
@@ -4258,32 +4314,48 @@ function extractValueByPath(obj, path) {
 
 // Update variables table with captured values
 function updateVariablesTable(slug, variables, source) {
-    console.log('updateVariablesTable called with slug:', slug, 'variables:', variables, 'source:', source);
+    console.log('=== updateVariablesTable START ===');
+    console.log('slug:', slug);
+    console.log('variables:', JSON.stringify(variables, null, 2));
+    console.log('source:', source);
+
     var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
     if (!tableBody) {
-        console.error('Table body not found for slug:', slug);
+        console.error('❌ Table body not found for slug:', slug);
+        console.log('Looking for selector:', '#variables-table-' + slug + ' tbody');
         return;
     }
+    console.log('✓ Table body found');
 
     // Clear "No variables" message if present
     var noVarsRow = tableBody.querySelector('td[colspan="3"]');
     if (noVarsRow) {
+        console.log('Clearing "No variables" message');
         tableBody.innerHTML = '';
     }
 
+    // Count existing rows
+    var existingRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+    console.log('Existing rows in table:', existingRowsCount);
+
     // Add or update each variable
+    var variableCount = 0;
     for (var varName in variables) {
+        variableCount++;
         var value = variables[varName];
-        console.log('Processing variable:', varName, 'value type:', typeof value, 'is array:', Array.isArray(value));
+        console.log('Processing variable #' + variableCount + ':', varName, 'value:', value);
 
         // Check if variable already exists
         var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
 
         if (existingRow) {
-            // Update existing row - update the value cell
+            // Update existing row - update ONLY the value cell, keep original source
+            console.log('  → Updating existing variable:', varName);
             renderVariableValue(existingRow.cells[1], value, varName, slug);
-            existingRow.cells[2].textContent = source;
+            console.log('  → Source remains:', existingRow.cells[2].textContent);
+            // Do NOT update source - keep the original step that produced this variable
         } else {
+            console.log('  → Adding NEW variable:', varName, 'with source:', source);
             // Add new row
             var row = document.createElement('tr');
             row.setAttribute('data-var-name', varName);
@@ -4308,8 +4380,14 @@ function updateVariablesTable(slug, variables, source) {
             row.appendChild(sourceCell);
 
             tableBody.appendChild(row);
+            console.log('  → Row appended to table');
         }
     }
+
+    // Count final rows
+    var finalRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+    console.log('Final rows in table:', finalRowsCount);
+    console.log('=== updateVariablesTable END ===');
 }
 
 // Render variable value based on its type

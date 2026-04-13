@@ -2043,6 +2043,8 @@ button.nav-group-header {
 /* Skill pages use less side padding for more width */
 .skill-page .detail-content {
     padding: var(--space-lg) 15px;
+    border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
 }
 
 .container-fluid {

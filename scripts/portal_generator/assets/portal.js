@@ -2888,21 +2888,17 @@ function selectResponseStatus(opId, status) {
         var contentTypeBadge = document.getElementById('content-type-badge-' + opId);
         if (contentTypeBadge) {
             var contentTypesJson = selectedContent.getAttribute('data-content-types');
-            console.log('Content types JSON for status', status, ':', contentTypesJson);
             if (contentTypesJson) {
                 try {
                     var contentTypes = JSON.parse(contentTypesJson);
-                    console.log('Parsed content types:', contentTypes);
                     if (contentTypes && contentTypes.length > 0) {
                         if (contentTypes.indexOf('application/json') !== -1) {
                             contentTypeBadge.textContent = 'json';
                         } else {
                             contentTypeBadge.textContent = contentTypes[0].replace('application/', '').replace('text/', '');
                         }
-                        console.log('Setting badge to:', contentTypeBadge.textContent, 'display: inline-flex');
                         contentTypeBadge.style.display = 'inline-flex';
                     } else {
-                        console.log('No content types, hiding badge');
                         contentTypeBadge.style.display = 'none';
                     }
                 } catch (e) {
@@ -2910,7 +2906,6 @@ function selectResponseStatus(opId, status) {
                     contentTypeBadge.style.display = 'none';
                 }
             } else {
-                console.log('No data-content-types attribute, hiding badge');
                 contentTypeBadge.style.display = 'none';
             }
         }

@@ -159,7 +159,7 @@
                     </div>
                 </div>
                 {% for status, response in operation.responses|dictsort %}
-                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|e }}" {% if not loop.first %}style="display:none"{% endif %}>
+                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|replace('"', '&quot;') }}" {% if not loop.first %}style="display:none"{% endif %}>
                     {% if response.description %}
                     <div class="param-description">{{ response.description|md }}</div>
                     {% endif %}

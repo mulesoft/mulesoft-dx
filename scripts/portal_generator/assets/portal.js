@@ -107,7 +107,7 @@ function openXOriginModal(opId, paramName, location) {
     // Get operation lookup for parameter details
     var opLookup = window.__OP_LOOKUP__ || {};
 
-    // Build source selector dropdown and execute button
+    // Build source selector dropdown (no execute button here - it's in the form)
     var html = '<div class="xorigin-selector-container">';
     html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
 
@@ -122,7 +122,6 @@ function openXOriginModal(opId, paramName, location) {
     });
 
     html += '</select>';
-    html += '<button class="btn-execute-xorigin" onclick="executeXOriginSource()">Execute</button>';
     html += '</div>';
 
     // Build source containers (hidden by default, first one visible)
@@ -139,8 +138,11 @@ function openXOriginModal(opId, paramName, location) {
         // Show operation URL bar and parameters
         if (opMeta) {
             var xoriginServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
-            // Don't make the URL bar a link
+
+            // Operation header (method + URL)
+            html += '<div class="xorigin-operation-header">';
             html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
+            html += '</div>';
 
             // Add Information section
             html += '<details class="xorigin-info-section">';
@@ -175,103 +177,19 @@ function openXOriginModal(opId, paramName, location) {
             html += '</div>';
             html += '</details>';
 
-            var params = opMeta.parameters || [];
-            var envMap = getEnvVarsMap();
-
-            // Group parameters by location
-            var pathParams = params.filter(function(p) { return p.in === 'path'; });
-            var queryParams = params.filter(function(p) { return p.in === 'query'; });
-            var headerParams = params.filter(function(p) { return p.in === 'header'; });
-
-            var paramGroups = [
-                { location: 'path', label: 'Path Parameters', params: pathParams },
-                { location: 'query', label: 'Query Parameters', params: queryParams },
-                { location: 'header', label: 'Header Parameters', params: headerParams }
-            ];
-
-            paramGroups.forEach(function(group) {
-                if (group.params.length > 0) {
-                    // Check if any parameter is required
-                    var hasRequired = group.params.some(function(p) { return p.required || false; });
-                    html += '<details class="xorigin-params-section"' + (hasRequired ? ' open' : '') + '>';
-                    html += '<summary>' + group.label + '</summary>';
-                    html += '<div class="xorigin-params-content">';
-
-                    group.params.forEach(function(param) {
-                        var paramName = param.name || '';
-                        var paramRequired = param.required || false;
-                        var paramType = (param.schema && param.schema.type) ? param.schema.type : 'string';
-                        var paramDefault = (param.schema && param.schema.default) ? param.schema.default : '';
-                        var paramEnum = (param.schema && param.schema.enum) ? param.schema.enum : null;
-                        var paramDescription = param.description || '';
-
-                        // Pre-fill from environment variables
-                        var value = envMap[paramName] || paramDefault;
-
-                        html += '<div class="try-param-row">';
-                        html += '<label>';
-                        html += '<span class="param-name-wrapper">';
-                        html += '<code>' + escapeHtml(paramName) + '</code>';
-                        if (paramRequired) {
-                            html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
-                        }
-                        html += '</span>';
-                        if (paramDescription) {
-                            html += '<span class="param-info-wrapper" data-tooltip="' + escapeHtml(paramDescription) + '">';
-                            html += '<span class="param-info-icon" aria-label="more-info"></span>';
-                            html += '</span>';
-                        }
-                        html += '</label>';
-
-                        if (paramEnum) {
-                            // Enum dropdown
-                            html += '<select data-param="' + escapeHtml(paramName) + '" data-in="' + escapeHtml(group.location) + '"';
-                            if (paramRequired) html += ' required';
-                            html += '>';
-                            paramEnum.forEach(function(enumVal) {
-                                var selected = (String(enumVal) === String(value)) ? ' selected' : '';
-                                html += '<option value="' + escapeHtml(String(enumVal)) + '"' + selected + '>' + escapeHtml(String(enumVal)) + '</option>';
-                            });
-                            html += '</select>';
-                        } else {
-                            // Text input
-                            html += '<input type="text" ';
-                            html += 'data-param="' + escapeHtml(paramName) + '" ';
-                            html += 'data-in="' + escapeHtml(group.location) + '" ';
-                            html += 'placeholder="' + escapeHtml(paramType) + '" ';
-                            html += 'value="' + escapeHtml(String(value)) + '"';
-                            if (paramRequired) html += ' required';
-                            html += '>';
-                        }
-
-                        html += '</div>';
-                    });
-
-                    html += '</div>';
-                    html += '</details>';
-                }
+            // Use shared panel renderer for two-column layout
+            var xoriginOpId = 'xorigin-' + idx;
+            html += renderOperationPanel(xoriginOpId, opMeta, {
+                yamlInputs: {},
+                enableVariableRefs: false,
+                slug: '',
+                contextType: 'xorigin',
+                showExecuteButton: true,
+                executeButtonText: 'Execute',
+                executeButtonClick: 'executeXOriginSource(' + idx + ')'
             });
-
-            // Add custom query parameters section
-            html += '<details class="xorigin-params-section try-custom-params">';
-            html += '<summary>Custom Query Parameters</summary>';
-            html += '<div class="xorigin-params-content">';
-            html += '<div id="custom-query-xorigin-' + idx + '" class="custom-params-container"></div>';
-            html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParamXOrigin(' + idx + ', \'query\')">+ Add Query Parameter</button>';
-            html += '</div>';
-            html += '</details>';
-
-            // Add custom headers section
-            html += '<details class="xorigin-params-section try-custom-params">';
-            html += '<summary>Custom Headers</summary>';
-            html += '<div class="xorigin-params-content">';
-            html += '<div id="custom-header-xorigin-' + idx + '" class="custom-params-container"></div>';
-            html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParamXOrigin(' + idx + ', \'header\')">+ Add Header</button>';
-            html += '</div>';
-            html += '</details>';
         }
 
-        html += '<div class="xorigin-result" id="xorigin-result-' + idx + '" style="display:none"></div>';
         html += '</div>';
     });
 
@@ -314,11 +232,14 @@ async function executeXOriginSource(sourceIdx) {
         }
     }
 
-    var btn = document.querySelector('.xorigin-selector-container .btn-execute-xorigin');
-    var resultDiv = document.getElementById('xorigin-result-' + sourceIdx);
+    var xoriginOpId = 'xorigin-' + sourceIdx;
+    var btn = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"] .btn-send-main');
+    var responseDiv = document.getElementById('response-' + xoriginOpId);
+    var statusSpan = document.getElementById('status-' + xoriginOpId);
+    var respBodyDiv = document.getElementById('respbody-' + xoriginOpId);
 
-    if (!btn || !resultDiv) {
-        console.error('Execute button or result div not found', { btn: !!btn, resultDiv: !!resultDiv, sourceIdx: sourceIdx });
+    if (!btn || !responseDiv) {
+        console.error('Execute button or response div not found', { btn: !!btn, responseDiv: !!responseDiv, sourceIdx: sourceIdx });
         return;
     }
 
@@ -447,15 +368,18 @@ async function executeXOriginSource(sourceIdx) {
         btn.disabled = false;
         btn.textContent = originalText;
 
-        if (data.error) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
-            resultDiv.style.display = 'block';
-            return;
+        // Remove empty class from response
+        responseDiv.classList.remove('empty');
+
+        // Update status badge
+        if (statusSpan) {
+            var statusClass = data.status >= 200 && data.status < 300 ? 'status-success' : 'status-error';
+            statusSpan.className = 'response-status-badge ' + statusClass;
+            statusSpan.textContent = data.status;
         }
 
-        if (data.status < 200 || data.status >= 300) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
-            resultDiv.style.display = 'block';
+        if (data.error) {
+            respBodyDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
             return;
         }
 
@@ -464,8 +388,7 @@ async function executeXOriginSource(sourceIdx) {
         try {
             body = JSON.parse(data.body || '{}');
         } catch (e) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Response is not valid JSON</div>';
-            resultDiv.style.display = 'block';
+            respBodyDiv.innerHTML = '<div class="xorigin-error">Response is not valid JSON</div>';
             return;
         }
 
@@ -480,70 +403,63 @@ async function executeXOriginSource(sourceIdx) {
             }
         }
 
-        // Build result HTML with tabs
-        var html = '<div class="xorigin-result-header">';
-        html += '<h5>Results</h5>';
-        html += '</div>';
+        // Add X-Origin Outputs tab if not already present
+        var tabsContainer = responseDiv.querySelector('.try-response-tabs');
+        var existingOutputsTab = document.getElementById('tab-outputs-' + xoriginOpId);
+        if (!existingOutputsTab && tabsContainer) {
+            var outputsTabBtn = document.createElement('button');
+            outputsTabBtn.className = 'try-tab-btn';
+            outputsTabBtn.id = 'tab-outputs-' + xoriginOpId;
+            outputsTabBtn.textContent = 'X-Origin Outputs (' + values.length + ')';
+            outputsTabBtn.onclick = function() { switchResponseTab(xoriginOpId, 'outputs'); };
+            tabsContainer.appendChild(outputsTabBtn);
+        }
 
-        // Tabs
-        html += '<div class="xorigin-result-tabs">';
-        html += '<button class="xorigin-tab-btn active" onclick="switchXOriginTab(' + sourceIdx + ', \'values\')">Values (' + values.length + ')</button>';
-        html += '<button class="xorigin-tab-btn" onclick="switchXOriginTab(' + sourceIdx + ', \'body\')">Response Body</button>';
-        html += '<button class="xorigin-tab-btn" onclick="switchXOriginTab(' + sourceIdx + ', \'headers\')">Response Headers</button>';
-        html += '</div>';
+        // Add outputs content div if not present
+        var contentContainer = responseDiv.querySelector('.try-response-content');
+        var outputsContentDiv = document.getElementById('respoutputs-' + xoriginOpId);
+        if (!outputsContentDiv && contentContainer) {
+            outputsContentDiv = document.createElement('div');
+            outputsContentDiv.className = 'try-response-outputs';
+            outputsContentDiv.id = 'respoutputs-' + xoriginOpId;
+            contentContainer.appendChild(outputsContentDiv);
+        }
 
-        // Tab content container
-        html += '<div class="xorigin-tab-content">';
-
-        // Values tab
+        // Build X-Origin outputs HTML
+        var outputsHtml = '';
         if (values.length === 0) {
-            html += '<div class="xorigin-tab-panel active" id="xorigin-tab-values-' + sourceIdx + '">';
-            html += '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
-            html += '</div>';
+            outputsHtml = '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
         } else {
-            html += '<div class="xorigin-tab-panel active" id="xorigin-tab-values-' + sourceIdx + '">';
-            html += '<div class="xorigin-values-list">';
+            outputsHtml += '<div class="xorigin-values-list">';
             values.forEach(function(val, valIdx) {
                 var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
                 var labelStr = labels[valIdx] ? String(labels[valIdx]) : valueStr;
 
-                html += '<div class="xorigin-value-item">';
-                // Show label if different from value
+                outputsHtml += '<div class="xorigin-value-item">';
                 if (labels[valIdx] && labelStr !== valueStr) {
-                    html += '<div class="xorigin-value-label">' + escapeHtml(labelStr) + '</div>';
-                    html += '<code class="xorigin-value-id">' + escapeHtml(valueStr) + '</code>';
+                    outputsHtml += '<div class="xorigin-value-label">' + escapeHtml(labelStr) + '</div>';
+                    outputsHtml += '<code class="xorigin-value-id">' + escapeHtml(valueStr) + '</code>';
                 } else {
-                    html += '<code>' + escapeHtml(valueStr) + '</code>';
+                    outputsHtml += '<code>' + escapeHtml(valueStr) + '</code>';
                 }
-                html += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ')">Use</button>';
-                html += '</div>';
+                outputsHtml += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ')">Use</button>';
+                outputsHtml += '</div>';
             });
-            html += '</div>';
-            html += '</div>';
+            outputsHtml += '</div>';
         }
 
-        // Response body tab
-        html += '<div class="xorigin-tab-panel" id="xorigin-tab-body-' + sourceIdx + '">';
-        html += '<div class="xorigin-response-body" id="xorigin-respbody-' + sourceIdx + '"></div>';
-        html += '</div>';
+        if (outputsContentDiv) {
+            outputsContentDiv.innerHTML = outputsHtml;
+            // Store values for later use
+            outputsContentDiv.dataset.values = JSON.stringify(values);
+        }
 
-        // Response headers tab
-        html += '<div class="xorigin-tab-panel" id="xorigin-tab-headers-' + sourceIdx + '">';
-        html += '<div class="xorigin-response-headers" id="xorigin-respheaders-' + sourceIdx + '"></div>';
-        html += '</div>';
+        // Display response body and headers using standard display function
+        var respHeadersDiv = document.getElementById('respheaders-' + xoriginOpId);
+        displayResponseInAceEditors(respBodyDiv, respHeadersDiv, data);
 
-        html += '</div>'; // End tab content
-
-        resultDiv.innerHTML = html;
-        resultDiv.style.display = 'block';
-
-        // Store values for later use
-        resultDiv.dataset.values = JSON.stringify(values);
-
-        // Create Ace editors for response body and headers
-        var responseBodyDiv = document.getElementById('xorigin-respbody-' + sourceIdx);
-        var responseHeadersDiv = document.getElementById('xorigin-respheaders-' + sourceIdx);
-        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, data);
+        // Switch to outputs tab by default
+        switchResponseTab(xoriginOpId, 'outputs');
 
     } catch (e) {
         btn.disabled = false;
@@ -554,8 +470,11 @@ async function executeXOriginSource(sourceIdx) {
 }
 
 function useXOriginValue(sourceIdx, valueIdx) {
-    var resultDiv = document.getElementById('xorigin-result-' + sourceIdx);
-    var values = JSON.parse(resultDiv.dataset.values || '[]');
+    var xoriginOpId = 'xorigin-' + sourceIdx;
+    var outputsDiv = document.getElementById('respoutputs-' + xoriginOpId);
+    if (!outputsDiv) return;
+
+    var values = JSON.parse(outputsDiv.dataset.values || '[]');
     var value = values[valueIdx];
 
     if (value === undefined) return;
@@ -1942,7 +1861,7 @@ async function loadXOriginValues(opId, paramName) {
     var btn = input.nextElementSibling.nextElementSibling; // Skip datalist
     if (btn && btn.classList.contains('btn-load-xorigin')) {
         btn.disabled = true;
-        btn.textContent = '⟳';
+        btn.textContent = 'Loading...';
         btn.classList.add('loading');
     }
 
@@ -2142,7 +2061,7 @@ async function loadXOriginValuesForEnv(paramName) {
     var btn = input.parentElement.querySelector('.btn-load-xorigin');
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '⟳';
+        btn.textContent = 'Loading...';
         btn.classList.add('loading');
     }
 
@@ -3046,20 +2965,27 @@ function switchResponseTab(opId, tabName) {
         btn.classList.remove('active');
     });
     var activeTab = Array.from(tabButtons).find(function(btn) {
-        return btn.textContent.toLowerCase() === tabName.toLowerCase();
+        return btn.textContent.toLowerCase().startsWith(tabName.toLowerCase());
     });
     if (activeTab) activeTab.classList.add('active');
 
     // Update content
     var bodyContent = document.getElementById('respbody-' + opId);
     var headersContent = document.getElementById('respheaders-' + opId);
+    var outputsContent = document.getElementById('respoutputs-' + opId);
 
-    if (tabName === 'body') {
-        if (bodyContent) bodyContent.classList.add('active');
-        if (headersContent) headersContent.classList.remove('active');
-    } else if (tabName === 'headers') {
-        if (bodyContent) bodyContent.classList.remove('active');
-        if (headersContent) headersContent.classList.add('active');
+    // Hide all content first
+    if (bodyContent) bodyContent.classList.remove('active');
+    if (headersContent) headersContent.classList.remove('active');
+    if (outputsContent) outputsContent.classList.remove('active');
+
+    // Show selected content
+    if (tabName === 'body' && bodyContent) {
+        bodyContent.classList.add('active');
+    } else if (tabName === 'headers' && headersContent) {
+        headersContent.classList.add('active');
+    } else if (tabName === 'outputs' && outputsContent) {
+        outputsContent.classList.add('active');
     }
 }
 
@@ -4574,3 +4500,1066 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+// ============================================================================
+// Skill Page - Two-Mode Toggle (Documentation & Playground)
+// ============================================================================
+
+function toggleSkillMode(slug) {
+    var docMode = document.getElementById('skill-doc-mode-' + slug);
+    var playgroundMode = document.getElementById('skill-playground-mode-' + slug);
+    var toggleSwitch = document.getElementById('toggle-' + slug);
+    var playgroundControls = document.getElementById('playground-controls-' + slug);
+
+    if (docMode.style.display === 'none') {
+        // Switch to Documentation mode
+        docMode.style.display = 'block';
+        playgroundMode.style.display = 'none';
+        toggleSwitch.classList.remove('active');
+        toggleSwitch.setAttribute('aria-checked', 'false');
+        if (playgroundControls) playgroundControls.style.display = 'none';
+    } else {
+        // Switch to Playground mode
+        docMode.style.display = 'none';
+        playgroundMode.style.display = 'grid';
+        toggleSwitch.classList.add('active');
+        toggleSwitch.setAttribute('aria-checked', 'true');
+        if (playgroundControls) playgroundControls.style.display = 'flex';
+
+        // Initialize ALL steps in notebook-style layout
+        var stepWrappers = playgroundMode.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+        stepWrappers.forEach(function(wrapper, index) {
+            initializePlaygroundStep(slug, index);
+        });
+    }
+}
+
+// ============================================================================
+// Playground Mode Controls
+// ============================================================================
+
+var playgroundState = {};
+
+function initializePlaygroundStep(slug, stepIndex) {
+    var sid = slug + '-' + stepIndex;
+    var formContainer = document.getElementById('playground-panel-' + sid);
+    
+    if (!formContainer || formContainer.dataset.initialized) {
+        return;
+    }
+    
+    // Mark as initialized
+    formContainer.dataset.initialized = 'true';
+    
+    // Load operation definition and render form
+    var apiUrn = formContainer.dataset.wfApi;
+    var operationId = formContainer.dataset.wfOperation;
+    var inputs = JSON.parse(formContainer.dataset.wfInputs || '{}');
+    
+    // TODO: Fetch operation metadata and render form
+    // For now, placeholder
+    formContainer.innerHTML = '<p>Loading operation form...</p>';
+}
+
+function goToNextStep(slug, currentIndex) {
+    var currentStep = document.getElementById('playground-step-' + slug + '-' + currentIndex);
+    var nextStep = document.getElementById('playground-step-' + slug + '-' + (currentIndex + 1));
+    
+    if (currentStep && nextStep) {
+        currentStep.style.display = 'none';
+        nextStep.style.display = 'block';
+        
+        // Update progress
+        document.getElementById('current-step-' + slug).textContent = currentIndex + 2;
+        
+        // Initialize next step
+        initializePlaygroundStep(slug, currentIndex + 1);
+    }
+}
+
+function goToPreviousStep(slug, currentIndex) {
+    var currentStep = document.getElementById('playground-step-' + slug + '-' + currentIndex);
+    var prevStep = document.getElementById('playground-step-' + slug + '-' + (currentIndex - 1));
+    
+    if (currentStep && prevStep) {
+        currentStep.style.display = 'none';
+        prevStep.style.display = 'block';
+        
+        // Update progress
+        document.getElementById('current-step-' + slug).textContent = currentIndex;
+    }
+}
+
+function sendPlaygroundRequest(sid) {
+    var spinner = document.getElementById('spinner-' + sid);
+    var sendBtn = document.getElementById('btn-send-' + sid);
+    var responseBody = document.getElementById('response-body-' + sid);
+    var responseStatus = document.getElementById('response-status-' + sid);
+    var nextBtn = document.getElementById('btn-next-' + sid);
+    
+    if (spinner) spinner.style.display = 'inline';
+    if (sendBtn) sendBtn.disabled = true;
+    
+    // TODO: Implement actual API call
+    // For now, simulate success after delay
+    setTimeout(function() {
+        if (spinner) spinner.style.display = 'none';
+        if (sendBtn) sendBtn.disabled = false;
+        
+        // Mock response
+        var mockResponse = {
+            id: 12345,
+            status: 'success',
+            message: 'Operation completed'
+        };
+        
+        if (responseBody) {
+            responseBody.innerHTML = '<pre><code>' + JSON.stringify(mockResponse, null, 2) + '</code></pre>';
+        }
+        
+        if (responseStatus) {
+            responseStatus.textContent = '✓ 200 OK';
+            responseStatus.className = 'response-status success';
+            responseStatus.style.display = 'inline-block';
+        }
+        
+        // Enable next button
+        if (nextBtn) {
+            nextBtn.disabled = false;
+        }
+        
+        // Add variables to floating panel
+        updateFloatingVariables(sid, mockResponse);
+        
+    }, 1000);
+}
+
+function runAllSteps(slug) {
+    // TODO: Implement sequential execution of all steps
+    console.log('Running all steps for skill:', slug);
+}
+
+function resetPlayground(slug) {
+    // Clear all variables
+    clearVariables(slug);
+    
+    // Reset to first step
+    var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    playgroundSteps.forEach(function(step, index) {
+        step.style.display = index === 0 ? 'block' : 'none';
+    });
+    
+    // Reset progress
+    document.getElementById('current-step-' + slug).textContent = '1';
+    
+    // Clear responses
+    document.querySelectorAll('[id^="response-body-' + slug + '-"]').forEach(function(el) {
+        el.innerHTML = '<p class="response-placeholder">Send the request to see the response here</p>';
+    });
+    
+    // Reset state
+    playgroundState[slug] = {};
+}
+
+// ============================================================================
+// Floating Variables Panel
+// ============================================================================
+
+function updateFloatingVariables(sid, response) {
+    // Extract skill slug from sid
+    var parts = sid.split('-');
+    var stepIndex = parts[parts.length - 1];
+    var slug = parts.slice(0, -1).join('-');
+    
+    var panelContent = document.getElementById('variables-content-' + slug);
+    if (!panelContent) return;
+    
+    // Initialize state if needed
+    if (!playgroundState[slug]) {
+        playgroundState[slug] = {};
+    }
+    
+    // Store variables for this step
+    var stepNum = parseInt(stepIndex) + 1;
+    if (!playgroundState[slug][stepNum]) {
+        playgroundState[slug][stepNum] = {};
+    }
+    
+    // Extract variables from response based on output definitions
+    var formContainer = document.getElementById('playground-panel-' + sid);
+    if (formContainer) {
+        var outputs = JSON.parse(formContainer.dataset.wfOutputs || '[]');
+        outputs.forEach(function(output) {
+            // TODO: Use JSONPath to extract actual values
+            // For now, mock it
+            var value = response[output.name] || 'mock-value-' + output.name;
+            playgroundState[slug][stepNum][output.name] = value;
+        });
+    }
+    
+    // Render variables panel
+    renderVariablesPanel(slug);
+}
+
+function renderVariablesPanel(slug) {
+    var panelContent = document.getElementById('variables-content-' + slug);
+    if (!panelContent) return;
+    
+    var state = playgroundState[slug] || {};
+    var stepKeys = Object.keys(state).sort();
+    
+    if (stepKeys.length === 0) {
+        panelContent.innerHTML = '<p class="variables-empty-state">No variables captured yet. Run a step to see outputs here.</p>';
+        return;
+    }
+    
+    var html = '';
+    stepKeys.forEach(function(stepNum) {
+        var vars = state[stepNum];
+        var varNames = Object.keys(vars);
+        
+        if (varNames.length === 0) return;
+        
+        html += '<div class="variable-group">';
+        html += '<div class="variable-group-header">';
+        html += '<span>Step ' + stepNum + '</span>';
+        html += '<span class="variable-group-status">✓</span>';
+        html += '</div>';
+        
+        varNames.forEach(function(varName) {
+            var value = vars[varName];
+            var isArray = Array.isArray(value);
+            
+            html += '<div class="variable-item">';
+            html += '<div>';
+            html += '<div class="variable-name">' + escapeHtml(varName) + '</div>';
+            
+            if (isArray) {
+                html += '<div class="variable-value is-array">array[' + value.length + ']</div>';
+                html += renderArrayCombo(slug, stepNum, varName, value);
+            } else {
+                var displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                html += '<div class="variable-value">' + escapeHtml(displayValue.substring(0, 50)) + '</div>';
+            }
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        html += '</div>';
+    });
+    
+    panelContent.innerHTML = html;
+}
+
+function renderArrayCombo(slug, stepNum, varName, array) {
+    var comboId = 'array-combo-' + slug + '-' + stepNum + '-' + varName;
+    
+    var html = '<div class="variable-array-combo">';
+    html += '<button class="array-combo-button" onclick="toggleArrayCombo(\'' + comboId + '\')">';
+    html += '<span>Select item...</span>';
+    html += '<span>▼</span>';
+    html += '</button>';
+    html += '<div class="array-dropdown-menu" id="' + comboId + '" style="display:none">';
+    html += '<input type="text" class="array-filter-input" placeholder="Filter..." onkeyup="filterArrayItems(\'' + comboId + '\', this.value)">';
+    
+    array.forEach(function(item, index) {
+        var displayValue = typeof item === 'object' ? JSON.stringify(item) : String(item);
+        html += '<div class="array-dropdown-item" onclick="selectArrayItem(\'' + comboId + '\', ' + index + ')">';
+        html += '<span class="array-item-index">' + index + '</span>';
+        html += '<span class="array-item-value">' + escapeHtml(displayValue.substring(0, 60)) + '</span>';
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    html += '</div>';
+    
+    return html;
+}
+
+function toggleArrayCombo(comboId) {
+    var dropdown = document.getElementById(comboId);
+    if (!dropdown) return;
+    
+    var isVisible = dropdown.style.display !== 'none';
+    
+    // Close all other combos
+    document.querySelectorAll('.array-dropdown-menu').forEach(function(d) {
+        d.style.display = 'none';
+    });
+    
+    dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
+function selectArrayItem(comboId, index) {
+    console.log('Selected array item:', comboId, index);
+    // TODO: Use selected item in subsequent steps
+    
+    // Close dropdown
+    var dropdown = document.getElementById(comboId);
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+function filterArrayItems(comboId, filterText) {
+    var dropdown = document.getElementById(comboId);
+    if (!dropdown) return;
+    
+    var items = dropdown.querySelectorAll('.array-dropdown-item');
+    var filter = filterText.toLowerCase();
+    
+    items.forEach(function(item) {
+        var text = item.textContent.toLowerCase();
+        item.style.display = text.includes(filter) ? 'flex' : 'none';
+    });
+}
+
+function clearVariables(slug) {
+    playgroundState[slug] = {};
+    renderVariablesPanel(slug);
+}
+
+// Copy cURL command
+function copyCurlCommand(button) {
+    // Find the pre element - it's the next sibling of the button's parent (curl-header)
+    var preElement = button.parentElement.nextElementSibling;
+    if (!preElement) return;
+
+    var codeBlock = preElement.querySelector('code');
+    if (!codeBlock) return;
+
+    var text = codeBlock.textContent;
+
+    navigator.clipboard.writeText(text).then(function() {
+        var originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.background = '#10b981';
+
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    });
+}
+
+
+// ============================================================================
+// Shared Operation Panel Renderer
+// Used by: Playground, X-Origin Modal, and Try-It-Out
+// ============================================================================
+
+/**
+ * Renders a complete operation panel with two-column layout
+ * Left: Parameters form | Right: Response
+ * @param {string} opId - Operation identifier for generating unique IDs
+ * @param {object} opMeta - Operation metadata (method, path, parameters, requestBody)
+ * @param {object} options - Rendering options
+ * @param {object} options.yamlInputs - Input values from YAML (for playground)
+ * @param {boolean} options.enableVariableRefs - Enable variable reference support (for playground)
+ * @param {string} options.slug - Skill slug (for playground)
+ * @param {string} options.contextType - Context type: 'playground', 'xorigin', 'tryitout'
+ * @param {boolean} options.showExecuteButton - Show execute/send button (default true)
+ * @param {string} options.executeButtonText - Text for execute button (default 'Send')
+ * @param {string} options.executeButtonClick - onClick handler for execute button
+ * @returns {string} HTML string for the complete operation panel
+ */
+function renderOperationPanel(opId, opMeta, options) {
+    options = options || {};
+    var showExecuteButton = options.showExecuteButton !== false;
+    var executeButtonText = options.executeButtonText || 'Send';
+    var executeButtonClick = options.executeButtonClick || '';
+    var contextType = options.contextType || 'tryitout';
+
+    var html = '';
+
+    // Two-column grid container (matches try-expanded layout)
+    html += '<div class="operation-panel-grid">';
+
+    // Left column: Form
+    html += '<div class="operation-panel-form">';
+    html += renderOperationForm(opId, opMeta, options);
+
+    // Execute button
+    if (showExecuteButton) {
+        html += '<div class="operation-panel-actions">';
+        html += '<div class="btn-group-send">';
+        html += '<button class="btn-send-main" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + '"' : '') + '>';
+        html += executeButtonText;
+        html += '</button>';
+        html += '</div>';
+        html += '<span class="try-spinner" id="spinner-' + opId + '" style="display:none">Sending...</span>';
+        html += '</div>';
+    }
+
+    html += '</div>'; // End form column
+
+    // Right column: Response
+    html += '<div class="operation-panel-response">';
+    html += '<div class="try-response empty" id="response-' + opId + '" aria-live="polite">';
+    html += '<div class="try-response-header">';
+    html += '<h5>Response</h5>';
+    html += '<span class="response-status-badge" id="status-' + opId + '"></span>';
+    html += '</div>';
+    html += '<div class="try-response-tabs">';
+    html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
+    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+    html += '</div>';
+    html += '<div class="try-response-content">';
+    html += '<div class="try-response-body active" id="respbody-' + opId + '"></div>';
+    html += '<div class="try-response-headers" id="respheaders-' + opId + '"></div>';
+    html += '</div>';
+    html += '</div>'; // End try-response
+    html += '</div>'; // End response column
+
+    html += '</div>'; // End grid
+
+    return html;
+}
+
+/**
+ * Renders an operation form with parameters and request body
+ * @param {string} opId - Operation identifier for generating unique IDs
+ * @param {object} opMeta - Operation metadata (method, path, parameters, requestBody)
+ * @param {object} options - Rendering options
+ * @returns {string} HTML string for the operation form
+ */
+function renderOperationForm(opId, opMeta, options) {
+    options = options || {};
+    var yamlInputs = options.yamlInputs || {};
+    var enableVariableRefs = options.enableVariableRefs || false;
+    var slug = options.slug || '';
+    var contextType = options.contextType || 'tryitout';
+
+    var envMap = getEnvVarsMap();
+    var html = '';
+    var parameters = opMeta.parameters || [];
+
+    // Group parameters by location
+    var paramsByLocation = {
+        path: parameters.filter(function(p) { return p.in === 'path'; }),
+        query: parameters.filter(function(p) { return p.in === 'query'; }),
+        header: parameters.filter(function(p) { return p.in === 'header'; })
+    };
+
+    // Render parameter sections
+    [
+        { location: 'path', label: 'Path Parameters', params: paramsByLocation.path },
+        { location: 'query', label: 'Query Parameters', params: paramsByLocation.query },
+        { location: 'header', label: 'Header Parameters', params: paramsByLocation.header }
+    ].forEach(function(section) {
+        if (section.params.length > 0) {
+            var hasRequired = section.params.some(function(p) { return p.required || false; });
+
+            html += '<details class="try-params"' + (hasRequired ? ' open' : '') + '>';
+            html += '<summary>' + section.label + '</summary>';
+            html += '<div class="try-params-content">';
+
+            section.params.forEach(function(param) {
+                var paramName = param.name || '';
+                var schema = param.schema || {};
+                var ptype = schema.type || 'string';
+                var required = param.required || false;
+                var description = param.description || '';
+                var xOrigin = param['x-origin'];
+
+                // Get value from YAML inputs
+                var value = '';
+                var fromStep = null;
+                var fromField = null;
+                var isVariableRef = false;
+
+                if (yamlInputs[paramName]) {
+                    var inputDef = yamlInputs[paramName];
+                    if (inputDef.from) {
+                        fromStep = inputDef.from.step || '';
+                        fromField = inputDef.from.input || inputDef.from.output || '';
+                        var varName = fromStep + '.' + fromField;
+                        value = '{{' + varName + '}}';
+                        isVariableRef = true;
+
+                        // Try to resolve actual value from playground state (if in playground context)
+                        if (enableVariableRefs && slug) {
+                            var resolvedValue = resolvePlaygroundVariable(slug, fromStep, fromField);
+                            if (resolvedValue) {
+                                value = resolvedValue;
+                                isVariableRef = false;
+                            }
+                        }
+                    } else if (inputDef.value !== undefined) {
+                        value = inputDef.value;
+                    }
+                }
+
+                if (!value && envMap[paramName]) {
+                    value = envMap[paramName];
+                }
+
+                if (!value && schema.default) {
+                    value = schema.default;
+                }
+
+                // Render parameter row
+                html += '<div class="try-param-row">';
+
+                // X-Origin support
+                if (xOrigin) {
+                    var origins = Array.isArray(xOrigin) ? xOrigin : [xOrigin];
+                    var originsJson = JSON.stringify(origins).replace(/"/g, '&quot;');
+
+                    html += '<label>';
+                    html += '<span class="param-name-wrapper">';
+                    html += '<button type="button" class="param-with-xorigin" ';
+                    html += 'onclick="event.stopPropagation(); openXOriginModal(\'' + escapeJs(opId) + '\', \'' + escapeJs(paramName) + '\', \'' + escapeJs(section.location) + '\'); return false;" ';
+                    html += 'title="Fetch values from ' + origins.length + ' source(s)">';
+                    html += escapeHtml(paramName) + '</button>';
+                    if (required) {
+                        html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
+                    }
+                    html += '</span>';
+
+                    if (description) {
+                        html += '<span class="param-info-wrapper" data-tooltip="' + escapeAttr(description) + '">';
+                        html += '<span class="param-info-icon" aria-label="more-info"></span>';
+                        html += '</span>';
+                    }
+                    html += '</label>';
+
+                    html += '<input type="text" ';
+                    html += 'data-param="' + escapeAttr(paramName) + '" ';
+                    html += 'data-in="' + escapeAttr(section.location) + '" ';
+                    html += 'data-x-origins="' + originsJson + '" ';
+                    html += 'id="param-' + opId + '-' + escapeAttr(paramName) + '" ';
+                    html += 'placeholder="' + escapeAttr(ptype) + '" ';
+                    html += 'value="' + escapeAttr(value) + '" ';
+                    if (required) html += 'required ';
+                    html += '/>';
+                } else {
+                    // Regular parameter
+                    html += '<label>';
+                    html += '<span class="param-name-wrapper">';
+                    html += '<code>' + escapeHtml(paramName) + '</code>';
+                    if (required) {
+                        html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
+                    }
+                    html += '</span>';
+
+                    if (description) {
+                        html += '<span class="param-info-wrapper" data-tooltip="' + escapeAttr(description) + '">';
+                        html += '<span class="param-info-icon" aria-label="more-info"></span>';
+                        html += '</span>';
+                    }
+                    html += '</label>';
+
+                    // Input field
+                    if (schema.enum) {
+                        html += '<select data-param="' + escapeAttr(paramName) + '" data-in="' + escapeAttr(section.location) + '"';
+                        if (required) html += ' required';
+                        html += '>';
+                        schema.enum.forEach(function(enumVal) {
+                            var selected = enumVal == value ? ' selected' : '';
+                            html += '<option value="' + escapeAttr(enumVal) + '"' + selected + '>' + escapeHtml(enumVal) + '</option>';
+                        });
+                        html += '</select>';
+                    } else {
+                        html += '<input type="text" ';
+                        html += 'data-param="' + escapeAttr(paramName) + '" ';
+                        html += 'data-in="' + escapeAttr(section.location) + '" ';
+                        html += 'placeholder="' + escapeAttr(ptype) + '" ';
+                        html += 'value="' + escapeAttr(value) + '" ';
+
+                        // Variable reference support (playground only)
+                        if (enableVariableRefs && isVariableRef && fromStep && fromField) {
+                            html += 'class="var-reference-input" ';
+                            html += 'data-from-step="' + escapeAttr(fromStep) + '" ';
+                            html += 'data-from-field="' + escapeAttr(fromField) + '" ';
+                            html += 'data-var-tooltip="⌘ + click to navigate to the origin step" ';
+                            html += 'readonly ';
+                            html += 'onclick="navigateToVariableSource(\'' + escapeJs(slug) + '\', \'' + escapeJs(fromStep) + '\')" ';
+                            html += 'style="cursor: pointer; background: #fff3cd; border-color: #ffc107;" ';
+                        }
+
+                        if (required) html += 'required ';
+                        html += '/>';
+                    }
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+            html += '</details>';
+        }
+    });
+
+    // Custom Query Parameters
+    html += '<details class="try-params try-custom-params">';
+    html += '<summary>Custom Query Parameters</summary>';
+    html += '<div class="try-params-content">';
+    html += '<div id="custom-query-' + opId + '" class="custom-params-container"></div>';
+    html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParam(\'' + escapeJs(opId) + '\', \'query\')">+ Add Query Parameter</button>';
+    html += '</div>';
+    html += '</details>';
+
+    // Custom Headers
+    html += '<details class="try-params try-custom-params">';
+    html += '<summary>Custom Headers</summary>';
+    html += '<div class="try-params-content">';
+    html += '<div id="custom-header-' + opId + '" class="custom-params-container"></div>';
+    html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParam(\'' + escapeJs(opId) + '\', \'header\')">+ Add Header</button>';
+    html += '</div>';
+    html += '</details>';
+
+    // Request body
+    if (opMeta.requestBody) {
+        html += '<details class="try-body" open>';
+        html += '<summary>Request Body <code>application/json</code></summary>';
+        html += '<div class="try-body-content">';
+        html += '<textarea class="request-body-editor" data-param="__body__" data-in="body" rows="10" style="width: 100%; font-family: monospace;"></textarea>';
+        html += '</div>';
+        html += '</details>';
+    }
+
+    return html;
+}
+
+// ============================================================================
+// Playground Step Initialization (uses shared renderer)
+// ============================================================================
+
+function initializePlaygroundStepActual(slug, stepIndex) {
+    var sid = slug + '-' + stepIndex;
+    var formContainer = document.getElementById('playground-panel-' + sid);
+    
+    if (!formContainer || formContainer.dataset.initialized) {
+        return;
+    }
+    
+    // Mark as initialized
+    formContainer.dataset.initialized = 'true';
+    
+    var apiUrn = formContainer.dataset.wfApi;
+    var operationId = formContainer.dataset.wfOperation;
+    var inputsJson = formContainer.dataset.wfInputs;
+    
+    if (!apiUrn || !operationId) {
+        formContainer.innerHTML = '<p>No API operation defined for this step</p>';
+        return;
+    }
+    
+    var apiSlug = apiUrn.replace('urn:api:', '');
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var apiEntry = opLookup[apiSlug];
+    
+    if (!apiEntry) {
+        formContainer.innerHTML = '<p>API not found: ' + apiSlug + '</p>';
+        return;
+    }
+    
+    var opMeta = apiEntry.ops[operationId];
+    if (!opMeta) {
+        formContainer.innerHTML = '<p>Operation not found: ' + operationId + '</p>';
+        return;
+    }
+    
+    // Render operation method/path/url in header
+    var methodPath = document.getElementById('op-method-path-' + sid);
+    if (methodPath) {
+        var wfServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+        methodPath.innerHTML = buildUrlBarHtml(opMeta.method, wfServerUrl, opMeta.path, null);
+    }
+
+    // Parse YAML inputs
+    var yamlInputs = {};
+    try {
+        yamlInputs = JSON.parse(inputsJson || '{}');
+    } catch (e) {
+        console.error('Failed to parse inputs:', e);
+    }
+
+    // Use shared panel renderer for consistent two-column layout
+    var html = renderOperationPanel(sid, opMeta, {
+        yamlInputs: yamlInputs,
+        enableVariableRefs: true,
+        slug: slug,
+        contextType: 'playground',
+        showExecuteButton: true,
+        executeButtonText: 'Execute',
+        executeButtonClick: 'sendPlaygroundRequest(\'' + escapeJs(sid) + '\')'
+    });
+
+    formContainer.innerHTML = html;
+}
+
+// Helper to resolve variables from playground state
+function resolvePlaygroundVariable(slug, fromStep, fromField) {
+    var state = playgroundState[slug] || {};
+    
+    // Find the step by name
+    for (var stepNum in state) {
+        // TODO: Match step name to step number
+        // For now, just try to find the variable
+        if (state[stepNum][fromField]) {
+            return state[stepNum][fromField];
+        }
+    }
+    
+    return '';
+}
+
+// Helper to escape JavaScript strings for onclick attributes
+function escapeJs(str) {
+    if (!str) return '';
+    return str.replace(/\\/g, '\\\\')
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '\\"')
+              .replace(/\n/g, '\\n')
+              .replace(/\r/g, '\\r');
+}
+
+// Navigate to the step that produces a variable
+function navigateToVariableSource(slug, fromStep) {
+    // Find the step wrapper for the source step
+    // For now, just scroll to step 0 as an example - needs proper step name to index mapping
+    var stepWrappers = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    if (stepWrappers && stepWrappers.length > 0) {
+        // TODO: Map fromStep name to actual step index
+        // For now, just scroll to first step as placeholder
+        stepWrappers[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Override the placeholder function with the actual implementation
+function initializePlaygroundStep(slug, stepIndex) {
+    initializePlaygroundStepActual(slug, stepIndex);
+}
+
+
+// Update sendPlaygroundRequest to actually make API calls
+async function sendPlaygroundRequestActual(sid) {
+    var parts = sid.split('-');
+    var stepIndex = parseInt(parts[parts.length - 1]);
+    var slug = parts.slice(0, -1).join('-');
+
+    var spinner = document.getElementById('spinner-' + sid);
+    var executeBtn = document.getElementById('btn-execute-' + sid);
+    var responseDiv = document.getElementById('response-' + sid);
+    var responseBodyDiv = document.getElementById('respbody-' + sid);
+    var responseHeadersDiv = document.getElementById('respheaders-' + sid);
+    var responseStatus = document.getElementById('status-' + sid);
+    var nextBtn = document.getElementById('btn-next-' + sid);
+    var formContainer = document.getElementById('playground-panel-' + sid);
+
+    if (!formContainer) return;
+
+    if (spinner) spinner.style.display = 'inline';
+    if (executeBtn) executeBtn.disabled = true;
+    
+    try {
+        // Get operation metadata
+        var apiUrn = formContainer.dataset.wfApi;
+        var operationId = formContainer.dataset.wfOperation;
+        var apiSlug = apiUrn.replace('urn:api:', '');
+        
+        var opLookup = window.__OP_LOOKUP__ || {};
+        var apiEntry = opLookup[apiSlug];
+        if (!apiEntry) throw new Error('API not found');
+        
+        var opMeta = apiEntry.ops[operationId];
+        if (!opMeta) throw new Error('Operation not found');
+        
+        // Collect parameters (using data-param like try-it-out)
+        var pathParams = {};
+        var queryParams = {};
+        var headerParams = {};
+        var bodyContent = '';
+
+        formContainer.querySelectorAll('[data-param]').forEach(function(input) {
+            var paramName = input.getAttribute('data-param');
+            var location = input.getAttribute('data-in');
+            var value = input.value;
+
+            if (!value) return;
+
+            if (paramName === '__body__') {
+                bodyContent = value;
+            } else if (location === 'path') {
+                pathParams[paramName] = value;
+            } else if (location === 'query') {
+                queryParams[paramName] = value;
+            } else if (location === 'header') {
+                headerParams[paramName] = value;
+            }
+        });
+        
+        // Build URL
+        var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+        var path = opMeta.path;
+        
+        // Replace path parameters
+        for (var paramName in pathParams) {
+            path = path.replace('{' + paramName + '}', encodeURIComponent(pathParams[paramName]));
+        }
+        
+        var fullUrl = serverUrl + path;
+        
+        // Add query parameters
+        var queryString = Object.keys(queryParams)
+            .map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(queryParams[k]); })
+            .join('&');
+        if (queryString) {
+            fullUrl += '?' + queryString;
+        }
+        
+        // Prepare headers
+        var headers = Object.assign({}, headerParams);
+        
+        // Add auth header from panel if available
+        var authToken = getAuthToken();
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+        
+        if (bodyContent && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
+        // Make the API call through proxy
+        var PROXY_URL = window.__PROXY_CONFIG__ ? window.__PROXY_CONFIG__.url : '/proxy';
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: opMeta.method,
+                url: fullUrl,
+                headers: headers,
+                body: bodyContent || null
+            })
+        });
+        
+        var result = await resp.json();
+
+        // Remove empty state from response
+        if (responseDiv) {
+            responseDiv.classList.remove('empty');
+        }
+
+        // Update status badge
+        if (responseStatus) {
+            var statusClass = result.status >= 200 && result.status < 300 ? 'status-success' : 'status-error';
+            responseStatus.className = 'response-status-badge ' + statusClass;
+            responseStatus.textContent = result.status;
+        }
+
+        // Display response using ACE editors (same as try-it-out)
+        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+
+        // Extract and store variables for playground
+        if (result.status >= 200 && result.status < 300) {
+            try {
+                var parsed = typeof result.body === 'string' ? JSON.parse(result.body) : result.body;
+                var outputs = JSON.parse(formContainer.dataset.wfOutputs || '[]');
+                extractAndStoreVariables(slug, stepIndex + 1, parsed, outputs);
+            } catch (e) {
+                console.error('Failed to parse response or extract variables:', e);
+            }
+        }
+        
+        // Enable next button on success
+        if (result.status >= 200 && result.status < 300 && nextBtn) {
+            nextBtn.disabled = false;
+        }
+        
+    } catch (error) {
+        console.error('Playground request failed:', error);
+        if (responseDiv) {
+            responseDiv.classList.remove('empty');
+        }
+        if (responseBodyDiv) {
+            responseBodyDiv.innerHTML = '<pre class="error"><code>Error: ' + escapeHtml(error.message) + '</code></pre>';
+        }
+        if (responseStatus) {
+            responseStatus.textContent = 'Error';
+            responseStatus.className = 'response-status-badge status-error';
+        }
+    } finally {
+        if (spinner) spinner.style.display = 'none';
+        if (executeBtn) executeBtn.disabled = false;
+    }
+}
+
+// Extract variables from response using JSONPath
+function extractAndStoreVariables(slug, stepNum, responseData, outputsDef) {
+    if (!playgroundState[slug]) {
+        playgroundState[slug] = {};
+    }
+    
+    if (!playgroundState[slug][stepNum]) {
+        playgroundState[slug][stepNum] = {};
+    }
+    
+    // Use JSONPath library if available
+    if (typeof JSONPath !== 'undefined' && JSONPath.JSONPath) {
+        outputsDef.forEach(function(output) {
+            try {
+                var path = output.path || '';
+                var name = output.name || '';
+                if (!path || !name) return;
+                
+                var result = JSONPath.JSONPath({ path: path, json: responseData });
+                if (result && result.length > 0) {
+                    playgroundState[slug][stepNum][name] = result.length === 1 ? result[0] : result;
+                }
+            } catch (e) {
+                console.error('JSONPath extraction failed for', output.name, e);
+            }
+        });
+    } else {
+        // Fallback: simple extraction
+        outputsDef.forEach(function(output) {
+            var name = output.name || '';
+            if (responseData[name] !== undefined) {
+                playgroundState[slug][stepNum][name] = responseData[name];
+            }
+        });
+    }
+    
+    // Update the floating variables panel
+    renderVariablesPanel(slug);
+}
+
+// Override the mock function with the real one
+function sendPlaygroundRequest(sid) {
+    sendPlaygroundRequestActual(sid);
+}
+
+
+// Update copy curl to work with new structure
+function copyCurlCommandNew(preElement) {
+    var codeBlock = preElement.querySelector('code');
+    if (!codeBlock) return;
+    
+    var text = codeBlock.textContent;
+    
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = preElement.previousElementSibling.querySelector('.btn-copy-curl');
+        if (!btn) return;
+        
+        var originalText = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#10b981';
+        
+        setTimeout(function() {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 2000);
+    });
+}
+
+
+// Scroll to next step
+function scrollToNextStep(slug, currentIndex) {
+    var nextIndex = currentIndex + 1;
+    var nextStep = document.getElementById('playground-step-' + slug + '-' + nextIndex);
+    
+    if (nextStep) {
+        nextStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Update variables table with proper columns
+function renderVariablesTable(slug) {
+    var tbody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (!tbody) return;
+    
+    var state = playgroundState[slug] || {};
+    var stepKeys = Object.keys(state).sort(function(a, b) { return parseInt(a) - parseInt(b); });
+    
+    if (stepKeys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    stepKeys.forEach(function(stepNum) {
+        var vars = state[stepNum];
+        var varNames = Object.keys(vars);
+        
+        varNames.forEach(function(varName) {
+            var value = vars[varName];
+            var isArray = Array.isArray(value);
+            var isObject = typeof value === 'object' && value !== null && !isArray;
+            
+            html += '<tr>';
+            
+            // Name column
+            html += '<td><span class="var-name">{{' + escapeHtml(varName) + '}}</span></td>';
+            
+            // Value column
+            html += '<td>';
+            if (isArray) {
+                html += '<div class="var-value var-value-array">array[' + value.length + ']</div>';
+                html += '<div class="var-array-combo">';
+                html += '<button class="var-array-btn" onclick="toggleVarArrayDropdown(\'' + slug + '-' + stepNum + '-' + varName + '\')">';
+                html += '<span>Select item...</span>';
+                html += '<span>▼</span>';
+                html += '</button>';
+                html += '<div class="var-array-dropdown" id="var-dropdown-' + slug + '-' + stepNum + '-' + varName + '" style="display:none">';
+                value.forEach(function(item, idx) {
+                    var displayValue = typeof item === 'object' ? JSON.stringify(item) : String(item);
+                    html += '<div class="var-array-item" onclick="selectVarArrayItem(\'' + slug + '\', \'' + varName + '\', ' + idx + ')">';
+                    html += '<span class="var-array-index">' + idx + '</span>';
+                    html += '<span class="var-array-value">' + escapeHtml(displayValue.substring(0, 40)) + '</span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                html += '</div>';
+            } else if (isObject) {
+                html += '<div class="var-value var-value-object">' + escapeHtml(JSON.stringify(value).substring(0, 40)) + '...</div>';
+            } else {
+                html += '<div class="var-value">' + escapeHtml(String(value).substring(0, 40)) + '</div>';
+            }
+            html += '</td>';
+            
+            // Source column
+            html += '<td>';
+            var sourceLink = '<a href="#step-' + slug + '-' + (parseInt(stepNum) - 1) + '" class="var-source-link">step' + stepNum + '.$.response</a>';
+            html += sourceLink;
+            html += '</td>';
+            
+            html += '</tr>';
+        });
+    });
+    
+    tbody.innerHTML = html;
+}
+
+// Toggle array dropdown in variables table
+function toggleVarArrayDropdown(dropdownId) {
+    var dropdown = document.getElementById('var-dropdown-' + dropdownId);
+    if (!dropdown) return;
+    
+    var isVisible = dropdown.style.display !== 'none';
+    
+    // Close all other dropdowns
+    document.querySelectorAll('.var-array-dropdown').forEach(function(d) {
+        d.style.display = 'none';
+    });
+    
+    dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
+// Select array item
+function selectVarArrayItem(slug, varName, index) {
+    console.log('Selected', varName, '[', index, ']');
+    // TODO: Use this value somewhere
+    
+    // Close dropdown
+    document.querySelectorAll('.var-array-dropdown').forEach(function(d) {
+        d.style.display = 'none';
+    });
+}
+
+// Override renderVariablesPanel to use table
+function renderVariablesPanel(slug) {
+    renderVariablesTable(slug);
+}
+

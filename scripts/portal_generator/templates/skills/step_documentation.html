@@ -1,0 +1,95 @@
+{% macro render_step_documentation(step, step_num, slug, private_api_slugs=[], api_link_prefix='') %}
+{% set yaml_data = step.yaml|default(none) %}
+
+<div class="step-doc-header">
+    <h4>Step {{ step_num }}: {{ step.title }}</h4>
+</div>
+
+{# Prose before YAML #}
+{% if step.prose_before_html %}
+<div class="step-prose step-prose-before">
+    {{ step.prose_before_html|safe }}
+</div>
+{% endif %}
+
+{# cURL Command Block #}
+{% if yaml_data %}
+{% set api = yaml_data.api|default('') | replace('urn:api:', '') %}
+{% set operation_id = yaml_data.operationId|default('') %}
+{% set inputs = yaml_data.inputs|default({}) %}
+{% set outputs = yaml_data.outputs|default([]) %}
+
+<div class="step-curl-block">
+    <div class="curl-header">
+        <div class="curl-header-left">
+            <span class="curl-label">API Call:</span>
+            {% if api in private_api_slugs|default([]) %}
+            <span class="curl-api-ref">{{ api }} → {{ operation_id }}</span>
+            {% else %}
+            <a href="{{ api_link_prefix|default('') }}{{ api }}.html#op-{{ operation_id }}" class="curl-api-ref">{{ api }} → {{ operation_id }}</a>
+            {% endif %}
+        </div>
+        <button class="btn-copy-curl" onclick="copyCurlCommand(this)" title="Copy cURL command">
+            Copy
+        </button>
+    </div>
+
+    <pre class="curl-command"><code class="language-bash">curl -X POST {{ '{{baseUrl}}' }}/{{ api }}/{{ operation_id }} \
+  -H "Authorization: Bearer {{ '{{authToken}}' }}" \
+  -H "Content-Type: application/json" \{% if inputs %}
+  -d '{
+{% for name, defn in inputs.items() %}    "{{ name }}": "{{ render_input_value(defn) }}"{% if not loop.last %},{% endif %}
+
+{% endfor %}  }'{% endif %}</code></pre>
+</div>
+
+{# Outputs Section #}
+{% if outputs and outputs is iterable %}
+{% set output_rows = [] %}
+{% for out in outputs %}
+{% if out is mapping %}{% set _ = output_rows.append(out) %}{% endif %}
+{% endfor %}
+{% if output_rows %}
+<div class="step-outputs">
+    <h5>Outputs:</h5>
+    <ul class="outputs-list">
+        {% for out in output_rows %}
+        <li>
+            <code class="capture-name">{{ out.name|default('') }}</code>
+            from <code class="capture-path">{{ out.path|default('') }}</code>
+            {% if out.description %}
+            <span class="capture-desc">— {{ out.description }}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% endif %}
+{% endif %}
+
+{# Prose after YAML #}
+{% if step.prose_after_html %}
+<div class="step-prose step-prose-after">
+    {{ step.prose_after_html|safe }}
+</div>
+{% endif %}
+
+{% endmacro %}
+
+{% macro render_input_value(defn) -%}
+{% if defn is mapping %}
+{% if defn.from is defined %}
+{% set from_step = defn.from.step|default('') %}
+{% set from_input = defn.from.input|default('') %}
+{% set from_output = defn.from.output|default('') %}
+{% if from_input %}{{ '{{' }}{{ from_step|slugify }}.{{ from_input }}{{ '}}' }}{% elif from_output %}{{ '{{' }}{{ from_step|slugify }}.{{ from_output }}{{ '}}' }}{% endif %}
+{% elif defn.value is defined %}
+{{ defn.value }}
+{% else %}
+{{ defn }}
+{% endif %}
+{% else %}
+{{ defn }}
+{% endif %}
+{%- endmacro %}

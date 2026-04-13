@@ -3205,7 +3205,7 @@ function createReadOnlyAceEditor(container, content, language) {
         value: content || '',
         readOnly: true,
         minLines: 5,
-        maxLines: 20,
+        maxLines: Infinity,
         showPrintMargin: false,
         highlightActiveLine: false,
         showGutter: true,

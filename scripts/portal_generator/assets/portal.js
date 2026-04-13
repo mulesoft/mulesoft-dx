@@ -144,7 +144,11 @@ function openXOriginModal(opId, paramName, location) {
             html += '<div class="xorigin-header-left">';
             html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
             html += '</div>';
-            html += '<button class="btn-execute-xorigin" onclick="executeXOriginSource(' + idx + ')">Execute</button>';
+            html += '<button class="btn-execute-xorigin" onclick="executeXOriginSource(' + idx + ')">';
+            html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
+            html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+            html += '</svg>';
+            html += 'Execute</button>';
             html += '</div>';
 
             // Add Information section
@@ -4890,6 +4894,9 @@ function renderOperationPanel(opId, opMeta, options) {
         html += '<div class="operation-panel-actions">';
         html += '<div class="btn-group-send">';
         html += '<button class="btn-send-main" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + '"' : '') + '>';
+        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
+        html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+        html += '</svg>';
         html += executeButtonText;
         html += '</button>';
         html += '</div>';

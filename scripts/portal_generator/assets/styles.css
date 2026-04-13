@@ -5372,6 +5372,9 @@ button.param-with-xorigin {
     cursor: pointer;
     font-size: 0.875rem;
     transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-execute-xorigin:hover {
@@ -5665,6 +5668,9 @@ button.param-with-xorigin {
     cursor: pointer;
     transition: opacity 0.15s;
     border-radius: var(--lume-radius-small) 0 0 var(--lume-radius-small);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-send-main:hover {

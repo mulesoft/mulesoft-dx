@@ -7,7 +7,7 @@
 {% set step_details = skill.step_details|default([]) %}
 
 <section id="skill-{{ slug }}" class="content-section skill-detail">
-    {# Skill Mode Toggle and Controls Row #}
+    {# Skill Mode Toggle #}
     <div class="skill-mode-toggle-container">
         <label class="toggle-switch-label">
             <span class="toggle-label-text">Playground Mode</span>
@@ -15,10 +15,6 @@
                 <div class="toggle-slider"></div>
             </div>
         </label>
-        <div class="playground-controls" id="playground-controls-{{ slug }}" style="display:none">
-            <button class="btn-playground-run-all" onclick="runAllSteps('{{ slug }}')">Run All Steps</button>
-            <button class="btn-playground-reset" onclick="resetPlayground('{{ slug }}')">Reset</button>
-        </div>
     </div>
 
     {# Overview and Prerequisites - Always visible in both modes #}
@@ -74,7 +70,37 @@
         <aside class="variables-sidebar" id="variables-sidebar-{{ slug }}">
             <div class="variables-sidebar-header">
                 <h4>Variables</h4>
-                <button class="btn-variables-clear" onclick="clearVariables('{{ slug }}')" title="Clear all">✕</button>
+
+                {# Debugger Controls - Show Run when not running, show Cancel/Step when running #}
+                <div class="debugger-controls" id="debugger-controls-{{ slug }}">
+                    {# Initial state: Run button #}
+                    <div class="debugger-run-state" id="debugger-run-{{ slug }}">
+                        <button class="btn-debugger-run" onclick="startDebugger('{{ slug }}')" title="Run all steps">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M3 2L11 7L3 12V2Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {# Running state: Cancel + Step controls #}
+                    <div class="debugger-running-state" id="debugger-running-{{ slug }}" style="display:none">
+                        <button class="btn-debugger-prev" onclick="previousStep('{{ slug }}')" title="Previous step">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M9 2L4 7L9 12V2Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <button class="btn-debugger-next" onclick="nextStep('{{ slug }}')" title="Next step">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M5 2L10 7L5 12V2Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <button class="btn-debugger-cancel" onclick="cancelDebugger('{{ slug }}')" title="Stop">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <rect x="3" y="3" width="8" height="8" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
             <table class="variables-table" id="variables-table-{{ slug }}">
                 <thead>

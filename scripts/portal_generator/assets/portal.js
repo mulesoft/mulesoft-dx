@@ -3704,21 +3704,103 @@ function toggleSkillMode(slug) {
     }
 }
 
-function runAllSteps(slug) {
-    // TODO: Implement run all steps functionality
-    console.log('Run all steps for:', slug);
+// Debugger state tracking
+var debuggerState = {};
+
+function startDebugger(slug) {
+    console.log('Starting debugger for:', slug);
+
+    // Initialize debugger state
+    debuggerState[slug] = {
+        currentStep: 0,
+        isRunning: true,
+        totalSteps: document.querySelectorAll('[id^="playground-step-' + slug + '-"]').length
+    };
+
+    // Switch UI to running state
+    var runState = document.getElementById('debugger-run-' + slug);
+    var runningState = document.getElementById('debugger-running-' + slug);
+    if (runState) runState.style.display = 'none';
+    if (runningState) runningState.style.display = 'flex';
+
+    // Execute first step
+    executeStepByIndex(slug, 0);
 }
 
-function resetPlayground(slug) {
-    // TODO: Implement reset playground functionality
-    console.log('Reset playground for:', slug);
+function cancelDebugger(slug) {
+    console.log('Canceling debugger for:', slug);
+
+    // Reset state
+    debuggerState[slug] = { isRunning: false };
+
+    // Switch UI back to initial state
+    var runState = document.getElementById('debugger-run-' + slug);
+    var runningState = document.getElementById('debugger-running-' + slug);
+    if (runState) runState.style.display = 'block';
+    if (runningState) runningState.style.display = 'none';
 }
 
-function clearVariables(slug) {
-    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
-    if (tableBody) {
-        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+function nextStep(slug) {
+    var state = debuggerState[slug];
+    if (!state || !state.isRunning) return;
+
+    var nextIndex = state.currentStep + 1;
+    if (nextIndex < state.totalSteps) {
+        state.currentStep = nextIndex;
+        executeStepByIndex(slug, nextIndex);
     }
+}
+
+function previousStep(slug) {
+    var state = debuggerState[slug];
+    if (!state || !state.isRunning) return;
+
+    var prevIndex = state.currentStep - 1;
+    if (prevIndex >= 0) {
+        state.currentStep = prevIndex;
+        scrollToStepByIndex(slug, prevIndex);
+    }
+}
+
+function executeStepByIndex(slug, index) {
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    if (index < 0 || index >= steps.length) return;
+
+    var step = steps[index];
+    var panel = step.querySelector('[id^="playground-panel-"]');
+    if (!panel) return;
+
+    var sid = panel.id.replace('playground-panel-', '');
+
+    // Scroll to step
+    step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Highlight step
+    step.style.outline = '2px solid #0176D3';
+    step.style.outlineOffset = '4px';
+    setTimeout(function() {
+        step.style.outline = '';
+        step.style.outlineOffset = '';
+    }, 1000);
+
+    // Execute the step
+    executePlaygroundStep(sid);
+}
+
+function scrollToStepByIndex(slug, index) {
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    if (index < 0 || index >= steps.length) return;
+
+    var step = steps[index];
+    step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Highlight step
+    step.style.outline = '2px solid #0176D3';
+    step.style.outlineOffset = '4px';
+    setTimeout(function() {
+        step.style.outline = '';
+        step.style.outlineOffset = '';
+    }, 1000);
 }
 
 // Scroll to the step that defines a variable

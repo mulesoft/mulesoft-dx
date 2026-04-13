@@ -3575,10 +3575,6 @@ function renderOperationForm(opId, opMeta, options) {
                     }
 
                     html += '>';
-                    // Show resolved value in grey italic if variable reference
-                    if (hasVarRef && substitutedValue !== yamlValue) {
-                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
-                    }
                     // Magnifier button
                     html += '<button type="button" class="btn-xorigin-search" ';
                     html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
@@ -3588,6 +3584,10 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
                     html += '</svg>';
                     html += '</button>';
+                    // Show resolved value in grey italic AFTER the button
+                    if (hasVarRef && substitutedValue !== yamlValue) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
+                    }
                     html += '</div>';
                 } else if (schema.enum) {
                     // Enum - dropdown
@@ -3624,25 +3624,29 @@ function renderOperationForm(opId, opMeta, options) {
                         html += '</span>';
                     }
                     html += '</label>';
-                    html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
-                    html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
-                    if (required) html += ' required';
 
-                    var hasVarRef = false;
-                    var substitutedValue = yamlValue;
-                    // Add class and tooltip if has variable references
+                    var hasVarRef2 = false;
+                    var substitutedValue2 = yamlValue;
+                    // Check if has variable references
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        substitutedValue = substituteVariables(yamlValue, slug);
-                        if (substitutedValue !== yamlValue) {
-                            html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
-                            hasVarRef = true;
+                        substitutedValue2 = substituteVariables(yamlValue, slug);
+                        if (substitutedValue2 !== yamlValue) {
+                            hasVarRef2 = true;
                         }
                     }
 
+                    html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
+                    html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
+                    if (required) html += ' required';
+                    // Add class and tooltip if has variable references
+                    if (hasVarRef2) {
+                        html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue2) + '"';
+                    }
                     html += '>';
-                    // Show resolved value in grey italic if variable reference
-                    if (hasVarRef && substitutedValue !== yamlValue) {
-                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
+
+                    // Show resolved value in grey italic AFTER the input
+                    if (hasVarRef2) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue2) + '</span>';
                     }
                 }
 

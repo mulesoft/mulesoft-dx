@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Variable Logic Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background: #d4edda; }
+        .fail { background: #f8d7da; }
+        input.has-variable-ref {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1e40af;
+            font-weight: 500;
+        }
+        .variable-resolved-value {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8125rem;
+            color: #9ca3af;
+            font-style: italic;
+        }
+        .variables-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .variables-table th, .variables-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Variable Logic Test</h1>
+
+    <div class="test" id="test1">
+        <h3>Test 1: Variable Extraction</h3>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test" id="test2">
+        <h3>Test 2: Table Update - Add New Variable</h3>
+        <table class="variables-table" id="variables-table-test">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="3" style="text-align:center;">No variables</td>
+                </tr>
+            </tbody>
+        </table>
+        <button onclick="runTest2()">Run Test 2</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test" id="test3">
+        <h3>Test 3: Table Update - Add Second Variable</h3>
+        <button onclick="runTest3()">Run Test 3</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test" id="test4">
+        <h3>Test 4: Resolved Value Display</h3>
+        <label>Organization ID:</label>
+        <input type="text" value="${organizationId}" class="has-variable-ref" id="test-input">
+        <button onclick="runTest4()">Add Resolved Value</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <script>
+        // Simplified versions of the functions
+        var skillVariables = {};
+
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function detectVariableReferences(value) {
+            var matches = [];
+            var regex = /\$\{([^}]+)\}/g;
+            var match;
+            while ((match = regex.exec(value)) !== null) {
+                var varName = match[1].trim();
+                matches.push({ type: 'variable', varName: varName, fullMatch: match[0] });
+            }
+            return matches;
+        }
+
+        function substituteVariables(value, slug) {
+            if (!value || typeof value !== 'string') return value;
+            var vars = skillVariables[slug] || {};
+            var result = value;
+            var regex = /\$\{([^}]+)\}/g;
+            result = result.replace(regex, function(match, varName) {
+                varName = varName.trim();
+                if (varName in vars) {
+                    var varValue = vars[varName];
+                    return typeof varValue === 'object' ? JSON.stringify(varValue) : String(varValue);
+                }
+                return match;
+            });
+            return result;
+        }
+
+        function renderVariableValue(cell, value, varName, slug) {
+            cell.innerHTML = '';
+            if (Array.isArray(value)) {
+                cell.textContent = '[Array with ' + value.length + ' items]';
+            } else if (typeof value === 'object' && value !== null) {
+                cell.textContent = '{Object}';
+            } else {
+                cell.textContent = String(value);
+            }
+        }
+
+        function updateVariablesTable(slug, variables, source) {
+            console.log('=== updateVariablesTable START ===');
+            console.log('slug:', slug);
+            console.log('variables:', JSON.stringify(variables, null, 2));
+            console.log('source:', source);
+
+            var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+            if (!tableBody) {
+                console.error('❌ Table body not found for slug:', slug);
+                return 'FAIL: Table not found';
+            }
+            console.log('✓ Table body found');
+
+            var noVarsRow = tableBody.querySelector('td[colspan="3"]');
+            if (noVarsRow) {
+                console.log('Clearing "No variables" message');
+                tableBody.innerHTML = '';
+            }
+
+            var existingRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+            console.log('Existing rows in table:', existingRowsCount);
+
+            var variableCount = 0;
+            for (var varName in variables) {
+                variableCount++;
+                var value = variables[varName];
+                console.log('Processing variable #' + variableCount + ':', varName, 'value:', value);
+
+                var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
+
+                if (existingRow) {
+                    console.log('  → Updating existing variable:', varName);
+                    renderVariableValue(existingRow.cells[1], value, varName, slug);
+                    console.log('  → Source remains:', existingRow.cells[2].textContent);
+                } else {
+                    console.log('  → Adding NEW variable:', varName, 'with source:', source);
+                    var row = document.createElement('tr');
+                    row.setAttribute('data-var-name', varName);
+
+                    var nameCell = document.createElement('td');
+                    nameCell.textContent = varName;
+
+                    var valueCell = document.createElement('td');
+                    renderVariableValue(valueCell, value, varName, slug);
+
+                    var sourceCell = document.createElement('td');
+                    sourceCell.textContent = source;
+
+                    row.appendChild(nameCell);
+                    row.appendChild(valueCell);
+                    row.appendChild(sourceCell);
+
+                    tableBody.appendChild(row);
+                    console.log('  → Row appended to table');
+                }
+            }
+
+            var finalRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+            console.log('Final rows in table:', finalRowsCount);
+            console.log('=== updateVariablesTable END ===');
+            return 'PASS: ' + finalRowsCount + ' rows in table';
+        }
+
+        // Test 1: Variable detection
+        (function test1() {
+            var testValue = "${organizationId} and ${environmentId}";
+            var refs = detectVariableReferences(testValue);
+            var result = refs.length === 2 && refs[0].varName === 'organizationId' && refs[1].varName === 'environmentId';
+            document.getElementById('test1').className = 'test ' + (result ? 'pass' : 'fail');
+            document.getElementById('test1-result').textContent = result ?
+                'PASS: Found ' + refs.length + ' variables' :
+                'FAIL: Expected 2 variables, found ' + refs.length;
+        })();
+
+        // Test 2: Add first variable
+        function runTest2() {
+            skillVariables['test'] = { organizationId: 'abc-123' };
+            var result = updateVariablesTable('test', skillVariables['test'], 'Step 1');
+            document.getElementById('test2').className = 'test ' + (result.includes('PASS') ? 'pass' : 'fail');
+            document.getElementById('test2-result').textContent = result;
+        }
+
+        // Test 3: Add second variable
+        function runTest3() {
+            skillVariables['test'].environmentId = ['env-1', 'env-2'];
+            var result = updateVariablesTable('test', skillVariables['test'], 'Step 2');
+            document.getElementById('test3').className = 'test ' + (result.includes('2 rows') ? 'pass' : 'fail');
+            document.getElementById('test3-result').textContent = result;
+        }
+
+        // Test 4: Resolved value display
+        function runTest4() {
+            skillVariables['test'] = { organizationId: 'resolved-org-123' };
+            var input = document.getElementById('test-input');
+            var value = input.value;
+            var substituted = substituteVariables(value, 'test');
+
+            var span = document.createElement('span');
+            span.className = 'variable-resolved-value';
+            span.textContent = substituted;
+            input.parentNode.insertBefore(span, input.nextSibling);
+
+            var result = substituted !== value;
+            document.getElementById('test4').className = 'test ' + (result ? 'pass' : 'fail');
+            document.getElementById('test4-result').textContent = result ?
+                'PASS: Resolved to ' + substituted :
+                'FAIL: Could not resolve';
+        }
+    </script>
+</body>
+</html>

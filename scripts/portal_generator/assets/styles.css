@@ -6882,22 +6882,20 @@ details[open] .examples-toggle-icon {
 }
 
 .variables-sidebar {
-    position: sticky;
-    top: 80px;
-    right: 0;
-    width: 320px;
-    flex-shrink: 0;
-    flex-grow: 0;
-    height: calc(100vh - 100px);
-    min-height: 400px;
-    overflow-y: auto;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: var(--space-md);
-    align-self: flex-start;
-    z-index: 10;
-    order: 2;
+    position: sticky !important;
+    top: 80px !important;
+    width: 320px !important;
+    flex: 0 0 320px !important;
+    height: calc(100vh - 100px) !important;
+    min-height: 400px !important;
+    max-height: calc(100vh - 100px) !important;
+    overflow-y: auto !important;
+    background: #fff3cd !important; /* Temporary yellow for debugging */
+    border: 3px solid #ff0000 !important; /* Temporary red border for debugging */
+    border-radius: 6px !important;
+    padding: var(--space-md) !important;
+    align-self: flex-start !important;
+    z-index: 100 !important;
 }
 
 .variables-sidebar-header {
@@ -6981,20 +6979,19 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-mode-playground {
-    display: flex;
-    flex-direction: row;
-    gap: var(--space-lg);
-    align-items: flex-start;
-    position: relative;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1.5rem !important;
+    align-items: flex-start !important;
+    position: relative !important;
+    width: 100% !important;
 }
 
 .playground-main-content {
-    flex: 1;
-    min-width: 0;
-    max-width: calc(100% - 340px);
-    overflow-x: hidden;
-    order: 1;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: calc(100% - 360px) !important;
+    overflow-x: hidden !important;
 }
 
 .playground-operation-link {

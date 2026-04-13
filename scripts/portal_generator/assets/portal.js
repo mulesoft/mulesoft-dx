@@ -3540,6 +3540,19 @@ function renderOperationForm(opId, opMeta, options) {
                 // Check if YAML provided a value
                 var yamlValue = yamlInputs[paramName] || defaultVal;
 
+                // If yamlValue is an object with a 'ref' property, extract the reference string
+                if (typeof yamlValue === 'object' && yamlValue !== null) {
+                    if (yamlValue.ref) {
+                        yamlValue = yamlValue.ref;
+                    } else {
+                        yamlValue = JSON.stringify(yamlValue);
+                    }
+                } else if (yamlValue == null) {
+                    yamlValue = '';
+                } else {
+                    yamlValue = String(yamlValue);
+                }
+
                 html += '<div class="try-param-row">';
 
                 // Check for x-origin

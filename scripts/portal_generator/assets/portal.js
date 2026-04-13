@@ -3574,7 +3574,7 @@ function renderOperationForm(opId, opMeta, options) {
                     // Input field with magnifier button wrapper
                     html += '<div class="param-input-with-xorigin">';
                     html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
-                    html += 'data-x-origins="' + escapeHtml(JSON.stringify(origins)) + '" ';
+                    html += 'data-x-origins=\'' + JSON.stringify(origins) + '\' ';
                     html += 'id="param-' + opId + '-' + paramName + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
@@ -4668,14 +4668,13 @@ function renderWorkflowStepForms(skillSlug) {
                     // Label with x-origin support
                     if (xOrigin) {
                         var origins = Array.isArray(xOrigin) ? xOrigin : [xOrigin];
-                        var originsJson = JSON.stringify(origins).replace(/"/g, '&quot;');
+                        var originsJsonStr = JSON.stringify(origins);
                         var sid = skillSlug + '-' + stepIndex;
+
+                        html += '<div class="param-input-with-xorigin">';
                         html += '<label>';
                         html += '<span class="param-name-wrapper">';
-                        html += '<code class="param-with-xorigin" ';
-                        html += 'onclick="event.stopPropagation(); openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
-                        html += 'title="Click to fetch values from ' + origins.length + ' source(s)">';
-                        html += escapeHtml(paramName) + '</code>';
+                        html += '<code>' + escapeHtml(paramName) + '</code>';
                         if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
                         html += '</span>';
                         if (description) {
@@ -4686,12 +4685,22 @@ function renderWorkflowStepForms(skillSlug) {
                         html += '</label>';
                         html += '<input type="text" data-wf-param="' + escapeHtml(paramName) + '" ';
                         html += 'data-in="' + section.location + '" ';
-                        html += 'data-x-origins="' + originsJson + '" ';
+                        html += 'data-x-origins=\'' + originsJsonStr + '\' ';
                         html += 'id="param-' + sid + '-' + escapeHtml(paramName) + '" ';
                         html += 'placeholder="' + escapeHtml(paramType) + '" ';
                         html += 'value="' + escapeHtml(value) + '"';
                         if (required) html += ' required';
                         html += '>';
+                        // Magnifier button
+                        html += '<button type="button" class="btn-xorigin-search" ';
+                        html += 'onclick="openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
+                        html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
+                        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                        html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                        html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                        html += '</svg>';
+                        html += '</button>';
+                        html += '</div>';
                     } else if (schema.enum) {
                         // Enum dropdown
                         html += '<label>';

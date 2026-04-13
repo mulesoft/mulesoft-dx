@@ -107,6 +107,13 @@ function openXOriginModal(opId, paramName, location) {
     // Get operation lookup for parameter details
     var opLookup = window.__OP_LOOKUP__ || {};
 
+    // Load environment variables to pre-fill form
+    var envVars = loadEnvVars();
+    var envVarsMap = {};
+    envVars.forEach(function(v) {
+        envVarsMap[v.name] = v.value;
+    });
+
     // Build source selector dropdown (no execute button here - it's in the panel)
     var html = '<div class="xorigin-selector-container">';
     html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
@@ -202,7 +209,7 @@ function openXOriginModal(opId, paramName, location) {
             // Use shared panel renderer for two-column layout (no execute button - it's in header)
             var xoriginOpId = 'xorigin-' + idx;
             html += renderOperationPanel(xoriginOpId, opMeta, {
-                yamlInputs: {},
+                yamlInputs: envVarsMap,
                 enableVariableRefs: false,
                 slug: '',
                 contextType: 'xorigin',

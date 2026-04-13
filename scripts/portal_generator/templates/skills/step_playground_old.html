@@ -1,0 +1,65 @@
+{% macro render_step_playground(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='') %}
+{% set yaml_data = step.yaml|default(none) %}
+{% set sid = slug ~ '-' ~ step_index %}
+
+<div class="playground-step-container">
+    <div class="playground-step-header">
+        <h4>Step {{ step_num }}: {{ step.title }}</h4>
+        <div class="playground-step-actions">
+            {% if step_index > 0 %}
+            <button class="btn-playground-prev" onclick="goToPreviousStep('{{ slug }}', {{ step_index }})">◀ Previous</button>
+            {% endif %}
+            {% if step_index < total_steps - 1 %}
+            <button class="btn-playground-next" onclick="goToNextStep('{{ slug }}', {{ step_index }})" id="btn-next-{{ sid }}" disabled>Next Step ▶</button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if yaml_data %}
+    {% set api = yaml_data.api|default('')|replace('urn:api:', '') %}
+    {% set operation_id = yaml_data.operationId|default('') %}
+    {% set inputs = yaml_data.inputs|default({}) %}
+    {% set outputs = yaml_data.outputs|default([]) %}
+
+    {# Split View: Left = Form, Right = Response #}
+    <div class="playground-split-view">
+        {# Left Panel: Operation Form #}
+        <div class="playground-left-panel">
+            <div class="playground-operation-header">
+                <div class="operation-method-path" id="op-method-path-{{ sid }}">
+                    {# Will be populated by JS from operation metadata #}
+                </div>
+            </div>
+
+            <div class="playground-form-container" id="playground-form-{{ sid }}"
+                 data-wf-outputs='{{ outputs|tojson }}'
+                 data-wf-api="{{ yaml_data.api|default('') }}"
+                 data-wf-operation="{{ operation_id }}"
+                 data-wf-inputs='{{ inputs|tojson }}'>
+                {# Form will be rendered by JavaScript from operation definition #}
+            </div>
+
+            <div class="playground-send-section">
+                <button class="btn-playground-send" onclick="sendPlaygroundRequest('{{ sid }}')" id="btn-send-{{ sid }}">
+                    Send Request
+                </button>
+                <span class="playground-spinner" id="spinner-{{ sid }}" style="display:none">Sending...</span>
+            </div>
+        </div>
+
+        {# Right Panel: Response #}
+        <div class="playground-right-panel" id="playground-right-{{ sid }}">
+            <div class="playground-response-header">
+                <h5>Response</h5>
+                <span class="response-status" id="response-status-{{ sid }}" style="display:none"></span>
+            </div>
+
+            <div class="playground-response-body" id="response-body-{{ sid }}">
+                <p class="response-placeholder">Send the request to see the response here</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endmacro %}

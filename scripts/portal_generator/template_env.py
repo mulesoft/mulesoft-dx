@@ -104,6 +104,28 @@ def _titleize_operation(value):
     return spaced[0].upper() + spaced[1:] if spaced else ''
 
 
+def _slugify(value):
+    """Convert a string to a URL-friendly slug.
+
+    Examples:
+        "Get Current Organization" -> "get-current-organization"
+        "List Environments" -> "list-environments"
+    """
+    if not value:
+        return ''
+
+    # Convert to lowercase
+    slug = str(value).lower()
+
+    # Replace spaces and special chars with hyphens
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    slug = re.sub(r'[\s_]+', '-', slug)
+    slug = re.sub(r'-+', '-', slug)
+
+    # Strip leading/trailing hyphens
+    return slug.strip('-')
+
+
 def create_env() -> Environment:
     """Create and configure the Jinja2 template environment."""
     env = Environment(
@@ -119,6 +141,7 @@ def create_env() -> Environment:
     env.filters['md'] = _render_markdown
     env.filters['tojson_raw'] = _tojson_raw
     env.filters['titleize_operation'] = _titleize_operation
+    env.filters['slugify'] = _slugify
 
     # Global functions available in all templates
     env.globals['build_operation_tree'] = build_operation_tree

@@ -120,7 +120,10 @@
     <div class="try-response" id="response-{{ op_id }}" style="display:none" aria-live="polite">
         <div class="try-response-header">
             <h5>Response</h5>
-            <span class="response-status-badge" id="status-{{ op_id }}"></span>
+            <div class="response-badges">
+                <span class="response-status-badge" id="status-{{ op_id }}"></span>
+                <span class="content-type-badge" id="content-type-badge-{{ op_id }}" style="display:none"></span>
+            </div>
         </div>
         <div class="try-response-tabs">
             <button class="try-tab-btn active" onclick="switchResponseTab('{{ op_id }}', 'body')">Body</button>

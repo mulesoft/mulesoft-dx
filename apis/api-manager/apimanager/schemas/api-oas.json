@@ -5,11 +5,17 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["spec"],
+          "required": [
+            "spec"
+          ],
           "properties": {
             "spec": {
               "type": "object",
-              "required": ["groupId", "assetId", "version"],
+              "required": [
+                "groupId",
+                "assetId",
+                "version"
+              ],
               "properties": {
                 "groupId": {
                   "type": "string",
@@ -32,18 +38,24 @@
         },
         {
           "type": "object",
-          "required": ["promote"],
+          "required": [
+            "promote"
+          ],
           "properties": {
             "promote": {
               "type": "object",
-              "required": ["originApiId"],
+              "required": [
+                "originApiId"
+              ],
               "properties": {
                 "originApiId": {
                   "type": "integer"
                 },
                 "policies": {
                   "type": "object",
-                  "required": ["allEntities"],
+                  "required": [
+                    "allEntities"
+                  ],
                   "properties": {
                     "allEntities": {
                       "type": "boolean"
@@ -52,7 +64,9 @@
                 },
                 "tiers": {
                   "type": "object",
-                  "required": ["allEntities"],
+                  "required": [
+                    "allEntities"
+                  ],
                   "properties": {
                     "allEntities": {
                       "type": "boolean"
@@ -61,7 +75,9 @@
                 },
                 "contracts": {
                   "type": "object",
-                  "required": ["allEntities"],
+                  "required": [
+                    "allEntities"
+                  ],
                   "properties": {
                     "allEntities": {
                       "type": "boolean"
@@ -70,7 +86,9 @@
                 },
                 "alerts": {
                   "type": "object",
-                  "required": ["allEntities"],
+                  "required": [
+                    "allEntities"
+                  ],
                   "properties": {
                     "allEntities": {
                       "type": "boolean"
@@ -93,7 +111,11 @@
         },
         "endpoint": {
           "type": "object",
-          "required": ["uri", "proxyUri", "isCloudHub"],
+          "required": [
+            "uri",
+            "proxyUri",
+            "isCloudHub"
+          ],
           "properties": {
             "uri": {
               "type": "string",
@@ -120,7 +142,8 @@
               "nullable": true
             },
             "deploymentType": {
-              "$ref": "./constants.yaml#/deploymentTypes"
+                "type": "string",
+                "enum": ["CH", "HY", "RF", "SM", "CH2"]
             },
             "muleVersion4OrAbove": {
               "type": "boolean",
@@ -151,7 +174,14 @@
               }
             },
             "validation": {
-              "$ref": "./constants.yaml#/endpointValidationOptions"
+              "type": "string",
+              "nullable": true,
+              "enum": [
+                "NOT_APPLICABLE",
+                "DISABLED",
+                "ENABLED",
+                "STRICT_QUERY_PARAMS"
+              ]
             }
           }
         },
@@ -162,7 +192,13 @@
           "minLength": 1
         },
         "technology": {
-          "$ref": "./constants.yaml#/technologies"
+          "type": "string",
+          "enum": [
+            "mule3",
+            "mule4",
+            "flexGateway",
+            "serviceMesh"
+          ]
         }
       }
     }

@@ -69,8 +69,6 @@
         {# Variables Sidebar - Sticky on right #}
         <aside class="variables-sidebar" id="variables-sidebar-{{ slug }}">
             <div class="variables-sidebar-header">
-                <h4>Variables</h4>
-
                 {# Debugger Controls - Show Run when not running, show Cancel/Step when running #}
                 <div class="debugger-controls" id="debugger-controls-{{ slug }}">
                     {# Initial state: Run button #}
@@ -101,6 +99,8 @@
                         </button>
                     </div>
                 </div>
+
+                <h4>Variables</h4>
             </div>
             <table class="variables-table" id="variables-table-{{ slug }}">
                 <thead>

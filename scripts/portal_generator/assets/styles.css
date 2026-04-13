@@ -6883,10 +6883,11 @@ details[open] .examples-toggle-icon {
 
 .variables-sidebar {
     position: sticky;
-    top: 100px;
-    width: 300px;
+    top: 80px;
+    width: 320px;
     flex-shrink: 0;
-    max-height: calc(100vh - 120px);
+    height: calc(100vh - 100px);
+    min-height: 400px;
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -7086,6 +7087,34 @@ details[open] .examples-toggle-icon {
 @keyframes highlight-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; background: #fffbeb; }
+}
+
+/* Parameter value display with clickable variable links */
+.param-value-display {
+    margin-top: 0.375rem;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: #374151;
+    word-break: break-word;
+}
+
+.inline-variable-ref-link {
+    color: #0176D3;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.125rem 0.25rem;
+    background: #e0f2fe;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.inline-variable-ref-link:hover {
+    background: #bae6fd;
+    text-decoration: underline;
 }
 
 .playground-operation-title {

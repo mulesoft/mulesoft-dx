@@ -3397,33 +3397,92 @@ function renderOperationPanel(opId, opMeta, options) {
  * @returns {string} HTML string for the operation form
  */
 // Helper function to detect variable references in a value
+// Supports both {{variable}} and ${step.variable} formats
 function detectVariableReferences(value) {
     var matches = [];
-    var regex = /\{\{([^}]+)\}\}/g;
+
+    // Match {{variable}} format
+    var regex1 = /\{\{([^}]+)\}\}/g;
     var match;
-    while ((match = regex.exec(value)) !== null) {
-        matches.push(match[1].trim());
+    while ((match = regex1.exec(value)) !== null) {
+        matches.push({ type: 'double', varName: match[1].trim(), fullMatch: match[0] });
     }
+
+    // Match ${step.variable} format
+    var regex2 = /\$\{([^}]+)\}/g;
+    while ((match = regex2.exec(value)) !== null) {
+        var fullVar = match[1].trim();
+        // Extract step and variable name if in step.variable format
+        var parts = fullVar.split('.');
+        if (parts.length === 2) {
+            matches.push({ type: 'step', stepName: parts[0], varName: parts[1], fullMatch: match[0] });
+        } else {
+            matches.push({ type: 'simple', varName: fullVar, fullMatch: match[0] });
+        }
+    }
+
     return matches;
+}
+
+// Helper function to render value with clickable variable links
+function renderValueWithVariableLinks(value, slug) {
+    var varRefs = detectVariableReferences(value);
+    if (varRefs.length === 0) return escapeHtml(value);
+
+    // Sort refs by position (descending) to replace from end to start
+    varRefs.sort(function(a, b) {
+        return value.lastIndexOf(b.fullMatch) - value.lastIndexOf(a.fullMatch);
+    });
+
+    var result = value;
+    varRefs.forEach(function(ref) {
+        var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
+        var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
+
+        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\'); return false;" title="Click to view source">' +
+                   escapeHtml(ref.fullMatch) +
+                   '</a>';
+
+        result = result.replace(ref.fullMatch, '%%%LINK' + varRefs.indexOf(ref) + '%%%');
+    });
+
+    // Escape the non-link parts
+    result = escapeHtml(result);
+
+    // Replace placeholders with actual links
+    varRefs.forEach(function(ref, idx) {
+        var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
+        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + escapeHtml(slug) + '\', \'' + escapeHtml(lookupVar) + '\'); return false;" title="Click to view source">' +
+                   escapeHtml(ref.fullMatch) +
+                   '</a>';
+        result = result.replace('%%%LINK' + idx + '%%%', link);
+    });
+
+    return result;
 }
 
 // Helper function to render variable reference hints
 function renderVariableReferenceHints(value, contextType, slug) {
-    var varNames = detectVariableReferences(value);
-    if (varNames.length === 0) return '';
+    var varRefs = detectVariableReferences(value);
+    if (varRefs.length === 0) return '';
 
     var html = '<div class="variable-references-hint">';
     html += '<span class="variable-ref-icon">🔗</span>';
     html += '<span class="variable-ref-text">References: ';
-    varNames.forEach(function(varName, idx) {
+    varRefs.forEach(function(ref, idx) {
         if (idx > 0) html += ', ';
+
         if (contextType === 'playground' && slug) {
-            // Make it a link that scrolls to the step (we'll need to find which step defines this variable)
-            html += '<a href="#" class="variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(varName) + '\'); return false;">';
-            html += escapeHtml(varName);
+            // Make it a link that scrolls to the step
+            var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
+            var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
+
+            html += '<a href="#" class="variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\'); return false;">';
+            html += escapeHtml(displayText);
             html += '</a>';
         } else {
-            html += '<code>' + escapeHtml(varName) + '</code>';
+            var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
+            html += '<code>' + escapeHtml(displayText) + '</code>';
         }
     });
     html += '</span>';
@@ -3507,8 +3566,12 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '</svg>';
                     html += '</button>';
                     html += '</div>';
-                    // Add variable reference hints
-                    html += renderVariableReferenceHints(yamlValue, contextType, slug);
+                    // Show value with clickable variable links if in playground
+                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
+                        html += '<div class="param-value-display">';
+                        html += renderValueWithVariableLinks(yamlValue, slug);
+                        html += '</div>';
+                    }
                 } else if (schema.enum) {
                     // Enum - dropdown
                     html += '<label>';
@@ -3548,8 +3611,12 @@ function renderOperationForm(opId, opMeta, options) {
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
                     html += '>';
-                    // Add variable reference hints
-                    html += renderVariableReferenceHints(yamlValue, contextType, slug);
+                    // Show value with clickable variable links if in playground
+                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
+                        html += '<div class="param-value-display">';
+                        html += renderValueWithVariableLinks(yamlValue, slug);
+                        html += '</div>';
+                    }
                 }
 
                 html += '</div>';
@@ -3747,10 +3814,26 @@ function initializePlaygroundStep(sid) {
     }
 
     var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
-
-    // Build header matching try-panel-header structure exactly (title and Send in same row)
     var linkPrefix = window.__API_LINK_PREFIX__ || '';
-    var html = '<div class="try-panel-header">';
+
+    // Get the slug from the panel's parent to enable variable reference links
+    var skillSlug = '';
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    if (stepWrapper) {
+        var stepId = stepWrapper.id;
+        var match = stepId.match(/playground-step-([^-]+)-/);
+        if (match) skillSlug = match[1];
+    }
+
+    var html = '';
+
+    // Operation URL bar (first, like in try-it-out)
+    html += '<div class="operation-url-bar-container">';
+    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
+    html += '</div>';
+
+    // Header with title and Send button (matching try-panel-header structure)
+    html += '<div class="try-panel-header">';
 
     // Left side: operationId as link
     html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="playground-operation-link">';
@@ -3784,16 +3867,11 @@ function initializePlaygroundStep(sid) {
     html += '</div>';
     html += '</div>';
 
-    // Operation URL bar (below header)
-    html += '<div class="operation-url-bar-container">';
-    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
-    html += '</div>';
-
     // Use shared panel renderer (no execute button - it's in header now)
     html += renderOperationPanel(sid, opMeta, {
         yamlInputs: yamlInputs,
-        enableVariableRefs: false,
-        slug: '',
+        enableVariableRefs: true,
+        slug: skillSlug,
         contextType: 'playground',
         showExecuteButton: false  // Button is in header now
     });

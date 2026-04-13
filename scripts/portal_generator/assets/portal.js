@@ -3836,11 +3836,6 @@ function initializePlaygroundStep(sid) {
 
     var html = '';
 
-    // Operation URL bar (first, like in try-it-out)
-    html += '<div class="operation-url-bar-container">';
-    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
-    html += '</div>';
-
     // Header with title and Send button (matching try-panel-header structure)
     html += '<div class="try-panel-header">';
 
@@ -3874,6 +3869,11 @@ function initializePlaygroundStep(sid) {
     html += '</div>';
     html += '</div>';
     html += '</div>';
+    html += '</div>';
+
+    // Operation URL bar (after header)
+    html += '<div class="operation-url-bar-container">';
+    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
     html += '</div>';
 
     // Use shared panel renderer (no execute button - it's in header now)

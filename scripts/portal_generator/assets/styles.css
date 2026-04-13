@@ -7130,6 +7130,20 @@ details[open] .examples-toggle-icon {
     text-decoration: underline;
 }
 
+/* Input fields containing variable references */
+input.has-variable-ref {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+    color: #1e40af !important;
+    font-weight: 500 !important;
+    cursor: help !important;
+}
+
+input.has-variable-ref:focus {
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: 2px !important;
+}
+
 .playground-operation-title {
     margin: 0;
     font-size: 1rem;

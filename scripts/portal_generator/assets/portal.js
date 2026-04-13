@@ -3562,6 +3562,15 @@ function renderOperationForm(opId, opMeta, options) {
                     html += 'id="param-' + opId + '-' + paramName + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
+
+                    // Add tooltip showing substituted value if in playground with variables
+                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
+                        var substitutedValue = substituteVariables(yamlValue, slug);
+                        if (substitutedValue !== yamlValue) {
+                            html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
+                        }
+                    }
+
                     html += '>';
                     // Magnifier button
                     html += '<button type="button" class="btn-xorigin-search" ';
@@ -3573,12 +3582,6 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '</svg>';
                     html += '</button>';
                     html += '</div>';
-                    // Show value with clickable variable links if in playground (inline)
-                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        html += '<span class="param-value-display">';
-                        html += renderValueWithVariableLinks(yamlValue, slug);
-                        html += '</span>';
-                    }
                 } else if (schema.enum) {
                     // Enum - dropdown
                     html += '<label>';
@@ -3617,13 +3620,16 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
-                    html += '>';
-                    // Show value with clickable variable links if in playground (inline)
+
+                    // Add tooltip showing substituted value if in playground with variables
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        html += '<span class="param-value-display">';
-                        html += renderValueWithVariableLinks(yamlValue, slug);
-                        html += '</span>';
+                        var substitutedValue = substituteVariables(yamlValue, slug);
+                        if (substitutedValue !== yamlValue) {
+                            html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
+                        }
                     }
+
+                    html += '>';
                 }
 
                 html += '</div>';
@@ -3778,6 +3784,16 @@ function executeStepByIndex(slug, index) {
     if (!panel) return;
 
     var sid = panel.id.replace('playground-panel-', '');
+
+    // Get step title
+    var stepTitle = step.querySelector('.playground-step-title');
+    var stepName = stepTitle ? stepTitle.textContent.trim() : 'Step ' + (index + 1);
+
+    // Update variables panel header with current step
+    var variablesPanelHeader = document.querySelector('#variables-sidebar-' + slug + ' h4');
+    if (variablesPanelHeader) {
+        variablesPanelHeader.innerHTML = 'Variables<div style="font-size: 0.75rem; font-weight: 400; color: #6b7280; margin-top: 0.25rem;">Executing: ' + escapeHtml(stepName) + '</div>';
+    }
 
     // Scroll to step
     step.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4086,8 +4102,31 @@ function captureVariablesFromResponse(panel, result) {
     }
     Object.assign(skillVariables[slug], capturedVars);
 
-    // Update variables table
-    updateVariablesTable(slug, capturedVars, 'Step ' + stepNumber);
+    // Update variables table with ALL accumulated variables
+    updateVariablesTable(slug, skillVariables[slug], 'Step ' + stepNumber);
+
+    // Update tooltips on all input fields with variable references
+    updateVariableTooltips(slug);
+}
+
+// Update tooltips on input fields that contain variable references
+function updateVariableTooltips(slug) {
+    // Find all steps for this skill
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    steps.forEach(function(step) {
+        var inputs = step.querySelectorAll('input.has-variable-ref');
+        inputs.forEach(function(input) {
+            var value = input.value;
+            if (detectVariableReferences(value).length > 0) {
+                var substitutedValue = substituteVariables(value, slug);
+                if (substitutedValue !== value) {
+                    input.title = 'Resolves to: ' + substitutedValue;
+                } else {
+                    input.title = 'Variable not yet captured';
+                }
+            }
+        });
+    });
 }
 
 // Substitute variable references in a value

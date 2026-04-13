@@ -6049,7 +6049,8 @@ button.param-with-xorigin {
 }
 
 .try-response-body,
-.try-response-headers {
+.try-response-headers,
+.try-response-extracted {
     display: none;
     background: #f8f9fa;
     border: 1px solid var(--lume-color-neutral-5);
@@ -6068,8 +6069,33 @@ button.param-with-xorigin {
 }
 
 .try-response-body.active,
-.try-response-headers.active {
+.try-response-headers.active,
+.try-response-extracted.active {
     display: block;
+}
+
+/* Extracted values tab content */
+.try-response-extracted {
+    padding: var(--space-md) !important;
+    background: white !important;
+}
+
+.try-response-extracted .xorigin-values-section {
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.try-response-extracted .xorigin-values-header {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--lume-color-neutral-4);
+}
+
+.xorigin-values-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--lume-color-success-9);
 }
 
 .try-response-body .ace_editor,

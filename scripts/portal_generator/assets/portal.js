@@ -208,9 +208,7 @@ function openXOriginModal(opId, paramName, location) {
                 contextType: 'xorigin',
                 showExecuteButton: false  // Button is in header now
             });
-
-            // Add extracted values output section (below the operation panel)
-            html += '<div class="xorigin-values-output" id="xorigin-values-' + idx + '" style="display:none"></div>';
+            // Extracted values will be shown in the "Extracted Values" tab of the response section
         }
 
         html += '</div>';
@@ -439,12 +437,13 @@ async function executeXOriginSource(sourceIdx) {
             }
         }
 
-        // Show extracted values in dedicated output section
-        if (valuesOutputDiv) {
+        // Show extracted values in the "Extracted Values" tab
+        var extractedTab = document.getElementById('respextracted-xorigin-' + sourceIdx);
+        if (extractedTab) {
             if (values.length > 0) {
                 var valuesHtml = '<div class="xorigin-values-section">';
                 valuesHtml += '<div class="xorigin-values-header">';
-                valuesHtml += '<h5>Extracted Values (' + values.length + ')</h5>';
+                valuesHtml += '<div class="xorigin-values-count">' + values.length + ' value' + (values.length !== 1 ? 's' : '') + ' extracted</div>';
                 valuesHtml += '</div>';
                 valuesHtml += '<div class="xorigin-values-list">';
                 values.forEach(function(val, valIdx) {
@@ -467,11 +466,9 @@ async function executeXOriginSource(sourceIdx) {
                 valuesHtml += '</div>';
                 valuesHtml += '</div>';
 
-                valuesOutputDiv.innerHTML = valuesHtml;
-                valuesOutputDiv.style.display = 'block';
+                extractedTab.innerHTML = valuesHtml;
             } else {
-                valuesOutputDiv.innerHTML = '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
-                valuesOutputDiv.style.display = 'block';
+                extractedTab.innerHTML = '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
             }
         }
 
@@ -2979,20 +2976,27 @@ function switchResponseTab(opId, tabName) {
         btn.classList.remove('active');
     });
     var activeTab = Array.from(tabButtons).find(function(btn) {
-        return btn.textContent.toLowerCase() === tabName.toLowerCase();
+        return btn.textContent.toLowerCase().includes(tabName.toLowerCase());
     });
     if (activeTab) activeTab.classList.add('active');
 
     // Update content
     var bodyContent = document.getElementById('respbody-' + opId);
     var headersContent = document.getElementById('respheaders-' + opId);
+    var extractedContent = document.getElementById('respextracted-' + opId);
 
-    if (tabName === 'body') {
-        if (bodyContent) bodyContent.classList.add('active');
-        if (headersContent) headersContent.classList.remove('active');
-    } else if (tabName === 'headers') {
-        if (bodyContent) bodyContent.classList.remove('active');
-        if (headersContent) headersContent.classList.add('active');
+    // Remove active class from all
+    if (bodyContent) bodyContent.classList.remove('active');
+    if (headersContent) headersContent.classList.remove('active');
+    if (extractedContent) extractedContent.classList.remove('active');
+
+    // Add active class to the selected tab
+    if (tabName === 'body' && bodyContent) {
+        bodyContent.classList.add('active');
+    } else if (tabName === 'headers' && headersContent) {
+        headersContent.classList.add('active');
+    } else if (tabName === 'extracted' && extractedContent) {
+        extractedContent.classList.add('active');
     }
 }
 
@@ -3345,11 +3349,28 @@ function renderOperationPanel(opId, opMeta, options) {
     html += '</div>';
     html += '</div>';
     html += '<div class="try-response-tabs">';
-    html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
-    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+
+    // Add Extracted Values tab for x-origin context
+    if (contextType === 'xorigin') {
+        html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'extracted\')">Extracted Values</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+    } else {
+        html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+    }
+
     html += '</div>';
     html += '<div class="try-response-content">';
-    html += '<div class="try-response-body active" id="respbody-' + opId + '"></div>';
+
+    // Add Extracted Values content for x-origin context
+    if (contextType === 'xorigin') {
+        html += '<div class="try-response-extracted active" id="respextracted-' + opId + '"></div>';
+        html += '<div class="try-response-body" id="respbody-' + opId + '"></div>';
+    } else {
+        html += '<div class="try-response-body active" id="respbody-' + opId + '"></div>';
+    }
+
     html += '<div class="try-response-headers" id="respheaders-' + opId + '"></div>';
     html += '</div>';
     html += '</div>'; // End try-response

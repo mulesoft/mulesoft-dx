@@ -460,7 +460,8 @@ async function executeXOriginSource(sourceIdx) {
                     } else {
                         valuesHtml += '<code class="xorigin-value-display">' + escapeHtml(valueStr) + '</code>';
                     }
-                    valuesHtml += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', ' + escapeHtml(JSON.stringify(valueStr)) + ')">Select</button>';
+                    // Store value in data attribute to avoid escaping issues
+                    valuesHtml += '<button class="btn-use-value" data-value="' + escapeHtml(valueStr) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', this.getAttribute(\'data-value\'))">Select</button>';
                     valuesHtml += '</div>';
                 });
                 valuesHtml += '</div>';

@@ -3232,7 +3232,18 @@ function createReadOnlyCodeMirror(container, content, language) {
 }
 
 function displayResponseInAceEditors(responseBodyContainer, responseHeadersContainer, data) {
-    if (!data) return;
+    if (!data) {
+        console.error('displayResponseInAceEditors: no data provided');
+        return;
+    }
+
+    console.log('displayResponseInAceEditors called:', {
+        hasBodyContainer: !!responseBodyContainer,
+        hasHeadersContainer: !!responseHeadersContainer,
+        bodyContainerId: responseBodyContainer ? responseBodyContainer.id : 'null',
+        headersContainerId: responseHeadersContainer ? responseHeadersContainer.id : 'null',
+        dataKeys: Object.keys(data)
+    });
 
     // Display body (try to pretty-print JSON)
     if (responseBodyContainer) {
@@ -3243,6 +3254,7 @@ function displayResponseInAceEditors(responseBodyContainer, responseHeadersConta
         } catch (e) {
             bodyLang = 'text';
         }
+        console.log('Creating body editor with', bodyText.length, 'chars');
         createReadOnlyAceEditor(responseBodyContainer, bodyText, bodyLang);
     }
 
@@ -3252,6 +3264,7 @@ function displayResponseInAceEditors(responseBodyContainer, responseHeadersConta
         for (var headerName in data.headers) {
             headersText += headerName + ': ' + data.headers[headerName] + '\n';
         }
+        console.log('Creating headers editor with', headersText.length, 'chars');
         createReadOnlyAceEditor(responseHeadersContainer, headersText || 'No headers returned', 'text');
     }
 }
@@ -5345,6 +5358,16 @@ async function sendPlaygroundRequestActual(sid) {
         
         var result = await resp.json();
 
+        console.log('Playground response:', {
+            sid: sid,
+            hasResponseDiv: !!responseDiv,
+            hasBodyDiv: !!responseBodyDiv,
+            hasHeadersDiv: !!responseHeadersDiv,
+            resultStatus: result.status,
+            resultBody: result.body ? result.body.substring(0, 100) : 'null',
+            resultHeaders: result.headers
+        });
+
         // Remove empty state from response
         if (responseDiv) {
             responseDiv.classList.remove('empty');
@@ -5358,7 +5381,11 @@ async function sendPlaygroundRequestActual(sid) {
         }
 
         // Display response using ACE editors (same as try-it-out)
-        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+        if (responseBodyDiv && responseHeadersDiv) {
+            displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+        } else {
+            console.error('Missing response containers:', { bodyDiv: !!responseBodyDiv, headersDiv: !!responseHeadersDiv });
+        }
 
         // Extract and store variables for playground
         if (result.status >= 200 && result.status < 300) {

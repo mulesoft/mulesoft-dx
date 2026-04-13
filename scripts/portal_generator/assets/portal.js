@@ -3401,24 +3401,12 @@ function renderOperationPanel(opId, opMeta, options) {
 function detectVariableReferences(value) {
     var matches = [];
 
-    // Match {{variable}} format
-    var regex1 = /\{\{([^}]+)\}\}/g;
+    // Match ${variableName} format
+    var regex = /\$\{([^}]+)\}/g;
     var match;
-    while ((match = regex1.exec(value)) !== null) {
-        matches.push({ type: 'double', varName: match[1].trim(), fullMatch: match[0] });
-    }
-
-    // Match ${step.variable} format
-    var regex2 = /\$\{([^}]+)\}/g;
-    while ((match = regex2.exec(value)) !== null) {
-        var fullVar = match[1].trim();
-        // Extract step and variable name if in step.variable format
-        var parts = fullVar.split('.');
-        if (parts.length === 2) {
-            matches.push({ type: 'step', stepName: parts[0], varName: parts[1], fullMatch: match[0] });
-        } else {
-            matches.push({ type: 'simple', varName: fullVar, fullMatch: match[0] });
-        }
+    while ((match = regex.exec(value)) !== null) {
+        var varName = match[1].trim();
+        matches.push({ type: 'variable', varName: varName, fullMatch: match[0] });
     }
 
     return matches;
@@ -3445,11 +3433,7 @@ function renderValueWithVariableLinks(value, slug) {
 
     var result = value;
     varRefs.forEach(function(ref) {
-        var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
-        var stepId = ref.type === 'step' ? ref.stepName : null;
-        var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
-
-        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\', \'' + (stepId || '') + '\'); return false;" title="Click to view source">' +
+        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(ref.varName) + '\'); return false;" title="Click to view ' + escapeHtml(ref.varName) + '">' +
                    escapeHtml(ref.fullMatch) +
                    '</a>';
 
@@ -3589,11 +3573,11 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '</svg>';
                     html += '</button>';
                     html += '</div>';
-                    // Show value with clickable variable links if in playground
+                    // Show value with clickable variable links if in playground (inline)
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        html += '<div class="param-value-display">';
+                        html += '<span class="param-value-display">';
                         html += renderValueWithVariableLinks(yamlValue, slug);
-                        html += '</div>';
+                        html += '</span>';
                     }
                 } else if (schema.enum) {
                     // Enum - dropdown
@@ -3634,11 +3618,11 @@ function renderOperationForm(opId, opMeta, options) {
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
                     html += '>';
-                    // Show value with clickable variable links if in playground
+                    // Show value with clickable variable links if in playground (inline)
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
-                        html += '<div class="param-value-display">';
+                        html += '<span class="param-value-display">';
                         html += renderValueWithVariableLinks(yamlValue, slug);
-                        html += '</div>';
+                        html += '</span>';
                     }
                 }
 
@@ -3721,6 +3705,9 @@ function toggleSkillMode(slug) {
 // Debugger state tracking
 var debuggerState = {};
 
+// Global variable store per skill slug
+var skillVariables = {};
+
 function startDebugger(slug) {
     console.log('Starting debugger for:', slug);
 
@@ -3760,6 +3747,12 @@ function nextStep(slug) {
 
     var nextIndex = state.currentStep + 1;
     if (nextIndex < state.totalSteps) {
+        // Check if we can proceed (previous step must have succeeded)
+        if (!canProceedToNextStep(slug, nextIndex)) {
+            console.warn('Cannot proceed to next step - previous step failed');
+            alert('Cannot proceed: previous step failed. Please fix the error before continuing.');
+            return;
+        }
         state.currentStep = nextIndex;
         executeStepByIndex(slug, nextIndex);
     }
@@ -3818,54 +3811,40 @@ function scrollToStepByIndex(slug, index) {
 }
 
 // Scroll to the step that defines a variable
-function scrollToVariableSource(slug, varName, stepId) {
-    console.log('Scrolling to source of variable:', varName, 'from step:', stepId);
+function scrollToVariableSource(slug, varName) {
+    console.log('Scrolling to source of variable:', varName);
 
     var foundStep = null;
 
-    // If stepId is provided (e.g., "step1", "step2"), navigate directly to that step
-    if (stepId) {
-        // Extract step number from stepId (e.g., "step1" -> 1, "step2" -> 2)
-        var stepNumMatch = stepId.match(/step(\d+)/i);
-        if (stepNumMatch) {
-            var stepNum = parseInt(stepNumMatch[1]);
-            // Step numbers start at 1, but indices start at 0
-            var stepIndex = stepNum - 1;
-            foundStep = document.getElementById('playground-step-' + slug + '-' + stepIndex);
-        }
-    }
+    // Look through all steps to find which one outputs this variable
+    var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
 
-    // If no stepId or not found, look through all steps to find which one outputs this variable
-    if (!foundStep) {
-        var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    playgroundSteps.forEach(function(stepWrapper) {
+        var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
+        if (!panel) return;
 
-        playgroundSteps.forEach(function(stepWrapper) {
-            var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
-            if (!panel) return;
-
-            // Check if this step has outputs defined (these are the variables it captures)
-            var outputsAttr = panel.getAttribute('data-wf-outputs');
-            if (outputsAttr) {
-                try {
-                    var outputs = JSON.parse(outputsAttr);
-                    // Check if this variable is in the outputs (handle both array and object format)
-                    if (Array.isArray(outputs)) {
-                        for (var i = 0; i < outputs.length; i++) {
-                            if (outputs[i].name === varName) {
-                                foundStep = stepWrapper;
-                                return;
-                            }
+        // Check if this step has outputs defined (these are the variables it captures)
+        var outputsAttr = panel.getAttribute('data-wf-outputs');
+        if (outputsAttr) {
+            try {
+                var outputs = JSON.parse(outputsAttr);
+                // Check if this variable is in the outputs (handle both array and object format)
+                if (Array.isArray(outputs)) {
+                    for (var i = 0; i < outputs.length; i++) {
+                        if (outputs[i].name === varName) {
+                            foundStep = stepWrapper;
+                            return;
                         }
-                    } else if (outputs && outputs[varName]) {
-                        foundStep = stepWrapper;
-                        return;
                     }
-                } catch (e) {
-                    console.error('Error parsing outputs:', e);
+                } else if (outputs && outputs[varName]) {
+                    foundStep = stepWrapper;
+                    return;
                 }
+            } catch (e) {
+                console.error('Error parsing outputs:', e);
             }
-        });
-    }
+        }
+    });
 
     if (foundStep) {
         // Scroll to the step
@@ -4101,8 +4080,38 @@ function captureVariablesFromResponse(panel, result) {
         }
     }
 
+    // Store variables globally for this skill
+    if (!skillVariables[slug]) {
+        skillVariables[slug] = {};
+    }
+    Object.assign(skillVariables[slug], capturedVars);
+
     // Update variables table
     updateVariablesTable(slug, capturedVars, 'Step ' + stepNumber);
+}
+
+// Substitute variable references in a value
+function substituteVariables(value, slug) {
+    if (!value || typeof value !== 'string') return value;
+
+    var vars = skillVariables[slug] || {};
+    var result = value;
+
+    // Replace ${variableName} with actual values
+    var regex = /\$\{([^}]+)\}/g;
+    result = result.replace(regex, function(match, varName) {
+        varName = varName.trim();
+        if (varName in vars) {
+            var varValue = vars[varName];
+            // Convert to string if not already
+            return typeof varValue === 'object' ? JSON.stringify(varValue) : String(varValue);
+        }
+        // Variable not found, return original
+        console.warn('Variable not found:', varName);
+        return match;
+    });
+
+    return result;
 }
 
 // Simple JSONPath-like extraction
@@ -4358,16 +4367,21 @@ async function executePlaygroundStep(sid) {
     var operationId = panel.dataset.wfOperation;
     var apiSlug = apiUrn.replace('urn:api:', '');
 
+    // Extract skill slug from sid (format: skillSlug-stepIndex)
+    var skillSlug = sid.substring(0, sid.lastIndexOf('-'));
+
     var opLookup = window.__OP_LOOKUP__ || {};
     var apiEntry = opLookup[apiSlug];
     if (!apiEntry) {
         console.error('API not found:', apiSlug);
+        markStepFailed(skillSlug, sid);
         return;
     }
 
     var opMeta = apiEntry.ops[operationId];
     if (!opMeta) {
         console.error('Operation not found:', operationId);
+        markStepFailed(skillSlug, sid);
         return;
     }
 
@@ -4397,6 +4411,9 @@ async function executePlaygroundStep(sid) {
 
             if (!value) return;
 
+            // Substitute variables in the value
+            value = substituteVariables(value, skillSlug);
+
             if (paramName === '__body__') {
                 bodyContent = value;
             } else if (location === 'path') {
@@ -4413,7 +4430,7 @@ async function executePlaygroundStep(sid) {
         if (bodyEditor) {
             var editorContent = bodyEditor.getValue();
             if (editorContent.trim()) {
-                bodyContent = editorContent.trim();
+                bodyContent = substituteVariables(editorContent.trim(), skillSlug);
             }
         }
 
@@ -4473,14 +4490,23 @@ async function executePlaygroundStep(sid) {
             if (responseBodyDiv) {
                 createReadOnlyAceEditor(responseBodyDiv, result.error, 'text');
             }
+            markStepFailed(skillSlug, sid);
             return;
         }
+
+        // Check if response is successful
+        var isSuccess = result.status >= 200 && result.status < 300;
 
         // Display response using shared function
         displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
 
-        // Capture variables from response if outputs are defined
-        captureVariablesFromResponse(panel, result);
+        if (isSuccess) {
+            // Capture variables from response if outputs are defined
+            captureVariablesFromResponse(panel, result);
+            markStepSuccess(skillSlug, sid);
+        } else {
+            markStepFailed(skillSlug, sid);
+        }
 
     } catch (error) {
         console.error('Playground execution failed:', error);
@@ -4494,7 +4520,46 @@ async function executePlaygroundStep(sid) {
         if (responseBodyDiv) {
             createReadOnlyAceEditor(responseBodyDiv, 'Error: ' + error.message, 'text');
         }
+        markStepFailed(skillSlug, sid);
     }
+}
+
+// Mark step as successful
+function markStepSuccess(skillSlug, sid) {
+    if (debuggerState[skillSlug]) {
+        if (!debuggerState[skillSlug].successfulSteps) {
+            debuggerState[skillSlug].successfulSteps = {};
+        }
+        debuggerState[skillSlug].successfulSteps[sid] = true;
+    }
+}
+
+// Mark step as failed
+function markStepFailed(skillSlug, sid) {
+    if (debuggerState[skillSlug]) {
+        if (!debuggerState[skillSlug].successfulSteps) {
+            debuggerState[skillSlug].successfulSteps = {};
+        }
+        debuggerState[skillSlug].successfulSteps[sid] = false;
+
+        // Stop debugger if running
+        if (debuggerState[skillSlug].isRunning) {
+            console.log('Step failed, stopping debugger');
+            cancelDebugger(skillSlug);
+        }
+    }
+}
+
+// Check if previous step was successful
+function canProceedToNextStep(skillSlug, currentStepIndex) {
+    if (currentStepIndex === 0) return true; // First step can always run
+
+    var state = debuggerState[skillSlug];
+    if (!state || !state.successfulSteps) return false;
+
+    // Check if previous step was successful
+    var prevSid = skillSlug + '-' + (currentStepIndex - 1);
+    return state.successfulSteps[prevSid] === true;
 }
 
 // ============================================================================

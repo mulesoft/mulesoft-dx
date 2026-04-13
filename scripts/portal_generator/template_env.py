@@ -140,7 +140,7 @@ def _resolve_skill_inputs(inputs_dict, step_details):
     To:
         {
             'organizationId': {
-                'ref': '${step1.organizationId}',
+                'ref': '${organizationId}',
                 'description': '...'
             }
         }
@@ -155,15 +155,6 @@ def _resolve_skill_inputs(inputs_dict, step_details):
     if not inputs_dict or not isinstance(inputs_dict, dict):
         return inputs_dict
 
-    # Build a mapping from step title to step number
-    step_title_to_num = {}
-    if step_details:
-        for i, step in enumerate(step_details):
-            title = step.get('title', '')
-            # Strip "Step N: " prefix if present
-            title = re.sub(r'^Step \d+:\s*', '', title)
-            step_title_to_num[title] = i + 1
-
     # Transform each input parameter
     result = {}
     for param_name, param_config in inputs_dict.items():
@@ -176,22 +167,18 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         if 'from' in param_config:
             from_ref = param_config['from']
             if isinstance(from_ref, dict):
-                step_title = from_ref.get('step', '')
                 # Try both 'output' and 'input' fields
                 var_name = from_ref.get('output') or from_ref.get('input', '')
 
-                if step_title and var_name:
-                    # Find the step number
-                    step_num = step_title_to_num.get(step_title)
-                    if step_num:
-                        # Create the reference string
-                        ref_string = f'${{step{step_num}.{var_name}}}'
-                        # Replace 'from' with 'ref'
-                        new_config = param_config.copy()
-                        del new_config['from']
-                        new_config['ref'] = ref_string
-                        result[param_name] = new_config
-                        continue
+                if var_name:
+                    # Create the reference string - just ${variableName}
+                    ref_string = f'${{{var_name}}}'
+                    # Replace 'from' with 'ref'
+                    new_config = param_config.copy()
+                    del new_config['from']
+                    new_config['ref'] = ref_string
+                    result[param_name] = new_config
+                    continue
 
         # No transformation needed, keep as-is
         result[param_name] = param_config

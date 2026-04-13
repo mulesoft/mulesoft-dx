@@ -2897,7 +2897,7 @@ function selectResponseStatus(opId, status) {
                         } else {
                             contentTypeBadge.textContent = contentTypes[0].replace('application/', '').replace('text/', '');
                         }
-                        contentTypeBadge.style.display = '';
+                        contentTypeBadge.style.display = 'inline-block';
                     } else {
                         contentTypeBadge.style.display = 'none';
                     }

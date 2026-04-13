@@ -38,9 +38,9 @@
   -H "Authorization: Bearer {{ '{{authToken}}' }}" \
   -H "Content-Type: application/json" \{% if inputs %}
   -d '{
-{% for name, defn in inputs.items() %}    "{{ name }}": "{{ render_input_value(defn) }}"{% if not loop.last %},{% endif %}
+{% if inputs is mapping %}{% for name, defn in inputs.items() %}    "{{ name }}": "{{ render_input_value(defn) }}"{% if not loop.last %},{% endif %}
 
-{% endfor %}  }'{% endif %}</code></pre>
+{% endfor %}{% endif %}  }'{% endif %}</code></pre>
 </div>
 
 {# Outputs Section #}

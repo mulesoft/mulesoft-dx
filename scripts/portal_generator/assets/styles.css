@@ -6843,8 +6843,8 @@ details[open] .examples-toggle-icon {
 .variables-sidebar {
     position: sticky !important;
     top: 80px !important;
-    width: 320px !important;
-    flex: 0 0 320px !important;
+    width: 420px !important;
+    flex: 0 0 420px !important;
     height: calc(100vh - 100px) !important;
     min-height: 400px !important;
     max-height: calc(100vh - 100px) !important;
@@ -6852,35 +6852,43 @@ details[open] .examples-toggle-icon {
     background: var(--color-surface) !important;
     border: 1px solid var(--color-border) !important;
     border-radius: 6px !important;
-    padding: var(--space-md) !important;
+    padding: 0 !important;
     align-self: flex-start !important;
     z-index: 100 !important;
 }
 
 .variables-sidebar-header {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: var(--space-sm);
-    margin-bottom: var(--space-md);
+    padding: var(--space-md);
+    background: #f9fafb;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .variables-sidebar-header h4 {
     margin: 0;
     font-size: 0.875rem;
     font-weight: 600;
+    flex: 1;
 }
 
 /* Debugger controls */
 .debugger-controls {
     display: flex;
-    justify-content: center;
+    gap: 0.25rem;
     align-items: center;
 }
 
 .debugger-run-state,
 .debugger-running-state {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.25rem;
     align-items: center;
 }
 
@@ -6888,16 +6896,17 @@ details[open] .examples-toggle-icon {
 .btn-debugger-prev,
 .btn-debugger-next,
 .btn-debugger-cancel {
-    background: transparent;
-    border: 1px solid var(--color-border);
+    background: white;
+    border: 1px solid #d1d5db;
     border-radius: 4px;
-    padding: 0.5rem;
+    padding: 0.375rem 0.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
-    color: var(--text-primary);
+    transition: all 0.15s;
+    color: #374151;
+    font-size: 0.75rem;
 }
 
 .btn-debugger-run {
@@ -6908,12 +6917,13 @@ details[open] .examples-toggle-icon {
 
 .btn-debugger-run:hover {
     background: #014a87;
+    border-color: #014a87;
 }
 
 .btn-debugger-prev:hover,
 .btn-debugger-next:hover {
-    background: var(--lume-color-neutral-3);
-    border-color: var(--lume-color-neutral-5);
+    background: #f3f4f6;
+    border-color: #9ca3af;
 }
 
 .btn-debugger-cancel {
@@ -6924,6 +6934,7 @@ details[open] .examples-toggle-icon {
 
 .btn-debugger-cancel:hover {
     background: #b91c1c;
+    border-color: #b91c1c;
 }
 
 .btn-debugger-prev:disabled,
@@ -6935,6 +6946,7 @@ details[open] .examples-toggle-icon {
 .variables-table {
     width: 100%;
     font-size: 0.75rem;
+    padding: 0 var(--space-md) var(--space-md) var(--space-md);
 }
 
 .variables-table th {
@@ -6987,7 +6999,6 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-mode-playground {
-    display: flex !important;
     flex-direction: row !important;
     gap: 1.5rem !important;
     align-items: flex-start !important;
@@ -6995,10 +7006,15 @@ details[open] .examples-toggle-icon {
     width: 100% !important;
 }
 
+.skill-mode-playground[style*="display: block"],
+.skill-mode-playground:not([style*="display: none"]) {
+    display: flex !important;
+}
+
 .playground-main-content {
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    width: calc(100% - 360px) !important;
+    width: calc(100% - 460px) !important;
     overflow-x: hidden !important;
 }
 

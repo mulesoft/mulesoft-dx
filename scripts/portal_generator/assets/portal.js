@@ -3696,6 +3696,11 @@ function toggleSkillMode(slug) {
         if (docMode) docMode.style.display = 'block';
         if (playgroundMode) playgroundMode.style.display = 'none';
         if (playgroundControls) playgroundControls.style.display = 'none';
+
+        // Update URL to remove playground parameter
+        var url = new URL(window.location);
+        url.searchParams.delete('playground');
+        window.history.replaceState({}, '', url);
     } else {
         // Switch to playground mode
         toggle.setAttribute('aria-checked', 'true');
@@ -3703,10 +3708,35 @@ function toggleSkillMode(slug) {
         if (playgroundMode) playgroundMode.style.display = 'block';
         if (playgroundControls) playgroundControls.style.display = 'flex';
 
+        // Update URL to add playground parameter
+        var url = new URL(window.location);
+        url.searchParams.set('playground', 'true');
+        window.history.replaceState({}, '', url);
+
         // Initialize playground steps if not already done
         initializePlaygroundSteps();
     }
 }
+
+// Check URL parameter on page load to activate playground mode
+document.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('playground') === 'true') {
+        // Find the skill on this page and activate playground mode
+        var skillSection = document.querySelector('.skill-detail');
+        if (skillSection) {
+            var skillId = skillSection.id;
+            var slug = skillId.replace('skill-', '');
+            // Trigger toggle programmatically
+            setTimeout(function() {
+                var toggle = document.getElementById('toggle-' + slug);
+                if (toggle && toggle.getAttribute('aria-checked') !== 'true') {
+                    toggleSkillMode(slug);
+                }
+            }, 100);
+        }
+    }
+});
 
 // Debugger state tracking
 var debuggerState = {};
@@ -3737,14 +3767,24 @@ function startDebugger(slug) {
 function cancelDebugger(slug) {
     console.log('Canceling debugger for:', slug);
 
-    // Reset state
+    // Reset state and clear variables
     debuggerState[slug] = { isRunning: false };
+    skillVariables[slug] = {};
 
     // Switch UI back to initial state
     var runState = document.getElementById('debugger-run-' + slug);
     var runningState = document.getElementById('debugger-running-' + slug);
     if (runState) runState.style.display = 'block';
     if (runningState) runningState.style.display = 'none';
+
+    // Clear variables table
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+    }
+
+    // Clear executing step display
+    updateExecutingStepDisplay(slug, null);
 }
 
 function nextStep(slug) {
@@ -3772,6 +3812,27 @@ function previousStep(slug) {
     if (prevIndex >= 0) {
         state.currentStep = prevIndex;
         scrollToStepByIndex(slug, prevIndex);
+
+        // Update executing display for previous step
+        var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+        if (prevIndex < steps.length) {
+            var step = steps[prevIndex];
+            var stepTitle = step.querySelector('.playground-step-title');
+            var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + (prevIndex + 1);
+            updateExecutingStepDisplay(slug, stepName);
+        }
+    }
+}
+
+// Update the executing step display in variables panel
+function updateExecutingStepDisplay(slug, stepName) {
+    var variablesPanelHeader = document.querySelector('#variables-sidebar-' + slug + ' h4');
+    if (variablesPanelHeader) {
+        if (stepName) {
+            variablesPanelHeader.innerHTML = 'Variables<div style="font-size: 0.75rem; font-weight: 400; color: #6b7280; margin-top: 0.25rem;">Executing: ' + escapeHtml(stepName) + '</div>';
+        } else {
+            variablesPanelHeader.textContent = 'Variables';
+        }
     }
 }
 
@@ -3785,15 +3846,12 @@ function executeStepByIndex(slug, index) {
 
     var sid = panel.id.replace('playground-panel-', '');
 
-    // Get step title
+    // Get step title (remove "Step N:" prefix)
     var stepTitle = step.querySelector('.playground-step-title');
-    var stepName = stepTitle ? stepTitle.textContent.trim() : 'Step ' + (index + 1);
+    var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + (index + 1);
 
     // Update variables panel header with current step
-    var variablesPanelHeader = document.querySelector('#variables-sidebar-' + slug + ' h4');
-    if (variablesPanelHeader) {
-        variablesPanelHeader.innerHTML = 'Variables<div style="font-size: 0.75rem; font-weight: 400; color: #6b7280; margin-top: 0.25rem;">Executing: ' + escapeHtml(stepName) + '</div>';
-    }
+    updateExecutingStepDisplay(slug, stepName);
 
     // Scroll to step
     step.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4032,7 +4090,13 @@ function captureVariablesFromResponse(panel, result) {
     if (!match) return;
 
     var slug = match[1];
-    var stepNumber = parseInt(match[2]) + 1;
+    var stepIndex = parseInt(match[2]);
+    var stepNumber = stepIndex + 1;
+
+    // Get step title for source
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    var stepTitle = stepWrapper ? stepWrapper.querySelector('.playground-step-title') : null;
+    var stepName = stepTitle ? stepTitle.textContent.trim().replace(/^Step \d+:\s*/, '') : 'Step ' + stepNumber;
 
     // Parse response body
     var responseBody = result.body;
@@ -4102,8 +4166,10 @@ function captureVariablesFromResponse(panel, result) {
     }
     Object.assign(skillVariables[slug], capturedVars);
 
+    console.log('After assign, skillVariables[' + slug + ']:', skillVariables[slug]);
+
     // Update variables table with ALL accumulated variables
-    updateVariablesTable(slug, skillVariables[slug], 'Step ' + stepNumber);
+    updateVariablesTable(slug, skillVariables[slug], stepName);
 
     // Update tooltips on all input fields with variable references
     updateVariableTooltips(slug);

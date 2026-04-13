@@ -53,13 +53,4 @@
 </div>
 {% endif %}
 
-{# Next Step Button - enabled after execution #}
-{% if step_index < total_steps - 1 %}
-<div class="playground-step-footer">
-    <button class="btn-next-step" id="btn-next-{{ sid }}" onclick="scrollToNextStep('{{ slug }}', {{ step_index }})" disabled>
-        Next: Step {{ step_num + 1 }} ▼
-    </button>
-</div>
-{% endif %}
-
 {% endmacro %}

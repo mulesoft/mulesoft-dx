@@ -2024,6 +2024,7 @@ button.nav-group-header {
 
 .detail-content {
     flex: 1;
+    min-width: 0;
     padding: var(--space-xl);
 }
 
@@ -2431,7 +2432,7 @@ button.nav-group-header {
     flex: 1;
     min-width: 0;
     white-space: nowrap;
-    position: relative;
+    overflow: hidden;
 }
 
 .url-server-part {
@@ -2452,9 +2453,7 @@ button.nav-group-header {
 }
 
 .server-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
+    position: fixed;
     margin-top: 4px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -2524,6 +2523,8 @@ button.nav-group-header {
     border-radius: var(--lume-radius-medium);
     flex: 1;
     min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .operation-url-bar-link {

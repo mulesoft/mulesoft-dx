@@ -3426,6 +3426,15 @@ function detectVariableReferences(value) {
 
 // Helper function to render value with clickable variable links
 function renderValueWithVariableLinks(value, slug) {
+    // Ensure value is a string
+    if (typeof value === 'object') {
+        value = JSON.stringify(value);
+    } else if (value == null) {
+        value = '';
+    } else {
+        value = String(value);
+    }
+
     var varRefs = detectVariableReferences(value);
     if (varRefs.length === 0) return escapeHtml(value);
 

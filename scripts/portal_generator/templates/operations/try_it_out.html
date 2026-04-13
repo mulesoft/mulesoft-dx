@@ -43,7 +43,7 @@
                 <input type="text"
                        data-param="{{ name }}"
                        data-in="{{ location }}"
-                       {% autoescape false %}data-x-origins="{{ origins|tojson|replace('"', '&quot;') }}"{% endautoescape %}
+                       data-x-origins='{{ origins|tojson }}'
                        id="param-{{ op_id }}-{{ name }}"
                        placeholder="{{ ptype }}"
                        value="{{ default_val }}"

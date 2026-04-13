@@ -6884,8 +6884,10 @@ details[open] .examples-toggle-icon {
 .variables-sidebar {
     position: sticky;
     top: 80px;
+    right: 0;
     width: 320px;
     flex-shrink: 0;
+    flex-grow: 0;
     height: calc(100vh - 100px);
     min-height: 400px;
     overflow-y: auto;
@@ -6895,6 +6897,7 @@ details[open] .examples-toggle-icon {
     padding: var(--space-md);
     align-self: flex-start;
     z-index: 10;
+    order: 2;
 }
 
 .variables-sidebar-header {
@@ -6979,15 +6982,19 @@ details[open] .examples-toggle-icon {
 
 .skill-mode-playground {
     display: flex;
+    flex-direction: row;
     gap: var(--space-lg);
     align-items: flex-start;
     position: relative;
+    width: 100%;
 }
 
 .playground-main-content {
     flex: 1;
     min-width: 0;
+    max-width: calc(100% - 340px);
     overflow-x: hidden;
+    order: 1;
 }
 
 .playground-operation-link {

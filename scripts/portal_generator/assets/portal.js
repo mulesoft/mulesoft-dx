@@ -3473,9 +3473,7 @@ function renderOperationForm(opId, opMeta, options) {
                     var origins = Array.isArray(xOrigin) ? xOrigin : [xOrigin];
                     html += '<label>';
                     html += '<span class="param-name-wrapper">';
-                    html += '<button type="button" class="param-with-xorigin" ';
-                    html += 'onclick="event.stopPropagation(); openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
-                    html += 'title="Fetch values from ' + origins.length + ' source(s)">' + escapeHtml(paramName) + '</button>';
+                    html += '<code>' + escapeHtml(paramName) + '</code>';
                     if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
                     html += '</span>';
                     if (description) {
@@ -3484,12 +3482,24 @@ function renderOperationForm(opId, opMeta, options) {
                         html += '</span>';
                     }
                     html += '</label>';
+                    // Input field with magnifier button wrapper
+                    html += '<div class="param-input-with-xorigin">';
                     html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
                     html += 'data-x-origins="' + escapeHtml(JSON.stringify(origins)) + '" ';
                     html += 'id="param-' + opId + '-' + paramName + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
                     html += '>';
+                    // Magnifier button
+                    html += '<button type="button" class="btn-xorigin-search" ';
+                    html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
+                    html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
+                    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                    html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                    html += '</svg>';
+                    html += '</button>';
+                    html += '</div>';
                     // Add variable reference hints
                     html += renderVariableReferenceHints(yamlValue, contextType, slug);
                 } else if (schema.enum) {

@@ -5000,23 +5000,42 @@ details[open] .examples-toggle-icon {
     }
 }
 
-button.param-with-xorigin {
+/* X-Origin parameter input with search button */
+.param-input-with-xorigin {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.param-input-with-xorigin input {
+    flex: 1;
+    padding-right: 2.5rem;
+}
+
+.btn-xorigin-search {
+    position: absolute;
+    right: 0.375rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
     border: none;
-    background: none;
-    padding: 0;
-    font-family: var(--font-mono);
-    font-size: 0.875em;
-}
-
-.param-with-xorigin {
+    padding: 0.375rem;
     cursor: pointer;
-    color: var(--color-primary);
-    text-decoration: underline;
-    text-decoration-style: dotted;
+    color: var(--lume-color-neutral-7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
 }
 
-.param-with-xorigin:hover {
-    text-decoration-style: solid;
+.btn-xorigin-search:hover {
+    background: var(--lume-color-neutral-3);
+    color: var(--lume-color-neutral-9);
+}
+
+.btn-xorigin-search svg {
+    display: block;
 }
 
 /* X-Origin Modal */

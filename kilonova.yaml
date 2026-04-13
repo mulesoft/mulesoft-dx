@@ -1,0 +1,4 @@
+product: api-manager
+component: anypoint-dev-portal
+builder:
+  name: none

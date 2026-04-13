@@ -3998,6 +3998,7 @@ function captureVariablesFromResponse(panel, result) {
     var outputs = {};
     try {
         outputs = JSON.parse(outputsJson);
+        console.log('Parsed outputs:', outputs);
     } catch (e) {
         console.error('Failed to parse outputs:', e);
         return;
@@ -4026,11 +4027,27 @@ function captureVariablesFromResponse(panel, result) {
         }
     }
 
+    console.log('Response body:', responseBody);
+
     // Extract variables using JSONPath-like simple extraction
     var capturedVars = {};
     for (var varName in outputs) {
-        var path = outputs[varName];
+        var pathConfig = outputs[varName];
+        console.log('Processing variable:', varName, 'Path config:', pathConfig);
+
+        // Handle both string paths and object configs
+        var path;
+        if (typeof pathConfig === 'string') {
+            path = pathConfig;
+        } else if (typeof pathConfig === 'object' && pathConfig.path) {
+            path = pathConfig.path;
+        } else {
+            console.warn('Invalid path config for', varName, ':', pathConfig);
+            continue;
+        }
+
         var value = extractValueByPath(responseBody, path);
+        console.log('Extracted value for', varName, ':', value);
         if (value !== undefined) {
             capturedVars[varName] = value;
         }
@@ -4043,6 +4060,12 @@ function captureVariablesFromResponse(panel, result) {
 // Simple JSONPath-like extraction
 function extractValueByPath(obj, path) {
     if (!path || !obj) return undefined;
+
+    // Ensure path is a string
+    if (typeof path !== 'string') {
+        console.warn('Path is not a string:', path, 'Type:', typeof path);
+        return undefined;
+    }
 
     // Remove leading $. if present
     path = path.replace(/^\$\./, '');

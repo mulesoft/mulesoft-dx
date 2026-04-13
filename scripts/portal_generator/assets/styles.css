@@ -2037,6 +2037,7 @@ button.nav-group-header {
     flex: 1;
     min-width: 0;
     padding: var(--space-xl);
+    overflow: visible;
 }
 
 /* Skill pages use less side padding for more width */
@@ -2057,6 +2058,7 @@ button.nav-group-header {
     margin-bottom: var(--space-2xl);
     padding-bottom: var(--space-2xl);
     border-bottom: 1px solid var(--color-border);
+    overflow: visible;
 }
 
 .content-section:last-child {
@@ -2265,12 +2267,14 @@ button.nav-group-header {
 .operation-content-wrapper {
     display: flex;
     gap: 5px;
+    overflow: visible;
 }
 
 .operation-main-content {
     flex: 1;
     min-width: 0;
     order: 1;
+    overflow: visible;
 }
 
 .operation-try-panel {

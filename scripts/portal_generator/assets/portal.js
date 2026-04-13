@@ -2890,7 +2890,9 @@ function selectResponseStatus(opId, status) {
             var contentTypesJson = selectedContent.getAttribute('data-content-types');
             if (contentTypesJson) {
                 try {
-                    var contentTypes = JSON.parse(contentTypesJson);
+                    // Decode HTML entities (browser doesn't auto-decode getAttribute results)
+                    var decodedJson = contentTypesJson.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+                    var contentTypes = JSON.parse(decodedJson);
                     if (contentTypes && contentTypes.length > 0) {
                         if (contentTypes.indexOf('application/json') !== -1) {
                             contentTypeBadge.textContent = 'json';

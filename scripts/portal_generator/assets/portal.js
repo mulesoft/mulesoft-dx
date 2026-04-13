@@ -3446,9 +3446,10 @@ function renderValueWithVariableLinks(value, slug) {
     var result = value;
     varRefs.forEach(function(ref) {
         var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
+        var stepId = ref.type === 'step' ? ref.stepName : null;
         var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
 
-        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\'); return false;" title="Click to view source">' +
+        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\', \'' + (stepId || '') + '\'); return false;" title="Click to view source">' +
                    escapeHtml(ref.fullMatch) +
                    '</a>';
 
@@ -3817,32 +3818,54 @@ function scrollToStepByIndex(slug, index) {
 }
 
 // Scroll to the step that defines a variable
-function scrollToVariableSource(slug, varName) {
-    console.log('Scrolling to source of variable:', varName);
+function scrollToVariableSource(slug, varName, stepId) {
+    console.log('Scrolling to source of variable:', varName, 'from step:', stepId);
 
-    // Look through all playground steps to find which one outputs this variable
-    var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
     var foundStep = null;
 
-    playgroundSteps.forEach(function(stepWrapper) {
-        var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
-        if (!panel) return;
-
-        // Check if this step has outputs defined (these are the variables it captures)
-        var outputsAttr = panel.getAttribute('data-wf-outputs');
-        if (outputsAttr) {
-            try {
-                var outputs = JSON.parse(outputsAttr);
-                // Check if this variable is in the outputs
-                if (outputs && outputs[varName]) {
-                    foundStep = stepWrapper;
-                    return;
-                }
-            } catch (e) {
-                console.error('Error parsing outputs:', e);
-            }
+    // If stepId is provided (e.g., "step1", "step2"), navigate directly to that step
+    if (stepId) {
+        // Extract step number from stepId (e.g., "step1" -> 1, "step2" -> 2)
+        var stepNumMatch = stepId.match(/step(\d+)/i);
+        if (stepNumMatch) {
+            var stepNum = parseInt(stepNumMatch[1]);
+            // Step numbers start at 1, but indices start at 0
+            var stepIndex = stepNum - 1;
+            foundStep = document.getElementById('playground-step-' + slug + '-' + stepIndex);
         }
-    });
+    }
+
+    // If no stepId or not found, look through all steps to find which one outputs this variable
+    if (!foundStep) {
+        var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+
+        playgroundSteps.forEach(function(stepWrapper) {
+            var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
+            if (!panel) return;
+
+            // Check if this step has outputs defined (these are the variables it captures)
+            var outputsAttr = panel.getAttribute('data-wf-outputs');
+            if (outputsAttr) {
+                try {
+                    var outputs = JSON.parse(outputsAttr);
+                    // Check if this variable is in the outputs (handle both array and object format)
+                    if (Array.isArray(outputs)) {
+                        for (var i = 0; i < outputs.length; i++) {
+                            if (outputs[i].name === varName) {
+                                foundStep = stepWrapper;
+                                return;
+                            }
+                        }
+                    } else if (outputs && outputs[varName]) {
+                        foundStep = stepWrapper;
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing outputs:', e);
+                }
+            }
+        });
+    }
 
     if (foundStep) {
         // Scroll to the step

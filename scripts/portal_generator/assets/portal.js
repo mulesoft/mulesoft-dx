@@ -4214,27 +4214,40 @@ function updateVariableTooltips(slug) {
     // Find all steps for this skill
     var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
     steps.forEach(function(step) {
-        var inputs = step.querySelectorAll('input.has-variable-ref');
-        console.log('Found', inputs.length, 'inputs with variable references');
-        inputs.forEach(function(input) {
+        // Find ALL text inputs in this step, not just those with has-variable-ref class
+        var allInputs = step.querySelectorAll('input[type="text"]');
+        console.log('Found', allInputs.length, 'text inputs');
+
+        allInputs.forEach(function(input) {
             var value = input.value;
-            if (detectVariableReferences(value).length > 0) {
+            var varRefs = detectVariableReferences(value);
+
+            if (varRefs.length > 0) {
+                console.log('Input has variable references:', value);
                 var substitutedValue = substituteVariables(value, slug);
-                console.log('Updating tooltip for input with value:', value, 'substituted:', substitutedValue);
+                console.log('  Substituted to:', substitutedValue);
+
                 if (substitutedValue !== value) {
+                    // Add the has-variable-ref class if not already present
+                    if (!input.classList.contains('has-variable-ref')) {
+                        input.classList.add('has-variable-ref');
+                    }
                     input.title = 'Resolves to: ' + substitutedValue;
 
                     // Update or create the resolved value span
                     var nextSibling = input.nextElementSibling;
                     if (nextSibling && nextSibling.classList.contains('variable-resolved-value')) {
+                        console.log('  Updating existing span');
                         nextSibling.textContent = substitutedValue;
                     } else if (nextSibling && nextSibling.classList.contains('btn-xorigin-search')) {
                         // For x-origin fields, the button comes first, check after it
                         var spanAfterButton = nextSibling.nextElementSibling;
                         if (spanAfterButton && spanAfterButton.classList.contains('variable-resolved-value')) {
+                            console.log('  Updating existing span after button');
                             spanAfterButton.textContent = substitutedValue;
                         } else {
                             // Create new span after the button
+                            console.log('  Creating new span after button');
                             var span = document.createElement('span');
                             span.className = 'variable-resolved-value';
                             span.textContent = substitutedValue;
@@ -4242,12 +4255,17 @@ function updateVariableTooltips(slug) {
                         }
                     } else {
                         // Create new span
+                        console.log('  Creating new span after input');
                         var span = document.createElement('span');
                         span.className = 'variable-resolved-value';
                         span.textContent = substitutedValue;
                         input.parentNode.insertBefore(span, input.nextSibling);
                     }
                 } else {
+                    // Variable not yet resolved
+                    if (!input.classList.contains('has-variable-ref')) {
+                        input.classList.add('has-variable-ref');
+                    }
                     input.title = 'Variable not yet captured';
                 }
             }

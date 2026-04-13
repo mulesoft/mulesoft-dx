@@ -87,18 +87,18 @@ validations:
           shapes.format:
             minCount: 1
   oas-only:
-    message: API specification must be OpenAPI (OAS), not RAML. Use OAS 2.0 or OAS 3.0.
+    message: API specification must be OpenAPI (OAS) 3.0 or 3.1, not RAML or OAS 2.0.
     documentation: >
       This rule ensures the API specification is written in OpenAPI
-      Specification (OAS) format.
+      Specification (OAS) format version 3.0 or later.
 
-      RAML specifications are not allowed. Only OAS 2.0 and OAS 3.0 are accepted.
+      RAML and OAS 2.0 specifications are not allowed. Only OAS 3.0 and OAS 3.1 are accepted.
     targetClass: doc.APIContractProcessingData
     propertyConstraints:
       doc.sourceSpec:
         in:
-          - OAS 2.0
           - OAS 3.0
+          - OAS 3.1
   operation-description:
     message: Operation '{{apiContract.method}}' must have a description.
     documentation: >

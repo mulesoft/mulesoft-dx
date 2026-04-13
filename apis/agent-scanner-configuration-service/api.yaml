@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Agent Scanner Configuration Service API
   description: REST API for Agent Scanner Configuration Service
-  version: 0.0.1-SNAPSHOT
+  version: 0.0.1
 servers:
 - url: https://anypoint.mulesoft.com/agent-scanner
 - url: https://eu1.anypoint.mulesoft.com/agent-scanner
@@ -35,20 +35,24 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: scannerConfigurationId
         in: path
+        description: The scanner configuration identifier.
         required: true
         schema:
           type: string
       requestBody:
+        description: Scanner configuration object with updated field values.
         content:
           application/json:
             schema:
@@ -61,6 +65,7 @@ paths:
             application/json:
               schema:
                 type: string
+              example: '{"id":"12345678-1234-1234-1234-123456789abc","name":"Updated Scanner Config","state":"SCHEDULED"}'
         "400":
           description: Scanner Configurations Minimum Required Fields are missing
           content:
@@ -89,28 +94,31 @@ paths:
       tags:
       - Scanner Configuration
       summary: Delete Scanner Configuration by id
-      description: Starts an asynchronous workflow to delete the scanner configuration.
-        Returns 200 OK when the deletion workflow is started successfully.
+      description: Starts an asynchronous workflow to delete the scanner configuration. Returns 200 OK when the deletion workflow is started successfully.
       operationId: deleteScannerConfiguration
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: X-Delete-Agents
         in: header
+        description: Whether to also delete associated agents.
         required: false
         schema:
           type: boolean
           default: true
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: scannerConfigurationId
         in: path
+        description: The scanner configuration identifier.
         required: true
         schema:
           type: string
@@ -121,6 +129,7 @@ paths:
             '*/*':
               schema:
                 type: object
+              example: {}
         "400":
           description: Scanner Configuration ID is invalid
           content:
@@ -155,20 +164,24 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: connectionId
         in: path
+        description: The connection identifier.
         required: true
         schema:
           type: string
       requestBody:
+        description: Connection object with updated field values.
         content:
           application/json:
             schema:
@@ -181,6 +194,14 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/Connection"
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: My AWS Connection
+                orgId: 123e4567-e89b-12d3-a456-426614174000
+                environment: production
+                authScheme: OAuth2
+                status: SUCCESSFUL
+                statusMessage: Connection established successfully
         "400":
           description: Bad request
           content:
@@ -208,16 +229,19 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: connectionId
         in: path
+        description: The connection identifier.
         required: true
         schema:
           type: string
@@ -236,16 +260,19 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: page
         in: query
+        description: Zero-based page number for pagination.
         required: false
         schema:
           type: integer
@@ -253,6 +280,7 @@ paths:
           default: 0
       - name: size
         in: query
+        description: Number of items per page.
         required: false
         schema:
           type: integer
@@ -265,6 +293,7 @@ paths:
             application/json:
               schema:
                 type: string
+              example: '{"totalElements":1,"content":[{"id":"12345678-1234-1234-1234-123456789abc","name":"My Scanner Config","state":"SCHEDULED"}]}'
         "401":
           description: If user is not authorized
           content:
@@ -292,15 +321,18 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       requestBody:
+        description: Scanner configuration object to create.
         content:
           application/json:
             schema:
@@ -313,6 +345,7 @@ paths:
             application/json:
               schema:
                 type: string
+              example: '{"id":"12345678-1234-1234-1234-123456789abc","name":"New Scanner Config","state":"STOPPED"}'
         "400":
           description: Scanner Configurations Minimum Required Fields are missing
           content:
@@ -336,17 +369,18 @@ paths:
       tags:
       - Scanner Configuration
       summary: Execute workflow from scanner configuration
-      description: Starts a scan workflow based on the specified
-        scanner configuration ID
+      description: Starts a scan workflow based on the specified scanner configuration ID
       operationId: executeWorkflowFromConfiguration
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -377,17 +411,18 @@ paths:
       tags:
       - Scanner Configuration
       summary: Abort workflow from scanner configuration
-      description: Cancels a running scan based on the specified scanner configuration
-        ID
+      description: Cancels a running scan based on the specified scanner configuration ID
       operationId: abortWorkflowFromConfiguration
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -416,26 +451,29 @@ paths:
       tags:
       - Connectivity
       summary: Test connection
-      description: Tests connectivity to a target system type using provided connection
-        parameters. Requires authentication.
+      description: Tests connectivity to a target system type using provided connection parameters. Requires authentication.
       operationId: testConnection
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       - name: targetSystemType
         in: path
+        description: The target system type identifier.
         required: true
         schema:
           type: string
       requestBody:
+        description: Connection parameters to test connectivity.
         content:
           application/json:
             schema:
@@ -464,11 +502,13 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -479,6 +519,7 @@ paths:
             application/json:
               schema:
                 type: string
+              example: '[{"id":"550e8400-e29b-41d4-a716-446655440000","name":"My Connection","status":"SUCCESSFUL"}]'
         "500":
           description: Internal server error
           content:
@@ -496,15 +537,18 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
       requestBody:
+        description: Connection object to create.
         content:
           application/json:
             schema:
@@ -518,6 +562,7 @@ paths:
               schema:
                 type: string
                 format: uuid
+              example: 550e8400-e29b-41d4-a716-446655440000
         "400":
           description: Bad request
           content:
@@ -549,6 +594,7 @@ paths:
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
@@ -566,6 +612,7 @@ paths:
           type: string
       - name: page
         in: query
+        description: Zero-based page number for pagination.
         required: false
         schema:
           type: integer
@@ -573,6 +620,7 @@ paths:
           default: 0
       - name: size
         in: query
+        description: Number of items per page.
         required: false
         schema:
           type: integer
@@ -585,6 +633,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Page"
+              example:
+                totalElements: 1
+                totalPages: 1
+                first: true
+                last: true
+                size: 20
+                number: 0
+                content:
+                - id: 123e4567-e89b-12d3-a456-426614174000
+                  status: COMPLETED
+                  summary: '{"scanned": 10, "found": 5}'
+                numberOfElements: 1
+                empty: false
         "400":
           description: Bad request - invalid scannerId parameter
           content:
@@ -602,12 +663,18 @@ paths:
       tags:
       - Scanner Runs
       summary: Get staging assets for a scan run
-      description: Returns a paginated list of staging assets for a specific scan
-        run. Use size=0 to get all results without pagination.
+      description: Returns a paginated list of staging assets for a specific scan run. Use size=0 to get all results without pagination.
       operationId: getStagingAssetsByScanRunId
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
+        required: true
+        schema:
+          type: string
+      - name: organizationId
+        in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -625,6 +692,7 @@ paths:
           type: string
       - name: page
         in: query
+        description: Zero-based page number for pagination.
         required: false
         schema:
           type: integer
@@ -645,6 +713,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Page"
+              example:
+                totalElements: 1
+                totalPages: 1
+                first: true
+                last: true
+                size: 20
+                number: 0
+                content:
+                - id: 123e4567-e89b-12d3-a456-426614174000
+                  name: My Agent
+                  status: NEW
+                numberOfElements: 1
+                empty: false
         "400":
           description: Bad request - invalid scanRunId parameter
           content:
@@ -662,17 +743,18 @@ paths:
       tags:
       - Organization
       summary: Get organization information
-      description: Returns organization information including total managed agents
-        and capacity limit
+      description: Returns organization information including total managed agents and capacity limit
       operationId: getOrganizationInfo
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -709,17 +791,18 @@ paths:
       tags:
       - Connectivity
       summary: Get target systems
-      description: Returns a list of available target systems for connections. Requires
-        authentication.
+      description: Returns a list of available target systems for connections. Requires authentication.
       operationId: getTargetSystems
       parameters:
       - name: Authorization
         in: header
+        description: Bearer JWT token for authentication.
         required: true
         schema:
           type: string
       - name: organizationId
         in: path
+        description: The organization identifier.
         required: true
         schema:
           type: string
@@ -730,6 +813,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TargetSystemResponse"
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: AWS Bedrock
+                description: Amazon Bedrock AI service
+                type: bedrock
+                provider: aws
+                platform: bedrock_agents
+                assetType: agent
         "500":
           description: Internal server error
           content:
@@ -749,12 +840,12 @@ components:
         type: string
         format: uuid
       x-origin:
-        - api: urn:api:access-management
-          operation: listMe
-          values: $.user.organization.id
-          labels: $.user.organization.name
-          name: rootOrg
-          description: "GET /me; use user.organization.id as the caller's primary Business Group GUID."
+      - api: urn:api:access-management
+        operation: listMe
+        values: $.user.organization.id
+        labels: $.user.organization.name
+        name: rootOrg
+        description: "GET /me; use user.organization.id as the caller's primary Business Group GUID."
     XOrigin_scannerConfigurationId_Path:
       name: scannerConfigurationId
       description: The scanner configuration ID.
@@ -764,11 +855,11 @@ components:
         type: string
         format: uuid
       x-origin:
-        - api: urn:api:agent-scanner-configuration
-          operation: getScanConfigurations
-          values: $.content[*].id
-          labels: $.content[*].name
-          description: "GET /scanner-configurations; use content[*].id as the scanner configuration ID."
+      - api: urn:api:agent-scanner-configuration
+        operation: getScanConfigurations
+        values: $.content[*].id
+        labels: $.content[*].name
+        description: "GET /scanner-configurations; use content[*].id as the scanner configuration ID."
     XOrigin_scannerId_Path:
       name: scannerId
       description: The scanner identifier (same as scanner configuration ID).
@@ -778,11 +869,11 @@ components:
         type: string
         format: uuid
       x-origin:
-        - api: urn:api:agent-scanner-configuration
-          operation: getScanConfigurations
-          values: $.content[*].id
-          labels: $.content[*].name
-          description: "GET /scanner-configurations; use content[*].id as the scanner ID."
+      - api: urn:api:agent-scanner-configuration
+        operation: getScanConfigurations
+        values: $.content[*].id
+        labels: $.content[*].name
+        description: "GET /scanner-configurations; use content[*].id as the scanner ID."
     XOrigin_scanRunId_Path:
       name: scanRunId
       description: The scan run identifier.
@@ -792,11 +883,11 @@ components:
         type: string
         format: uuid
       x-origin:
-        - api: urn:api:agent-scanner-configuration
-          operation: getScannerRunHistory
-          values: $.content[*].id
-          labels: $.content[*].id
-          description: "GET /scanner/{scannerId}/runs; use content[*].id as the scan run ID."
+      - api: urn:api:agent-scanner-configuration
+        operation: getScannerRunHistory
+        values: $.content[*].id
+        labels: $.content[*].id
+        description: "GET /scanner/{scannerId}/runs; use content[*].id as the scan run ID."
     XOrigin_connectionId_Path:
       name: connectionId
       description: The connection identifier.
@@ -806,11 +897,11 @@ components:
         type: string
         format: uuid
       x-origin:
-        - api: urn:api:agent-scanner-configuration
-          operation: getConnections
-          values: $[*].id
-          labels: $[*].name
-          description: "GET /connectivity/connections; use [*].id as the connection ID."
+      - api: urn:api:agent-scanner-configuration
+        operation: getConnections
+        values: $[*].id
+        labels: $[*].name
+        description: "GET /connectivity/connections; use [*].id as the connection ID."
     XOrigin_targetSystemType_Path:
       name: targetSystemType
       description: The target system type.
@@ -819,11 +910,11 @@ components:
       schema:
         type: string
       x-origin:
-        - api: urn:api:agent-scanner-configuration
-          operation: getTargetSystems
-          values: $[*].type
-          labels: $[*].name
-          description: "GET /connectivity/target-systems; use [*].type as the target system type."
+      - api: urn:api:agent-scanner-configuration
+        operation: getTargetSystems
+        values: $[*].type
+        labels: $[*].name
+        description: "GET /connectivity/target-systems; use [*].type as the target system type."
   schemas:
     AuthSchemeFormDescriptor:
       type: object
@@ -1077,8 +1168,7 @@ components:
         ownerId:
           type: string
           format: uuid
-          description: Owner identifier - the user who owns and initiated this scanning
-            activity
+          description: Owner identifier - the user who owns and initiated this scanning activity
         emails:
           type: string
           description: Email addresses to notify
@@ -1219,7 +1309,7 @@ components:
           - geminimcp
           - googleapigee
           - godaddyans
-          example: BEDROCK
+          example: bedrock
         provider:
           type: string
           description: Cloud provider
@@ -1412,8 +1502,7 @@ components:
         ownerId:
           type: string
           format: uuid
-          description: Owner identifier - the user who owns and initiated this scanning
-            activity
+          description: Owner identifier - the user who owns and initiated this scanning activity
           example: 123e4567-e89b-12d3-a456-426614174000
     PageStagingAssetDTO:
       type: object
@@ -1498,12 +1587,10 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174000
         operationPerformed:
           type: string
-          description: "Operation performed on this staging asset (e.g., CREATE, UPDATE,\
-            \ DELETE, SKIP)"
+          description: "Operation performed on this staging asset (e.g., CREATE, UPDATE, DELETE, SKIP)"
         stagingStatus:
           type: string
-          description: "Status of the staging asset (e.g., NEW, EXISTING, PUBLISHED,\
-            \ FAILED, DELETED, PENDING_DELETE, PENDING_UPDATE)"
+          description: "Status of the staging asset (e.g., NEW, EXISTING, PUBLISHED, FAILED, DELETED, PENDING_DELETE, PENDING_UPDATE)"
         createdAt:
           type: string
           format: date-time
@@ -1517,9 +1604,7 @@ components:
           description: Summary about run asset status
         assetPayload:
           type: string
-          description: "Asset payload as JSON (e.g. A2A card). When sending JSON,\
-            \ you may use assetPayload, agentCard, or assetDescriptor. Responses include\
-            \ both assetPayload and agentCard (same value) for backward compatibility."
+          description: "Asset payload as JSON (e.g. A2A card). When sending JSON, you may use assetPayload, agentCard, or assetDescriptor. Responses include both assetPayload and agentCard (same value) for backward compatibility."
         agentCard:
           type: string
           description: Same JSON as assetPayload (legacy name)
@@ -1601,7 +1686,7 @@ components:
           - geminimcp
           - googleapigee
           - godaddyans
-          example: BEDROCK
+          example: bedrock
         provider:
           type: string
           description: Cloud provider

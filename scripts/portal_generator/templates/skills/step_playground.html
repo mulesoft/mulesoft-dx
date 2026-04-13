@@ -1,4 +1,4 @@
-{% macro render_step_playground(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='') %}
+{% macro render_step_playground(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='', all_steps=[]) %}
 {% set yaml_data = step.yaml|default(none) %}
 {% set sid = slug ~ '-' ~ step_index %}
 
@@ -34,7 +34,7 @@
          data-wf-outputs='{{ outputs|tojson }}'
          data-wf-api="{{ yaml_data.api|default('') }}"
          data-wf-operation="{{ operation_id }}"
-         data-wf-inputs='{{ inputs|tojson }}'>
+         data-wf-inputs='{{ (inputs|resolve_skill_inputs(all_steps))|tojson }}'>
         {# Will be populated by JavaScript with form, response, and execute button #}
         <div class="operation-panel-loading">
             Loading operation form...

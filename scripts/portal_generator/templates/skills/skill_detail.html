@@ -60,7 +60,7 @@
             {% set total_steps = step_details|length %}
             {% for step in step_details %}
             <div class="playground-step-wrapper" id="playground-step-{{ slug }}-{{ loop.index0 }}">
-                {{ render_step_playground(step, loop.index, slug, loop.index0, total_steps, private_api_slugs, api_link_prefix) }}
+                {{ render_step_playground(step, loop.index, slug, loop.index0, total_steps, private_api_slugs, api_link_prefix, step_details) }}
             </div>
             {% endfor %}
             {% endif %}

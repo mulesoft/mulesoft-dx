@@ -1,8 +1,8 @@
 ---
-
-## name: run-agent-scan-and-view-results
+name: run-agent-scan-and-view-results
 description: |
   Executes an agent scanner and views the discovered AI agents. Use when running an agent scan, checking scan status, viewing scan history, reviewing discovered agents from external platforms, or importing agents into Anypoint Exchange.
+---
 
 # Run Agent Scan and View Results
 

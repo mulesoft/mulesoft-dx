@@ -4031,25 +4031,50 @@ function captureVariablesFromResponse(panel, result) {
 
     // Extract variables using JSONPath-like simple extraction
     var capturedVars = {};
-    for (var varName in outputs) {
-        var pathConfig = outputs[varName];
-        console.log('Processing variable:', varName, 'Path config:', pathConfig);
 
-        // Handle both string paths and object configs
-        var path;
-        if (typeof pathConfig === 'string') {
-            path = pathConfig;
-        } else if (typeof pathConfig === 'object' && pathConfig.path) {
-            path = pathConfig.path;
-        } else {
-            console.warn('Invalid path config for', varName, ':', pathConfig);
-            continue;
+    // Handle array format: [{name: 'var1', path: '$.path'}, ...]
+    if (Array.isArray(outputs)) {
+        for (var i = 0; i < outputs.length; i++) {
+            var outputDef = outputs[i];
+            var varName = outputDef.name;
+            var path = outputDef.path;
+
+            console.log('Processing variable:', varName, 'Path:', path);
+
+            if (!varName || !path) {
+                console.warn('Missing name or path in output definition:', outputDef);
+                continue;
+            }
+
+            var value = extractValueByPath(responseBody, path);
+            console.log('Extracted value for', varName, ':', value);
+
+            if (value !== undefined) {
+                capturedVars[varName] = value;
+            }
         }
+    } else {
+        // Handle object format: {var1: '$.path', var2: {path: '$.path'}}
+        for (var varName in outputs) {
+            var pathConfig = outputs[varName];
+            console.log('Processing variable:', varName, 'Path config:', pathConfig);
 
-        var value = extractValueByPath(responseBody, path);
-        console.log('Extracted value for', varName, ':', value);
-        if (value !== undefined) {
-            capturedVars[varName] = value;
+            // Handle both string paths and object configs
+            var path;
+            if (typeof pathConfig === 'string') {
+                path = pathConfig;
+            } else if (typeof pathConfig === 'object' && pathConfig.path) {
+                path = pathConfig.path;
+            } else {
+                console.warn('Invalid path config for', varName, ':', pathConfig);
+                continue;
+            }
+
+            var value = extractValueByPath(responseBody, path);
+            console.log('Extracted value for', varName, ':', value);
+            if (value !== undefined) {
+                capturedVars[varName] = value;
+            }
         }
     }
 
@@ -4096,8 +4121,12 @@ function extractValueByPath(obj, path) {
 
 // Update variables table with captured values
 function updateVariablesTable(slug, variables, source) {
+    console.log('updateVariablesTable called with slug:', slug, 'variables:', variables, 'source:', source);
     var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.error('Table body not found for slug:', slug);
+        return;
+    }
 
     // Clear "No variables" message if present
     var noVarsRow = tableBody.querySelector('td[colspan="3"]');
@@ -4108,14 +4137,14 @@ function updateVariablesTable(slug, variables, source) {
     // Add or update each variable
     for (var varName in variables) {
         var value = variables[varName];
-        var valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        console.log('Processing variable:', varName, 'value type:', typeof value, 'is array:', Array.isArray(value));
 
         // Check if variable already exists
         var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
 
         if (existingRow) {
-            // Update existing row
-            existingRow.cells[1].textContent = valueStr;
+            // Update existing row - update the value cell
+            renderVariableValue(existingRow.cells[1], value, varName, slug);
             existingRow.cells[2].textContent = source;
         } else {
             // Add new row
@@ -4128,9 +4157,9 @@ function updateVariablesTable(slug, variables, source) {
             nameCell.style.fontWeight = '600';
 
             var valueCell = document.createElement('td');
-            valueCell.textContent = valueStr;
             valueCell.style.fontFamily = 'var(--font-mono)';
             valueCell.style.fontSize = '0.8125rem';
+            renderVariableValue(valueCell, value, varName, slug);
 
             var sourceCell = document.createElement('td');
             sourceCell.textContent = source;
@@ -4143,6 +4172,158 @@ function updateVariablesTable(slug, variables, source) {
 
             tableBody.appendChild(row);
         }
+    }
+}
+
+// Render variable value based on its type
+function renderVariableValue(cell, value, varName, slug) {
+    cell.innerHTML = '';
+
+    if (Array.isArray(value)) {
+        // Array: render as dropdown with indices
+        var select = document.createElement('select');
+        select.className = 'variable-array-select';
+        select.style.fontFamily = 'var(--font-mono)';
+        select.style.fontSize = '0.8125rem';
+        select.style.padding = '0.25rem 0.5rem';
+        select.style.border = '1px solid #d1d5db';
+        select.style.borderRadius = '0.25rem';
+        select.style.backgroundColor = 'white';
+        select.style.cursor = 'pointer';
+
+        for (var i = 0; i < value.length; i++) {
+            var option = document.createElement('option');
+            var itemValue = value[i];
+            var itemStr = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
+            option.value = itemStr;
+            option.textContent = '[' + i + '] ' + (itemStr.length > 50 ? itemStr.substring(0, 50) + '...' : itemStr);
+            select.appendChild(option);
+        }
+
+        // Store the full array for later use
+        select.setAttribute('data-var-name', varName);
+        select.setAttribute('data-var-array', JSON.stringify(value));
+
+        cell.appendChild(select);
+    } else if (typeof value === 'object' && value !== null) {
+        // Object: render as expandable tree view
+        var treeContainer = document.createElement('div');
+        treeContainer.className = 'variable-tree-view';
+        treeContainer.style.fontSize = '0.8125rem';
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.textContent = '▶';
+        toggleBtn.className = 'tree-toggle-btn';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.background = 'none';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.padding = '0 0.25rem';
+        toggleBtn.style.fontFamily = 'monospace';
+
+        var summary = document.createElement('span');
+        summary.textContent = '{...}';
+        summary.style.color = '#6b7280';
+
+        var treeContent = document.createElement('div');
+        treeContent.className = 'tree-content';
+        treeContent.style.display = 'none';
+        treeContent.style.marginLeft = '1rem';
+        treeContent.style.marginTop = '0.25rem';
+        treeContent.style.borderLeft = '2px solid #e5e7eb';
+        treeContent.style.paddingLeft = '0.5rem';
+
+        // Build tree structure
+        renderObjectTree(treeContent, value, 0);
+
+        toggleBtn.onclick = function() {
+            if (treeContent.style.display === 'none') {
+                treeContent.style.display = 'block';
+                toggleBtn.textContent = '▼';
+            } else {
+                treeContent.style.display = 'none';
+                toggleBtn.textContent = '▶';
+            }
+        };
+
+        treeContainer.appendChild(toggleBtn);
+        treeContainer.appendChild(summary);
+        treeContainer.appendChild(treeContent);
+        cell.appendChild(treeContainer);
+    } else {
+        // Primitive value: render as text
+        cell.textContent = String(value);
+    }
+}
+
+// Recursively render object tree
+function renderObjectTree(container, obj, depth) {
+    if (depth > 5) {
+        container.textContent = '... (max depth reached)';
+        return;
+    }
+
+    for (var key in obj) {
+        var value = obj[key];
+        var line = document.createElement('div');
+        line.style.marginBottom = '0.125rem';
+
+        var keySpan = document.createElement('span');
+        keySpan.textContent = key + ': ';
+        keySpan.style.color = '#059669';
+        keySpan.style.fontWeight = '600';
+        line.appendChild(keySpan);
+
+        if (Array.isArray(value)) {
+            var valueSpan = document.createElement('span');
+            valueSpan.textContent = '[Array(' + value.length + ')]';
+            valueSpan.style.color = '#6b7280';
+            line.appendChild(valueSpan);
+        } else if (typeof value === 'object' && value !== null) {
+            var nestedToggle = document.createElement('button');
+            nestedToggle.textContent = '▶';
+            nestedToggle.style.border = 'none';
+            nestedToggle.style.background = 'none';
+            nestedToggle.style.cursor = 'pointer';
+            nestedToggle.style.padding = '0 0.25rem';
+            nestedToggle.style.fontFamily = 'monospace';
+            nestedToggle.style.fontSize = '0.75rem';
+
+            var nestedSummary = document.createElement('span');
+            nestedSummary.textContent = '{...}';
+            nestedSummary.style.color = '#6b7280';
+
+            var nestedContent = document.createElement('div');
+            nestedContent.style.display = 'none';
+            nestedContent.style.marginLeft = '1rem';
+            nestedContent.style.borderLeft = '1px solid #e5e7eb';
+            nestedContent.style.paddingLeft = '0.5rem';
+            nestedContent.style.marginTop = '0.25rem';
+
+            renderObjectTree(nestedContent, value, depth + 1);
+
+            nestedToggle.onclick = function(content, btn, summary) {
+                return function() {
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        btn.textContent = '▼';
+                    } else {
+                        content.style.display = 'none';
+                        btn.textContent = '▶';
+                    }
+                };
+            }(nestedContent, nestedToggle, nestedSummary);
+
+            line.appendChild(nestedToggle);
+            line.appendChild(nestedSummary);
+            line.appendChild(nestedContent);
+        } else {
+            var valueSpan = document.createElement('span');
+            valueSpan.textContent = String(value);
+            valueSpan.style.color = typeof value === 'string' ? '#dc2626' : '#2563eb';
+            line.appendChild(valueSpan);
+        }
+
+        container.appendChild(line);
     }
 }
 

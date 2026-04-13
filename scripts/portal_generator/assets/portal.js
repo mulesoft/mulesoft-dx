@@ -3988,6 +3988,141 @@ function initializePlaygroundStep(sid) {
     }, 0);
 }
 
+// Function to capture variables from API response
+function captureVariablesFromResponse(panel, result) {
+    if (!panel) return;
+
+    var outputsJson = panel.dataset.wfOutputs;
+    if (!outputsJson || outputsJson === '{}') return;
+
+    var outputs = {};
+    try {
+        outputs = JSON.parse(outputsJson);
+    } catch (e) {
+        console.error('Failed to parse outputs:', e);
+        return;
+    }
+
+    // Get skill slug from panel ID
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    if (!stepWrapper) return;
+
+    var stepId = stepWrapper.id;
+    var match = stepId.match(/playground-step-([^-]+)-/);
+    if (!match) return;
+
+    var slug = match[1];
+    var stepIndex = stepId.match(/-(\d+)$/);
+    var stepNumber = stepIndex ? parseInt(stepIndex[1]) + 1 : '?';
+
+    // Parse response body
+    var responseBody = result.body;
+    if (typeof responseBody === 'string') {
+        try {
+            responseBody = JSON.parse(responseBody);
+        } catch (e) {
+            console.error('Failed to parse response body:', e);
+            return;
+        }
+    }
+
+    // Extract variables using JSONPath-like simple extraction
+    var capturedVars = {};
+    for (var varName in outputs) {
+        var path = outputs[varName];
+        var value = extractValueByPath(responseBody, path);
+        if (value !== undefined) {
+            capturedVars[varName] = value;
+        }
+    }
+
+    // Update variables table
+    updateVariablesTable(slug, capturedVars, 'Step ' + stepNumber);
+}
+
+// Simple JSONPath-like extraction
+function extractValueByPath(obj, path) {
+    if (!path || !obj) return undefined;
+
+    // Remove leading $. if present
+    path = path.replace(/^\$\./, '');
+
+    var parts = path.split('.');
+    var current = obj;
+
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+
+        // Handle array indexing like items[0]
+        var arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
+        if (arrayMatch) {
+            var arrayName = arrayMatch[1];
+            var index = parseInt(arrayMatch[2]);
+            current = current[arrayName];
+            if (!current || !Array.isArray(current)) return undefined;
+            current = current[index];
+        } else {
+            current = current[part];
+        }
+
+        if (current === undefined) return undefined;
+    }
+
+    return current;
+}
+
+// Update variables table with captured values
+function updateVariablesTable(slug, variables, source) {
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (!tableBody) return;
+
+    // Clear "No variables" message if present
+    var noVarsRow = tableBody.querySelector('td[colspan="3"]');
+    if (noVarsRow) {
+        tableBody.innerHTML = '';
+    }
+
+    // Add or update each variable
+    for (var varName in variables) {
+        var value = variables[varName];
+        var valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+        // Check if variable already exists
+        var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
+
+        if (existingRow) {
+            // Update existing row
+            existingRow.cells[1].textContent = valueStr;
+            existingRow.cells[2].textContent = source;
+        } else {
+            // Add new row
+            var row = document.createElement('tr');
+            row.setAttribute('data-var-name', varName);
+
+            var nameCell = document.createElement('td');
+            nameCell.textContent = varName;
+            nameCell.style.fontFamily = 'var(--font-mono)';
+            nameCell.style.fontWeight = '600';
+
+            var valueCell = document.createElement('td');
+            valueCell.textContent = valueStr;
+            valueCell.style.fontFamily = 'var(--font-mono)';
+            valueCell.style.fontSize = '0.8125rem';
+
+            var sourceCell = document.createElement('td');
+            sourceCell.textContent = source;
+            sourceCell.style.fontSize = '0.75rem';
+            sourceCell.style.color = '#6b7280';
+
+            row.appendChild(nameCell);
+            row.appendChild(valueCell);
+            row.appendChild(sourceCell);
+
+            tableBody.appendChild(row);
+        }
+    }
+}
+
 async function executePlaygroundStep(sid) {
     var panel = document.getElementById('playground-panel-' + sid);
     if (!panel) return;
@@ -4116,6 +4251,9 @@ async function executePlaygroundStep(sid) {
 
         // Display response using shared function
         displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+
+        // Capture variables from response if outputs are defined
+        captureVariablesFromResponse(panel, result);
 
     } catch (error) {
         console.error('Playground execution failed:', error);

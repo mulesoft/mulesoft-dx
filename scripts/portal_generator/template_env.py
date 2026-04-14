@@ -167,20 +167,28 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         if 'from' in param_config:
             from_ref = param_config['from']
             if isinstance(from_ref, dict):
-                # Try both 'output' and 'input' fields for step references
-                var_name = from_ref.get('output') or from_ref.get('input', '')
+                # Check if it's a step reference (has 'step' key)
+                if 'step' in from_ref:
+                    # Try both 'output' and 'input' fields
+                    var_name = from_ref.get('output') or from_ref.get('input', '')
 
-                if not var_name and 'api' in from_ref:
-                    # From-API reference: use the parameter name as the variable
-                    var_name = param_name
+                    if var_name:
+                        # Create the reference string - just ${variableName}
+                        ref_string = f'${{{var_name}}}'
+                        # Replace 'from' with 'ref'
+                        new_config = param_config.copy()
+                        del new_config['from']
+                        new_config['ref'] = ref_string
+                        result[param_name] = new_config
+                        continue
 
-                if var_name:
-                    # Create the reference string - just ${variableName}
-                    ref_string = f'${{{var_name}}}'
-                    # Replace 'from' with 'ref'
+                # Check if it's an x-origin style reference (has 'api' and 'operation')
+                elif 'api' in from_ref and 'operation' in from_ref:
+                    # This is an x-origin reference - remove 'from' and leave value empty
+                    # The user will need to fetch the value via x-origin modal
                     new_config = param_config.copy()
                     del new_config['from']
-                    new_config['ref'] = ref_string
+                    # Don't set a ref or value - leave it empty
                     result[param_name] = new_config
                     continue
 

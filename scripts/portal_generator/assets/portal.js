@@ -3510,8 +3510,13 @@ function renderOperationForm(opId, opMeta, options) {
                 if (typeof yamlValue === 'object' && yamlValue !== null) {
                     if (yamlValue.ref) {
                         yamlValue = yamlValue.ref;
+                    } else if (yamlValue.value !== undefined) {
+                        // Object has an explicit value property
+                        yamlValue = yamlValue.value;
                     } else {
-                        yamlValue = JSON.stringify(yamlValue);
+                        // Object without ref or value - likely just metadata (description, etc.)
+                        // Use empty string so the input is blank and user can fill it in
+                        yamlValue = '';
                     }
                 } else if (yamlValue == null) {
                     yamlValue = '';
@@ -3684,29 +3689,40 @@ function renderOperationForm(opId, opMeta, options) {
 
 function toggleSkillMode(slug) {
     var toggle = document.getElementById('toggle-' + slug);
-    var docMode = document.getElementById('skill-doc-mode-' + slug);
-    var playgroundMode = document.getElementById('skill-playground-mode-' + slug);
-    var playgroundControls = document.getElementById('playground-controls-' + slug);
+    var variablesSidebar = document.getElementById('variables-sidebar-' + slug);
+    var isInteractive = toggle.getAttribute('aria-checked') === 'true';
 
-    var isPlayground = toggle.getAttribute('aria-checked') === 'true';
-
-    if (isPlayground) {
-        // Switch to documentation mode
+    if (isInteractive) {
+        // Switch to documentation mode (show curl)
         toggle.setAttribute('aria-checked', 'false');
-        if (docMode) docMode.style.display = 'block';
-        if (playgroundMode) playgroundMode.style.display = 'none';
-        if (playgroundControls) playgroundControls.style.display = 'none';
+
+        // Hide variables sidebar
+        if (variablesSidebar) variablesSidebar.style.display = 'none';
+
+        // Toggle all steps to show documentation view
+        var docViews = document.querySelectorAll('.step-documentation-view');
+        var interactiveViews = document.querySelectorAll('.step-interactive-view');
+
+        docViews.forEach(function(view) { view.style.display = 'block'; });
+        interactiveViews.forEach(function(view) { view.style.display = 'none'; });
 
         // Update URL to remove playground parameter
         var url = new URL(window.location);
         url.searchParams.delete('playground');
         window.history.replaceState({}, '', url);
     } else {
-        // Switch to playground mode
+        // Switch to interactive mode (show operation runners)
         toggle.setAttribute('aria-checked', 'true');
-        if (docMode) docMode.style.display = 'none';
-        if (playgroundMode) playgroundMode.style.display = 'block';
-        if (playgroundControls) playgroundControls.style.display = 'flex';
+
+        // Show variables sidebar
+        if (variablesSidebar) variablesSidebar.style.display = 'block';
+
+        // Toggle all steps to show interactive view
+        var docViews = document.querySelectorAll('.step-documentation-view');
+        var interactiveViews = document.querySelectorAll('.step-interactive-view');
+
+        docViews.forEach(function(view) { view.style.display = 'none'; });
+        interactiveViews.forEach(function(view) { view.style.display = 'block'; });
 
         // Update URL to add playground parameter
         var url = new URL(window.location);
@@ -3751,7 +3767,7 @@ function startDebugger(slug) {
     debuggerState[slug] = {
         currentStep: 0,
         isRunning: true,
-        totalSteps: document.querySelectorAll('[id^="playground-step-' + slug + '-"]').length,
+        totalSteps: document.querySelectorAll('[id^="step-' + slug + '-"]').length,
         allStepsCompleted: false
     };
 
@@ -3834,10 +3850,10 @@ function previousStep(slug) {
         scrollToStepByIndex(slug, prevIndex);
 
         // Update executing display for previous step
-        var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+        var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
         if (prevIndex < steps.length) {
             var step = steps[prevIndex];
-            var stepTitle = step.querySelector('.playground-step-title');
+            var stepTitle = step.querySelector('.step-title');
             var stepName = 'Step ' + (prevIndex + 1);
             if (stepTitle) {
                 stepName = stepTitle.textContent.trim();
@@ -3853,7 +3869,7 @@ function previousStep(slug) {
 function cleanFutureStepVariables(slug, currentIndex) {
     console.log('Cleaning variables from steps after index:', currentIndex);
 
-    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
     var variablesToKeep = {};
 
     // Collect variables from steps 0 to currentIndex
@@ -3946,7 +3962,7 @@ function updateExecutingStepDisplay(slug, stepName) {
 }
 
 function executeStepByIndex(slug, index) {
-    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
     if (index < 0 || index >= steps.length) return;
 
     var step = steps[index];
@@ -3956,7 +3972,7 @@ function executeStepByIndex(slug, index) {
     var sid = panel.id.replace('playground-panel-', '');
 
     // Get step title (remove "Step N:" prefix - may appear multiple times)
-    var stepTitle = step.querySelector('.playground-step-title');
+    var stepTitle = step.querySelector('.step-title');
     var stepName = 'Step ' + (index + 1);
     if (stepTitle) {
         stepName = stepTitle.textContent.trim();
@@ -3983,7 +3999,7 @@ function executeStepByIndex(slug, index) {
 }
 
 function scrollToStepByIndex(slug, index) {
-    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
     if (index < 0 || index >= steps.length) return;
 
     var step = steps[index];
@@ -4005,7 +4021,7 @@ function scrollToVariableSource(slug, varName) {
     var foundStep = null;
 
     // Look through all steps to find which one outputs this variable
-    var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var playgroundSteps = document.querySelectorAll('[id^="step-' + slug + '-"]');
 
     playgroundSteps.forEach(function(stepWrapper) {
         var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
@@ -4112,10 +4128,10 @@ function initializePlaygroundStep(sid) {
 
     // Get the slug from the panel's parent to enable variable reference links
     var skillSlug = '';
-    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    var stepWrapper = panel.closest('[id^="step-"]');
     if (stepWrapper) {
         var stepId = stepWrapper.id;
-        var match = stepId.match(/playground-step-([^-]+)-/);
+        var match = stepId.match(/step-([^-]+)-/);
         if (match) skillSlug = match[1];
     }
 
@@ -4206,12 +4222,12 @@ function captureVariablesFromResponse(panel, result) {
     }
 
     // Get skill slug from panel ID
-    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    var stepWrapper = panel.closest('[id^="step-"]');
     if (!stepWrapper) return;
 
     var stepId = stepWrapper.id;
-    // Match playground-step-<slug>-<step-index>
-    var match = stepId.match(/^playground-step-(.+)-(\d+)$/);
+    // Match step-<slug>-<step-index>
+    var match = stepId.match(/^step-(.+)-(\d+)$/);
     if (!match) return;
 
     var slug = match[1];
@@ -4219,8 +4235,8 @@ function captureVariablesFromResponse(panel, result) {
     var stepNumber = stepIndex + 1;
 
     // Get step title for source (remove all "Step N:" prefixes)
-    var stepWrapper = panel.closest('[id^="playground-step-"]');
-    var stepTitle = stepWrapper ? stepWrapper.querySelector('.playground-step-title') : null;
+    var stepWrapper = panel.closest('[id^="step-"]');
+    var stepTitle = stepWrapper ? stepWrapper.querySelector('.step-title') : null;
     var stepName = 'Step ' + stepNumber;
     if (stepTitle) {
         stepName = stepTitle.textContent.trim();
@@ -4397,7 +4413,7 @@ function updateVariableTooltips(slug) {
     console.log('skillVariables[' + slug + ']:', skillVariables[slug]);
 
     // Find all steps for this skill
-    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
     console.log('Found', steps.length, 'steps');
 
     steps.forEach(function(step, stepIndex) {
@@ -4986,6 +5002,19 @@ async function executePlaygroundStep(sid) {
 
         // Display response using shared function
         displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+
+        // Store response for evaluation panel
+        if (result.body) {
+            try {
+                // Try to parse the response body as JSON
+                window.lastStepResponse = JSON.parse(result.body);
+                console.log('Stored response for evaluation:', window.lastStepResponse);
+            } catch (e) {
+                // If not JSON, store the raw text
+                window.lastStepResponse = result.body;
+                console.log('Stored raw response for evaluation:', window.lastStepResponse);
+            }
+        }
 
         if (isSuccess) {
             // Capture variables from response if outputs are defined
@@ -6341,3 +6370,196 @@ function highlightCurlCommands() {
         }
     });
 }
+// ============================================================================
+// Execution Panel - Tab Switching and Evaluation
+// ============================================================================
+
+function switchExecutionTab(slug, tab) {
+    // Switch tab active state
+    var tabs = document.querySelectorAll('.execution-tab');
+    tabs.forEach(function(t) {
+        if (t.getAttribute('data-tab') === tab) {
+            t.classList.add('active');
+        } else {
+            t.classList.remove('active');
+        }
+    });
+    
+    // Switch content visibility
+    var variablesSection = document.getElementById('execution-variables-' + slug);
+    var evaluationSection = document.getElementById('execution-evaluation-' + slug);
+    
+    if (tab === 'variables') {
+        if (variablesSection) variablesSection.style.display = 'block';
+        if (evaluationSection) evaluationSection.style.display = 'none';
+    } else if (tab === 'evaluation') {
+        if (variablesSection) variablesSection.style.display = 'none';
+        if (evaluationSection) evaluationSection.style.display = 'block';
+    }
+}
+
+function evaluateExpression(slug) {
+    var input = document.getElementById('evaluation-input-' + slug);
+    var resultContainer = document.getElementById('evaluation-result-' + slug);
+
+    if (!input || !resultContainer) {
+        console.error('Evaluation elements not found');
+        return;
+    }
+
+    var expression = input.value.trim();
+    if (!expression) {
+        // Remove any existing ACE editor and show placeholder
+        if (resultContainer.env && resultContainer.env.editor) {
+            resultContainer.env.editor.destroy();
+            resultContainer.env = null;
+        }
+        resultContainer.innerHTML = '<div class="evaluation-placeholder">Please enter a JSONPath expression</div>';
+        resultContainer.classList.remove('evaluation-success', 'evaluation-error');
+        return;
+    }
+
+    try {
+        // Get the last response from the most recent step execution
+        var lastResponse = window.lastStepResponse || null;
+
+        console.log('Evaluating expression:', expression);
+        console.log('Available response:', lastResponse);
+
+        if (!lastResponse) {
+            // Remove any existing ACE editor and show placeholder
+            if (resultContainer.env && resultContainer.env.editor) {
+                resultContainer.env.editor.destroy();
+                resultContainer.env = null;
+            }
+            resultContainer.innerHTML = '<div class="evaluation-placeholder">No response data available. Please execute a step first.</div>';
+            resultContainer.classList.remove('evaluation-success', 'evaluation-error');
+            return;
+        }
+
+        // Evaluate JSONPath expression
+        var result = evaluateJsonPath(lastResponse, expression);
+        console.log('Evaluation result:', result);
+
+        if (result === undefined || result === null) {
+            // Remove any existing ACE editor and show placeholder
+            if (resultContainer.env && resultContainer.env.editor) {
+                resultContainer.env.editor.destroy();
+                resultContainer.env = null;
+            }
+            resultContainer.innerHTML = '<div class="evaluation-placeholder">No matches found for: ' + expression + '</div>';
+            resultContainer.classList.remove('evaluation-success', 'evaluation-error');
+        } else {
+            // Remove placeholder if it exists
+            var placeholder = resultContainer.querySelector('.evaluation-placeholder');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            // Pretty print the result
+            var formatted = JSON.stringify(result, null, 2);
+
+            // Create or reuse ACE editor for the result
+            createReadOnlyAceEditor(resultContainer, formatted, 'json');
+
+            // Add success styling to the container
+            resultContainer.classList.remove('evaluation-error');
+            resultContainer.classList.add('evaluation-success');
+        }
+    } catch (e) {
+        // Remove placeholder if it exists
+        var placeholder = resultContainer.querySelector('.evaluation-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+
+        var errorMsg = 'Error: ' + e.message + '\n\nExpression: ' + expression;
+        createReadOnlyAceEditor(resultContainer, errorMsg, 'text');
+
+        resultContainer.classList.remove('evaluation-success');
+        resultContainer.classList.add('evaluation-error');
+    }
+}
+
+// Simple JSONPath evaluator (supports basic queries)
+function evaluateJsonPath(data, path) {
+    if (!path || !path.startsWith('$')) {
+        throw new Error('JSONPath must start with $');
+    }
+    
+    // Remove the leading $
+    path = path.substring(1);
+    
+    // If path is just $, return entire object
+    if (!path || path === '') {
+        return data;
+    }
+    
+    // Remove leading dot
+    if (path.startsWith('.')) {
+        path = path.substring(1);
+    }
+    
+    var current = data;
+    var parts = path.split('.');
+    
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+        
+        if (!part) continue;
+        
+        // Handle array wildcard: field[*]
+        if (part.includes('[*]')) {
+            var field = part.replace('[*]', '');
+            if (field && current[field]) {
+                current = current[field];
+            }
+            
+            if (!Array.isArray(current)) {
+                throw new Error('Cannot use [*] on non-array');
+            }
+            
+            // Collect remaining path
+            var remainingPath = parts.slice(i + 1).join('.');
+            if (remainingPath) {
+                return current.map(function(item) {
+                    return evaluateJsonPath(item, '$.' + remainingPath);
+                });
+            }
+            return current;
+        }
+        
+        // Handle array index: field[0]
+        var arrayMatch = part.match(/^([^\[]+)\[(\d+)\]$/);
+        if (arrayMatch) {
+            var field = arrayMatch[1];
+            var index = parseInt(arrayMatch[2], 10);
+            
+            if (field && current[field]) {
+                current = current[field];
+            }
+            
+            if (!Array.isArray(current)) {
+                throw new Error('Cannot use [index] on non-array');
+            }
+            
+            current = current[index];
+        } else {
+            // Simple field access
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            current = current[part];
+        }
+        
+        if (current === undefined) {
+            return undefined;
+        }
+    }
+    
+    return current;
+}
+
+// Store last response for evaluation
+window.lastStepResponse = null;
+

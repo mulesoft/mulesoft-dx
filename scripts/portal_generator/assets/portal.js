@@ -3788,6 +3788,9 @@ function cancelDebugger(slug) {
     // Reset state and clear variables
     debuggerState[slug] = { isRunning: false };
     skillVariables[slug] = {};
+    if (window.skillArrayVariables && window.skillArrayVariables[slug]) {
+        window.skillArrayVariables[slug] = {};
+    }
 
     // Switch UI back to initial state
     var runState = document.getElementById('debugger-run-' + slug);
@@ -4197,12 +4200,44 @@ function captureVariablesFromResponse(panel, result) {
     if (!skillVariables[slug]) {
         skillVariables[slug] = {};
     }
-    Object.assign(skillVariables[slug], capturedVars);
+
+    // Keep track of which variables are arrays (for table display)
+    if (!window.skillArrayVariables) {
+        window.skillArrayVariables = {};
+    }
+    if (!window.skillArrayVariables[slug]) {
+        window.skillArrayVariables[slug] = {};
+    }
+
+    // For array variables, store the first element as the default selected value
+    for (var varName in capturedVars) {
+        var value = capturedVars[varName];
+        if (Array.isArray(value) && value.length > 0) {
+            // Store full array for dropdown display
+            window.skillArrayVariables[slug][varName] = value;
+            // Store first element as the selected value for substitution
+            skillVariables[slug][varName] = value[0];
+            console.log('Array variable', varName, '- storing first element as default:', value[0]);
+        } else {
+            skillVariables[slug][varName] = value;
+        }
+    }
 
     console.log('After assign, skillVariables[' + slug + ']:', skillVariables[slug]);
 
     // Update variables table with ALL accumulated variables
-    updateVariablesTable(slug, skillVariables[slug], stepName);
+    // For array variables, pass the full array; for others, pass the value
+    var tableVariables = {};
+    for (var varName in skillVariables[slug]) {
+        if (window.skillArrayVariables[slug][varName]) {
+            // This is an array variable - show full array in dropdown
+            tableVariables[varName] = window.skillArrayVariables[slug][varName];
+        } else {
+            // Regular variable
+            tableVariables[varName] = skillVariables[slug][varName];
+        }
+    }
+    updateVariablesTable(slug, tableVariables, stepName);
 
     // Update tooltips on all input fields with variable references
     updateVariableTooltips(slug);
@@ -4481,9 +4516,27 @@ function renderVariableValue(cell, value, varName, slug) {
             select.appendChild(option);
         }
 
-        // Store the full array for later use
+        // Store the full array and selection state
         select.setAttribute('data-var-name', varName);
         select.setAttribute('data-var-array', JSON.stringify(value));
+        select.setAttribute('data-slug', slug);
+
+        // Add change handler to update variable store and refresh displays
+        select.onchange = function() {
+            var selectedIndex = this.selectedIndex;
+            var arrayData = JSON.parse(this.getAttribute('data-var-array'));
+            var varName = this.getAttribute('data-var-name');
+            var slug = this.getAttribute('data-slug');
+
+            // Store selected value (not array) in skillVariables
+            if (skillVariables[slug]) {
+                skillVariables[slug][varName] = arrayData[selectedIndex];
+                console.log('Array selection changed:', varName, '→', arrayData[selectedIndex]);
+
+                // Update all input tooltips to reflect new value
+                updateVariableTooltips(slug);
+            }
+        };
 
         cell.appendChild(select);
     } else if (typeof value === 'object' && value !== null) {

@@ -43,6 +43,30 @@
 
     {# Spinner shown during execution #}
     <span class="operation-spinner" id="spinner-{{ sid }}" style="display:none; margin-top: 1rem;">Running...</span>
+
+    {# Outputs Section #}
+    {% if outputs and outputs is iterable %}
+    {% set output_rows = [] %}
+    {% for out in outputs %}
+    {% if out is mapping %}{% set _ = output_rows.append(out) %}{% endif %}
+    {% endfor %}
+    {% if output_rows %}
+    <div class="playground-outputs-section">
+        <h5>Outputs:</h5>
+        <ul class="outputs-list">
+            {% for out in output_rows %}
+            <li>
+                <code class="capture-name">{{ out.name|default('') }}</code>
+                from <code class="capture-path">{{ out.path|default('') }}</code>
+                {% if out.description %}
+                <span class="capture-desc">— {{ out.description }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% endif %}
 </div>
 {% endif %}
 

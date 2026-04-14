@@ -85,9 +85,14 @@ function openXOriginModal(opId, paramName, location) {
 
     var origins = [];
     try {
+        // Try Base64 decoding first (new format)
+        if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+            originsJson = atob(originsJson);
+        }
         origins = JSON.parse(originsJson);
     } catch (e) {
         console.error('Failed to parse x-origins:', e);
+        console.error('Origins JSON:', originsJson);
         return;
     }
 
@@ -282,6 +287,10 @@ async function executeXOriginSource(sourceIdx) {
     // Get the origin configuration
     var input = document.getElementById('param-' + currentXOriginModal.opId + '-' + currentXOriginModal.paramName);
     var originsJson = input.getAttribute('data-x-origins');
+    // Try Base64 decoding first (new format)
+    if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+        originsJson = atob(originsJson);
+    }
     var origins = JSON.parse(originsJson);
     var origin = origins[sourceIdx];
 
@@ -406,7 +415,16 @@ async function executeXOriginSource(sourceIdx) {
 
         // Update status badge
         if (statusBadge) {
-            var statusClass = data.status >= 200 && data.status < 300 ? 'status-2xx' : 'status-error';
+            var statusClass = 'status-error';
+            if (data.status >= 200 && data.status < 300) {
+                statusClass = 'status-2xx';
+            } else if (data.status >= 300 && data.status < 400) {
+                statusClass = 'status-3xx';
+            } else if (data.status >= 400 && data.status < 500) {
+                statusClass = 'status-4xx';
+            } else if (data.status >= 500) {
+                statusClass = 'status-5xx';
+            }
             statusBadge.className = 'response-status-badge ' + statusClass;
             statusBadge.textContent = data.status;
         }
@@ -3412,7 +3430,7 @@ function detectVariableReferences(value) {
     return matches;
 }
 
-// Helper function to render value with clickable variable links
+// Helper function to render value as plain text (no links)
 function renderValueWithVariableLinks(value, slug) {
     // Ensure value is a string
     if (typeof value === 'object') {
@@ -3423,36 +3441,8 @@ function renderValueWithVariableLinks(value, slug) {
         value = String(value);
     }
 
-    var varRefs = detectVariableReferences(value);
-    if (varRefs.length === 0) return escapeHtml(value);
-
-    // Sort refs by position (descending) to replace from end to start
-    varRefs.sort(function(a, b) {
-        return value.lastIndexOf(b.fullMatch) - value.lastIndexOf(a.fullMatch);
-    });
-
-    var result = value;
-    varRefs.forEach(function(ref) {
-        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(ref.varName) + '\'); return false;" title="Click to view ' + escapeHtml(ref.varName) + '">' +
-                   escapeHtml(ref.fullMatch) +
-                   '</a>';
-
-        result = result.replace(ref.fullMatch, '%%%LINK' + varRefs.indexOf(ref) + '%%%');
-    });
-
-    // Escape the non-link parts
-    result = escapeHtml(result);
-
-    // Replace placeholders with actual links
-    varRefs.forEach(function(ref, idx) {
-        var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
-        var link = '<a href="#" class="inline-variable-ref-link" onclick="scrollToVariableSource(\'' + escapeHtml(slug) + '\', \'' + escapeHtml(lookupVar) + '\'); return false;" title="Click to view source">' +
-                   escapeHtml(ref.fullMatch) +
-                   '</a>';
-        result = result.replace('%%%LINK' + idx + '%%%', link);
-    });
-
-    return result;
+    // Just return escaped HTML, no links
+    return escapeHtml(value);
 }
 
 // Helper function to render variable reference hints
@@ -3466,18 +3456,9 @@ function renderVariableReferenceHints(value, contextType, slug) {
     varRefs.forEach(function(ref, idx) {
         if (idx > 0) html += ', ';
 
-        if (contextType === 'playground' && slug) {
-            // Make it a link that scrolls to the step
-            var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
-            var lookupVar = ref.type === 'step' ? ref.varName : ref.varName;
-
-            html += '<a href="#" class="variable-ref-link" onclick="scrollToVariableSource(\'' + slug + '\', \'' + escapeHtml(lookupVar) + '\'); return false;">';
-            html += escapeHtml(displayText);
-            html += '</a>';
-        } else {
-            var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
-            html += '<code>' + escapeHtml(displayText) + '</code>';
-        }
+        // Just show as plain code text, no links
+        var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
+        html += '<code>' + escapeHtml(displayText) + '</code>';
     });
     html += '</span>';
     html += '</div>';
@@ -3558,18 +3539,19 @@ function renderOperationForm(opId, opMeta, options) {
                     // Input field with magnifier button wrapper
                     html += '<div class="param-input-with-xorigin">';
                     html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
-                    html += 'data-x-origins=\'' + JSON.stringify(origins) + '\' ';
+                    // Use Base64 encoding to avoid escaping issues
+                    html += 'data-x-origins="' + btoa(JSON.stringify(origins)) + '" ';
                     html += 'id="param-' + opId + '-' + paramName + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
 
                     var hasVarRef = false;
                     var substitutedValue = yamlValue;
-                    // Add class and tooltip if has variable references
+                    // Add class if has variable references
                     if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
                         substitutedValue = substituteVariables(yamlValue, slug);
                         if (substitutedValue !== yamlValue) {
-                            html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue) + '"';
+                            html += ' class="has-variable-ref"';
                             hasVarRef = true;
                         }
                     }
@@ -3638,9 +3620,9 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
                     html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
                     if (required) html += ' required';
-                    // Add class and tooltip if has variable references
+                    // Add class if has variable references
                     if (hasVarRef2) {
-                        html += ' class="has-variable-ref" title="Resolves to: ' + escapeHtml(substitutedValue2) + '"';
+                        html += ' class="has-variable-ref"';
                     }
                     html += '>';
 
@@ -3769,7 +3751,8 @@ function startDebugger(slug) {
     debuggerState[slug] = {
         currentStep: 0,
         isRunning: true,
-        totalSteps: document.querySelectorAll('[id^="playground-step-' + slug + '-"]').length
+        totalSteps: document.querySelectorAll('[id^="playground-step-' + slug + '-"]').length,
+        allStepsCompleted: false
     };
 
     // Switch UI to running state
@@ -3822,6 +3805,18 @@ function nextStep(slug) {
         }
         state.currentStep = nextIndex;
         executeStepByIndex(slug, nextIndex);
+
+        // Check if we just executed the last step
+        if (nextIndex === state.totalSteps - 1) {
+            state.allStepsCompleted = true;
+            console.log('Last step executed. Click Next again to finish.');
+        }
+    } else if (nextIndex >= state.totalSteps) {
+        // Clicked Next after last step was executed
+        if (state.allStepsCompleted) {
+            console.log('All steps completed. Finishing debugger.');
+            cancelDebugger(slug);
+        }
     }
 }
 
@@ -3832,6 +3827,10 @@ function previousStep(slug) {
     var prevIndex = state.currentStep - 1;
     if (prevIndex >= 0) {
         state.currentStep = prevIndex;
+
+        // Clean variables from future steps (time travel backwards)
+        cleanFutureStepVariables(slug, prevIndex);
+
         scrollToStepByIndex(slug, prevIndex);
 
         // Update executing display for previous step
@@ -3848,6 +3847,90 @@ function previousStep(slug) {
             updateExecutingStepDisplay(slug, stepName);
         }
     }
+}
+
+// Clean variables that were captured by steps after the current step
+function cleanFutureStepVariables(slug, currentIndex) {
+    console.log('Cleaning variables from steps after index:', currentIndex);
+
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var variablesToKeep = {};
+
+    // Collect variables from steps 0 to currentIndex
+    for (var i = 0; i <= currentIndex; i++) {
+        var step = steps[i];
+        var panel = step.querySelector('[id^="playground-panel-"]');
+        if (!panel) continue;
+
+        var outputsAttr = panel.getAttribute('data-wf-outputs');
+        if (outputsAttr) {
+            try {
+                var outputs = JSON.parse(outputsAttr);
+                if (Array.isArray(outputs)) {
+                    outputs.forEach(function(output) {
+                        if (output.name) variablesToKeep[output.name] = true;
+                    });
+                } else {
+                    for (var varName in outputs) {
+                        variablesToKeep[varName] = true;
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing outputs for step', i, e);
+            }
+        }
+    }
+
+    console.log('Variables to keep:', Object.keys(variablesToKeep));
+
+    // Remove variables not in the keep list
+    if (skillVariables[slug]) {
+        for (var varName in skillVariables[slug]) {
+            if (!variablesToKeep[varName]) {
+                console.log('Removing variable:', varName);
+                delete skillVariables[slug][varName];
+            }
+        }
+    }
+
+    // Also clean array variables
+    if (window.skillArrayVariables && window.skillArrayVariables[slug]) {
+        for (var varName in window.skillArrayVariables[slug]) {
+            if (!variablesToKeep[varName]) {
+                delete window.skillArrayVariables[slug][varName];
+            }
+        }
+    }
+
+    // Also clean array labels
+    if (window.skillArrayLabels && window.skillArrayLabels[slug]) {
+        for (var varName in window.skillArrayLabels[slug]) {
+            if (!variablesToKeep[varName]) {
+                delete window.skillArrayLabels[slug][varName];
+            }
+        }
+    }
+
+    // Update the variables table
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (tableBody) {
+        // Remove rows for deleted variables
+        var rows = tableBody.querySelectorAll('tr[data-var-name]');
+        rows.forEach(function(row) {
+            var varName = row.getAttribute('data-var-name');
+            if (!variablesToKeep[varName]) {
+                row.remove();
+            }
+        });
+
+        // Show "no variables" if table is empty
+        if (tableBody.querySelectorAll('tr[data-var-name]').length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+        }
+    }
+
+    // Update variable tooltips
+    updateVariableTooltips(slug);
 }
 
 // Update the executing step display in variables panel
@@ -4089,6 +4172,17 @@ function initializePlaygroundStep(sid) {
 
     panel.innerHTML = html;
 
+    // Add blur event listeners to inputs to re-evaluate variables
+    var inputs = panel.querySelectorAll('input[type="text"]');
+    inputs.forEach(function(input) {
+        input.addEventListener('blur', function() {
+            // Re-evaluate variables when input loses focus
+            if (skillSlug) {
+                updateVariableTooltips(skillSlug);
+            }
+        });
+    });
+
     // Initialize ACE editors
     setTimeout(function() {
         initCodeMirrorEditors();
@@ -4150,14 +4244,15 @@ function captureVariablesFromResponse(panel, result) {
     // Extract variables using JSONPath-like simple extraction
     var capturedVars = {};
 
-    // Handle array format: [{name: 'var1', path: '$.path'}, ...]
+    // Handle array format: [{name: 'var1', path: '$.path', labels: '$.path'}, ...]
     if (Array.isArray(outputs)) {
         for (var i = 0; i < outputs.length; i++) {
             var outputDef = outputs[i];
             var varName = outputDef.name;
             var path = outputDef.path;
+            var labelsPath = outputDef.labels; // Optional labels path
 
-            console.log('Processing variable:', varName, 'Path:', path);
+            console.log('Processing variable:', varName, 'Path:', path, 'Labels:', labelsPath);
 
             if (!varName || !path) {
                 console.warn('Missing name or path in output definition:', outputDef);
@@ -4169,20 +4264,35 @@ function captureVariablesFromResponse(panel, result) {
 
             if (value !== undefined) {
                 capturedVars[varName] = value;
+
+                // If labels path is provided, extract labels too
+                if (labelsPath && Array.isArray(value)) {
+                    var labels = extractValueByPath(responseBody, labelsPath);
+                    console.log('Extracted labels for', varName, ':', labels);
+                    if (labels && Array.isArray(labels)) {
+                        // Store labels alongside values
+                        if (!capturedVars.__labels__) {
+                            capturedVars.__labels__ = {};
+                        }
+                        capturedVars.__labels__[varName] = labels;
+                    }
+                }
             }
         }
     } else {
-        // Handle object format: {var1: '$.path', var2: {path: '$.path'}}
+        // Handle object format: {var1: '$.path', var2: {path: '$.path', labels: '$.path'}}
         for (var varName in outputs) {
             var pathConfig = outputs[varName];
             console.log('Processing variable:', varName, 'Path config:', pathConfig);
 
             // Handle both string paths and object configs
             var path;
+            var labelsPath;
             if (typeof pathConfig === 'string') {
                 path = pathConfig;
             } else if (typeof pathConfig === 'object' && pathConfig.path) {
                 path = pathConfig.path;
+                labelsPath = pathConfig.labels; // Optional labels path
             } else {
                 console.warn('Invalid path config for', varName, ':', pathConfig);
                 continue;
@@ -4192,6 +4302,19 @@ function captureVariablesFromResponse(panel, result) {
             console.log('Extracted value for', varName, ':', value);
             if (value !== undefined) {
                 capturedVars[varName] = value;
+
+                // If labels path is provided, extract labels too
+                if (labelsPath && Array.isArray(value)) {
+                    var labels = extractValueByPath(responseBody, labelsPath);
+                    console.log('Extracted labels for', varName, ':', labels);
+                    if (labels && Array.isArray(labels)) {
+                        // Store labels alongside values
+                        if (!capturedVars.__labels__) {
+                            capturedVars.__labels__ = {};
+                        }
+                        capturedVars.__labels__[varName] = labels;
+                    }
+                }
             }
         }
     }
@@ -4209,15 +4332,39 @@ function captureVariablesFromResponse(panel, result) {
         window.skillArrayVariables[slug] = {};
     }
 
+    // Keep track of labels for array variables
+    if (!window.skillArrayLabels) {
+        window.skillArrayLabels = {};
+    }
+    if (!window.skillArrayLabels[slug]) {
+        window.skillArrayLabels[slug] = {};
+    }
+
+    // Extract labels from captured vars if present
+    var labelsMap = capturedVars.__labels__ || {};
+
     // For array variables, store the first element as the default selected value
     for (var varName in capturedVars) {
+        if (varName === '__labels__') continue; // Skip the labels metadata
+
         var value = capturedVars[varName];
         if (Array.isArray(value) && value.length > 0) {
             // Store full array for dropdown display
             window.skillArrayVariables[slug][varName] = value;
-            // Store first element as the selected value for substitution
-            skillVariables[slug][varName] = value[0];
-            console.log('Array variable', varName, '- storing first element as default:', value[0]);
+
+            // Store labels if available
+            if (labelsMap[varName]) {
+                window.skillArrayLabels[slug][varName] = labelsMap[varName];
+                console.log('Array variable', varName, '- storing labels:', labelsMap[varName]);
+            }
+
+            // Only set to first element if variable doesn't exist yet (preserve user selection)
+            if (skillVariables[slug][varName] === undefined) {
+                skillVariables[slug][varName] = value[0];
+                console.log('Array variable', varName, '- storing first element as default:', value[0]);
+            } else {
+                console.log('Array variable', varName, '- preserving existing selection:', skillVariables[slug][varName]);
+            }
         } else {
             skillVariables[slug][varName] = value;
         }
@@ -4282,7 +4429,6 @@ function updateVariableTooltips(slug) {
                     if (!input.classList.contains('has-variable-ref')) {
                         input.classList.add('has-variable-ref');
                     }
-                    input.title = 'Resolves to: ' + substitutedValue;
 
                     // Update or create the resolved value span
                     var nextSibling = input.nextElementSibling;
@@ -4316,7 +4462,6 @@ function updateVariableTooltips(slug) {
                     if (!input.classList.contains('has-variable-ref')) {
                         input.classList.add('has-variable-ref');
                     }
-                    input.title = 'Variable not yet captured';
                 }
             }
         });
@@ -4507,12 +4652,27 @@ function renderVariableValue(cell, value, varName, slug) {
         select.style.backgroundColor = 'white';
         select.style.cursor = 'pointer';
 
+        // Check if labels are available for this variable
+        var labels = null;
+        if (window.skillArrayLabels && window.skillArrayLabels[slug] && window.skillArrayLabels[slug][varName]) {
+            labels = window.skillArrayLabels[slug][varName];
+        }
+
         for (var i = 0; i < value.length; i++) {
             var option = document.createElement('option');
             var itemValue = value[i];
             var itemStr = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
             option.value = itemStr;
-            option.textContent = '[' + i + '] ' + (itemStr.length > 50 ? itemStr.substring(0, 50) + '...' : itemStr);
+
+            // Format: [index] Label (value) if labels available, otherwise [index] value
+            var displayText = '[' + i + '] ';
+            if (labels && labels[i]) {
+                var labelStr = String(labels[i]);
+                displayText += labelStr + ' (' + (itemStr.length > 30 ? itemStr.substring(0, 30) + '...' : itemStr) + ')';
+            } else {
+                displayText += (itemStr.length > 50 ? itemStr.substring(0, 50) + '...' : itemStr);
+            }
+            option.textContent = displayText;
             select.appendChild(option);
         }
 
@@ -4537,6 +4697,22 @@ function renderVariableValue(cell, value, varName, slug) {
                 updateVariableTooltips(slug);
             }
         };
+
+        // Restore previously selected value if it exists in skillVariables
+        if (skillVariables[slug] && skillVariables[slug][varName] !== undefined) {
+            var currentValue = skillVariables[slug][varName];
+            // Find the index that matches the current value
+            for (var j = 0; j < value.length; j++) {
+                var itemValue = value[j];
+                var itemStr = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
+                var currentStr = typeof currentValue === 'object' ? JSON.stringify(currentValue) : String(currentValue);
+                if (itemStr === currentStr) {
+                    select.selectedIndex = j;
+                    console.log('Restored selection for', varName, 'to index', j);
+                    break;
+                }
+            }
+        }
 
         cell.appendChild(select);
     } else if (typeof value === 'object' && value !== null) {
@@ -4783,7 +4959,16 @@ async function executePlaygroundStep(sid) {
 
         // Update status badge
         if (statusBadge) {
-            var statusClass = result.status >= 200 && result.status < 300 ? 'status-2xx' : 'status-error';
+            var statusClass = 'status-error';
+            if (result.status >= 200 && result.status < 300) {
+                statusClass = 'status-2xx';
+            } else if (result.status >= 300 && result.status < 400) {
+                statusClass = 'status-3xx';
+            } else if (result.status >= 400 && result.status < 500) {
+                statusClass = 'status-4xx';
+            } else if (result.status >= 500) {
+                statusClass = 'status-5xx';
+            }
             statusBadge.className = 'response-status-badge ' + statusClass;
             statusBadge.textContent = result.status;
         }
@@ -5052,7 +5237,8 @@ function renderWorkflowStepForms(skillSlug) {
                         html += '</label>';
                         html += '<input type="text" data-wf-param="' + escapeHtml(paramName) + '" ';
                         html += 'data-in="' + section.location + '" ';
-                        html += 'data-x-origins=\'' + originsJsonStr + '\' ';
+                        // Use Base64 encoding to avoid escaping issues
+                        html += 'data-x-origins="' + btoa(originsJsonStr) + '" ';
                         html += 'id="param-' + sid + '-' + escapeHtml(paramName) + '" ';
                         html += 'placeholder="' + escapeHtml(paramType) + '" ';
                         html += 'value="' + escapeHtml(value) + '"';

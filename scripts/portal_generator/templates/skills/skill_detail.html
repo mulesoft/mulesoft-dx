@@ -10,8 +10,8 @@
     {# Skill Mode Toggle #}
     <div class="skill-mode-toggle-container">
         <label class="toggle-switch-label">
-            <span class="toggle-label-text">Playground Mode</span>
-            <div class="toggle-switch" onclick="toggleSkillMode('{{ slug }}')" role="switch" aria-checked="false" aria-label="Toggle playground mode" id="toggle-{{ slug }}">
+            <span class="toggle-label-text">Interactive Mode</span>
+            <div class="toggle-switch" onclick="toggleSkillMode('{{ slug }}')" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ slug }}">
                 <div class="toggle-slider"></div>
             </div>
         </label>
@@ -83,13 +83,13 @@
                     {# Running state: Cancel + Step controls #}
                     <div class="debugger-running-state" id="debugger-running-{{ slug }}" style="display:none">
                         <button class="btn-debugger-prev" onclick="previousStep('{{ slug }}')" title="Previous step">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                <path d="M9 2L4 7L9 12V2Z" fill="currentColor"/>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline/>
                             </svg>
                         </button>
                         <button class="btn-debugger-next" onclick="nextStep('{{ slug }}')" title="Next step">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                <path d="M5 2L10 7L5 12V2Z" fill="currentColor"/>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline/>
                             </svg>
                         </button>
                         <button class="btn-debugger-cancel" onclick="cancelDebugger('{{ slug }}')" title="Stop">

@@ -30,17 +30,31 @@
             {% endif %}
         </div>
         <button class="btn-copy-curl" onclick="copyCurlCommand(this)" title="Copy cURL command">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
             Copy
         </button>
     </div>
 
-    <pre class="curl-command"><code class="language-bash">curl -X POST {{ '{{baseUrl}}' }}/{{ api }}/{{ operation_id }} \
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <span class="terminal-button terminal-close"></span>
+                <span class="terminal-button terminal-minimize"></span>
+                <span class="terminal-button terminal-maximize"></span>
+            </div>
+            <div class="terminal-title">Terminal</div>
+        </div>
+        <pre class="curl-command"><code class="language-bash"><span class="terminal-prompt">$</span> curl -X POST {{ '{{baseUrl}}' }}/{{ api }}/{{ operation_id }} \
   -H "Authorization: Bearer {{ '{{authToken}}' }}" \
   -H "Content-Type: application/json" \{% if inputs %}
   -d '{
 {% if inputs is mapping %}{% for name, defn in inputs.items() %}    "{{ name }}": "{{ render_input_value(defn) }}"{% if not loop.last %},{% endif %}
 
 {% endfor %}{% endif %}  }'{% endif %}</code></pre>
+    </div>
 </div>
 
 {# Outputs Section #}

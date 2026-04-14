@@ -1,0 +1,80 @@
+{% macro render_step_playground(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='', all_steps=[]) %}
+{% set yaml_data = step.yaml|default(none) %}
+{% set sid = slug ~ '-' ~ step_index %}
+
+{# Step Title #}
+<h3 class="playground-step-title" id="step-{{ sid }}">
+    {{ step.title }}
+</h3>
+
+{# Prose - flows naturally #}
+{% if step.prose_before_html %}
+<div class="playground-step-prose">
+    {{ step.prose_before_html|safe }}
+</div>
+{% endif %}
+
+{# Operation Panel - replaces code block #}
+{% if yaml_data %}
+{% set api = yaml_data.api|default('')|replace('urn:api:', '') %}
+{% set operation_id = yaml_data.operationId|default('') %}
+{% set inputs = yaml_data.inputs|default({}) %}
+{% set outputs = yaml_data.outputs|default([]) %}
+
+<div class="playground-operation-container">
+    {# Operation Header - Method + Server + Path #}
+    <div class="playground-operation-header" id="op-header-{{ sid }}">
+        <div class="operation-method-path" id="op-method-path-{{ sid }}">
+            {# Will be populated by JS from operation metadata #}
+        </div>
+    </div>
+
+    {# Operation panel with two-column grid (created by JavaScript using renderOperationPanel) #}
+    <div class="playground-operation-panel" id="playground-panel-{{ sid }}"
+         data-wf-outputs='{{ outputs|tojson }}'
+         data-wf-api="{{ yaml_data.api|default('') }}"
+         data-wf-operation="{{ operation_id }}"
+         data-wf-inputs='{{ (inputs|resolve_skill_inputs(all_steps))|tojson }}'>
+        {# Will be populated by JavaScript with form, response, and execute button #}
+        <div class="operation-panel-loading">
+            Loading operation form...
+        </div>
+    </div>
+
+    {# Spinner shown during execution #}
+    <span class="operation-spinner" id="spinner-{{ sid }}" style="display:none; margin-top: 1rem;">Running...</span>
+
+    {# Outputs Section #}
+    {% if outputs and outputs is iterable %}
+    {% set output_rows = [] %}
+    {% for out in outputs %}
+    {% if out is mapping %}{% set _ = output_rows.append(out) %}{% endif %}
+    {% endfor %}
+    {% if output_rows %}
+    <div class="playground-outputs-section">
+        <h5>Outputs:</h5>
+        <ul class="outputs-list">
+            {% for out in output_rows %}
+            <li>
+                <code class="capture-name">{{ out.name|default('') }}</code>
+                from <code class="capture-path">{{ out.path|default('') }}</code>
+                {% if out.description %}
+                <span class="capture-desc">— {{ out.description }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+
+{# Prose after #}
+{% if step.prose_after_html %}
+<div class="playground-step-prose">
+    {{ step.prose_after_html|safe }}
+</div>
+{% endif %}
+
+{% endmacro %}

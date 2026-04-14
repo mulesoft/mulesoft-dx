@@ -104,6 +104,88 @@ def _titleize_operation(value):
     return spaced[0].upper() + spaced[1:] if spaced else ''
 
 
+def _slugify(value):
+    """Convert a string to a URL-friendly slug.
+
+    Examples:
+        "Get Current Organization" -> "get-current-organization"
+        "List Environments" -> "list-environments"
+    """
+    if not value:
+        return ''
+
+    # Convert to lowercase
+    slug = str(value).lower()
+
+    # Replace spaces and special chars with hyphens
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    slug = re.sub(r'[\s_]+', '-', slug)
+    slug = re.sub(r'-+', '-', slug)
+
+    # Strip leading/trailing hyphens
+    return slug.strip('-')
+
+
+def _resolve_skill_inputs(inputs_dict, step_details):
+    """Transform skill inputs from step references to variable reference format.
+
+    Converts:
+        {
+            'organizationId': {
+                'from': {'step': 'Get Current Organization', 'output': 'organizationId'},
+                'description': '...'
+            }
+        }
+
+    To:
+        {
+            'organizationId': {
+                'ref': '${organizationId}',
+                'description': '...'
+            }
+        }
+
+    Args:
+        inputs_dict: Dictionary of input parameters with 'from' references
+        step_details: List of step dictionaries with 'title' keys
+
+    Returns:
+        Transformed inputs dictionary
+    """
+    if not inputs_dict or not isinstance(inputs_dict, dict):
+        return inputs_dict
+
+    # Transform each input parameter
+    result = {}
+    for param_name, param_config in inputs_dict.items():
+        if not isinstance(param_config, dict):
+            # Simple value, keep as-is
+            result[param_name] = param_config
+            continue
+
+        # Check if this has a 'from' reference
+        if 'from' in param_config:
+            from_ref = param_config['from']
+            if isinstance(from_ref, dict):
+                # Try both 'output' and 'input' fields
+                var_name = from_ref.get('output') or from_ref.get('input', '')
+
+                if var_name:
+                    # Create the reference string - just ${variableName}
+                    ref_string = f'${{{var_name}}}'
+                    # Replace 'from' with 'ref'
+                    new_config = param_config.copy()
+                    del new_config['from']
+                    new_config['ref'] = ref_string
+                    result[param_name] = new_config
+                    continue
+
+        # No transformation needed, keep as-is
+        result[param_name] = param_config
+
+    return result
+
+
 def create_env() -> Environment:
     """Create and configure the Jinja2 template environment."""
     env = Environment(
@@ -119,6 +201,8 @@ def create_env() -> Environment:
     env.filters['md'] = _render_markdown
     env.filters['tojson_raw'] = _tojson_raw
     env.filters['titleize_operation'] = _titleize_operation
+    env.filters['slugify'] = _slugify
+    env.filters['resolve_skill_inputs'] = _resolve_skill_inputs
 
     # Global functions available in all templates
     env.globals['build_operation_tree'] = build_operation_tree

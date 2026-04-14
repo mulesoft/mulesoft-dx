@@ -85,9 +85,14 @@ function openXOriginModal(opId, paramName, location) {
 
     var origins = [];
     try {
+        // Try Base64 decoding first (new format)
+        if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+            originsJson = atob(originsJson);
+        }
         origins = JSON.parse(originsJson);
     } catch (e) {
         console.error('Failed to parse x-origins:', e);
+        console.error('Origins JSON:', originsJson);
         return;
     }
 
@@ -107,7 +112,14 @@ function openXOriginModal(opId, paramName, location) {
     // Get operation lookup for parameter details
     var opLookup = window.__OP_LOOKUP__ || {};
 
-    // Build source selector dropdown and execute button
+    // Load environment variables to pre-fill form
+    var envVars = loadEnvVars();
+    var envVarsMap = {};
+    envVars.forEach(function(v) {
+        envVarsMap[v.name] = v.value;
+    });
+
+    // Build source selector dropdown (no execute button here - it's in the panel)
     var html = '<div class="xorigin-selector-container">';
     html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
 
@@ -122,7 +134,6 @@ function openXOriginModal(opId, paramName, location) {
     });
 
     html += '</select>';
-    html += '<button class="btn-execute-xorigin" onclick="executeXOriginSource()">Execute</button>';
     html += '</div>';
 
     // Build source containers (hidden by default, first one visible)
@@ -134,149 +145,93 @@ function openXOriginModal(opId, paramName, location) {
 
         // Get operation details for this source
         var apiEntry = opLookup[apiSlug];
-        var opMeta = apiEntry ? apiEntry.ops[operationId] : null; 
+        var opMeta = apiEntry ? apiEntry.ops[operationId] : null;
 
         // Show operation URL bar and parameters
         if (opMeta) {
             var xoriginServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
-            // Don't make the URL bar a link
-            html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
 
-            // Add Information section
-            html += '<details class="xorigin-info-section">';
-            html += '<summary>Information</summary>';
-            html += '<div class="xorigin-info-content">';
-
-            // Operation ID with link
-            html += '<div class="xorigin-info-item">';
-            html += '<label>Operation ID:</label>';
+            // Panel header matching try-panel-header structure (title and Send in same row)
             var linkPrefix = window.__API_LINK_PREFIX__ || '';
+            html += '<div class="try-panel-header">';
+
+            // Left side: operationId as link (with xpath info if available)
+            html += '<div class="xorigin-title-section">';
             html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="xorigin-operation-link">';
-            html += '<code>' + escapeHtml(operationId) + '</code>';
+            html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
             html += '</a>';
-            html += '</div>';
-
-            // JSON Path for values
-            if (origin.values) {
-                html += '<div class="xorigin-info-item">';
-                html += '<label>Values JSON Path:</label>';
-                html += '<code class="xorigin-jsonpath">' + escapeHtml(origin.values) + '</code>';
-                html += '</div>';
-            }
-
-            // JSON Path for labels (if exists)
-            if (origin.labels) {
-                html += '<div class="xorigin-info-item">';
-                html += '<label>Labels JSON Path:</label>';
-                html += '<code class="xorigin-jsonpath">' + escapeHtml(origin.labels) + '</code>';
-                html += '</div>';
-            }
-
-            html += '</div>';
-            html += '</details>';
-
-            var params = opMeta.parameters || [];
-            var envMap = getEnvVarsMap();
-
-            // Group parameters by location
-            var pathParams = params.filter(function(p) { return p.in === 'path'; });
-            var queryParams = params.filter(function(p) { return p.in === 'query'; });
-            var headerParams = params.filter(function(p) { return p.in === 'header'; });
-
-            var paramGroups = [
-                { location: 'path', label: 'Path Parameters', params: pathParams },
-                { location: 'query', label: 'Query Parameters', params: queryParams },
-                { location: 'header', label: 'Header Parameters', params: headerParams }
-            ];
-
-            paramGroups.forEach(function(group) {
-                if (group.params.length > 0) {
-                    // Check if any parameter is required
-                    var hasRequired = group.params.some(function(p) { return p.required || false; });
-                    html += '<details class="xorigin-params-section"' + (hasRequired ? ' open' : '') + '>';
-                    html += '<summary>' + group.label + '</summary>';
-                    html += '<div class="xorigin-params-content">';
-
-                    group.params.forEach(function(param) {
-                        var paramName = param.name || '';
-                        var paramRequired = param.required || false;
-                        var paramType = (param.schema && param.schema.type) ? param.schema.type : 'string';
-                        var paramDefault = (param.schema && param.schema.default) ? param.schema.default : '';
-                        var paramEnum = (param.schema && param.schema.enum) ? param.schema.enum : null;
-                        var paramDescription = param.description || '';
-
-                        // Pre-fill from environment variables
-                        var value = envMap[paramName] || paramDefault;
-
-                        html += '<div class="try-param-row">';
-                        html += '<label>';
-                        html += '<span class="param-name-wrapper">';
-                        html += '<code>' + escapeHtml(paramName) + '</code>';
-                        if (paramRequired) {
-                            html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
-                        }
-                        html += '</span>';
-                        if (paramDescription) {
-                            html += '<span class="param-info-wrapper" data-tooltip="' + escapeHtml(paramDescription) + '">';
-                            html += '<span class="param-info-icon" aria-label="more-info"></span>';
-                            html += '</span>';
-                        }
-                        html += '</label>';
-
-                        if (paramEnum) {
-                            // Enum dropdown
-                            html += '<select data-param="' + escapeHtml(paramName) + '" data-in="' + escapeHtml(group.location) + '"';
-                            if (paramRequired) html += ' required';
-                            html += '>';
-                            paramEnum.forEach(function(enumVal) {
-                                var selected = (String(enumVal) === String(value)) ? ' selected' : '';
-                                html += '<option value="' + escapeHtml(String(enumVal)) + '"' + selected + '>' + escapeHtml(String(enumVal)) + '</option>';
-                            });
-                            html += '</select>';
-                        } else {
-                            // Text input
-                            html += '<input type="text" ';
-                            html += 'data-param="' + escapeHtml(paramName) + '" ';
-                            html += 'data-in="' + escapeHtml(group.location) + '" ';
-                            html += 'placeholder="' + escapeHtml(paramType) + '" ';
-                            html += 'value="' + escapeHtml(String(value)) + '"';
-                            if (paramRequired) html += ' required';
-                            html += '>';
-                        }
-
-                        html += '</div>';
-                    });
-
-                    html += '</div>';
-                    html += '</details>';
+            // Xpath expressions inline
+            if (origin.values || origin.labels) {
+                html += '<span class="xorigin-xpath-info">';
+                if (origin.values) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">values:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.values) + '</code>';
+                    html += '</span>';
                 }
+                if (origin.labels) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">labels:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.labels) + '</code>';
+                    html += '</span>';
+                }
+                html += '</span>';
+            }
+            html += '</div>';
+
+            // Right side: actions (spinner + send button + dropdown)
+            html += '<div class="try-header-actions">';
+            html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+            html += '<div class="btn-group-send">';
+            html += '<button class="btn-send-main" onclick="executeXOriginSource(' + idx + ')">';
+            html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
+            html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+            html += '</svg>';
+            html += 'Send';
+            html += '</button>';
+            html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'xorigin-' + idx + '\')" aria-label="More actions">';
+            html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
+            html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+            html += '</svg>';
+            html += '</button>';
+            html += '<div class="send-dropdown-menu" id="send-dropdown-xorigin-' + idx + '" style="display:none">';
+            html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'xorigin-' + idx + '\')">';
+            html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
+            html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+            html += '</svg>';
+            html += '<span id="copy-text-xorigin-' + idx + '">Copy cURL</span>';
+            html += '</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Operation URL bar (below header)
+            html += '<div class="operation-url-bar-container">';
+            html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
+            html += '</div>';
+
+            // Use shared panel renderer for two-column layout (no execute button - it's in header)
+            var xoriginOpId = 'xorigin-' + idx;
+            html += renderOperationPanel(xoriginOpId, opMeta, {
+                yamlInputs: envVarsMap,
+                enableVariableRefs: false,
+                slug: '',
+                contextType: 'xorigin',
+                showExecuteButton: false  // Button is in header now
             });
-
-            // Add custom query parameters section
-            html += '<details class="xorigin-params-section try-custom-params">';
-            html += '<summary>Custom Query Parameters</summary>';
-            html += '<div class="xorigin-params-content">';
-            html += '<div id="custom-query-xorigin-' + idx + '" class="custom-params-container"></div>';
-            html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParamXOrigin(' + idx + ', \'query\')">+ Add Query Parameter</button>';
-            html += '</div>';
-            html += '</details>';
-
-            // Add custom headers section
-            html += '<details class="xorigin-params-section try-custom-params">';
-            html += '<summary>Custom Headers</summary>';
-            html += '<div class="xorigin-params-content">';
-            html += '<div id="custom-header-xorigin-' + idx + '" class="custom-params-container"></div>';
-            html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParamXOrigin(' + idx + ', \'header\')">+ Add Header</button>';
-            html += '</div>';
-            html += '</details>';
+            // Extracted values will be shown in the "Extracted Values" tab of the response section
         }
 
-        html += '<div class="xorigin-result" id="xorigin-result-' + idx + '" style="display:none"></div>';
         html += '</div>';
     });
 
     body.innerHTML = html;
     modal.style.display = 'flex';
+
+    // Initialize ACE editors for request bodies
+    initCodeMirrorEditors();
+
     // Focus trap: focus the first focusable element and store previous focus
     modal._previousFocus = document.activeElement;
     var firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -314,30 +269,41 @@ async function executeXOriginSource(sourceIdx) {
         }
     }
 
-    var btn = document.querySelector('.xorigin-selector-container .btn-execute-xorigin');
-    var resultDiv = document.getElementById('xorigin-result-' + sourceIdx);
+    var xoriginOpId = 'xorigin-' + sourceIdx;
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    var btn = sourceDiv ? sourceDiv.querySelector('.btn-send-main') : null;
+    var spinner = document.getElementById('spinner-xorigin-' + sourceIdx);
+    var responseDiv = document.getElementById('response-' + xoriginOpId);
+    var statusBadge = document.getElementById('status-' + xoriginOpId);
+    var responseBodyDiv = document.getElementById('respbody-' + xoriginOpId);
+    var responseHeadersDiv = document.getElementById('respheaders-' + xoriginOpId);
+    var valuesOutputDiv = document.getElementById('xorigin-values-' + sourceIdx);
 
-    if (!btn || !resultDiv) {
-        console.error('Execute button or result div not found', { btn: !!btn, resultDiv: !!resultDiv, sourceIdx: sourceIdx });
+    if (!btn || !responseDiv) {
+        console.error('Execute button or response div not found', { btn: !!btn, responseDiv: !!responseDiv, sourceIdx: sourceIdx });
         return;
     }
 
     // Get the origin configuration
     var input = document.getElementById('param-' + currentXOriginModal.opId + '-' + currentXOriginModal.paramName);
     var originsJson = input.getAttribute('data-x-origins');
+    // Try Base64 decoding first (new format)
+    if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+        originsJson = atob(originsJson);
+    }
     var origins = JSON.parse(originsJson);
     var origin = origins[sourceIdx];
 
     // Check authentication
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
     if (isTokenExpired()) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -350,15 +316,15 @@ async function executeXOriginSource(sourceIdx) {
     var opLookup = window.__OP_LOOKUP__ || {};
     var apiEntry = opLookup[apiSlug];
     if (!apiEntry) {
-        resultDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
     var opMeta = apiEntry.ops[operationId];
     if (!opMeta) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -366,7 +332,6 @@ async function executeXOriginSource(sourceIdx) {
     var pathTemplate = opMeta.path;
 
     // Collect parameters from input fields in the modal
-    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
     var paramInputs = sourceDiv.querySelectorAll('input[data-param], select[data-param]');
 
     var paramsByLocation = { path: {}, query: {}, header: {} };
@@ -385,8 +350,8 @@ async function executeXOriginSource(sourceIdx) {
     });
 
     if (missingParams.length > 0) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -400,8 +365,8 @@ async function executeXOriginSource(sourceIdx) {
     // Check for any remaining unsubstituted path parameters
     var unresolvedParams = (path.match(/\{([^}]+)\}/g) || []);
     if (unresolvedParams.length > 0) {
-        resultDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
-        resultDiv.style.display = 'block';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
+        responseDiv.classList.remove('empty');
         return;
     }
 
@@ -418,10 +383,10 @@ async function executeXOriginSource(sourceIdx) {
     var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
     var fullUrl = serverUrl + path;
 
-    // Update button state
-    btn.disabled = true;
-    var originalText = btn.textContent;
-    btn.textContent = 'Executing...';
+    // Update UI state
+    if (spinner) spinner.style.display = 'inline';
+    if (btn) btn.disabled = true;
+    if (responseDiv) responseDiv.classList.add('empty');
 
     try {
         // Build headers including auth headers and parameter headers
@@ -444,28 +409,45 @@ async function executeXOriginSource(sourceIdx) {
 
         var data = await resp.json();
 
-        btn.disabled = false;
-        btn.textContent = originalText;
+        if (spinner) spinner.style.display = 'none';
+        if (btn) btn.disabled = false;
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        // Update status badge
+        if (statusBadge) {
+            var statusClass = 'status-error';
+            if (data.status >= 200 && data.status < 300) {
+                statusClass = 'status-2xx';
+            } else if (data.status >= 300 && data.status < 400) {
+                statusClass = 'status-3xx';
+            } else if (data.status >= 400 && data.status < 500) {
+                statusClass = 'status-4xx';
+            } else if (data.status >= 500) {
+                statusClass = 'status-5xx';
+            }
+            statusBadge.className = 'response-status-badge ' + statusClass;
+            statusBadge.textContent = data.status;
+        }
 
         if (data.error) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
-            resultDiv.style.display = 'block';
+            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
             return;
         }
 
         if (data.status < 200 || data.status >= 300) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
-            resultDiv.style.display = 'block';
+            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
             return;
         }
 
-        // Parse response body
+        // Display response using shared function
+        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, data);
+
+        // Parse response body for value extraction
         var body = null;
         try {
             body = JSON.parse(data.body || '{}');
         } catch (e) {
-            resultDiv.innerHTML = '<div class="xorigin-error">Response is not valid JSON</div>';
-            resultDiv.style.display = 'block';
+            console.warn('X-Origin: Response is not valid JSON, cannot extract values');
             return;
         }
 
@@ -480,87 +462,58 @@ async function executeXOriginSource(sourceIdx) {
             }
         }
 
-        // Build result HTML with tabs
-        var html = '<div class="xorigin-result-header">';
-        html += '<h5>Results</h5>';
-        html += '</div>';
+        // Show extracted values in the "Extracted Values" tab
+        var extractedTab = document.getElementById('respextracted-xorigin-' + sourceIdx);
+        if (extractedTab) {
+            if (values.length > 0) {
+                var valuesHtml = '<div class="xorigin-values-section">';
+                valuesHtml += '<div class="xorigin-values-header">';
+                valuesHtml += '<div class="xorigin-values-count">' + values.length + ' value' + (values.length !== 1 ? 's' : '') + ' extracted</div>';
+                valuesHtml += '</div>';
+                valuesHtml += '<div class="xorigin-values-list">';
+                values.forEach(function(val, valIdx) {
+                    var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                    var labelStr = labels[valIdx] ? String(labels[valIdx]) : valueStr;
 
-        // Tabs
-        html += '<div class="xorigin-result-tabs">';
-        html += '<button class="xorigin-tab-btn active" onclick="switchXOriginTab(' + sourceIdx + ', \'values\')">Values (' + values.length + ')</button>';
-        html += '<button class="xorigin-tab-btn" onclick="switchXOriginTab(' + sourceIdx + ', \'body\')">Response Body</button>';
-        html += '<button class="xorigin-tab-btn" onclick="switchXOriginTab(' + sourceIdx + ', \'headers\')">Response Headers</button>';
-        html += '</div>';
+                    valuesHtml += '<div class="xorigin-value-item">';
+                    // Show label if different from value
+                    if (labels[valIdx] && labelStr !== valueStr) {
+                        valuesHtml += '<div class="xorigin-value-display">';
+                        valuesHtml += '<div class="xorigin-value-label">' + escapeHtml(labelStr) + '</div>';
+                        valuesHtml += '<code class="xorigin-value-id">' + escapeHtml(valueStr) + '</code>';
+                        valuesHtml += '</div>';
+                    } else {
+                        valuesHtml += '<code class="xorigin-value-display">' + escapeHtml(valueStr) + '</code>';
+                    }
+                    // Store value in data attribute to avoid escaping issues
+                    valuesHtml += '<button class="btn-use-value" data-value="' + escapeHtml(valueStr) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', this.getAttribute(\'data-value\'))">Select</button>';
+                    valuesHtml += '</div>';
+                });
+                valuesHtml += '</div>';
+                valuesHtml += '</div>';
 
-        // Tab content container
-        html += '<div class="xorigin-tab-content">';
-
-        // Values tab
-        if (values.length === 0) {
-            html += '<div class="xorigin-tab-panel active" id="xorigin-tab-values-' + sourceIdx + '">';
-            html += '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
-            html += '</div>';
-        } else {
-            html += '<div class="xorigin-tab-panel active" id="xorigin-tab-values-' + sourceIdx + '">';
-            html += '<div class="xorigin-values-list">';
-            values.forEach(function(val, valIdx) {
-                var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
-                var labelStr = labels[valIdx] ? String(labels[valIdx]) : valueStr;
-
-                html += '<div class="xorigin-value-item">';
-                // Show label if different from value
-                if (labels[valIdx] && labelStr !== valueStr) {
-                    html += '<div class="xorigin-value-label">' + escapeHtml(labelStr) + '</div>';
-                    html += '<code class="xorigin-value-id">' + escapeHtml(valueStr) + '</code>';
-                } else {
-                    html += '<code>' + escapeHtml(valueStr) + '</code>';
-                }
-                html += '<button class="btn-use-value" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ')">Use</button>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
+                extractedTab.innerHTML = valuesHtml;
+            } else {
+                extractedTab.innerHTML = '<div class="xorigin-error">No values found at path: ' + escapeHtml(valuesPath) + '</div>';
+            }
         }
 
-        // Response body tab
-        html += '<div class="xorigin-tab-panel" id="xorigin-tab-body-' + sourceIdx + '">';
-        html += '<div class="xorigin-response-body" id="xorigin-respbody-' + sourceIdx + '"></div>';
-        html += '</div>';
-
-        // Response headers tab
-        html += '<div class="xorigin-tab-panel" id="xorigin-tab-headers-' + sourceIdx + '">';
-        html += '<div class="xorigin-response-headers" id="xorigin-respheaders-' + sourceIdx + '"></div>';
-        html += '</div>';
-
-        html += '</div>'; // End tab content
-
-        resultDiv.innerHTML = html;
-        resultDiv.style.display = 'block';
-
-        // Store values for later use
-        resultDiv.dataset.values = JSON.stringify(values);
-
-        // Create Ace editors for response body and headers
-        var responseBodyDiv = document.getElementById('xorigin-respbody-' + sourceIdx);
-        var responseHeadersDiv = document.getElementById('xorigin-respheaders-' + sourceIdx);
-        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, data);
-
     } catch (e) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-        resultDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
-        resultDiv.style.display = 'block';
+        if (spinner) spinner.style.display = 'none';
+        if (btn) btn.disabled = false;
+        if (responseDiv) responseDiv.classList.remove('empty');
+        if (statusBadge) {
+            statusBadge.textContent = 'Error';
+            statusBadge.className = 'response-status-badge status-error';
+        }
+        if (responseBodyDiv) {
+            responseBodyDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
+        }
     }
 }
 
-function useXOriginValue(sourceIdx, valueIdx) {
-    var resultDiv = document.getElementById('xorigin-result-' + sourceIdx);
-    var values = JSON.parse(resultDiv.dataset.values || '[]');
-    var value = values[valueIdx];
-
-    if (value === undefined) return;
-
-    var displayVal = typeof value === 'object' ? JSON.stringify(value) : String(value);
+function useXOriginValue(sourceIdx, valueIdx, valueStr) {
+    var displayVal = valueStr;
     var paramName = currentXOriginModal.paramName;
 
     // Set the value in the input
@@ -959,6 +912,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Initialize playground steps in skills
+    initializePlaygroundSteps();
 
     // Build available tags from catalog
     buildAvailableTags();
@@ -3046,20 +3002,27 @@ function switchResponseTab(opId, tabName) {
         btn.classList.remove('active');
     });
     var activeTab = Array.from(tabButtons).find(function(btn) {
-        return btn.textContent.toLowerCase() === tabName.toLowerCase();
+        return btn.textContent.toLowerCase().includes(tabName.toLowerCase());
     });
     if (activeTab) activeTab.classList.add('active');
 
     // Update content
     var bodyContent = document.getElementById('respbody-' + opId);
     var headersContent = document.getElementById('respheaders-' + opId);
+    var extractedContent = document.getElementById('respextracted-' + opId);
 
-    if (tabName === 'body') {
-        if (bodyContent) bodyContent.classList.add('active');
-        if (headersContent) headersContent.classList.remove('active');
-    } else if (tabName === 'headers') {
-        if (bodyContent) bodyContent.classList.remove('active');
-        if (headersContent) headersContent.classList.add('active');
+    // Remove active class from all
+    if (bodyContent) bodyContent.classList.remove('active');
+    if (headersContent) headersContent.classList.remove('active');
+    if (extractedContent) extractedContent.classList.remove('active');
+
+    // Add active class to the selected tab
+    if (tabName === 'body' && bodyContent) {
+        bodyContent.classList.add('active');
+    } else if (tabName === 'headers' && headersContent) {
+        headersContent.classList.add('active');
+    } else if (tabName === 'extracted' && extractedContent) {
+        extractedContent.classList.add('active');
     }
 }
 
@@ -3317,6 +3280,1773 @@ function displayResponseInAceEditors(responseBodyContainer, responseHeadersConta
         }
         createReadOnlyAceEditor(responseHeadersContainer, headersText || 'No headers returned', 'text');
     }
+
+    // Update content-type badge if present
+    if (data.headers && responseBodyContainer) {
+        var opId = responseBodyContainer.id.replace('respbody-', '');
+        var contentTypeBadge = document.getElementById('content-type-badge-' + opId);
+        if (contentTypeBadge) {
+            var contentType = data.headers['content-type'] || data.headers['Content-Type'] || '';
+            if (contentType) {
+                var mimeType = contentType.split(';')[0].trim();
+                var shortType = mimeType.replace('application/', '').replace('text/', '');
+                contentTypeBadge.textContent = shortType;
+                contentTypeBadge.style.display = 'inline-block';
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Shared Operation Panel Rendering
+// Used in: Try-It-Out Expanded, X-Origin Modal, Playground Mode
+// ============================================================================
+
+/**
+ * Renders a complete operation panel with form and response sections in a two-column layout
+ * @param {string} opId - Operation identifier for generating unique IDs
+ * @param {object} opMeta - Operation metadata (method, path, parameters, requestBody)
+ * @param {object} options - Rendering options
+ * @returns {string} HTML string for the complete operation panel
+ */
+function renderOperationPanel(opId, opMeta, options) {
+    options = options || {};
+    var showExecuteButton = options.showExecuteButton !== false;
+    var executeButtonText = options.executeButtonText || 'Send';
+    var executeButtonClick = options.executeButtonClick || '';
+    var contextType = options.contextType || 'tryitout';
+    var showTitle = options.showTitle || false;
+    var titleText = options.titleText || '';
+
+    var html = '';
+
+    // Optional title header (for x-origin and playground)
+    if (showTitle && titleText) {
+        html += '<div class="operation-panel-title">';
+        html += '<h4>' + escapeHtml(titleText) + '</h4>';
+        html += '</div>';
+    }
+
+    // Two-column grid container
+    html += '<div class="operation-panel-grid">';
+
+    // Left column: Form
+    html += '<div class="operation-panel-form">';
+    html += renderOperationForm(opId, opMeta, options);
+
+    // Execute button (with dropdown for cURL copy)
+    if (showExecuteButton) {
+        html += '<div class="operation-panel-actions">';
+        html += '<div class="btn-group-send">';
+        html += '<button class="btn-send-main" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + '"' : '') + '>';
+        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
+        html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+        html += '</svg>';
+        html += executeButtonText;
+        html += '</button>';
+        html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'' + opId + '\')" aria-label="More actions">';
+        html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
+        html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+        html += '</svg>';
+        html += '</button>';
+        html += '<div class="send-dropdown-menu" id="send-dropdown-' + opId + '" style="display:none">';
+        html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'' + opId + '\')">';
+        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
+        html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+        html += '</svg>';
+        html += '<span id="copy-text-' + opId + '">Copy cURL</span>';
+        html += '</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '<span class="try-spinner" id="spinner-' + opId + '" style="display:none">Sending...</span>';
+        html += '</div>';
+    }
+
+    html += '</div>'; // End form column
+
+    // Right column: Response
+    html += '<div class="operation-panel-response">';
+    html += '<div class="try-response empty" id="response-' + opId + '" aria-live="polite">';
+    html += '<div class="try-response-header">';
+    html += '<h5>Response</h5>';
+    html += '<div class="response-badges">';
+    html += '<span class="response-status-badge" id="status-' + opId + '"></span>';
+    html += '<span class="content-type-badge" id="content-type-badge-' + opId + '" style="display:none"></span>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="try-response-tabs">';
+
+    // Add Extracted Values tab for x-origin context
+    if (contextType === 'xorigin') {
+        html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'extracted\')">Extracted Values</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+    } else {
+        html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + opId + '\', \'body\')">Body</button>';
+        html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + opId + '\', \'headers\')">Headers</button>';
+    }
+
+    html += '</div>';
+    html += '<div class="try-response-content">';
+
+    // Add Extracted Values content for x-origin context
+    if (contextType === 'xorigin') {
+        html += '<div class="try-response-extracted active" id="respextracted-' + opId + '"></div>';
+        html += '<div class="try-response-body" id="respbody-' + opId + '"></div>';
+    } else {
+        html += '<div class="try-response-body active" id="respbody-' + opId + '"></div>';
+    }
+
+    html += '<div class="try-response-headers" id="respheaders-' + opId + '"></div>';
+    html += '</div>';
+    html += '</div>'; // End try-response
+    html += '</div>'; // End response column
+
+    html += '</div>'; // End grid
+
+    return html;
+}
+
+/**
+ * Renders an operation form with parameters and request body
+ * @param {string} opId - Operation identifier for generating unique IDs
+ * @param {object} opMeta - Operation metadata (method, path, parameters, requestBody)
+ * @param {object} options - Rendering options
+ * @returns {string} HTML string for the operation form
+ */
+// Helper function to detect variable references in a value
+// Supports both {{variable}} and ${step.variable} formats
+function detectVariableReferences(value) {
+    var matches = [];
+
+    // Match ${variableName} format
+    var regex = /\$\{([^}]+)\}/g;
+    var match;
+    while ((match = regex.exec(value)) !== null) {
+        var varName = match[1].trim();
+        matches.push({ type: 'variable', varName: varName, fullMatch: match[0] });
+    }
+
+    return matches;
+}
+
+// Helper function to render value as plain text (no links)
+function renderValueWithVariableLinks(value, slug) {
+    // Ensure value is a string
+    if (typeof value === 'object') {
+        value = JSON.stringify(value);
+    } else if (value == null) {
+        value = '';
+    } else {
+        value = String(value);
+    }
+
+    // Just return escaped HTML, no links
+    return escapeHtml(value);
+}
+
+// Helper function to render variable reference hints
+function renderVariableReferenceHints(value, contextType, slug) {
+    var varRefs = detectVariableReferences(value);
+    if (varRefs.length === 0) return '';
+
+    var html = '<div class="variable-references-hint">';
+    html += '<span class="variable-ref-icon">🔗</span>';
+    html += '<span class="variable-ref-text">References: ';
+    varRefs.forEach(function(ref, idx) {
+        if (idx > 0) html += ', ';
+
+        // Just show as plain code text, no links
+        var displayText = ref.type === 'step' ? (ref.stepName + '.' + ref.varName) : ref.varName;
+        html += '<code>' + escapeHtml(displayText) + '</code>';
+    });
+    html += '</span>';
+    html += '</div>';
+    return html;
+}
+
+function renderOperationForm(opId, opMeta, options) {
+    options = options || {};
+    var yamlInputs = options.yamlInputs || {};
+    var enableVariableRefs = options.enableVariableRefs || false;
+    var slug = options.slug || '';
+    var contextType = options.contextType || '';
+
+    var html = '';
+    var parameters = opMeta.parameters || [];
+
+    // Group parameters by location
+    var paramsByLocation = {
+        path: parameters.filter(function(p) { return p.in === 'path'; }),
+        query: parameters.filter(function(p) { return p.in === 'query'; }),
+        header: parameters.filter(function(p) { return p.in === 'header'; })
+    };
+
+    // Render parameter sections
+    [
+        { location: 'path', label: 'Path Parameters', params: paramsByLocation.path },
+        { location: 'query', label: 'Query Parameters', params: paramsByLocation.query },
+        { location: 'header', label: 'Header Parameters', params: paramsByLocation.header }
+    ].forEach(function(section) {
+        if (section.params.length > 0) {
+            var hasRequired = section.params.some(function(p) { return p.required || false; });
+
+            html += '<details class="try-params"' + (hasRequired ? ' open' : '') + '>';
+            html += '<summary>' + section.label + '</summary>';
+            html += '<div class="try-params-content">';
+
+            section.params.forEach(function(param) {
+                var paramName = param.name || '';
+                var schema = param.schema || {};
+                var ptype = schema.type || 'string';
+                var required = param.required || false;
+                var description = param.description || '';
+                var defaultVal = schema.default || '';
+
+                // Check if YAML provided a value
+                var yamlValue = yamlInputs[paramName] || defaultVal;
+
+                // If yamlValue is an object with a 'ref' property, extract the reference string
+                if (typeof yamlValue === 'object' && yamlValue !== null) {
+                    if (yamlValue.ref) {
+                        yamlValue = yamlValue.ref;
+                    } else {
+                        yamlValue = JSON.stringify(yamlValue);
+                    }
+                } else if (yamlValue == null) {
+                    yamlValue = '';
+                } else {
+                    yamlValue = String(yamlValue);
+                }
+
+                html += '<div class="try-param-row">';
+
+                // Check for x-origin
+                var xOrigin = param['x-origin'];
+                if (xOrigin) {
+                    var origins = Array.isArray(xOrigin) ? xOrigin : [xOrigin];
+                    html += '<label>';
+                    html += '<span class="param-name-wrapper">';
+                    html += '<code>' + escapeHtml(paramName) + '</code>';
+                    if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
+                    html += '</span>';
+                    if (description) {
+                        html += '<span class="param-info-wrapper" data-tooltip="' + escapeHtml(description) + '">';
+                        html += '<span class="param-info-icon" aria-label="more-info"></span>';
+                        html += '</span>';
+                    }
+                    html += '</label>';
+                    // Input field with magnifier button wrapper
+                    html += '<div class="param-input-with-xorigin">';
+                    html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
+                    // Use Base64 encoding to avoid escaping issues
+                    html += 'data-x-origins="' + btoa(JSON.stringify(origins)) + '" ';
+                    html += 'id="param-' + opId + '-' + paramName + '" ';
+                    html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
+                    if (required) html += ' required';
+
+                    var hasVarRef = false;
+                    var substitutedValue = yamlValue;
+                    // Add class if has variable references
+                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
+                        substitutedValue = substituteVariables(yamlValue, slug);
+                        if (substitutedValue !== yamlValue) {
+                            html += ' class="has-variable-ref"';
+                            hasVarRef = true;
+                        }
+                    }
+
+                    html += '>';
+                    // Magnifier button
+                    html += '<button type="button" class="btn-xorigin-search" ';
+                    html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
+                    html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
+                    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                    html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                    html += '</svg>';
+                    html += '</button>';
+                    // Show resolved value in grey italic AFTER the button
+                    if (hasVarRef && substitutedValue !== yamlValue) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue) + '</span>';
+                    }
+                    html += '</div>';
+                } else if (schema.enum) {
+                    // Enum - dropdown
+                    html += '<label>';
+                    html += '<span class="param-name-wrapper">';
+                    html += '<code>' + escapeHtml(paramName) + '</code>';
+                    if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
+                    html += '</span>';
+                    if (description) {
+                        html += '<span class="param-info-wrapper" data-tooltip="' + escapeHtml(description) + '">';
+                        html += '<span class="param-info-icon" aria-label="more-info"></span>';
+                        html += '</span>';
+                    }
+                    html += '</label>';
+                    html += '<select data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '"';
+                    if (required) html += ' required';
+                    html += '>';
+                    schema.enum.forEach(function(v) {
+                        html += '<option value="' + escapeHtml(v) + '"';
+                        if (String(v) === String(yamlValue)) html += ' selected';
+                        html += '>' + escapeHtml(v) + '</option>';
+                    });
+                    html += '</select>';
+                } else {
+                    // Regular input
+                    html += '<label>';
+                    html += '<span class="param-name-wrapper">';
+                    html += '<code>' + escapeHtml(paramName) + '</code>';
+                    if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
+                    html += '</span>';
+                    if (description) {
+                        html += '<span class="param-info-wrapper" data-tooltip="' + escapeHtml(description) + '">';
+                        html += '<span class="param-info-icon" aria-label="more-info"></span>';
+                        html += '</span>';
+                    }
+                    html += '</label>';
+
+                    var hasVarRef2 = false;
+                    var substitutedValue2 = yamlValue;
+                    // Check if has variable references
+                    if (contextType === 'playground' && slug && yamlValue && detectVariableReferences(yamlValue).length > 0) {
+                        substitutedValue2 = substituteVariables(yamlValue, slug);
+                        if (substitutedValue2 !== yamlValue) {
+                            hasVarRef2 = true;
+                        }
+                    }
+
+                    html += '<input type="text" data-param="' + escapeHtml(paramName) + '" data-in="' + section.location + '" ';
+                    html += 'placeholder="' + ptype + '" value="' + escapeHtml(yamlValue) + '"';
+                    if (required) html += ' required';
+                    // Add class if has variable references
+                    if (hasVarRef2) {
+                        html += ' class="has-variable-ref"';
+                    }
+                    html += '>';
+
+                    // Show resolved value in grey italic AFTER the input
+                    if (hasVarRef2) {
+                        html += '<span class="variable-resolved-value">' + escapeHtml(substitutedValue2) + '</span>';
+                    }
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+            html += '</details>';
+        }
+    });
+
+    // Custom Query Parameters
+    html += '<details class="try-params try-custom-params">';
+    html += '<summary>Custom Query Parameters</summary>';
+    html += '<div class="try-params-content">';
+    html += '<div id="custom-query-' + opId + '" class="custom-params-container"></div>';
+    html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParam(\'' + opId + '\', \'query\')">+ Add Query Parameter</button>';
+    html += '</div>';
+    html += '</details>';
+
+    // Custom Headers
+    html += '<details class="try-params try-custom-params">';
+    html += '<summary>Custom Headers</summary>';
+    html += '<div class="try-params-content">';
+    html += '<div id="custom-header-' + opId + '" class="custom-params-container"></div>';
+    html += '<button type="button" class="btn-add-custom-param" onclick="addCustomParam(\'' + opId + '\', \'header\')">+ Add Header</button>';
+    html += '</div>';
+    html += '</details>';
+
+    // Request body (if present)
+    if (opMeta.requestBody) {
+        var rb = opMeta.requestBody;
+        var contentTypes = rb.content_types || [];
+        var ctDefault = contentTypes[0] || 'application/json';
+        var exampleBody = opMeta._example_body || '';
+
+        html += '<details class="try-body" open>';
+        html += '<summary>Request Body <code>' + escapeHtml(ctDefault) + '</code></summary>';
+        html += '<div class="try-body-content">';
+        html += '<div id="body-' + opId + '" class="try-request-editor-cm" ';
+        html += 'data-content-type="' + escapeHtml(ctDefault) + '" ';
+        html += 'data-example-body="' + escapeHtml(exampleBody) + '"></div>';
+        html += '</div>';
+        html += '</details>';
+    }
+
+    return html;
+}
+
+// ============================================================================
+// Playground Mode (Skills)
+// ============================================================================
+
+function toggleSkillMode(slug) {
+    var toggle = document.getElementById('toggle-' + slug);
+    var docMode = document.getElementById('skill-doc-mode-' + slug);
+    var playgroundMode = document.getElementById('skill-playground-mode-' + slug);
+    var playgroundControls = document.getElementById('playground-controls-' + slug);
+
+    var isPlayground = toggle.getAttribute('aria-checked') === 'true';
+
+    if (isPlayground) {
+        // Switch to documentation mode
+        toggle.setAttribute('aria-checked', 'false');
+        if (docMode) docMode.style.display = 'block';
+        if (playgroundMode) playgroundMode.style.display = 'none';
+        if (playgroundControls) playgroundControls.style.display = 'none';
+
+        // Update URL to remove playground parameter
+        var url = new URL(window.location);
+        url.searchParams.delete('playground');
+        window.history.replaceState({}, '', url);
+    } else {
+        // Switch to playground mode
+        toggle.setAttribute('aria-checked', 'true');
+        if (docMode) docMode.style.display = 'none';
+        if (playgroundMode) playgroundMode.style.display = 'block';
+        if (playgroundControls) playgroundControls.style.display = 'flex';
+
+        // Update URL to add playground parameter
+        var url = new URL(window.location);
+        url.searchParams.set('playground', 'true');
+        window.history.replaceState({}, '', url);
+
+        // Initialize playground steps if not already done
+        initializePlaygroundSteps();
+    }
+}
+
+// Check URL parameter on page load to activate playground mode
+document.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('playground') === 'true') {
+        // Find the skill on this page and activate playground mode
+        var skillSection = document.querySelector('.skill-detail');
+        if (skillSection) {
+            var skillId = skillSection.id;
+            var slug = skillId.replace('skill-', '');
+            // Trigger toggle programmatically
+            setTimeout(function() {
+                var toggle = document.getElementById('toggle-' + slug);
+                if (toggle && toggle.getAttribute('aria-checked') !== 'true') {
+                    toggleSkillMode(slug);
+                }
+            }, 100);
+        }
+    }
+});
+
+// Debugger state tracking
+var debuggerState = {};
+
+// Global variable store per skill slug
+var skillVariables = {};
+
+function startDebugger(slug) {
+    console.log('Starting debugger for:', slug);
+
+    // Initialize debugger state
+    debuggerState[slug] = {
+        currentStep: 0,
+        isRunning: true,
+        totalSteps: document.querySelectorAll('[id^="playground-step-' + slug + '-"]').length,
+        allStepsCompleted: false
+    };
+
+    // Switch UI to running state
+    var runState = document.getElementById('debugger-run-' + slug);
+    var runningState = document.getElementById('debugger-running-' + slug);
+    if (runState) runState.style.display = 'none';
+    if (runningState) runningState.style.display = 'flex';
+
+    // Execute first step
+    executeStepByIndex(slug, 0);
+}
+
+function cancelDebugger(slug) {
+    console.log('Canceling debugger for:', slug);
+
+    // Reset state and clear variables
+    debuggerState[slug] = { isRunning: false };
+    skillVariables[slug] = {};
+    if (window.skillArrayVariables && window.skillArrayVariables[slug]) {
+        window.skillArrayVariables[slug] = {};
+    }
+
+    // Switch UI back to initial state
+    var runState = document.getElementById('debugger-run-' + slug);
+    var runningState = document.getElementById('debugger-running-' + slug);
+    if (runState) runState.style.display = 'block';
+    if (runningState) runningState.style.display = 'none';
+
+    // Clear variables table
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+    }
+
+    // Clear executing step display
+    updateExecutingStepDisplay(slug, null);
+}
+
+function nextStep(slug) {
+    var state = debuggerState[slug];
+    if (!state || !state.isRunning) return;
+
+    var nextIndex = state.currentStep + 1;
+    if (nextIndex < state.totalSteps) {
+        // Check if we can proceed (previous step must have succeeded)
+        if (!canProceedToNextStep(slug, nextIndex)) {
+            console.warn('Cannot proceed to next step - previous step failed');
+            alert('Cannot proceed: previous step failed. Please fix the error before continuing.');
+            return;
+        }
+        state.currentStep = nextIndex;
+        executeStepByIndex(slug, nextIndex);
+
+        // Check if we just executed the last step
+        if (nextIndex === state.totalSteps - 1) {
+            state.allStepsCompleted = true;
+            console.log('Last step executed. Click Next again to finish.');
+        }
+    } else if (nextIndex >= state.totalSteps) {
+        // Clicked Next after last step was executed
+        if (state.allStepsCompleted) {
+            console.log('All steps completed. Finishing debugger.');
+            cancelDebugger(slug);
+        }
+    }
+}
+
+function previousStep(slug) {
+    var state = debuggerState[slug];
+    if (!state || !state.isRunning) return;
+
+    var prevIndex = state.currentStep - 1;
+    if (prevIndex >= 0) {
+        state.currentStep = prevIndex;
+
+        // Clean variables from future steps (time travel backwards)
+        cleanFutureStepVariables(slug, prevIndex);
+
+        scrollToStepByIndex(slug, prevIndex);
+
+        // Update executing display for previous step
+        var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+        if (prevIndex < steps.length) {
+            var step = steps[prevIndex];
+            var stepTitle = step.querySelector('.playground-step-title');
+            var stepName = 'Step ' + (prevIndex + 1);
+            if (stepTitle) {
+                stepName = stepTitle.textContent.trim();
+                // Remove all "Step N:" prefixes (in case there are duplicates)
+                stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+            }
+            updateExecutingStepDisplay(slug, stepName);
+        }
+    }
+}
+
+// Clean variables that were captured by steps after the current step
+function cleanFutureStepVariables(slug, currentIndex) {
+    console.log('Cleaning variables from steps after index:', currentIndex);
+
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    var variablesToKeep = {};
+
+    // Collect variables from steps 0 to currentIndex
+    for (var i = 0; i <= currentIndex; i++) {
+        var step = steps[i];
+        var panel = step.querySelector('[id^="playground-panel-"]');
+        if (!panel) continue;
+
+        var outputsAttr = panel.getAttribute('data-wf-outputs');
+        if (outputsAttr) {
+            try {
+                var outputs = JSON.parse(outputsAttr);
+                if (Array.isArray(outputs)) {
+                    outputs.forEach(function(output) {
+                        if (output.name) variablesToKeep[output.name] = true;
+                    });
+                } else {
+                    for (var varName in outputs) {
+                        variablesToKeep[varName] = true;
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing outputs for step', i, e);
+            }
+        }
+    }
+
+    console.log('Variables to keep:', Object.keys(variablesToKeep));
+
+    // Remove variables not in the keep list
+    if (skillVariables[slug]) {
+        for (var varName in skillVariables[slug]) {
+            if (!variablesToKeep[varName]) {
+                console.log('Removing variable:', varName);
+                delete skillVariables[slug][varName];
+            }
+        }
+    }
+
+    // Also clean array variables
+    if (window.skillArrayVariables && window.skillArrayVariables[slug]) {
+        for (var varName in window.skillArrayVariables[slug]) {
+            if (!variablesToKeep[varName]) {
+                delete window.skillArrayVariables[slug][varName];
+            }
+        }
+    }
+
+    // Also clean array labels
+    if (window.skillArrayLabels && window.skillArrayLabels[slug]) {
+        for (var varName in window.skillArrayLabels[slug]) {
+            if (!variablesToKeep[varName]) {
+                delete window.skillArrayLabels[slug][varName];
+            }
+        }
+    }
+
+    // Update the variables table
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (tableBody) {
+        // Remove rows for deleted variables
+        var rows = tableBody.querySelectorAll('tr[data-var-name]');
+        rows.forEach(function(row) {
+            var varName = row.getAttribute('data-var-name');
+            if (!variablesToKeep[varName]) {
+                row.remove();
+            }
+        });
+
+        // Show "no variables" if table is empty
+        if (tableBody.querySelectorAll('tr[data-var-name]').length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables captured yet</td></tr>';
+        }
+    }
+
+    // Update variable tooltips
+    updateVariableTooltips(slug);
+}
+
+// Update the executing step display in variables panel
+function updateExecutingStepDisplay(slug, stepName) {
+    var variablesPanelHeader = document.querySelector('#variables-sidebar-' + slug + ' h4');
+    if (variablesPanelHeader) {
+        if (stepName) {
+            variablesPanelHeader.innerHTML = 'Variables<div style="font-size: 0.75rem; font-weight: 400; color: #6b7280; margin-top: 0.25rem;">Executing: ' + escapeHtml(stepName) + '</div>';
+        } else {
+            variablesPanelHeader.textContent = 'Variables';
+        }
+    }
+}
+
+function executeStepByIndex(slug, index) {
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    if (index < 0 || index >= steps.length) return;
+
+    var step = steps[index];
+    var panel = step.querySelector('[id^="playground-panel-"]');
+    if (!panel) return;
+
+    var sid = panel.id.replace('playground-panel-', '');
+
+    // Get step title (remove "Step N:" prefix - may appear multiple times)
+    var stepTitle = step.querySelector('.playground-step-title');
+    var stepName = 'Step ' + (index + 1);
+    if (stepTitle) {
+        stepName = stepTitle.textContent.trim();
+        // Remove all "Step N:" prefixes (in case there are duplicates)
+        stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+    }
+
+    // Update variables panel header with current step
+    updateExecutingStepDisplay(slug, stepName);
+
+    // Scroll to step
+    step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Highlight step
+    step.style.outline = '2px solid #0176D3';
+    step.style.outlineOffset = '4px';
+    setTimeout(function() {
+        step.style.outline = '';
+        step.style.outlineOffset = '';
+    }, 1000);
+
+    // Execute the step
+    executePlaygroundStep(sid);
+}
+
+function scrollToStepByIndex(slug, index) {
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    if (index < 0 || index >= steps.length) return;
+
+    var step = steps[index];
+    step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Highlight step
+    step.style.outline = '2px solid #0176D3';
+    step.style.outlineOffset = '4px';
+    setTimeout(function() {
+        step.style.outline = '';
+        step.style.outlineOffset = '';
+    }, 1000);
+}
+
+// Scroll to the step that defines a variable
+function scrollToVariableSource(slug, varName) {
+    console.log('Scrolling to source of variable:', varName);
+
+    var foundStep = null;
+
+    // Look through all steps to find which one outputs this variable
+    var playgroundSteps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+
+    playgroundSteps.forEach(function(stepWrapper) {
+        var panel = stepWrapper.querySelector('[id^="playground-panel-"]');
+        if (!panel) return;
+
+        // Check if this step has outputs defined (these are the variables it captures)
+        var outputsAttr = panel.getAttribute('data-wf-outputs');
+        if (outputsAttr) {
+            try {
+                var outputs = JSON.parse(outputsAttr);
+                // Check if this variable is in the outputs (handle both array and object format)
+                if (Array.isArray(outputs)) {
+                    for (var i = 0; i < outputs.length; i++) {
+                        if (outputs[i].name === varName) {
+                            foundStep = stepWrapper;
+                            return;
+                        }
+                    }
+                } else if (outputs && outputs[varName]) {
+                    foundStep = stepWrapper;
+                    return;
+                }
+            } catch (e) {
+                console.error('Error parsing outputs:', e);
+            }
+        }
+    });
+
+    if (foundStep) {
+        // Scroll to the step
+        foundStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Highlight the step briefly
+        foundStep.style.outline = '3px solid #0176D3';
+        foundStep.style.outlineOffset = '6px';
+        foundStep.style.borderRadius = '8px';
+        setTimeout(function() {
+            foundStep.style.outline = '';
+            foundStep.style.outlineOffset = '';
+            foundStep.style.borderRadius = '';
+        }, 2500);
+    } else {
+        // Variable source not found, just highlight variables panel
+        var variablesPanel = document.getElementById('variables-sidebar-' + slug);
+        if (variablesPanel) {
+            variablesPanel.style.animation = 'highlight-pulse 1s ease';
+            setTimeout(function() {
+                variablesPanel.style.animation = '';
+            }, 1000);
+        }
+    }
+}
+
+function initializePlaygroundSteps() {
+    var playgroundPanels = document.querySelectorAll('[id^="playground-panel-"]');
+    playgroundPanels.forEach(function(panel) {
+        if (!panel.dataset.initialized) {
+            var sid = panel.id.replace('playground-panel-', '');
+            initializePlaygroundStep(sid);
+        }
+    });
+}
+
+function initializePlaygroundStep(sid) {
+    var panel = document.getElementById('playground-panel-' + sid);
+    if (!panel || panel.dataset.initialized) return;
+
+    panel.dataset.initialized = 'true';
+
+    var apiUrn = panel.dataset.wfApi;
+    var operationId = panel.dataset.wfOperation;
+    var inputsJson = panel.dataset.wfInputs;
+
+    if (!apiUrn || !operationId) {
+        panel.innerHTML = '<p>No API operation defined for this step</p>';
+        return;
+    }
+
+    var apiSlug = apiUrn.replace('urn:api:', '');
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var apiEntry = opLookup[apiSlug];
+
+    if (!apiEntry) {
+        panel.innerHTML = '<p>API not found: ' + apiSlug + '</p>';
+        return;
+    }
+
+    var opMeta = apiEntry.ops[operationId];
+    if (!opMeta) {
+        panel.innerHTML = '<p>Operation not found: ' + operationId + '</p>';
+        return;
+    }
+
+    // Parse YAML inputs
+    var yamlInputs = {};
+    try {
+        yamlInputs = JSON.parse(inputsJson || '{}');
+    } catch (e) {
+        console.error('Failed to parse playground inputs:', e);
+    }
+
+    var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+    var linkPrefix = window.__API_LINK_PREFIX__ || '';
+
+    // Get the slug from the panel's parent to enable variable reference links
+    var skillSlug = '';
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    if (stepWrapper) {
+        var stepId = stepWrapper.id;
+        var match = stepId.match(/playground-step-([^-]+)-/);
+        if (match) skillSlug = match[1];
+    }
+
+    var html = '';
+
+    // Header with title and Send button (matching try-panel-header structure)
+    html += '<div class="try-panel-header">';
+
+    // Left side: operationId as link
+    html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="playground-operation-link">';
+    html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+    html += '</a>';
+
+    // Right side: actions (spinner + send button + dropdown)
+    html += '<div class="try-header-actions">';
+    html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
+    html += '<div class="btn-group-send">';
+    html += '<button class="btn-send-main" onclick="executePlaygroundStep(\'' + sid + '\')">';
+    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
+    html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    html += '</svg>';
+    html += 'Send';
+    html += '</button>';
+    html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'' + sid + '\')" aria-label="More actions">';
+    html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
+    html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    html += '</svg>';
+    html += '</button>';
+    html += '<div class="send-dropdown-menu" id="send-dropdown-' + sid + '" style="display:none">';
+    html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'' + sid + '\')">';
+    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
+    html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    html += '</svg>';
+    html += '<span id="copy-text-' + sid + '">Copy cURL</span>';
+    html += '</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Operation URL bar (after header)
+    html += '<div class="operation-url-bar-container">';
+    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
+    html += '</div>';
+
+    // Use shared panel renderer (no execute button - it's in header now)
+    html += renderOperationPanel(sid, opMeta, {
+        yamlInputs: yamlInputs,
+        enableVariableRefs: true,
+        slug: skillSlug,
+        contextType: 'playground',
+        showExecuteButton: false  // Button is in header now
+    });
+
+    panel.innerHTML = html;
+
+    // Add blur event listeners to inputs to re-evaluate variables
+    var inputs = panel.querySelectorAll('input[type="text"]');
+    inputs.forEach(function(input) {
+        input.addEventListener('blur', function() {
+            // Re-evaluate variables when input loses focus
+            if (skillSlug) {
+                updateVariableTooltips(skillSlug);
+            }
+        });
+    });
+
+    // Initialize ACE editors
+    setTimeout(function() {
+        initCodeMirrorEditors();
+    }, 0);
+}
+
+// Function to capture variables from API response
+function captureVariablesFromResponse(panel, result) {
+    if (!panel) return;
+
+    var outputsJson = panel.dataset.wfOutputs;
+    if (!outputsJson || outputsJson === '{}') return;
+
+    var outputs = {};
+    try {
+        outputs = JSON.parse(outputsJson);
+        console.log('Parsed outputs:', outputs);
+    } catch (e) {
+        console.error('Failed to parse outputs:', e);
+        return;
+    }
+
+    // Get skill slug from panel ID
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    if (!stepWrapper) return;
+
+    var stepId = stepWrapper.id;
+    // Match playground-step-<slug>-<step-index>
+    var match = stepId.match(/^playground-step-(.+)-(\d+)$/);
+    if (!match) return;
+
+    var slug = match[1];
+    var stepIndex = parseInt(match[2]);
+    var stepNumber = stepIndex + 1;
+
+    // Get step title for source (remove all "Step N:" prefixes)
+    var stepWrapper = panel.closest('[id^="playground-step-"]');
+    var stepTitle = stepWrapper ? stepWrapper.querySelector('.playground-step-title') : null;
+    var stepName = 'Step ' + stepNumber;
+    if (stepTitle) {
+        stepName = stepTitle.textContent.trim();
+        // Remove all "Step N:" prefixes (in case there are duplicates)
+        stepName = stepName.replace(/^(?:Step \d+:\s*)+/, '');
+    }
+
+    // Parse response body
+    var responseBody = result.body;
+    if (typeof responseBody === 'string') {
+        try {
+            responseBody = JSON.parse(responseBody);
+        } catch (e) {
+            console.error('Failed to parse response body:', e);
+            return;
+        }
+    }
+
+    console.log('Response body:', responseBody);
+
+    // Extract variables using JSONPath-like simple extraction
+    var capturedVars = {};
+
+    // Handle array format: [{name: 'var1', path: '$.path', labels: '$.path'}, ...]
+    if (Array.isArray(outputs)) {
+        for (var i = 0; i < outputs.length; i++) {
+            var outputDef = outputs[i];
+            var varName = outputDef.name;
+            var path = outputDef.path;
+            var labelsPath = outputDef.labels; // Optional labels path
+
+            console.log('Processing variable:', varName, 'Path:', path, 'Labels:', labelsPath);
+
+            if (!varName || !path) {
+                console.warn('Missing name or path in output definition:', outputDef);
+                continue;
+            }
+
+            var value = extractValueByPath(responseBody, path);
+            console.log('Extracted value for', varName, ':', value);
+
+            if (value !== undefined) {
+                capturedVars[varName] = value;
+
+                // If labels path is provided, extract labels too
+                if (labelsPath && Array.isArray(value)) {
+                    var labels = extractValueByPath(responseBody, labelsPath);
+                    console.log('Extracted labels for', varName, ':', labels);
+                    if (labels && Array.isArray(labels)) {
+                        // Store labels alongside values
+                        if (!capturedVars.__labels__) {
+                            capturedVars.__labels__ = {};
+                        }
+                        capturedVars.__labels__[varName] = labels;
+                    }
+                }
+            }
+        }
+    } else {
+        // Handle object format: {var1: '$.path', var2: {path: '$.path', labels: '$.path'}}
+        for (var varName in outputs) {
+            var pathConfig = outputs[varName];
+            console.log('Processing variable:', varName, 'Path config:', pathConfig);
+
+            // Handle both string paths and object configs
+            var path;
+            var labelsPath;
+            if (typeof pathConfig === 'string') {
+                path = pathConfig;
+            } else if (typeof pathConfig === 'object' && pathConfig.path) {
+                path = pathConfig.path;
+                labelsPath = pathConfig.labels; // Optional labels path
+            } else {
+                console.warn('Invalid path config for', varName, ':', pathConfig);
+                continue;
+            }
+
+            var value = extractValueByPath(responseBody, path);
+            console.log('Extracted value for', varName, ':', value);
+            if (value !== undefined) {
+                capturedVars[varName] = value;
+
+                // If labels path is provided, extract labels too
+                if (labelsPath && Array.isArray(value)) {
+                    var labels = extractValueByPath(responseBody, labelsPath);
+                    console.log('Extracted labels for', varName, ':', labels);
+                    if (labels && Array.isArray(labels)) {
+                        // Store labels alongside values
+                        if (!capturedVars.__labels__) {
+                            capturedVars.__labels__ = {};
+                        }
+                        capturedVars.__labels__[varName] = labels;
+                    }
+                }
+            }
+        }
+    }
+
+    // Store variables globally for this skill
+    if (!skillVariables[slug]) {
+        skillVariables[slug] = {};
+    }
+
+    // Keep track of which variables are arrays (for table display)
+    if (!window.skillArrayVariables) {
+        window.skillArrayVariables = {};
+    }
+    if (!window.skillArrayVariables[slug]) {
+        window.skillArrayVariables[slug] = {};
+    }
+
+    // Keep track of labels for array variables
+    if (!window.skillArrayLabels) {
+        window.skillArrayLabels = {};
+    }
+    if (!window.skillArrayLabels[slug]) {
+        window.skillArrayLabels[slug] = {};
+    }
+
+    // Extract labels from captured vars if present
+    var labelsMap = capturedVars.__labels__ || {};
+
+    // For array variables, store the first element as the default selected value
+    for (var varName in capturedVars) {
+        if (varName === '__labels__') continue; // Skip the labels metadata
+
+        var value = capturedVars[varName];
+        if (Array.isArray(value) && value.length > 0) {
+            // Store full array for dropdown display
+            window.skillArrayVariables[slug][varName] = value;
+
+            // Store labels if available
+            if (labelsMap[varName]) {
+                window.skillArrayLabels[slug][varName] = labelsMap[varName];
+                console.log('Array variable', varName, '- storing labels:', labelsMap[varName]);
+            }
+
+            // Only set to first element if variable doesn't exist yet (preserve user selection)
+            if (skillVariables[slug][varName] === undefined) {
+                skillVariables[slug][varName] = value[0];
+                console.log('Array variable', varName, '- storing first element as default:', value[0]);
+            } else {
+                console.log('Array variable', varName, '- preserving existing selection:', skillVariables[slug][varName]);
+            }
+        } else {
+            skillVariables[slug][varName] = value;
+        }
+    }
+
+    console.log('After assign, skillVariables[' + slug + ']:', skillVariables[slug]);
+
+    // Update variables table with ALL accumulated variables
+    // For array variables, pass the full array; for others, pass the value
+    var tableVariables = {};
+    for (var varName in skillVariables[slug]) {
+        if (window.skillArrayVariables[slug][varName]) {
+            // This is an array variable - show full array in dropdown
+            tableVariables[varName] = window.skillArrayVariables[slug][varName];
+        } else {
+            // Regular variable
+            tableVariables[varName] = skillVariables[slug][varName];
+        }
+    }
+    updateVariablesTable(slug, tableVariables, stepName);
+
+    // Update tooltips on all input fields with variable references
+    updateVariableTooltips(slug);
+}
+
+// Update tooltips and resolved value displays on input fields that contain variable references
+function updateVariableTooltips(slug) {
+    console.log('=== updateVariableTooltips START ===');
+    console.log('slug:', slug);
+    console.log('skillVariables[' + slug + ']:', skillVariables[slug]);
+
+    // Find all steps for this skill
+    var steps = document.querySelectorAll('[id^="playground-step-' + slug + '-"]');
+    console.log('Found', steps.length, 'steps');
+
+    steps.forEach(function(step, stepIndex) {
+        console.log('Processing step', stepIndex);
+
+        // Find the playground panel within this step
+        var panel = step.querySelector('[id^="playground-panel-"]');
+        if (!panel) {
+            console.log('  No panel found in this step');
+            return;
+        }
+        console.log('  Panel found:', panel.id);
+
+        // Find ALL text inputs in this panel
+        var allInputs = panel.querySelectorAll('input[type="text"]');
+        console.log('  Found', allInputs.length, 'text inputs in panel');
+
+        allInputs.forEach(function(input) {
+            var value = input.value;
+            var varRefs = detectVariableReferences(value);
+
+            if (varRefs.length > 0) {
+                console.log('Input has variable references:', value);
+                var substitutedValue = substituteVariables(value, slug);
+                console.log('  Substituted to:', substitutedValue);
+
+                if (substitutedValue !== value) {
+                    // Add the has-variable-ref class if not already present
+                    if (!input.classList.contains('has-variable-ref')) {
+                        input.classList.add('has-variable-ref');
+                    }
+
+                    // Update or create the resolved value span
+                    var nextSibling = input.nextElementSibling;
+                    if (nextSibling && nextSibling.classList.contains('variable-resolved-value')) {
+                        console.log('  Updating existing span');
+                        nextSibling.textContent = substitutedValue;
+                    } else if (nextSibling && nextSibling.classList.contains('btn-xorigin-search')) {
+                        // For x-origin fields, the button comes first, check after it
+                        var spanAfterButton = nextSibling.nextElementSibling;
+                        if (spanAfterButton && spanAfterButton.classList.contains('variable-resolved-value')) {
+                            console.log('  Updating existing span after button');
+                            spanAfterButton.textContent = substitutedValue;
+                        } else {
+                            // Create new span after the button
+                            console.log('  Creating new span after button');
+                            var span = document.createElement('span');
+                            span.className = 'variable-resolved-value';
+                            span.textContent = substitutedValue;
+                            nextSibling.parentNode.insertBefore(span, nextSibling.nextSibling);
+                        }
+                    } else {
+                        // Create new span
+                        console.log('  Creating new span after input');
+                        var span = document.createElement('span');
+                        span.className = 'variable-resolved-value';
+                        span.textContent = substitutedValue;
+                        input.parentNode.insertBefore(span, input.nextSibling);
+                    }
+                } else {
+                    // Variable not yet resolved
+                    if (!input.classList.contains('has-variable-ref')) {
+                        input.classList.add('has-variable-ref');
+                    }
+                }
+            }
+        });
+    });
+    console.log('=== updateVariableTooltips END ===\n');
+}
+
+// Substitute variable references in a value
+function substituteVariables(value, slug) {
+    if (!value || typeof value !== 'string') return value;
+
+    var vars = skillVariables[slug] || {};
+    var result = value;
+
+    // Replace ${variableName} with actual values
+    var regex = /\$\{([^}]+)\}/g;
+    result = result.replace(regex, function(match, varName) {
+        varName = varName.trim();
+        if (varName in vars) {
+            var varValue = vars[varName];
+            // Convert to string if not already
+            return typeof varValue === 'object' ? JSON.stringify(varValue) : String(varValue);
+        }
+        // Variable not found, return original
+        console.warn('Variable not found:', varName);
+        return match;
+    });
+
+    return result;
+}
+
+// Simple JSONPath-like extraction
+function extractValueByPath(obj, path) {
+    if (!path || !obj) return undefined;
+
+    // Ensure path is a string
+    if (typeof path !== 'string') {
+        console.warn('Path is not a string:', path, 'Type:', typeof path);
+        return undefined;
+    }
+
+    // Remove leading $. if present
+    path = path.replace(/^\$\./, '');
+
+    var parts = path.split('.');
+    var current = obj;
+
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+
+        // Handle array wildcard like data[*].id
+        var wildcardMatch = part.match(/^(.+)\[\*\]$/);
+        if (wildcardMatch) {
+            var arrayName = wildcardMatch[1];
+            current = current[arrayName];
+            if (!current || !Array.isArray(current)) return undefined;
+
+            // If this is the last part, return the array itself
+            if (i === parts.length - 1) {
+                return current;
+            }
+
+            // Otherwise, collect the next property from each array element
+            var remaining = parts.slice(i + 1);
+            var results = [];
+            for (var j = 0; j < current.length; j++) {
+                var item = current[j];
+                for (var k = 0; k < remaining.length; k++) {
+                    if (item === undefined) break;
+                    item = item[remaining[k]];
+                }
+                if (item !== undefined) {
+                    results.push(item);
+                }
+            }
+            return results.length > 0 ? results : undefined;
+        }
+
+        // Handle array indexing like items[0]
+        var arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
+        if (arrayMatch) {
+            var arrayName = arrayMatch[1];
+            var index = parseInt(arrayMatch[2]);
+            current = current[arrayName];
+            if (!current || !Array.isArray(current)) return undefined;
+            current = current[index];
+        } else {
+            current = current[part];
+        }
+
+        if (current === undefined) return undefined;
+    }
+
+    return current;
+}
+
+// Update variables table with captured values
+function updateVariablesTable(slug, variables, source) {
+    console.log('=== updateVariablesTable START ===');
+    console.log('slug:', slug);
+    console.log('variables:', JSON.stringify(variables, null, 2));
+    console.log('source:', source);
+
+    var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
+    if (!tableBody) {
+        console.error('❌ Table body not found for slug:', slug);
+        console.log('Looking for selector:', '#variables-table-' + slug + ' tbody');
+        return;
+    }
+    console.log('✓ Table body found');
+
+    // Clear "No variables" message if present
+    var noVarsRow = tableBody.querySelector('td[colspan="3"]');
+    if (noVarsRow) {
+        console.log('Clearing "No variables" message');
+        tableBody.innerHTML = '';
+    }
+
+    // Count existing rows
+    var existingRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+    console.log('Existing rows in table:', existingRowsCount);
+
+    // Add or update each variable
+    var variableCount = 0;
+    for (var varName in variables) {
+        variableCount++;
+        var value = variables[varName];
+        console.log('Processing variable #' + variableCount + ':', varName, 'value:', value);
+
+        // Check if variable already exists
+        var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
+
+        if (existingRow) {
+            // Update existing row - update ONLY the value cell, keep original source
+            console.log('  → Updating existing variable:', varName);
+            renderVariableValue(existingRow.cells[1], value, varName, slug);
+            console.log('  → Source remains:', existingRow.cells[2].textContent);
+            // Do NOT update source - keep the original step that produced this variable
+        } else {
+            console.log('  → Adding NEW variable:', varName, 'with source:', source);
+            // Add new row
+            var row = document.createElement('tr');
+            row.setAttribute('data-var-name', varName);
+
+            var nameCell = document.createElement('td');
+            nameCell.textContent = varName;
+            nameCell.style.fontFamily = 'var(--font-mono)';
+            nameCell.style.fontWeight = '600';
+
+            var valueCell = document.createElement('td');
+            valueCell.style.fontFamily = 'var(--font-mono)';
+            valueCell.style.fontSize = '0.8125rem';
+            renderVariableValue(valueCell, value, varName, slug);
+
+            var sourceCell = document.createElement('td');
+            sourceCell.textContent = source;
+            sourceCell.style.fontSize = '0.75rem';
+            sourceCell.style.color = '#6b7280';
+
+            row.appendChild(nameCell);
+            row.appendChild(valueCell);
+            row.appendChild(sourceCell);
+
+            tableBody.appendChild(row);
+            console.log('  → Row appended to table');
+        }
+    }
+
+    // Count final rows
+    var finalRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
+    console.log('Final rows in table:', finalRowsCount);
+    console.log('=== updateVariablesTable END ===');
+}
+
+// Render variable value based on its type
+function renderVariableValue(cell, value, varName, slug) {
+    cell.innerHTML = '';
+
+    if (Array.isArray(value)) {
+        // Array: render as dropdown with indices
+        var select = document.createElement('select');
+        select.className = 'variable-array-select';
+        select.style.fontFamily = 'var(--font-mono)';
+        select.style.fontSize = '0.8125rem';
+        select.style.padding = '0.25rem 0.5rem';
+        select.style.border = '1px solid #d1d5db';
+        select.style.borderRadius = '0.25rem';
+        select.style.backgroundColor = 'white';
+        select.style.cursor = 'pointer';
+
+        // Check if labels are available for this variable
+        var labels = null;
+        if (window.skillArrayLabels && window.skillArrayLabels[slug] && window.skillArrayLabels[slug][varName]) {
+            labels = window.skillArrayLabels[slug][varName];
+        }
+
+        for (var i = 0; i < value.length; i++) {
+            var option = document.createElement('option');
+            var itemValue = value[i];
+            var itemStr = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
+            option.value = itemStr;
+
+            // Format: [index] Label (value) if labels available, otherwise [index] value
+            var displayText = '[' + i + '] ';
+            if (labels && labels[i]) {
+                var labelStr = String(labels[i]);
+                displayText += labelStr + ' (' + (itemStr.length > 30 ? itemStr.substring(0, 30) + '...' : itemStr) + ')';
+            } else {
+                displayText += (itemStr.length > 50 ? itemStr.substring(0, 50) + '...' : itemStr);
+            }
+            option.textContent = displayText;
+            select.appendChild(option);
+        }
+
+        // Store the full array and selection state
+        select.setAttribute('data-var-name', varName);
+        select.setAttribute('data-var-array', JSON.stringify(value));
+        select.setAttribute('data-slug', slug);
+
+        // Add change handler to update variable store and refresh displays
+        select.onchange = function() {
+            var selectedIndex = this.selectedIndex;
+            var arrayData = JSON.parse(this.getAttribute('data-var-array'));
+            var varName = this.getAttribute('data-var-name');
+            var slug = this.getAttribute('data-slug');
+
+            // Store selected value (not array) in skillVariables
+            if (skillVariables[slug]) {
+                skillVariables[slug][varName] = arrayData[selectedIndex];
+                console.log('Array selection changed:', varName, '→', arrayData[selectedIndex]);
+
+                // Update all input tooltips to reflect new value
+                updateVariableTooltips(slug);
+            }
+        };
+
+        // Restore previously selected value if it exists in skillVariables
+        if (skillVariables[slug] && skillVariables[slug][varName] !== undefined) {
+            var currentValue = skillVariables[slug][varName];
+            // Find the index that matches the current value
+            for (var j = 0; j < value.length; j++) {
+                var itemValue = value[j];
+                var itemStr = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
+                var currentStr = typeof currentValue === 'object' ? JSON.stringify(currentValue) : String(currentValue);
+                if (itemStr === currentStr) {
+                    select.selectedIndex = j;
+                    console.log('Restored selection for', varName, 'to index', j);
+                    break;
+                }
+            }
+        }
+
+        cell.appendChild(select);
+    } else if (typeof value === 'object' && value !== null) {
+        // Object: render as expandable tree view
+        var treeContainer = document.createElement('div');
+        treeContainer.className = 'variable-tree-view';
+        treeContainer.style.fontSize = '0.8125rem';
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.textContent = '▶';
+        toggleBtn.className = 'tree-toggle-btn';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.background = 'none';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.padding = '0 0.25rem';
+        toggleBtn.style.fontFamily = 'monospace';
+
+        var summary = document.createElement('span');
+        summary.textContent = '{...}';
+        summary.style.color = '#6b7280';
+
+        var treeContent = document.createElement('div');
+        treeContent.className = 'tree-content';
+        treeContent.style.display = 'none';
+        treeContent.style.marginLeft = '1rem';
+        treeContent.style.marginTop = '0.25rem';
+        treeContent.style.borderLeft = '2px solid #e5e7eb';
+        treeContent.style.paddingLeft = '0.5rem';
+
+        // Build tree structure
+        renderObjectTree(treeContent, value, 0);
+
+        toggleBtn.onclick = function() {
+            if (treeContent.style.display === 'none') {
+                treeContent.style.display = 'block';
+                toggleBtn.textContent = '▼';
+            } else {
+                treeContent.style.display = 'none';
+                toggleBtn.textContent = '▶';
+            }
+        };
+
+        treeContainer.appendChild(toggleBtn);
+        treeContainer.appendChild(summary);
+        treeContainer.appendChild(treeContent);
+        cell.appendChild(treeContainer);
+    } else {
+        // Primitive value: render as text
+        cell.textContent = String(value);
+    }
+}
+
+// Recursively render object tree
+function renderObjectTree(container, obj, depth) {
+    if (depth > 5) {
+        container.textContent = '... (max depth reached)';
+        return;
+    }
+
+    for (var key in obj) {
+        var value = obj[key];
+        var line = document.createElement('div');
+        line.style.marginBottom = '0.125rem';
+
+        var keySpan = document.createElement('span');
+        keySpan.textContent = key + ': ';
+        keySpan.style.color = '#059669';
+        keySpan.style.fontWeight = '600';
+        line.appendChild(keySpan);
+
+        if (Array.isArray(value)) {
+            var valueSpan = document.createElement('span');
+            valueSpan.textContent = '[Array(' + value.length + ')]';
+            valueSpan.style.color = '#6b7280';
+            line.appendChild(valueSpan);
+        } else if (typeof value === 'object' && value !== null) {
+            var nestedToggle = document.createElement('button');
+            nestedToggle.textContent = '▶';
+            nestedToggle.style.border = 'none';
+            nestedToggle.style.background = 'none';
+            nestedToggle.style.cursor = 'pointer';
+            nestedToggle.style.padding = '0 0.25rem';
+            nestedToggle.style.fontFamily = 'monospace';
+            nestedToggle.style.fontSize = '0.75rem';
+
+            var nestedSummary = document.createElement('span');
+            nestedSummary.textContent = '{...}';
+            nestedSummary.style.color = '#6b7280';
+
+            var nestedContent = document.createElement('div');
+            nestedContent.style.display = 'none';
+            nestedContent.style.marginLeft = '1rem';
+            nestedContent.style.borderLeft = '1px solid #e5e7eb';
+            nestedContent.style.paddingLeft = '0.5rem';
+            nestedContent.style.marginTop = '0.25rem';
+
+            renderObjectTree(nestedContent, value, depth + 1);
+
+            nestedToggle.onclick = function(content, btn, summary) {
+                return function() {
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        btn.textContent = '▼';
+                    } else {
+                        content.style.display = 'none';
+                        btn.textContent = '▶';
+                    }
+                };
+            }(nestedContent, nestedToggle, nestedSummary);
+
+            line.appendChild(nestedToggle);
+            line.appendChild(nestedSummary);
+            line.appendChild(nestedContent);
+        } else {
+            var valueSpan = document.createElement('span');
+            valueSpan.textContent = String(value);
+            valueSpan.style.color = typeof value === 'string' ? '#dc2626' : '#2563eb';
+            line.appendChild(valueSpan);
+        }
+
+        container.appendChild(line);
+    }
+}
+
+async function executePlaygroundStep(sid) {
+    var panel = document.getElementById('playground-panel-' + sid);
+    if (!panel) return;
+
+    var apiUrn = panel.dataset.wfApi;
+    var operationId = panel.dataset.wfOperation;
+    var apiSlug = apiUrn.replace('urn:api:', '');
+
+    // Extract skill slug from sid (format: skillSlug-stepIndex)
+    var skillSlug = sid.substring(0, sid.lastIndexOf('-'));
+
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var apiEntry = opLookup[apiSlug];
+    if (!apiEntry) {
+        console.error('API not found:', apiSlug);
+        markStepFailed(skillSlug, sid);
+        return;
+    }
+
+    var opMeta = apiEntry.ops[operationId];
+    if (!opMeta) {
+        console.error('Operation not found:', operationId);
+        markStepFailed(skillSlug, sid);
+        return;
+    }
+
+    // Get UI elements
+    var spinner = document.getElementById('spinner-' + sid);
+    var responseDiv = document.getElementById('response-' + sid);
+    var statusBadge = document.getElementById('status-' + sid);
+    var responseBodyDiv = document.getElementById('respbody-' + sid);
+    var responseHeadersDiv = document.getElementById('respheaders-' + sid);
+    var executeBtn = panel.querySelector('.btn-send-main');
+
+    if (spinner) spinner.style.display = 'inline';
+    if (executeBtn) executeBtn.disabled = true;
+    if (responseDiv) responseDiv.classList.add('empty');
+
+    try {
+        // Collect parameters
+        var pathParams = {};
+        var queryParams = {};
+        var headerParams = {};
+        var bodyContent = '';
+
+        panel.querySelectorAll('[data-param]').forEach(function(input) {
+            var paramName = input.getAttribute('data-param');
+            var location = input.getAttribute('data-in');
+            var value = input.value;
+
+            if (!value) return;
+
+            // Substitute variables in the value
+            value = substituteVariables(value, skillSlug);
+
+            if (paramName === '__body__') {
+                bodyContent = value;
+            } else if (location === 'path') {
+                pathParams[paramName] = value;
+            } else if (location === 'query') {
+                queryParams[paramName] = value;
+            } else if (location === 'header') {
+                headerParams[paramName] = value;
+            }
+        });
+
+        // Check for request body from ACE editor
+        var bodyEditor = getCodeMirrorEditor('body-' + sid);
+        if (bodyEditor) {
+            var editorContent = bodyEditor.getValue();
+            if (editorContent.trim()) {
+                bodyContent = substituteVariables(editorContent.trim(), skillSlug);
+            }
+        }
+
+        // Build URL
+        var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+        var path = opMeta.path;
+
+        // Replace path parameters
+        for (var paramName in pathParams) {
+            path = path.replace('{' + paramName + '}', encodeURIComponent(pathParams[paramName]));
+        }
+
+        var fullUrl = serverUrl + path;
+
+        // Add query parameters
+        var queryString = Object.keys(queryParams)
+            .map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(queryParams[k]); })
+            .join('&');
+        if (queryString) {
+            fullUrl += '?' + queryString;
+        }
+
+        // Prepare headers
+        var headers = Object.assign(
+            {'Content-Type': 'application/json'},
+            getAuthHeaders(),
+            headerParams
+        );
+
+        // Make the API call through proxy
+        var PROXY_URL = window.__PROXY_CONFIG__ ? window.__PROXY_CONFIG__.url : '/proxy';
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: opMeta.method,
+                url: fullUrl,
+                headers: headers,
+                body: bodyContent || null
+            })
+        });
+
+        var result = await resp.json();
+
+        if (spinner) spinner.style.display = 'none';
+        if (executeBtn) executeBtn.disabled = false;
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        // Update status badge
+        if (statusBadge) {
+            var statusClass = 'status-error';
+            if (result.status >= 200 && result.status < 300) {
+                statusClass = 'status-2xx';
+            } else if (result.status >= 300 && result.status < 400) {
+                statusClass = 'status-3xx';
+            } else if (result.status >= 400 && result.status < 500) {
+                statusClass = 'status-4xx';
+            } else if (result.status >= 500) {
+                statusClass = 'status-5xx';
+            }
+            statusBadge.className = 'response-status-badge ' + statusClass;
+            statusBadge.textContent = result.status;
+        }
+
+        if (result.error) {
+            if (responseBodyDiv) {
+                createReadOnlyAceEditor(responseBodyDiv, result.error, 'text');
+            }
+            markStepFailed(skillSlug, sid);
+            return;
+        }
+
+        // Check if response is successful
+        var isSuccess = result.status >= 200 && result.status < 300;
+
+        // Display response using shared function
+        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, result);
+
+        if (isSuccess) {
+            // Capture variables from response if outputs are defined
+            captureVariablesFromResponse(panel, result);
+            markStepSuccess(skillSlug, sid);
+        } else {
+            markStepFailed(skillSlug, sid);
+        }
+
+    } catch (error) {
+        console.error('Playground execution failed:', error);
+        if (spinner) spinner.style.display = 'none';
+        if (executeBtn) executeBtn.disabled = false;
+        if (responseDiv) responseDiv.classList.remove('empty');
+        if (statusBadge) {
+            statusBadge.textContent = 'Error';
+            statusBadge.className = 'response-status-badge status-error';
+        }
+        if (responseBodyDiv) {
+            createReadOnlyAceEditor(responseBodyDiv, 'Error: ' + error.message, 'text');
+        }
+        markStepFailed(skillSlug, sid);
+    }
+}
+
+// Mark step as successful
+function markStepSuccess(skillSlug, sid) {
+    if (debuggerState[skillSlug]) {
+        if (!debuggerState[skillSlug].successfulSteps) {
+            debuggerState[skillSlug].successfulSteps = {};
+        }
+        debuggerState[skillSlug].successfulSteps[sid] = true;
+    }
+}
+
+// Mark step as failed
+function markStepFailed(skillSlug, sid) {
+    if (debuggerState[skillSlug]) {
+        if (!debuggerState[skillSlug].successfulSteps) {
+            debuggerState[skillSlug].successfulSteps = {};
+        }
+        debuggerState[skillSlug].successfulSteps[sid] = false;
+
+        // Stop debugger if running
+        if (debuggerState[skillSlug].isRunning) {
+            console.log('Step failed, stopping debugger');
+            cancelDebugger(skillSlug);
+        }
+    }
+}
+
+// Check if previous step was successful
+function canProceedToNextStep(skillSlug, currentStepIndex) {
+    if (currentStepIndex === 0) return true; // First step can always run
+
+    var state = debuggerState[skillSlug];
+    if (!state || !state.successfulSteps) return false;
+
+    // Check if previous step was successful
+    var prevSid = skillSlug + '-' + (currentStepIndex - 1);
+    return state.successfulSteps[prevSid] === true;
 }
 
 // ============================================================================
@@ -3490,14 +5220,13 @@ function renderWorkflowStepForms(skillSlug) {
                     // Label with x-origin support
                     if (xOrigin) {
                         var origins = Array.isArray(xOrigin) ? xOrigin : [xOrigin];
-                        var originsJson = JSON.stringify(origins).replace(/"/g, '&quot;');
+                        var originsJsonStr = JSON.stringify(origins);
                         var sid = skillSlug + '-' + stepIndex;
+
+                        html += '<div class="param-input-with-xorigin">';
                         html += '<label>';
                         html += '<span class="param-name-wrapper">';
-                        html += '<code class="param-with-xorigin" ';
-                        html += 'onclick="event.stopPropagation(); openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
-                        html += 'title="Click to fetch values from ' + origins.length + ' source(s)">';
-                        html += escapeHtml(paramName) + '</code>';
+                        html += '<code>' + escapeHtml(paramName) + '</code>';
                         if (required) html += '&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>';
                         html += '</span>';
                         if (description) {
@@ -3508,12 +5237,23 @@ function renderWorkflowStepForms(skillSlug) {
                         html += '</label>';
                         html += '<input type="text" data-wf-param="' + escapeHtml(paramName) + '" ';
                         html += 'data-in="' + section.location + '" ';
-                        html += 'data-x-origins="' + originsJson + '" ';
+                        // Use Base64 encoding to avoid escaping issues
+                        html += 'data-x-origins="' + btoa(originsJsonStr) + '" ';
                         html += 'id="param-' + sid + '-' + escapeHtml(paramName) + '" ';
                         html += 'placeholder="' + escapeHtml(paramType) + '" ';
                         html += 'value="' + escapeHtml(value) + '"';
                         if (required) html += ' required';
                         html += '>';
+                        // Magnifier button
+                        html += '<button type="button" class="btn-xorigin-search" ';
+                        html += 'onclick="openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
+                        html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
+                        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                        html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                        html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                        html += '</svg>';
+                        html += '</button>';
+                        html += '</div>';
                     } else if (schema.enum) {
                         // Enum dropdown
                         html += '<label>';
@@ -4573,4 +6313,31 @@ document.addEventListener('DOMContentLoaded', function() {
             syncScroll(textarea);
         });
     });
+
+    // Highlight curl commands in documentation
+    highlightCurlCommands();
 });
+
+// Function to add syntax highlighting to curl commands
+function highlightCurlCommands() {
+    var codeBlocks = document.querySelectorAll('.skill-view-markdown pre code');
+    codeBlocks.forEach(function(codeBlock) {
+        var text = codeBlock.textContent;
+
+        // Check if it contains curl command
+        if (text.includes('curl')) {
+            var highlighted = text
+                // Highlight curl command
+                .replace(/(^|\s)(curl)(\s)/g, '$1<span style="color:#c586c0">$2</span>$3')
+                // Highlight flags (-X, -H, etc.)
+                .replace(/(\s)(-[A-Za-z]+)(\s)/g, '$1<span style="color:#9cdcfe">$2</span>$3')
+                // Highlight URLs (https://...)
+                .replace(/(https?:\/\/[^\s"']+)/g, '<span style="color:#ce9178">$1</span>')
+                // Highlight strings in quotes
+                .replace(/("[^"]*")/g, '<span style="color:#ce9178">$1</span>')
+                .replace(/('[^']*')/g, '<span style="color:#ce9178">$1</span>');
+
+            codeBlock.innerHTML = highlighted;
+        }
+    });
+}

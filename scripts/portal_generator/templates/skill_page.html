@@ -25,9 +25,7 @@
 {% set api_version = skill.step_count ~ ' steps' %}
 {% include "partials/auth_panel.html" %}
 
-<div class="detail-layout">
-    {% include "partials/skill_sidebar.html" %}
-
+<div class="detail-layout detail-layout-no-sidebar">
     <main class="detail-content" id="main-content">
         {{ render_skill(skill, private_api_slugs, api_link_prefix) }}
     </main>

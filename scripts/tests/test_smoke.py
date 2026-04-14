@@ -324,18 +324,8 @@ class TestHomepageAgentLinks:
         assert link.get('type') == 'application/json'
 
 
-class TestSkillPageRawLink:
-    """Verify skill pages have a link to the raw SKILL.md file."""
-
-    @pytest.fixture(autouse=True)
-    def _parse_skill_page(self, generated_portal):
-        html = (generated_portal / 'skills' / 'deploy-app.html').read_text(encoding='utf-8')
-        self.soup = BeautifulSoup(html, 'html.parser')
-
-    def test_has_skill_md_link(self):
-        link = self.soup.find('a', class_='btn-skill-raw')
-        assert link is not None
-        assert 'SKILL.md' in link.get('href', '')
+# Removed TestSkillPageRawLink class - SKILL.MD button was removed from UI
+# Per user request: "Remove the SKILL.MD button"
 
 
 class TestGenerationWithoutSkills:

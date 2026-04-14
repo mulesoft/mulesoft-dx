@@ -25,7 +25,12 @@
                 <div class="try-header-actions">
                     <span class="try-spinner" id="spinner-{{ operation.operationId }}" style="display:none" aria-live="polite">Sending</span>
                     <div class="btn-group-send">
-                        <button class="btn-send-main" onclick="sendRequest('{{ operation.operationId }}')">Send</button>
+                        <button class="btn-send-main" onclick="sendRequest('{{ operation.operationId }}')">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">
+                                <path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Send
+                        </button>
                         <button class="btn-send-dropdown" onclick="toggleSendDropdown('{{ operation.operationId }}')" aria-label="More actions">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -159,7 +164,7 @@
                     </div>
                 </div>
                 {% for status, response in operation.responses|dictsort %}
-                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|e }}" {% if not loop.first %}style="display:none"{% endif %}>
+                <div class="response-content" id="response-{{ operation.operationId }}-{{ status }}" data-content-types="{{ response.schemas.keys()|list|tojson|replace('"', '&quot;') }}" {% if not loop.first %}style="display:none"{% endif %}>
                     {% if response.description %}
                     <div class="param-description">{{ response.description|md }}</div>
                     {% endif %}

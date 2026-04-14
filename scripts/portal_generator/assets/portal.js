@@ -6563,3 +6563,22 @@ function evaluateJsonPath(data, path) {
 // Store last response for evaluation
 window.lastStepResponse = null;
 
+// ============================================================================
+// Collapsible Description Functionality
+// ============================================================================
+
+function toggleParamDescription(button) {
+    var paramItem = button.closest('.param-item');
+    var wrapper = paramItem.querySelector('.param-description-wrapper');
+
+    if (!wrapper) return;
+
+    if (wrapper.classList.contains('collapsed')) {
+        wrapper.classList.remove('collapsed');
+        paramItem.classList.add('expanded');
+    } else {
+        wrapper.classList.add('collapsed');
+        paramItem.classList.remove('expanded');
+    }
+}
+

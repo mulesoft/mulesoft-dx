@@ -38,24 +38,10 @@
 {% endmacro %}
 
 <aside class="detail-sidebar" id="detailSidebar">
-    <nav class="sidebar-nav">
-        <ul class="nav-list">
-            <li>
-                <a href="#overview" class="nav-link active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path
-                            d="M13.9998 5.20117V14.043L12.5125 15L7.99976 11.8408L3.48804 15L1.99976 14.042V5.20117L7.99976 1L13.9998 5.20117ZM2.99976 5.72168V13.4961L3.4646 13.7959L7.99976 10.6201L12.5359 13.7959L12.9998 13.4971V5.72168L7.99976 2.2207L2.99976 5.72168ZM11.9998 10.1855V11.4062L7.99976 8.60449V7.38379L11.9998 10.1855ZM11.9998 7.39453V8.61621L7.99976 5.81445V4.59375L11.9998 7.39453Z"
-                            fill="#234774" />
-                    </svg>
-                    Overview
-                </a>
-            </li>
-        </ul>
-    </nav>
     <div class="sidebar-header">
         <div class="sidebar-search-row">
             <div class="sidebar-search">
-                <span class="search-icon" aria-hidden="true">🔍</span>
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path></svg>
                 <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search…"
                     aria-label="Filter operations" onkeyup="filterSidebar(this.value)">
                 <button class="btn-clear-sidebar-search" onclick="clearSidebarSearch()" style="display:none"

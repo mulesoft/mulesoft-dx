@@ -198,6 +198,31 @@ def _resolve_skill_inputs(inputs_dict, step_details):
     return result
 
 
+def _truncate_text(text, max_length=25):
+    """Truncate text to max_length characters, adding ellipsis if truncated."""
+    if not text or len(text) <= max_length:
+        return text
+    return text[:max_length] + '...'
+
+
+def _should_collapse_description(text):
+    """Check if a description should be collapsed based on content."""
+    if not text:
+        return False
+
+    # Convert to string if it's a Markup object
+    text_str = str(text)
+
+    # Check for HTML elements that indicate multi-line content
+    multiline_indicators = ['<ul>', '<ol>', '<li>', '<br>', '</p>', '\n']
+    has_multiline = any(indicator in text_str for indicator in multiline_indicators)
+
+    # Check text length (approximate 2 lines = ~150 characters)
+    is_long = len(text_str) > 150
+
+    return has_multiline or is_long
+
+
 def create_env() -> Environment:
     """Create and configure the Jinja2 template environment."""
     env = Environment(
@@ -215,6 +240,8 @@ def create_env() -> Environment:
     env.filters['titleize_operation'] = _titleize_operation
     env.filters['slugify'] = _slugify
     env.filters['resolve_skill_inputs'] = _resolve_skill_inputs
+    env.filters['truncate_text'] = _truncate_text
+    env.filters['should_collapse_description'] = _should_collapse_description
 
     # Global functions available in all templates
     env.globals['build_operation_tree'] = build_operation_tree

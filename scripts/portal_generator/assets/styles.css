@@ -2335,7 +2335,7 @@ button.nav-group-header {
 .content-section h3 {
     font-family: var(--font-sans);
     font-size: var(--lume-font-size-8);
-    margin: var(--space-lg) 0 var(--space-md) 0;
+    margin: 0;
     color: #494947;
 }
 
@@ -2537,7 +2537,7 @@ button.nav-group-header {
     /* Hidden by default, shown via JS */
     background: var(--color-bg);
     border-radius: 30px;
-    padding: var(--space-xl);
+    padding: var(--space-lg);
     margin: var(--space-lg);
 }
 
@@ -3818,8 +3818,7 @@ details[open] .examples-toggle-icon {
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.3;
-    color: var(--lume-color-neutral-10);
-    margin-bottom: 1rem;
+    color: var(--lume-color-neutral-10);    
 }
 
 .skill-steps-list {

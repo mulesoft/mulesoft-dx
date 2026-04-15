@@ -2878,6 +2878,35 @@ function closeSendDropdown(opId) {
     }
 }
 
+function copyCurlFromTerminal(button) {
+    // Find the terminal-content element (the code block)
+    var terminalWindow = button.closest('.terminal-window');
+    if (!terminalWindow) return;
+
+    var terminalContent = terminalWindow.querySelector('.terminal-content code');
+    if (!terminalContent) return;
+
+    // Get the text content (this will strip HTML tags)
+    var curlCommand = terminalContent.textContent || terminalContent.innerText;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(curlCommand).then(function() {
+        // Show "Copied" feedback
+        var originalHTML = button.innerHTML;
+        button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        button.style.color = '#04844B';
+
+        // Reset after 1.5 seconds
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.style.color = '';
+        }, 1500);
+    }).catch(function(err) {
+        console.error('Failed to copy cURL command:', err);
+        alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
 // ============================================================================
 // Response Status Selector
 // ============================================================================
@@ -6662,4 +6691,143 @@ function toggleParamDescription(button) {
         });
     }
 })();
+
+// ============================================================================
+// Manual Variable Management
+// ============================================================================
+
+function addManualVariable(slug) {
+    var table = document.getElementById('variables-table-' + slug);
+    if (!table) return;
+
+    var tbody = table.querySelector('tbody');
+
+    // Remove "no variables" row if present
+    var noVarsRow = tbody.querySelector('.no-variables-row');
+    if (noVarsRow) {
+        noVarsRow.remove();
+    }
+
+    // Create new row for manual input
+    var row = document.createElement('tr');
+    row.className = 'variable-row manual-variable-row';
+
+    row.innerHTML = '<td><input type="text" class="manual-var-name" placeholder="variableName" /></td>' +
+                    '<td><input type="text" class="manual-var-value" placeholder="value" /></td>' +
+                    '<td><span class="var-source">User Input</span></td>' +
+                    '<td><button class="btn-delete-variable" onclick="deleteVariable(this, \'' + slug + '\')" title="Delete variable">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<line x1="18" y1="6" x2="6" y2="18"></line>' +
+                    '<line x1="6" y1="6" x2="18" y2="18"></line>' +
+                    '</svg></button></td>';
+
+    tbody.appendChild(row);
+
+    // Focus on name input
+    var nameInput = row.querySelector('.manual-var-name');
+    nameInput.focus();
+
+    // Add event listeners to save variable on blur or enter
+    var saveVariable = function() {
+        var name = row.querySelector('.manual-var-name').value.trim();
+        var value = row.querySelector('.manual-var-value').value.trim();
+
+        if (name && value) {
+            // Initialize skillVariables if needed
+            if (!skillVariables[slug]) {
+                skillVariables[slug] = {};
+            }
+
+            // Store the variable
+            skillVariables[slug][name] = value;
+
+            // Convert inputs to display mode
+            row.querySelector('td:first-child').innerHTML = '<code class="var-name">' + escapeHtml(name) + '</code>';
+            row.querySelector('td:nth-child(2)').innerHTML = '<code class="var-value">' + escapeHtml(value) + '</code>';
+            row.classList.remove('manual-variable-row');
+
+            // Update variable tooltips
+            updateVariableTooltips(slug);
+
+            console.log('Manual variable added:', name, '=', value);
+        } else if (!name && !value) {
+            // Remove empty row
+            row.remove();
+
+            // Check if we need to add back "no variables" row
+            if (tbody.querySelectorAll('.variable-row').length === 0) {
+                tbody.innerHTML = '<tr class="no-variables-row"><td colspan="4" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables yet</td></tr>';
+            }
+        }
+    };
+
+    nameInput.addEventListener('blur', saveVariable);
+    row.querySelector('.manual-var-value').addEventListener('blur', saveVariable);
+
+    nameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            row.querySelector('.manual-var-value').focus();
+        }
+    });
+
+    row.querySelector('.manual-var-value').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            saveVariable();
+        }
+    });
+}
+
+function deleteVariable(button, slug) {
+    var row = button.closest('tr');
+    var nameCell = row.querySelector('.var-name');
+
+    if (nameCell) {
+        var varName = nameCell.textContent;
+
+        // Remove from skillVariables
+        if (skillVariables[slug] && skillVariables[slug][varName]) {
+            delete skillVariables[slug][varName];
+            console.log('Variable deleted:', varName);
+        }
+
+        // Update variable tooltips
+        updateVariableTooltips(slug);
+    }
+
+    // Remove the row
+    row.remove();
+
+    // Check if we need to add back "no variables" row
+    var table = document.getElementById('variables-table-' + slug);
+    var tbody = table.querySelector('tbody');
+    if (tbody.querySelectorAll('.variable-row').length === 0) {
+        tbody.innerHTML = '<tr class="no-variables-row"><td colspan="4" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables yet</td></tr>';
+    }
+}
+
+function clearAllVariables(slug) {
+    if (!confirm('Are you sure you want to clear all variables?')) {
+        return;
+    }
+
+    // Clear from skillVariables
+    skillVariables[slug] = {};
+
+    // Clear from array variables if exists
+    if (window.skillArrayVariables && window.skillArrayVariables[slug]) {
+        window.skillArrayVariables[slug] = {};
+    }
+
+    // Clear the table
+    var table = document.getElementById('variables-table-' + slug);
+    if (table) {
+        var tbody = table.querySelector('tbody');
+        tbody.innerHTML = '<tr class="no-variables-row"><td colspan="4" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">No variables yet</td></tr>';
+    }
+
+    // Update variable tooltips
+    updateVariableTooltips(slug);
+
+    console.log('All variables cleared for:', slug);
+}
 

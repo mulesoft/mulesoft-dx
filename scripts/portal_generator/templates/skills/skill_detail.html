@@ -8,7 +8,7 @@
 <section id="skill-{{ slug }}" class="content-section skill-detail">
     {# Overview and Prerequisites - Always visible in both modes #}
     {% if skill.overview_html or skill.description %}
-    <div id="overview-section" class="skill-subsection">
+    <div id="overview" class="skill-subsection">
         <h3>Overview</h3>
         <div class="skill-view-markdown">
             {% if skill.overview_html %}
@@ -29,7 +29,6 @@
 
     {# Unified Content Area #}
     <div id="playground-section" class="skill-playground-section">
-        <h3>Playground</h3>
     </div>
     <div id="skill-content-{{ slug }}" class="skill-content-unified">
         <div class="skill-main-content">
@@ -41,44 +40,8 @@
             {% endif %}
         </div>
 
-        {# Execution Panel - Visible by default #}
-        <aside class="execution-panel" id="variables-sidebar-{{ slug }}">
-            {# Debugger Toolbar #}
-            <div class="debugger-toolbar">
-                <div class="debugger-controls" id="debugger-controls-{{ slug }}">
-                    {# Initial state: Run button #}
-                    <div class="debugger-run-state" id="debugger-run-{{ slug }}">
-                        <button class="btn-debugger-run" onclick="startDebugger('{{ slug }}')" title="Run Skill (Execute All Steps)">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M4 2L13 8L4 14V2Z" fill="currentColor"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    {# Running state: Navigation + Stop controls #}
-                    <div class="debugger-running-state" id="debugger-running-{{ slug }}" style="display:none">
-                        <button class="btn-debugger-prev" onclick="previousStep('{{ slug }}')" title="Step Back (Previous Operation)">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M13 8H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                        </button>
-                        <button class="btn-debugger-next" onclick="nextStep('{{ slug }}')" title="Step Over (Next Operation)">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M13 3V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                        </button>
-                        <div class="toolbar-divider"></div>
-                        <button class="btn-debugger-cancel" onclick="cancelDebugger('{{ slug }}')" title="Stop Execution">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <rect x="4" y="4" width="8" height="8" fill="currentColor" rx="1"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
+        {# Execution Panel - Hidden by default, shown in playground mode #}
+        <aside class="execution-panel" id="variables-sidebar-{{ slug }}" style="display: none;">
             {# Panel Tabs #}
             <div class="execution-panel-tabs">
                 <button class="execution-tab active" data-tab="variables" onclick="switchExecutionTab('{{ slug }}', 'variables')">Variables</button>
@@ -87,18 +50,35 @@
 
             {# Variables Section #}
             <div class="execution-panel-content" id="execution-variables-{{ slug }}">
+                <div class="variables-toolbar">
+                    <button class="btn-add-variable" onclick="addManualVariable('{{ slug }}')" title="Add Variable">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Variable
+                    </button>
+                    <button class="btn-clear-variables" onclick="clearAllVariables('{{ slug }}')" title="Clear All Variables">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Clear All
+                    </button>
+                </div>
                 <table class="variables-table" id="variables-table-{{ slug }}">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Value</th>
                             <th>Source</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="3" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">
-                                No variables captured yet
+                        <tr class="no-variables-row">
+                            <td colspan="4" style="text-align:center; color:#9ca3af; padding:2rem 0.5rem;">
+                                No variables yet
                             </td>
                         </tr>
                     </tbody>

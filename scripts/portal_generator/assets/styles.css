@@ -90,11 +90,19 @@
     --color-purple: #8E44AD;
     --color-teal: #17B5A3;
 
-    --color-bg: #EEF4FF;
+    --color-bg: #F5F5F7;
     --color-surface: var(--lume-color-neutral-1);
     --color-border: var(--lume-color-neutral-5);
     --color-text: var(--lume-color-neutral-10);
     --color-text-muted: var(--lume-color-neutral-8);
+
+    /* Interactive element states */
+    --hover-bg: #F0F7FF;
+    --hover-border: #B3D2EC;
+    --hover-text: #0078DB;
+    --selected-bg: #F0F7FF;
+    --selected-border: #B3D2EC;
+    --selected-text: #0078DB;
 
     /* Lume Design System - Spacing (rem-based) */
     --lume-space-xxx-small: 0.125rem;
@@ -136,8 +144,8 @@
     --radius-xl: 1rem;
 
     /* Typography - Salesforce Sans (Lume design system) */
-    --font-sans: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "Menlo", "Monaco", "Courier New", monospace;
 
     /* Lume Design System - Typography Scale */
     --lume-font-size-1: 0.625rem;
@@ -493,9 +501,9 @@ code {
 }
 
 .hero-title {
-    font-family: 'Avant Garde For Salesforce', 'Century Gothic', 'Avenir Next', sans-serif;
+    font-family: var(--font-sans);
     font-size: 2.5rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #00205b;
     margin: 0 0 12px 0;
     line-height: 1.2;
@@ -503,7 +511,7 @@ code {
 
 .hero-subtitle {
     font-size: 1.125rem;
-    color: #374151;
+    color: #00205b;
     margin: 0 0 32px 0;
     line-height: 1.5;
     font-weight: 400;
@@ -533,19 +541,22 @@ code {
 }
 
 .hero-tab:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
+    color: var(--selected-text);
 }
 
 .hero-tab[data-filter="api"]:hover,
 .hero-tab[data-filter="skill"]:hover {
-    background: #E6E6E6;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
+    color: var(--hover-text);
 }
 
 .hero-tab.active {
-    background: #F0F7FF;
-    border-color: #B3D2EC;
-    color: #0078DB;
+    background: var(--selected-bg);
+    border-color: var(--selected-border);
+    color: var(--selected-text);
 }
 
 .hero-tab.active::after {
@@ -609,14 +620,14 @@ code {
 
 /* Catalog Main Content */
 .catalog-main-content {
-    background: #ffffff;
+    background: var(--color-bg);
 }
 
 /* Catalog Controls Wrapper (global controls) */
 .catalog-controls-wrapper {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 var(--space-lg) var(--space-md) var(--space-lg);
+    padding: 10px var(--space-lg) var(--space-md) var(--space-lg);
 }
 
 /* Catalog Search Row - Removed, search now in catalog-results-header */
@@ -641,14 +652,14 @@ code {
 
 /* Catalog Results Header */
 .catalog-results-header {
-    display: flex;    
+    display: flex;
     align-items: center;
     gap: var(--space-lg);
 }
 
 .results-count {
     font-size: var(--lume-font-size-3);
-    font-weight: 700;    
+    font-weight: 700;
     margin: 0;
     white-space: nowrap;
     flex-shrink: 0;
@@ -718,7 +729,8 @@ code {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--lume-space-xx-small);
-    padding: 5px 16px 5px 46px;
+    padding: 8px 16px 8px 46px;
+    max-width: 850px;
     border: 1.5px solid #d1d5db;
     border-radius: 24px;
     background: #ffffff;
@@ -730,7 +742,7 @@ code {
 }
 
 .tag-search-input-container:hover {
-    border-color: #9ca3af;
+    border-color: var(--hover-border);
 }
 
 .tag-search-input-container:focus-within {
@@ -832,7 +844,9 @@ code {
 
 .tag-suggestion-item:hover,
 .tag-suggestion-item.active {
-    background: var(--color-primary-light);
+    background: var(--hover-bg);
+    border-left: 3px solid var(--hover-border);
+    padding-left: calc(var(--space-md) - 3px);
 }
 
 .tag-suggestion-type {
@@ -885,7 +899,7 @@ code {
 .sort-btn {
     display: flex;
     align-items: center;
-    padding: 5px 9px;
+    padding: 8px 9px;
     background: #ffffff;
     border: 1px solid #d1d5db;
     border-radius: 1rem;
@@ -897,8 +911,9 @@ code {
 }
 
 .sort-btn:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
+    color: var(--hover-text);
 }
 
 /* Sort Modal */
@@ -954,7 +969,8 @@ code {
 }
 
 .sort-modal-select:hover {
-    border-color: #9ca3af;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
 }
 
 .sort-modal-select:focus {
@@ -996,7 +1012,7 @@ code {
 }
 
 .view-toggle-btn {
-    padding: 7px 9px;
+    padding: 8px 9px;
     border: none;
     background: transparent;
     color: var(--lume-color-neutral-8);
@@ -1009,13 +1025,15 @@ code {
 }
 
 .view-toggle-btn:hover {
-    background: var(--lume-color-neutral-3);
-    color: var(--lume-color-neutral-10);
+    background: var(--hover-bg);
+    color: var(--hover-text);
 }
 
 .view-toggle-btn.active {
-    background: var(--lume-color-brand);
-    color: var(--lume-color-neutral-1);
+    background: var(--selected-bg);
+    color: var(--selected-text);
+    border: 1px solid var(--selected-border);
+    margin: -1px;
 }
 
 .view-toggle-btn+.view-toggle-btn {
@@ -1048,47 +1066,141 @@ code {
     }
 }
 
-/* List View */
-.catalog-grid.list-view {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
+/* List View - Table Layout */
+.catalog-table-header {
+    display: none;
 }
 
+.catalog-grid.list-view {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.08);
+}
+
+/* Table header row */
+.catalog-grid.list-view .catalog-table-header {
+    display: table-row;
+    background: #FAFAFA;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.catalog-grid.list-view .catalog-table-header > div {
+    display: table-cell;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E5E5E5;
+    vertical-align: middle;
+}
+
+.catalog-grid.list-view .catalog-header-name {
+    width: 25%;
+}
+
+.catalog-grid.list-view .catalog-header-description {
+    width: 60%;
+}
+
+.catalog-grid.list-view .catalog-header-version {
+    width: 15%;
+}
+
+/* Table rows */
 .catalog-grid.list-view .catalog-card-link {
-    display: block;
+    display: table-row;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.catalog-grid.list-view .catalog-card-link:hover {
+    background: #FAFAFA;
 }
 
 .catalog-grid.list-view .catalog-card {
-    display: flex;
-    flex-direction: column;
-    padding: var(--lume-space-medium);
+    display: contents;
 }
 
-.catalog-grid.list-view .catalog-card-main {
-    flex: 1;
-    min-width: 0;
-    margin-bottom: var(--lume-space-small);
+.catalog-grid.list-view .catalog-card-link:hover .catalog-card {
+    box-shadow: none;
+    transform: none;
 }
 
-.catalog-grid.list-view .catalog-card-header-row {
-    margin-bottom: var(--lume-space-small);
-    padding-bottom: var(--lume-space-small);
+/* Transform card sections into table cells */
+.catalog-grid.list-view .catalog-card-header,
+.catalog-grid.list-view .catalog-card-description,
+.catalog-grid.list-view .catalog-card-footer {
+    display: table-cell;
+    padding: 20px 16px;
+    vertical-align: middle;    
+}
+
+.catalog-grid.list-view .catalog-card-header {
+    width: 25%;
 }
 
 .catalog-grid.list-view .catalog-card-description {
-    min-height: auto;
+    width: 60%;
     margin-bottom: 0;
-    display: -webkit-box;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: none;
 }
 
-.catalog-grid.list-view .catalog-card-badges {
-    flex-direction: row;
-    align-items: center;
+.catalog-grid.list-view .catalog-card-footer {
+    width: 15%;
+    margin-top: 0;
+}
+
+.catalog-grid.list-view .catalog-card-title-wrapper {
+    gap: 12px;
+}
+
+.catalog-grid.list-view .catalog-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* Grid view: hide list version badge, show grid version badge */
+.card-version-list {
+    display: none;
+}
+
+.card-version-grid {
+    display: inline-block;
+}
+
+/* List view: hide grid version badge, show list version badge */
+.catalog-grid.list-view .card-version-grid {
+    display: none;
+}
+
+.catalog-grid.list-view .card-version-list {
+    display: inline-block;
+    font-size: var(--lume-font-size-2);
+    font-weight: 700;
+    color: #4a4a4a;
+    padding: 5px 16px 4px 15px;
+    border-radius: 21px;
+    border: 1px solid #E0E7FF;
+}
+
+/* Hide all other badges (REST API, endpoints, skills) in list view */
+.catalog-grid.list-view .badge-api-type,
+.catalog-grid.list-view .badge-count,
+.catalog-grid.list-view .badge-skills {
+    display: none;
 }
 
 /* Catalog Card Link (entire card is clickable) */
@@ -1106,16 +1218,18 @@ code {
     background: #ffffff;
     border: none;
     border-radius: 16px;
-    padding: 28px;
+    max-height: 180px;
+    max-width: 389px;
+    padding: 20px;
     transition: all 0.2s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
-    box-shadow: 0px 10px 30px 0px rgba(3, 45, 96, 0.2);
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.08);
 }
 
 .catalog-card-link:hover .catalog-card {
-    box-shadow: 0px 15px 40px 0px rgba(3, 45, 96, 0.3);
+    box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.12);
     transform: translateY(-2px);
 }
 
@@ -1140,7 +1254,7 @@ code {
 }
 
 .catalog-card-title {
-    font-size: var(--lume-font-size-7);
+    font-size: var(--lume-font-size-5);
     font-weight: 600;
     color: #032d60;
     margin: 0;
@@ -1163,10 +1277,15 @@ code {
 .catalog-card-description {
     color: #000000;
     margin-bottom: 16px;
-    min-height: 78px;
     line-height: 1.5;
     flex: 1;
     font-size: var(--lume-font-size-3);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .catalog-card-footer {
@@ -1187,13 +1306,14 @@ code {
     border: 1px solid #E0E7FF;
 }
 
-.badge-count {
+.badge-skills .badge-count {
     font-size: var(--lume-font-size-2);
-    font-weight: 600;
+    font-weight: var(--lume-font-weight-regular);
     color: #475569;
     padding: 4px 15px;
     border-radius: 21px;
     border: 1px solid #E0E7FF;
+    background: var(--hover-bg);
 }
 
 
@@ -1227,14 +1347,15 @@ code {
     border-radius: 21px;
     border: 1px solid #E0E7FF;
     font-size: var(--lume-font-size-2);
-    font-weight: var(--lume-font-weight-regular);
+    font-family: var(--font-sans);
     line-height: 1.25;
 }
 
 .badge-version {
-    background: white;
+    background: var(--bg-hover);
     border: 1px solid var(--lume-color-neutral-5);
     color: var(--lume-color-neutral-8);
+
 }
 
 .badge-deprecated {
@@ -1887,14 +2008,16 @@ code {
 }
 
 .nav-link:hover {
-    background: var(--lume-color-neutral-3);
-    color: var(--lume-color-neutral-11);
+    background: var(--hover-bg);
+    color: var(--hover-text);
     text-decoration: none;
+    border-left-color: var(--hover-border);
 }
 
 .nav-link.active {
-    color: var(--color-primary);
-    border-left-color: var(--lume-color-brand);
+    background: var(--selected-bg);
+    color: var(--selected-text);
+    border-left-color: var(--selected-border);
 }
 
 /* Overview link specific styling from Figma */
@@ -1947,7 +2070,7 @@ button.nav-group-header {
 
 .nav-group-header:hover {
     background: transparent;
-    color: var(--color-primary);
+    color: var(--hover-text);
 }
 
 .group-toggle {
@@ -2114,15 +2237,17 @@ button.nav-group-header {
 
 .nav-skill-step:hover,
 .nav-skill-overview:hover {
-    background: transparent;
-    color: var(--color-primary);
+    background: var(--hover-bg);
+    color: var(--hover-text);
     text-decoration: none;
+    border-left-color: var(--hover-border);
 }
 
 .nav-skill-step.active,
 .nav-skill-overview.active {
-    background: transparent;
-    color: var(--color-primary);
+    background: var(--selected-bg);
+    color: var(--selected-text);
+    border-left-color: var(--selected-border);
 }
 
 .step-number {
@@ -2143,6 +2268,7 @@ button.nav-group-header {
     flex: 1;
     min-width: 0;
     padding: var(--space-xl);
+    background: var(--color-bg);
 }
 
 .container-fluid {
@@ -2369,7 +2495,7 @@ button.nav-group-header {
 
 .operation-content-wrapper {
     display: flex;
-    gap: 5px;
+    gap: 30px;
     position: relative;
     z-index: 10;
 }
@@ -2696,12 +2822,17 @@ button.nav-group-header {
 }
 
 .server-dropdown-option:hover {
-    background: var(--lume-color-gray-50, #f4f6f9);
+    background: var(--hover-bg);
+    color: var(--hover-text);
+    font-weight: 600;
 }
 
 .server-dropdown-option.selected {
-    color: var(--lume-color-brand);
+    background: var(--selected-bg);
+    color: var(--selected-text);
     font-weight: 600;
+    border-left: 3px solid var(--selected-border);
+    padding-left: calc(var(--space-md) - 3px);
 }
 
 .server-dropdown-option.selected::before {
@@ -2875,8 +3006,8 @@ button.nav-group-header {
 }
 
 .nested-prop-toggle:hover {
-    background: #f3f4f6;
-    color: var(--lume-color-brand);
+    background: var(--hover-bg);
+    color: var(--hover-text);
 }
 
 .nested-prop-toggle svg {
@@ -3014,8 +3145,8 @@ button.nav-group-header {
 }
 
 .param-collapse-toggle:hover {
-    background: #f3f4f6;
-    color: var(--lume-color-brand);
+    background: var(--hover-bg);
+    color: var(--hover-text);
 }
 
 .param-collapse-toggle svg {
@@ -3329,8 +3460,8 @@ details[open] .examples-toggle-icon {
 }
 
 .status-selector-button:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
 }
 
 .status-selector-button svg {
@@ -3375,7 +3506,7 @@ details[open] .examples-toggle-icon {
 }
 
 .status-dropdown-item:hover {
-    background: #f3f4f6;
+    background: var(--hover-bg);
 }
 
 .status-dot {
@@ -4176,14 +4307,15 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-tab:hover {
-    border-color: var(--lume-color-brand);
-    color: var(--lume-color-brand);
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
+    color: var(--hover-text);
 }
 
 .skill-tab.active {
-    background: var(--lume-color-brand);
-    color: white;
-    border-color: var(--lume-color-brand);
+    background: var(--selected-bg);
+    color: var(--selected-text);
+    border-color: var(--selected-border);
 }
 
 /* Rendered Markdown Content */
@@ -5405,8 +5537,8 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-source-select:hover {
-    border-color: var(--lume-color-neutral-7);
-    background-color: var(--lume-color-neutral-2);
+    border-color: var(--hover-border);
+    background-color: var(--hover-bg);
 }
 
 .xorigin-source-select:focus {
@@ -5483,11 +5615,13 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-tab-btn:hover {
-    color: var(--text-primary);
-    background: rgba(0, 0, 0, 0.02);
+    color: var(--hover-text);
+    background: var(--hover-bg);
 }
 
 .xorigin-tab-btn.active {
+    background: var(--selected-bg);
+    color: var(--selected-text);
     color: var(--color-primary);
     border-bottom-color: var(--color-primary);
 }
@@ -5782,8 +5916,8 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-params-section select:hover {
-    border-color: var(--lume-color-neutral-7);
-    background-color: var(--lume-color-neutral-2);
+    border-color: var(--hover-border);
+    background-color: var(--hover-bg);
 }
 
 .xorigin-params-section select:focus {
@@ -5836,7 +5970,7 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-info-section summary:hover {
-    background: rgba(0, 0, 0, 0.02);
+    background: var(--hover-bg);
 }
 
 .xorigin-info-content {
@@ -6984,8 +7118,8 @@ details[open] .examples-toggle-icon {
 
 .btn-debugger-prev:hover,
 .btn-debugger-next:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
 }
 
 .btn-debugger-cancel {
@@ -7697,6 +7831,7 @@ input.has-variable-ref:focus {
     color: var(--lume-color-neutral-9);
     letter-spacing: -0.01em;
 }
+
 /* ============================================================================
    EXECUTION PANEL - IDE DEBUGGER STYLE
    ============================================================================ */
@@ -7770,8 +7905,8 @@ input.has-variable-ref:focus {
 .btn-debugger-prev:hover,
 .btn-debugger-next:hover,
 .btn-debugger-cancel:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
 }
 
 .btn-debugger-cancel:hover {
@@ -7807,8 +7942,8 @@ input.has-variable-ref:focus {
 }
 
 .execution-tab:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--hover-bg);
+    color: var(--hover-text);
 }
 
 .execution-tab.active {
@@ -7867,7 +8002,7 @@ input.has-variable-ref:focus {
 }
 
 .variables-table tr:hover {
-    background: #f9fafb;
+    background: var(--hover-bg);
 }
 
 /* Evaluation Section */

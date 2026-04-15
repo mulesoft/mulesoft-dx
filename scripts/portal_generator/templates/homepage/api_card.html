@@ -5,10 +5,11 @@
                 <img src="assets/icons/api-card-icon.svg" width="28" height="28" class="card-icon" alt="">
                 <h3 class="catalog-card-title">{{ api.name }}</h3>
             </div>
-            <span class="card-version-badge">{{ api.version }}</span>
+            <span class="card-version-badge card-version-grid">{{ api.version }}</span>
         </div>
         <p class="catalog-card-description">{{ api.description|truncate(150) }}</p>
         <div class="catalog-card-footer">
+            <span class="card-version-badge card-version-list">{{ api.version }}</span>
             <span class="badge badge-api-type">REST API</span>
             <span class="badge badge-count">{{ api.operation_count }} endpoint{{ 's' if api.operation_count != 1 else '' }}</span>
             {% if api.skill_count > 0 %}

@@ -101,6 +101,11 @@
 
         <section id="catalog" class="unified-catalog">
             <div class="catalog-grid" id="catalogGrid">
+                <div class="catalog-table-header">
+                    <div class="catalog-header-name">NAME</div>
+                    <div class="catalog-header-description">DESCRIPTION</div>
+                    <div class="catalog-header-version">VERSION</div>
+                </div>
                 {% for api in apis %}
                 {% include "homepage/api_card.html" %}
                 {% endfor %}

@@ -1,7 +1,10 @@
 <a href="apis/{{ api.slug }}.html" class="catalog-card-link" data-category="{{ api.category }}" data-name="{{ api.name|lower }}" data-type="api">
     <article class="catalog-card">
         <div class="catalog-card-header">
-            <h3 class="catalog-card-title">{{ api.name }}</h3>
+            <div class="catalog-card-title-wrapper">
+                <img src="assets/icons/api-card-icon.svg" width="28" height="28" class="card-icon" alt="">
+                <h3 class="catalog-card-title">{{ api.name }}</h3>
+            </div>
             <span class="card-version-badge">{{ api.version }}</span>
         </div>
         <p class="catalog-card-description">{{ api.description|truncate(150) }}</p>

@@ -6582,3 +6582,84 @@ function toggleParamDescription(button) {
     }
 }
 
+// ============================================================================
+// Sort Modal Functionality
+// ============================================================================
+
+(function() {
+    const sortBtn = document.querySelector('.sort-btn');
+    const sortModal = document.getElementById('sortModal');
+    const applySortBtn = document.getElementById('applySortBtn');
+    const sortBySelect = document.getElementById('sortBy');
+    const sortDirectionSelect = document.getElementById('sortDirection');
+    const catalogGrid = document.getElementById('catalogGrid');
+
+    if (!sortBtn || !sortModal) return;
+
+    // Open modal
+    sortBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sortModal.style.display = 'block';
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        if (sortModal.style.display === 'block' && !sortModal.contains(e.target) && e.target !== sortBtn) {
+            sortModal.style.display = 'none';
+        }
+    });
+
+    // Apply sort
+    applySortBtn.addEventListener('click', function() {
+        const sortBy = sortBySelect.value;
+        const direction = sortDirectionSelect.value;
+
+        sortCatalog(sortBy, direction);
+        sortModal.style.display = 'none';
+    });
+
+    function sortCatalog(sortBy, direction) {
+        const cards = Array.from(catalogGrid.children);
+
+        cards.sort(function(a, b) {
+            let aValue, bValue;
+
+            if (sortBy === 'name') {
+                aValue = a.getAttribute('data-name') || '';
+                bValue = b.getAttribute('data-name') || '';
+                return direction === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            } else if (sortBy === 'endpoints') {
+                // Extract count from the badge text (endpoints for APIs, steps for Skills)
+                const aCard = a.querySelector('.badge-count');
+                const bCard = b.querySelector('.badge-count');
+
+                aValue = 0;
+                bValue = 0;
+
+                if (aCard && aCard.textContent) {
+                    const match = aCard.textContent.match(/\d+/);
+                    aValue = match ? parseInt(match[0]) : 0;
+                }
+
+                if (bCard && bCard.textContent) {
+                    const match = bCard.textContent.match(/\d+/);
+                    bValue = match ? parseInt(match[0]) : 0;
+                }
+
+                return direction === 'asc'
+                    ? aValue - bValue
+                    : bValue - aValue;
+            }
+
+            return 0;
+        });
+
+        // Re-append sorted cards
+        cards.forEach(function(card) {
+            catalogGrid.appendChild(card);
+        });
+    }
+})();
+

@@ -10,24 +10,31 @@
 {% block content %}
 <main id="main-content">
     <section class="hero">
-        <div class="hero-background"></div>
-        <div class="hero-illustration"></div>
         <div class="hero-content">
-            <h1 class="hero-title">MuleSoft developer AI Portal</h1>
-            <p class="hero-subtitle">Discover, explore, and integrate with MuleSoft APIs on Anypoint Platform. Access interactive playgrounds and API documentation designed for both developers and AI agents.</p>
+            <h1 class="hero-title">MuleSoft Platform Developer Portal</h1>
+            <p class="hero-subtitle">Discover, explore and integrate with MuleSoft Anypoint Platform</p>
 
             <div class="hero-tabs">
                 <button class="hero-tab active" data-filter="all">All</button>
-                <button class="hero-tab" data-filter="api">APIs</button>
-                <button class="hero-tab" data-filter="skill">Skills</button>
+                <button class="hero-tab" data-filter="api">
+                    <img src="assets/icons/api-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
+                    APIs
+                </button>
+                <button class="hero-tab" data-filter="skill">
+                    <img src="assets/icons/skill-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
+                    Skills
+                </button>
             </div>
         </div>
     </section>
 
     <div class="catalog-main-content">
         <div class="catalog-controls-wrapper">
-            <div class="catalog-search-row">
+            <div class="catalog-results-header">
                 <div class="tag-search-wrapper">
+                    <svg class="search-icon-catalog" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                        <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path>
+                    </svg>
                     <div class="tag-search-input-container" id="tagSearchInputContainer">
                         <div class="selected-tags" id="selectedTags"></div>
                         <input type="text"
@@ -39,10 +46,38 @@
                     </div>
                     <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                 </div>
-            </div>
-            <div class="catalog-results-header">
                 <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
-                <div class="catalog-controls-right">                 
+                <div class="catalog-controls-right">
+                    <button class="sort-btn" aria-label="Sort options">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="14" height="14" class="block shrink-0 text-current" aria-hidden="true" focusable="false" style="margin-right: 6px;">
+                            <path d="M7.293 4.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1-1.414 1.414L9 7.414V19a1 1 0 1 1-2 0V7.414L5.707 8.707a1 1 0 0 1-1.414-1.414l3-3ZM16 4a1 1 0 0 1 1 1v11.586l1.293-1.293a1 1 0 0 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 1.414-1.414L15 16.586V5a1 1 0 0 1 1-1Z"></path>
+                        </svg>
+                        Sort
+                    </button>
+                    <!-- Sort Modal -->
+                    <div id="sortModal" class="sort-modal" style="display: none;">
+                        <div class="sort-modal-content">
+                            <h3 class="sort-modal-title">Sort</h3>
+
+                            <div class="sort-modal-field">
+                                <label for="sortBy" class="sort-modal-label">Sort by</label>
+                                <select id="sortBy" class="sort-modal-select">
+                                    <option value="name">Name</option>
+                                    <option value="endpoints">Endpoints</option>
+                                </select>
+                            </div>
+
+                            <div class="sort-modal-field">
+                                <label for="sortDirection" class="sort-modal-label">Direction</label>
+                                <select id="sortDirection" class="sort-modal-select">
+                                    <option value="asc">Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
+                            </div>
+
+                            <button id="applySortBtn" class="apply-sort-btn">Apply Sort</button>
+                        </div>
+                    </div>
                     <div class="view-toggle" role="group" aria-label="View mode">
                         <button class="view-toggle-btn active" data-view="grid" aria-label="Grid view" title="Grid view">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

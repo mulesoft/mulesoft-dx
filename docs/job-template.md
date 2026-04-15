@@ -38,9 +38,11 @@ This skill has multiple entry points depending on what you already have:
 
 - **Start at Step 1** if [condition when user needs all steps]
   - You'll need: `[variable1]`
+  - Steps: 1, 2, 3, 4
 
 - **Start at Step N** if [condition when user can skip earlier steps]
   - You'll need: `[variable1]`, `[variable2]`, `[variable3]`
+  - Steps: 2, 4
 
 ## Step 1: [Action-Oriented Step Name]
 

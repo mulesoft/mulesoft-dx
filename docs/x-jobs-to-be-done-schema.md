@@ -256,19 +256,23 @@ This skill has multiple entry points depending on what you already have:
 
 - **Start at Step 1** if you only have a URL and need to create an Exchange asset first
   - You'll need: `implementationUrl`
+  - Steps: 1, 2, 3, 4, 5
 
 - **Start at Step 2** if you already have an Exchange asset but no API Manager instance
   - You'll need: `organizationId`, `environmentId`, `groupId`, `assetId`, `assetVersion`
+  - Steps: 2, 3, 4, 5
 
 - **Start at Step 3** if you already have an API Manager instance and want to apply a policy
   - You'll need: `organizationId`, `environmentId`, `environmentApiId`
+  - Steps: 2, 3, 5
 ```
 
 **Format rules:**
 - Each entry uses the pattern: `- **Start at Step N** if <condition>`
 - Sub-items list required variables: `- You'll need: \`var1\`, \`var2\``
+- Sub-items list the exact step sequence: `- Steps: 1, 2, 3` (the steps to execute for this path, in order)
 - Referenced step numbers must exist in the skill
-- The portal renders these as informational cards
+- The step sequence may not be strictly sequential — some paths skip steps or include earlier steps needed for context (e.g., listing environments)
 
 #### Skip Annotations
 

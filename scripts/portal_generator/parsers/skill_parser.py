@@ -85,10 +85,14 @@ def _extract_skip_annotation(text: str) -> tuple:
     return condition, cleaned.strip()
 
 
+_steps_list_pattern = re.compile(r'^\s+- Steps:\s*(.+)', re.IGNORECASE)
+
+
 def _extract_entry_points(content: str) -> List[Dict]:
     """Extract structured entry points from a Starting Point section.
     Pattern: - **Start at Step N** if <condition>
-    Sub-items: - You'll need: `var1`, `var2`"""
+    Sub-items: - You'll need: `var1`, `var2`
+               - Steps: 1, 2, 3"""
     if not content:
         return []
     entry_points = []
@@ -104,9 +108,17 @@ def _extract_entry_points(content: str) -> List[Dict]:
                 'step': int(ep_match.group(1)),
                 'condition': ep_match.group(2).strip(),
                 'required_vars': [],
+                'steps': [],
             }
         elif current_ep and "you'll need:" in line.lower():
             current_ep['required_vars'] = _entry_point_vars_pattern.findall(line)
+        elif current_ep:
+            steps_match = _steps_list_pattern.match(line)
+            if steps_match:
+                current_ep['steps'] = [
+                    int(s.strip()) for s in steps_match.group(1).split(',')
+                    if s.strip().isdigit()
+                ]
     if current_ep:
         entry_points.append(current_ep)
     return entry_points

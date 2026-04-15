@@ -292,7 +292,7 @@ class JobValidator:
         print("\n📍 Validating Starting Point section...")
         sp_content = sp_match.group(1)
 
-        # Extract referenced step numbers
+        # Extract referenced step numbers from entry point headers
         step_refs = re.findall(
             r'\*\*Start at Step (\d+)\*\*', sp_content
         )
@@ -306,6 +306,25 @@ class JobValidator:
                 print(f"  ⚠️  Step {step_num} out of range (1-{total_steps})")
             else:
                 print(f"  ✅ Step {step_num} reference valid")
+
+        # Validate Steps: lists if present
+        steps_lists = re.findall(
+            r'- Steps:\s*(.+)', sp_content, re.IGNORECASE
+        )
+        for steps_line in steps_lists:
+            step_nums = [
+                int(s.strip()) for s in steps_line.split(',')
+                if s.strip().isdigit()
+            ]
+            for sn in step_nums:
+                if sn < 1 or sn > total_steps:
+                    self.warnings.append(
+                        f"Starting Point steps list references Step {sn}, "
+                        f"but only {total_steps} step(s) exist"
+                    )
+                    print(f"  ⚠️  Steps list: Step {sn} out of range (1-{total_steps})")
+            if step_nums:
+                print(f"  ✅ Steps list valid: {step_nums}")
 
     def validate_skip_annotations(self, content: str, steps: List[Dict[str, Any]]):
         """Warn about skip annotations on steps that have downstream dependencies."""

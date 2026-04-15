@@ -241,36 +241,38 @@ outputs:
 - ❌ No `relatedJTBDs` field (use "Related Jobs" markdown section instead)
 - ❌ No time estimates or difficulty ratings
 
-### Conditional Steps (Optional)
+### Execution Paths (Optional)
 
-Skills can have **multiple entry points** for users who already have some prerequisites in place. This is expressed entirely in prose — no YAML changes needed.
+Skills can have **multiple execution paths** for users who already have some prerequisites in place. Each path defines a named route through the skill's steps — the subset of steps to execute and their order. This is expressed entirely in prose — no YAML changes needed.
 
-#### Starting Point Section
+#### Execution Paths Section
 
-Add an optional `## Starting Point` section between Prerequisites and Step 1 to guide users (and AI agents) to the right entry point:
+Add an optional `## Execution Paths` section between Prerequisites and Step 1 to define the available routes:
 
 ```markdown
-## Starting Point
+## Execution Paths
 
-This skill has multiple entry points depending on what you already have:
+This skill has multiple execution paths depending on what you already have:
 
-- **Start at Step 1** if you only have a URL and need to create an Exchange asset first
+- **Full setup**: Steps 1, 2, 3, 4, 5
+  - When: You only have a URL and need to create an Exchange asset first
   - You'll need: `implementationUrl`
-  - Steps: 1, 2, 3, 4, 5
 
-- **Start at Step 2** if you already have an Exchange asset but no API Manager instance
+- **From Exchange asset**: Steps 2, 3, 4, 5
+  - When: You already have an Exchange asset but no API Manager instance
   - You'll need: `organizationId`, `environmentId`, `groupId`, `assetId`, `assetVersion`
-  - Steps: 2, 3, 4, 5
 
-- **Start at Step 3** if you already have an API Manager instance and want to apply a policy
+- **Apply policy only**: Steps 2, 3, 5
+  - When: You already have an API Manager instance and want to apply a policy
   - You'll need: `organizationId`, `environmentId`, `environmentApiId`
-  - Steps: 2, 3, 5
 ```
 
 **Format rules:**
-- Each entry uses the pattern: `- **Start at Step N** if <condition>`
-- Sub-items list required variables: `- You'll need: \`var1\`, \`var2\``
-- Sub-items list the exact step sequence: `- Steps: 1, 2, 3` (the steps to execute for this path, in order)
+- Each path uses the pattern: `- **Path name**: Steps N, N, N`
+- The path name is a short, descriptive label for this route (e.g., "Full setup", "From Exchange asset")
+- The Steps list is the primary identifier — it defines which steps to execute, in order
+- Sub-item `- When: <condition>` describes when this path applies
+- Sub-item `- You'll need: \`var1\`, \`var2\`` lists required variables
 - Referenced step numbers must exist in the skill
 - The step sequence may not be strictly sequential — some paths skip steps or include earlier steps needed for context (e.g., listing environments)
 
@@ -314,7 +316,7 @@ python3 scripts/build/validate_jtbd.py job.md /path/to/api-specs-root
 - ✅ OperationId exists in referenced API spec
 - ✅ Step dependencies are valid
 - ✅ Input/output references are correct
-- ⚠️ Starting Point step references are in range (warning)
+- ⚠️ Execution Paths step references are in range (warning)
 - ⚠️ Skip annotations on steps with downstream dependencies (warning)
 
 ### Creating a New Job

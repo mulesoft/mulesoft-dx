@@ -653,23 +653,25 @@ class TestExtractSkipAnnotation:
 # ============================================================================
 
 class TestExtractEntryPoints:
-    def test_extracts_entry_points(self):
+    def test_extracts_execution_paths(self):
         content = (
-            'This skill has multiple entry points:\n\n'
-            '- **Start at Step 1** if you need to create everything from scratch\n'
-            '  - You\'ll need: `apiUrl`\n'
-            '  - Steps: 1, 2, 3\n\n'
-            '- **Start at Step 3** if you already have an API instance\n'
+            'This skill has multiple execution paths:\n\n'
+            '- **Full setup**: Steps 1, 2, 3\n'
+            '  - When: You need to create everything from scratch\n'
+            '  - You\'ll need: `apiUrl`\n\n'
+            '- **Apply policy only**: Steps 2, 3\n'
+            '  - When: You already have an API instance\n'
             '  - You\'ll need: `organizationId`, `environmentId`, `environmentApiId`\n'
-            '  - Steps: 2, 3\n'
         )
         eps = _extract_entry_points(content)
         assert len(eps) == 2
+        assert eps[0]['name'] == 'Full setup'
         assert eps[0]['step'] == 1
-        assert eps[0]['condition'] == 'you need to create everything from scratch'
+        assert eps[0]['condition'] == 'You need to create everything from scratch'
         assert eps[0]['required_vars'] == ['apiUrl']
         assert eps[0]['steps'] == [1, 2, 3]
-        assert eps[1]['step'] == 3
+        assert eps[1]['name'] == 'Apply policy only'
+        assert eps[1]['step'] == 2
         assert eps[1]['required_vars'] == ['organizationId', 'environmentId', 'environmentApiId']
         assert eps[1]['steps'] == [2, 3]
 
@@ -677,24 +679,15 @@ class TestExtractEntryPoints:
         assert _extract_entry_points('') == []
 
     def test_no_matching_patterns(self):
-        assert _extract_entry_points('Just some text about starting points.') == []
+        assert _extract_entry_points('Just some text about execution paths.') == []
 
-    def test_entry_without_vars(self):
-        content = '- **Start at Step 2** if you have an Exchange asset\n'
+    def test_path_without_when(self):
+        content = '- **Quick path**: Steps 2, 4\n'
         eps = _extract_entry_points(content)
         assert len(eps) == 1
-        assert eps[0]['step'] == 2
-        assert eps[0]['required_vars'] == []
-        assert eps[0]['steps'] == []
-
-    def test_entry_with_steps_only(self):
-        content = (
-            '- **Start at Step 1** if you need everything\n'
-            '  - Steps: 1, 3, 5\n'
-        )
-        eps = _extract_entry_points(content)
-        assert len(eps) == 1
-        assert eps[0]['steps'] == [1, 3, 5]
+        assert eps[0]['name'] == 'Quick path'
+        assert eps[0]['steps'] == [2, 4]
+        assert eps[0]['condition'] == ''
         assert eps[0]['required_vars'] == []
 
 
@@ -703,12 +696,12 @@ class TestExtractEntryPoints:
 # ============================================================================
 
 class TestParseSkillConditional:
-    def test_parse_skill_with_starting_point(self, tmp_path):
+    def test_parse_skill_with_execution_paths(self, tmp_path):
         import textwrap
         skill_md = textwrap.dedent("""\
             ---
             name: conditional-skill
-            description: A skill with entry points
+            description: A skill with execution paths
             ---
             ## Overview
             Does things conditionally.
@@ -716,17 +709,17 @@ class TestParseSkillConditional:
             ## Prerequisites
             Need auth.
 
-            ## Starting Point
+            ## Execution Paths
 
-            This skill has multiple entry points:
+            This skill has multiple execution paths:
 
-            - **Start at Step 1** if you need everything
+            - **Full setup**: Steps 1, 2
+              - When: You need everything
               - You'll need: `apiUrl`
-              - Steps: 1, 2
 
-            - **Start at Step 2** if you already have an asset
+            - **From asset**: Steps 2
+              - When: You already have an asset
               - You'll need: `groupId`, `assetId`
-              - Steps: 2
 
             ## Step 1: Create Asset
 
@@ -760,11 +753,13 @@ class TestParseSkillConditional:
         result = parse_skill(skill_file)
         assert result is not None
 
-        # Starting point fields
+        # Execution paths fields
         assert result['starting_point_html'] != ''
         assert len(result['entry_points']) == 2
+        assert result['entry_points'][0]['name'] == 'Full setup'
         assert result['entry_points'][0]['step'] == 1
         assert result['entry_points'][0]['steps'] == [1, 2]
+        assert result['entry_points'][1]['name'] == 'From asset'
         assert result['entry_points'][1]['step'] == 2
         assert result['entry_points'][1]['required_vars'] == ['groupId', 'assetId']
         assert result['entry_points'][1]['steps'] == [2]

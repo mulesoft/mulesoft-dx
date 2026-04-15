@@ -30,19 +30,19 @@ Before starting, ensure you have:
    - [Specific requirement]
    - [How to obtain or verify it]
 
-## Starting Point
+## Execution Paths
 
-(Optional - include only for skills with multiple entry points)
+(Optional - include only for skills with multiple execution paths)
 
-This skill has multiple entry points depending on what you already have:
+This skill has multiple execution paths depending on what you already have:
 
-- **Start at Step 1** if [condition when user needs all steps]
+- **[Path name]**: Steps 1, 2, 3, 4
+  - When: [condition when user needs all steps]
   - You'll need: `[variable1]`
-  - Steps: 1, 2, 3, 4
 
-- **Start at Step N** if [condition when user can skip earlier steps]
+- **[Another path]**: Steps 2, 4
+  - When: [condition when user can skip earlier steps]
   - You'll need: `[variable1]`, `[variable2]`, `[variable3]`
-  - Steps: 2, 4
 
 ## Step 1: [Action-Oriented Step Name]
 

@@ -280,51 +280,36 @@ class JobValidator:
 
         return is_valid
 
-    def validate_starting_point(self, content: str, total_steps: int):
-        """Validate optional Starting Point section references."""
+    def validate_execution_paths(self, content: str, total_steps: int):
+        """Validate optional Execution Paths section."""
         sp_match = re.search(
-            r'^## Starting Point\s*\n(.*?)(?=^## |\Z)',
+            r'^## Execution Paths\s*\n(.*?)(?=^## |\Z)',
             content, re.MULTILINE | re.DOTALL
         )
         if not sp_match:
             return
 
-        print("\n📍 Validating Starting Point section...")
+        print("\n📍 Validating Execution Paths...")
         sp_content = sp_match.group(1)
 
-        # Extract referenced step numbers from entry point headers
-        step_refs = re.findall(
-            r'\*\*Start at Step (\d+)\*\*', sp_content
+        # Format: - **Path name**: Steps N, N, N
+        paths = re.findall(
+            r'\*\*(.+?)\*\*:\s*Steps\s+(.+?)$', sp_content, re.MULTILINE
         )
-        for ref in step_refs:
-            step_num = int(ref)
-            if step_num < 1 or step_num > total_steps:
-                self.warnings.append(
-                    f"Starting Point references Step {step_num}, "
-                    f"but only {total_steps} step(s) exist"
-                )
-                print(f"  ⚠️  Step {step_num} out of range (1-{total_steps})")
-            else:
-                print(f"  ✅ Step {step_num} reference valid")
-
-        # Validate Steps: lists if present
-        steps_lists = re.findall(
-            r'- Steps:\s*(.+)', sp_content, re.IGNORECASE
-        )
-        for steps_line in steps_lists:
+        for name, steps_str in paths:
             step_nums = [
-                int(s.strip()) for s in steps_line.split(',')
+                int(s.strip()) for s in steps_str.split(',')
                 if s.strip().isdigit()
             ]
             for sn in step_nums:
                 if sn < 1 or sn > total_steps:
                     self.warnings.append(
-                        f"Starting Point steps list references Step {sn}, "
+                        f"Execution path \"{name}\" references Step {sn}, "
                         f"but only {total_steps} step(s) exist"
                     )
-                    print(f"  ⚠️  Steps list: Step {sn} out of range (1-{total_steps})")
+                    print(f"  ⚠️  Path \"{name}\": Step {sn} out of range (1-{total_steps})")
             if step_nums:
-                print(f"  ✅ Steps list valid: {step_nums}")
+                print(f"  ✅ Path \"{name}\": steps {step_nums} valid")
 
     def validate_skip_annotations(self, content: str, steps: List[Dict[str, Any]]):
         """Warn about skip annotations on steps that have downstream dependencies."""
@@ -476,8 +461,8 @@ class JobValidator:
         else:
             print("  ❌ Step dependency errors found")
 
-        # 7. Validate Starting Point section (optional)
-        self.validate_starting_point(content, len(steps))
+        # 7. Validate Execution Paths section (optional)
+        self.validate_execution_paths(content, len(steps))
 
         # 8. Warn about skip annotations on steps with downstream dependencies
         self.validate_skip_annotations(content, steps)

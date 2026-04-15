@@ -34,21 +34,21 @@ Before starting, ensure you have:
    - An Exchange asset ready to be promoted to API Manager (skip to Step 2)
    - An API specification or URL that needs to be published first (start at Step 1)
 
-## Starting Point
+## Execution Paths
 
-This skill has multiple entry points depending on what you already have:
+This skill has multiple execution paths depending on what you already have:
 
-- **Start at Step 1** if you have an API specification file and need to publish it to Exchange first
+- **Full setup**: Steps 1, 2, 3, 4, 5, 6, 7
+  - When: You have an API specification file and need to publish it to Exchange first
   - You'll need: `organizationId`, API specification file
-  - Steps: 1, 2, 3, 4, 5, 6, 7
 
-- **Start at Step 2** if you already have an Exchange asset and need to create an API Manager instance
+- **From Exchange asset**: Steps 2, 3, 4, 5, 6, 7
+  - When: You already have an Exchange asset and need to create an API Manager instance
   - You'll need: `organizationId`, `groupId`, `assetId`, `assetVersion`
-  - Steps: 2, 3, 4, 5, 6, 7
 
-- **Start at Step 6** if you already have an API Manager instance and want to apply a policy
+- **Apply policy only**: Steps 2, 6, 7
+  - When: You already have an API Manager instance and want to apply a policy
   - You'll need: `organizationId`, `environmentId`, `environmentApiId`
-  - Steps: 2, 6, 7
 
 
 ## Step 1: Publish API to Exchange

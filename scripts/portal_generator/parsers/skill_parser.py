@@ -47,9 +47,9 @@ _skip_annotation_pattern = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
-# Pattern for entry points in Starting Point section
-_entry_point_pattern = re.compile(
-    r'^\- \*\*Start at Step (\d+)\*\*\s+if\s+(.+?)$',
+# Pattern for execution paths: - **Path name**: Steps N, N, N
+_exec_path_pattern = re.compile(
+    r'^\- \*\*(.+?)\*\*:\s*Steps\s+(.+?)$',
     re.MULTILINE,
 )
 _entry_point_vars_pattern = re.compile(r'`(\w+)`')
@@ -85,40 +85,40 @@ def _extract_skip_annotation(text: str) -> tuple:
     return condition, cleaned.strip()
 
 
-_steps_list_pattern = re.compile(r'^\s+- Steps:\s*(.+)', re.IGNORECASE)
-
-
 def _extract_entry_points(content: str) -> List[Dict]:
-    """Extract structured entry points from a Starting Point section.
-    Pattern: - **Start at Step N** if <condition>
-    Sub-items: - You'll need: `var1`, `var2`
-               - Steps: 1, 2, 3"""
+    """Extract structured execution paths from an Execution Paths section.
+
+    Format: - **Path name**: Steps 1, 2, 3
+              - When: <condition>
+              - You'll need: `var1`, `var2`
+    """
     if not content:
         return []
     entry_points = []
-    # Split by entry point lines to capture sub-items
     lines = content.split('\n')
     current_ep = None
     for line in lines:
-        ep_match = _entry_point_pattern.match(line)
-        if ep_match:
+        match = _exec_path_pattern.match(line)
+        if match:
             if current_ep:
                 entry_points.append(current_ep)
+            steps = [
+                int(s.strip()) for s in match.group(2).split(',')
+                if s.strip().isdigit()
+            ]
             current_ep = {
-                'step': int(ep_match.group(1)),
-                'condition': ep_match.group(2).strip(),
+                'name': match.group(1).strip(),
+                'step': steps[0] if steps else 1,
+                'condition': '',
                 'required_vars': [],
-                'steps': [],
+                'steps': steps,
             }
-        elif current_ep and "you'll need:" in line.lower():
-            current_ep['required_vars'] = _entry_point_vars_pattern.findall(line)
         elif current_ep:
-            steps_match = _steps_list_pattern.match(line)
-            if steps_match:
-                current_ep['steps'] = [
-                    int(s.strip()) for s in steps_match.group(1).split(',')
-                    if s.strip().isdigit()
-                ]
+            when_match = re.match(r'^\s+-\s+When:\s*(.+)', line, re.IGNORECASE)
+            if when_match:
+                current_ep['condition'] = when_match.group(1).strip()
+            elif "you'll need:" in line.lower():
+                current_ep['required_vars'] = _entry_point_vars_pattern.findall(line)
     if current_ep:
         entry_points.append(current_ep)
     return entry_points
@@ -226,7 +226,7 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         # Extract overview, prerequisites, and starting point for structured view
         overview = _extract_section(post.content, 'Overview')
         prerequisites = _extract_section(post.content, 'Prerequisites')
-        starting_point = _extract_section(post.content, 'Starting Point')
+        starting_point = _extract_section(post.content, 'Execution Paths')
         entry_points = _extract_entry_points(starting_point)
 
         # Extract post-workflow sections

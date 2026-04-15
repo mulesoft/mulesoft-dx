@@ -331,13 +331,23 @@ class PortalGenerator:
             slug = api['slug']
             urn = f"urn:api:{slug}"
 
-            # Copy source api.yaml to output
-            source_yaml = self.repo_root / 'apis' / slug / 'api.yaml'
+            # Copy source api.yaml and referenced subdirectories to output
+            source_dir = self.repo_root / 'apis' / slug
+            source_yaml = source_dir / 'api.yaml'
             if source_yaml.exists():
                 api_output_dir = self.output_dir / 'apis' / slug
                 api_output_dir.mkdir(parents=True, exist_ok=True)
                 dest_yaml = api_output_dir / 'api.yaml'
                 shutil.copy2(source_yaml, dest_yaml)
+
+                # Copy subdirectories (schemas, examples, requests, etc.)
+                # so that $ref links in the spec resolve correctly
+                for child in source_dir.iterdir():
+                    if child.is_dir():
+                        dest_child = api_output_dir / child.name
+                        if dest_child.exists():
+                            shutil.rmtree(dest_child)
+                        shutil.copytree(child, dest_child)
 
             entry = {
                 '$id': urn,

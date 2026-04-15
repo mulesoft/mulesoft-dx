@@ -30,7 +30,25 @@ Before starting, ensure you have:
    - [Specific requirement]
    - [How to obtain or verify it]
 
+## Execution Paths
+
+(Optional - include only for skills with multiple execution paths)
+
+This skill has multiple execution paths depending on what you already have:
+
+- **[Path name]**: Steps 1, 2, 3, 4
+  - When: [condition when user needs all steps]
+  - You'll need: `[variable1]`
+
+- **[Another path]**: Steps 2, 4
+  - When: [condition when user can skip earlier steps]
+  - You'll need: `[variable1]`, `[variable2]`, `[variable3]`
+
 ## Step 1: [Action-Oriented Step Name]
+
+> **Skip if:** [Condition when this step can be skipped. Include which variables the user should already have.]
+
+(Optional - include the skip annotation only for steps that can be skipped)
 
 [Prose explanation of what this step does and why it's needed. Provide context about when this would be used and what it accomplishes.]
 

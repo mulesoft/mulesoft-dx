@@ -280,6 +280,96 @@ class JobValidator:
 
         return is_valid
 
+    def validate_execution_paths(self, content: str, total_steps: int):
+        """Validate optional Execution Paths section."""
+        sp_match = re.search(
+            r'^## Execution Paths\s*\n(.*?)(?=^## |\Z)',
+            content, re.MULTILINE | re.DOTALL
+        )
+        if not sp_match:
+            return
+
+        print("\n📍 Validating Execution Paths...")
+        sp_content = sp_match.group(1)
+
+        # Format: - **Path name**: Steps N, N, N
+        paths = re.findall(
+            r'\*\*(.+?)\*\*:\s*Steps\s+(.+?)$', sp_content, re.MULTILINE
+        )
+        for name, steps_str in paths:
+            step_nums = [
+                int(s.strip()) for s in steps_str.split(',')
+                if s.strip().isdigit()
+            ]
+            for sn in step_nums:
+                if sn < 1 or sn > total_steps:
+                    self.warnings.append(
+                        f"Execution path \"{name}\" references Step {sn}, "
+                        f"but only {total_steps} step(s) exist"
+                    )
+                    print(f"  ⚠️  Path \"{name}\": Step {sn} out of range (1-{total_steps})")
+            if step_nums:
+                print(f"  ✅ Path \"{name}\": steps {step_nums} valid")
+
+    def validate_skip_annotations(self, content: str, steps: List[Dict[str, Any]]):
+        """Warn about skip annotations on steps that have downstream dependencies."""
+        # Find steps with skip annotations
+        skip_pattern = re.compile(
+            r'^## Step (\d+):.*?\n.*?>\s*\*\*Skip if:\*\*',
+            re.MULTILINE | re.DOTALL
+        )
+        skippable_steps = set()
+        for m in skip_pattern.finditer(content):
+            skippable_steps.add(int(m.group(1)))
+
+        if not skippable_steps:
+            return
+
+        print("\n⏭️  Validating skip annotations...")
+
+        # Build output names per step
+        step_outputs = {}
+        for i, step in enumerate(steps, 1):
+            if 'outputs' in step:
+                step_outputs[i] = [
+                    out['name'] for out in step['outputs']
+                    if isinstance(out, dict) and 'name' in out
+                ]
+
+        # Check if downstream steps depend on skippable step outputs
+        for skip_step in sorted(skippable_steps):
+            if skip_step not in step_outputs:
+                print(f"  ✅ Step {skip_step}: skippable (no outputs)")
+                continue
+
+            dependents = []
+            for i, step in enumerate(steps, 1):
+                if i <= skip_step:
+                    continue
+                inputs = step.get('inputs', {})
+                for param_name, input_def in inputs.items():
+                    if not isinstance(input_def, dict):
+                        continue
+                    from_def = input_def.get('from', {})
+                    if isinstance(from_def, dict) and 'step' in from_def:
+                        try:
+                            ref = int(from_def['step']) if str(from_def['step']).isdigit() else None
+                        except (ValueError, TypeError):
+                            ref = None
+                        if ref == skip_step:
+                            dependents.append(i)
+                            break
+
+            if dependents:
+                dep_str = ', '.join(f'Step {d}' for d in dependents)
+                self.warnings.append(
+                    f"Step {skip_step} has a skip annotation but {dep_str} "
+                    f"depend(s) on its outputs. Users must provide these values manually when skipping."
+                )
+                print(f"  ⚠️  Step {skip_step}: skippable, but {dep_str} depend on its outputs")
+            else:
+                print(f"  ✅ Step {skip_step}: skippable (no downstream dependencies)")
+
     def validate(self) -> bool:
         """Run all validations and return True if valid."""
         print(f"\n{'='*80}")
@@ -370,6 +460,12 @@ class JobValidator:
             print("  ✅ All step dependencies valid")
         else:
             print("  ❌ Step dependency errors found")
+
+        # 7. Validate Execution Paths section (optional)
+        self.validate_execution_paths(content, len(steps))
+
+        # 8. Warn about skip annotations on steps with downstream dependencies
+        self.validate_skip_annotations(content, steps)
 
         # Print summary
         self.print_summary()

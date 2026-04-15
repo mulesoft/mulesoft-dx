@@ -15,6 +15,8 @@ from portal_generator.parsers.skill_parser import (
     _extract_step_details,
     _extract_section,
     _extract_related_jobs,
+    _extract_skip_annotation,
+    _extract_entry_points,
     _convert_to_plain,
     parse_skill,
 )
@@ -593,6 +595,193 @@ class TestExtractSection:
 
     def test_missing_section(self):
         assert _extract_section('## Other\nStuff', 'Overview') == ''
+
+
+# ============================================================================
+# skill_parser._extract_skip_annotation
+# ============================================================================
+
+class TestExtractSkipAnnotation:
+    def test_extracts_skip_condition(self):
+        text = '> **Skip if:** You already have an Exchange asset.\n\nSome prose.'
+        condition, cleaned = _extract_skip_annotation(text)
+        assert condition == 'You already have an Exchange asset.'
+        assert 'Some prose' in cleaned
+        assert 'Skip if' not in cleaned
+
+    def test_no_annotation(self):
+        text = 'Just regular prose here.'
+        condition, cleaned = _extract_skip_annotation(text)
+        assert condition is None
+        assert cleaned == text
+
+    def test_annotation_with_backtick_vars(self):
+        text = '> **Skip if:** You have `groupId`, `assetId`, and `assetVersion`.\n\nNext.'
+        condition, cleaned = _extract_skip_annotation(text)
+        assert '`groupId`' in condition
+        assert 'Next' in cleaned
+
+    def test_annotation_is_entire_content(self):
+        text = '> **Skip if:** This step is optional.'
+        condition, cleaned = _extract_skip_annotation(text)
+        assert condition == 'This step is optional.'
+
+    def test_step_details_include_skip_condition(self):
+        content = (
+            '## Step 1: Optional step\n'
+            '> **Skip if:** Already done.\n\n'
+            'Some prose.\n\n'
+            '```yaml\napi: urn:api:test\noperation: op1\n```\n'
+        )
+        steps = _extract_step_details(content)
+        assert steps[0]['skip_condition'] == 'Already done.'
+        assert 'Skip if' not in steps[0]['prose_before_html']
+        assert 'Some prose' in steps[0]['prose_before_html']
+
+    def test_step_without_skip_has_none(self):
+        content = (
+            '## Step 1: Normal step\n'
+            'Regular prose.\n\n'
+            '```yaml\napi: urn:api:test\noperation: op1\n```\n'
+        )
+        steps = _extract_step_details(content)
+        assert steps[0]['skip_condition'] is None
+
+
+# ============================================================================
+# skill_parser._extract_entry_points
+# ============================================================================
+
+class TestExtractEntryPoints:
+    def test_extracts_execution_paths(self):
+        content = (
+            'This skill has multiple execution paths:\n\n'
+            '- **Full setup**: Steps 1, 2, 3\n'
+            '  - When: You need to create everything from scratch\n'
+            '  - You\'ll need: `apiUrl`\n\n'
+            '- **Apply policy only**: Steps 2, 3\n'
+            '  - When: You already have an API instance\n'
+            '  - You\'ll need: `organizationId`, `environmentId`, `environmentApiId`\n'
+        )
+        eps = _extract_entry_points(content)
+        assert len(eps) == 2
+        assert eps[0]['name'] == 'Full setup'
+        assert eps[0]['step'] == 1
+        assert eps[0]['condition'] == 'You need to create everything from scratch'
+        assert eps[0]['required_vars'] == ['apiUrl']
+        assert eps[0]['steps'] == [1, 2, 3]
+        assert eps[1]['name'] == 'Apply policy only'
+        assert eps[1]['step'] == 2
+        assert eps[1]['required_vars'] == ['organizationId', 'environmentId', 'environmentApiId']
+        assert eps[1]['steps'] == [2, 3]
+
+    def test_empty_content(self):
+        assert _extract_entry_points('') == []
+
+    def test_no_matching_patterns(self):
+        assert _extract_entry_points('Just some text about execution paths.') == []
+
+    def test_path_without_when(self):
+        content = '- **Quick path**: Steps 2, 4\n'
+        eps = _extract_entry_points(content)
+        assert len(eps) == 1
+        assert eps[0]['name'] == 'Quick path'
+        assert eps[0]['steps'] == [2, 4]
+        assert eps[0]['condition'] == ''
+        assert eps[0]['required_vars'] == []
+
+
+# ============================================================================
+# skill_parser.parse_skill with conditional features
+# ============================================================================
+
+class TestParseSkillConditional:
+    def test_parse_skill_with_execution_paths(self, tmp_path):
+        import textwrap
+        skill_md = textwrap.dedent("""\
+            ---
+            name: conditional-skill
+            description: A skill with execution paths
+            ---
+            ## Overview
+            Does things conditionally.
+
+            ## Prerequisites
+            Need auth.
+
+            ## Execution Paths
+
+            This skill has multiple execution paths:
+
+            - **Full setup**: Steps 1, 2
+              - When: You need everything
+              - You'll need: `apiUrl`
+
+            - **From asset**: Steps 2
+              - When: You already have an asset
+              - You'll need: `groupId`, `assetId`
+
+            ## Step 1: Create Asset
+
+            > **Skip if:** You already have an Exchange asset with `groupId` and `assetId`.
+
+            Creates the asset.
+
+            ```yaml
+            api: urn:api:test-api
+            operationId: listResources
+            inputs: {}
+            outputs:
+              - name: assetId
+                path: $.id
+            ```
+
+            ## Step 2: Use Asset
+
+            Normal step.
+
+            ```yaml
+            api: urn:api:test-api
+            operationId: createResource
+            inputs: {}
+            ```
+        """)
+        skill_file = tmp_path / 'conditional-skill' / 'SKILL.md'
+        skill_file.parent.mkdir(parents=True)
+        skill_file.write_text(skill_md)
+
+        result = parse_skill(skill_file)
+        assert result is not None
+
+        # Execution paths fields
+        assert result['starting_point_html'] != ''
+        assert len(result['entry_points']) == 2
+        assert result['entry_points'][0]['name'] == 'Full setup'
+        assert result['entry_points'][0]['step'] == 1
+        assert result['entry_points'][0]['steps'] == [1, 2]
+        assert result['entry_points'][1]['name'] == 'From asset'
+        assert result['entry_points'][1]['step'] == 2
+        assert result['entry_points'][1]['required_vars'] == ['groupId', 'assetId']
+        assert result['entry_points'][1]['steps'] == [2]
+
+        # Skip condition on step 1
+        assert result['step_details'][0]['skip_condition'] is not None
+        assert 'Exchange asset' in result['step_details'][0]['skip_condition']
+
+        # No skip condition on step 2
+        assert result['step_details'][1]['skip_condition'] is None
+
+    def test_parse_skill_without_conditionals(self, tmp_path):
+        from tests.conftest import MINIMAL_SKILL_MD
+        skill_file = tmp_path / 'plain-skill' / 'SKILL.md'
+        skill_file.parent.mkdir(parents=True)
+        skill_file.write_text(MINIMAL_SKILL_MD)
+
+        result = parse_skill(skill_file)
+        assert result is not None
+        assert result['starting_point_html'] == ''
+        assert result['entry_points'] == []
+        assert result['step_details'][0]['skip_condition'] is None
 
 
 class TestConvertToPlain:

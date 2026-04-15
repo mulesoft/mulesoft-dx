@@ -448,3 +448,53 @@ class TestPrivateApiExclusion:
 
     def test_private_api_yaml_copied(self, portal_with_private_api):
         assert (portal_with_private_api / 'apis' / 'private-api' / 'api.yaml').exists()
+
+
+class TestRefSubdirectoriesCopied:
+    """Verify that subdirectories (schemas, examples, requests) next to api.yaml
+    are copied to the portal output so that $ref links resolve correctly."""
+
+    @pytest.fixture
+    def portal_with_ref_subdirs(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        api_dir = apis_dir / 'ref-api'
+        api_dir.mkdir()
+        (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        # Create subdirectories with schema/example files
+        schemas_dir = api_dir / 'schemas'
+        schemas_dir.mkdir()
+        (schemas_dir / 'model.json').write_text('{"type": "object"}')
+
+        requests_dir = api_dir / 'requests'
+        requests_dir.mkdir()
+        (requests_dir / 'body.json').write_text('{"type": "object"}')
+
+        # Nested subdirectory
+        nested_dir = schemas_dir / 'responses'
+        nested_dir.mkdir()
+        (nested_dir / 'success.json').write_text('{"type": "object"}')
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+        return output
+
+    def test_schema_file_copied(self, portal_with_ref_subdirs):
+        assert (portal_with_ref_subdirs / 'apis' / 'ref-api' / 'schemas' / 'model.json').exists()
+
+    def test_requests_file_copied(self, portal_with_ref_subdirs):
+        assert (portal_with_ref_subdirs / 'apis' / 'ref-api' / 'requests' / 'body.json').exists()
+
+    def test_nested_subdir_copied(self, portal_with_ref_subdirs):
+        assert (portal_with_ref_subdirs / 'apis' / 'ref-api' / 'schemas' / 'responses' / 'success.json').exists()
+
+    def test_api_yaml_still_exists(self, portal_with_ref_subdirs):
+        assert (portal_with_ref_subdirs / 'apis' / 'ref-api' / 'api.yaml').exists()

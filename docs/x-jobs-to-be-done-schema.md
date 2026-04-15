@@ -241,6 +241,63 @@ outputs:
 - ❌ No `relatedJTBDs` field (use "Related Jobs" markdown section instead)
 - ❌ No time estimates or difficulty ratings
 
+### Execution Paths (Optional)
+
+Skills can have **multiple execution paths** for users who already have some prerequisites in place. Each path defines a named route through the skill's steps — the subset of steps to execute and their order. This is expressed entirely in prose — no YAML changes needed.
+
+#### Execution Paths Section
+
+Add an optional `## Execution Paths` section between Prerequisites and Step 1 to define the available routes:
+
+```markdown
+## Execution Paths
+
+This skill has multiple execution paths depending on what you already have:
+
+- **Full setup**: Steps 1, 2, 3, 4, 5
+  - When: You only have a URL and need to create an Exchange asset first
+  - You'll need: `implementationUrl`
+
+- **From Exchange asset**: Steps 2, 3, 4, 5
+  - When: You already have an Exchange asset but no API Manager instance
+  - You'll need: `organizationId`, `environmentId`, `groupId`, `assetId`, `assetVersion`
+
+- **Apply policy only**: Steps 2, 3, 5
+  - When: You already have an API Manager instance and want to apply a policy
+  - You'll need: `organizationId`, `environmentId`, `environmentApiId`
+```
+
+**Format rules:**
+- Each path uses the pattern: `- **Path name**: Steps N, N, N`
+- The path name is a short, descriptive label for this route (e.g., "Full setup", "From Exchange asset")
+- The Steps list is the primary identifier — it defines which steps to execute, in order
+- Sub-item `- When: <condition>` describes when this path applies
+- Sub-item `- You'll need: \`var1\`, \`var2\`` lists required variables
+- Referenced step numbers must exist in the skill
+- The step sequence may not be strictly sequential — some paths skip steps or include earlier steps needed for context (e.g., listing environments)
+
+#### Skip Annotations
+
+Add a blockquote annotation at the top of a step's prose to indicate when it can be skipped:
+
+```markdown
+## Step 1: Create Exchange Asset
+
+> **Skip if:** You already have an Exchange asset with a known `groupId`, `assetId`, and `assetVersion`.
+
+Creates a new API asset in Exchange from your API specification...
+```
+
+**Format rules:**
+- Use the exact pattern: `> **Skip if:** <condition text>`
+- Place it as the first content after the step header
+- The condition text should clearly state what the user needs to already have
+- The parser extracts this into a separate `skip_condition` field and renders it as a banner
+- In playground mode, steps with skip annotations get a "Skip this step" button
+- When a step is skipped, the portal prompts users to manually provide any required variables
+
+**Example:** See `skills/protect-api-with-policies/SKILL.md` for a complete working example of conditional steps.
+
 ### Validation
 
 Use the validator to check:
@@ -259,6 +316,8 @@ python3 scripts/build/validate_jtbd.py job.md /path/to/api-specs-root
 - ✅ OperationId exists in referenced API spec
 - ✅ Step dependencies are valid
 - ✅ Input/output references are correct
+- ⚠️ Execution Paths step references are in range (warning)
+- ⚠️ Skip annotations on steps with downstream dependencies (warning)
 
 ### Creating a New Job
 

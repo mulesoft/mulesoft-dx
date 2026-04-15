@@ -466,30 +466,35 @@ async function executeXOriginSource(sourceIdx) {
         var extractedTab = document.getElementById('respextracted-xorigin-' + sourceIdx);
         if (extractedTab) {
             if (values.length > 0) {
-                var valuesHtml = '<div class="xorigin-values-section">';
-                valuesHtml += '<div class="xorigin-values-header">';
-                valuesHtml += '<div class="xorigin-values-count">' + values.length + ' value' + (values.length !== 1 ? 's' : '') + ' extracted</div>';
-                valuesHtml += '</div>';
-                valuesHtml += '<div class="xorigin-values-list">';
-                values.forEach(function(val, valIdx) {
+                // Build array of items with name and id
+                var items = values.map(function(val, valIdx) {
                     var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
                     var labelStr = labels[valIdx] ? String(labels[valIdx]) : valueStr;
-
-                    valuesHtml += '<div class="xorigin-value-item">';
-                    // Show label if different from value
-                    if (labels[valIdx] && labelStr !== valueStr) {
-                        valuesHtml += '<div class="xorigin-value-display">';
-                        valuesHtml += '<div class="xorigin-value-label">' + escapeHtml(labelStr) + '</div>';
-                        valuesHtml += '<code class="xorigin-value-id">' + escapeHtml(valueStr) + '</code>';
-                        valuesHtml += '</div>';
-                    } else {
-                        valuesHtml += '<code class="xorigin-value-display">' + escapeHtml(valueStr) + '</code>';
-                    }
-                    // Store value in data attribute to avoid escaping issues
-                    valuesHtml += '<button class="btn-use-value" data-value="' + escapeHtml(valueStr) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + valIdx + ', this.getAttribute(\'data-value\'))">Select</button>';
-                    valuesHtml += '</div>';
+                    return {
+                        name: labelStr,
+                        id: valueStr,
+                        index: valIdx
+                    };
                 });
-                valuesHtml += '</div>';
+
+                // Sort by name
+                items.sort(function(a, b) {
+                    return a.name.localeCompare(b.name);
+                });
+
+                var valuesHtml = '<div class="xorigin-values-section">';
+                valuesHtml += '<table class="xorigin-values-table">';
+                valuesHtml += '<thead><tr><th>Name</th><th>ID</th><th></th></tr></thead>';
+                valuesHtml += '<tbody>';
+                items.forEach(function(item) {
+                    valuesHtml += '<tr>';
+                    valuesHtml += '<td class="xorigin-name-cell">' + escapeHtml(item.name) + '</td>';
+                    valuesHtml += '<td class="xorigin-id-cell"><code>' + escapeHtml(item.id) + '</code></td>';
+                    valuesHtml += '<td class="xorigin-action-cell"><button class="btn-use-value" data-value="' + escapeHtml(item.id) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + item.index + ', this.getAttribute(\'data-value\'))">Select</button></td>';
+                    valuesHtml += '</tr>';
+                });
+                valuesHtml += '</tbody>';
+                valuesHtml += '</table>';
                 valuesHtml += '</div>';
 
                 extractedTab.innerHTML = valuesHtml;

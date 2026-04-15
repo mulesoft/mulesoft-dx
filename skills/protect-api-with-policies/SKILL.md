@@ -391,7 +391,7 @@ Apply the selected policy to your API instance with the appropriate configuratio
 - Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 6
 - Policy configuration based on the schema from Step 6's `policyConfiguration` output
 
-**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names and defaults from Step 6's configuration schema.
+**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names from Step 6's configuration schema. For each configuration property, present the user with the property name, its description, and the default value, then ask if they want to keep the default or provide a custom value. If a property has no default, always ask the user for a value.
 
 ```yaml
 api: urn:api:api-manager

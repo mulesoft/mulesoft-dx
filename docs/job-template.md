@@ -30,7 +30,23 @@ Before starting, ensure you have:
    - [Specific requirement]
    - [How to obtain or verify it]
 
+## Starting Point
+
+(Optional - include only for skills with multiple entry points)
+
+This skill has multiple entry points depending on what you already have:
+
+- **Start at Step 1** if [condition when user needs all steps]
+  - You'll need: `[variable1]`
+
+- **Start at Step N** if [condition when user can skip earlier steps]
+  - You'll need: `[variable1]`, `[variable2]`, `[variable3]`
+
 ## Step 1: [Action-Oriented Step Name]
+
+> **Skip if:** [Condition when this step can be skipped. Include which variables the user should already have.]
+
+(Optional - include the skip annotation only for steps that can be skipped)
 
 [Prose explanation of what this step does and why it's needed. Provide context about when this would be used and what it accomplishes.]
 

@@ -41,6 +41,19 @@ def _extract_yaml_blocks(content: str) -> List[Dict]:
 
 _yaml_fence_pattern = re.compile(r'```ya?ml\s*\n.*?```', re.DOTALL)
 
+# Pattern for > **Skip if:** blockquote annotations in step prose
+_skip_annotation_pattern = re.compile(
+    r'^>\s*\*\*Skip if:\*\*\s*(.+?)(?:\n(?!>)|\Z)',
+    re.MULTILINE | re.DOTALL,
+)
+
+# Pattern for entry points in Starting Point section
+_entry_point_pattern = re.compile(
+    r'^\- \*\*Start at Step (\d+)\*\*\s+if\s+(.+?)$',
+    re.MULTILINE,
+)
+_entry_point_vars_pattern = re.compile(r'`(\w+)`')
+
 # Patterns for prose blocks that duplicate structured data (inputs table, API call header)
 _redundant_prose_patterns = [
     # "**What you'll need:**" followed by a bullet list
@@ -55,6 +68,48 @@ def _strip_redundant_prose(text: str) -> str:
     for pattern in _redundant_prose_patterns:
         text = pattern.sub('', text)
     return text.strip()
+
+
+def _extract_skip_annotation(text: str) -> tuple:
+    """Extract '> **Skip if:**' blockquote from step prose.
+    Returns (skip_condition_text, cleaned_prose) or (None, original_text)."""
+    match = _skip_annotation_pattern.search(text)
+    if not match:
+        return None, text
+    condition = match.group(1).strip()
+    # Remove trailing > continuation lines that are part of the blockquote
+    # and clean up the annotation from the prose
+    cleaned = text[:match.start()] + text[match.end():]
+    # Remove any leftover blank lines from extraction
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return condition, cleaned.strip()
+
+
+def _extract_entry_points(content: str) -> List[Dict]:
+    """Extract structured entry points from a Starting Point section.
+    Pattern: - **Start at Step N** if <condition>
+    Sub-items: - You'll need: `var1`, `var2`"""
+    if not content:
+        return []
+    entry_points = []
+    # Split by entry point lines to capture sub-items
+    lines = content.split('\n')
+    current_ep = None
+    for line in lines:
+        ep_match = _entry_point_pattern.match(line)
+        if ep_match:
+            if current_ep:
+                entry_points.append(current_ep)
+            current_ep = {
+                'step': int(ep_match.group(1)),
+                'condition': ep_match.group(2).strip(),
+                'required_vars': [],
+            }
+        elif current_ep and "you'll need:" in line.lower():
+            current_ep['required_vars'] = _entry_point_vars_pattern.findall(line)
+    if current_ep:
+        entry_points.append(current_ep)
+    return entry_points
 
 
 def _extract_step_details(content: str) -> List[Dict]:
@@ -89,11 +144,15 @@ def _extract_step_details(content: str) -> List[Dict]:
             prose_before = _strip_redundant_prose(body)
             prose_after = ''
 
+        # Extract skip annotation from prose_before
+        skip_condition, prose_before_clean = _extract_skip_annotation(prose_before)
+
         steps.append({
             'title': header,
             'yaml': yaml_data,
-            'prose_before_html': _md.render(prose_before) if prose_before else '',
+            'prose_before_html': _md.render(prose_before_clean) if prose_before_clean else '',
             'prose_after_html': _md.render(prose_after) if prose_after else '',
+            'skip_condition': skip_condition,
         })
         i += 2
 
@@ -152,9 +211,11 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         # Extract detailed step info with YAML blocks
         step_details = _extract_step_details(post.content)
 
-        # Extract overview and prerequisites for structured view
+        # Extract overview, prerequisites, and starting point for structured view
         overview = _extract_section(post.content, 'Overview')
         prerequisites = _extract_section(post.content, 'Prerequisites')
+        starting_point = _extract_section(post.content, 'Starting Point')
+        entry_points = _extract_entry_points(starting_point)
 
         # Extract post-workflow sections
         completion_checklist = _extract_section(post.content, 'Completion Checklist')
@@ -181,6 +242,8 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
             'source_path': str(skill_path),
             'overview_html': _md.render(overview) if overview else '',
             'prerequisites_html': _md.render(prerequisites) if prerequisites else '',
+            'starting_point_html': _md.render(starting_point) if starting_point else '',
+            'entry_points': entry_points,
             'steps': step_headings,
             'step_details': step_details,
             'step_count': len(step_headings),

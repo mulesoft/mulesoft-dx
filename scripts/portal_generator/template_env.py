@@ -167,8 +167,12 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         if 'from' in param_config:
             from_ref = param_config['from']
             if isinstance(from_ref, dict):
-                # Try both 'output' and 'input' fields
+                # Try both 'output' and 'input' fields for step references
                 var_name = from_ref.get('output') or from_ref.get('input', '')
+
+                if not var_name and 'api' in from_ref:
+                    # From-API reference: use the parameter name as the variable
+                    var_name = param_name
 
                 if var_name:
                     # Create the reference string - just ${variableName}

@@ -241,6 +241,57 @@ outputs:
 - ❌ No `relatedJTBDs` field (use "Related Jobs" markdown section instead)
 - ❌ No time estimates or difficulty ratings
 
+### Conditional Steps (Optional)
+
+Skills can have **multiple entry points** for users who already have some prerequisites in place. This is expressed entirely in prose — no YAML changes needed.
+
+#### Starting Point Section
+
+Add an optional `## Starting Point` section between Prerequisites and Step 1 to guide users (and AI agents) to the right entry point:
+
+```markdown
+## Starting Point
+
+This skill has multiple entry points depending on what you already have:
+
+- **Start at Step 1** if you only have a URL and need to create an Exchange asset first
+  - You'll need: `implementationUrl`
+
+- **Start at Step 2** if you already have an Exchange asset but no API Manager instance
+  - You'll need: `organizationId`, `environmentId`, `groupId`, `assetId`, `assetVersion`
+
+- **Start at Step 3** if you already have an API Manager instance and want to apply a policy
+  - You'll need: `organizationId`, `environmentId`, `environmentApiId`
+```
+
+**Format rules:**
+- Each entry uses the pattern: `- **Start at Step N** if <condition>`
+- Sub-items list required variables: `- You'll need: \`var1\`, \`var2\``
+- Referenced step numbers must exist in the skill
+- The portal renders these as informational cards
+
+#### Skip Annotations
+
+Add a blockquote annotation at the top of a step's prose to indicate when it can be skipped:
+
+```markdown
+## Step 1: Create Exchange Asset
+
+> **Skip if:** You already have an Exchange asset with a known `groupId`, `assetId`, and `assetVersion`.
+
+Creates a new API asset in Exchange from your API specification...
+```
+
+**Format rules:**
+- Use the exact pattern: `> **Skip if:** <condition text>`
+- Place it as the first content after the step header
+- The condition text should clearly state what the user needs to already have
+- The parser extracts this into a separate `skip_condition` field and renders it as a banner
+- In playground mode, steps with skip annotations get a "Skip this step" button
+- When a step is skipped, the portal prompts users to manually provide any required variables
+
+**Example:** See `skills/protect-api-with-policies/SKILL.md` for a complete working example of conditional steps.
+
 ### Validation
 
 Use the validator to check:
@@ -259,6 +310,8 @@ python3 scripts/build/validate_jtbd.py job.md /path/to/api-specs-root
 - ✅ OperationId exists in referenced API spec
 - ✅ Step dependencies are valid
 - ✅ Input/output references are correct
+- ⚠️ Starting Point step references are in range (warning)
+- ⚠️ Skip annotations on steps with downstream dependencies (warning)
 
 ### Creating a New Job
 

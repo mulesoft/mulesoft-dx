@@ -437,9 +437,11 @@ class PortalGenerator:
         """Generate AGENTS.md -- the primary entry point for AI agents."""
         print("  ✓ Generating AGENTS.md...")
         template = self.env.get_template('agents_md.html')
+        private_apis = [a for a in self.apis if a.get('private')]
         content = template.render(
             base_url=self.base_url,
             apis=self.public_apis,
+            private_apis=private_apis,
             all_skills=self.all_skills,
             stats=self.stats,
             build_label=self.build_label,

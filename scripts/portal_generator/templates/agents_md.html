@@ -170,3 +170,12 @@ Filter: entries where kind == "agent-skill" AND apis contains "{api-slug}"
 {% for skill in all_skills %}
 - [`{{ skill.name }}`](skills/{{ skill.slug }}.html) — {{ skill.description|truncate(100, True) }}
 {%- endfor %}
+{% if private_apis %}
+
+### Internal APIs
+
+These APIs are not listed in the public catalog but are referenced by skills and available for agent use. Specs are accessible via their URN (e.g., `{{ base_url }}/apis/{slug}/api.yaml`).
+{% for api in private_apis %}
+- [`{{ api.name }}`](apis/{{ api.slug }}/api.yaml) ({{ api.version }}) — {{ api.description|truncate(100, True) }}
+{%- endfor %}
+{% endif %}

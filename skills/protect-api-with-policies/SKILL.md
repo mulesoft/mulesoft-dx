@@ -30,7 +30,7 @@ Before starting, ensure you have:
    - This is used to list environments, browse the policy catalog, check Exchange, etc.
 
 3. **One of the following**
-   - An API instance already in API Manager (skip to Step 5)
+   - An API instance already in API Manager (skip to Step 6)
    - An Exchange asset ready to be promoted to API Manager (skip to Step 2)
    - An API specification or URL that needs to be published first (start at Step 1)
 
@@ -40,15 +40,15 @@ This skill has multiple entry points depending on what you already have:
 
 - **Start at Step 1** if you have an API specification file and need to publish it to Exchange first
   - You'll need: `organizationId`, API specification file
-  - Steps: 1, 2, 3, 4, 5, 6
+  - Steps: 1, 2, 3, 4, 5, 6, 7
 
 - **Start at Step 2** if you already have an Exchange asset and need to create an API Manager instance
   - You'll need: `organizationId`, `groupId`, `assetId`, `assetVersion`
-  - Steps: 2, 3, 4, 5, 6
+  - Steps: 2, 3, 4, 5, 6, 7
 
-- **Start at Step 5** if you already have an API Manager instance and want to apply a policy
+- **Start at Step 6** if you already have an API Manager instance and want to apply a policy
   - You'll need: `organizationId`, `environmentId`, `environmentApiId`
-  - Steps: 2, 5, 6
+  - Steps: 2, 6, 7
 
 
 ## Step 1: Publish API to Exchange
@@ -133,7 +133,7 @@ outputs:
 
 ## Step 3: Select Deployment Target
 
-List available gateway targets registered in the environment. You need the target ID and gateway version before creating the API instance, because the instance creation request must include deployment information to properly bind it to the Flex Gateway.
+List available gateway targets registered in the environment. You need the target ID and gateway version before creating the API instance, because the deployment configuration is set via a PATCH after creation.
 
 **What you'll need:**
 - Organization ID and Environment ID
@@ -164,26 +164,25 @@ outputs:
     path: $.rows[*].name
     description: Name of the selected gateway target
   - name: gatewayVersion
-    path: $.rows[*].version
-    description: Runtime version of the selected Flex Gateway (e.g., "1.12.2")
+    value: "1.0.0"
+    description: Gateway version to use for deployment. The targets response may return "-" instead of a real version; use "1.0.0" as the default.
 ```
 
-**What happens next:** You have a deployment target and its gateway version. Next, create the API instance with this deployment information embedded.
+**What happens next:** You have a deployment target and its gateway version. Next, create the API instance and then configure its deployment target.
 
 ## Step 4: Create API Manager Instance
 
 > **Skip if:** You already have an API Manager instance with a known `environmentApiId`.
 
-Creates a managed API instance in API Manager from your Exchange asset, bound to the selected Flex Gateway target. The deployment information (target, gateway version, deployment type) must be included in the creation request — creating an instance without it leaves the API in an unregistered state that is difficult to deploy later.
+Creates a managed API instance in API Manager from your Exchange asset. This creates the API configuration; deployment to the Flex Gateway happens in Step 5.
 
 **Important:** For Flex Gateway instances, `isCloudHub` must be `null` (not `false`). Setting it to `false` causes a validation error.
 
 **What you'll need:**
 - Organization ID and Environment ID
 - Exchange asset coordinates (groupId, assetId, version)
-- Deployment target ID and gateway version from Step 3
 
-**Action:** Create an API instance in the target environment with embedded deployment configuration.
+**Action:** Create an API instance in the target environment.
 
 ```yaml
 api: urn:api:api-manager
@@ -222,44 +221,108 @@ inputs:
   technology:
     value: "flexGateway"
     description: Gateway technology — this skill targets Flex Gateway deployments
+  endpoint.isCloudHub:
+    value: null
+    description: "Must be null for flexGateway technology (not false — false causes a validation error)"
+  endpoint.proxyUri:
+    userProvided: true
+    description: "The proxy listener URI. Ask the user which port the Flex Gateway should listen on, then use http://0.0.0.0:<port>/"
+    example: "http://0.0.0.0:8081/"
   endpoint.uri:
     userProvided: true
     optional: true
     description: The upstream backend URL for the API. Ask the user if they want to provide it now or configure it later.
     example: "https://backend.example.com/api/v1"
-  endpoint.deploymentType:
+outputs:
+  - name: environmentApiId
+    path: $.id
+    description: The API instance ID in API Manager
+```
+
+**What happens next:** The API instance exists but is not yet deployed. Next, deploy it to the Flex Gateway target selected in Step 3.
+
+## Step 5: Deploy to Flex Gateway
+
+Deploys the API instance to the selected Flex Gateway target. This uses the Proxies API deployment endpoint with flat top-level fields — do **not** use the nested `target` object, which requires additional fields that are not needed for self-managed Flex Gateway deployments.
+
+**What you'll need:**
+- Organization ID, Environment ID, and API instance ID from Step 4
+- Deployment target ID and gateway version from Step 3
+
+**Action:** Create a deployment for the API instance on the selected Flex Gateway.
+
+```yaml
+api: urn:api:proxies-xapi
+operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+inputs:
+  organizationId:
+    from:
+      api: urn:api:access-management
+      operation: listMe
+      field: $.user.organization.id
+    description: Organization ID
+  environmentId:
+    from:
+      step: List Environments
+      output: environmentId
+    description: Environment ID from Step 2
+  environmentApiId:
+    from:
+      step: Create API Manager Instance
+      output: environmentApiId
+    description: API instance ID from Step 4
+  type:
     value: "HY"
     description: "Deployment type for self-managed Flex Gateway (HY = Hybrid)"
-  endpoint.isCloudHub:
-    value: null
-    description: "Must be null for flexGateway technology (not false — false causes a validation error)"
-  deployment.targetId:
+  targetId:
     from:
       step: Select Deployment Target
       output: targetId
     description: Flex Gateway target ID from Step 3
-  deployment.gatewayVersion:
+  targetName:
     from:
       step: Select Deployment Target
-      output: gatewayVersion
-    description: Flex Gateway runtime version from Step 3 (e.g., "1.12.2")
-  deployment.environmentId:
+      output: targetName
+    description: Flex Gateway target name from Step 3
+  gatewayVersion:
+    value: "1.0.0"
+    description: "Gateway version for deployment. Use \"1.0.0\" as the default."
+  environmentId:
     from:
       step: List Environments
       output: environmentId
-    description: Environment ID (required in the deployment object)
-  deployment.type:
-    value: "HY"
-    description: "Deployment type (must match endpoint.deploymentType)"
+    description: Environment ID (required in the deployment body for HY type)
+  overwrite:
+    value: false
+    description: "Whether to overwrite an existing deployment"
 outputs:
-  - name: environmentApiId
+  - name: deploymentId
     path: $.id
-    description: The API instance ID in API Manager, used to apply policies
+    description: The ID of the proxy deployment
 ```
 
-**What happens next:** Your API instance is created and bound to the Flex Gateway target. Next, browse the policy catalog to select which policy to apply.
+**Request body structure:** Use flat top-level fields, not the nested `target` object:
 
-## Step 5: Browse Exchange Policy Catalog
+```json
+{
+  "type": "HY",
+  "targetId": "<from Step 3>",
+  "targetName": "<from Step 3>",
+  "gatewayVersion": "1.0.0",
+  "environmentId": "<from Step 2>",
+  "overwrite": false
+}
+```
+
+**What happens next:** The API instance is now deployed to the Flex Gateway. Next, browse the policy catalog to select which policy to apply.
+
+**Common issues:**
+- **`"Field environmentId is required for deployment type HY"`**: The `environmentId` must be in the request body, not just the URL path parameter.
+- **`"Field gatewayVersion is required for deployment type HY"`**: Use the version from the `getGatewayTargets` response (Step 3). Using an incorrect version causes policy implementation errors.
+- **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Flex Gateway version. Verify the version from the target's actual runtime version in Step 3.
+- **409 Conflict**: The API may already be deployed to this target. List existing deployments with `GET .../deployments` first to check.
+
+## Step 6: Browse Exchange Policy Catalog
 
 List all available policy templates from Exchange for your organization. This endpoint returns the full Exchange coordinates (`groupId`, `assetId`, `assetVersion`) and gateway-compatible configuration for each template — these are required when applying a policy.
 
@@ -319,16 +382,16 @@ outputs:
 - **Empty list**: Pass `apiInstanceId` and `environmentId` to get templates compatible with your gateway type. Without these filters, some templates may not appear.
 - **Wrong config property names**: Always use the configuration from this endpoint — the generic `listOrganizationsPolicytemplates` endpoint may return different (non-gateway-compatible) property names and defaults.
 
-## Step 6: Apply Policy to API Instance
+## Step 7: Apply Policy to API Instance
 
-Apply the selected policy to your API instance with the appropriate configuration. Use the Exchange coordinates and configuration property names from Step 5.
+Apply the selected policy to your API instance with the appropriate configuration. Use the Exchange coordinates and configuration property names from Step 6.
 
 **What you'll need:**
 - Organization ID, Environment ID, and API instance ID
-- Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 5
-- Policy configuration based on the schema from Step 5's `policyConfiguration` output
+- Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 6
+- Policy configuration based on the schema from Step 6's `policyConfiguration` output
 
-**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names and defaults from Step 5's configuration schema.
+**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names and defaults from Step 6's configuration schema.
 
 ```yaml
 api: urn:api:api-manager
@@ -354,28 +417,28 @@ inputs:
     from:
       step: Browse Exchange Policy Catalog
       output: policyGroupId
-    description: Policy Exchange group ID from Step 5
+    description: Policy Exchange group ID from Step 6
   assetId:
     from:
       step: Browse Exchange Policy Catalog
       output: policyAssetId
-    description: Policy Exchange asset ID from Step 5
+    description: Policy Exchange asset ID from Step 6
   assetVersion:
     from:
       step: Browse Exchange Policy Catalog
       output: policyAssetVersion
-    description: Policy Exchange version from Step 5
+    description: Policy Exchange version from Step 6
 outputs:
   - name: policyId
     path: $.id
     description: The ID of the applied policy instance
 ```
 
-**What happens next:** Your API is now protected with the selected policy. Since the API instance was created with deployment information in Step 4, the policy is active and enforcing on the Flex Gateway.
+**What happens next:** Your API is now protected with the selected policy. Since the API instance was configured with deployment information in Step 5, the policy is active and enforcing on the Flex Gateway.
 
 **Common issues:**
-- **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 5) to get these values.
-- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 5's `policyConfiguration` output, not from the generic template endpoint. For example, Flex Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
+- **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 6) to get these values.
+- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 6's `policyConfiguration` output, not from the generic template endpoint. For example, Flex Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
 - **409 Conflict**: A policy of this type may already be applied to the API instance. List existing policies first to check, or add `?allowDuplicated=true` to the request URL to apply a second instance of the same policy type.
 - **403 Forbidden**: You need **Manage Policies** permission in the target environment.
 

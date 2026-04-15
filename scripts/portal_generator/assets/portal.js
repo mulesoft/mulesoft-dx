@@ -857,11 +857,7 @@ function navigateToHash(hash, smooth) {
     const targetElement = document.getElementById(targetId);
     if (!targetElement) return false;
 
-    const placeholder = document.getElementById('operations-placeholder');
     const overview = document.getElementById('overview');
-
-    // Hide placeholder
-    if (placeholder) placeholder.style.display = 'none';
 
     // Hide all operations
     document.querySelectorAll('.operation-detail').forEach(op => op.classList.remove('active'));
@@ -875,7 +871,6 @@ function navigateToHash(hash, smooth) {
         applyEnvVarsToPanel('try-' + targetId.substring(3));
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
-        if (placeholder) placeholder.style.display = 'block';
     }
 
     targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
@@ -886,6 +881,11 @@ function navigateToHash(hash, smooth) {
     if (navLink) {
         navLinks.forEach(l => l.classList.remove('active'));
         navLink.classList.add('active');
+    }
+
+    // Switch to Operations tab if viewing an operation
+    if (targetId.startsWith('op-')) {
+        switchSidebarTab('operations');
     }
 
     return true;

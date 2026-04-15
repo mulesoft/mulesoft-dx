@@ -6,37 +6,31 @@
 {% set step_details = skill.step_details|default([]) %}
 
 <section id="skill-{{ slug }}" class="content-section skill-detail">
-    {# Skill Mode Toggle #}
-    <div class="skill-mode-toggle-container">
-        <label class="toggle-switch-label">
-            <span class="toggle-label-text">Interactive Mode</span>
-            <div class="toggle-switch" onclick="toggleSkillMode('{{ slug }}')" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ slug }}">
-                <div class="toggle-slider"></div>
-            </div>
-        </label>
-    </div>
-
     {# Overview and Prerequisites - Always visible in both modes #}
-    {% if skill.overview_html %}
-    <div class="skill-subsection">
+    {% if skill.overview_html or skill.description %}
+    <div id="overview-section" class="skill-subsection">
         <h3>Overview</h3>
-        <div class="skill-view-markdown">{{ skill.overview_html|safe }}</div>
-    </div>
-    {% elif skill.description %}
-    <div class="skill-subsection">
-        <h3>Overview</h3>
-        <div class="skill-view-markdown"><p>{{ skill.description }}</p></div>
+        <div class="skill-view-markdown">
+            {% if skill.overview_html %}
+            {{ skill.overview_html|safe }}
+            {% else %}
+            <p>{{ skill.description }}</p>
+            {% endif %}
+        </div>
     </div>
     {% endif %}
 
     {% if skill.prerequisites_html %}
-    <div class="skill-subsection">
+    <div id="prerequisites-section" class="skill-subsection">
         <h3>Prerequisites</h3>
         <div class="skill-view-markdown">{{ skill.prerequisites_html|safe }}</div>
     </div>
     {% endif %}
 
     {# Unified Content Area #}
+    <div id="playground-section" class="skill-playground-section">
+        <h3>Playground</h3>
+    </div>
     <div id="skill-content-{{ slug }}" class="skill-content-unified">
         <div class="skill-main-content">
             {% if step_details %}
@@ -47,8 +41,8 @@
             {% endif %}
         </div>
 
-        {# Execution Panel - Hidden by default, shown in interactive mode #}
-        <aside class="execution-panel" id="variables-sidebar-{{ slug }}" style="display:none">
+        {# Execution Panel - Visible by default #}
+        <aside class="execution-panel" id="variables-sidebar-{{ slug }}">
             {# Debugger Toolbar #}
             <div class="debugger-toolbar">
                 <div class="debugger-controls" id="debugger-controls-{{ slug }}">
@@ -134,7 +128,7 @@
 
     {# Completion Checklist - Always visible in both modes #}
     {% if skill.completion_checklist_html %}
-    <div class="skill-subsection">
+    <div id="completion-section" class="skill-subsection">
         <h3>Completion Checklist</h3>
         <div class="skill-view-markdown">{{ skill.completion_checklist_html|safe }}</div>
     </div>

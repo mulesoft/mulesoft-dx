@@ -5,8 +5,9 @@
 <aside class="detail-sidebar" id="detailSidebar">
     <nav class="sidebar-nav">
         <ul class="nav-list">
+            {% if skill.overview_html or skill.description %}
             <li>
-                <a href="#skill-{{ slug }}" class="nav-link active">
+                <a href="#overview-section" class="nav-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path
                             d="M13.9998 5.20117V14.043L12.5125 15L7.99976 11.8408L3.48804 15L1.99976 14.042V5.20117L7.99976 1L13.9998 5.20117ZM2.99976 5.72168V13.4961L3.4646 13.7959L7.99976 10.6201L12.5359 13.7959L12.9998 13.4971V5.72168L7.99976 2.2207L2.99976 5.72168ZM11.9998 10.1855V11.4062L7.99976 8.60449V7.38379L11.9998 10.1855ZM11.9998 7.39453V8.61621L7.99976 5.81445V4.59375L11.9998 7.39453Z"
@@ -15,6 +16,26 @@
                     Overview
                 </a>
             </li>
+            {% endif %}
+            {% if skill.prerequisites_html %}
+            <li>
+                <a href="#prerequisites-section" class="nav-link">
+                    Prerequisites
+                </a>
+            </li>
+            {% endif %}
+            <li>
+                <a href="#playground-section" class="nav-link">
+                    Playground
+                </a>
+            </li>
+            {% if skill.completion_checklist_html %}
+            <li>
+                <a href="#completion-section" class="nav-link">
+                    Completion Checklist
+                </a>
+            </li>
+            {% endif %}
         </ul>
     </nav>
     <div class="sidebar-header">

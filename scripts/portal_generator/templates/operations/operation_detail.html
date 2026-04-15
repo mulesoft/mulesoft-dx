@@ -101,7 +101,7 @@
                                     <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 </button>
                                 {% endif %}
-                                <code class="param-name">{{ param.name }}{% if param.required %}*{% endif %}:</code>
+                                <code class="param-name">{{ param.name }}{% if param.required %}<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:</code>
                                 <code class="param-type-inline">{{ param_type_simple(schema) }}</code>
                             </div>
                             {% if param.description or has_constraints or param.get('x-origin') %}

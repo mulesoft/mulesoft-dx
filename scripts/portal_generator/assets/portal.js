@@ -3185,18 +3185,13 @@ function copyInstallFromModal(slug, buttonEl) {
     if (!codeEl) return;
     var command = codeEl.textContent;
     navigator.clipboard.writeText(command).then(function() {
-        if (!buttonEl) return;
-        var label = buttonEl.querySelector('span');
-        if (!label) return;
-        var saved = label.textContent;
-        label.textContent = 'Copied!';
-        buttonEl.style.color = '#04844B';
-        buttonEl.style.borderColor = '#04844B';
-        setTimeout(function() {
-            label.textContent = saved;
-            buttonEl.style.color = '';
-            buttonEl.style.borderColor = '';
-        }, 1500);
+        closeInstallModal(slug);
+        // Show feedback on the main split button
+        var actions = document.getElementById('skill-actions-' + slug);
+        if (!actions) return;
+        var mainBtn = actions.querySelector('.skill-split-main');
+        if (!mainBtn) return;
+        _showSkillCopiedFeedback(mainBtn);
     }).catch(function(err) {
         console.error('Failed to copy install command:', err);
     });
@@ -3224,14 +3219,10 @@ function _showSkillCopiedFeedback(buttonEl) {
     if (!label) return;
     var saved = label.textContent;
     label.textContent = 'Copied!';
-    mainBtn.style.background = '#04844B';
-    mainBtn.style.color = 'white';
-    mainBtn.style.borderColor = '#04844B';
+    mainBtn.style.color = '#04844B';
     setTimeout(function() {
         label.textContent = saved;
-        mainBtn.style.background = '';
         mainBtn.style.color = '';
-        mainBtn.style.borderColor = '';
     }, 1500);
 }
 

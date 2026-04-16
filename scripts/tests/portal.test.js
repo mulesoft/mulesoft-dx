@@ -784,31 +784,33 @@ describe('copySkillInstallCommand', () => {
 describe('copySkillContent', () => {
     afterEach(() => {
         document.body.innerHTML = '';
+        globalThis.fetch = undefined;
     });
 
-    test('copies template content to clipboard', async () => {
-        let copied = '';
+    test('fetches SKILL.md and copies to clipboard', async () => {
+        const mdContent = '---\nname: my-skill\n---\n# My Skill';
+        globalThis.fetch = jest.fn(() => Promise.resolve({ text: () => Promise.resolve(mdContent) }));
         Object.assign(navigator, {
-            clipboard: { writeText: jest.fn((text) => { copied = text; return Promise.resolve(); }) },
+            clipboard: { writeText: jest.fn(() => Promise.resolve()) },
         });
-
-        const tpl = document.createElement('template');
-        tpl.id = 'skill-raw-my-skill';
-        tpl.innerHTML = '---\nname: my-skill\n---\n# My Skill';
-        document.body.appendChild(tpl);
 
         const wrapper = document.createElement('div');
         wrapper.className = 'skill-split-btn';
         const main = document.createElement('button');
         main.className = 'skill-split-main';
-        main.innerHTML = '<span>Copy Install Command</span>';
+        main.textContent = 'Copy Install Command';
+        const span = document.createElement('span');
+        span.textContent = 'Copy Install Command';
+        main.appendChild(span);
         wrapper.appendChild(main);
         document.body.appendChild(wrapper);
 
         copySkillContent('my-skill', main);
-        expect(navigator.clipboard.writeText).toHaveBeenCalled();
-        const arg = navigator.clipboard.writeText.mock.calls[0][0];
-        expect(arg).toContain('name: my-skill');
+        expect(globalThis.fetch).toHaveBeenCalledWith('../skills/my-skill/SKILL.md');
+
+        // Wait for promises to resolve
+        await new Promise((r) => setTimeout(r, 0));
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mdContent);
     });
 });
 

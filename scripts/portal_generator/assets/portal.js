@@ -3180,11 +3180,11 @@ function copySkillInstallCommand(slug, buttonEl) {
 }
 
 function copySkillContent(slug, buttonEl) {
-    var tpl = document.getElementById('skill-raw-' + slug);
-    if (!tpl) return;
-    var content = tpl.content ? tpl.content.textContent : tpl.textContent;
-    navigator.clipboard.writeText(content).then(function() {
-        _showSkillCopiedFeedback(buttonEl);
+    var url = '../skills/' + slug + '/SKILL.md';
+    fetch(url).then(function(res) { return res.text(); }).then(function(content) {
+        navigator.clipboard.writeText(content).then(function() {
+            _showSkillCopiedFeedback(buttonEl);
+        });
     }).catch(function(err) {
         console.error('Failed to copy skill content:', err);
     });

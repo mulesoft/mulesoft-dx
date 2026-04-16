@@ -2477,6 +2477,8 @@ button.nav-group-header {
     padding: var(--space-md);
     order: 2;
     z-index: 100;
+    margin-left: auto;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .try-panel-header {
@@ -2525,6 +2527,8 @@ button.nav-group-header {
     height: auto;
     order: 1;
     margin-bottom: var(--space-lg);
+    margin-left: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .operation-main-content {
@@ -2538,6 +2542,16 @@ button.nav-group-header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-lg);
     align-items: start;
+    animation: fadeInContent 0.5s ease 0.2s backwards;
+}
+
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .operation-content-wrapper.try-expanded .try-form-container {

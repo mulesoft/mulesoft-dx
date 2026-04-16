@@ -9,7 +9,7 @@
     font-family: 'Salesforce Sans';
     src: url('https://www.sfdcstatic.com/system/shared/common/assets/fonts/SalesforceSans/SalesforceSans-Regular.woff2') format('woff2'),
         url('https://www.sfdcstatic.com/system/shared/common/assets/fonts/SalesforceSans/SalesforceSans-Regular.woff') format('woff');
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     font-style: normal;
     font-display: swap;
 }
@@ -18,7 +18,7 @@
     font-family: 'Salesforce Sans';
     src: url('https://www.sfdcstatic.com/system/shared/common/assets/fonts/SalesforceSans/SalesforceSans-Bold.woff2') format('woff2'),
         url('https://www.sfdcstatic.com/system/shared/common/assets/fonts/SalesforceSans/SalesforceSans-Bold.woff') format('woff');
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-style: normal;
     font-display: swap;
 }
@@ -27,7 +27,7 @@
 @font-face {
     font-family: 'Avant Garde For Salesforce';
     src: local('Century Gothic'), local('Avenir Next'), local('Avenir');
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-style: normal;
     font-display: swap;
 }
@@ -215,7 +215,7 @@ body.detail-page .ms-com-header {
     background: var(--color-primary);
     color: #fff;
     z-index: 10000;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     border-radius: 0 0 0.25rem 0;
 }
 
@@ -326,14 +326,14 @@ code {
 
 .logo {
     font-size: var(--font-size-8);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     color: var(--color-text);
     margin: 0;
 }
 
 .page-title {
     font-size: var(--font-size-7);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     margin: 0;
 }
 
@@ -361,7 +361,7 @@ code {
 }
 
 .nav a {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-muted);
 }
 
@@ -372,7 +372,7 @@ code {
 
 .back-link {
     display: inline-block;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     font-size: var(--font-size-5);
 }
 
@@ -412,19 +412,19 @@ code {
 
 .hero-title {
     font-family: var(--font-sans);
-    font-size: 2.5rem;
-    font-weight: 600;
+    font-size: var(--font-size-11);
+    font-weight: var(--font-weight-semibold);
     color: #00205b;
     margin: 0 0 12px 0;
     line-height: 1.2;
 }
 
 .hero-subtitle {
-    font-size: 1.125rem;
+    font-size: var(--font-size-6);
     color: #00205b;
     margin: 0 0 32px 0;
     line-height: 1.5;
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 .hero-tabs {
@@ -439,8 +439,8 @@ code {
     border: 1px solid #d1d5db;
     border-radius: 24px;
     padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-medium);
     color: #374151;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -528,7 +528,7 @@ code {
 }
 
 .stat-value {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-6);
 }
 
@@ -580,7 +580,7 @@ code {
 
 .results-count {
     font-size: var(--font-size-3);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     margin: 0;
     white-space: nowrap;
     flex-shrink: 0;
@@ -823,9 +823,9 @@ code {
     padding: 8px 9px;
     background: #ffffff;
     border: 1px solid #d1d5db;
-    border-radius: 1rem;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-medium);
     color: #374151;
     cursor: pointer;
     transition: all 0.2s;
@@ -847,7 +847,7 @@ code {
 
 .sort-modal-content {
     background: #ffffff;
-    border-radius: 8px;
+    border-radius: var(--radius-medium);
     padding: 24px;
     width: 320px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -859,8 +859,8 @@ code {
 }
 
 .sort-modal-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
     color: #111827;
     margin: 0 0 20px 0;
 }
@@ -871,8 +871,8 @@ code {
 
 .sort-modal-label {
     display: block;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-medium);
     color: #374151;
     margin-bottom: 6px;
 }
@@ -881,8 +881,8 @@ code {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-4);
     color: #111827;
     background: #ffffff;
     cursor: pointer;
@@ -907,8 +907,8 @@ code {
     color: #ffffff;
     border: none;
     border-radius: 24px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: background 0.2s;
     margin-top: 8px;
@@ -928,7 +928,7 @@ code {
     gap: 0;
     background: var(--color-neutral-1);
     border: 1px solid var(--color-neutral-5);
-    border-radius: 1rem;
+    border-radius: var(--radius-xl);
     overflow: hidden;
 }
 
@@ -998,7 +998,7 @@ code {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    border-radius: 8px;
+    border-radius: var(--radius-medium);
     overflow: hidden;
     box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.08);
 }
@@ -1007,8 +1007,8 @@ code {
 .catalog-grid.list-view .catalog-table-header {
     display: table-row;
     background: #FAFAFA;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1069,7 +1069,7 @@ code {
     width: 60%;
     margin-bottom: 0;
     color: #666;
-    font-size: 14px;
+    font-size: var(--font-size-4);
     line-height: 1.5;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -1089,8 +1089,8 @@ code {
 }
 
 .catalog-grid.list-view .catalog-card-title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
     color: #1a1a1a;
 }
 
@@ -1111,7 +1111,7 @@ code {
 .catalog-grid.list-view .card-version-list {
     display: inline-block;
     font-size: var(--font-size-2);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     color: #4a4a4a;
     padding: 5px 16px 4px 15px;
     border-radius: 21px;
@@ -1141,7 +1141,7 @@ code {
 .catalog-card {
     background: #ffffff;
     border: none;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     max-height: 180px;
     max-width: 389px;
     padding: 20px;
@@ -1179,7 +1179,7 @@ code {
 
 .catalog-card-title {
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #032d60;
     margin: 0;
     flex: 1;
@@ -1189,7 +1189,7 @@ code {
 
 .card-version-badge {
     font-size: var(--font-size-2);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     color: #4a4a4a;
     padding: 5px 16px 4px 15px;
     border-radius: 21px;
@@ -1222,7 +1222,7 @@ code {
 
 .badge-api-type {
     font-size: var(--font-size-2);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #134878;
     background: #D7EBEC;
     padding: 4px 15px 4px 16px;
@@ -1370,7 +1370,7 @@ code {
     color: var(--color-text-muted);
     background: var(--color-bg);
     padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-small);
 }
 
 .skill-desc {
@@ -1400,7 +1400,7 @@ code {
 .skill-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-medium);
     padding: var(--space-lg);
 }
 
@@ -1431,10 +1431,10 @@ code {
 
 .skill-details summary {
     cursor: pointer;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     padding: var(--space-sm);
     background: var(--color-bg);
-    border-radius: 0.25rem;
+    border-radius: var(--radius-small);
 }
 
 .skill-details summary:hover {
@@ -1464,7 +1464,7 @@ code {
 
 .skill-card-title {
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     flex: 1;
     min-width: 0;
 }
@@ -1494,7 +1494,7 @@ code {
     color: var(--color-text-muted);
     background: var(--color-bg);
     padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-small);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1554,7 +1554,7 @@ code {
     margin-bottom: var(--space-md);
     padding: var(--space-md);
     background: var(--color-surface);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-small);
 }
 
 .api-stats-inline {
@@ -1634,7 +1634,7 @@ code {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     font-size: var(--font-size-2);
     font-family: var(--font-mono);
     text-transform: uppercase;
@@ -1730,7 +1730,7 @@ code {
 .path {
     font-family: var(--font-mono);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     flex: 1;
 }
 
@@ -1837,7 +1837,7 @@ code {
     border: none;
     background: transparent;
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: var(--font-size-4);
     color: #1f2937;
     outline: none;
 }
@@ -1879,7 +1879,7 @@ code {
     color: #5A5A56;
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -1907,7 +1907,7 @@ code {
 }
 
 .nav-link-overview {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-5);
 
 
@@ -1941,7 +1941,7 @@ code {
     color: #5A5A56;
     text-decoration: none;
     transition: all 0.2s ease;
-    border-radius: 15px;
+    border-radius: var(--radius-xl);
     border: none;
 }
 
@@ -1959,7 +1959,7 @@ code {
 .nav-link[href="#overview"] {
     font-family: var(--font-sans);
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #5A5A56;
     margin: 10px 0px 10px 0px;
 }
@@ -1991,7 +1991,7 @@ button.nav-group-header {
 
 .nav-group-header {
     padding: var(--space-xs) var(--space-md);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     font-size: var(--font-size-3);
     color: var(--color-text);
     background: transparent;
@@ -2031,7 +2031,7 @@ button.nav-group-header {
 
 .nav-section-header {
     padding: var(--space-md) var(--space-lg) var(--space-sm) var(--space-lg);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     font-size: var(--font-size-2);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -2113,8 +2113,8 @@ button.nav-group-header {
     align-items: center;
     justify-content: center;
     padding: 1px 9px;
-    border-radius: 9px;
-    font-weight: 500;
+    border-radius: var(--radius-medium);
+    font-weight: var(--font-weight-medium);
     font-size: var(--font-size-2);
     font-family: 'Roboto Mono', var(--font-mono);
     text-transform: uppercase;
@@ -2472,7 +2472,7 @@ button.nav-group-header {
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-large);
     align-self: flex-start;
     padding: var(--space-md);
     order: 2;
@@ -2489,7 +2489,7 @@ button.nav-group-header {
 .try-panel-header h4 {
     margin: 0;
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text);
 }
 
@@ -2505,7 +2505,7 @@ button.nav-group-header {
     cursor: pointer;
     color: var(--color-neutral-9);
     transition: all 0.2s;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     margin-left: 10px;
     display: flex;
     align-items: center;
@@ -2619,7 +2619,7 @@ button.nav-group-header {
 .operation-panel-title h4 {
     margin: 0;
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
@@ -2782,13 +2782,13 @@ button.nav-group-header {
 .server-dropdown-option:hover {
     background: var(--hover-bg);
     color: var(--hover-text);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .server-dropdown-option.selected {
     background: var(--selected-bg);
     color: var(--selected-text);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     border-left: 3px solid var(--selected-border);
     padding-left: calc(var(--space-md) - 3px);
 }
@@ -2906,7 +2906,7 @@ button.nav-group-header {
 
 .operation-title {
     font-size: var(--font-size-8);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #494947;
     margin: 0;
     display: flex;
@@ -2919,7 +2919,7 @@ button.nav-group-header {
     font-style: italic;
     color: #6b7280;
     font-family: var(--font-mono);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 /* Paragraph-based parameters layout - Claude API style */
@@ -2958,7 +2958,7 @@ button.nav-group-header {
     align-items: center;
     justify-content: center;
     color: #6b7280;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     transition: all 0.2s;
     flex-shrink: 0;
     margin-right: 0.5rem;
@@ -2997,14 +2997,14 @@ button.nav-group-header {
 
 .param-name {
     font-size: var(--font-size-4);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     font-family: var(--font-mono);
     color: #494947;
 }
 
 .param-type-inline {
     font-size: var(--font-size-4);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     color: #6b7280;
     font-family: var(--font-mono);
 }
@@ -3012,14 +3012,14 @@ button.nav-group-header {
 .jsonpath-highlight {
     background: #F5F5F5;
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     color: var(--color-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .param-pattern {
     font-size: var(--font-size-3);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     color: #9ca3af;
     font-family: var(--font-mono);
     margin-left: 0.5rem;
@@ -3029,9 +3029,9 @@ button.nav-group-header {
     display: inline-flex;
     align-items: center;
     padding: 2px 6px;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-2);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     text-transform: lowercase;
     letter-spacing: 0;
 }
@@ -3064,7 +3064,7 @@ button.nav-group-header {
     font-size: var(--font-size-3);
     background: #f3f4f6;
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-family: var(--font-mono);
 }
 
@@ -3105,7 +3105,7 @@ button.nav-group-header {
     align-items: center;
     justify-content: center;
     color: #6b7280;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     transition: all 0.2s;
     flex-shrink: 0;
 }
@@ -3181,7 +3181,7 @@ button.nav-group-header {
     padding: 0;
     border: none;
     font-family: var(--font-mono);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 .enum-more {
@@ -3197,7 +3197,7 @@ button.nav-group-header {
     cursor: pointer;
     font-size: var(--font-size-4);
     color: #2563eb;
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     user-select: none;
     list-style: none;
 }
@@ -3237,7 +3237,7 @@ button.nav-group-header {
     padding: 0;
     border: none;
     font-family: var(--font-mono);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 /* Unified constraint display for enum, pattern, default, etc. */
@@ -3254,7 +3254,7 @@ button.nav-group-header {
     background: #f3f4f6;
     color: #4b5563;
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-family: var(--font-mono);
 }
 
@@ -3267,7 +3267,7 @@ button.nav-group-header {
 /* Schema title */
 .schema-title {
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #374151;
     margin: 0 0 1rem 0;
 }
@@ -3280,7 +3280,7 @@ button.nav-group-header {
 .examples-summary {
     cursor: pointer;
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #111827;
     user-select: none;
     list-style: none;
@@ -3320,13 +3320,13 @@ details[open] .examples-toggle-icon {
 
 .example-title {
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #374151;
 }
 
 .ace-editor-container {
     border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     overflow: hidden;
 }
 
@@ -3350,7 +3350,7 @@ details[open] .examples-toggle-icon {
     border: 1px solid #d1d5db;
     border-radius: var(--radius-lg);
     font-size: var(--font-size-2);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #6b7280;
     text-transform: lowercase;
     font-family: var(--font-mono);
@@ -3363,9 +3363,9 @@ details[open] .examples-toggle-icon {
     padding: 0.125rem 0.5rem;
     background: #f3f4f6;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #6b7280;
     font-family: var(--font-mono);
     margin-right: 0.5rem;
@@ -3412,9 +3412,9 @@ details[open] .examples-toggle-icon {
     padding: 0.375rem 0.75rem;
     background: white;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: #374151;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -3443,7 +3443,7 @@ details[open] .examples-toggle-icon {
     min-width: 120px;
     background: white;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     z-index: 1000;
     padding: 0.25rem;
@@ -3457,9 +3457,9 @@ details[open] .examples-toggle-icon {
     padding: 0.5rem 0.75rem;
     background: transparent;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: #374151;
     cursor: pointer;
     text-align: left;
@@ -3590,7 +3590,7 @@ details[open] .examples-toggle-icon {
 
 
 .status-code {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-family: var(--font-mono);
 }
 
@@ -3653,11 +3653,11 @@ details[open] .examples-toggle-icon {
     gap: 4px;
     padding: 4px 10px;
     font-size: var(--font-size-3);
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-family: var(--font-mono);
     color: var(--color-neutral-7);
     background: var(--color-neutral-1);
     border: 1px solid var(--color-neutral-4);
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     text-decoration: none;
     transition: all 0.2s;
     margin-left: auto;
@@ -3695,7 +3695,7 @@ details[open] .examples-toggle-icon {
     background: var(--bg-primary);
     border: 1px solid #5C5C5C;
     border-right: none;
-    border-radius: 16px 0 0 16px;
+    border-radius: var(--radius-xl) 0 0 16px;
     cursor: pointer;
     transition: opacity 0.15s;
     white-space: nowrap;
@@ -3738,7 +3738,7 @@ details[open] .examples-toggle-icon {
     min-width: 210px;
     background: #ffffff;
     border: 1px solid #d1d5db;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     z-index: 100;
     padding: 4px;
@@ -3757,7 +3757,7 @@ details[open] .examples-toggle-icon {
     color: #5A5A56;
     background: none;
     border: none;
-    border-radius: 15px;
+    border-radius: var(--radius-xl);
     cursor: pointer;
     text-decoration: none;
     text-align: left;
@@ -3795,7 +3795,7 @@ details[open] .examples-toggle-icon {
 .install-modal-content {
     position: relative;
     background: white;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     max-width: 520px;
     width: 90%;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
@@ -3828,8 +3828,8 @@ details[open] .examples-toggle-icon {
 }
 
 .install-command-bracket {
-    font-size: 1.25rem;
-    font-weight: 300;
+    font-size: var(--font-size-7);
+    font-weight: var(--font-weight-regular);
     color: #9ca3af;
     padding: 0 0.25rem;
     user-select: none;
@@ -3864,7 +3864,7 @@ details[open] .examples-toggle-icon {
     color: #3289CE;
     background: white;
     border: 1px solid #B3D2EC;
-    border-radius: 8px;
+    border-radius: var(--radius-medium);
     cursor: pointer;
     transition: all 0.15s ease;
     white-space: nowrap;
@@ -3949,7 +3949,7 @@ details[open] .examples-toggle-icon {
 .skill-subsection h3 {
     font-family: var(--font-sans);
     font-size: var(--font-size-8);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     letter-spacing: -0.02em;
     line-height: 1.3;
     margin-bottom: var(--space-md);
@@ -4027,7 +4027,7 @@ details[open] .examples-toggle-icon {
 .x-origin-label {
     font-size: var(--font-size-4);
     color: #6b7280;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     flex-shrink: 0;
 }
 
@@ -4043,7 +4043,7 @@ details[open] .examples-toggle-icon {
     background: #f3f4f6;
     border: 1px solid #d1d5db;
     padding: 0.125rem 0.5rem;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     color: #2563eb;
     text-decoration: none;
     font-family: var(--font-mono);
@@ -4072,11 +4072,11 @@ details[open] .examples-toggle-icon {
     display: inline-block;
     font-size: var(--font-size-2);
     padding: 0.125rem 0.5rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-xl);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     color: var(--color-text-muted);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 /* ============================================================================
@@ -4113,7 +4113,7 @@ details[open] .examples-toggle-icon {
     border: 1px solid var(--color-border);
     padding: var(--space-xs) var(--space-sm);
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-2);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -4146,7 +4146,7 @@ details[open] .examples-toggle-icon {
 
 .operation-subsection h5 {
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     margin: var(--space-md) 0 var(--space-xs) 0;
     color: var(--color-text-muted);
     text-transform: uppercase;
@@ -4160,7 +4160,7 @@ details[open] .examples-toggle-icon {
 .example-block {
     margin: var(--space-sm) 0;
     border: 1px solid var(--color-border);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-small);
     overflow: hidden;
     max-width: 100%;
 }
@@ -4170,7 +4170,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-surface);
     cursor: pointer;
     font-size: var(--font-size-3);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-muted);
     user-select: none;
 }
@@ -4208,7 +4208,7 @@ details[open] .examples-toggle-icon {
 
 .response-block {
     border: 1px solid var(--color-border);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-small);
     margin-bottom: var(--space-sm);
     overflow: hidden;
     max-width: 100%;
@@ -4648,7 +4648,7 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-view-markdown strong {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .skill-view-markdown table {
@@ -4667,7 +4667,7 @@ details[open] .examples-toggle-icon {
 
 .skill-view-markdown th {
     background: var(--color-surface);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .skill-view-markdown hr {
@@ -5167,7 +5167,7 @@ details[open] .examples-toggle-icon {
 .auth-message {
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
     display: none;
 }
@@ -5238,7 +5238,7 @@ details[open] .examples-toggle-icon {
     flex: 0 0 200px;
     padding: 0.4rem 0.625rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
     font-family: var(--font-mono);
     background: var(--bg-primary);
@@ -5249,7 +5249,7 @@ details[open] .examples-toggle-icon {
     flex: 1;
     padding: 0.4rem 0.625rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
     font-family: var(--font-mono);
     background: var(--bg-primary);
@@ -5264,7 +5264,7 @@ details[open] .examples-toggle-icon {
     flex: 1;
     padding: 0.4rem 0.625rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
     font-family: var(--font-mono);
     background: var(--bg-primary);
@@ -5282,7 +5282,7 @@ details[open] .examples-toggle-icon {
     padding: 0.25rem 0.5rem;
     background: none;
     border: 1px solid transparent;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     color: var(--text-muted);
     cursor: pointer;
     font-size: var(--font-size-4);
@@ -5305,9 +5305,9 @@ details[open] .examples-toggle-icon {
     background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     white-space: nowrap;
 }
@@ -5336,7 +5336,7 @@ details[open] .examples-toggle-icon {
     letter-spacing: 0.05em;
     cursor: pointer;
     user-select: none;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     list-style: none;
     display: flex;
     align-items: center;
@@ -5462,7 +5462,7 @@ details[open] .examples-toggle-icon {
     flex: 1;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-4);
     font-family: var(--font-mono);
     background: var(--bg-primary);
@@ -5480,7 +5480,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-surface);
     color: var(--color-text);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-5);
     cursor: pointer;
     transition: all 0.2s;
@@ -5536,7 +5536,7 @@ details[open] .examples-toggle-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     transition: all 0.2s;
 }
 
@@ -5588,7 +5588,7 @@ details[open] .examples-toggle-icon {
     border-bottom: 1px solid var(--border-color);
     padding: var(--space-sm);
     background: white;
-    border-radius: 16px 16px 0px 0px;
+    border-radius: var(--radius-xl) 16px 0px 0px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -5613,7 +5613,7 @@ details[open] .examples-toggle-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
 }
 
 .btn-close-modal:hover {
@@ -5629,7 +5629,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-source {
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     padding: var(--space-md);
     margin-bottom: var(--space-md);
     background: var(--color-surface);
@@ -5645,7 +5645,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-name-primary {
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
@@ -5655,7 +5655,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     color: var(--text-secondary);
     font-style: italic;
-    font-weight: 300;
+    font-weight: var(--font-weight-regular);
 }
 
 .xorigin-meta-table {
@@ -5664,7 +5664,7 @@ details[open] .examples-toggle-icon {
     font-size: var(--font-size-4);
     margin-bottom: var(--space-md);
     background: var(--bg-primary);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     border: 1px solid var(--border-color);
     overflow: hidden;
 }
@@ -5680,7 +5680,7 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-meta-label {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     width: 80px;
     white-space: nowrap;
@@ -5690,7 +5690,7 @@ details[open] .examples-toggle-icon {
 .xorigin-meta-table code {
     background: var(--color-surface);
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
 }
 
@@ -5710,7 +5710,7 @@ details[open] .examples-toggle-icon {
     margin-bottom: 1rem;
     padding: 0.5rem;
     background: var(--bg-secondary);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     border: 1px solid var(--border-color);
 }
 
@@ -5803,7 +5803,7 @@ details[open] .examples-toggle-icon {
     border: none;
     border-bottom: 2px solid transparent;
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
@@ -5839,7 +5839,7 @@ details[open] .examples-toggle-icon {
     padding: var(--space-md);
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
     overflow-x: auto;
     max-height: 400px;
@@ -5862,7 +5862,7 @@ details[open] .examples-toggle-icon {
 .xorigin-values-table th {
     text-align: left;
     padding: 0.75rem;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #374151;
     font-size: var(--font-size-3);
 }
@@ -5877,7 +5877,7 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-name-cell {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
 }
 
@@ -5905,7 +5905,7 @@ details[open] .examples-toggle-icon {
     border: none;
     border-radius: var(--radius-large);
     font-size: var(--font-size-2);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     white-space: nowrap;
 }
@@ -5919,7 +5919,7 @@ details[open] .examples-toggle-icon {
     padding: var(--space-sm);
     background: rgba(224, 31, 61, 0.1);
     border: 1px solid rgba(224, 31, 61, 0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     color: var(--color-danger);
     font-size: var(--font-size-3);
     margin-top: var(--space-sm);
@@ -5957,7 +5957,7 @@ details[open] .examples-toggle-icon {
 .xorigin-operation-title {
     margin: 0;
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     font-family: var(--font-mono);
     white-space: nowrap;
@@ -5973,7 +5973,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-path-label {
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .xorigin-path-value {
@@ -5981,7 +5981,7 @@ details[open] .examples-toggle-icon {
     color: var(--text-primary);
     background: var(--bg-primary);
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-2);
 }
 
@@ -6003,7 +6003,7 @@ details[open] .examples-toggle-icon {
     padding: var(--space-md);
     background: var(#ecfdf5);
     border: 1px solid var(#6ee7b7);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
 }
 
 .xorigin-values-header {
@@ -6013,7 +6013,7 @@ details[open] .examples-toggle-icon {
 .xorigin-values-header h5 {
     margin: 0;
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(#065f46);
 }
 
@@ -6028,13 +6028,13 @@ details[open] .examples-toggle-icon {
 .xorigin-params-section {
     margin-bottom: 1rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     background: var(--bg-secondary);
 }
 
 .xorigin-params-section summary {
     padding: 0.75rem 1rem;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-4);
     color: var(--text-primary);
     cursor: pointer;
@@ -6151,7 +6151,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-info-section summary {
     padding: 0.75rem 1rem;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-4);
     color: var(--text-primary);
     cursor: pointer;
@@ -6192,7 +6192,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-info-item label {
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-neutral-9);
 }
 
@@ -6222,7 +6222,7 @@ details[open] .examples-toggle-icon {
 .xorigin-description h3 {
     margin-top: 0.5rem;
     margin-bottom: 0.25rem;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .xorigin-description h1 {
@@ -6238,7 +6238,7 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-description strong {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
@@ -6249,7 +6249,7 @@ details[open] .examples-toggle-icon {
 .xorigin-description code {
     background: var(--bg-tertiary);
     padding: 0.125rem 0.25rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
     font-size: var(--font-size-4);
 }
@@ -6257,7 +6257,7 @@ details[open] .examples-toggle-icon {
 .xorigin-description pre {
     background: var(--bg-tertiary);
     padding: 0.75rem;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     overflow-x: auto;
     margin: 0.5rem 0;
 }
@@ -6282,13 +6282,13 @@ details[open] .examples-toggle-icon {
     font-size: var(--font-size-4);
     padding: 0.25rem 0.5rem;
     background: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     display: inline-block;
 }
 
 .jsonpath-root {
     color: var(--color-danger);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .jsonpath-field {
@@ -6297,12 +6297,12 @@ details[open] .examples-toggle-icon {
 
 .jsonpath-bracket {
     color: var(--color-purple);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .jsonpath-wildcard {
     color: var(--color-warning);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .jsonpath-dot {
@@ -6327,7 +6327,7 @@ details[open] .examples-toggle-icon {
     gap: 0.5rem;
     cursor: pointer;
     user-select: none;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     list-style: none;
 }
 
@@ -6372,7 +6372,7 @@ details[open] .examples-toggle-icon {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-family: var(--font-mono);
     font-size: var(--font-size-3);
     background: var(--bg-primary);
@@ -6414,7 +6414,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-primary);
     color: white;
     border: 1px solid #5C5C5C;
-    border-radius: 16px 0px 0px 16px;
+    border-radius: var(--radius-xl) 0px 0px 16px;
     font-family: var(--font-sans);
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
@@ -6494,7 +6494,7 @@ details[open] .examples-toggle-icon {
     padding: 0.125rem 0.5rem;
     border-radius: var(--radius-lg);
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     font-family: var(--font-mono);
 }
 
@@ -6511,7 +6511,7 @@ details[open] .examples-toggle-icon {
 .response-status-badge.status-4xx {
     background: #fca5a5;
     color: #7f1d1d;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 .response-status-badge.status-5xx {
@@ -6544,7 +6544,7 @@ details[open] .examples-toggle-icon {
     color: #5A5A56;
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -6617,7 +6617,7 @@ details[open] .examples-toggle-icon {
 
 .xorigin-values-count {
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(#065f46);
 }
 
@@ -6637,9 +6637,9 @@ details[open] .examples-toggle-icon {
     background: var(--color-primary);
     color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: opacity 0.15s;
 }
@@ -6900,7 +6900,7 @@ details[open] .examples-toggle-icon {
 /* JSON Syntax Highlighting - MuleSoft colors */
 .json-key {
     color: var(--color-primary-dark);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .json-string {
@@ -6913,7 +6913,7 @@ details[open] .examples-toggle-icon {
 
 .json-boolean {
     color: var(--color-purple);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .wf-param-row {
@@ -7235,7 +7235,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     font-size: var(--font-size-4);
     background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     padding: 0 3px;
 }
 
@@ -7258,7 +7258,7 @@ details[open] .examples-toggle-icon {
 .variables-sidebar-header h4 {
     margin: 0;
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     flex: 1;
 }
 
@@ -7281,7 +7281,7 @@ details[open] .examples-toggle-icon {
 .btn-debugger-next {
     background: white;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     padding: 0.375rem 0.5rem;
     cursor: pointer;
     display: flex;
@@ -7313,7 +7313,7 @@ details[open] .examples-toggle-icon {
     background: #dc2626;
     color: white;
     border: 1px solid #dc2626;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     padding: 0.375rem 0.5rem;
     cursor: pointer;
     display: flex;
@@ -7342,7 +7342,7 @@ details[open] .examples-toggle-icon {
 
 .variables-table th {
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     padding: 0.5rem;
     border-bottom: 1px solid var(--color-border);
@@ -7419,7 +7419,7 @@ details[open] .examples-toggle-icon {
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text);
 }
 
@@ -7427,7 +7427,7 @@ details[open] .examples-toggle-icon {
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text);
 }
 
@@ -7458,7 +7458,7 @@ details[open] .examples-toggle-icon {
     padding: 0.375rem 0.5rem;
     background: #f0f9ff;
     border: 1px solid #bae6fd;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
 }
 
@@ -7475,7 +7475,7 @@ details[open] .examples-toggle-icon {
 .variable-ref-link {
     color: #0176D3;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .variable-ref-link:hover {
@@ -7486,7 +7486,7 @@ details[open] .examples-toggle-icon {
     background: #dbeafe;
     color: #0369a1;
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-family: var(--font-mono);
     font-size: var(--font-size-3);
 }
@@ -7511,7 +7511,7 @@ details[open] .examples-toggle-icon {
     padding: 0.25rem 0.5rem;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     font-family: var(--font-mono);
     font-size: var(--font-size-3);
     color: #374151;
@@ -7521,10 +7521,10 @@ details[open] .examples-toggle-icon {
 .inline-variable-ref-link {
     color: #0176D3;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     padding: 0.125rem 0.25rem;
     background: #e0f2fe;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     transition: all 0.2s;
 }
 
@@ -7538,7 +7538,7 @@ input.has-variable-ref {
     background: #eff6ff !important;
     border-color: #93c5fd !important;
     color: #1e40af !important;
-    font-weight: 500 !important;
+    font-weight: var(--font-weight-medium) !important;
 }
 
 input.has-variable-ref:focus {
@@ -7563,7 +7563,7 @@ input.has-variable-ref:focus {
 .playground-operation-title {
     margin: 0;
     font-size: var(--font-size-5);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     font-family: var(--font-mono);
 }
@@ -7604,7 +7604,7 @@ input.has-variable-ref:focus {
 /* Modern Step Title */
 .step-title {
     font-size: var(--font-size-8);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     margin: 0 0 1rem 0;
     color: var(--color-neutral-10);
     font-family: var(--font-sans);
@@ -7637,18 +7637,18 @@ input.has-variable-ref:focus {
 .step-prose code {
     background: var(--color-neutral-2);
     padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-sm);
     color: var(--color-primary);
 
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 /* Unified Operation Block */
 .unified-operation-block {
     background: var(--color-neutral-1);
     border: 1px solid var(--color-neutral-4);
-    border-radius: 12px;
+    border-radius: var(--radius-large);
     overflow: hidden;
     margin: 1.5rem 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -7671,7 +7671,7 @@ input.has-variable-ref:focus {
 
 .operation-label {
     font-size: var(--font-size-3);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-neutral-7);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -7684,9 +7684,9 @@ input.has-variable-ref:focus {
     text-decoration: none;
     padding: 0.5rem 0.875rem;
     background: white;
-    border-radius: 6px;
+    border-radius: var(--radius-small);
     border: 1px solid var(--color-neutral-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -7702,7 +7702,7 @@ input.has-variable-ref:focus {
 /* Modern Terminal Window */
 .terminal-window {
     background: #FFFFFF;
-    border-radius: 8px;
+    border-radius: var(--radius-medium);
     overflow: hidden;
     border: 1px solid var(--color-neutral-5);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -7740,14 +7740,14 @@ input.has-variable-ref:focus {
 .terminal-title {
     font-size: var(--font-size-4);
     color: var(--color-neutral-9);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .terminal-title-link {
     text-decoration: none;
     color: var(--color-primary);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     transition: color 0.2s ease;
 }
 
@@ -7764,7 +7764,7 @@ input.has-variable-ref:focus {
     padding: 0 1rem;
     background: white;
     border: 1px solid var(--color-neutral-5);
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     color: var(--color-neutral-8);
     font-family: var(--font-sans);
     font-size: var(--font-size-2);
@@ -7784,7 +7784,7 @@ input.has-variable-ref:focus {
     background: #FAFBFC;
     color: var(--color-neutral-10);
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
-    font-size: 13px;
+    font-size: var(--font-size-3);
     line-height: 1.7;
     overflow-x: auto;
     border: none;
@@ -7802,24 +7802,24 @@ input.has-variable-ref:focus {
 
 .terminal-prompt {
     color: var(--color-neutral-8);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     margin-right: 0.75rem;
     user-select: none;
 }
 
 .terminal-command {
     color: #E06C75;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .terminal-method {
     color: #61AFEF;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .terminal-flag {
     color: #61AFEF;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 }
 
 .terminal-url {
@@ -7832,12 +7832,12 @@ input.has-variable-ref:focus {
 
 .terminal-header-name {
     color: var(--color-neutral-10);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 .terminal-variable {
     color: var(--color-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     font-style: normal;
 }
 
@@ -7850,12 +7850,12 @@ input.has-variable-ref:focus {
 .terminal-json-colon,
 .terminal-json-comma {
     color: var(--color-neutral-10);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 .terminal-key {
     color: var(--color-neutral-10);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
 }
 
 .terminal-value {
@@ -7901,7 +7901,7 @@ input.has-variable-ref:focus {
 .outputs-section-title {
     font-family: var(--font-sans);
     font-size: var(--font-size-6);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     margin: 0 0 var(--space-sm) 0;
     color: #494947;
 }
@@ -7912,7 +7912,7 @@ input.has-variable-ref:focus {
     gap: 0.625rem;
     margin-bottom: 1rem;
     font-size: var(--font-size-4);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-neutral-8);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -7942,9 +7942,9 @@ input.has-variable-ref:focus {
     font-size: var(--font-size-xs);
     background: white;
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     border: 1px solid rgba(0, 161, 223, 0.2);
 }
 
@@ -7959,7 +7959,7 @@ input.has-variable-ref:focus {
     font-size: var(--font-size-xs);
     background: white;
     padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    border-radius: var(--radius-small);
     color: var(--color-neutral-7);
     border: 1px solid var(--color-neutral-4);
 }
@@ -8019,7 +8019,7 @@ input.has-variable-ref:focus {
 
 .toggle-label-text {
     font-size: var(--font-size-4);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     color: var(--color-neutral-9);
 }
 
@@ -8072,7 +8072,7 @@ input.has-variable-ref:focus {
 .btn-debugger-cancel {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     padding: 0.375rem 0.5rem;
     cursor: pointer;
     display: flex;
@@ -8127,7 +8127,7 @@ input.has-variable-ref:focus {
     color: #5A5A56;
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
@@ -8168,7 +8168,7 @@ input.has-variable-ref:focus {
     gap: 0.375rem;
     padding: 0.375rem 0.75rem;
     font-size: var(--font-size-3);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     border: 1px solid #d1d5db;
     border-radius: var(--radius-large);
     background: var(--color-primary);
@@ -8188,7 +8188,7 @@ input.has-variable-ref:focus {
     width: 100%;
     padding: 0.25rem 0.5rem;
     border: 1px solid #d1d5db;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
     font-size: var(--font-size-2);
 }
@@ -8205,7 +8205,7 @@ input.has-variable-ref:focus {
     color: #9ca3af;
     cursor: pointer;
     padding: 0.25rem;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     transition: all 0.2s ease;
 }
 
@@ -8230,7 +8230,7 @@ input.has-variable-ref:focus {
 
 .variables-table th {
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     color: #374151;
     padding: 0.5rem 0.75rem;
     background: #f9fafb;
@@ -8250,7 +8250,7 @@ input.has-variable-ref:focus {
 
 .variables-table td:first-child {
     color: #0284c7;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     max-width: 120px;
 }
 
@@ -8286,7 +8286,7 @@ input.has-variable-ref:focus {
     font-size: var(--font-size-xs);
     padding: 0.2rem 0.1rem;
     border: 1px solid #d1d5db;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-small);
     cursor: pointer;
 }
 
@@ -8308,7 +8308,7 @@ input.has-variable-ref:focus {
     display: block;
     color: #374151;
     font-size: var(--font-size-2);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     margin-bottom: 0.5rem;
 }
 
@@ -8349,7 +8349,7 @@ input.has-variable-ref:focus {
     border-radius: var(--radius-xl);
     padding: 0.5rem 1rem;
     font-size: var(--font-size-3);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all 0.15s;
 }
@@ -8378,14 +8378,14 @@ input.has-variable-ref:focus {
 .evaluation-result-container .ace_editor {
     width: 100%;
     border: 1px solid #e5e7eb;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     font-size: var(--font-size-3);
 }
 
 .evaluation-placeholder {
     background: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 3px;
+    border-radius: var(--radius-small);
     padding: 2rem 0.75rem;
     color: #9ca3af;
     font-size: var(--font-size-3);

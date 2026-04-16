@@ -2479,7 +2479,10 @@ button.nav-group-header {
     padding: var(--space-md);
     order: 2;
     z-index: 100;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+    transform-origin: right center;
 }
 
 .try-panel-header {
@@ -2528,7 +2531,10 @@ button.nav-group-header {
     height: auto;
     order: 1;
     margin-bottom: var(--space-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+    transform-origin: right top;
 }
 
 .operation-content-wrapper.try-expanded .operation-main-content {
@@ -2543,7 +2549,6 @@ button.nav-group-header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-lg);
     align-items: start;
-    animation: fadeInGrid 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .try-form-container {
@@ -2553,7 +2558,6 @@ button.nav-group-header {
     gap: var(--space-sm);
     min-width: 0;
     overflow-x: hidden;
-    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
 }
 
 .operation-content-wrapper.try-expanded .try-form-container input,
@@ -2590,7 +2594,6 @@ button.nav-group-header {
     flex-direction: column;
     border-radius: var(--radius-medium);
     background: var(--color-neutral-2);
-    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
 }
 
 .operation-content-wrapper.try-expanded .try-response.empty {
@@ -7898,29 +7901,6 @@ input.has-variable-ref:focus {
 @keyframes spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-/* Try It Out Panel Expand/Collapse Animations */
-@keyframes fadeInGrid {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideInFromRight {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
     }
 }
 

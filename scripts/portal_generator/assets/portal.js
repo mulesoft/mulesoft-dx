@@ -3169,14 +3169,37 @@ function toggleSkillDropdown(slug) {
     if (toggle) toggle.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
 }
 
-function copySkillInstallCommand(slug, buttonEl) {
-    var command = 'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill ' + slug;
+function openInstallModal(slug) {
+    var modal = document.getElementById('install-modal-' + slug);
+    if (modal) modal.style.display = 'flex';
+    _closeAllSkillDropdowns();
+}
+
+function closeInstallModal(slug) {
+    var modal = document.getElementById('install-modal-' + slug);
+    if (modal) modal.style.display = 'none';
+}
+
+function copyInstallFromModal(slug, buttonEl) {
+    var codeEl = document.getElementById('install-cmd-' + slug);
+    if (!codeEl) return;
+    var command = codeEl.textContent;
     navigator.clipboard.writeText(command).then(function() {
-        _showSkillCopiedFeedback(buttonEl);
+        if (!buttonEl) return;
+        var label = buttonEl.querySelector('span');
+        if (!label) return;
+        var saved = label.textContent;
+        label.textContent = 'Copied!';
+        buttonEl.style.color = '#04844B';
+        buttonEl.style.borderColor = '#04844B';
+        setTimeout(function() {
+            label.textContent = saved;
+            buttonEl.style.color = '';
+            buttonEl.style.borderColor = '';
+        }, 1500);
     }).catch(function(err) {
         console.error('Failed to copy install command:', err);
     });
-    _closeAllSkillDropdowns();
 }
 
 function copySkillContent(slug, buttonEl) {

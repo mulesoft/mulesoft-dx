@@ -755,26 +755,61 @@ describe('toggleSkillDropdown', () => {
     });
 });
 
-describe('copySkillInstallCommand', () => {
+describe('openInstallModal / closeInstallModal', () => {
     afterEach(() => {
         document.body.innerHTML = '';
     });
 
-    test('copies correct command to clipboard', async () => {
-        let copied = '';
+    function buildModal(slug) {
+        const modal = document.createElement('div');
+        modal.id = 'install-modal-' + slug;
+        modal.style.display = 'none';
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    test('openInstallModal shows the modal', () => {
+        const modal = buildModal('test-skill');
+        openInstallModal('test-skill');
+        expect(modal.style.display).toBe('flex');
+    });
+
+    test('closeInstallModal hides the modal', () => {
+        const modal = buildModal('test-skill');
+        modal.style.display = 'flex';
+        closeInstallModal('test-skill');
+        expect(modal.style.display).toBe('none');
+    });
+
+    test('openInstallModal does nothing for non-existent slug', () => {
+        buildModal('real');
+        openInstallModal('fake');
+        expect(document.getElementById('install-modal-real').style.display).toBe('none');
+    });
+});
+
+describe('copyInstallFromModal', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    test('copies command text from code element', () => {
         Object.assign(navigator, {
-            clipboard: { writeText: jest.fn((text) => { copied = text; return Promise.resolve(); }) },
+            clipboard: { writeText: jest.fn(() => Promise.resolve()) },
         });
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'skill-split-btn';
-        const main = document.createElement('button');
-        main.className = 'skill-split-main';
-        main.innerHTML = '<span>Copy Install Command</span>';
-        wrapper.appendChild(main);
-        document.body.appendChild(wrapper);
+        const code = document.createElement('code');
+        code.id = 'install-cmd-my-skill';
+        code.textContent = 'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill my-skill';
+        document.body.appendChild(code);
 
-        copySkillInstallCommand('my-skill', main);
+        const btn = document.createElement('button');
+        const span = document.createElement('span');
+        span.textContent = 'Copy';
+        btn.appendChild(span);
+        document.body.appendChild(btn);
+
+        copyInstallFromModal('my-skill', btn);
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
             'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill my-skill'
         );

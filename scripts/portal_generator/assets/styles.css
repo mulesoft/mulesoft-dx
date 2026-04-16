@@ -3777,50 +3777,44 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-split-main {
+    height: 32px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    font-size: var(--lume-font-size-3);
+    padding: 0 1rem;
+    font-size: var(--lume-font-size-2);
     font-family: var(--font-sans);
-    font-weight: 500;
-    color: #374151;
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-right: none;
-    border-radius: 6px 0 0 6px;
+    font-weight: var(--lume-font-weight-semibold);
+    color: #3289CE;
+    background: var(--lume-color-neutral-1);
+    border: 1px solid #5C5C5C;
+    border-radius: 16px 0 0 16px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: opacity 0.15s;
     white-space: nowrap;
 }
 
 .skill-split-main:hover {
-    background: var(--lume-color-brand);
-    color: white;
-    border-color: var(--lume-color-brand);
+    opacity: 0.9;
 }
 
 .skill-split-toggle {
+    height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.375rem 0.5rem;
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 0 6px 6px 0;
-    color: #374151;
+    padding: 0 0.625rem;
+    background: white;
+    color: var(--lume-color-brand);
+    border: 1px solid #5C5C5C;
+    border-radius: 0 16px 16px 0;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .skill-split-toggle:hover {
-    background: var(--lume-color-brand);
-    color: white;
-    border-color: var(--lume-color-brand);
-}
-
-.skill-split-main:hover + .skill-split-toggle {
-    border-left-color: var(--lume-color-brand);
+    background: var(--lume-color-neutral-2);
 }
 
 .skill-split-toggle .chevron-icon {
@@ -3838,10 +3832,10 @@ details[open] .examples-toggle-icon {
     min-width: 210px;
     background: #ffffff;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     z-index: 100;
-    overflow: hidden;
+    padding: 4px;
 }
 
 .skill-dropdown-menu button,
@@ -3850,29 +3844,24 @@ details[open] .examples-toggle-icon {
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 10px 14px;
-    font-size: var(--lume-font-size-3);
+    padding: 8px 16px;
+    font-size: var(--lume-font-size-2);
     font-family: var(--font-sans);
-    font-weight: 500;
-    color: #374151;
+    font-weight: var(--lume-font-weight-semibold);
+    color: #5A5A56;
     background: none;
     border: none;
+    border-radius: 15px;
     cursor: pointer;
     text-decoration: none;
     text-align: left;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .skill-dropdown-menu button:hover,
 .skill-dropdown-menu a:hover {
-    background: var(--lume-color-brand);
-    color: white;
-}
-
-.skill-dropdown-menu button + button,
-.skill-dropdown-menu button + a,
-.skill-dropdown-menu a + button {
-    border-top: 1px solid #e5e7eb;
+    background: var(--hover-bg);
+    color: var(--hover-text);
 }
 
 .skill-name-sidebar {

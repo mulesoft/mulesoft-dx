@@ -2055,6 +2055,11 @@ button.nav-group-header {
 
 /* Expanded state */
 
+.operation-content-wrapper.try-expanded {
+    display: flex;
+    flex-direction: column;
+}
+
 .operation-content-wrapper.try-expanded .operation-try-panel {
     width: 100%;
     max-width: none;

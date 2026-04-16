@@ -106,8 +106,6 @@
     /* 24px */
     --space-x-large: 2rem;
     /* 32px */
-    --space-xx-large: 3rem;
-    /* 48px */
 
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
@@ -124,9 +122,6 @@
     --radius-large: 0.75rem;
     /* 12px */
     --radius-xl: 1rem;
-
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
 
     /* Typography */
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro", "Helvetica Neue", Arial, sans-serif;
@@ -764,7 +759,7 @@ code {
     margin-top: 4px;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-medium);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     max-height: 300px;
     overflow-y: auto;
@@ -808,7 +803,7 @@ code {
     border: 1px solid var(--color-border);
     background: var(--color-bg);
     color: var(--color-text-muted);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-medium);
     cursor: pointer;
     font-family: var(--font-sans);
     font-size: var(--font-size-sm);
@@ -1304,29 +1299,7 @@ code {
     color: var(--color-neutral-1);
 }
 
-/* Buttons */
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-x-small) var(--space-large);
-    background: var(--color-primary);
-    color: var(--color-neutral-1);
-    border-radius: var(--radius-medium);
-    font-size: var(--font-size-4);
-    font-weight: var(--font-weight-regular);
-    line-height: 1.875rem;
-    text-decoration: none;
-    transition: background 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
-    border: 1px solid var(--color-primary);
-    cursor: pointer;
-}
 
-.btn-primary:hover {
-    background: var(--color-primary-dark);
-    border-color: var(--color-primary-dark);
-    text-decoration: none;
-}
 
 /* ============================================================================
    Skills Section
@@ -1359,7 +1332,7 @@ code {
     padding: var(--space-xl);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-large);
     transition: all 0.2s ease;
 }
 
@@ -1519,27 +1492,6 @@ code {
     max-width: 60%;
 }
 
-.btn-secondary {
-    display: inline-block;
-    padding: 0.5rem 1.5rem;
-    background: var(--color-surface);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-medium);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.btn-secondary:hover {
-    background: rgba(1, 118, 211, 0.06);
-    color: var(--color-primary-dark);
-    border-color: var(--color-primary-dark);
-    text-decoration: none;
-}
 
 /* ============================================================================
    API Detail Header
@@ -1630,7 +1582,7 @@ code {
 .operation {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-medium);
     padding: var(--space-lg);
     transition: all 0.2s ease;
 }
@@ -2752,7 +2704,7 @@ button.nav-group-header {
 }
 
 .url-server-part {
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
     cursor: pointer;
     position: relative;
     border-bottom: 1px dashed transparent;
@@ -2883,7 +2835,7 @@ button.nav-group-header {
     font-size: var(--font-size-2);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
     margin: 0 0 var(--space-sm) 0;
 }
 
@@ -3185,79 +3137,6 @@ button.nav-group-header {
     display: block;
 }
 
-/* Enum values display - inline preview and collapsible */
-.enum-preview {
-    margin-top: 0.5rem;
-    font-size: var(--font-size-4);
-    color: var(--color-gray-800);
-}
-
-.enum-value-inline {
-    font-size: var(--font-size-4);
-    background: transparent;
-    color: #111827;
-    padding: 0;
-    border: none;
-    font-family: var(--font-mono);
-    font-weight: var(--font-weight-regular);
-}
-
-.enum-more {
-    color: var(--color-gray-500);
-    font-style: italic;
-}
-
-.enum-details {
-    margin-top: 0.5rem;
-}
-
-.enum-summary {
-    cursor: pointer;
-    font-size: var(--font-size-4);
-    color: #2563eb;
-    font-weight: var(--font-weight-regular);
-    user-select: none;
-    list-style: none;
-}
-
-.enum-summary::-webkit-details-marker {
-    display: none;
-}
-
-.enum-summary:hover {
-    color: #1d4ed8;
-}
-
-.enum-values-list {
-    margin-top: 0.75rem;
-    margin-left: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.enum-value-item {
-    position: relative;
-    padding-left: 0;
-}
-
-.enum-value-item::before {
-    content: '•';
-    position: absolute;
-    left: -1rem;
-    color: var(--color-gray-500);
-}
-
-.enum-value {
-    font-size: var(--font-size-4);
-    background: transparent;
-    color: #111827;
-    padding: 0;
-    border: none;
-    font-family: var(--font-mono);
-    font-weight: var(--font-weight-regular);
-}
-
 /* Unified constraint display for enum, pattern, default, etc. */
 .param-constraint {
     display: block;
@@ -3366,7 +3245,7 @@ details[open] .examples-toggle-icon {
     padding: 0.125rem 0.5rem;
     background: var(--color-gray-100);
     border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-large);
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
     color: var(--color-gray-500);
@@ -4784,6 +4663,19 @@ details[open] .examples-toggle-icon {
     }
 }
 
+.ace_editor {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-large);
+    min-height: 200px;
+}
+
+.ace_editor.ace_focus {
+    outline: 2px solid rgba(1, 118, 211, 0.15);
+    border-color: var(--color-primary);
+}
+
 /* ============================================================================
    Auth Panel
    ============================================================================ */
@@ -6155,7 +6047,7 @@ details[open] .examples-toggle-icon {
 }
 
 .xorigin-params-section input[type="text"]::placeholder {
-    color: var(--text-tertiary);
+    color: var(--color-text-muted);
     font-style: italic;
 }
 
@@ -6510,7 +6402,7 @@ details[open] .examples-toggle-icon {
 
 .response-status-badge {
     padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-large);
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-semibold);
     font-family: var(--font-mono);
@@ -6662,7 +6554,6 @@ details[open] .examples-toggle-icon {
     transition: opacity 0.15s;
 }
 
-
 .btn-wf-toggle:hover {
     opacity: 0.85;
 }
@@ -6678,60 +6569,6 @@ details[open] .examples-toggle-icon {
     border: 1px solid var(--color-neutral-4);
     border-radius: var(--radius-large);
     overflow: hidden;
-}
-
-/* Unified collapsible panel with single header */
-.wf-unified-panel {
-    border: none;
-}
-
-.wf-unified-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-small);
-    padding: var(--space-small) var(--space-medium);
-    cursor: pointer;
-    user-select: none;
-    background: var(--color-neutral-1);
-    border: none;
-    list-style: none;
-}
-
-.wf-unified-header::-webkit-details-marker {
-    display: none;
-}
-
-.wf-unified-header:hover {
-    background: var(--color-neutral-2);
-}
-
-.wf-unified-header::before {
-    content: '▼';
-    font-size: var(--font-size-1);
-    transition: transform 0.2s;
-    display: inline-block;
-    color: var(--color-neutral-7);
-    flex-shrink: 0;
-}
-
-.wf-unified-panel:not([open]) .wf-unified-header::before {
-    transform: rotate(-90deg);
-}
-
-.wf-unified-header h5 {
-    margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-3);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-neutral-10);
-    flex: 1;
-}
-
-.wf-header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-small);
-    margin-left: auto;
 }
 
 /* Side-by-side layout for inputs and outputs */
@@ -8057,7 +7894,7 @@ input.has-variable-ref:focus {
     max-height: calc(100vh - 100px);
     background: var(--color-white);
     border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-large);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -8340,7 +8177,7 @@ input.has-variable-ref:focus {
     flex: 1;
     background: var(--color-white);
     border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-medium);
     padding: 0.5rem 0.75rem;
     color: var(--color-gray-800);
     font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;

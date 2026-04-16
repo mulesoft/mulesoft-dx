@@ -2885,12 +2885,41 @@ details[open] .examples-toggle-icon {
 
 /* Tables */
 .params-table,
+.responses-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-medium);
+    table-layout: fixed;
+}
 
 .params-table th,
+.responses-table th {
+    text-align: left;
+    padding: var(--space-x-small) var(--space-small);
+    background: var(--color-neutral-2);
+    border: 1px solid var(--color-neutral-5);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-3);
+    color: var(--color-neutral-8);
+}
 
 .params-table td,
+.responses-table td {
+    padding: var(--space-small) var(--space-medium);
+    border: 1px solid var(--color-neutral-5);
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: var(--font-size-3);
+    line-height: 1.6;
+}
 
 .params-table td:last-child ul,
+.schema-table td:last-child ul {
+    margin: 6px 0;
+    padding-left: 1.25em;
+    list-style: disc;
+}
 
 .params-table td:last-child li,
 
@@ -3443,8 +3472,38 @@ details[open] .examples-toggle-icon {
    Response Block
    ============================================================================ */
 
+.response-block {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    margin-bottom: var(--space-sm);
+    overflow: hidden;
+    max-width: 100%;
+}
 
+.response-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    font-size: var(--font-size-3);
+}
 
+.response-desc {
+    flex: 1;
+    color: var(--color-text-muted);
+}
+
+.response-ct {
+    font-size: var(--font-size-2);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+}
+
+.response-block .schema-table {
+    margin: 0;
+    border-radius: 0;
+}
 
 
 

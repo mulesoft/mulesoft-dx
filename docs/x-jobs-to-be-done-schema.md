@@ -149,21 +149,20 @@ parameterName:
       description: Alternative field option
 ```
 
-#### 2. From Previous Step
+#### 2. From Previous Step (Variable Reference)
 ```yaml
-# Reference step output
+# Reference a variable from any previous step
 parameterName:
   from:
-    step: Create API Instance
-    output: environmentApiId
-  description: API instance from step 1
+    variable: environmentApiId
+  description: API instance from a previous step
 
-# Reference step input (reuse)
+# With optional field navigation (JSONPath on the resolved value)
 parameterName:
   from:
-    step: Create API Instance
-    input: organizationId
-  description: Same organizationId as step 1
+    variable: tiers
+    field: $[0].id
+  description: First tier ID from the tiers list
 ```
 
 #### 3. Literal Value
@@ -276,28 +275,6 @@ This skill has multiple execution paths depending on what you already have:
 - Referenced step numbers must exist in the skill
 - The step sequence may not be strictly sequential — some paths skip steps or include earlier steps needed for context (e.g., listing environments)
 
-#### Skip Annotations
-
-Add a blockquote annotation at the top of a step's prose to indicate when it can be skipped:
-
-```markdown
-## Step 1: Create Exchange Asset
-
-> **Skip if:** You already have an Exchange asset with a known `groupId`, `assetId`, and `assetVersion`.
-
-Creates a new API asset in Exchange from your API specification...
-```
-
-**Format rules:**
-- Use the exact pattern: `> **Skip if:** <condition text>`
-- Place it as the first content after the step header
-- The condition text should clearly state what the user needs to already have
-- The parser extracts this into a separate `skip_condition` field and renders it as a banner
-- In playground mode, steps with skip annotations get a "Skip this step" button
-- When a step is skipped, the portal prompts users to manually provide any required variables
-
-**Example:** See `skills/protect-api-with-policies/SKILL.md` for a complete working example of conditional steps.
-
 ### Validation
 
 Use the validator to check:
@@ -317,7 +294,6 @@ python3 scripts/build/validate_jtbd.py job.md /path/to/api-specs-root
 - ✅ Step dependencies are valid
 - ✅ Input/output references are correct
 - ⚠️ Execution Paths step references are in range (warning)
-- ⚠️ Skip annotations on steps with downstream dependencies (warning)
 
 ### Creating a New Job
 
@@ -482,22 +458,21 @@ parameterName:
 
 **URN Format:** `urn:api:{folder-name}` where folder-name matches the API directory
 
-### From Previous Step
+### From Previous Step (Variable Reference)
 
 ```yaml
-# Output reference
+# Reference a variable from any previous step
 parameterName:
   from:
-    step: Create API Instance          # Step name
-    output: environmentApiId           # Output variable
-  description: API instance from step 1
+    variable: environmentApiId
+  description: API instance from a previous step
 
-# Input reuse
+# With optional field navigation
 parameterName:
   from:
-    step: Create API Instance
-    input: organizationId
-  description: Same organizationId as step 1
+    variable: tiers
+    field: $[0].id
+  description: First tier ID from the tiers list
 ```
 
 ### Literal Value

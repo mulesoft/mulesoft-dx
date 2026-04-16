@@ -3147,6 +3147,113 @@ function copyCurlFromTerminal(button) {
 }
 
 // ============================================================================
+// Skill Actions Dropdown
+// ============================================================================
+
+function toggleSkillDropdown(slug) {
+    var menu = document.getElementById('skill-dropdown-menu-' + slug);
+    if (!menu) return;
+    var toggle = menu.closest('.skill-split-btn').querySelector('.skill-split-toggle');
+
+    // Close any other open skill dropdowns
+    document.querySelectorAll('.skill-dropdown-menu').forEach(function(m) {
+        if (m !== menu && m.style.display !== 'none') {
+            m.style.display = 'none';
+            var t = m.closest('.skill-split-btn').querySelector('.skill-split-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    var isVisible = menu.style.display !== 'none';
+    menu.style.display = isVisible ? 'none' : 'block';
+    if (toggle) toggle.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
+}
+
+function openInstallModal(slug) {
+    var modal = document.getElementById('install-modal-' + slug);
+    if (modal) modal.style.display = 'flex';
+    _closeAllSkillDropdowns();
+}
+
+function closeInstallModal(slug) {
+    var modal = document.getElementById('install-modal-' + slug);
+    if (modal) modal.style.display = 'none';
+}
+
+function copyInstallFromModal(slug, buttonEl) {
+    var codeEl = document.getElementById('install-cmd-' + slug);
+    if (!codeEl) return;
+    var command = codeEl.textContent;
+    navigator.clipboard.writeText(command).then(function() {
+        if (!buttonEl) return;
+        var label = buttonEl.querySelector('span');
+        if (!label) return;
+        var saved = label.textContent;
+        label.textContent = 'Copied!';
+        buttonEl.style.color = '#04844B';
+        buttonEl.style.borderColor = '#04844B';
+        setTimeout(function() {
+            label.textContent = saved;
+            buttonEl.style.color = '';
+            buttonEl.style.borderColor = '';
+        }, 1500);
+    }).catch(function(err) {
+        console.error('Failed to copy install command:', err);
+    });
+}
+
+function copySkillContent(slug, buttonEl) {
+    var url = '../skills/' + slug + '/SKILL.md';
+    fetch(url).then(function(res) { return res.text(); }).then(function(content) {
+        navigator.clipboard.writeText(content).then(function() {
+            _showSkillCopiedFeedback(buttonEl);
+        });
+    }).catch(function(err) {
+        console.error('Failed to copy skill content:', err);
+    });
+    _closeAllSkillDropdowns();
+}
+
+function _showSkillCopiedFeedback(buttonEl) {
+    if (!buttonEl) return;
+    var splitBtn = buttonEl.closest('.skill-split-btn');
+    if (!splitBtn) return;
+    var mainBtn = splitBtn.querySelector('.skill-split-main');
+    if (!mainBtn) return;
+    var label = mainBtn.querySelector('span');
+    if (!label) return;
+    var saved = label.textContent;
+    label.textContent = 'Copied!';
+    mainBtn.style.background = '#04844B';
+    mainBtn.style.color = 'white';
+    mainBtn.style.borderColor = '#04844B';
+    setTimeout(function() {
+        label.textContent = saved;
+        mainBtn.style.background = '';
+        mainBtn.style.color = '';
+        mainBtn.style.borderColor = '';
+    }, 1500);
+}
+
+function _closeAllSkillDropdowns() {
+    document.querySelectorAll('.skill-dropdown-menu').forEach(function(m) {
+        m.style.display = 'none';
+        var splitBtn = m.closest('.skill-split-btn');
+        if (splitBtn) {
+            var t = splitBtn.querySelector('.skill-split-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
+
+// Close skill dropdown on outside click
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.skill-split-btn')) {
+        _closeAllSkillDropdowns();
+    }
+});
+
+// ============================================================================
 // Response Status Selector
 // ============================================================================
 
@@ -5715,9 +5822,8 @@ function renderWorkflowStepForms(skillSlug) {
 
                     // Source hint
                     var hint = '';
-                    if (hasFrom && bf.def.from.step) {
-                        var target = bf.def.from.output || bf.def.from.input || '';
-                        hint = 'from Step: ' + bf.def.from.step + (target ? ' → ' + target : '');
+                    if (hasFrom && bf.def.from.variable) {
+                        hint = 'from variable: ' + bf.def.from.variable;
                     } else if (isUserProvided) {
                         hint = 'user provided';
                     } else if (bf.def.value !== undefined) {
@@ -5918,31 +6024,34 @@ function resolveWorkflowInputs(skillSlug, stepIndex) {
             resolvedFrom = 'static';
         }
 
-        // 2. From previous step
-        if (source.from && typeof source.from === 'object' && source.from.step) {
-            var stepName = source.from.step;
-            var fromOutput = source.from.output;
-            var fromInput = source.from.input;
+        // 2. From variable (search previous steps in reverse order)
+        if (source.from && typeof source.from === 'object' && source.from.variable) {
+            var varName = source.from.variable;
             var field = source.from.field || '';
 
-            // Find the step index by title
-            var srcStepIdx = findStepByTitle(skillSlug, stepName);
-            if (srcStepIdx >= 0 && ctx.stepResults[srcStepIdx]) {
-                var srcResult = ctx.stepResults[srcStepIdx];
-                var val = null;
-                if (fromOutput && srcResult.outputs[fromOutput] !== undefined) {
-                    val = srcResult.outputs[fromOutput];
-                } else if (fromInput && srcResult.inputs[fromInput] !== undefined) {
-                    val = srcResult.inputs[fromInput];
+            // Search previous steps in reverse order (most recent first)
+            var val = null;
+            for (var s = stepIndex - 1; s >= 0; s--) {
+                if (!ctx.stepResults[s]) continue;
+                var srcResult = ctx.stepResults[s];
+                // Check outputs first (higher priority)
+                if (srcResult.outputs && srcResult.outputs[varName] !== undefined) {
+                    val = srcResult.outputs[varName];
+                    break;
                 }
-                // Apply field navigation if present
-                if (val != null && field) {
-                    val = extractByPath(val, field);
+                // Then check inputs
+                if (srcResult.inputs && srcResult.inputs[varName] !== undefined) {
+                    val = srcResult.inputs[varName];
+                    break;
                 }
-                if (val != null) {
-                    resolved = typeof val === 'object' ? JSON.stringify(val) : String(val);
-                    resolvedFrom = 'step';
-                }
+            }
+            // Apply field navigation if present
+            if (val != null && field) {
+                val = extractByPath(val, field);
+            }
+            if (val != null) {
+                resolved = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                resolvedFrom = 'variable';
             }
         }
 

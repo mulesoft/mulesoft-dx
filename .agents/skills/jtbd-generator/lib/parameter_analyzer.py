@@ -254,15 +254,15 @@ def detect_parameter_source(
     Returns:
         Source detection result:
         {
-            'source_type': 'from_step' | 'from_api' | 'user_provided' | 'literal',
+            'source_type': 'from_variable' | 'from_api' | 'user_provided' | 'literal',
             'source_details': {...},
             'confidence': 'high' | 'medium' | 'low'
         }
 
     Example:
         source = detect_parameter_source('environmentApiId', param_def, previous_steps)
-        if source['source_type'] == 'from_step':
-            print(f"Use output from step {source['source_details']['step']}")
+        if source['source_type'] == 'from_variable':
+            print(f"Use variable {source['source_details']['variable']}")
     """
     if previous_steps is None:
         previous_steps = []
@@ -281,10 +281,9 @@ def detect_parameter_source(
             # Exact match or fuzzy match
             if output_name == param_name or output_name == base_param_name:
                 return {
-                    'source_type': 'from_step',
+                    'source_type': 'from_variable',
                     'source_details': {
-                        'step': step.get('name', f'Step {step_idx + 1}'),
-                        'output': output_name
+                        'variable': output_name
                     },
                     'confidence': 'high'
                 }
@@ -297,10 +296,9 @@ def detect_parameter_source(
         if param_name in step['inputs'] or base_param_name in step['inputs']:
             input_key = param_name if param_name in step['inputs'] else base_param_name
             return {
-                'source_type': 'from_step',
+                'source_type': 'from_variable',
                 'source_details': {
-                    'step': step.get('name', f'Step {step_idx + 1}'),
-                    'input': input_key
+                    'variable': input_key
                 },
                 'confidence': 'high'
             }
@@ -398,20 +396,15 @@ def build_input_definition(
     # Base definition
     definition = {}
 
-    if source_type == 'from_step':
-        # From previous step
+    if source_type == 'from_variable':
+        # From a previous step's variable
         definition['from'] = {
-            'step': source_details['step']
+            'variable': source_details['variable']
         }
-
-        if 'output' in source_details:
-            definition['from']['output'] = source_details['output']
-        elif 'input' in source_details:
-            definition['from']['input'] = source_details['input']
 
         definition['description'] = (
             param_def.get('description') or
-            f"Value from {source_details['step']}"
+            f"Variable {source_details['variable']} from a previous step"
         )
 
     elif source_type == 'from_api':

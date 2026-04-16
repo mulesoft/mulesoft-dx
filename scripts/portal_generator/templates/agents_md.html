@@ -120,7 +120,7 @@ Skills are multi-step API workflows in markdown. Each `SKILL.md` has:
 
 | Type | Key | Description |
 |---|---|---|
-| From previous step | `from.step` + `from.output` | Output from an earlier workflow step |
+| From previous step | `from.variable` | Variable from an earlier workflow step |
 | From API | `from.api` + `from.operation` + `from.field` | Value fetched from an API call |
 | User-provided | `userProvided: true` | Must be supplied by the user/agent |
 | Literal | `value: "..."` | Static constant |
@@ -150,7 +150,7 @@ Filter: entries where kind == "agent-skill" AND apis contains "{api-slug}"
 2. Parse YAML frontmatter and step blocks
 3. For each step, resolve the API spec: `GET {{ base_url }}/apis/{slug}/api.yaml`
 4. Find the operation by `operationId`, build the request from inputs
-5. Chain outputs from one step into the next step's inputs
+5. Chain variables between steps — outputs and resolved inputs become available to subsequent steps
 
 ### Resolve x-origin dynamic values
 

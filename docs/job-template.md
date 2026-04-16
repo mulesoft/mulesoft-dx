@@ -46,10 +46,6 @@ This skill has multiple execution paths depending on what you already have:
 
 ## Step 1: [Action-Oriented Step Name]
 
-> **Skip if:** [Condition when this step can be skipped. Include which variables the user should already have.]
-
-(Optional - include the skip annotation only for steps that can be skipped)
-
 [Prose explanation of what this step does and why it's needed. Provide context about when this would be used and what it accomplishes.]
 
 **What you'll need:**
@@ -75,19 +71,17 @@ inputs:
       - field: $.alternativeFieldPath
         description: Alternative source for this value
 
-  # From previous step output
+  # From a previous step (variable reference)
   anotherParameter:
     from:
-      step: [Previous Step Name]
-      output: outputVariableName
-    description: The value captured from previous step
+      variable: outputVariableName
+    description: The value captured from a previous step
 
-  # From previous step input (reuse)
+  # Reuse a variable from any earlier step
   reusedParameter:
     from:
-      step: [Previous Step Name]
-      input: inputParameterName
-    description: Same value as used in previous step
+      variable: inputParameterName
+    description: Same value as used in a previous step
 
   # Literal value
   constantParameter:

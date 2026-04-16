@@ -95,20 +95,17 @@ operationId: createOrganizationsEnvironmentsApisContracts
 inputs:
   organizationId:
     from:
-      step: List Existing Tiers
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: List Existing Tiers
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: List Existing Tiers
-      input: environmentApiId
+      variable: environmentApiId
     description: Same API instance as Step 1
 
   applicationId:
@@ -122,8 +119,7 @@ inputs:
 
   requestedTierId:
     from:
-      step: List Existing Tiers
-      output: tiers
+      variable: tiers
       field: $[0].id
     description: Bronze tier ID from Step 1 (select appropriate tier from list)
 
@@ -155,20 +151,17 @@ operationId: listOrganizationsEnvironmentsApisContracts
 inputs:
   organizationId:
     from:
-      step: List Existing Tiers
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: List Existing Tiers
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: List Existing Tiers
-      input: environmentApiId
+      variable: environmentApiId
     description: Same API instance as Step 1
 
 outputs:
@@ -196,32 +189,27 @@ operationId: updateOrganizationsEnvironmentsApisContracts
 inputs:
   organizationId:
     from:
-      step: List Existing Tiers
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: List Existing Tiers
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: List Existing Tiers
-      input: environmentApiId
+      variable: environmentApiId
     description: Same API instance as Step 1
 
   contractId:
     from:
-      step: Create Contract for Bronze Tier
-      output: contractId
+      variable: contractId
     description: Contract ID from Step 2
 
   requestedTierId:
     from:
-      step: List Existing Tiers
-      output: tiers
+      variable: tiers
       field: $[1].id
     description: Silver tier ID from Step 1 (select appropriate tier from list)
 

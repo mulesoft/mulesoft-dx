@@ -94,10 +94,8 @@
 {% macro render_input_value(defn) -%}
 {% if defn is mapping %}
 {% if defn.from is defined %}
-{% set from_step = defn.from.step|default('') %}
-{% set from_input = defn.from.input|default('') %}
-{% set from_output = defn.from.output|default('') %}
-{% if from_input %}{{ '{{' }}{{ from_step|slugify }}.{{ from_input }}{{ '}}' }}{% elif from_output %}{{ '{{' }}{{ from_step|slugify }}.{{ from_output }}{{ '}}' }}{% endif %}
+{% set from_variable = defn.from.variable|default('') %}
+{% if from_variable %}{{ '{{' }}{{ from_variable }}{{ '}}' }}{% endif %}
 {% elif defn.value is defined %}
 {{ defn.value }}
 {% else %}

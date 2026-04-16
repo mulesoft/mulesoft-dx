@@ -79,13 +79,11 @@ operationId: getScannerRunHistory
 inputs:
   organizationId:
     from:
-      step: Execute the Scanner
-      input: organizationId
+      variable: organizationId
     description: Same organization ID as Step 1
   scannerId:
     from:
-      step: Execute the Scanner
-      input: scannerConfigurationId
+      variable: scannerConfigurationId
     description: The scanner configuration ID (used as scanner ID)
   page:
     value: "0"
@@ -132,13 +130,11 @@ operationId: getStagingAssetsByScanRunId
 inputs:
   scannerId:
     from:
-      step: Get Scanner Run History
-      input: scannerId
+      variable: scannerId
     description: The scanner ID
   scanRunId:
     from:
-      step: Get Scanner Run History
-      output: scanRunId
+      variable: scanRunId
     description: The scan run ID from Step 2
   page:
     value: "0"

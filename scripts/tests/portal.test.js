@@ -686,3 +686,197 @@ describe('renderOutputDropdownRow', () => {
         expect(html).not.toContain('data-row-index');
     });
 });
+
+// ===========================================================================
+// Skill Actions Dropdown
+// ===========================================================================
+describe('toggleSkillDropdown', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function buildSplitBtn(slug) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'skill-split-btn';
+        wrapper.id = 'skill-actions-' + slug;
+
+        const main = document.createElement('button');
+        main.className = 'skill-split-main';
+        wrapper.appendChild(main);
+
+        const toggle = document.createElement('button');
+        toggle.className = 'skill-split-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        wrapper.appendChild(toggle);
+
+        const menu = document.createElement('div');
+        menu.className = 'skill-dropdown-menu';
+        menu.id = 'skill-dropdown-menu-' + slug;
+        menu.style.display = 'none';
+        wrapper.appendChild(menu);
+
+        document.body.appendChild(wrapper);
+        return { wrapper, main, toggle, menu };
+    }
+
+    test('opens a closed dropdown', () => {
+        const { toggle, menu } = buildSplitBtn('test-skill');
+        toggleSkillDropdown('test-skill');
+        expect(menu.style.display).toBe('block');
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    test('closes an open dropdown', () => {
+        const { toggle, menu } = buildSplitBtn('test-skill');
+        menu.style.display = 'block';
+        toggle.setAttribute('aria-expanded', 'true');
+        toggleSkillDropdown('test-skill');
+        expect(menu.style.display).toBe('none');
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    test('closes other open dropdowns when opening a new one', () => {
+        const first = buildSplitBtn('skill-a');
+        const second = buildSplitBtn('skill-b');
+        first.menu.style.display = 'block';
+        first.toggle.setAttribute('aria-expanded', 'true');
+
+        toggleSkillDropdown('skill-b');
+        expect(first.menu.style.display).toBe('none');
+        expect(first.toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(second.menu.style.display).toBe('block');
+    });
+
+    test('does nothing for non-existent slug', () => {
+        buildSplitBtn('real');
+        toggleSkillDropdown('fake');
+        // No error thrown, real menu unchanged
+        expect(document.getElementById('skill-dropdown-menu-real').style.display).toBe('none');
+    });
+});
+
+describe('openInstallModal / closeInstallModal', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function buildModal(slug) {
+        const modal = document.createElement('div');
+        modal.id = 'install-modal-' + slug;
+        modal.style.display = 'none';
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    test('openInstallModal shows the modal', () => {
+        const modal = buildModal('test-skill');
+        openInstallModal('test-skill');
+        expect(modal.style.display).toBe('flex');
+    });
+
+    test('closeInstallModal hides the modal', () => {
+        const modal = buildModal('test-skill');
+        modal.style.display = 'flex';
+        closeInstallModal('test-skill');
+        expect(modal.style.display).toBe('none');
+    });
+
+    test('openInstallModal does nothing for non-existent slug', () => {
+        buildModal('real');
+        openInstallModal('fake');
+        expect(document.getElementById('install-modal-real').style.display).toBe('none');
+    });
+});
+
+describe('copyInstallFromModal', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    test('copies command text from code element', () => {
+        Object.assign(navigator, {
+            clipboard: { writeText: jest.fn(() => Promise.resolve()) },
+        });
+
+        const code = document.createElement('code');
+        code.id = 'install-cmd-my-skill';
+        code.textContent = 'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill my-skill';
+        document.body.appendChild(code);
+
+        const btn = document.createElement('button');
+        const span = document.createElement('span');
+        span.textContent = 'Copy';
+        btn.appendChild(span);
+        document.body.appendChild(btn);
+
+        copyInstallFromModal('my-skill', btn);
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+            'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill my-skill'
+        );
+    });
+});
+
+describe('copySkillContent', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+        globalThis.fetch = undefined;
+    });
+
+    test('fetches SKILL.md and copies to clipboard', async () => {
+        const mdContent = '---\nname: my-skill\n---\n# My Skill';
+        globalThis.fetch = jest.fn(() => Promise.resolve({ text: () => Promise.resolve(mdContent) }));
+        Object.assign(navigator, {
+            clipboard: { writeText: jest.fn(() => Promise.resolve()) },
+        });
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'skill-split-btn';
+        const main = document.createElement('button');
+        main.className = 'skill-split-main';
+        main.textContent = 'Copy Install Command';
+        const span = document.createElement('span');
+        span.textContent = 'Copy Install Command';
+        main.appendChild(span);
+        wrapper.appendChild(main);
+        document.body.appendChild(wrapper);
+
+        copySkillContent('my-skill', main);
+        expect(globalThis.fetch).toHaveBeenCalledWith('../skills/my-skill/SKILL.md');
+
+        // Wait for promises to resolve
+        await new Promise((r) => setTimeout(r, 0));
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mdContent);
+    });
+});
+
+describe('_closeAllSkillDropdowns', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    test('closes all open dropdowns', () => {
+        function addMenu(slug) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'skill-split-btn';
+            const toggle = document.createElement('button');
+            toggle.className = 'skill-split-toggle';
+            toggle.setAttribute('aria-expanded', 'true');
+            wrapper.appendChild(toggle);
+            const menu = document.createElement('div');
+            menu.className = 'skill-dropdown-menu';
+            menu.id = 'skill-dropdown-menu-' + slug;
+            menu.style.display = 'block';
+            wrapper.appendChild(menu);
+            document.body.appendChild(wrapper);
+            return { toggle, menu };
+        }
+
+        const a = addMenu('a');
+        const b = addMenu('b');
+        _closeAllSkillDropdowns();
+        expect(a.menu.style.display).toBe('none');
+        expect(b.menu.style.display).toBe('none');
+        expect(a.toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(b.toggle.getAttribute('aria-expanded')).toBe('false');
+    });
+});

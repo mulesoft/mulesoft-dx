@@ -64,8 +64,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
   - name: environmentId
@@ -92,13 +91,11 @@ operationId: listOrganizationsEnvironmentsApis
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 outputs:
   - name: environmentApiId
@@ -130,18 +127,15 @@ operationId: getExchangePolicyTemplates
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
   apiInstanceId:
     from:
-      step: List API Instances
-      output: environmentApiId
+      variable: environmentApiId
     description: Filters templates to those compatible with this API instance
   includeConfiguration:
     value: true
@@ -190,38 +184,32 @@ operationId: createOrganizationsEnvironmentsApisPolicies
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   environmentApiId:
     from:
-      step: List API Instances
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 3
 
   groupId:
     from:
-      step: Get Policy Templates with Configuration
-      output: policyGroupId
+      variable: policyGroupId
     description: Exchange groupId of the policy asset
 
   assetId:
     from:
-      step: Get Policy Templates with Configuration
-      output: policyAssetId
+      variable: policyAssetId
     description: Exchange assetId of the policy asset
 
   assetVersion:
     from:
-      step: Get Policy Templates with Configuration
-      output: policyAssetVersion
+      variable: policyAssetVersion
     description: Version of the policy asset
 
   configurationData:

@@ -41,12 +41,6 @@ def _extract_yaml_blocks(content: str) -> List[Dict]:
 
 _yaml_fence_pattern = re.compile(r'```ya?ml\s*\n.*?```', re.DOTALL)
 
-# Pattern for > **Skip if:** blockquote annotations in step prose
-_skip_annotation_pattern = re.compile(
-    r'^>\s*\*\*Skip if:\*\*\s*(.+?)(?:\n(?!>)|\Z)',
-    re.MULTILINE | re.DOTALL,
-)
-
 # Pattern for execution paths: - **Path name**: Steps N, N, N
 _exec_path_pattern = re.compile(
     r'^\- \*\*(.+?)\*\*:\s*Steps\s+(.+?)$',
@@ -68,21 +62,6 @@ def _strip_redundant_prose(text: str) -> str:
     for pattern in _redundant_prose_patterns:
         text = pattern.sub('', text)
     return text.strip()
-
-
-def _extract_skip_annotation(text: str) -> tuple:
-    """Extract '> **Skip if:**' blockquote from step prose.
-    Returns (skip_condition_text, cleaned_prose) or (None, original_text)."""
-    match = _skip_annotation_pattern.search(text)
-    if not match:
-        return None, text
-    condition = match.group(1).strip()
-    # Remove trailing > continuation lines that are part of the blockquote
-    # and clean up the annotation from the prose
-    cleaned = text[:match.start()] + text[match.end():]
-    # Remove any leftover blank lines from extraction
-    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
-    return condition, cleaned.strip()
 
 
 def _extract_entry_points(content: str) -> List[Dict]:
@@ -156,15 +135,11 @@ def _extract_step_details(content: str) -> List[Dict]:
             prose_before = _strip_redundant_prose(body)
             prose_after = ''
 
-        # Extract skip annotation from prose_before
-        skip_condition, prose_before_clean = _extract_skip_annotation(prose_before)
-
         steps.append({
             'title': header,
             'yaml': yaml_data,
-            'prose_before_html': _md.render(prose_before_clean) if prose_before_clean else '',
+            'prose_before_html': _md.render(prose_before) if prose_before else '',
             'prose_after_html': _md.render(prose_after) if prose_after else '',
-            'skip_condition': skip_condition,
         })
         i += 2
 

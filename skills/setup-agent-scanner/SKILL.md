@@ -81,8 +81,7 @@ operationId: createConnection
 inputs:
   organizationId:
     from:
-      step: Get Available Target Systems
-      input: organizationId
+      variable: organizationId
     description: Same organization ID as Step 1
   requestBody:
     userProvided: true
@@ -127,8 +126,7 @@ operationId: createScanConfigurations
 inputs:
   organizationId:
     from:
-      step: Get Available Target Systems
-      input: organizationId
+      variable: organizationId
     description: Same organization ID as previous steps
   requestBody:
     userProvided: true

@@ -17,7 +17,7 @@ export AKAMAI_USERNAME="API_Portal_Team"
 echo "=== Generating portal (${BRANCH_NAME}: ${GIT_COMMIT}) ==="
 make -C "$REPO_ROOT" generate-portal \
   BUILD_LABEL="${BRANCH_NAME}: ${GIT_COMMIT}" \
-  BASE_URL=https://test-api-portal.mulesoft.com
+  BASE_URL=https://test-dev-portal.mulesoft.com
 
 # Deploy
 echo "=== Deploying to TEST | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} ==="

@@ -110,7 +110,7 @@ def _prepare_operations(apis: List[Dict]):
 
 class PortalGenerator:
     def __init__(self, output_dir: Path, proxy_url: str = 'http://localhost:8080/proxy',
-                 build_label: str = 'unknown', base_url: str = 'https://api-portal.mulesoft.com'):
+                 build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com'):
         self.output_dir = output_dir
         self.proxy_url = proxy_url
         self.build_label = build_label

@@ -124,7 +124,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     environment:
       name: test
-      url: https://test-api-portal.mulesoft.com
+      url: https://test-dev-portal.mulesoft.com
 
     steps:
       - name: Checkout code
@@ -142,7 +142,7 @@ jobs:
         run: pip3 install --no-cache-dir -r scripts/requirements.txt
 
       - name: Generate portal for test
-        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-api-portal.mulesoft.com'
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-dev-portal.mulesoft.com'
         env:
           BRANCH_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
@@ -164,7 +164,7 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/release/')
     environment:
       name: production
-      url: https://api-portal.mulesoft.com
+      url: https://dev-portal.mulesoft.com
 
     steps:
       - name: Checkout code
@@ -183,7 +183,7 @@ jobs:
         run: pip3 install --no-cache-dir -r scripts/requirements.txt
 
       - name: Generate portal for production
-        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://api-portal.mulesoft.com'
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://dev-portal.mulesoft.com'
         env:
           BRANCH_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}

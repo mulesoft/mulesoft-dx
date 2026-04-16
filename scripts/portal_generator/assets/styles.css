@@ -3764,6 +3764,232 @@ details[open] .examples-toggle-icon {
     background: var(--lume-color-neutral-2);
 }
 
+/* Skill actions split button */
+.skill-actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--lume-space-medium);
+}
+
+.skill-split-btn {
+    position: relative;
+    display: inline-flex;
+}
+
+.skill-split-main {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0 1rem;
+    font-size: var(--lume-font-size-2);
+    font-family: var(--font-sans);
+    font-weight: var(--lume-font-weight-semibold);
+    color: #3289CE;
+    background: var(--lume-color-neutral-1);
+    border: 1px solid #5C5C5C;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.skill-split-main:hover {
+    opacity: 0.9;
+}
+
+.skill-split-toggle {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.625rem;
+    background: white;
+    color: var(--lume-color-brand);
+    border: 1px solid #5C5C5C;
+    border-radius: 0 16px 16px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skill-split-toggle:hover {
+    background: var(--lume-color-neutral-2);
+}
+
+.skill-split-toggle .chevron-icon {
+    transition: transform 0.2s;
+}
+
+.skill-split-toggle[aria-expanded="true"] .chevron-icon {
+    transform: rotate(180deg);
+}
+
+.skill-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 210px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    padding: 4px;
+}
+
+.skill-dropdown-menu button,
+.skill-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 16px;
+    font-size: var(--lume-font-size-2);
+    font-family: var(--font-sans);
+    font-weight: var(--lume-font-weight-semibold);
+    color: #5A5A56;
+    background: none;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.skill-dropdown-menu button:hover,
+.skill-dropdown-menu a:hover {
+    background: var(--hover-bg);
+    color: var(--hover-text);
+}
+
+/* Install Command Modal */
+.install-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.install-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.install-modal-content {
+    position: relative;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    max-width: 560px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.install-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.install-modal-header h3 {
+    margin: 0;
+    font-size: var(--lume-font-size-6);
+    font-family: var(--font-sans);
+    font-weight: var(--lume-font-weight-semibold);
+    color: #1f2937;
+}
+
+.install-modal-body {
+    padding: 1.5rem;
+}
+
+.install-command-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+}
+
+.install-command-bracket {
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: #9ca3af;
+    padding: 0 0.25rem;
+    user-select: none;
+}
+
+.install-command-code {
+    flex: 1;
+    padding: 0.625rem 0.75rem;
+    background: #F0F7FF;
+    border: none;
+    border-radius: 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: var(--lume-font-size-2);
+    color: #1f2937;
+    word-break: break-all;
+    user-select: all;
+}
+
+.btn-install-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-left: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    font-size: var(--lume-font-size-2);
+    font-family: var(--font-sans);
+    font-weight: var(--lume-font-weight-semibold);
+    color: #3289CE;
+    background: white;
+    border: 1px solid #B3D2EC;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-install-copy:hover {
+    background: #F0F7FF;
+}
+
+.install-prereqs h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 0.75rem 0;
+    font-size: var(--lume-font-size-4);
+    font-family: var(--font-sans);
+    font-weight: var(--lume-font-weight-semibold);
+    color: #1f2937;
+}
+
+.install-prereqs h4 svg {
+    color: #9ca3af;
+}
+
+.install-prereqs p {
+    margin: 0;
+    font-size: var(--lume-font-size-3);
+    font-family: var(--font-sans);
+    color: #5A5A56;
+    line-height: 1.6;
+}
+
 .skill-name-sidebar {
     flex: 1;
 }

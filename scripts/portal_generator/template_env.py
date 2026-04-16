@@ -132,7 +132,7 @@ def _resolve_skill_inputs(inputs_dict, step_details):
     Converts:
         {
             'organizationId': {
-                'from': {'step': 'Get Current Organization', 'output': 'organizationId'},
+                'from': {'variable': 'organizationId'},
                 'description': '...'
             }
         }
@@ -167,10 +167,9 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         if 'from' in param_config:
             from_ref = param_config['from']
             if isinstance(from_ref, dict):
-                # Check if it's a step reference (has 'step' key)
-                if 'step' in from_ref:
-                    # Try both 'output' and 'input' fields
-                    var_name = from_ref.get('output') or from_ref.get('input', '')
+                # Check if it's a variable reference (has 'variable' key)
+                if 'variable' in from_ref:
+                    var_name = from_ref['variable']
 
                     if var_name:
                         # Create the reference string - just ${variableName}

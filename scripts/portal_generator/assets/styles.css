@@ -2455,14 +2455,12 @@ button.nav-group-header {
     gap: 30px;
     position: relative;
     z-index: 10;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-main-content {
     flex: 1;
     min-width: 0;
     order: 1;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-try-panel {
@@ -2479,10 +2477,6 @@ button.nav-group-header {
     padding: var(--space-md);
     order: 2;
     z-index: 100;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s ease;
-    transform-origin: right center;
 }
 
 .try-panel-header {
@@ -2531,16 +2525,11 @@ button.nav-group-header {
     height: auto;
     order: 1;
     margin-bottom: var(--space-lg);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s ease;
-    transform-origin: right top;
 }
 
 .operation-content-wrapper.try-expanded .operation-main-content {
     width: 100%;
     order: 2;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Two-column layout: params on left, response on right */
@@ -2549,7 +2538,6 @@ button.nav-group-header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-lg);
     align-items: start;
-    animation: expandFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .try-form-container {
@@ -7902,20 +7890,6 @@ input.has-variable-ref:focus {
 @keyframes spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-/* Try It Out Panel Expand Animation */
-@keyframes expandFromRight {
-    from {
-        opacity: 0;
-        transform: scaleX(0.95);
-        transform-origin: right center;
-    }
-    to {
-        opacity: 1;
-        transform: scaleX(1);
-        transform-origin: right center;
     }
 }
 

@@ -2477,7 +2477,6 @@ button.nav-group-header {
     padding: var(--space-md);
     order: 2;
     z-index: 100;
-    overflow: hidden;
 }
 
 .try-panel-header {
@@ -2539,7 +2538,6 @@ button.nav-group-header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-lg);
     align-items: start;
-    animation: fadeIn 0.3s ease-in;
 }
 
 .operation-content-wrapper.try-expanded .try-form-container {
@@ -7892,16 +7890,6 @@ input.has-variable-ref:focus {
 @keyframes spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-/* Try It Out Expand Fade In */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
     }
 }
 

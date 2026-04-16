@@ -1695,7 +1695,6 @@ code {
 .nav-link:hover .method-post,
 .nav-link.active .method-post {
     background: #dbeafe;
-    color: #1e40af;
     border: none;
 }
 
@@ -2554,7 +2553,7 @@ button.nav-group-header {
     gap: var(--space-sm);
     min-width: 0;
     overflow-x: hidden;
-    animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
 }
 
 .operation-content-wrapper.try-expanded .try-form-container input,
@@ -2591,7 +2590,7 @@ button.nav-group-header {
     flex-direction: column;
     border-radius: var(--radius-medium);
     background: var(--color-neutral-2);
-    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
 }
 
 .operation-content-wrapper.try-expanded .try-response.empty {
@@ -3697,9 +3696,9 @@ details[open] .examples-toggle-icon {
     justify-content: center;
     gap: 0.375rem;
     padding: 0 1rem;
-    font-size: var(--font-size-2);
+    font-size: var(--font-size-4);
     font-family: var(--font-sans);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-normal);
     color: #3289CE;
     background: var(--bg-primary);
     border: 1px solid #5C5C5C;
@@ -7907,27 +7906,18 @@ input.has-variable-ref:focus {
     from {
         opacity: 0;
     }
-    to {
-        opacity: 1;
-    }
-}
 
-@keyframes slideInFromLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
     to {
         opacity: 1;
-        transform: translateX(0);
     }
 }
 
 @keyframes slideInFromRight {
     from {
         opacity: 0;
-        transform: translateX(20px);
+        transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);

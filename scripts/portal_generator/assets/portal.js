@@ -3147,6 +3147,90 @@ function copyCurlFromTerminal(button) {
 }
 
 // ============================================================================
+// Skill Actions Dropdown
+// ============================================================================
+
+function toggleSkillDropdown(slug) {
+    var menu = document.getElementById('skill-dropdown-menu-' + slug);
+    if (!menu) return;
+    var toggle = menu.closest('.skill-split-btn').querySelector('.skill-split-toggle');
+
+    // Close any other open skill dropdowns
+    document.querySelectorAll('.skill-dropdown-menu').forEach(function(m) {
+        if (m !== menu && m.style.display !== 'none') {
+            m.style.display = 'none';
+            var t = m.closest('.skill-split-btn').querySelector('.skill-split-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    var isVisible = menu.style.display !== 'none';
+    menu.style.display = isVisible ? 'none' : 'block';
+    if (toggle) toggle.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
+}
+
+function copySkillInstallCommand(slug, buttonEl) {
+    var command = 'npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill ' + slug;
+    navigator.clipboard.writeText(command).then(function() {
+        _showSkillCopiedFeedback(buttonEl);
+    }).catch(function(err) {
+        console.error('Failed to copy install command:', err);
+    });
+    _closeAllSkillDropdowns();
+}
+
+function copySkillContent(slug, buttonEl) {
+    var tpl = document.getElementById('skill-raw-' + slug);
+    if (!tpl) return;
+    var content = tpl.content ? tpl.content.textContent : tpl.textContent;
+    navigator.clipboard.writeText(content).then(function() {
+        _showSkillCopiedFeedback(buttonEl);
+    }).catch(function(err) {
+        console.error('Failed to copy skill content:', err);
+    });
+    _closeAllSkillDropdowns();
+}
+
+function _showSkillCopiedFeedback(buttonEl) {
+    if (!buttonEl) return;
+    var splitBtn = buttonEl.closest('.skill-split-btn');
+    if (!splitBtn) return;
+    var mainBtn = splitBtn.querySelector('.skill-split-main');
+    if (!mainBtn) return;
+    var label = mainBtn.querySelector('span');
+    if (!label) return;
+    var saved = label.textContent;
+    label.textContent = 'Copied!';
+    mainBtn.style.background = '#04844B';
+    mainBtn.style.color = 'white';
+    mainBtn.style.borderColor = '#04844B';
+    setTimeout(function() {
+        label.textContent = saved;
+        mainBtn.style.background = '';
+        mainBtn.style.color = '';
+        mainBtn.style.borderColor = '';
+    }, 1500);
+}
+
+function _closeAllSkillDropdowns() {
+    document.querySelectorAll('.skill-dropdown-menu').forEach(function(m) {
+        m.style.display = 'none';
+        var splitBtn = m.closest('.skill-split-btn');
+        if (splitBtn) {
+            var t = splitBtn.querySelector('.skill-split-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
+
+// Close skill dropdown on outside click
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.skill-split-btn')) {
+        _closeAllSkillDropdowns();
+    }
+});
+
+// ============================================================================
 // Response Status Selector
 // ============================================================================
 

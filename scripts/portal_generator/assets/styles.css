@@ -74,14 +74,22 @@
     --selected-text: #0078DB;
 
     /* Spacing */
-    --space-xxx-small: 0.125rem; /* 2px */
-    --space-xx-small: 0.25rem;   /* 4px */
-    --space-x-small: 0.5rem;     /* 8px */
-    --space-small: 0.75rem;      /* 12px */
-    --space-medium: 1rem;        /* 16px */
-    --space-large: 1.5rem;       /* 24px */
-    --space-x-large: 2rem;       /* 32px */
-    --space-xx-large: 3rem;      /* 48px */
+    --space-xxx-small: 0.125rem;
+    /* 2px */
+    --space-xx-small: 0.25rem;
+    /* 4px */
+    --space-x-small: 0.5rem;
+    /* 8px */
+    --space-small: 0.75rem;
+    /* 12px */
+    --space-medium: 1rem;
+    /* 16px */
+    --space-large: 1.5rem;
+    /* 24px */
+    --space-x-large: 2rem;
+    /* 32px */
+    --space-xx-large: 3rem;
+    /* 48px */
 
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
@@ -91,9 +99,12 @@
     --space-2xl: 3rem;
 
     /* Border Radius */
-    --radius-small: 0.25rem;  /* 4px */
-    --radius-medium: 0.5rem;  /* 8px */
-    --radius-large: 0.75rem;  /* 12px */
+    --radius-small: 0.25rem;
+    /* 4px */
+    --radius-medium: 0.5rem;
+    /* 8px */
+    --radius-large: 0.75rem;
+    /* 12px */
     --radius-xl: 1rem;
 
     --radius-md: 0.5rem;
@@ -104,17 +115,28 @@
     --font-mono: "Menlo", "Monaco", "Courier New", monospace;
 
     /* Font Sizes */
-    --font-size-1: 0.625rem;   /* 10px */
-    --font-size-2: 0.75rem;    /* 12px */
-    --font-size-3: 0.8125rem;  /* 13px */
-    --font-size-4: 0.875rem;   /* 14px */
-    --font-size-5: 1rem;       /* 16px */
-    --font-size-6: 1.125rem;   /* 18px */
-    --font-size-7: 1.25rem;    /* 20px */
-    --font-size-8: 1.5rem;     /* 24px */
-    --font-size-9: 1.75rem;    /* 28px */
-    --font-size-10: 2rem;      /* 32px */
-    --font-size-11: 2.5rem;    /* 40px */
+    --font-size-1: 0.625rem;
+    /* 10px */
+    --font-size-2: 0.75rem;
+    /* 12px */
+    --font-size-3: 0.8125rem;
+    /* 13px */
+    --font-size-4: 0.875rem;
+    /* 14px */
+    --font-size-5: 1rem;
+    /* 16px */
+    --font-size-6: 1.125rem;
+    /* 18px */
+    --font-size-7: 1.25rem;
+    /* 20px */
+    --font-size-8: 1.5rem;
+    /* 24px */
+    --font-size-9: 1.75rem;
+    /* 28px */
+    --font-size-10: 2rem;
+    /* 32px */
+    --font-size-11: 2.5rem;
+    /* 40px */
 
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
@@ -2434,12 +2456,14 @@ button.nav-group-header {
     gap: 30px;
     position: relative;
     z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-main-content {
     flex: 1;
     min-width: 0;
     order: 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-try-panel {
@@ -2456,6 +2480,7 @@ button.nav-group-header {
     padding: var(--space-md);
     order: 2;
     z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .try-panel-header {
@@ -2504,11 +2529,13 @@ button.nav-group-header {
     height: auto;
     order: 1;
     margin-bottom: var(--space-lg);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .operation-main-content {
     width: 100%;
     order: 2;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Two-column layout: params on left, response on right */
@@ -2517,6 +2544,7 @@ button.nav-group-header {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-lg);
     align-items: start;
+    animation: fadeInGrid 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .try-form-container {
@@ -2526,6 +2554,7 @@ button.nav-group-header {
     gap: var(--space-sm);
     min-width: 0;
     overflow-x: hidden;
+    animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .try-form-container input,
@@ -2562,6 +2591,7 @@ button.nav-group-header {
     flex-direction: column;
     border-radius: var(--radius-medium);
     background: var(--color-neutral-2);
+    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .operation-content-wrapper.try-expanded .try-response.empty {
@@ -5878,7 +5908,8 @@ details[open] .examples-toggle-icon {
 
 .btn-use-value {
     padding: 0.25rem 0.75rem;
-    background: var(--color-primary);;
+    background: var(--color-primary);
+    ;
     color: white;
     border: none;
     border-radius: var(--radius-large);
@@ -6503,13 +6534,15 @@ details[open] .examples-toggle-icon {
     padding: var(--space-xs) 0 var(--space-xs) 0;
     border-bottom: 1px solid var(--color-neutral-5);
 }
+
 .try-response-body.active.ace_editor {
-  border: none !important;  
-  border-radius: 0px 5px;
+    border: none !important;
+    border-radius: 0px 5px;
 }
+
 .try-response-headers.active.ace_editor {
-  border: none !important;  
-  border-radius: 0px 5px;
+    border: none !important;
+    border-radius: 0px 5px;
 }
 
 .try-tab-btn {
@@ -7869,6 +7902,38 @@ input.has-variable-ref:focus {
     }
 }
 
+/* Try It Out Panel Expand/Collapse Animations */
+@keyframes fadeInGrid {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Modern Outputs Section */
 .step-outputs-section {
     margin: var(--space-md);
@@ -8147,22 +8212,11 @@ input.has-variable-ref:focus {
     font-weight: 500;
     border: 1px solid #d1d5db;
     border-radius: var(--radius-large);
-    background: #ffffff;
-    color: #374151;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-add-variable:hover {
     background: var(--color-primary);
     color: white;
     border-color: var(--color-primary);
-}
-
-.btn-clear-variables:hover {
-    background: #fee2e2;
-    color: #dc2626;
-    border-color: #fca5a5;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .btn-add-variable svg,

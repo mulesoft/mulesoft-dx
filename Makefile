@@ -254,7 +254,7 @@ $(API_DIRS):
 	@$(MAKE) validate-api API=$@
 
 # Generate static API documentation portal
-# Usage: make generate-portal [BUILD_LABEL="branch: sha"] [BASE_URL=https://api-portal.mulesoft.com]
+# Usage: make generate-portal [BUILD_LABEL="branch: sha"] [BASE_URL=https://dev-portal.mulesoft.com]
 PORTAL_ARGS :=
 ifdef BUILD_LABEL
 PORTAL_ARGS += --build-label "$(BUILD_LABEL)"

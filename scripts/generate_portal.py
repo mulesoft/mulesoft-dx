@@ -40,8 +40,8 @@ def main():
                         help='Repository root (default: current directory)')
     parser.add_argument('--build-label', type=str, default=None,
                         help='Build label (default: auto-detect from git)')
-    parser.add_argument('--base-url', type=str, default='https://api-portal.mulesoft.com',
-                        help='Base URL of the deployed portal (default: https://api-portal.mulesoft.com)')
+    parser.add_argument('--base-url', type=str, default='https://dev-portal.mulesoft.com',
+                        help='Base URL of the deployed portal (default: https://dev-portal.mulesoft.com)')
 
     args = parser.parse_args()
 

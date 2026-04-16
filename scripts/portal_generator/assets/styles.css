@@ -630,7 +630,6 @@ code {
 
 /* Catalog Main Content */
 .catalog-main-content {
-    background: var(--color-bg);
     padding-bottom: 20px;
 }
 

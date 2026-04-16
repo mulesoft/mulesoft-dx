@@ -7,8 +7,6 @@
     <div class="auth-panel-center">
         <h1 class="api-title"><a href="#overview" class="api-title-link">{{ api_name }}</a></h1>
         <span class="badge badge-version">{{ api_version }}</span>
-    </div>
-    <div class="auth-panel-right">
         {% if is_skill_page %}
         <div class="skill-mode-toggle-container">
             <label class="toggle-switch-label">
@@ -18,7 +16,9 @@
                 </div>
             </label>
         </div>
-        {% else %}
+        {% endif %}
+    </div>
+    <div class="auth-panel-right">
         <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">
             <span class="auth-status-container" id="authStatusContainer">
                 <img class="auth-status-dot" id="authStatusDot" src="{{ icons_path }}/status-dot-red.svg" alt="" aria-hidden="true">
@@ -37,7 +37,6 @@
                 </span>
             </span>
         </button>
-        {% endif %}
     </div>
 </div>
 

@@ -62,11 +62,8 @@ function buildUrlBarHtml(method, serverUrl, path, link) {
 // X-Origin Modal and Interactive Fetching
 // ============================================================================
 
-var currentXOriginModal = {
-    opId: null,
-    paramName: null,
-    location: null
-};
+// Stack of x-origin modals for nested pickers
+var xOriginModalStack = [];
 
 function openXOriginModal(opId, paramName, location) {
     console.log('openXOriginModal called with:', { opId, paramName, location });
@@ -96,7 +93,14 @@ function openXOriginModal(opId, paramName, location) {
         return;
     }
 
-    currentXOriginModal = { opId: opId, paramName: paramName, location: location };
+    // Hide current modal if one is open (nested modal)
+    var modal = document.getElementById('xorigin-modal');
+    if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+    }
+
+    // Push new modal context to stack
+    xOriginModalStack.push({ opId: opId, paramName: paramName, location: location, origins: origins });
 
     var modal = document.getElementById('xorigin-modal');
     var title = document.getElementById('xorigin-modal-title');
@@ -107,7 +111,7 @@ function openXOriginModal(opId, paramName, location) {
         return;
     }
 
-    title.textContent = 'Fetch values for: ' + paramName;
+    title.textContent = 'Select a value for: ' + paramName;
 
     // Get operation lookup for parameter details
     var opLookup = window.__OP_LOOKUP__ || {};
@@ -182,27 +186,14 @@ function openXOriginModal(opId, paramName, location) {
             // Right side: actions (spinner + send button + dropdown)
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-            html += '<div class="btn-group-send">';
-            html += '<button class="btn-send-main" onclick="executeXOriginSource(' + idx + ')">';
-            html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
-            html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-            html += '</svg>';
-            html += 'Send';
+            html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+            html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+            html += '<span>Send</span>';
             html += '</button>';
-            html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'xorigin-' + idx + '\')" aria-label="More actions">';
-            html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
-            html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-            html += '</svg>';
+            html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
+            html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+            html += '<span>Copy cURL</span>';
             html += '</button>';
-            html += '<div class="send-dropdown-menu" id="send-dropdown-xorigin-' + idx + '" style="display:none">';
-            html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'xorigin-' + idx + '\')">';
-            html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
-            html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-            html += '</svg>';
-            html += '<span id="copy-text-xorigin-' + idx + '">Copy cURL</span>';
-            html += '</button>';
-            html += '</div>';
-            html += '</div>';
             html += '</div>';
             html += '</div>';
 
@@ -239,11 +230,140 @@ function openXOriginModal(opId, paramName, location) {
 }
 
 function closeXOriginModal() {
+    // Pop current modal from stack
+    xOriginModalStack.pop();
+
     var modal = document.getElementById('xorigin-modal');
-    modal.style.display = 'none';
-    // Restore focus to the element that opened the modal
-    if (modal._previousFocus) modal._previousFocus.focus();
-    currentXOriginModal = { opId: null, paramName: null, location: null };
+
+    // If there's a parent modal in the stack, restore it
+    if (xOriginModalStack.length > 0) {
+        var parentModal = xOriginModalStack[xOriginModalStack.length - 1];
+        // Reopen the parent modal
+        reopenXOriginModal(parentModal);
+    } else {
+        // No parent modal, close completely
+        modal.style.display = 'none';
+        // Restore focus to the element that opened the modal
+        if (modal._previousFocus) modal._previousFocus.focus();
+    }
+}
+
+function reopenXOriginModal(modalContext) {
+    var modal = document.getElementById('xorigin-modal');
+    var title = document.getElementById('xorigin-modal-title');
+    var body = document.getElementById('xorigin-modal-body');
+
+    if (!modal || !title || !body) {
+        console.error('X-Origin modal: Modal elements not found');
+        return;
+    }
+
+    var opId = modalContext.opId;
+    var paramName = modalContext.paramName;
+    var origins = modalContext.origins;
+
+    title.textContent = 'Select a value for: ' + paramName;
+
+    // Get operation lookup for parameter details
+    var opLookup = window.__OP_LOOKUP__ || {};
+
+    // Load environment variables to pre-fill form
+    var envVars = loadEnvVars();
+    var envVarsMap = {};
+    envVars.forEach(function(v) {
+        envVarsMap[v.name] = v.value;
+    });
+
+    // Build source selector dropdown
+    var html = '<div class="xorigin-selector-container">';
+    html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
+
+    origins.forEach(function(origin, idx) {
+        var apiSlug = (origin.api || '').replace('urn:api:', '');
+        var operationId = origin.operation || '';
+        var name = origin.name;
+        var technicalRef = apiSlug + '#' + operationId;
+
+        var optionLabel = name ? (name + ' - ' + technicalRef) : technicalRef;
+        html += '<option value="' + idx + '">' + escapeHtml(optionLabel) + '</option>';
+    });
+
+    html += '</select>';
+    html += '</div>';
+
+    // Build source containers
+    origins.forEach(function(origin, idx) {
+        var apiSlug = (origin.api || '').replace('urn:api:', '');
+        var operationId = origin.operation || '';
+
+        html += '<div class="xorigin-source" data-source-idx="' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + '">';
+
+        var apiEntry = opLookup[apiSlug];
+        var opMeta = apiEntry ? apiEntry.ops[operationId] : null;
+
+        if (opMeta) {
+            var xoriginServerUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+
+            var linkPrefix = window.__API_LINK_PREFIX__ || '';
+            html += '<div class="try-panel-header">';
+
+            html += '<div class="xorigin-title-section">';
+            html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="xorigin-operation-link">';
+            html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+            html += '</a>';
+            if (origin.values || origin.labels) {
+                html += '<span class="xorigin-xpath-info">';
+                if (origin.values) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">values:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.values) + '</code>';
+                    html += '</span>';
+                }
+                if (origin.labels) {
+                    html += '<span class="xorigin-path-inline">';
+                    html += '<span class="xorigin-path-label">labels:</span>';
+                    html += '<code class="xorigin-path-value">' + escapeHtml(origin.labels) + '</code>';
+                    html += '</span>';
+                }
+                html += '</span>';
+            }
+            html += '</div>';
+
+            html += '<div class="try-header-actions">';
+            html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+            html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+            html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+            html += '<span>Send</span>';
+            html += '</button>';
+            html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
+            html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+            html += '<span>Copy cURL</span>';
+            html += '</button>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="operation-url-bar-container">';
+            html += buildUrlBarHtml(opMeta.method, xoriginServerUrl, opMeta.path, null);
+            html += '</div>';
+
+            var xoriginOpId = 'xorigin-' + idx;
+            html += renderOperationPanel(xoriginOpId, opMeta, {
+                yamlInputs: envVarsMap,
+                enableVariableRefs: false,
+                slug: '',
+                contextType: 'xorigin',
+                showExecuteButton: false
+            });
+        }
+
+        html += '</div>';
+    });
+
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+
+    // Initialize ACE editors
+    initCodeMirrorEditors();
 }
 
 function switchXOriginSource() {
@@ -258,7 +378,7 @@ function switchXOriginSource() {
     });
 }
 
-async function executeXOriginSource(sourceIdx) {
+async function executeXOriginSource(sourceIdx, buttonEl) {
     // If sourceIdx not provided, get it from the selector
     if (sourceIdx === undefined) {
         var selector = document.getElementById('xorigin-source-selector');
@@ -271,27 +391,35 @@ async function executeXOriginSource(sourceIdx) {
 
     var xoriginOpId = 'xorigin-' + sourceIdx;
     var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
-    var btn = sourceDiv ? sourceDiv.querySelector('.btn-send-main') : null;
-    var spinner = document.getElementById('spinner-xorigin-' + sourceIdx);
     var responseDiv = document.getElementById('response-' + xoriginOpId);
     var statusBadge = document.getElementById('status-' + xoriginOpId);
     var responseBodyDiv = document.getElementById('respbody-' + xoriginOpId);
     var responseHeadersDiv = document.getElementById('respheaders-' + xoriginOpId);
     var valuesOutputDiv = document.getElementById('xorigin-values-' + sourceIdx);
 
-    if (!btn || !responseDiv) {
-        console.error('Execute button or response div not found', { btn: !!btn, responseDiv: !!responseDiv, sourceIdx: sourceIdx });
+    if (!responseDiv) {
+        console.error('Response div not found', { responseDiv: !!responseDiv, sourceIdx: sourceIdx });
         return;
     }
 
-    // Get the origin configuration
-    var input = document.getElementById('param-' + currentXOriginModal.opId + '-' + currentXOriginModal.paramName);
-    var originsJson = input.getAttribute('data-x-origins');
-    // Try Base64 decoding first (new format)
-    if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
-        originsJson = atob(originsJson);
+    // Button feedback
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) {
+            originalText = textSpan.textContent;
+            textSpan.textContent = 'Sending...';
+        }
+        buttonEl.disabled = true;
     }
-    var origins = JSON.parse(originsJson);
+
+    // Get the origin configuration from current modal context
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) {
+        console.error('No current x-origin modal in stack');
+        return;
+    }
+    var origins = currentModal.origins;
     var origin = origins[sourceIdx];
 
     // Check authentication
@@ -384,8 +512,6 @@ async function executeXOriginSource(sourceIdx) {
     var fullUrl = serverUrl + path;
 
     // Update UI state
-    if (spinner) spinner.style.display = 'inline';
-    if (btn) btn.disabled = true;
     if (responseDiv) responseDiv.classList.add('empty');
 
     try {
@@ -409,8 +535,13 @@ async function executeXOriginSource(sourceIdx) {
 
         var data = await resp.json();
 
-        if (spinner) spinner.style.display = 'none';
-        if (btn) btn.disabled = false;
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) responseDiv.classList.remove('empty');
 
         // Update status badge
@@ -504,8 +635,13 @@ async function executeXOriginSource(sourceIdx) {
         }
 
     } catch (e) {
-        if (spinner) spinner.style.display = 'none';
-        if (btn) btn.disabled = false;
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) responseDiv.classList.remove('empty');
         if (statusBadge) {
             statusBadge.textContent = 'Error';
@@ -519,10 +655,18 @@ async function executeXOriginSource(sourceIdx) {
 
 function useXOriginValue(sourceIdx, valueIdx, valueStr) {
     var displayVal = valueStr;
-    var paramName = currentXOriginModal.paramName;
+
+    // Get current modal context
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) {
+        console.error('No current x-origin modal in stack');
+        return;
+    }
+
+    var paramName = currentModal.paramName;
 
     // Set the value in the input
-    var input = document.getElementById('param-' + currentXOriginModal.opId + '-' + paramName);
+    var input = document.getElementById('param-' + currentModal.opId + '-' + paramName);
     if (input) {
         input.value = displayVal;
     }
@@ -543,11 +687,57 @@ function useXOriginValue(sourceIdx, valueIdx, valueStr) {
     sessionStorage.setItem(ENV_STORAGE_KEY, JSON.stringify(vars));
     renderEnvVars();
 
+    // If this is the last modal in the stack (closing back to the original panel),
+    // update all fields in the original panel with environment variable values
+    var isClosingToOriginalPanel = xOriginModalStack.length === 1;
+    if (isClosingToOriginalPanel) {
+        // Get the root opId (the original Try it out panel)
+        var rootOpId = currentModal.opId;
+        updatePanelFieldsFromEnvVars(rootOpId);
+    }
+
     // Close modal
     closeXOriginModal();
 
     // Show feedback
     showAuthMessage('Value set for ' + paramName + ': ' + displayVal + ' (added to environment variables)', false);
+}
+
+function updatePanelFieldsFromEnvVars(opId) {
+    // Load all environment variables
+    var vars = loadEnvVars();
+    var envVarsMap = {};
+    vars.forEach(function(v) {
+        envVarsMap[v.name] = v.value;
+    });
+
+    // Find all parameter inputs in the panel (try regular API panel first, then playground)
+    var panel = document.getElementById('try-' + opId);
+    if (!panel) {
+        panel = document.getElementById('playground-panel-' + opId);
+    }
+    if (!panel) return;
+
+    var inputs = panel.querySelectorAll('[data-param]');
+    inputs.forEach(function(input) {
+        var paramName = input.getAttribute('data-param');
+        // Only update if field is empty or doesn't have a variable reference
+        var currentValue = input.value || '';
+        var hasVarRef = currentValue && detectVariableReferences(currentValue).length > 0;
+
+        if (!hasVarRef && envVarsMap[paramName] !== undefined && envVarsMap[paramName] !== '') {
+            input.value = envVarsMap[paramName];
+        }
+    });
+}
+
+// Update all playground panels with current environment variables
+function updateAllPlaygroundPanelsFromEnvVars() {
+    var playgroundPanels = document.querySelectorAll('[id^="playground-panel-"]');
+    playgroundPanels.forEach(function(panel) {
+        var sid = panel.id.replace('playground-panel-', '');
+        updatePanelFieldsFromEnvVars(sid);
+    });
 }
 
 function switchXOriginTab(sourceIdx, tabName) {
@@ -1641,6 +1831,11 @@ async function loginBearer() {
 
             setAuthStatus(true, null, 'Bearer');
             showAuthMessage('Login successful!', false);
+
+            // Update playground panels with any environment variables that may have been set
+            if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
+                updateAllPlaygroundPanelsFromEnvVars();
+            }
         } else {
             showAuthMessage('Login failed: ' + (body.message || body.error || 'Unknown error'), true);
         }
@@ -1686,6 +1881,11 @@ async function loginOAuth2() {
 
             setAuthStatus(true, null, 'OAuth2');
             showAuthMessage('Token obtained successfully!', false);
+
+            // Update playground panels with any environment variables that may have been set
+            if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
+                updateAllPlaygroundPanelsFromEnvVars();
+            }
         } else {
             showAuthMessage('Token request failed: ' + (body.error_description || body.error || 'Unknown error'), true);
         }
@@ -1727,6 +1927,11 @@ function saveEnvVars() {
         }
     });
     sessionStorage.setItem(ENV_STORAGE_KEY, JSON.stringify(vars));
+
+    // Update all playground panels with new environment variable values
+    if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
+        updateAllPlaygroundPanelsFromEnvVars();
+    }
 }
 
 function renderEnvVars() {
@@ -2764,14 +2969,52 @@ function addCustomParamWf(sid, location) {
     nameInput.focus();
 }
 
-function copyCurlCommand(opId) {
+function copyCurlCommand(opId, buttonEl) {
+    // Try to find regular API operation section first
     var section = document.getElementById('op-' + opId);
-    if (!section) return;
-
-    var method = section.getAttribute('data-method');
-    var pathTemplate = section.getAttribute('data-path');
     var tryPanel = document.getElementById('try-' + opId);
-    if (!tryPanel) return;
+    var method, pathTemplate, serverUrl;
+
+    // If not found, check if this is a playground panel (format: skillSlug-stepIndex)
+    if (!section || !tryPanel) {
+        var playgroundPanel = document.getElementById('playground-panel-' + opId);
+        if (!playgroundPanel) {
+            console.error('Could not find operation or playground panel for:', opId);
+            return;
+        }
+
+        // Get operation metadata from __OP_LOOKUP__
+        var apiUrn = playgroundPanel.dataset.wfApi;
+        var operationId = playgroundPanel.dataset.wfOperation;
+        if (!apiUrn || !operationId) {
+            console.error('Playground panel missing API or operation data');
+            return;
+        }
+
+        var apiSlug = apiUrn.replace('urn:api:', '');
+        var opLookup = window.__OP_LOOKUP__ || {};
+        var apiEntry = opLookup[apiSlug];
+        if (!apiEntry) {
+            console.error('API not found in lookup:', apiSlug);
+            return;
+        }
+
+        var opMeta = apiEntry.ops[operationId];
+        if (!opMeta) {
+            console.error('Operation not found in lookup:', operationId);
+            return;
+        }
+
+        method = opMeta.method;
+        pathTemplate = opMeta.path;
+        serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+        tryPanel = playgroundPanel; // Use the playground panel as the input source
+    } else {
+        // Regular API operation page
+        method = section.getAttribute('data-method');
+        pathTemplate = section.getAttribute('data-path');
+        serverUrl = getSelectedServer(opId).replace(/\/$/, '');
+    }
 
     // Collect parameters
     var path = pathTemplate;
@@ -2795,7 +3038,6 @@ function copyCurlCommand(opId) {
     });
 
     // Build full URL
-    var serverUrl = getSelectedServer(opId).replace(/\/$/, '');
     var fullUrl = serverUrl + path;
     if (queryParams.length > 0) {
         fullUrl += '?' + queryParams.join('&');
@@ -2836,25 +3078,17 @@ function copyCurlCommand(opId) {
 
     // Copy to clipboard
     navigator.clipboard.writeText(curlCommand).then(function() {
-        // Show "Copied" status
-        var copyText = document.getElementById('copy-text-' + opId);
-        if (copyText) {
-            var originalText = copyText.textContent;
-            var dropdownItem = copyText.closest('.send-dropdown-item');
+        // Show "Copied" feedback on button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) {
+                var originalText = textSpan.textContent;
+                textSpan.textContent = 'Copied';
 
-            copyText.textContent = 'Copied';
-            if (dropdownItem) {
-                dropdownItem.classList.add('copied');
+                setTimeout(function() {
+                    textSpan.textContent = originalText;
+                }, 1500);
             }
-
-            // Keep dropdown open longer to show feedback
-            setTimeout(function() {
-                copyText.textContent = originalText;
-                if (dropdownItem) {
-                    dropdownItem.classList.remove('copied');
-                }
-                closeSendDropdown(opId);
-            }, 1500);
         }
     }).catch(function(err) {
         console.error('Failed to copy cURL command:', err);
@@ -3060,7 +3294,7 @@ function switchResponseTab(opId, tabName) {
     }
 }
 
-async function sendRequest(opId) {
+async function sendRequest(opId, buttonEl) {
     var section = document.getElementById('op-' + opId);
     if (!section) return;
 
@@ -3118,14 +3352,21 @@ async function sendRequest(opId) {
         extraHeaders
     );
 
-    // UI feedback
-    var spinner = document.getElementById('spinner-' + opId);
+    // UI feedback on button
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) {
+            originalText = textSpan.textContent;
+            textSpan.textContent = 'Sending...';
+        }
+        buttonEl.disabled = true;
+    }
+
     var responseDiv = document.getElementById('response-' + opId);
     var statusBadge = document.getElementById('status-' + opId);
     var responseBody = document.getElementById('respbody-' + opId);
     var responseHeaders = document.getElementById('respheaders-' + opId);
-
-    if (spinner) spinner.style.display = 'inline';
 
     // Check if we're in expanded mode
     var container = document.getElementById('op-container-' + opId);
@@ -3152,7 +3393,13 @@ async function sendRequest(opId) {
         });
         var data = await resp.json();
 
-        if (spinner) spinner.style.display = 'none';
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) {
             responseDiv.style.display = 'block';
             responseDiv.classList.remove('empty');
@@ -3179,7 +3426,13 @@ async function sendRequest(opId) {
         if (responseDiv) responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     } catch (e) {
-        if (spinner) spinner.style.display = 'none';
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) {
             responseDiv.style.display = 'block';
             responseDiv.classList.remove('empty');
@@ -3272,12 +3525,16 @@ function createReadOnlyAceEditor(container, content, language) {
         theme: 'ace/theme/textmate',
         value: content || '',
         readOnly: true,
-        minLines: 5,
-        maxLines: 20,
         showPrintMargin: false,
         highlightActiveLine: false,
         showGutter: true,
         fontSize: '13px'
+    });
+
+    // Use large minLines/maxLines to fill space
+    editor.setOptions({
+        minLines: 10,
+        maxLines: 100
     });
 
     // Set read-only background
@@ -3368,30 +3625,17 @@ function renderOperationPanel(opId, opMeta, options) {
     html += '<div class="operation-panel-form">';
     html += renderOperationForm(opId, opMeta, options);
 
-    // Execute button (with dropdown for cURL copy)
+    // Execute buttons
     if (showExecuteButton) {
         html += '<div class="operation-panel-actions">';
-        html += '<div class="btn-group-send">';
-        html += '<button class="btn-send-main" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + '"' : '') + '>';
-        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
-        html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-        html += '</svg>';
-        html += executeButtonText;
+        html += '<button class="btn-send" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + ', this)"' : '') + '>';
+        html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+        html += '<span>' + executeButtonText + '</span>';
         html += '</button>';
-        html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'' + opId + '\')" aria-label="More actions">';
-        html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
-        html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-        html += '</svg>';
+        html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + opId + '\', this)">';
+        html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+        html += '<span>Copy cURL</span>';
         html += '</button>';
-        html += '<div class="send-dropdown-menu" id="send-dropdown-' + opId + '" style="display:none">';
-        html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'' + opId + '\')">';
-        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
-        html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-        html += '</svg>';
-        html += '<span id="copy-text-' + opId + '">Copy cURL</span>';
-        html += '</button>';
-        html += '</div>';
-        html += '</div>';
         html += '<span class="try-spinner" id="spinner-' + opId + '" style="display:none">Sending...</span>';
         html += '</div>';
     }
@@ -3556,6 +3800,15 @@ function renderOperationForm(opId, opMeta, options) {
                     yamlValue = '';
                 } else {
                     yamlValue = String(yamlValue);
+                }
+
+                // If no YAML value, check environment variables
+                if (!yamlValue && contextType === 'playground') {
+                    var envVars = loadEnvVars();
+                    var envVar = envVars.find(function(v) { return v.name === paramName; });
+                    if (envVar && envVar.value) {
+                        yamlValue = envVar.value;
+                    }
                 }
 
                 html += '<div class="try-param-row">';
@@ -4182,27 +4435,14 @@ function initializePlaygroundStep(sid) {
     // Right side: actions (spinner + send button + dropdown)
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
-    html += '<div class="btn-group-send">';
-    html += '<button class="btn-send-main" onclick="executePlaygroundStep(\'' + sid + '\')">';
-    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">';
-    html += '<path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    html += '</svg>';
-    html += 'Send';
+    html += '<button class="btn-send" onclick="executePlaygroundStep(\'' + sid + '\', this)">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+    html += '<span>Send</span>';
     html += '</button>';
-    html += '<button class="btn-send-dropdown" onclick="toggleSendDropdown(\'' + sid + '\')" aria-label="More actions">';
-    html += '<svg width="12" height="12" viewBox="0 0 12 12" fill="none">';
-    html += '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    html += '</svg>';
+    html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + sid + '\', this)">';
+    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+    html += '<span>Copy cURL</span>';
     html += '</button>';
-    html += '<div class="send-dropdown-menu" id="send-dropdown-' + sid + '" style="display:none">';
-    html += '<button class="send-dropdown-item" onclick="copyCurlCommand(\'' + sid + '\')">';
-    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none">';
-    html += '<path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    html += '</svg>';
-    html += '<span id="copy-text-' + sid + '">Copy cURL</span>';
-    html += '</button>';
-    html += '</div>';
-    html += '</div>';
     html += '</div>';
     html += '</div>';
 
@@ -4624,10 +4864,10 @@ function updateVariablesTable(slug, variables, source) {
     console.log('✓ Table body found');
 
     // Clear "No variables" message if present
-    var noVarsRow = tableBody.querySelector('td[colspan="3"]');
+    var noVarsRow = tableBody.querySelector('.no-variables-row');
     if (noVarsRow) {
         console.log('Clearing "No variables" message');
-        tableBody.innerHTML = '';
+        noVarsRow.remove();
     }
 
     // Count existing rows
@@ -4654,6 +4894,7 @@ function updateVariablesTable(slug, variables, source) {
             console.log('  → Adding NEW variable:', varName, 'with source:', source);
             // Add new row
             var row = document.createElement('tr');
+            row.className = 'variable-row';
             row.setAttribute('data-var-name', varName);
 
             var nameCell = document.createElement('td');
@@ -4671,9 +4912,13 @@ function updateVariablesTable(slug, variables, source) {
             sourceCell.style.fontSize = '0.75rem';
             sourceCell.style.color = '#6b7280';
 
+            var actionsCell = document.createElement('td');
+            actionsCell.innerHTML = '<button class="btn-delete-variable" onclick="deleteVariable(\'' + slug + '\', \'' + varName + '\')" title="Delete variable">✕</button>';
+
             row.appendChild(nameCell);
             row.appendChild(valueCell);
             row.appendChild(sourceCell);
+            row.appendChild(actionsCell);
 
             tableBody.appendChild(row);
             console.log('  → Row appended to table');
@@ -4694,13 +4939,6 @@ function renderVariableValue(cell, value, varName, slug) {
         // Array: render as dropdown with indices
         var select = document.createElement('select');
         select.className = 'variable-array-select';
-        select.style.fontFamily = 'var(--font-mono)';
-        select.style.fontSize = '0.8125rem';
-        select.style.padding = '0.25rem 0.5rem';
-        select.style.border = '1px solid #d1d5db';
-        select.style.borderRadius = '0.25rem';
-        select.style.backgroundColor = 'white';
-        select.style.cursor = 'pointer';
 
         // Check if labels are available for this variable
         var labels = null;
@@ -4718,11 +4956,16 @@ function renderVariableValue(cell, value, varName, slug) {
             var displayText = '[' + i + '] ';
             if (labels && labels[i]) {
                 var labelStr = String(labels[i]);
-                displayText += labelStr + ' (' + (itemStr.length > 30 ? itemStr.substring(0, 30) + '...' : itemStr) + ')';
+                // Truncate label to fit in 185px width (roughly 20 chars for label + ID)
+                var truncatedLabel = labelStr.length > 15 ? labelStr.substring(0, 15) + '...' : labelStr;
+                var truncatedValue = itemStr.length > 8 ? itemStr.substring(0, 8) + '...' : itemStr;
+                displayText += truncatedLabel + ' (' + truncatedValue + ')';
             } else {
-                displayText += (itemStr.length > 50 ? itemStr.substring(0, 50) + '...' : itemStr);
+                // Without labels, show more of the value
+                displayText += (itemStr.length > 25 ? itemStr.substring(0, 25) + '...' : itemStr);
             }
             option.textContent = displayText;
+            option.setAttribute('title', '[' + i + '] ' + (labels && labels[i] ? labels[i] + ' (' + itemStr + ')' : itemStr));
             select.appendChild(option);
         }
 
@@ -4810,8 +5053,13 @@ function renderVariableValue(cell, value, varName, slug) {
         treeContainer.appendChild(treeContent);
         cell.appendChild(treeContainer);
     } else {
-        // Primitive value: render as text
-        cell.textContent = String(value);
+        // Primitive value: render as text with tooltip
+        var valueStr = String(value);
+        cell.textContent = valueStr;
+        // Add tooltip if value is long (more than 30 characters)
+        if (valueStr.length > 30) {
+            cell.setAttribute('title', valueStr);
+        }
     }
 }
 
@@ -4887,7 +5135,7 @@ function renderObjectTree(container, obj, depth) {
     }
 }
 
-async function executePlaygroundStep(sid) {
+async function executePlaygroundStep(sid, buttonEl) {
     var panel = document.getElementById('playground-panel-' + sid);
     if (!panel) return;
 
@@ -4914,15 +5162,22 @@ async function executePlaygroundStep(sid) {
     }
 
     // Get UI elements
-    var spinner = document.getElementById('spinner-' + sid);
     var responseDiv = document.getElementById('response-' + sid);
     var statusBadge = document.getElementById('status-' + sid);
     var responseBodyDiv = document.getElementById('respbody-' + sid);
     var responseHeadersDiv = document.getElementById('respheaders-' + sid);
-    var executeBtn = panel.querySelector('.btn-send-main');
 
-    if (spinner) spinner.style.display = 'inline';
-    if (executeBtn) executeBtn.disabled = true;
+    // Button feedback
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) {
+            originalText = textSpan.textContent;
+            textSpan.textContent = 'Sending...';
+        }
+        buttonEl.disabled = true;
+    }
+
     if (responseDiv) responseDiv.classList.add('empty');
 
     try {
@@ -5003,8 +5258,13 @@ async function executePlaygroundStep(sid) {
 
         var result = await resp.json();
 
-        if (spinner) spinner.style.display = 'none';
-        if (executeBtn) executeBtn.disabled = false;
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) responseDiv.classList.remove('empty');
 
         // Update status badge
@@ -5060,8 +5320,14 @@ async function executePlaygroundStep(sid) {
 
     } catch (error) {
         console.error('Playground execution failed:', error);
-        if (spinner) spinner.style.display = 'none';
-        if (executeBtn) executeBtn.disabled = false;
+
+        // Restore button
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+
         if (responseDiv) responseDiv.classList.remove('empty');
         if (statusBadge) {
             statusBadge.textContent = 'Error';
@@ -6748,7 +7014,12 @@ function addManualVariable(slug) {
 
             // Convert inputs to display mode
             row.querySelector('td:first-child').innerHTML = '<code class="var-name">' + escapeHtml(name) + '</code>';
-            row.querySelector('td:nth-child(2)').innerHTML = '<code class="var-value">' + escapeHtml(value) + '</code>';
+            var valueCell = row.querySelector('td:nth-child(2)');
+            valueCell.innerHTML = '<code class="var-value">' + escapeHtml(value) + '</code>';
+            // Add tooltip if value is long
+            if (value.length > 30) {
+                valueCell.setAttribute('title', value);
+            }
             row.classList.remove('manual-variable-row');
 
             // Update variable tooltips

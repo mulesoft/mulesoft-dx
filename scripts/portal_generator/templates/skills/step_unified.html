@@ -1,4 +1,4 @@
-{% macro render_step_unified(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='', all_steps=[]) %}
+{% macro render_step_unified(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='', all_steps=[], op_lookup={}) %}
 {% set yaml_data = step.yaml|default(none) %}
 {% set sid = slug ~ '-' ~ step_index %}
 
@@ -20,6 +20,10 @@
     {% set operation_id = yaml_data.operationId|default('') %}
     {% set inputs = yaml_data.inputs|default({}) %}
     {% set outputs = yaml_data.outputs|default([]) %}
+    {% set op_meta = op_lookup.get(api, {}).get('ops', {}).get(operation_id, {}) if op_lookup else {} %}
+    {% set op_path = op_meta.get('path', '') %}
+    {% set op_method = op_meta.get('method', 'POST')|upper %}
+    {% set op_parameters = op_meta.get('parameters', []) %}
 
     {# Unified Operation Block - Contains both curl and interactive #}
     <div class="unified-operation-block" id="operation-block-{{ sid }}">
@@ -42,12 +46,29 @@
                         </svg>
                     </button>
                 </div>
-                <pre class="terminal-content"><code><span class="terminal-prompt">$</span> <span class="terminal-command">curl</span> <span class="terminal-flag">-X</span> <span class="terminal-method">POST</span> <span class="terminal-url"><span class="terminal-variable">${baseUrl}</span>/{{ api }}/{{ operation_id }}</span> <span class="terminal-continuation">\</span>
+                {% set path_with_params = op_path %}
+                {%- set query_params = [] -%}
+                {%- set body_params = {} -%}
+                {%- for param in op_parameters -%}
+                  {%- if inputs is mapping and param.name in inputs -%}
+                    {%- set input_value = render_input_value(inputs[param.name]) -%}
+                    {%- if param.in == 'path' -%}
+                      {%- set path_with_params = path_with_params|replace('{' ~ param.name ~ '}', input_value) -%}
+                    {%- elif param.in == 'query' -%}
+                      {%- set _ = query_params.append(param.name ~ '=' ~ input_value) -%}
+                    {%- elif param.in == 'body' -%}
+                      {%- set _ = body_params.update({param.name: input_value}) -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set full_url = path_with_params -%}
+                {%- if query_params -%}
+                  {%- set full_url = full_url ~ '?' ~ query_params|join('&') -%}
+                {%- endif -%}
+                <pre class="terminal-content"><code><span class="terminal-prompt">$</span> <span class="terminal-command">curl</span> <span class="terminal-flag">-X</span> <span class="terminal-method">{{ op_method }}</span> <span class="terminal-url"><span class="terminal-variable">${baseUrl}</span>{{ full_url }}</span> <span class="terminal-continuation">\</span>
   <span class="terminal-flag">-H</span> <span class="terminal-string">"<span class="terminal-header-name">Authorization</span>: Bearer <span class="terminal-variable">${authToken}</span>"</span> <span class="terminal-continuation">\</span>
-  <span class="terminal-flag">-H</span> <span class="terminal-string">"<span class="terminal-header-name">Content-Type</span>: application/json"</span>{% if inputs %} <span class="terminal-continuation">\</span>
-  <span class="terminal-flag">-d</span> <span class="terminal-string">'<span class="terminal-json-brace">{</span>
-{% if inputs is mapping %}{% for name, defn in inputs.items() %}    <span class="terminal-json-quote">"</span><span class="terminal-key">{{ name }}</span><span class="terminal-json-quote">"</span><span class="terminal-json-colon">:</span> <span class="terminal-json-quote">"</span><span class="terminal-value">{{ render_input_value(defn) }}</span><span class="terminal-json-quote">"</span>{% if not loop.last %}<span class="terminal-json-comma">,</span>{% endif %}
-{% endfor %}{% endif %}  <span class="terminal-json-brace">}</span>'</span>{% endif %}</code></pre>
+  <span class="terminal-flag">-H</span> <span class="terminal-string">"<span class="terminal-header-name">Content-Type</span>: application/json"</span>{%- if body_params %} <span class="terminal-continuation">\</span>
+  <span class="terminal-flag">-d</span> <span class="terminal-string">'<span class="terminal-json-brace">{</span>{%- for name, value in body_params.items() -%}<span class="terminal-json-quote">"</span><span class="terminal-key">{{ name }}</span><span class="terminal-json-quote">"</span><span class="terminal-json-colon">:</span><span class="terminal-json-quote">"</span><span class="terminal-value">{{ value }}</span><span class="terminal-json-quote">"</span>{%- if not loop.last -%}<span class="terminal-json-comma">,</span>{%- endif -%}{%- endfor -%}<span class="terminal-json-brace">}</span>'</span>{%- endif -%}</code></pre>
             </div>
         </div>
 
@@ -112,18 +133,32 @@
 {% endmacro %}
 
 {% macro render_input_value(defn) -%}
-{% if defn is mapping %}
-{% if defn.from is defined %}
-{% set from_step = defn.from.step|default('') %}
-{% set from_input = defn.from.input|default('') %}
-{% set from_output = defn.from.output|default('') %}
-{% if from_input %}${{ '{' }}{{ from_step|slugify }}.{{ from_input }}{{ '}' }}{% elif from_output %}${{ '{' }}{{ from_step|slugify }}.{{ from_output }}{{ '}' }}{% endif %}
-{% elif defn.value is defined %}
-{{ defn.value }}
+{%- if defn is mapping -%}
+{%- if defn.from is defined -%}
+{%- set from_input = defn.from.input|default('') -%}
+{%- set from_output = defn.from.output|default('') -%}
+{%- if from_input -%}${{ '{' }}{{ from_input }}{{ '}' }}{%- elif from_output -%}${{ '{' }}{{ from_output }}{{ '}' }}{%- endif -%}
+{%- elif defn.value is defined -%}
+{%- set val = defn.value|string|trim|lower -%}
+{%- if val == 'true' or val == 'false' -%}{{ val }}{%- else -%}{{ defn.value|trim }}{%- endif -%}
+{%- else -%}
+{{ defn|trim }}
+{%- endif -%}
+{%- else -%}
+{%- set val = defn|string|trim|lower -%}
+{%- if val == 'true' or val == 'false' -%}{{ val }}{%- else -%}{{ defn|trim }}{%- endif -%}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro render_input_value_with_type(defn) -%}
+{% set raw_value = render_input_value(defn) %}
+{% set lower_value = raw_value|lower %}
+{% set str_value = raw_value|string %}
+{% if lower_value == 'true' or lower_value == 'false' %}
+<span class="terminal-value">{{ lower_value }}</span>
+{% elif str_value.startswith('${') and str_value.endswith('}') %}
+<span class="terminal-json-quote">"</span><span class="terminal-value">{{ raw_value }}</span><span class="terminal-json-quote">"</span>
 {% else %}
-{{ defn }}
-{% endif %}
-{% else %}
-{{ defn }}
+<span class="terminal-json-quote">"</span><span class="terminal-value">{{ raw_value }}</span><span class="terminal-json-quote">"</span>
 {% endif %}
 {%- endmacro %}

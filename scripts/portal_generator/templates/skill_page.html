@@ -30,7 +30,7 @@
 <div class="detail-layout">
     {% include "partials/skill_sidebar.html" %}
     <main class="detail-content" id="main-content">
-        {{ render_skill(skill, private_api_slugs, api_link_prefix) }}
+        {{ render_skill(skill, private_api_slugs, api_link_prefix, op_lookup) }}
     </main>
 </div>
 

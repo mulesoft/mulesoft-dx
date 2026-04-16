@@ -33,27 +33,14 @@
                 <h4>Try it out</h4>
                 <div class="try-header-actions">
                     <span class="try-spinner" id="spinner-{{ operation.operationId }}" style="display:none" aria-live="polite">Sending</span>
-                    <div class="btn-group-send">
-                        <button class="btn-send-main" onclick="sendRequest('{{ operation.operationId }}')">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 0.5rem;">
-                                <path d="M14.5 1.5L7 9M14.5 1.5L9.5 14.5L7 9M14.5 1.5L1.5 6.5L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Send
-                        </button>
-                        <button class="btn-send-dropdown" onclick="toggleSendDropdown('{{ operation.operationId }}')" aria-label="More actions">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                        <div class="send-dropdown-menu" id="send-dropdown-{{ operation.operationId }}" style="display:none">
-                            <button class="send-dropdown-item" onclick="copyCurlCommand('{{ operation.operationId }}')">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M5.5 4.5H3.5C3.10218 4.5 2.72064 4.65804 2.43934 4.93934C2.15804 5.22064 2 5.60218 2 6V12.5C2 12.8978 2.15804 13.2794 2.43934 13.5607C2.72064 13.842 3.10218 14 3.5 14H10C10.3978 14 10.7794 13.842 11.0607 13.5607C11.342 13.2794 11.5 12.8978 11.5 12.5V10.5M6 10L14 2M14 2V6M14 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span id="copy-text-{{ operation.operationId }}">Copy cURL</span>
-                            </button>
-                        </div>
-                    </div>
+                    <button class="btn-send" onclick="sendRequest('{{ operation.operationId }}', this)">
+                        <img src="{{ icons_path }}/send-icon.svg" alt="" width="13" height="11">
+                        <span>Send</span>
+                    </button>
+                    <button class="btn-copy-curl" onclick="copyCurlCommand('{{ operation.operationId }}', this)">
+                        <img src="{{ icons_path }}/copy-curl-icon.svg" alt="" width="13" height="13">
+                        <span>Copy cURL</span>
+                    </button>
                     <button class="btn-expand-try" onclick="toggleTryItOutExpand('{{ operation.operationId }}')"
                             aria-label="Expand try it out panel" title="Expand">
                         <img src="{{ icons_path }}/expand.svg" alt="" width="16" height="16">

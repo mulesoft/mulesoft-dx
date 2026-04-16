@@ -1,6 +1,6 @@
 {% from "skills/step_unified.html" import render_step_unified %}
 
-{% macro render_skill(skill, private_api_slugs=[], api_link_prefix='') %}
+{% macro render_skill(skill, private_api_slugs=[], api_link_prefix='', op_lookup={}) %}
 {% set skill_name = skill.name|replace('-', ' ')|title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
@@ -35,7 +35,7 @@
             {% if step_details %}
             {% set total_steps = step_details|length %}
             {% for step in step_details %}
-                {{ render_step_unified(step, loop.index, slug, loop.index0, total_steps, private_api_slugs, api_link_prefix, step_details) }}
+                {{ render_step_unified(step, loop.index, slug, loop.index0, total_steps, private_api_slugs, api_link_prefix, step_details, op_lookup) }}
             {% endfor %}
             {% endif %}
         </div>
@@ -89,17 +89,18 @@
             <div class="execution-panel-content" id="execution-evaluation-{{ slug }}" style="display:none">
                 <div class="evaluation-input-section">
                     <label for="evaluation-input-{{ slug }}">JSONPath Expression</label>
-                    <input type="text"
-                           id="evaluation-input-{{ slug }}"
-                           class="evaluation-input"
-                           placeholder="$.data[*].id"
-                           onkeyup="if(event.key==='Enter') evaluateExpression('{{ slug }}')">
-                    <button class="btn-evaluate" onclick="evaluateExpression('{{ slug }}')">Evaluate</button>
+                    <div class="evaluation-input-row">
+                        <input type="text"
+                               id="evaluation-input-{{ slug }}"
+                               class="evaluation-input"
+                               placeholder="$.data[*].id"
+                               onkeyup="if(event.key==='Enter') evaluateExpression('{{ slug }}')">
+                        <button class="btn-evaluate" onclick="evaluateExpression('{{ slug }}')">Run</button>
+                    </div>
                 </div>
                 <div class="evaluation-result-section">
-                    <div class="evaluation-result-header">Result</div>
                     <div class="evaluation-result-container" id="evaluation-result-{{ slug }}">
-                        <div class="evaluation-placeholder">Enter a JSONPath expression and press Enter or click Evaluate</div>
+                        <div class="evaluation-placeholder">Enter a JSONPath expression and press Enter or click Run</div>
                     </div>
                 </div>
             </div>

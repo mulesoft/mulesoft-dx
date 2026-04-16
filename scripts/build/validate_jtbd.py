@@ -215,68 +215,25 @@ class JobValidator:
         return True
 
     def validate_step_dependencies(self, steps: List[Dict[str, Any]]) -> bool:
-        """Validate that step references are correct."""
+        """Validate that input references use recognized formats."""
         is_valid = True
-        step_outputs = {}
 
-        # Build map of available outputs by step index
         for i, step in enumerate(steps, 1):
-            if 'outputs' in step:
-                step_outputs[i] = [
-                    out['name'] for out in step['outputs']
-                    if isinstance(out, dict) and 'name' in out
-                ]
-
-        # Check each step's inputs
-        for i, step in enumerate(steps, 1):
-            step_num = i
             inputs = step.get('inputs', {})
 
             for param_name, input_def in inputs.items():
                 if not isinstance(input_def, dict):
                     continue
 
-                # Check step references
                 if 'from' in input_def and isinstance(input_def['from'], dict):
                     from_def = input_def['from']
 
-                    if 'step' in from_def:
-                        ref_step_identifier = from_def['step']
-
-                        # Try to parse as step number if it's numeric
-                        try:
-                            ref_step_num = int(ref_step_identifier) if isinstance(ref_step_identifier, (int, str)) and str(ref_step_identifier).isdigit() else None
-                        except (ValueError, TypeError):
-                            ref_step_num = None
-
-                        # If not numeric, it's a reference we can't validate without step names
-                        if ref_step_num is not None:
-                            # Check step exists (by number)
-                            if ref_step_num < 1 or ref_step_num > len(steps):
-                                self.errors.append(
-                                    f"Step {step_num}, input '{param_name}': "
-                                    f"References unknown step number {ref_step_num}"
-                                )
-                                is_valid = False
-                            # Check step comes before current step
-                            elif ref_step_num >= step_num:
-                                self.errors.append(
-                                    f"Step {step_num}, input '{param_name}': "
-                                    f"References step {ref_step_num} which comes after "
-                                    f"or is the same step"
-                                )
-                                is_valid = False
-                            # Check output exists if referencing output
-                            elif 'output' in from_def:
-                                output_name = from_def['output']
-                                if ref_step_num in step_outputs:
-                                    if output_name not in step_outputs[ref_step_num]:
-                                        self.errors.append(
-                                            f"Step {step_num}, input '{param_name}': "
-                                            f"References unknown output '{output_name}' "
-                                            f"from step {ref_step_num}"
-                                        )
-                                        is_valid = False
+                    # Recognized formats: variable reference or API reference
+                    if 'variable' not in from_def and 'api' not in from_def:
+                        self.warnings.append(
+                            f"Step {i}, input '{param_name}': "
+                            f"'from' block has no 'variable' or 'api' key"
+                        )
 
         return is_valid
 
@@ -310,65 +267,6 @@ class JobValidator:
                     print(f"  ⚠️  Path \"{name}\": Step {sn} out of range (1-{total_steps})")
             if step_nums:
                 print(f"  ✅ Path \"{name}\": steps {step_nums} valid")
-
-    def validate_skip_annotations(self, content: str, steps: List[Dict[str, Any]]):
-        """Warn about skip annotations on steps that have downstream dependencies."""
-        # Find steps with skip annotations
-        skip_pattern = re.compile(
-            r'^## Step (\d+):.*?\n.*?>\s*\*\*Skip if:\*\*',
-            re.MULTILINE | re.DOTALL
-        )
-        skippable_steps = set()
-        for m in skip_pattern.finditer(content):
-            skippable_steps.add(int(m.group(1)))
-
-        if not skippable_steps:
-            return
-
-        print("\n⏭️  Validating skip annotations...")
-
-        # Build output names per step
-        step_outputs = {}
-        for i, step in enumerate(steps, 1):
-            if 'outputs' in step:
-                step_outputs[i] = [
-                    out['name'] for out in step['outputs']
-                    if isinstance(out, dict) and 'name' in out
-                ]
-
-        # Check if downstream steps depend on skippable step outputs
-        for skip_step in sorted(skippable_steps):
-            if skip_step not in step_outputs:
-                print(f"  ✅ Step {skip_step}: skippable (no outputs)")
-                continue
-
-            dependents = []
-            for i, step in enumerate(steps, 1):
-                if i <= skip_step:
-                    continue
-                inputs = step.get('inputs', {})
-                for param_name, input_def in inputs.items():
-                    if not isinstance(input_def, dict):
-                        continue
-                    from_def = input_def.get('from', {})
-                    if isinstance(from_def, dict) and 'step' in from_def:
-                        try:
-                            ref = int(from_def['step']) if str(from_def['step']).isdigit() else None
-                        except (ValueError, TypeError):
-                            ref = None
-                        if ref == skip_step:
-                            dependents.append(i)
-                            break
-
-            if dependents:
-                dep_str = ', '.join(f'Step {d}' for d in dependents)
-                self.warnings.append(
-                    f"Step {skip_step} has a skip annotation but {dep_str} "
-                    f"depend(s) on its outputs. Users must provide these values manually when skipping."
-                )
-                print(f"  ⚠️  Step {skip_step}: skippable, but {dep_str} depend on its outputs")
-            else:
-                print(f"  ✅ Step {skip_step}: skippable (no downstream dependencies)")
 
     def validate(self) -> bool:
         """Run all validations and return True if valid."""
@@ -463,9 +361,6 @@ class JobValidator:
 
         # 7. Validate Execution Paths section (optional)
         self.validate_execution_paths(content, len(steps))
-
-        # 8. Warn about skip annotations on steps with downstream dependencies
-        self.validate_skip_annotations(content, steps)
 
         # Print summary
         self.print_summary()

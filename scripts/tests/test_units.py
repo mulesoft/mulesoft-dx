@@ -15,12 +15,15 @@ from portal_generator.parsers.skill_parser import (
     _extract_step_details,
     _extract_section,
     _extract_related_jobs,
-    _extract_skip_annotation,
     _extract_entry_points,
     _convert_to_plain,
     parse_skill,
 )
 from portal_generator.discovery import calculate_stats, _extract_api_refs, discover_skills
+
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'build'))
+from validate_jtbd import JobValidator
 
 
 # ============================================================================
@@ -598,57 +601,6 @@ class TestExtractSection:
 
 
 # ============================================================================
-# skill_parser._extract_skip_annotation
-# ============================================================================
-
-class TestExtractSkipAnnotation:
-    def test_extracts_skip_condition(self):
-        text = '> **Skip if:** You already have an Exchange asset.\n\nSome prose.'
-        condition, cleaned = _extract_skip_annotation(text)
-        assert condition == 'You already have an Exchange asset.'
-        assert 'Some prose' in cleaned
-        assert 'Skip if' not in cleaned
-
-    def test_no_annotation(self):
-        text = 'Just regular prose here.'
-        condition, cleaned = _extract_skip_annotation(text)
-        assert condition is None
-        assert cleaned == text
-
-    def test_annotation_with_backtick_vars(self):
-        text = '> **Skip if:** You have `groupId`, `assetId`, and `assetVersion`.\n\nNext.'
-        condition, cleaned = _extract_skip_annotation(text)
-        assert '`groupId`' in condition
-        assert 'Next' in cleaned
-
-    def test_annotation_is_entire_content(self):
-        text = '> **Skip if:** This step is optional.'
-        condition, cleaned = _extract_skip_annotation(text)
-        assert condition == 'This step is optional.'
-
-    def test_step_details_include_skip_condition(self):
-        content = (
-            '## Step 1: Optional step\n'
-            '> **Skip if:** Already done.\n\n'
-            'Some prose.\n\n'
-            '```yaml\napi: urn:api:test\noperation: op1\n```\n'
-        )
-        steps = _extract_step_details(content)
-        assert steps[0]['skip_condition'] == 'Already done.'
-        assert 'Skip if' not in steps[0]['prose_before_html']
-        assert 'Some prose' in steps[0]['prose_before_html']
-
-    def test_step_without_skip_has_none(self):
-        content = (
-            '## Step 1: Normal step\n'
-            'Regular prose.\n\n'
-            '```yaml\napi: urn:api:test\noperation: op1\n```\n'
-        )
-        steps = _extract_step_details(content)
-        assert steps[0]['skip_condition'] is None
-
-
-# ============================================================================
 # skill_parser._extract_entry_points
 # ============================================================================
 
@@ -764,12 +716,8 @@ class TestParseSkillConditional:
         assert result['entry_points'][1]['required_vars'] == ['groupId', 'assetId']
         assert result['entry_points'][1]['steps'] == [2]
 
-        # Skip condition on step 1
-        assert result['step_details'][0]['skip_condition'] is not None
-        assert 'Exchange asset' in result['step_details'][0]['skip_condition']
-
-        # No skip condition on step 2
-        assert result['step_details'][1]['skip_condition'] is None
+        # Step details are present
+        assert len(result['step_details']) == 2
 
     def test_parse_skill_without_conditionals(self, tmp_path):
         from tests.conftest import MINIMAL_SKILL_MD
@@ -781,7 +729,7 @@ class TestParseSkillConditional:
         assert result is not None
         assert result['starting_point_html'] == ''
         assert result['entry_points'] == []
-        assert result['step_details'][0]['skip_condition'] is None
+        assert len(result['step_details']) >= 1
 
 
 class TestConvertToPlain:
@@ -1148,3 +1096,67 @@ class TestDiscoverSkills:
         (skills_dir / 'some-dir').mkdir()
         # Dir without SKILL.md
         assert discover_skills(tmp_path) == {}
+
+
+# ============================================================================
+# validate_jtbd.JobValidator.validate_step_dependencies
+# ============================================================================
+
+class TestValidateStepDependencies:
+    def test_variable_reference_accepted(self):
+        """from.variable is accepted as valid syntax."""
+        validator = JobValidator(Path('fake.md'), Path('.'))
+        steps = [
+            {'api': 'urn:api:test', 'operationId': 'op1',
+             'inputs': {'orgId': {'from': {'api': 'urn:api:am', 'operation': 'getOrgs', 'field': '$.id'}}},
+             'outputs': [{'name': 'envApiId', 'path': '$.id'}]},
+            {'api': 'urn:api:test', 'operationId': 'op2',
+             'inputs': {'apiId': {'from': {'variable': 'envApiId'}, 'description': 'test'}}},
+        ]
+        assert validator.validate_step_dependencies(steps) is True
+        assert len(validator.errors) == 0
+        assert len(validator.warnings) == 0
+
+    def test_api_reference_still_accepted(self):
+        """from.api references are still accepted (no regression)."""
+        validator = JobValidator(Path('fake.md'), Path('.'))
+        steps = [
+            {'api': 'urn:api:test', 'operationId': 'op1',
+             'inputs': {'orgId': {'from': {'api': 'urn:api:am', 'operation': 'getOrgs', 'field': '$.id'}}}},
+        ]
+        assert validator.validate_step_dependencies(steps) is True
+        assert len(validator.errors) == 0
+        assert len(validator.warnings) == 0
+
+    def test_malformed_from_warns(self):
+        """from block with neither variable nor api produces a warning."""
+        validator = JobValidator(Path('fake.md'), Path('.'))
+        steps = [
+            {'api': 'urn:api:test', 'operationId': 'op1',
+             'inputs': {'orgId': {'from': {'unknown': 'something'}}}},
+        ]
+        assert validator.validate_step_dependencies(steps) is True
+        assert len(validator.warnings) == 1
+        assert 'variable' in validator.warnings[0]
+
+    def test_non_dict_inputs_skipped(self):
+        """Simple string inputs are skipped without error."""
+        validator = JobValidator(Path('fake.md'), Path('.'))
+        steps = [
+            {'api': 'urn:api:test', 'operationId': 'op1',
+             'inputs': {'orgId': 'simple-value'}},
+        ]
+        assert validator.validate_step_dependencies(steps) is True
+        assert len(validator.errors) == 0
+
+    def test_variable_with_field_accepted(self):
+        """from.variable with field sub-key is accepted."""
+        validator = JobValidator(Path('fake.md'), Path('.'))
+        steps = [
+            {'api': 'urn:api:test', 'operationId': 'op1',
+             'outputs': [{'name': 'tiers', 'path': '$'}]},
+            {'api': 'urn:api:test', 'operationId': 'op2',
+             'inputs': {'tierId': {'from': {'variable': 'tiers', 'field': '$[0].id'}}}},
+        ]
+        assert validator.validate_step_dependencies(steps) is True
+        assert len(validator.warnings) == 0

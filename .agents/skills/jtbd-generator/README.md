@@ -171,7 +171,7 @@ inputs = parameter_analyzer.build_all_inputs(
 
 # Detect source for a specific parameter
 source = parameter_analyzer.detect_parameter_source('environmentApiId', param_def, previous_steps)
-# Returns: {'source_type': 'from_step', 'source_details': {...}, 'confidence': 'high'}
+# Returns: {'source_type': 'from_variable', 'source_details': {...}, 'confidence': 'high'}
 ```
 
 ### response_analyzer.py

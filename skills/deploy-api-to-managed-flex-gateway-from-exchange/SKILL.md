@@ -138,28 +138,23 @@ operationId: createOrganizationsEnvironmentsApis
 inputs:
   organizationId:
     from:
-      step: List Flex Gateway Targets
-      input: organizationId
+      variable: organizationId
     description: Same organization ID from Step 2
   environmentId:
     from:
-      step: List Flex Gateway Targets
-      input: environmentId
+      variable: environmentId
     description: Same environment ID from Step 2
   spec.groupId:
     from:
-      step: Search Assets in Exchange
-      output: groupId
+      variable: groupId
     description: Asset group ID from Step 1
   spec.assetId:
     from:
-      step: Search Assets in Exchange
-      output: assetId
+      variable: assetId
     description: Asset ID from Step 1
   spec.version:
     from:
-      step: Search Assets in Exchange
-      output: version
+      variable: version
     description: Asset version from Step 1
   endpoint.deploymentType:
     value: HY
@@ -180,8 +175,7 @@ inputs:
     description: Mutual TLS not enabled by default
   endpoint.targetId:
     from:
-      step: List Flex Gateway Targets
-      output: targetId
+      variable: targetId
     description: Flex Gateway target ID from Step 2
   deployment.expectedStatus:
     value: deployed

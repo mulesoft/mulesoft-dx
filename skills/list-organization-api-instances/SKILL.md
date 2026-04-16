@@ -64,8 +64,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
 - name: environmentId
@@ -95,13 +94,11 @@ operationId: listOrganizationsEnvironmentsApis
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      input: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 outputs:
 - name: apiInstances

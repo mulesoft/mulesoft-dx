@@ -53,8 +53,6 @@ This skill has multiple execution paths depending on what you already have:
 
 ## Step 1: Publish API to Exchange
 
-> **Skip if:** You already have an Exchange asset with a known `groupId`, `assetId`, and `assetVersion`.
-
 Publishes your API specification to Exchange as a reusable asset. This makes it available for API Manager to create managed instances from it.
 
 **What you'll need:**
@@ -103,8 +101,6 @@ outputs:
 
 ## Step 2: List Environments
 
-> **Skip if:** You already know the `environmentId`.
-
 List all environments in the organization so you can confirm or select the one where your API instance lives.
 
 **What you'll need:**
@@ -152,8 +148,7 @@ inputs:
     description: Organization ID
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 outputs:
   - name: targetId
@@ -171,8 +166,6 @@ outputs:
 **What happens next:** You have a deployment target and its gateway version. Next, create the API instance and then configure its deployment target.
 
 ## Step 4: Create API Manager Instance
-
-> **Skip if:** You already have an API Manager instance with a known `environmentApiId`.
 
 Creates a managed API instance in API Manager from your Exchange asset. This creates the API configuration; deployment to the Flex Gateway happens in Step 5.
 
@@ -196,23 +189,19 @@ inputs:
     description: Your organization's Business Group GUID
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Target environment ID from Step 2
   groupId:
     from:
-      step: Publish API to Exchange
-      output: groupId
+      variable: groupId
     description: Exchange asset group ID from Step 1
   assetId:
     from:
-      step: Publish API to Exchange
-      output: assetId
+      variable: assetId
     description: Exchange asset ID from Step 1
   assetVersion:
     from:
-      step: Publish API to Exchange
-      output: assetVersion
+      variable: assetVersion
     description: Exchange asset version from Step 1
   instanceLabel:
     userProvided: true
@@ -263,34 +252,29 @@ inputs:
     description: Organization ID
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
   environmentApiId:
     from:
-      step: Create API Manager Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 4
   type:
     value: "HY"
     description: "Deployment type for self-managed Flex Gateway (HY = Hybrid)"
   targetId:
     from:
-      step: Select Deployment Target
-      output: targetId
+      variable: targetId
     description: Flex Gateway target ID from Step 3
   targetName:
     from:
-      step: Select Deployment Target
-      output: targetName
+      variable: targetName
     description: Flex Gateway target name from Step 3
   gatewayVersion:
     value: "1.0.0"
     description: "Gateway version for deployment. Use \"1.0.0\" as the default."
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID (required in the deployment body for HY type)
   overwrite:
     value: false
@@ -346,13 +330,11 @@ inputs:
     description: Organization ID
   apiInstanceId:
     from:
-      step: Create API Manager Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 4 (filters for compatible templates)
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
   latest:
     value: "true"
@@ -405,28 +387,23 @@ inputs:
     description: Organization ID
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
   environmentApiId:
     from:
-      step: Create API Manager Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 4 (or provided manually)
   groupId:
     from:
-      step: Browse Exchange Policy Catalog
-      output: policyGroupId
+      variable: policyGroupId
     description: Policy Exchange group ID from Step 6
   assetId:
     from:
-      step: Browse Exchange Policy Catalog
-      output: policyAssetId
+      variable: policyAssetId
     description: Policy Exchange asset ID from Step 6
   assetVersion:
     from:
-      step: Browse Exchange Policy Catalog
-      output: policyAssetVersion
+      variable: policyAssetVersion
     description: Policy Exchange version from Step 6
 outputs:
   - name: policyId

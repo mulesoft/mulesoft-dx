@@ -4,10 +4,8 @@
 {% elif input_def is mapping %}
 {% if input_def['from'] is defined and input_def['from'] is mapping %}
 {% set src = input_def['from'] %}
-{% if src.step is defined %}
-{% set ref = 'Step: ' ~ src.step %}
-{% if src.output %}{% set ref = ref ~ ' → ' ~ src.output %}{% elif src.input %}{% set ref = ref ~ ' → ' ~ src.input %}{% endif %}
-<span class="input-from-step">{{ ref }}</span>
+{% if src.variable is defined %}
+<span class="input-from-variable">{{ src.variable }}</span>
 {% elif src.api is defined %}
 {% set api_name = src.api|default('')|replace('urn:api:', '') %}
 {% set op = src.operation|default('') %}
@@ -32,9 +30,8 @@
 {% if input_def is mapping %}
 {% if input_def['from'] is defined and input_def['from'] is mapping %}
 {% set src = input_def['from'] %}
-{% if src.step is defined %}
-{% set target = src.output|default('') or src.input|default('') %}
-from Step: {{ src.step }} → {{ target }}
+{% if src.variable is defined %}
+from variable: {{ src.variable }}
 {% elif src.api is defined %}
 {% set api_name = src.api|default('')|replace('urn:api:', '') %}
 from {{ api_name }}#{{ src.operation|default('') }}

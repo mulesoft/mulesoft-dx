@@ -5715,9 +5715,8 @@ function renderWorkflowStepForms(skillSlug) {
 
                     // Source hint
                     var hint = '';
-                    if (hasFrom && bf.def.from.step) {
-                        var target = bf.def.from.output || bf.def.from.input || '';
-                        hint = 'from Step: ' + bf.def.from.step + (target ? ' → ' + target : '');
+                    if (hasFrom && bf.def.from.variable) {
+                        hint = 'from variable: ' + bf.def.from.variable;
                     } else if (isUserProvided) {
                         hint = 'user provided';
                     } else if (bf.def.value !== undefined) {
@@ -5918,31 +5917,34 @@ function resolveWorkflowInputs(skillSlug, stepIndex) {
             resolvedFrom = 'static';
         }
 
-        // 2. From previous step
-        if (source.from && typeof source.from === 'object' && source.from.step) {
-            var stepName = source.from.step;
-            var fromOutput = source.from.output;
-            var fromInput = source.from.input;
+        // 2. From variable (search previous steps in reverse order)
+        if (source.from && typeof source.from === 'object' && source.from.variable) {
+            var varName = source.from.variable;
             var field = source.from.field || '';
 
-            // Find the step index by title
-            var srcStepIdx = findStepByTitle(skillSlug, stepName);
-            if (srcStepIdx >= 0 && ctx.stepResults[srcStepIdx]) {
-                var srcResult = ctx.stepResults[srcStepIdx];
-                var val = null;
-                if (fromOutput && srcResult.outputs[fromOutput] !== undefined) {
-                    val = srcResult.outputs[fromOutput];
-                } else if (fromInput && srcResult.inputs[fromInput] !== undefined) {
-                    val = srcResult.inputs[fromInput];
+            // Search previous steps in reverse order (most recent first)
+            var val = null;
+            for (var s = stepIndex - 1; s >= 0; s--) {
+                if (!ctx.stepResults[s]) continue;
+                var srcResult = ctx.stepResults[s];
+                // Check outputs first (higher priority)
+                if (srcResult.outputs && srcResult.outputs[varName] !== undefined) {
+                    val = srcResult.outputs[varName];
+                    break;
                 }
-                // Apply field navigation if present
-                if (val != null && field) {
-                    val = extractByPath(val, field);
+                // Then check inputs
+                if (srcResult.inputs && srcResult.inputs[varName] !== undefined) {
+                    val = srcResult.inputs[varName];
+                    break;
                 }
-                if (val != null) {
-                    resolved = typeof val === 'object' ? JSON.stringify(val) : String(val);
-                    resolvedFrom = 'step';
-                }
+            }
+            // Apply field navigation if present
+            if (val != null && field) {
+                val = extractByPath(val, field);
+            }
+            if (val != null) {
+                resolved = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                resolvedFrom = 'variable';
             }
         }
 

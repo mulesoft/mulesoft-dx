@@ -119,20 +119,17 @@ inputs:
 
   spec.groupId:
     from:
-      step: Search Assets in Exchange
-      output: groupId
+      variable: groupId
     description: Exchange asset group ID from Step 1
 
   spec.assetId:
     from:
-      step: Search Assets in Exchange
-      output: assetId
+      variable: assetId
     description: Exchange asset ID from Step 1
 
   spec.version:
     from:
-      step: Search Assets in Exchange
-      output: version
+      variable: version
     description: Asset version from Step 1
 
   endpoint.uri:
@@ -176,20 +173,17 @@ operationId: createOrganizationsEnvironmentsApisUpstreams
 inputs:
   organizationId:
     from:
-      step: Create API Instance Without Endpoint
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 2
 
   environmentId:
     from:
-      step: Create API Instance Without Endpoint
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 2
 
   environmentApiId:
     from:
-      step: Create API Instance Without Endpoint
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 2
 
   label:
@@ -227,20 +221,17 @@ operationId: createOrganizationsEnvironmentsApisUpstreams
 inputs:
   organizationId:
     from:
-      step: Create API Instance Without Endpoint
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 2
 
   environmentId:
     from:
-      step: Create API Instance Without Endpoint
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 2
 
   environmentApiId:
     from:
-      step: Create API Instance Without Endpoint
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 2
 
   label:
@@ -278,26 +269,22 @@ operationId: updateOrganizationsEnvironmentsApis
 inputs:
   organizationId:
     from:
-      step: Create API Instance Without Endpoint
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 2
 
   environmentId:
     from:
-      step: Create API Instance Without Endpoint
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 2
 
   environmentApiId:
     from:
-      step: Create API Instance Without Endpoint
-      output: environmentApiId
+      variable: environmentApiId
     description: API instance ID from Step 2
 
   routing[0].upstream.id:
     from:
-      step: Create First Upstream
-      output: upstreamId1
+      variable: upstreamId1
     description: Production upstream ID from Step 3
 
   routing[0].upstream.weight:
@@ -306,8 +293,7 @@ inputs:
 
   routing[1].upstream.id:
     from:
-      step: Create Second Upstream
-      output: upstreamId2
+      variable: upstreamId2
     description: Canary upstream ID from Step 4
 
   routing[1].upstream.weight:

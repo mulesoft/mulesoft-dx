@@ -126,20 +126,17 @@ operationId: createOrganizationsEnvironmentsApisTiers
 inputs:
   organizationId:
     from:
-      step: Create API Instance
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: Create API Instance
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: Create API Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: The API instance ID from Step 1
 
   name:
@@ -185,20 +182,17 @@ operationId: createOrganizationsEnvironmentsApisTiers
 inputs:
   organizationId:
     from:
-      step: Create API Instance
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: Create API Instance
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: Create API Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: The API instance ID from Step 1
 
   name:
@@ -239,20 +233,17 @@ operationId: createOrganizationsEnvironmentsApisTiers
 inputs:
   organizationId:
     from:
-      step: Create API Instance
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: Create API Instance
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: Create API Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: The API instance ID from Step 1
 
   name:
@@ -302,20 +293,17 @@ operationId: createOrganizationsEnvironmentsApisPolicies
 inputs:
   organizationId:
     from:
-      step: Create API Instance
-      input: organizationId
+      variable: organizationId
     description: Same organizationId as Step 1
 
   environmentId:
     from:
-      step: Create API Instance
-      input: environmentId
+      variable: environmentId
     description: Same environmentId as Step 1
 
   environmentApiId:
     from:
-      step: Create API Instance
-      output: environmentApiId
+      variable: environmentApiId
     description: The API instance ID from Step 1
 
   policyTemplateId:

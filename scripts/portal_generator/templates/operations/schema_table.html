@@ -1,36 +1,78 @@
-{% from "operations/macros.html" import param_type %}
+{% from "operations/macros.html" import param_type, param_type_simple %}
 
 {% macro render_schema_table(properties, title='') %}
 {% if properties %}
 {% if title %}<h5 class="schema-title">{{ title }}</h5>{% endif %}
 <div class="params-list">
     {% for prop in properties %}
-    <div class="param-item">
+    {% set prop_desc = prop.description|md if prop.description else '' %}
+    {% set schema = prop.schema|default({}) %}
+    {% set has_constraints = schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined or schema.pattern is defined %}
+    {% set should_collapse = prop_desc|should_collapse_description or has_constraints %}
+    <div class="param-item{% if should_collapse %} has-collapsible{% endif %}">
         <div class="param-header">
-            {% if prop.children and prop.children|length > 0 %}
-            <button class="nested-prop-toggle" onclick="toggleNestedProps('{{ prop.name|replace(' ', '-')|replace('.', '-')|lower }}-{{ loop.index }}')" aria-label="Toggle nested properties">
-                <svg class="toggle-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+            {% if should_collapse %}
+            <button class="param-collapse-toggle" onclick="toggleParamDescription(this)" aria-label="Toggle description">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             {% endif %}
-            <code class="param-name">{{ prop.name }}{% if prop.required %}*{% endif %}:</code>
-            <code class="param-type-inline">{{ param_type(prop.schema|default({})) }}</code>
+            {% if prop.children and prop.children|length > 0 %}
+            <button class="nested-prop-toggle" onclick="toggleNestedProps('{{ prop.name|replace(' ', '-')|replace('.', '-')|lower }}-{{ loop.index }}')" aria-label="Toggle nested properties">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            {% endif %}
+            <code class="param-name">{{ prop.name }}{% if prop.required %}<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:</code>
+            <code class="param-type-inline">{{ param_type_simple(schema) }}</code>
         </div>
-        {% if prop.description %}
-        <div class="param-description">{{ prop.description|md }}</div>
+        {% if prop.description or has_constraints %}
+        <div class="param-description-wrapper{% if should_collapse %} collapsed{% endif %}">
+            {% if prop.description %}
+            <div class="param-description">{{ prop_desc|safe }}</div>
+            {% endif %}
+            {% if has_constraints %}
+            <div class="param-constraints">
+                {%- if schema.minimum is defined -%}min: {{ schema.minimum }}{%- endif -%}
+                {%- if schema.maximum is defined -%}{% if schema.minimum is defined %}, {% endif %}max: {{ schema.maximum }}{%- endif -%}
+                {%- if schema.minLength is defined -%}{% if schema.minimum is defined or schema.maximum is defined %}, {% endif %}minLength: {{ schema.minLength }}{%- endif -%}
+                {%- if schema.maxLength is defined -%}{% if schema.minLength is defined %}, {% endif %}maxLength: {{ schema.maxLength }}{%- endif -%}
+                {%- if schema.pattern is defined -%}{% if schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined %}, {% endif %}pattern: <code>{{ schema.pattern }}</code>{%- endif -%}
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
         {% if prop.children and prop.children|length > 0 %}
         <div class="nested-properties" id="{{ prop.name|replace(' ', '-')|replace('.', '-')|lower }}-{{ loop.index }}" style="display:none">
             <div class="params-list nested-params-list">
                 {% for child in prop.children %}
-                <div class="param-item">
+                {% set child_desc = child.description|md if child.description else '' %}
+                {% set child_schema = child.schema|default({}) %}
+                {% set has_child_constraints = child_schema.minimum is defined or child_schema.maximum is defined or child_schema.minLength is defined or child_schema.maxLength is defined or child_schema.pattern is defined %}
+                {% set should_collapse_child = child_desc|should_collapse_description or has_child_constraints %}
+                <div class="param-item{% if should_collapse_child %} has-collapsible{% endif %}">
                     <div class="param-header">
+                        {% if should_collapse_child %}
+                        <button class="param-collapse-toggle" onclick="toggleParamDescription(this)" aria-label="Toggle description">
+                            <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        {% endif %}
                         <code class="param-name">{{ child.name }}{% if child.required %}*{% endif %}:</code>
-                        <code class="param-type-inline">{{ param_type(child.schema|default({})) }}</code>
+                        <code class="param-type-inline">{{ param_type_simple(child_schema) }}</code>
                     </div>
-                    {% if child.description %}
-                    <div class="param-description">{{ child.description|md }}</div>
+                    {% if child.description or has_child_constraints %}
+                    <div class="param-description-wrapper{% if should_collapse_child %} collapsed{% endif %}">
+                        {% if child.description %}
+                        <div class="param-description">{{ child_desc|safe }}</div>
+                        {% endif %}
+                        {% if has_child_constraints %}
+                        <div class="param-constraints">
+                            {%- if child_schema.minimum is defined -%}min: {{ child_schema.minimum }}{%- endif -%}
+                            {%- if child_schema.maximum is defined -%}{% if child_schema.minimum is defined %}, {% endif %}max: {{ child_schema.maximum }}{%- endif -%}
+                            {%- if child_schema.minLength is defined -%}{% if child_schema.minimum is defined or child_schema.maximum is defined %}, {% endif %}minLength: {{ child_schema.minLength }}{%- endif -%}
+                            {%- if child_schema.maxLength is defined -%}{% if child_schema.minLength is defined %}, {% endif %}maxLength: {{ child_schema.maxLength }}{%- endif -%}
+                            {%- if child_schema.pattern is defined -%}{% if child_schema.minimum is defined or child_schema.maximum is defined or child_schema.minLength is defined or child_schema.maxLength is defined %}, {% endif %}pattern: <code>{{ child_schema.pattern }}</code>{%- endif -%}
+                        </div>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
                 {% endfor %}

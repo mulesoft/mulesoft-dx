@@ -1,10 +1,22 @@
 <div class="auth-panel-header-bar" id="authPanelHeader">
     <div class="auth-panel-left">
-        <a href="../index.html" class="back-link">&larr; Back to Home</a>
+        <a href="../index.html" class="logo-link">
+            <img src="{{ icons_path }}/mulesoft-dev-logo.webp" alt="MuleSoft Dev" class="mulesoft-dev-logo">
+        </a>
     </div>
     <div class="auth-panel-center">
-        <h1 class="api-title">{{ api_name }}</h1>
+        <h1 class="api-title"><a href="#overview" class="api-title-link">{{ api_name }}</a></h1>
         <span class="badge badge-version">{{ api_version }}</span>
+        {% if is_skill_page %}
+        <div class="skill-mode-toggle-container">
+            <label class="toggle-switch-label">
+                <span class="toggle-label-text">Interactive Mode</span>
+                <div class="toggle-switch" onclick="toggleSkillMode('{{ skill_slug }}')" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ skill_slug }}">
+                    <div class="toggle-slider"></div>
+                </div>
+            </label>
+        </div>
+        {% endif %}
     </div>
     <div class="auth-panel-right">
         <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">

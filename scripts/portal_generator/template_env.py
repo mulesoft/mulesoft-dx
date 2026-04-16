@@ -167,20 +167,28 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         if 'from' in param_config:
             from_ref = param_config['from']
             if isinstance(from_ref, dict):
-                # Try both 'output' and 'input' fields for step references
-                var_name = from_ref.get('output') or from_ref.get('input', '')
+                # Check if it's a step reference (has 'step' key)
+                if 'step' in from_ref:
+                    # Try both 'output' and 'input' fields
+                    var_name = from_ref.get('output') or from_ref.get('input', '')
 
-                if not var_name and 'api' in from_ref:
-                    # From-API reference: use the parameter name as the variable
-                    var_name = param_name
+                    if var_name:
+                        # Create the reference string - just ${variableName}
+                        ref_string = f'${{{var_name}}}'
+                        # Replace 'from' with 'ref'
+                        new_config = param_config.copy()
+                        del new_config['from']
+                        new_config['ref'] = ref_string
+                        result[param_name] = new_config
+                        continue
 
-                if var_name:
-                    # Create the reference string - just ${variableName}
-                    ref_string = f'${{{var_name}}}'
-                    # Replace 'from' with 'ref'
+                # Check if it's an x-origin style reference (has 'api' and 'operation')
+                elif 'api' in from_ref and 'operation' in from_ref:
+                    # This is an x-origin reference - remove 'from' and leave value empty
+                    # The user will need to fetch the value via x-origin modal
                     new_config = param_config.copy()
                     del new_config['from']
-                    new_config['ref'] = ref_string
+                    # Don't set a ref or value - leave it empty
                     result[param_name] = new_config
                     continue
 
@@ -188,6 +196,31 @@ def _resolve_skill_inputs(inputs_dict, step_details):
         result[param_name] = param_config
 
     return result
+
+
+def _truncate_text(text, max_length=25):
+    """Truncate text to max_length characters, adding ellipsis if truncated."""
+    if not text or len(text) <= max_length:
+        return text
+    return text[:max_length] + '...'
+
+
+def _should_collapse_description(text):
+    """Check if a description should be collapsed based on content."""
+    if not text:
+        return False
+
+    # Convert to string if it's a Markup object
+    text_str = str(text)
+
+    # Check for HTML elements that indicate multi-line content
+    multiline_indicators = ['<ul>', '<ol>', '<li>', '<br>', '</p>', '\n']
+    has_multiline = any(indicator in text_str for indicator in multiline_indicators)
+
+    # Check text length (approximate 2 lines = ~150 characters)
+    is_long = len(text_str) > 150
+
+    return has_multiline or is_long
 
 
 def create_env() -> Environment:
@@ -207,6 +240,8 @@ def create_env() -> Environment:
     env.filters['titleize_operation'] = _titleize_operation
     env.filters['slugify'] = _slugify
     env.filters['resolve_skill_inputs'] = _resolve_skill_inputs
+    env.filters['truncate_text'] = _truncate_text
+    env.filters['should_collapse_description'] = _should_collapse_description
 
     # Global functions available in all templates
     env.globals['build_operation_tree'] = build_operation_tree

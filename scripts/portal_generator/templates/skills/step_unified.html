@@ -1,0 +1,164 @@
+{% macro render_step_unified(step, step_num, slug, step_index, total_steps, private_api_slugs=[], api_link_prefix='', all_steps=[], op_lookup={}) %}
+{% set yaml_data = step.yaml|default(none) %}
+{% set sid = slug ~ '-' ~ step_index %}
+
+{# Step Container #}
+<div class="unified-step-container" id="step-{{ sid }}">
+
+    {# Step Title #}
+    <h3 class="step-title">{{ step.title }}</h3>
+
+    {# Prose Before #}
+    {% if step.prose_before_html %}
+    <div class="step-prose">
+        {{ step.prose_before_html|safe }}
+    </div>
+    {% endif %}
+
+    {% if yaml_data %}
+    {% set api = yaml_data.api|default('')|replace('urn:api:', '') %}
+    {% set operation_id = yaml_data.operationId|default('') %}
+    {% set inputs = yaml_data.inputs|default({}) %}
+    {% set outputs = yaml_data.outputs|default([]) %}
+    {% set op_meta = op_lookup.get(api, {}).get('ops', {}).get(operation_id, {}) if op_lookup else {} %}
+    {% set op_path = op_meta.get('path', '') %}
+    {% set op_method = op_meta.get('method', 'POST')|upper %}
+    {% set op_parameters = op_meta.get('parameters', []) %}
+
+    {# Unified Operation Block - Contains both curl and interactive #}
+    <div class="unified-operation-block" id="operation-block-{{ sid }}">
+
+        {# Documentation View - cURL Command #}
+        <div class="step-documentation-view" data-step="{{ sid }}">
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    {% if api in private_api_slugs|default([]) %}
+                    <div class="terminal-title">{{ api }}.{{ operation_id }}</div>
+                    {% else %}
+                    <a href="{{ api_link_prefix|default('') }}{{ api }}.html#op-{{ operation_id }}" class="terminal-title terminal-title-link" target="_blank">
+                        {{ api }}.{{ operation_id }}
+                    </a>
+                    {% endif %}
+                    <button class="btn-copy-curl-inline" onclick="copyCurlFromTerminal(this)" title="Copy cURL command">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% set path_with_params = op_path %}
+                {%- set query_params = [] -%}
+                {%- set body_params = {} -%}
+                {%- for param in op_parameters -%}
+                  {%- if inputs is mapping and param.name in inputs -%}
+                    {%- set input_value = render_input_value(inputs[param.name]) -%}
+                    {%- if param.in == 'path' -%}
+                      {%- set path_with_params = path_with_params|replace('{' ~ param.name ~ '}', input_value) -%}
+                    {%- elif param.in == 'query' -%}
+                      {%- set _ = query_params.append(param.name ~ '=' ~ input_value) -%}
+                    {%- elif param.in == 'body' -%}
+                      {%- set _ = body_params.update({param.name: input_value}) -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set full_url = path_with_params -%}
+                {%- if query_params -%}
+                  {%- set full_url = full_url ~ '?' ~ query_params|join('&') -%}
+                {%- endif -%}
+                <pre class="terminal-content"><code><span class="terminal-prompt">$</span> <span class="terminal-command">curl</span> <span class="terminal-flag">-X</span> <span class="terminal-method">{{ op_method }}</span> <span class="terminal-url"><span class="terminal-variable">${baseUrl}</span>{{ full_url }}</span> <span class="terminal-continuation">\</span>
+  <span class="terminal-flag">-H</span> <span class="terminal-string">"<span class="terminal-header-name">Authorization</span>: Bearer <span class="terminal-variable">${authToken}</span>"</span> <span class="terminal-continuation">\</span>
+  <span class="terminal-flag">-H</span> <span class="terminal-string">"<span class="terminal-header-name">Content-Type</span>: application/json"</span>{%- if body_params %} <span class="terminal-continuation">\</span>
+  <span class="terminal-flag">-d</span> <span class="terminal-string">'<span class="terminal-json-brace">{</span>{%- for name, value in body_params.items() -%}<span class="terminal-json-quote">"</span><span class="terminal-key">{{ name }}</span><span class="terminal-json-quote">"</span><span class="terminal-json-colon">:</span><span class="terminal-json-quote">"</span><span class="terminal-value">{{ value }}</span><span class="terminal-json-quote">"</span>{%- if not loop.last -%}<span class="terminal-json-comma">,</span>{%- endif -%}{%- endfor -%}<span class="terminal-json-brace">}</span>'</span>{%- endif -%}</code></pre>
+            </div>
+        </div>
+
+        {# Interactive View - Operation Runner #}
+        <div class="step-interactive-view" data-step="{{ sid }}" style="display:none">
+            <div class="interactive-operation-panel" id="playground-panel-{{ sid }}"
+                 data-wf-outputs='{{ outputs|tojson }}'
+                 data-wf-api="{{ yaml_data.api|default('') }}"
+                 data-wf-operation="{{ operation_id }}"
+                 data-wf-inputs='{{ (inputs|resolve_skill_inputs(all_steps))|tojson }}'>
+                <div class="operation-panel-loading">
+                    <div class="loading-spinner"></div>
+                    <span>Loading operation form...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Outputs Section - Outside unified-operation-block #}
+    {% if outputs and outputs is iterable %}
+    {% set output_rows = [] %}
+    {% for out in outputs %}
+    {% if out is mapping %}{% set _ = output_rows.append(out) %}{% endif %}
+    {% endfor %}
+    {% if output_rows %}
+    <div class="step-outputs-section">
+        <h5 class="outputs-section-title">Captured Variables</h5>
+        <div class="params-list">
+            {% for out in output_rows %}
+            {% set has_description = out.description %}
+            <div class="param-item{% if has_description %} has-collapsible{% endif %}">
+                <div class="param-header">
+                    {% if has_description %}
+                    <button class="param-collapse-toggle" onclick="toggleParamDescription(this)" aria-label="Toggle description">
+                        <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    {% endif %}
+                    <code class="param-name">{{ out.name|default('') }}</code>
+                    <code class="param-type-inline jsonpath-highlight">{{ out.path|default('') }}</code>
+                </div>
+                {% if has_description %}
+                <div class="param-description-wrapper collapsed">
+                    <div class="param-description">{{ out.description }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+    {# Prose After #}
+    {% if step.prose_after_html %}
+    <div class="step-prose">
+        {{ step.prose_after_html|safe }}
+    </div>
+    {% endif %}
+
+</div>
+{% endmacro %}
+
+{% macro render_input_value(defn) -%}
+{%- if defn is mapping -%}
+{%- if defn.from is defined -%}
+{%- set from_input = defn.from.input|default('') -%}
+{%- set from_output = defn.from.output|default('') -%}
+{%- if from_input -%}${{ '{' }}{{ from_input }}{{ '}' }}{%- elif from_output -%}${{ '{' }}{{ from_output }}{{ '}' }}{%- endif -%}
+{%- elif defn.value is defined -%}
+{%- set val = defn.value|string|trim|lower -%}
+{%- if val == 'true' or val == 'false' -%}{{ val }}{%- else -%}{{ defn.value|trim }}{%- endif -%}
+{%- else -%}
+{{ defn|trim }}
+{%- endif -%}
+{%- else -%}
+{%- set val = defn|string|trim|lower -%}
+{%- if val == 'true' or val == 'false' -%}{{ val }}{%- else -%}{{ defn|trim }}{%- endif -%}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro render_input_value_with_type(defn) -%}
+{% set raw_value = render_input_value(defn) %}
+{% set lower_value = raw_value|lower %}
+{% set str_value = raw_value|string %}
+{% if lower_value == 'true' or lower_value == 'false' %}
+<span class="terminal-value">{{ lower_value }}</span>
+{% elif str_value.startswith('${') and str_value.endswith('}') %}
+<span class="terminal-json-quote">"</span><span class="terminal-value">{{ raw_value }}</span><span class="terminal-json-quote">"</span>
+{% else %}
+<span class="terminal-json-quote">"</span><span class="terminal-value">{{ raw_value }}</span><span class="terminal-json-quote">"</span>
+{% endif %}
+{%- endmacro %}

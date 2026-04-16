@@ -2,10 +2,14 @@
 <a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill">
     <article class="catalog-card">
         <div class="catalog-card-header">
-            <h3 class="catalog-card-title">{{ skill_name }}</h3>
+            <div class="catalog-card-title-wrapper">
+                <img src="assets/icons/skill-card-icon.svg" width="28" height="28" class="card-icon" alt="">
+                <h3 class="catalog-card-title">{{ skill_name }}</h3>
+            </div>
         </div>
         <p class="catalog-card-description">{{ skill.description|default('')|truncate(150) }}</p>
         <div class="catalog-card-footer">
+            <span class="card-version-badge card-version-list">Skill</span>
             <span class="badge badge-api-type">Skill</span>
             <span class="badge badge-count">{{ skill.step_count|default(0) }} step{{ 's' if skill.step_count != 1 else '' }}</span>
         </div>

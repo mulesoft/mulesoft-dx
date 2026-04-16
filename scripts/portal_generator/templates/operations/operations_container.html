@@ -2,12 +2,6 @@
 
 {% if api.operations %}
 <div id="operations-container">
-    <div id="operations-placeholder" class="operations-placeholder">
-        <div class="placeholder-content">
-            <h3>Select an operation from the sidebar</h3>
-            <p>Click on any operation in the left sidebar to view its details including parameters, request body, and responses.</p>
-        </div>
-    </div>
     {% for op in api.operations %}
     {{ render_operation(op, icons_path) }}
     {% endfor %}

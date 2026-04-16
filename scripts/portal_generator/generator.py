@@ -255,7 +255,6 @@ class PortalGenerator:
                 op_lookup=op_lookup,
                 operation_tree=operation_tree,
                 proxy_url=self.proxy_url,
-                chrome=self.chrome,
                 build_label=self.build_label,
                 base_url=self.base_url,
             )
@@ -295,7 +294,6 @@ class PortalGenerator:
                 api_link_prefix='../apis/',
                 private_api_slugs=private_api_slugs,
                 proxy_url=self.proxy_url,
-                chrome=self.chrome,
                 build_label=self.build_label,
                 base_url=self.base_url,
             )

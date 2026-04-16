@@ -22,6 +22,15 @@
 {% endif %}
 {% endmacro %}
 
+{% macro param_type_simple(schema) %}
+{% if schema %}
+{% set ptype = schema.type|default('') %}
+{% set fmt = schema.format|default('') %}
+{% if fmt %}{% set ptype = ptype ~ '(' ~ fmt ~ ')' %}{% endif %}
+{% if ptype %}<code class="param-type">{{ ptype }}</code>{% endif %}
+{% endif %}
+{% endmacro %}
+
 {% macro x_origin(param) %}
 {% if param['x-origin'] %}
 {% set origins = param['x-origin'] if param['x-origin'] is iterable and param['x-origin'] is not string and param['x-origin'] is not mapping else [param['x-origin']] %}

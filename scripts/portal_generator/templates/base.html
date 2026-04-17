@@ -27,6 +27,7 @@
     {{ chrome.dependencies|safe }}
     {% endif %}
     <link rel="stylesheet" href="{{ css_path }}">
+    {% block extra_styles %}{% endblock %}
 
     <!-- Ace Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>
@@ -34,19 +35,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-yaml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/theme-textmate.min.js"></script>
-    <style>
-        .ace_editor {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-            font-size: 0.8125rem;
-            border: 1px solid var(--lume-color-neutral-5);
-            border-radius: var(--lume-radius-large);
-            min-height: 200px;
-        }
-        .ace_editor.ace_focus {
-            outline: 2px solid rgba(1, 118, 211, 0.15);
-            border-color: var(--lume-color-brand);
-        }
-    </style>
+
     <script>
         window.aceEditors = {};
     </script>

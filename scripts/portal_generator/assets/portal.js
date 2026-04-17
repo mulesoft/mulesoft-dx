@@ -3269,7 +3269,16 @@ function toggleStatusDropdown(opId) {
         d.style.display = 'none';
     });
 
-    dropdown.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+        // Position the dropdown relative to the button
+        var button = dropdown.previousElementSibling;
+        if (button) {
+            var rect = button.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        }
+        dropdown.style.display = 'block';
+    }
 }
 
 function selectResponseStatus(opId, status) {
@@ -7097,7 +7106,7 @@ function addManualVariable(slug) {
                     '<td><input type="text" class="manual-var-value" placeholder="value" /></td>' +
                     '<td><span class="var-source">User Input</span></td>' +
                     '<td><button class="btn-delete-variable" onclick="deleteVariable(this, \'' + slug + '\')" title="Delete variable">' +
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: top;">' +
                     '<line x1="18" y1="6" x2="6" y2="18"></line>' +
                     '<line x1="6" y1="6" x2="18" y2="18"></line>' +
                     '</svg></button></td>';

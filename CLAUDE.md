@@ -158,16 +158,117 @@ When adding x-origin:
 - `values` is required (JSONPath), `labels` is optional
 - Validate: `python3 scripts/build/validate_xorigin.py`
 
+## Portal Generator Architecture
+
+The static portal generator (`scripts/portal_generator/`) follows strict architectural principles:
+
+### Core Principles
+
+1. **No Duplicate HTML** — Extract common patterns into Jinja2 macros and includes. If HTML appears in 2+ places, create a reusable component.
+
+2. **Python-First Processing** — All data transformation, filtering, sorting, and business logic happens in Python. JavaScript only handles user interactions and dynamic UI updates.
+
+3. **Test Everything** — Every new feature requires tests. No exceptions.
+
+### What Goes Where
+
+**Python handles:**
+- Data transformation and normalization
+- Filtering, sorting, aggregations
+- Schema validation and parsing
+- Complex string formatting
+- Business logic
+
+**JavaScript handles:**
+- DOM manipulation and event handling
+- Animations and transitions
+- Form interactions and modal toggling
+- Copy-to-clipboard, syntax highlighting
+- Client-side filtering (after Python preprocessing)
+
+**Templates use:**
+- Jinja2 macros for reusable components with parameters
+- Includes for static sections and layout
+- Filters for formatting only, not complex logic
+
+### Testing Requirements
+
+```bash
+# Run all tests before committing portal changes
+make test-portal
+
+# Tests must cover:
+# - Unit tests for pure functions (utils, parsers, builders)
+# - OAS parser tests ($ref resolution, allOf merging, schema extraction)
+# - Smoke tests (end-to-end generation, HTML structure validation)
+```
+
+**Read more:** `docs/portal-generator-architecture.md` — Complete guide with examples, patterns, and best practices.
+
+## Design System
+
+The portal uses a semantic token system with CSS custom properties. **Always use tokens, never hard-coded colors or values.**
+
+### Quick Reference
+
+```css
+/* ✅ CORRECT - Semantic tokens */
+.card {
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-large);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* ❌ WRONG - Hard-coded values */
+.card {
+  color: #3E3E3C;
+  background: #FFFFFF;
+  border: 1px solid #DDDBDA;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+```
+
+### Core Design Principles
+
+1. **White Background = Interactive** — Surface backgrounds (`--color-bg-surface`) signal clickable elements. Gray backgrounds (`--color-bg-primary`) are non-interactive containers.
+
+2. **No Boxes Inside Boxes** — Avoid nested bordered/shadowed containers. Use background color changes and spacing instead.
+
+3. **Hover = Selected Style** — For selectable elements, hover state must match the selected state for predictable interactions.
+
+4. **Buttons Use --radius-large Minimum** — All buttons require at least `--radius-large` (12px) border radius for a modern, friendly aesthetic.
+
+### Token Categories
+
+- **Text:** `--color-text-primary`, `--color-text-secondary`, `--color-text-link`
+- **Backgrounds:** `--color-bg-primary`, `--color-bg-surface`, `--color-bg-overlay`
+- **Borders:** `--color-border-primary`, `--color-border-focus`
+- **Spacing:** `--space-xs` through `--space-2xl` (2px → 48px)
+- **Typography:** `--font-size-1` through `--font-size-11`, `--font-weight-*`
+- **Radius:** `--radius-small`, `--radius-medium`, `--radius-large`, `--radius-xl`
+- **Shadows:** `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`
+- **HTTP Methods:** `--method-get-bg/text`, `--method-post-bg/text`, etc.
+
+**Read more:** `docs/design-system.md` — Complete token reference, component patterns, and usage examples.
+
 ## Key Files
 
 - `Makefile`: Validation orchestration, report generation
 - `scripts/build/validate_xorigin.py`: Validates x-origin annotations across all specs
 - `scripts/build/validate_jtbd.py`: Validates Jobs To Be Done format
 - `scripts/portal_generator/`: Static API portal generator package
+- `scripts/portal_generator/assets/styles.css`: Design system CSS variables (lines 39-270)
 - `scripts/tests/`: Portal generator test suite (pytest)
 - `scripts/pyproject.toml`: Pytest configuration for the portal generator
 - `.agents/skills/`: Agent skills (api-spec-validator, validate-imperative-format, jtbd-generator, etc.)
 - `docs/VALIDATION.md`: Detailed validation guide with CI/CD examples
+- `docs/design-system.md`: Complete design system documentation
+- `docs/portal-generator-architecture.md`: Architecture guidelines and best practices
 - `docs/schemas/x-origin.schema.json`: JSON Schema for x-origin extension (source of truth)
 - `docs/x-origin-schema.md`: Complete x-origin documentation with examples
 - `docs/jobs-readme.md`: JTBD documentation and usage guide

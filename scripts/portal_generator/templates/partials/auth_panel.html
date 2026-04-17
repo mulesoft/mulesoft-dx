@@ -67,28 +67,34 @@
                 </div>
             </div>
 
-            <div class="auth-methods">
-                <div class="auth-method">
-                    <h4>Bearer Token (User)</h4>
-                    <div class="auth-form">
-                        <input id="authUsername" type="text" placeholder="Username" autocomplete="username" aria-label="Username">
-                        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
-                        <button class="btn-auth-login" onclick="loginBearer()">Login</button>
-                    </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="bearer" onclick="switchAuthTab('bearer')">
+                    Bearer Token (User)
+                </button>
+                <button class="auth-tab" data-tab="oauth2" onclick="switchAuthTab('oauth2')">
+                    OAuth2 (Client)
+                </button>
+            </div>
+
+            <div class="auth-tab-content active" id="authTabBearer">
+                <div class="auth-form">
+                    <input id="authUsername" type="text" placeholder="Username" autocomplete="username" aria-label="Username">
+                    <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
+                    <button class="btn-auth-login" onclick="loginBearer()">Login</button>
                 </div>
-                <div class="auth-method">
-                    <h4>OAuth2 (Client)</h4>
-                    <div class="auth-form">
-                        <input id="authClientId" type="text" placeholder="Client Id" aria-label="Client Id">
-                        <input id="authClientSecret" type="password" placeholder="Client Secret" aria-label="Client Secret">
-                        <button class="btn-auth-login" onclick="loginOAuth2()">Get Token</button>
-                    </div>
+            </div>
+
+            <div class="auth-tab-content" id="authTabOauth2">
+                <div class="auth-form">
+                    <input id="authClientId" type="text" placeholder="Client Id" aria-label="Client Id">
+                    <input id="authClientSecret" type="password" placeholder="Client Secret" aria-label="Client Secret">
+                    <button class="btn-auth-login" onclick="loginOAuth2()">Get Token</button>
                 </div>
             </div>
 
             <div class="env-vars-section">
                 <div class="env-vars-header">
-                    <h4>Environment Variables</h4>
+                    <h4>Context Variables</h4>
                     <button class="btn-env-add" onclick="addEnvVar()">+ Add Variable</button>
                 </div>
                 <div class="env-vars-list" id="envVarsList"></div>

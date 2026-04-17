@@ -3628,7 +3628,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-sans);
     font-weight: var(--font-weight-normal);
     color: #3289CE;
-    background: var(--color-bg-primary);
+    background: var(--color-bg-surface);
     border: 1px solid var(--color-slate);
     border-right: none;
     border-radius: var(--radius-xl) 0 0 16px;
@@ -5020,30 +5020,49 @@ details[open] .examples-toggle-icon {
     padding: 0 var(--space-medium);
 }
 
-.auth-methods {
+/* Auth method tabs */
+.auth-tabs {
     display: flex;
-    gap: var(--space-2xl);
-    align-items: stretch;
+    gap: var(--space-x-small);
+    margin-bottom: var(--space-large);
+    border-bottom: 1px solid var(--color-border-primary);
+    padding-bottom: var(--space-x-small);
 }
 
-.auth-method {
+.auth-tab {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-x-small) var(--space-medium);
     background: transparent;
     border: none;
-    border-radius: 0;
-    padding: 0;
+    border-radius: 20px;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.auth-method h4 {
-    margin-top: 0;
-    margin-bottom: var(--space-small);
-    text-transform: none;
-    letter-spacing: normal;
-    font-size: var(--font-size-4);
-    font-weight: var(--font-weight-regular);
+.auth-tab:hover {
+    background: var(--hover-bg);
+}
+
+.auth-tab.active {
+    background: var(--selected-bg);
     color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Auth tab content panels */
+.auth-tab-content {
+    display: none;
+}
+
+.auth-tab-content.active {
+    display: block;
 }
 
 .auth-divider-vertical {
@@ -6390,14 +6409,6 @@ details[open] .examples-toggle-icon {
 
 
 @media (max-width: 768px) {
-    .auth-methods {
-        flex-direction: column;
-    }
-
-    .auth-divider {
-        padding-top: 0;
-    }
-
     .skill-toolbar-actions {
         flex-direction: column;
     }

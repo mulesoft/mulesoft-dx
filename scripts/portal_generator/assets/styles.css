@@ -3333,7 +3333,7 @@ details[open] .examples-toggle-icon {
     padding: 0.375rem 0.75rem;
     background: var(--color-white);
     border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-large);
     font-size: var(--font-size-4);
     font-weight: var(--font-weight-medium);
     color: var(--color-gray-800);
@@ -3364,7 +3364,7 @@ details[open] .examples-toggle-icon {
     min-width: 120px;
     background: var(--color-white);
     border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-large);
     box-shadow: 0 4px 6px -1px var(--shadow-lg), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     z-index: 1000;
     padding: 0.25rem;

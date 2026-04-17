@@ -21,7 +21,9 @@
                 <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             {% endif %}
-            <code class="param-name">{{ prop.name }}{% if prop.required %}<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:</code>
+            <span class="param-name-wrapper">
+                <code>{{ prop.name }}</code>{% if prop.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:
+            </span>
             <code class="param-type-inline">{{ param_type_simple(schema) }}</code>
         </div>
         {% if prop.description or has_constraints %}
@@ -55,7 +57,9 @@
                             <svg viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         {% endif %}
-                        <code class="param-name">{{ child.name }}{% if child.required %}*{% endif %}:</code>
+                        <span class="param-name-wrapper">
+                            <code>{{ child.name }}</code>{% if child.required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:
+                        </span>
                         <code class="param-type-inline">{{ param_type_simple(child_schema) }}</code>
                     </div>
                     {% if child.description or has_child_constraints %}

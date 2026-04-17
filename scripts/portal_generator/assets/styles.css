@@ -137,6 +137,35 @@
     --color-text: #3E3E3C;
     --color-text-muted: #706E6B;
 
+    /* HTTP Method colors */
+    --method-get-bg: var(--color-green-50);
+    --method-get-text: var(--color-green-700);
+    --method-get-bg-hover: var(--color-green-100);
+
+    --method-post-bg: var(--color-blue-50);
+    --method-post-text: var(--color-blue-700);
+    --method-post-bg-hover: var(--color-blue-100);
+
+    --method-put-bg: var(--color-yellow-50);
+    --method-put-text: var(--color-yellow-700);
+    --method-put-bg-hover: var(--color-yellow-100);
+    --method-put-text-hover: var(--color-yellow-800);
+
+    --method-patch-bg: var(--color-purple-50);
+    --method-patch-text: var(--color-purple-700);
+    --method-patch-bg-hover: var(--color-purple-100);
+    --method-patch-text-hover: var(--color-purple-800);
+
+    --method-delete-bg: var(--color-red-50);
+    --method-delete-text: var(--color-red-700);
+    --method-delete-bg-hover: var(--color-red-100);
+    --method-delete-text-hover: var(--color-red-800);
+
+    --method-other-bg: var(--color-gray-50);
+    --method-other-text: var(--color-gray-800);
+    --method-other-bg-hover: var(--color-gray-100);
+    --method-other-text-hover: var(--color-gray-900);
+
     /* Interactive states */
     --hover-bg: #F0F7FF;
     --hover-border: #B3D2EC;
@@ -1664,80 +1693,80 @@ code {
     text-align: center;
 }
 
-/* Method colors from Figma design - default state (light backgrounds) */
+/* HTTP Method badge colors */
 .method-get {
-    background: var(--color-green-50);
-    color: var(--color-green-700);
+    background: var(--method-get-bg);
+    color: var(--method-get-text);
     border: none;
     transition: all 0.15s ease;
 }
 
 .method-post {
-    background: var(--color-blue-50);
-    color: var(--color-blue-700);
+    background: var(--method-post-bg);
+    color: var(--method-post-text);
     border: none;
     transition: all 0.15s ease;
 }
 
 .method-put {
-    background: var(--color-yellow-50);
-    color: var(--color-yellow-700);
+    background: var(--method-put-bg);
+    color: var(--method-put-text);
     border: none;
     transition: all 0.15s ease;
 }
 
 .method-patch {
-    background: var(--color-purple-50);
-    color: var(--color-purple-700);
+    background: var(--method-patch-bg);
+    color: var(--method-patch-text);
     border: none;
     transition: all 0.15s ease;
 }
 
 .method-delete {
-    background: var(--color-red-50);
-    color: var(--color-red-700);
+    background: var(--method-delete-bg);
+    color: var(--method-delete-text);
     border: none;
     transition: all 0.15s ease;
 }
 
 .method-head,
 .method-options {
-    background: var(--color-gray-50);
-    color: var(--color-gray-800);
+    background: var(--method-other-bg);
+    color: var(--method-other-text);
     transition: all 0.15s ease;
 }
 
-/* Method colors - on hover or when active (darker backgrounds) */
+/* Method badge colors - hover and active states */
 .nav-link:hover .method-get,
 .nav-link.active .method-get {
-    background: var(--color-green-100);
+    background: var(--method-get-bg-hover);
     border: none;
 }
 
 .nav-link:hover .method-post,
 .nav-link.active .method-post {
-    background: var(--color-blue-100);
+    background: var(--method-post-bg-hover);
     border: none;
 }
 
 .nav-link:hover .method-put,
 .nav-link.active .method-put {
-    background: var(--color-yellow-100);
-    color: var(--color-yellow-800);
+    background: var(--method-put-bg-hover);
+    color: var(--method-put-text-hover);
     border: none;
 }
 
 .nav-link:hover .method-patch,
 .nav-link.active .method-patch {
-    background: var(--color-purple-100);
-    color: var(--color-purple-800);
+    background: var(--method-patch-bg-hover);
+    color: var(--method-patch-text-hover);
     border: none;
 }
 
 .nav-link:hover .method-delete,
 .nav-link.active .method-delete {
-    background: var(--color-red-100);
-    color: var(--color-red-800);
+    background: var(--method-delete-bg-hover);
+    color: var(--method-delete-text-hover);
     border: none;
 }
 
@@ -1745,8 +1774,8 @@ code {
 .nav-link.active .method-head,
 .nav-link:hover .method-options,
 .nav-link.active .method-options {
-    background: var(--color-gray-100);
-    color: var(--color-gray-900);
+    background: var(--method-other-bg-hover);
+    color: var(--method-other-text-hover);
 }
 
 .path {

@@ -1848,7 +1848,7 @@ async function loginOAuth2() {
     var clientId = document.getElementById('authClientId').value.trim();
     var clientSecret = document.getElementById('authClientSecret').value.trim();
     if (!clientId || !clientSecret) {
-        showAuthMessage('Please enter Client ID and Client Secret.', true);
+        showAuthMessage('Please enter Client Id and Client Secret.', true);
         return;
     }
     var serverBase = getSelectedBaseUrl();

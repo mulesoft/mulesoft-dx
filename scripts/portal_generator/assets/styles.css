@@ -4912,35 +4912,34 @@ details[open] .examples-toggle-icon {
 
 .auth-modal-content {
     position: relative;
-    background: var(--color-neutral-1);
-    border-radius: var(--radius-large);
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-xl);
     width: 700px;
     max-width: 95vw;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: var(--shadow-large);
+    box-shadow: 0 20px 48px 0 var(--shadow-xl);
 }
 
 .auth-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-large);
-    border-bottom: 1px solid var(--color-neutral-4);
+    padding: var(--space-x-large) var(--space-x-large) var(--space-medium);
 }
 
 .auth-modal-header h3 {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-6);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-neutral-10);
+    font-size: var(--font-size-8);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
 }
 
 .auth-modal-body {
-    padding: var(--space-large);
+    padding: var(--space-medium) var(--space-x-large) var(--space-x-large);
     overflow-y: auto;
 }
 
@@ -4951,30 +4950,29 @@ details[open] .examples-toggle-icon {
 
 .auth-section h4 {
     font-size: var(--font-size-4);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-neutral-10);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
     margin-bottom: var(--space-small);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.server-config {
-    background: var(--color-neutral-2);
-    border: 1px solid var(--color-neutral-4);
-    border-radius: var(--radius-medium);
-    padding: var(--space-medium);
-}
-
 .server-select {
     width: 100%;
-    padding: var(--space-small);
-    border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
-    background: var(--color-neutral-1);
+    padding: var(--space-small) var(--space-x-large) var(--space-small) var(--space-medium);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-medium);
+    background: var(--color-bg-surface);
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
-    color: var(--color-neutral-10);
+    color: var(--color-text-primary);
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23706E6B' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-medium) center;
+    background-size: 12px;
 }
 
 .server-var-row {
@@ -5024,7 +5022,7 @@ details[open] .examples-toggle-icon {
 
 .auth-methods {
     display: flex;
-    gap: var(--space-large);
+    gap: var(--space-2xl);
     align-items: stretch;
 }
 
@@ -5032,15 +5030,20 @@ details[open] .examples-toggle-icon {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: var(--color-neutral-2);
-    border: 1px solid var(--color-neutral-4);
-    border-radius: var(--radius-medium);
-    padding: var(--space-medium);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
 }
 
 .auth-method h4 {
     margin-top: 0;
     margin-bottom: var(--space-small);
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
 }
 
 .auth-divider-vertical {
@@ -5069,27 +5072,31 @@ details[open] .examples-toggle-icon {
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: var(--space-small);
+    gap: var(--space-medium);
     flex: 1;
 }
 
 .auth-form input {
-    padding: var(--space-small);
-    border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    padding: var(--space-small) var(--space-medium);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-medium);
     font-size: var(--font-size-4);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
 }
 
 .btn-auth-login {
     margin-top: auto;
-    padding: var(--space-small);
+    padding: var(--space-small) var(--space-x-large);
     background: var(--color-primary);
     color: var(--color-white);
     border: none;
-    border-radius: var(--radius-small);
+    border-radius: 999px;
+    font-size: var(--font-size-4);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: background 0.2s;
+    align-self: flex-end;
 }
 
 .btn-auth-login:hover {
@@ -5121,9 +5128,9 @@ details[open] .examples-toggle-icon {
    ============================================================================ */
 
 .env-vars-section {
-    margin-top: var(--space-medium);
+    margin-top: var(--space-large);
     padding-top: var(--space-medium);
-    border-top: 1px solid var(--color-neutral-4);
+    border-top: 1px solid var(--color-border-primary);
 }
 
 .env-vars-header {
@@ -5136,18 +5143,18 @@ details[open] .examples-toggle-icon {
 .env-vars-header h4 {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-4);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-neutral-10);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
 }
 
 .btn-env-add {
-    padding: var(--space-xx-small) var(--space-small);
-    background: var(--color-neutral-1);
-    border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    padding: var(--space-small) var(--space-x-large);
+    background: transparent;
+    border: 1px solid var(--color-border-primary);
+    border-radius: 999px;
     font-family: var(--font-sans);
-    font-size: var(--font-size-2);
+    font-size: var(--font-size-4);
     color: var(--color-primary);
     font-weight: var(--font-weight-medium);
     cursor: pointer;

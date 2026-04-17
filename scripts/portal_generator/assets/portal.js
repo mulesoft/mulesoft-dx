@@ -3259,7 +3259,16 @@ function toggleStatusDropdown(opId) {
         d.style.display = 'none';
     });
 
-    dropdown.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+        // Position the dropdown relative to the button
+        var button = dropdown.previousElementSibling;
+        if (button) {
+            var rect = button.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        }
+        dropdown.style.display = 'block';
+    }
 }
 
 function selectResponseStatus(opId, status) {

@@ -27,6 +27,7 @@
     {{ chrome.dependencies|safe }}
     {% endif %}
     <link rel="stylesheet" href="{{ css_path }}">
+    {% block extra_styles %}{% endblock %}
 
     <!-- Ace Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>

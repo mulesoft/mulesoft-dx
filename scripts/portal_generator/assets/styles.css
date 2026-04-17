@@ -130,12 +130,32 @@
     --overlay-lighter: rgba(255, 255, 255, 0.3);
     --focus-ring-blue: rgba(0, 120, 219, 0.1);
 
-    /* Semantic colors */
-    --color-bg: #F4F6F9;
-    --color-surface: #FFFFFF;
-    --color-border: #DDDBDA;
-    --color-text: #3E3E3C;
-    --color-text-muted: #706E6B;
+    /* Semantic colors - Backgrounds */
+    --color-bg-primary: #F4F6F9;
+    --color-bg-secondary: var(--color-white);
+    --color-bg-surface: var(--color-white);
+    --color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+    /* Semantic colors - Borders */
+    --color-border-primary: #DDDBDA;
+    --color-border-secondary: var(--color-neutral-5);
+    --color-border-focus: var(--color-primary);
+
+    /* Semantic colors - Text */
+    --color-text-primary: var(--color-neutral-10);
+    --color-text-secondary: var(--color-neutral-8);
+    --color-text-tertiary: var(--color-neutral-7);
+    --color-text-quaternary: var(--color-neutral-6);
+    --color-text-inverse: var(--color-white);
+    --color-text-link: var(--color-primary);
+    --color-text-link-hover: var(--color-primary-dark);
+
+    /* Legacy aliases */
+    --color-bg: var(--color-bg-primary);
+    --color-surface: var(--color-bg-surface);
+    --color-border: var(--color-border-primary);
+    --color-text: var(--color-text-primary);
+    --color-text-muted: var(--color-text-secondary);
 
     /* HTTP Method colors */
     --method-get-bg: var(--color-green-50);
@@ -336,7 +356,7 @@ h5,
 h6 {
     font-weight: var(--font-weight-semibold);
     line-height: 1.3;
-    color: var(--color-text);
+    color: var(--color-text-primary);
 }
 
 h1 {
@@ -375,11 +395,12 @@ strong {
 }
 
 a {
-    color: var(--color-primary);
+    color: var(--color-text-link);
     text-decoration: none;
 }
 
 a:hover {
+    color: var(--color-text-link-hover);
     text-decoration: underline;
 }
 
@@ -2345,7 +2366,7 @@ button.nav-group-header {
 }
 
 .api-full-description a:hover {
-    color: var(--color-primary-dark);
+    color: var(--color-text-link-hover);
 }
 
 .api-full-description ul,

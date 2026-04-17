@@ -189,12 +189,33 @@ class PortalGenerator:
         """Generate index.html"""
         print("  ✓ Generating homepage...")
         template = self.env.get_template('homepage.html')
+
+        # Create unified list of APIs and skills, sorted alphabetically by name
+        all_items = []
+
+        # Add APIs with type marker
+        for api in self.public_apis:
+            api_copy = api.copy()
+            api_copy['_item_type'] = 'api'
+            all_items.append(api_copy)
+
+        # Add skills with type marker
+        if self.all_skills:
+            for skill in self.all_skills:
+                skill_copy = skill.copy()
+                skill_copy['_item_type'] = 'skill'
+                all_items.append(skill_copy)
+
+        # Sort all items alphabetically by name
+        all_items.sort(key=lambda x: x.get('name', '').lower())
+
         html = template.render(
             css_path='assets/styles.css',
             icons_path='assets/icons',
             apis=self.public_apis,
             stats=self.stats,
             all_skills=self.all_skills,
+            all_items=all_items,
             proxy_url=self.proxy_url,
             chrome=self.chrome,
             build_label=self.build_label,

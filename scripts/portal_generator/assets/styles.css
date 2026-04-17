@@ -481,6 +481,7 @@ code {
 .logo-link {
     display: inline-block;
     transition: opacity 0.2s;
+    height: 48px;
 }
 
 .logo-link:hover {
@@ -488,9 +489,9 @@ code {
 }
 
 .mulesoft-dev-logo {
-    height: 48px;
     width: auto;
     vertical-align: middle;
+    padding: 2px 0px;
 }
 
 /* ============================================================================
@@ -781,12 +782,12 @@ code {
 
 .tag-chip {
     display: inline-flex;
+    border: 1px solid var(--color-neutral-5);
     align-items: center;
     gap: var(--space-xx-small);
     padding: var(--space-xxx-small) var(--space-x-small);
-    background: var(--color-primary);
-    color: var(--color-neutral-1);
-    border-radius: var(--radius-small);
+    color: var(--color-neutral-5);
+    border-radius: var(--radius-xl);
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-regular);
     transition: background 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -795,9 +796,7 @@ code {
     line-height: 1;
 }
 
-.tag-chip:hover {
-    background: var(--color-primary-dark);
-}
+
 
 .tag-chip-remove {
     display: flex;
@@ -808,7 +807,6 @@ code {
     background: var(--overlay-light);
     border-radius: 50%;
     border: none;
-    color: var(--color-white);
     cursor: pointer;
     font-size: var(--font-size-4);
     line-height: 1;
@@ -1047,6 +1045,7 @@ code {
 .unified-catalog {
     max-width: 1400px;
     margin: 0 auto;
+    padding-right: 80px;
     padding: 0 var(--space-lg);
     box-sizing: border-box;
 }
@@ -1299,7 +1298,16 @@ code {
     border: 1px solid var(--color-indigo);
 }
 
-.badge-skills,
+.badge-skills {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-regular);
+    color: #2080c0;
+    padding: 4px 15px;
+    border-radius: 21px;
+    border: 1px solid #e0e7ff;
+    background: #DBF1FF;
+}
+
 .badge-count {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-regular);
@@ -1815,7 +1823,7 @@ code {
     top: 0;
     z-index: 100;
     background: var(--color-bg-surface);
-    margin: 32px 0px 0px 0px;
+    margin: 25px 0px 0px 0px;
     border-bottom: 1px solid var(--color-neutral-4);
 }
 
@@ -1828,6 +1836,7 @@ code {
     display: flex;
     align-items: center;
     gap: var(--space-small);
+    padding-top: 0;
 }
 
 .sidebar-search {
@@ -1987,7 +1996,8 @@ code {
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-semibold);
     color: var(--color-gray-600);
-    margin: 10px 0px 10px 0px;
+    margin: 10px;
+    border-radius: var(--radius-xl);
 }
 
 .nav-link[href="#overview"] svg {
@@ -2247,6 +2257,7 @@ button.nav-group-header {
     border-radius: 30px;
     border-bottom: none;
     overflow: visible;
+    height: 100%;
 }
 
 .content-section:last-child {
@@ -5220,7 +5231,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
 }
 
-.btn-env-remove:hover {    
+.btn-env-remove:hover {
     border-color: rgba(239, 68, 68, 0.3);
     background: rgba(239, 68, 68, 0.05);
 }
@@ -5281,7 +5292,7 @@ details[open] .examples-toggle-icon {
     content: '';
     width: 16px;
     height: 16px;
-    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 4L10 8L6 12" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-image: url('../assets/icons/chevron-right.svg');
     background-size: contain;
     background-repeat: no-repeat;
     transition: transform 0.2s;
@@ -5644,39 +5655,6 @@ details[open] .examples-toggle-icon {
     border: 1px solid var(--color-border-primary);
 }
 
-.xorigin-source-select {
-    flex: 1;
-    padding: var(--space-x-small) var(--space-small);
-    border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
-    background: var(--color-neutral-1);
-    color: var(--color-neutral-10);
-    font-size: var(--font-size-3);
-    font-family: var(--font-sans);
-    cursor: pointer;
-    transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M4 6l4 4 4-4z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right var(--space-small) center;
-    padding-right: calc(var(--space-small) * 3);
-}
-
-.xorigin-source-select:hover {
-    border-color: var(--hover-border);
-    background-color: var(--hover-bg);
-}
-
-.xorigin-source-select:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--shadow-blue);
-}
-
-.xorigin-source-select option {
-    font-style: italic;
-}
-
 .btn-execute-xorigin {
     padding: var(--space-x-small) var(--space-large);
     background: var(--color-primary);
@@ -5951,7 +5929,7 @@ details[open] .examples-toggle-icon {
     content: '';
     width: 16px;
     height: 16px;
-    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 4L10 8L6 12" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-image: url('../assets/icons/chevron-right.svg');
     background-size: contain;
     background-repeat: no-repeat;
     transition: transform 0.2s;
@@ -6405,7 +6383,7 @@ details[open] .examples-toggle-icon {
     display: block;
     width: 16px;
     height: 16px;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%2300A2DF"><circle cx="8" cy="8" r="7" fill="none" stroke="%2300A2DF" stroke-width="1.5"/><path d="M8 7v4M8 5v.5" stroke="%2300A2DF" stroke-width="1.5" stroke-linecap="round"/></svg>');
+    background-image: url('../assets/icons/info-icon.svg');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;

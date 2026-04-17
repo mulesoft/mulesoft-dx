@@ -10,7 +10,7 @@
         <p class="catalog-card-description">{{ skill.description|default('')|truncate(150) }}</p>
         <div class="catalog-card-footer">
             <span class="card-version-badge card-version-list">Skill</span>
-            <span class="badge badge-api-type">Skill</span>
+            <span class="badge badge-skills">Skill</span>
             <span class="badge badge-count">{{ skill.step_count|default(0) }} step{{ 's' if skill.step_count != 1 else '' }}</span>
         </div>
     </article>

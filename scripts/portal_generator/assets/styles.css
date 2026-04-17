@@ -610,11 +610,11 @@ code {
 
 .tag-search-wrapper {
     position: relative;
-    width: 100%;
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1;
+    flex: 0 1 auto;
+    max-width: 850px;
 }
 
 .search-icon-catalog {
@@ -630,7 +630,17 @@ code {
 .catalog-results-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-lg);
+    margin-right: 60px;
+}
+
+.catalog-search-and-results {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex: 1;
+    min-width: 0;
 }
 
 .results-count {
@@ -639,6 +649,7 @@ code {
     margin: 0;
     white-space: nowrap;
     flex-shrink: 0;
+    color: var(--color-text-secondary);
 }
 
 /* Catalog Stats (Very Subtle Decorator) */
@@ -696,14 +707,13 @@ code {
     align-items: center;
     gap: var(--space-xx-small);
     padding: 8px 16px 8px 46px;
-    max-width: 850px;
+    width: 850px;
     border: 1.5px solid var(--color-gray-300);
     border-radius: 24px;
     background: var(--color-white);
     min-height: 30px;
     cursor: text;
     transition: all 0.2s;
-    flex: 1;
     margin-left: -32px;
 }
 

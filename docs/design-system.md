@@ -573,6 +573,38 @@ These principles ensure visual consistency and clear interaction patterns across
 
 **Exception:** Small icon-only buttons may use `--radius-medium` (8px) when the button size is very small (≤32px).
 
+### 5. Icons and Assets
+
+**Rule:** Always use SVG icons. PNG is acceptable only when SVG is not available. All icons must be stored in `assets/icons/`.
+
+```html
+<!-- ✅ CORRECT - SVG icon from assets/icons/ -->
+<img src="assets/icons/api-filter-icon.svg" width="16" height="16" alt="">
+
+<!-- ✅ CORRECT - Inline SVG for interactive icons -->
+<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+  <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"></path>
+</svg>
+
+<!-- ⚠️ ACCEPTABLE - PNG only if SVG unavailable -->
+<img src="assets/icons/legacy-icon.png" width="16" height="16" alt="">
+
+<!-- ❌ WRONG - Icon not in assets/icons/ -->
+<img src="images/icon.svg" width="16" height="16" alt="">
+```
+
+**Why:**
+- SVG icons are scalable, crisp at any resolution, and easily styled with CSS
+- Centralized `assets/icons/` directory makes icon management consistent
+- Inline SVG allows `fill="currentColor"` to inherit text color for theme consistency
+
+**Icon Guidelines:**
+- Prefer inline SVG for icons that change color or respond to interactions
+- Use `<img>` tags for static decorative icons
+- Always specify `width` and `height` attributes for performance
+- Use `currentColor` for fill/stroke when icons should match text color
+- Name icon files descriptively (e.g., `api-filter-icon.svg`, `skill-filter-icon.svg`)
+
 ---
 
 ## Quick Reference Cheat Sheet

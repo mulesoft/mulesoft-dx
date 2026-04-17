@@ -31,22 +31,24 @@
     <div class="catalog-main-content">
         <div class="catalog-controls-wrapper">
             <div class="catalog-results-header">
-                <div class="tag-search-wrapper">
-                    <svg class="search-icon-catalog" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-                        <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path>
-                    </svg>
-                    <div class="tag-search-input-container" id="tagSearchInputContainer">
-                        <div class="selected-tags" id="selectedTags"></div>
-                        <input type="text"
-                               id="tagSearchInput"
-                               class="tag-search-input"
-                               placeholder="Search by tags"
-                               aria-label="Search by tags"
-                               autocomplete="off">
+                <div class="catalog-search-and-results">
+                    <div class="tag-search-wrapper">
+                        <svg class="search-icon-catalog" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                            <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path>
+                        </svg>
+                        <div class="tag-search-input-container" id="tagSearchInputContainer">
+                            <div class="selected-tags" id="selectedTags"></div>
+                            <input type="text"
+                                   id="tagSearchInput"
+                                   class="tag-search-input"
+                                   placeholder="Search by tags"
+                                   aria-label="Search by tags"
+                                   autocomplete="off">
+                        </div>
+                        <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                     </div>
-                    <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
+                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
                 </div>
-                <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
                 <div class="catalog-controls-right">
                     <button class="sort-btn" aria-label="Sort options">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="14" height="14" class="block shrink-0 text-current" aria-hidden="true" focusable="false" style="margin-right: 6px;">

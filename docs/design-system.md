@@ -399,6 +399,50 @@ input::placeholder {
 }
 ```
 
+### Code Editor Pattern (ACE Editor)
+
+For editable code blocks, the portal uses **ACE Editor** (https://ace.c9.io/).
+
+**When to use ACE Editor:**
+- Request body editing in "Try It Out" panels
+- Interactive JSON/YAML editing
+- Any code input that requires syntax highlighting and validation
+
+**Implementation:**
+
+```html
+<!-- Container for ACE Editor -->
+<div id="editor-{{ operation_id }}" class="ace-editor-container"></div>
+
+<script>
+// Initialize ACE Editor
+const editor = ace.edit('editor-{{ operation_id }}');
+editor.setTheme('ace/theme/chrome');
+editor.session.setMode('ace/mode/json');
+editor.setOptions({
+    fontSize: '13px',
+    showPrintMargin: false,
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+});
+</script>
+```
+
+**Styling:**
+
+```css
+.ace-editor-container {
+  width: 100%;
+  min-height: 200px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-small);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-3);
+}
+```
+
+**Read-only code blocks** (non-editable examples) should use standard `<pre><code>` with syntax highlighting via a lightweight library, not ACE Editor.
+
 ---
 
 ## Core Design Principles

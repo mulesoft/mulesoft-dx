@@ -4920,7 +4920,7 @@ details[open] .examples-toggle-icon {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 20px 48px 0 var(--shadow-xl);
+    box-shadow: var(--shadow-large);
 }
 
 .auth-modal-header {
@@ -4959,7 +4959,7 @@ details[open] .examples-toggle-icon {
 
 .server-select {
     width: 100%;
-    padding: var(--space-small) var(--space-x-large) var(--space-small) var(--space-medium);
+    padding: var(--space-small) var(--space-medium);
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-medium);
     background: var(--color-bg-surface);
@@ -4967,12 +4967,6 @@ details[open] .examples-toggle-icon {
     font-size: var(--font-size-4);
     color: var(--color-text-primary);
     cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23706E6B' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right var(--space-medium) center;
-    background-size: 12px;
 }
 
 .server-var-row {
@@ -5110,7 +5104,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-primary);
     color: var(--color-white);
     border: none;
-    border-radius: 999px;
+    border-radius: var(--radius-xxxl);
     font-size: var(--font-size-4);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
@@ -5171,7 +5165,7 @@ details[open] .examples-toggle-icon {
     padding: var(--space-small) var(--space-x-large);
     background: transparent;
     border: 1px solid var(--color-border-primary);
-    border-radius: 999px;
+    border-radius: var(--radius-xxxl);
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
     color: var(--color-primary);

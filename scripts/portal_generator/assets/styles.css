@@ -2272,9 +2272,6 @@ button.nav-group-header {
     color: var(--color-gray-700);
 }
 
-.content-section h5 {
-    color: var(--color-gray-700);
-}
 
 .content-section h6 {
     color: var(--color-gray-700);
@@ -2851,8 +2848,6 @@ button.nav-group-header {
     margin-bottom: var(--space-md);
     padding: var(--space-sm) var(--space-md);
     background: var(var(--color-gray-50), var(--color-gray-50));
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-medium);
 }
 
 .try-server-vars-title {
@@ -5214,18 +5209,18 @@ details[open] .examples-toggle-icon {
 }
 
 .btn-env-remove {
-    padding: 0.25rem 0.5rem;
     background: none;
     border: 1px solid transparent;
-    border-radius: var(--radius-small);
-    color: var(--color-text-secondary);
+    color: var(--color-gray-400);
     cursor: pointer;
-    font-size: var(--font-size-4);
-    line-height: 1;
+    padding: 0.25rem;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-large);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
 }
 
-.btn-env-remove:hover {
-    color: var(--color-danger);
+.btn-env-remove:hover {    
     border-color: rgba(239, 68, 68, 0.3);
     background: rgba(239, 68, 68, 0.05);
 }
@@ -6351,7 +6346,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-neutral-1);
     color: var(--color-primary);
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-xl);
     font-family: var(--font-sans);
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-medium);

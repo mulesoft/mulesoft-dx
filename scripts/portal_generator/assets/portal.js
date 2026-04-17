@@ -1647,6 +1647,16 @@ function closeAuthModal() {
     if (modal._previousFocus) modal._previousFocus.focus();
 }
 
+function switchAuthTab(tab) {
+    var tabs = document.querySelectorAll('.auth-tab');
+    var panels = document.querySelectorAll('.auth-tab-content');
+    tabs.forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === tab); });
+    panels.forEach(function(p) { p.classList.remove('active'); });
+    var targetId = tab === 'bearer' ? 'authTabBearer' : 'authTabOauth2';
+    var target = document.getElementById(targetId);
+    if (target) target.classList.add('active');
+}
+
 function isTokenExpired() {
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) return true;
@@ -1848,7 +1858,7 @@ async function loginOAuth2() {
     var clientId = document.getElementById('authClientId').value.trim();
     var clientSecret = document.getElementById('authClientSecret').value.trim();
     if (!clientId || !clientSecret) {
-        showAuthMessage('Please enter Client ID and Client Secret.', true);
+        showAuthMessage('Please enter Client Id and Client Secret.', true);
         return;
     }
     var serverBase = getSelectedBaseUrl();

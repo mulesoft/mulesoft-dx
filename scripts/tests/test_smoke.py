@@ -152,7 +152,7 @@ class TestHomepageSkillLinks:
         assert link is not None
 
     def test_skill_card_has_skill_badge(self):
-        badge = self.soup.find('span', class_='badge-api-type', string='Skill')
+        badge = self.soup.find('span', class_='badge-skills', string='Skill')
         assert badge is not None
 
 

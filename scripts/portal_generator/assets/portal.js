@@ -125,7 +125,7 @@ function openXOriginModal(opId, paramName, location) {
 
     // Build source selector dropdown (no execute button here - it's in the panel)
     var html = '<div class="xorigin-selector-container">';
-    html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
+    html += '<select id="xorigin-source-selector" class="" onchange="switchXOriginSource()">';
 
     origins.forEach(function(origin, idx) {
         var apiSlug = (origin.api || '').replace('urn:api:', '');
@@ -3970,10 +3970,7 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '<button type="button" class="btn-xorigin-search" ';
                     html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
                     html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
-                    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
-                    html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-                    html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-                    html += '</svg>';
+                    html += '<img src="assets/icons/search.svg" width="16" height="16" alt="Search">';
                     html += '</button>';
                     // Show resolved value in grey italic AFTER the button
                     if (hasVarRef && substitutedValue !== yamlValue) {
@@ -5694,10 +5691,7 @@ function renderWorkflowStepForms(skillSlug) {
                         html += '<button type="button" class="btn-xorigin-search" ';
                         html += 'onclick="openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
                         html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
-                        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">';
-                        html += '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-                        html += '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-                        html += '</svg>';
+                        html += '<img src="assets/icons/search.svg" width="16" height="16" alt="Search">';
                         html += '</button>';
                         html += '</div>';
                     } else if (schema.enum) {
@@ -7106,10 +7100,8 @@ function addManualVariable(slug) {
                     '<td><input type="text" class="manual-var-value" placeholder="value" /></td>' +
                     '<td><span class="var-source">User Input</span></td>' +
                     '<td><button class="btn-delete-variable" onclick="deleteVariable(this, \'' + slug + '\')" title="Delete variable">' +
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: top;">' +
-                    '<line x1="18" y1="6" x2="6" y2="18"></line>' +
-                    '<line x1="6" y1="6" x2="18" y2="18"></line>' +
-                    '</svg></button></td>';
+                    '<img src="assets/icons/x-mark.svg" width="14" height="14" alt="Delete" style="vertical-align: top;">' +
+                    '</button></td>';
 
     tbody.appendChild(row);
 

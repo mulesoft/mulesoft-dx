@@ -108,14 +108,15 @@
                     <div class="catalog-header-description">DESCRIPTION</div>
                     <div class="catalog-header-version">VERSION</div>
                 </div>
-                {% for api in apis %}
-                {% include "homepage/api_card.html" %}
+                {% for item in all_items %}
+                    {% if item._item_type == 'api' %}
+                        {% set api = item %}
+                        {% include "homepage/api_card.html" %}
+                    {% elif item._item_type == 'skill' %}
+                        {% set skill = item %}
+                        {% include "homepage/skill_card.html" %}
+                    {% endif %}
                 {% endfor %}
-                {% if all_skills %}
-                {% for skill in all_skills %}
-                {% include "homepage/skill_card.html" %}
-                {% endfor %}
-                {% endif %}
             </div>
         </section>
     </div>

@@ -275,17 +275,29 @@
 
 /* Manual dark mode toggle support */
 [data-theme="dark"] {
-    /* Neutrals - Inverted for dark mode */
-    --color-neutral-1: #1A1A1A;
-    --color-neutral-2: #242424;
-    --color-neutral-3: #2E2E2E;
-    --color-neutral-4: #3A3A3A;
-    --color-neutral-5: #4A4A4A;
-    --color-neutral-6: #6A6A6A;
-    --color-neutral-7: #8A8A8A;
-    --color-neutral-8: #B0B0B0;
-    --color-neutral-9: #D0D0D0;
-    --color-neutral-10: #3E3E3C;
+    /* Inverted Neutrals (Dark Mode) */
+    --color-white: #000000;
+    /* Was #FFFFFF */
+    --color-neutral-1: #000000;
+    /* Was #FFFFFF */
+    --color-neutral-2: #050506;
+    /* Was #FAFAF9 */
+    --color-neutral-3: #0C0D0D;
+    /* Was #F3F2F2 */
+    --color-neutral-4: #131415;
+    /* Was #ECEBEA */
+    --color-neutral-5: #222425;
+    /* Was #DDDBDA */
+    --color-neutral-6: #36383A;
+    /* Was #C9C7C5 */
+    --color-neutral-7: #4F5254;
+    /* Was #B0ADAB */
+    --color-neutral-8: #8F9194;
+    /* Was #706E6B */
+    --color-neutral-9: #AEB0B2;
+    /* Was #514F4D */
+    --color-neutral-10: #C1C1C3;
+    /* Was #3E3E3C */
 
     --color-white: #141414;
 
@@ -307,6 +319,8 @@
     --color-bg-secondary: #141414;
     --color-bg-surface: #2E2E2E;
     --color-bg-overlay: rgba(0, 0, 0, 0.7);
+
+    --color-indigo: var(--color-bg-surface);
 
     /* Semantic colors - Borders */
     --color-border-primary: #4A4A4A;
@@ -397,7 +411,7 @@
 
 body {
     font-family: var(--font-sans);
-    background: var(--color-bg-primary);
+    background: var(--color-bg-surface);
     color: var(--color-text-primary);
     line-height: 1.6;
     padding-top: 80px;
@@ -4703,8 +4717,8 @@ details[open] .examples-toggle-icon {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #ff5f56;
-    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+    background: var(--color-primary);
+    box-shadow: 20px 0 0 var(--color-warning), 40px 0 0 var(--color-success);
 }
 
 .skill-view-markdown pre code {
@@ -4722,7 +4736,7 @@ details[open] .examples-toggle-icon {
 /* Terminal-style prompt */
 .skill-view-markdown pre code::before {
     content: '$ ';
-    color: #4ec9b0;
+    color: var(--color-primary);
     font-weight: bold;
     user-select: none;
 }
@@ -4733,8 +4747,8 @@ details[open] .examples-toggle-icon {
     padding: var(--space-xxx-small) var(--space-xx-small);
     border-radius: var(--radius-small);
     font-size: var(--font-size-2);
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-    color: #e01e5a;
+    font-family: var(--font-mono);
+    color: var(--color-primary);
 }
 
 .skill-view-markdown blockquote {
@@ -6984,16 +6998,26 @@ input.has-variable-ref:focus {
 
     font-weight: var(--font-weight-medium);
 }
+code[class*="language-"][class*="language-"],
+pre[class*="language-"][class*="language-"] {
+    background: var(--color-neutral-2);
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+    text-shadow: none;
+}
 
 /* Unified Operation Block */
 .unified-operation-block {
-    background: var(--color-neutral-1);
-    border: 1px solid var(--color-neutral-4);
+    background: var(--color-neutral-1) !important;
+    border: 1px solid var(--color-neutral-4) !important;
     border-radius: var(--radius-large);
     overflow: hidden;
-    margin: 1.5rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.3s ease;
+    margin: 1.5rem 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    transition: box-shadow 0.3s ease !important;
 }
 
 .unified-operation-block:hover {
@@ -7122,9 +7146,9 @@ input.has-variable-ref:focus {
 .terminal-content {
     margin: 0;
     padding: 1.25rem 1.5rem;
-    background: #FAFBFC;
+    background: var(--color-neutral-1);
     color: var(--color-neutral-10);
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+    font-family: var(--font-mono);
     font-size: var(--font-size-3);
     line-height: 1.7;
     overflow-x: auto;
@@ -7149,17 +7173,17 @@ input.has-variable-ref:focus {
 }
 
 .terminal-command {
-    color: #E06C75;
+    color: var(--color-neutral-10);
     font-weight: var(--font-weight-semibold);
 }
 
 .terminal-method {
-    color: #61AFEF;
+    color: var(--color-primary);
     font-weight: var(--font-weight-medium);
 }
 
 .terminal-flag {
-    color: #61AFEF;
+    color: var(--color-primary);
     font-weight: var(--font-weight-medium);
 }
 

@@ -12,9 +12,8 @@ servers:
       default: ca1
       description: Region identifier for the service endpoint.
 security:
-- bearer-jwt:
-  - read
-  - write
+- bearerAuth: []
+- clientAuth: []
 tags:
 - name: Connectivity
   description: Endpoints for managing connections
@@ -33,24 +32,8 @@ paths:
       description: Returns an updated scanner configuration
       operationId: updateScanConfiguration
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: scannerConfigurationId
-        in: path
-        description: The scanner configuration identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
       requestBody:
         description: Scanner configuration object with updated field values.
         content:
@@ -97,12 +80,6 @@ paths:
       description: Starts an asynchronous workflow to delete the scanner configuration. Returns 200 OK when the deletion workflow is started successfully.
       operationId: deleteScannerConfiguration
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
       - name: X-Delete-Agents
         in: header
         description: Whether to also delete associated agents.
@@ -110,18 +87,8 @@ paths:
         schema:
           type: boolean
           default: true
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: scannerConfigurationId
-        in: path
-        description: The scanner configuration identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
       responses:
         "200":
           description: Delete workflow started successfully
@@ -162,24 +129,8 @@ paths:
       description: Updates a connection
       operationId: updateConnection
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: connectionId
-        in: path
-        description: The connection identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
       requestBody:
         description: Connection object with updated field values.
         content:
@@ -227,24 +178,8 @@ paths:
       description: Deletes a connection
       operationId: deleteConnection
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: connectionId
-        in: path
-        description: The connection identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
       responses:
         "200":
           description: Connection deleted
@@ -258,18 +193,7 @@ paths:
       description: Returns a list of scanner configuration for a specific organization
       operationId: getScanConfigurations
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - name: page
         in: query
         description: Zero-based page number for pagination.
@@ -319,18 +243,7 @@ paths:
       description: Returns the scanner configuration created
       operationId: createScanConfigurations
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       requestBody:
         description: Scanner configuration object to create.
         content:
@@ -372,25 +285,8 @@ paths:
       description: Starts a scan workflow based on the specified scanner configuration ID
       operationId: executeWorkflowFromConfiguration
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: scannerConfigurationId
-        in: path
-        description: Scanner configuration ID
-        required: true
-        schema:
-          type: string
-        example: 12345678-1234-1234-1234-122456789abc
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
       responses:
         "202":
           description: Workflow started successfully
@@ -414,25 +310,8 @@ paths:
       description: Cancels a running scan based on the specified scanner configuration ID
       operationId: abortWorkflowFromConfiguration
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: scannerConfigurationId
-        in: path
-        description: Scanner configuration ID
-        required: true
-        schema:
-          type: string
-        example: 12345678-1234-1234-1234-122456789abc
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
       responses:
         "202":
           description: Workflow aborted successfully
@@ -454,24 +333,8 @@ paths:
       description: Tests connectivity to a target system type using provided connection parameters. Requires authentication.
       operationId: testConnection
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: targetSystemType
-        in: path
-        description: The target system type identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_targetSystemType_Path'
       requestBody:
         description: Connection parameters to test connectivity.
         content:
@@ -500,18 +363,7 @@ paths:
       description: Returns a list of connections for a specific organization
       operationId: getConnections
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       responses:
         "200":
           description: Successfully retrieved Connections
@@ -535,18 +387,7 @@ paths:
       description: Adds a connection
       operationId: createConnection
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       requestBody:
         description: Connection object to create.
         content:
@@ -592,24 +433,8 @@ paths:
       description: Returns a paginated list of scanner runs for a specific scanner
       operationId: getScannerRunHistory
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: Organization identifier
-        required: true
-        schema:
-          type: string
-      - name: scannerId
-        in: path
-        description: Scanner identifier
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerId_Path'
       - name: page
         in: query
         description: Zero-based page number for pagination.
@@ -666,30 +491,9 @@ paths:
       description: Returns a paginated list of staging assets for a specific scan run. Use size=0 to get all results without pagination.
       operationId: getStagingAssetsByScanRunId
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
-      - name: scannerId
-        in: path
-        description: Scanner identifier
-        required: true
-        schema:
-          type: string
-      - name: scanRunId
-        in: path
-        description: Scan run identifier
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerId_Path'
+      - $ref: '#/components/parameters/XOrigin_scanRunId_Path'
       - name: page
         in: query
         description: Zero-based page number for pagination.
@@ -746,18 +550,7 @@ paths:
       description: Returns organization information including total managed agents and capacity limit
       operationId: getOrganizationInfo
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       responses:
         "200":
           description: Successfully retrieved organization information
@@ -794,18 +587,7 @@ paths:
       description: Returns a list of available target systems for connections. Requires authentication.
       operationId: getTargetSystems
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer JWT token for authentication.
-        required: true
-        schema:
-          type: string
-      - name: organizationId
-        in: path
-        description: The organization identifier.
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       responses:
         "200":
           description: Successfully retrieved target systems
@@ -855,7 +637,7 @@ components:
         type: string
         format: uuid
       x-origin:
-      - api: urn:api:agent-scanner-configuration
+      - api: urn:api:agent-scanner-configuration-service
         operation: getScanConfigurations
         values: $.content[*].id
         labels: $.content[*].name
@@ -869,7 +651,7 @@ components:
         type: string
         format: uuid
       x-origin:
-      - api: urn:api:agent-scanner-configuration
+      - api: urn:api:agent-scanner-configuration-service
         operation: getScanConfigurations
         values: $.content[*].id
         labels: $.content[*].name
@@ -883,7 +665,7 @@ components:
         type: string
         format: uuid
       x-origin:
-      - api: urn:api:agent-scanner-configuration
+      - api: urn:api:agent-scanner-configuration-service
         operation: getScannerRunHistory
         values: $.content[*].id
         labels: $.content[*].id
@@ -897,7 +679,7 @@ components:
         type: string
         format: uuid
       x-origin:
-      - api: urn:api:agent-scanner-configuration
+      - api: urn:api:agent-scanner-configuration-service
         operation: getConnections
         values: $[*].id
         labels: $[*].name
@@ -910,7 +692,7 @@ components:
       schema:
         type: string
       x-origin:
-      - api: urn:api:agent-scanner-configuration
+      - api: urn:api:agent-scanner-configuration-service
         operation: getTargetSystems
         values: $[*].type
         labels: $[*].name
@@ -1726,9 +1508,16 @@ components:
           items:
             $ref: "#/components/schemas/AuthSchemeFormDescriptor"
   securitySchemes:
-    bearer-jwt:
+    bearerAuth:
       type: http
-      name: Authorization
-      in: header
       scheme: bearer
       bearerFormat: JWT
+      description: Bearer token authentication. Login endpoint https://anypoint.mulesoft.com/accounts/api/login
+    clientAuth:
+      type: oauth2
+      description: OAuth2 client credentials. Token endpoint https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  

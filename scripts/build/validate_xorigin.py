@@ -40,7 +40,7 @@ class XOriginViolation:
 
 
 class XOriginValidator:
-    def __init__(self, api_dir: Path, schema_path: Path):
+    def __init__(self, api_dir: Path, schema_path: Path, all_apis: Dict[str, Dict[str, Any]] = None):
         self.api_dir = api_dir
         self.api_name = api_dir.name
         self.api_path = api_dir / 'api.yaml'
@@ -49,6 +49,7 @@ class XOriginValidator:
         self.schema = None
         self.violations: List[XOriginViolation] = []
         self.operation_ids: Set[str] = set()
+        self.all_apis = all_apis or {}  # Map of api_name -> {spec, operation_ids}
 
     def load_schema(self):
         """Load the x-origin JSON Schema"""
@@ -208,17 +209,86 @@ class XOriginValidator:
                     continue
 
                 operation = source['operation']
-                api = source['api']
+                api_ref = source['api']
+                source_loc = f'{location}.x-origin[{idx}]'
 
-                # Only validate references to the same API
-                if api == f'urn:api:{self.api_name}' or api == self.api_name:
+                # Parse the API reference (could be "urn:api:api-name" or just "api-name")
+                if api_ref.startswith('urn:api:'):
+                    target_api_name = api_ref.replace('urn:api:', '')
+                else:
+                    target_api_name = api_ref
+
+                # Check if referencing the same API
+                if target_api_name == self.api_name:
                     if operation not in self.operation_ids:
                         self.violations.append(XOriginViolation(
                             self.api_name,
                             'xorigin-invalid-operation-reference',
-                            f'{location}.x-origin[{idx}]',
-                            f'References non-existent operationId: {operation}'
+                            source_loc,
+                            f'References non-existent operationId "{operation}" in same API'
                         ))
+                else:
+                    # Cross-API reference - check if target API exists
+                    if target_api_name not in self.all_apis:
+                        self.violations.append(XOriginViolation(
+                            self.api_name,
+                            'xorigin-invalid-api-reference',
+                            source_loc,
+                            f'References non-existent API "{target_api_name}" (from "{api_ref}")'
+                        ))
+                    else:
+                        # API exists, check if operation exists in target API
+                        target_operation_ids = self.all_apis[target_api_name]['operation_ids']
+                        if operation not in target_operation_ids:
+                            self.violations.append(XOriginViolation(
+                                self.api_name,
+                                'xorigin-invalid-operation-reference',
+                                source_loc,
+                                f'References non-existent operationId "{operation}" in API "{target_api_name}"'
+                            ))
+
+
+def load_all_apis(repo_root: Path) -> Dict[str, Dict[str, Any]]:
+    """Load all API specs and their operation IDs"""
+    all_apis = {}
+    apis_dir = repo_root / 'apis'
+
+    if not apis_dir.exists():
+        return all_apis
+
+    for api_dir in sorted(apis_dir.iterdir()):
+        if not api_dir.is_dir() or api_dir.name.startswith('.'):
+            continue
+
+        api_path = api_dir / 'api.yaml'
+        if not api_path.exists():
+            continue
+
+        try:
+            with open(api_path, 'r') as f:
+                spec = yaml.safe_load(f)
+
+            # Extract operation IDs
+            operation_ids = set()
+            paths = spec.get('paths', {})
+            for path, path_item in paths.items():
+                if not isinstance(path_item, dict):
+                    continue
+                for method in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
+                    if method in path_item:
+                        operation = path_item[method]
+                        op_id = operation.get('operationId')
+                        if op_id:
+                            operation_ids.add(op_id)
+
+            all_apis[api_dir.name] = {
+                'spec': spec,
+                'operation_ids': operation_ids
+            }
+        except Exception as e:
+            print(f"  Warning: Could not load {api_dir.name}: {e}")
+
+    return all_apis
 
 
 def validate_all_apis(repo_root: Path, schema_path: Path) -> Dict[str, List[XOriginViolation]]:
@@ -231,6 +301,12 @@ def validate_all_apis(repo_root: Path, schema_path: Path) -> Dict[str, List[XOri
         print(f"  Warning: apis/ directory not found at {apis_dir}")
         return results
 
+    # First pass: Load all APIs and their operation IDs
+    print("  Loading all APIs...")
+    all_apis = load_all_apis(repo_root)
+    print(f"  Loaded {len(all_apis)} APIs\n")
+
+    # Second pass: Validate each API with access to all others
     for api_dir in sorted(apis_dir.iterdir()):
         if not api_dir.is_dir():
             continue
@@ -244,7 +320,7 @@ def validate_all_apis(repo_root: Path, schema_path: Path) -> Dict[str, List[XOri
             continue
 
         print(f"  Validating: {api_dir.name}")
-        validator = XOriginValidator(api_dir, schema_path)
+        validator = XOriginValidator(api_dir, schema_path, all_apis)
         violations = validator.validate()
 
         if violations:

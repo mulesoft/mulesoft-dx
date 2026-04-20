@@ -125,7 +125,7 @@ function openXOriginModal(opId, paramName, location) {
 
     // Build source selector dropdown (no execute button here - it's in the panel)
     var html = '<div class="xorigin-selector-container">';
-    html += '<select id="xorigin-source-selector" class="" onchange="switchXOriginSource()">';
+    html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
 
     origins.forEach(function(origin, idx) {
         var apiSlug = (origin.api || '').replace('urn:api:', '');
@@ -3412,13 +3412,21 @@ function switchResponseTab(opId, tabName) {
 }
 
 async function sendRequest(opId, buttonEl) {
+    console.log('[DEBUG] sendRequest called with opId:', opId);
     var section = document.getElementById('op-' + opId);
-    if (!section) return;
+    if (!section) {
+        console.error('[DEBUG] Section not found for opId:', opId);
+        return;
+    }
 
     var method = section.getAttribute('data-method');
     var pathTemplate = section.getAttribute('data-path');
     var tryPanel = document.getElementById('try-' + opId);
-    if (!tryPanel) return;
+    if (!tryPanel) {
+        console.error('[DEBUG] Try panel not found for opId:', opId);
+        return;
+    }
+    console.log('[DEBUG] Found section and tryPanel');
 
     // Collect parameters
     var path = pathTemplate;
@@ -3485,16 +3493,15 @@ async function sendRequest(opId, buttonEl) {
     var responseBody = document.getElementById('respbody-' + opId);
     var responseHeaders = document.getElementById('respheaders-' + opId);
 
-    // Check if we're in expanded mode
-    var container = document.getElementById('op-container-' + opId);
-    var isExpanded = container && container.classList.contains('try-expanded');
-
-    if (isExpanded) {
-        // In expanded mode, keep response visible but add 'empty' class
-        if (responseDiv) responseDiv.classList.add('empty');
-    } else {
-        // In collapsed mode, hide the response
-        if (responseDiv) responseDiv.style.display = 'none';
+    // Always show response area with 'empty' class before request
+    // Override template's inline display:none
+    console.log('[DEBUG] Response div before request:', responseDiv);
+    console.log('[DEBUG] Response div display before:', responseDiv ? responseDiv.style.display : 'N/A');
+    if (responseDiv) {
+        responseDiv.classList.add('empty');
+        responseDiv.style.display = 'block';  // Show the response area
+        console.log('[DEBUG] Response div display after setting to block:', responseDiv.style.display);
+        console.log('[DEBUG] Response div classes:', responseDiv.className);
     }
 
     try {
@@ -3517,12 +3524,29 @@ async function sendRequest(opId, buttonEl) {
             buttonEl.disabled = false;
         }
 
+        console.log('[DEBUG] Response received successfully');
         if (responseDiv) {
-            responseDiv.style.display = 'block';
+            responseDiv.style.display = 'block';  // Keep response visible
             responseDiv.classList.remove('empty');
+            console.log('[DEBUG] Response div after removing empty:', responseDiv.style.display, responseDiv.className);
+
+            // Check dimensions and visibility
+            var rect = responseDiv.getBoundingClientRect();
+            var computedStyle = window.getComputedStyle(responseDiv);
+            console.log('[DEBUG] Response div dimensions:', {
+                width: rect.width,
+                height: rect.height,
+                top: rect.top,
+                left: rect.left,
+                display: computedStyle.display,
+                visibility: computedStyle.visibility,
+                opacity: computedStyle.opacity,
+                overflow: computedStyle.overflow
+            });
         }
 
         if (data.error) {
+            console.error('[DEBUG] Error in response:', data.error);
             if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
             if (responseBody) {
                 createReadOnlyAceEditor(responseBody, data.error, 'text');
@@ -3537,10 +3561,42 @@ async function sendRequest(opId, buttonEl) {
         if (statusBadge) { statusBadge.textContent = status; statusBadge.className = 'response-status-badge ' + statusClass; }
 
         // Display response body and headers
+        console.log('[DEBUG] About to display response in ACE editors');
+        console.log('[DEBUG] responseBody element:', responseBody);
+        console.log('[DEBUG] responseHeaders element:', responseHeaders);
+
+        // Check responseBody visibility before
+        if (responseBody) {
+            var bodyRect = responseBody.getBoundingClientRect();
+            var bodyComputed = window.getComputedStyle(responseBody);
+            console.log('[DEBUG] responseBody BEFORE display:', {
+                width: bodyRect.width,
+                height: bodyRect.height,
+                display: bodyComputed.display,
+                hasActiveClass: responseBody.classList.contains('active')
+            });
+        }
+
         displayResponseInAceEditors(responseBody, responseHeaders, data);
+        console.log('[DEBUG] Finished displaying response');
+
+        // Check responseBody visibility after
+        if (responseBody) {
+            var bodyRect2 = responseBody.getBoundingClientRect();
+            var bodyComputed2 = window.getComputedStyle(responseBody);
+            console.log('[DEBUG] responseBody AFTER display:', {
+                width: bodyRect2.width,
+                height: bodyRect2.height,
+                display: bodyComputed2.display,
+                hasActiveClass: responseBody.classList.contains('active')
+            });
+        }
 
         // Scroll response into view
-        if (responseDiv) responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (responseDiv) {
+            console.log('[DEBUG] Scrolling response into view');
+            responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
     } catch (e) {
         // Restore button
@@ -3551,7 +3607,7 @@ async function sendRequest(opId, buttonEl) {
         }
 
         if (responseDiv) {
-            responseDiv.style.display = 'block';
+            responseDiv.style.display = 'block';  // Keep response visible
             responseDiv.classList.remove('empty');
         }
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
@@ -3565,6 +3621,33 @@ async function sendRequest(opId, buttonEl) {
 // ============================================================================
 // Ace Editor Initialization
 // ============================================================================
+
+// Helper function to get appropriate ACE theme based on current theme
+function getAceTheme() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return isDark ? 'ace/theme/monokai' : 'ace/theme/textmate';
+}
+
+// Helper function to update ACE editor background color
+function updateAceEditorBackground(editor) {
+    if (!editor || !editor.container) return;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    // Remove hardcoded background, let theme handle it
+    editor.container.style.backgroundColor = '';
+}
+
+// Function to update all ACE editors when theme changes
+function updateAllAceEditors() {
+    if (!window.aceEditors) return;
+    var newTheme = getAceTheme();
+    Object.keys(window.aceEditors).forEach(function(key) {
+        var editor = window.aceEditors[key];
+        if (editor && editor.setTheme) {
+            editor.setTheme(newTheme);
+            updateAceEditorBackground(editor);
+        }
+    });
+}
 
 function initCodeMirrorEditors() {
     if (typeof ace === 'undefined') {
@@ -3591,7 +3674,7 @@ function initCodeMirrorEditors() {
 
         var editor = ace.edit(el, {
             mode: mode,
-            theme: 'ace/theme/textmate',
+            theme: getAceTheme(),
             value: exampleBody,
             minLines: 10,
             maxLines: 15,
@@ -3630,7 +3713,8 @@ function createReadOnlyAceEditor(container, content, language) {
         var editor = container.env.editor;
         editor.session.setMode(mode);
         editor.setValue(content || '', -1);
-        editor.container.style.backgroundColor = '#f8f9fa';
+        editor.setTheme(getAceTheme());
+        updateAceEditorBackground(editor);
         return editor;
     }
 
@@ -3639,7 +3723,7 @@ function createReadOnlyAceEditor(container, content, language) {
 
     var editor = ace.edit(container, {
         mode: mode,
-        theme: 'ace/theme/textmate',
+        theme: getAceTheme(),
         value: content || '',
         readOnly: true,
         showPrintMargin: false,
@@ -3655,7 +3739,7 @@ function createReadOnlyAceEditor(container, content, language) {
     });
 
     // Set read-only background
-    editor.container.style.backgroundColor = '#f8f9fa';
+    updateAceEditorBackground(editor);
 
     return editor;
 }
@@ -3970,7 +4054,10 @@ function renderOperationForm(opId, opMeta, options) {
                     html += '<button type="button" class="btn-xorigin-search" ';
                     html += 'onclick="openXOriginModal(\'' + opId + '\', \'' + paramName + '\', \'' + section.location + '\'); return false;" ';
                     html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
-                    html += '<img src="assets/icons/search.svg" width="16" height="16" alt="Search">';
+                    html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+                        '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+                        '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+                    '</svg>';
                     html += '</button>';
                     // Show resolved value in grey italic AFTER the button
                     if (hasVarRef && substitutedValue !== yamlValue) {
@@ -5691,7 +5778,10 @@ function renderWorkflowStepForms(skillSlug) {
                         html += '<button type="button" class="btn-xorigin-search" ';
                         html += 'onclick="openXOriginModal(\'' + sid + '\', \'' + escapeHtml(paramName) + '\', \'' + section.location + '\'); return false;" ';
                         html += 'title="Fetch values from ' + origins.length + ' source(s)" aria-label="Search values">';
-                        html += '<img src="assets/icons/search.svg" width="16" height="16" alt="Search">';
+                        html += '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+                        '<path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+                        '<path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+                        '</svg>';
                         html += '</button>';
                         html += '</div>';
                     } else if (schema.enum) {
@@ -5870,7 +5960,7 @@ function renderWorkflowStepForms(skillSlug) {
             }
             var editor = ace.edit(bodyEditorEl, {
                 mode: 'ace/mode/json',
-                theme: 'ace/theme/textmate',
+                theme: getAceTheme(),
                 value: bodyValue,
                 minLines: 10,
                 maxLines: 15,
@@ -7269,6 +7359,7 @@ function clearAllVariables(slug) {
 
         localStorage.setItem('theme', newTheme);
         updateToggleButton();
+        updateAllAceEditors();
     }
 
     function updateToggleButton() {
@@ -7294,6 +7385,7 @@ function clearAllVariables(slug) {
                     document.documentElement.removeAttribute('data-theme');
                 }
                 updateToggleButton();
+                updateAllAceEditors();
             }
         });
     }

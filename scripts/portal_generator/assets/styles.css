@@ -743,6 +743,7 @@ code {
     position: relative;
 }
 
+
 .hero-tab:hover {
     background: var(--hover-bg);
     border-color: var(--hover-border);
@@ -3060,6 +3061,9 @@ button.nav-group-header {
     color: var(--color-gray-500);
     font-family: var(--font-mono);
     font-weight: var(--font-weight-regular);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* max-width: 350px; */
 }
 
 /* Paragraph-based parameters layout - Claude API style */
@@ -5493,6 +5497,7 @@ details[open] .examples-toggle-icon {
     background-repeat: no-repeat;
     background-position: right var(--space-small) center;
     padding-right: calc(var(--space-small) * 3);
+    border-radius: var(--radius-medium);
 }
 
 /* Hide browser's default datalist dropdown indicator */
@@ -5718,6 +5723,14 @@ details[open] .examples-toggle-icon {
 
 .xorigin-source-name {
     margin-bottom: 1rem;
+}
+
+.xorigin-source-select {
+    width: 100%;
+    border: 0;
+    background: none;
+    color: var(--color-neutral-10);
+    border-radius: var(--radius-medium);
 }
 
 .xorigin-name-primary {
@@ -6199,6 +6212,34 @@ details[open] .examples-toggle-icon {
 .try-response {
     border-top: 1px solid var(--color-border-primary);
     padding-top: 1rem;
+    margin-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+/* Empty state for default sidebar layout */
+.try-response.empty {
+    background: var(--color-neutral-2);
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
+    padding: var(--space-lg);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.try-response.empty>* {
+    display: none !important;
+}
+
+.try-response.empty::before {
+    content: "Click Send to get a response";
+    color: var(--color-neutral-7);
+    font-size: var(--font-size-4);
+    text-align: center;
 }
 
 .try-response-header {
@@ -6287,7 +6328,7 @@ details[open] .examples-toggle-icon {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 0;
+    min-height: 200px;  /* Ensure content area has minimum height */
 }
 
 .try-response-body,
@@ -6306,7 +6347,7 @@ details[open] .examples-toggle-icon {
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1;
-    min-height: 0;
+    min-height: 200px;  /* Ensure ACE editor has minimum height */
 }
 
 .try-response-body.active,
@@ -6416,6 +6457,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-sans);
     height: 32px;
     min-width: 0;
+    border-radius: var(--radius-medium);
 }
 
 .custom-param-row input:focus {
@@ -6438,7 +6480,7 @@ details[open] .examples-toggle-icon {
     background: var(--color-neutral-1);
     color: var(--color-neutral-8);
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-xl);
     font-family: var(--font-sans);
     font-size: var(--font-size-5);
     line-height: 1;

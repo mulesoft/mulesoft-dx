@@ -7218,3 +7218,84 @@ function clearAllVariables(slug) {
     console.log('All variables cleared for:', slug);
 }
 
+// ============================================================================
+// Dark Mode Toggle
+// ============================================================================
+
+(function initDarkMode() {
+    // Check for saved theme preference or default to system preference
+    var savedTheme = localStorage.getItem('theme');
+    var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+
+    // Apply initial theme
+    if (initialTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // Create and inject dark mode toggle button
+    var toggleButton = document.createElement('button');
+    toggleButton.id = 'dark-mode-toggle';
+    toggleButton.className = 'dark-mode-toggle';
+    toggleButton.setAttribute('aria-label', 'Toggle dark mode');
+    toggleButton.innerHTML = '<svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor"/></svg><svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill="currentColor"/></svg>';
+
+    // Add toggle button to page after DOM is ready
+    function addToggleButton() {
+        // Try to add to header if it exists, otherwise add to body
+        var header = document.querySelector('.ms-com-content-header') || document.querySelector('header');
+        if (header) {
+            header.appendChild(toggleButton);
+        } else {
+            document.body.appendChild(toggleButton);
+        }
+
+        // Add click handler
+        toggleButton.addEventListener('click', toggleDarkMode);
+
+        // Update button state
+        updateToggleButton();
+    }
+
+    function toggleDarkMode() {
+        var currentTheme = document.documentElement.getAttribute('data-theme');
+        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        if (newTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+
+        localStorage.setItem('theme', newTheme);
+        updateToggleButton();
+    }
+
+    function updateToggleButton() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        toggleButton.setAttribute('aria-pressed', isDark);
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addToggleButton);
+    } else {
+        addToggleButton();
+    }
+
+    // Listen for system theme changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            // Only auto-switch if user hasn't manually set a preference
+            if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+                updateToggleButton();
+            }
+        });
+    }
+})();
+

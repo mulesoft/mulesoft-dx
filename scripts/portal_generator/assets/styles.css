@@ -1909,47 +1909,6 @@ code {
     transition: all 0.15s ease;
 }
 
-/* Method badge colors - hover and active states */
-.nav-link:hover .method-get,
-.nav-link.active .method-get {
-    background: var(--method-get-bg-hover);
-    border: none;
-}
-
-.nav-link:hover .method-post,
-.nav-link.active .method-post {
-    background: var(--method-post-bg-hover);
-    border: none;
-}
-
-.nav-link:hover .method-put,
-.nav-link.active .method-put {
-    background: var(--method-put-bg-hover);
-    color: var(--method-put-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-patch,
-.nav-link.active .method-patch {
-    background: var(--method-patch-bg-hover);
-    color: var(--method-patch-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-delete,
-.nav-link.active .method-delete {
-    background: var(--method-delete-bg-hover);
-    color: var(--method-delete-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-head,
-.nav-link.active .method-head,
-.nav-link:hover .method-options,
-.nav-link.active .method-options {
-    background: var(--method-other-bg-hover);
-    color: var(--method-other-text-hover);
-}
 
 .path {
     font-family: var(--font-mono);
@@ -2170,14 +2129,10 @@ code {
     border: none;
 }
 
-.nav-link:hover {
-    background: var(--hover-bg);
-    color: var(--hover-text);
-    text-decoration: none;
-}
-
+.nav-link:hover,
 .nav-link.active {
     background: var(--selected-bg);
+    text-decoration: none;
 }
 
 /* Overview link specific styling from Figma */
@@ -2397,12 +2352,7 @@ button.nav-group-header {
 }
 
 .nav-skill-step:hover,
-.nav-skill-overview:hover {
-    background: var(--hover-bg);
-    text-decoration: none;
-    border-left-color: var(--hover-border);
-}
-
+.nav-skill-overview:hover,
 .nav-skill-step.active,
 .nav-skill-overview.active {
     background: var(--selected-bg);
@@ -6998,6 +6948,7 @@ input.has-variable-ref:focus {
 
     font-weight: var(--font-weight-medium);
 }
+
 code[class*="language-"][class*="language-"],
 pre[class*="language-"][class*="language-"] {
     background: var(--color-neutral-2);

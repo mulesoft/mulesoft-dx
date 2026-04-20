@@ -72,7 +72,7 @@
     --color-gray-900: #111827;
 
     /* Additional colors */
-    --color-navy: #00205b;
+    --hero-title: #00205b;
     --color-indigo: #E0E7FF;
     --color-slate: #5C5C5C;
 
@@ -118,6 +118,8 @@
     --color-purple-100: #ede9fe;
     --color-purple-700: #6d28d9;
     --color-purple-800: #5b21b6;
+
+    --color-servers: #DDEFFF;
 
     /* Common rgba patterns */
     --shadow-sm: rgba(0, 0, 0, 0.05);
@@ -270,6 +272,129 @@
     --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.12);
 }
 
+
+/* Manual dark mode toggle support */
+[data-theme="dark"] {
+    /* Inverted Neutrals (Dark Mode) */
+    --color-white: #000000;
+    /* Was #FFFFFF */
+    --color-neutral-1: #000000;
+    /* Was #FFFFFF */
+    --color-neutral-2: #050506;
+    /* Was #FAFAF9 */
+    --color-neutral-3: #0C0D0D;
+    /* Was #F3F2F2 */
+    --color-neutral-4: #131415;
+    /* Was #ECEBEA */
+    --color-neutral-5: #222425;
+    /* Was #DDDBDA */
+    --color-neutral-6: #36383A;
+    /* Was #C9C7C5 */
+    --color-neutral-7: #4F5254;
+    /* Was #B0ADAB */
+    --color-neutral-8: #8F9194;
+    /* Was #706E6B */
+    --color-neutral-9: #AEB0B2;
+    /* Was #514F4D */
+    --color-neutral-10: #C1C1C3;
+    /* Was #3E3E3C */
+
+    --color-white: #141414;
+
+
+    /* Inverted colors */
+    --color-gray-50: #060504;
+    --color-gray-100: #0c0b09;
+    --color-gray-200: #1a1814;
+    --color-gray-300: #2e2a24;
+    --color-gray-400: #635c50;
+    --color-gray-500: #948d7f;
+    --color-gray-600: #b4aa9c;
+    --color-gray-700: #c8beae;
+    --color-gray-800: #e0d6c8;
+    --color-gray-900: #eee7d8;
+
+    /* Semantic colors - Backgrounds */
+    --color-bg-primary: #242424;
+    --color-bg-secondary: #141414;
+    --color-bg-surface: #2E2E2E;
+    --color-bg-overlay: rgba(0, 0, 0, 0.7);
+
+    --color-indigo: var(--color-bg-surface);
+
+    /* Semantic colors - Borders */
+    --color-border-primary: #4A4A4A;
+    --color-border-secondary: #3A3A3A;
+    --color-border-focus: #4A9EFF;
+
+
+    /* Semantic colors - Text */
+    --color-text-primary: #E8E8E8;
+    --color-text-secondary: #B0B0B0;
+    --color-text-tertiary: #8A8A8A;
+    --color-text-quaternary: #6A6A6A;
+    --color-text-inverse: #1A1A1A;
+    --color-text-link: #4A9EFF;
+    --color-text-link-hover: #70B4FF;
+
+    /* Primary colors - Adjusted for dark mode */
+    --color-servers: #4A9EFF;
+    --hero-title: #4A9EFF;
+    --color-primary: #4A9EFF;
+    --color-primary-hover: #70B4FF;
+    --color-primary-dark: #2C7DD8;
+
+    /* HTTP Method colors - Dark mode variants */
+    --method-get-bg: rgba(16, 185, 129, 0.15);
+    --method-get-text: #6EE7B7;
+    --method-get-bg-hover: rgba(16, 185, 129, 0.25);
+
+    --method-post-bg: rgba(59, 130, 246, 0.15);
+    --method-post-text: #93C5FD;
+    --method-post-bg-hover: rgba(59, 130, 246, 0.25);
+
+    --method-put-bg: rgba(245, 158, 11, 0.15);
+    --method-put-text: #FCD34D;
+    --method-put-bg-hover: rgba(245, 158, 11, 0.25);
+    --method-put-text-hover: #FDE68A;
+
+    --method-patch-bg: rgba(139, 92, 246, 0.15);
+    --method-patch-text: #C4B5FD;
+    --method-patch-bg-hover: rgba(139, 92, 246, 0.25);
+    --method-patch-text-hover: #DDD6FE;
+
+    --method-delete-bg: rgba(239, 68, 68, 0.15);
+    --method-delete-text: #FCA5A5;
+    --method-delete-bg-hover: rgba(239, 68, 68, 0.25);
+    --method-delete-text-hover: #FECACA;
+
+    --method-other-bg: rgba(107, 114, 128, 0.15);
+    --method-other-text: #D1D5DB;
+    --method-other-bg-hover: rgba(107, 114, 128, 0.25);
+    --method-other-text-hover: #E5E7EB;
+
+    /* Interactive states */
+    --hover-bg: rgba(74, 158, 255, 0.1);
+    --hover-border: #5A8BC7;
+    --hover-text: #70B4FF;
+    --selected-bg: rgba(74, 158, 255, 0.15);
+    --selected-border: #5A8BC7;
+    --selected-text: #70B4FF;
+
+    /* Shadows - Lighter for dark mode */
+    --shadow-sm: rgba(0, 0, 0, 0.3);
+    --shadow-md: rgba(0, 0, 0, 0.4);
+    --shadow-lg: rgba(0, 0, 0, 0.5);
+    --shadow-xl: rgba(0, 0, 0, 0.6);
+    --shadow-blue: rgba(74, 158, 255, 0.2);
+    --shadow-blue-md: rgba(74, 158, 255, 0.25);
+    --overlay-light: rgba(0, 0, 0, 0.3);
+    --overlay-lighter: rgba(0, 0, 0, 0.2);
+    --focus-ring-blue: rgba(74, 158, 255, 0.2);
+    --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.5);
+}
+
+
 /* ============================================================================
    Base
    ============================================================================ */
@@ -280,9 +405,13 @@
     padding: 0;
 }
 
+.try-form-container {
+    background-color: var(--color-bg-surface);
+}
+
 body {
     font-family: var(--font-sans);
-    /* background: var(--color-bg-primary); */
+    background: var(--color-bg-surface);
     color: var(--color-text-primary);
     line-height: 1.6;
     padding-top: 80px;
@@ -305,6 +434,67 @@ body.detail-page .ms-com-content-header,
 body.detail-page .ms-com-header {
     position: relative !important;
     z-index: 200;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: var(--space-xl);
+    right: var(--space-xl);
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-xxxl);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-primary);
+    box-shadow: 0 4px 12px var(--shadow-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 9999;
+    color: var(--color-text-primary);
+}
+
+.dark-mode-toggle:hover {
+    background: var(--color-bg-primary);
+    box-shadow: 0 6px 16px var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.dark-mode-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.dark-mode-toggle .theme-icon {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dark-mode-toggle .theme-icon-dark {
+    display: none;
+}
+
+.dark-mode-toggle .theme-icon-light {
+    display: block;
+}
+
+[data-theme="dark"] .dark-mode-toggle .theme-icon-dark {
+    display: block;
+}
+
+[data-theme="dark"] .dark-mode-toggle .theme-icon-light {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .dark-mode-toggle .theme-icon-dark {
+        display: block;
+    }
+
+    :root:not([data-theme]) .dark-mode-toggle .theme-icon-light {
+        display: none;
+    }
 }
 
 /* Skip-to-content link (visible only on focus) */
@@ -517,14 +707,14 @@ code {
     font-family: var(--font-sans);
     font-size: var(--font-size-11);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-navy);
+    color: var(--hero-title);
     margin: 0 0 12px 0;
     line-height: 1.2;
 }
 
 .hero-subtitle {
     font-size: var(--font-size-6);
-    color: var(--color-navy);
+    color: var(--hero-title);
     margin: 0 0 32px 0;
     line-height: 1.5;
     font-weight: var(--font-weight-regular);
@@ -1719,47 +1909,6 @@ code {
     transition: all 0.15s ease;
 }
 
-/* Method badge colors - hover and active states */
-.nav-link:hover .method-get,
-.nav-link.active .method-get {
-    background: var(--method-get-bg-hover);
-    border: none;
-}
-
-.nav-link:hover .method-post,
-.nav-link.active .method-post {
-    background: var(--method-post-bg-hover);
-    border: none;
-}
-
-.nav-link:hover .method-put,
-.nav-link.active .method-put {
-    background: var(--method-put-bg-hover);
-    color: var(--method-put-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-patch,
-.nav-link.active .method-patch {
-    background: var(--method-patch-bg-hover);
-    color: var(--method-patch-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-delete,
-.nav-link.active .method-delete {
-    background: var(--method-delete-bg-hover);
-    color: var(--method-delete-text-hover);
-    border: none;
-}
-
-.nav-link:hover .method-head,
-.nav-link.active .method-head,
-.nav-link:hover .method-options,
-.nav-link.active .method-options {
-    background: var(--method-other-bg-hover);
-    color: var(--method-other-text-hover);
-}
 
 .path {
     font-family: var(--font-mono);
@@ -1980,14 +2129,10 @@ code {
     border: none;
 }
 
-.nav-link:hover {
-    background: var(--hover-bg);
-    color: var(--hover-text);
-    text-decoration: none;
-}
-
+.nav-link:hover,
 .nav-link.active {
     background: var(--selected-bg);
+    text-decoration: none;
 }
 
 /* Overview link specific styling from Figma */
@@ -2207,12 +2352,7 @@ button.nav-group-header {
 }
 
 .nav-skill-step:hover,
-.nav-skill-overview:hover {
-    background: var(--hover-bg);
-    text-decoration: none;
-    border-left-color: var(--hover-border);
-}
-
+.nav-skill-overview:hover,
 .nav-skill-step.active,
 .nav-skill-overview.active {
     background: var(--selected-bg);
@@ -2382,7 +2522,7 @@ button.nav-group-header {
 .servers-list li code {
     font-family: monospace;
     font-size: var(--font-size-3);
-    background: #DDEFFF;
+    background: var(--color-servers);
     padding: 4px 8px;
     border-radius: var(--radius-small);
     border: none;
@@ -3763,7 +3903,7 @@ details[open] .examples-toggle-icon {
 .install-command-code {
     flex: 1;
     padding: 0 0.5rem;
-    background: #DDEFFF;
+    background: var(--color-servers);
     line-height: 1.4;
     border: none;
     border-radius: 0;
@@ -4432,7 +4572,7 @@ details[open] .examples-toggle-icon {
 .skill-view-markdown {
     line-height: 1.7;
     font-family: var(--font-sans);
-    color: var(--color-neutral-10);
+    color: var(--color-text-secondary);
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
@@ -4527,8 +4667,8 @@ details[open] .examples-toggle-icon {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #ff5f56;
-    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+    background: var(--color-primary);
+    box-shadow: 20px 0 0 var(--color-warning), 40px 0 0 var(--color-success);
 }
 
 .skill-view-markdown pre code {
@@ -4546,7 +4686,7 @@ details[open] .examples-toggle-icon {
 /* Terminal-style prompt */
 .skill-view-markdown pre code::before {
     content: '$ ';
-    color: #4ec9b0;
+    color: var(--color-primary);
     font-weight: bold;
     user-select: none;
 }
@@ -4557,8 +4697,8 @@ details[open] .examples-toggle-icon {
     padding: var(--space-xxx-small) var(--space-xx-small);
     border-radius: var(--radius-small);
     font-size: var(--font-size-2);
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-    color: #e01e5a;
+    font-family: var(--font-mono);
+    color: var(--color-primary);
 }
 
 .skill-view-markdown blockquote {
@@ -5264,10 +5404,6 @@ details[open] .examples-toggle-icon {
     padding-top: var(--space-md);
 }
 
-.try-params {
-    background: var(--color-bg-secondary);
-}
-
 .try-params summary {
     padding: 0.5rem;
     margin: 0;
@@ -5902,7 +6038,6 @@ details[open] .examples-toggle-icon {
 
 .try-body {
     margin-bottom: 1rem;
-    background: var(--color-bg-secondary);
 }
 
 .try-body summary {
@@ -6814,15 +6949,26 @@ input.has-variable-ref:focus {
     font-weight: var(--font-weight-medium);
 }
 
+code[class*="language-"][class*="language-"],
+pre[class*="language-"][class*="language-"] {
+    background: var(--color-neutral-2);
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+    text-shadow: none;
+}
+
 /* Unified Operation Block */
 .unified-operation-block {
-    background: var(--color-neutral-1);
-    border: 1px solid var(--color-neutral-4);
+    background: var(--color-neutral-1) !important;
+    border: 1px solid var(--color-neutral-4) !important;
     border-radius: var(--radius-large);
     overflow: hidden;
-    margin: 1.5rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.3s ease;
+    margin: 1.5rem 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    transition: box-shadow 0.3s ease !important;
 }
 
 .unified-operation-block:hover {
@@ -6951,9 +7097,9 @@ input.has-variable-ref:focus {
 .terminal-content {
     margin: 0;
     padding: 1.25rem 1.5rem;
-    background: #FAFBFC;
+    background: var(--color-neutral-1);
     color: var(--color-neutral-10);
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+    font-family: var(--font-mono);
     font-size: var(--font-size-3);
     line-height: 1.7;
     overflow-x: auto;
@@ -6978,17 +7124,17 @@ input.has-variable-ref:focus {
 }
 
 .terminal-command {
-    color: #E06C75;
+    color: var(--color-neutral-10);
     font-weight: var(--font-weight-semibold);
 }
 
 .terminal-method {
-    color: #61AFEF;
+    color: var(--color-primary);
     font-weight: var(--font-weight-medium);
 }
 
 .terminal-flag {
-    color: #61AFEF;
+    color: var(--color-primary);
     font-weight: var(--font-weight-medium);
 }
 

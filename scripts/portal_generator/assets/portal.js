@@ -7313,15 +7313,7 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
-    // Check for saved theme preference or default to system preference
-    var savedTheme = localStorage.getItem('theme');
-    var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-
-    // Apply initial theme
-    if (initialTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
+    // Note: Initial theme is already applied in <head> to prevent flash
 
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');

@@ -1136,6 +1136,7 @@ code {
     font-weight: var(--font-weight-semibold);
     color: var(--color-gray-900);
     margin: 0 0 20px 0;
+    border-bottom: 1px solid var(--color-gray-300);
 }
 
 .sort-modal-field {
@@ -6328,7 +6329,8 @@ details[open] .examples-toggle-icon {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 200px;  /* Ensure content area has minimum height */
+    min-height: 200px;
+    /* Ensure content area has minimum height */
 }
 
 .try-response-body,
@@ -6347,7 +6349,8 @@ details[open] .examples-toggle-icon {
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1;
-    min-height: 200px;  /* Ensure ACE editor has minimum height */
+    min-height: 200px;
+    /* Ensure ACE editor has minimum height */
 }
 
 .try-response-body.active,

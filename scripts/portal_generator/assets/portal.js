@@ -961,6 +961,35 @@ function filterByTags() {
 
     // Update results count and type
     updateResultsCount(visibleApis + visibleSkills, selectedType);
+
+    // Update URL with current filter
+    updateURLWithFilter(selectedType);
+}
+
+function updateURLWithFilter(filterType) {
+    const url = new URL(window.location);
+    if (filterType && filterType !== 'all') {
+        url.searchParams.set('filter', filterType);
+        localStorage.setItem('homepage-filter', filterType);
+    } else {
+        url.searchParams.delete('filter');
+        localStorage.removeItem('homepage-filter');
+    }
+    console.log('Updating URL to:', url.toString());
+    window.history.replaceState({}, '', url);
+}
+
+function getFilterFromURL() {
+    const url = new URL(window.location);
+    const urlFilter = url.searchParams.get('filter');
+
+    // Priority: URL parameter > localStorage > default 'all'
+    if (urlFilter) {
+        return urlFilter;
+    }
+
+    const savedFilter = localStorage.getItem('homepage-filter');
+    return savedFilter || 'all';
 }
 
 function updateResultsCount(count, filterType) {
@@ -1126,6 +1155,19 @@ document.addEventListener('DOMContentLoaded', () => {
             filterByTags();
         });
     });
+
+    // Initialize filter from URL on page load
+    const urlFilter = getFilterFromURL();
+    console.log('URL filter:', urlFilter);
+    if (urlFilter !== 'all') {
+        const targetTab = document.querySelector(`.hero-tab[data-filter="${urlFilter}"]`);
+        console.log('Target tab:', targetTab);
+        if (targetTab) {
+            heroTabs.forEach(t => t.classList.remove('active'));
+            targetTab.classList.add('active');
+            filterByTags();
+        }
+    }
 
     // Set up tag search input
     const tagSearchInput = document.getElementById('tagSearchInput');
@@ -7133,6 +7175,22 @@ function toggleParamDescription(button) {
                 return direction === 'asc'
                     ? aValue.localeCompare(bValue)
                     : bValue.localeCompare(aValue);
+            } else if (sortBy === 'type') {
+                aValue = a.getAttribute('data-type') || '';
+                bValue = b.getAttribute('data-type') || '';
+                // Sort by type, then by name as secondary sort
+                const typeCompare = direction === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+
+                if (typeCompare !== 0) {
+                    return typeCompare;
+                }
+
+                // Secondary sort by name
+                const aName = a.getAttribute('data-name') || '';
+                const bName = b.getAttribute('data-name') || '';
+                return aName.localeCompare(bName);
             } else if (sortBy === 'endpoints') {
                 // Extract count from the badge text (endpoints for APIs, steps for Skills)
                 const aCard = a.querySelector('.badge-count');

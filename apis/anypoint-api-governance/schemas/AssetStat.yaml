@@ -1,0 +1,22 @@
+type: object
+description: Asset statistics for an asset type.
+additionalProperties: false
+required:
+  - total
+  - scope
+properties:
+  total:
+    type: integer
+    description: Total count for this asset type.
+  scope:
+    type: string
+    description: Asset type. Supported values are async-api, rest-api, http-api, mcp, agent, graphql, soap-api, grpc-api.
+    enum:
+      - async-api
+      - rest-api
+      - http-api
+      - mcp
+      - agent
+      - graphql
+      - soap-api
+      - grpc-api

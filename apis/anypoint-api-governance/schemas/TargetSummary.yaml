@@ -1,0 +1,55 @@
+type: object
+description: Governance summary for a specific API target (one API validated against the rulesets applied by a profile).
+additionalProperties: false
+required:
+  - id
+  - org
+  - owner
+  - version
+  - targetType
+  - total
+  - pass
+  - fail
+  - error
+  - time
+properties:
+  id:
+    $ref: './LabeledId.yaml'
+    description: The API targeted (identifier and label).
+  org:
+    $ref: './LabeledId.yaml'
+    description: The organization (identifier and label).
+  owner:
+    $ref: './LabeledId.yaml'
+    description: API owner (identifier and label).
+  version:
+    type: string
+    description: API version.
+  targetType:
+    type: string
+    description: The API type. Supported values are async-api, rest-api, http-api, mcp, agent, graphql, soap-api, grpc-api.
+    enum:
+      - async-api
+      - rest-api
+      - http-api
+      - mcp
+      - agent
+      - graphql
+      - soap-api
+      - grpc-api
+  total:
+    type: integer
+    description: Number of rulesets run against this API.
+  pass:
+    type: integer
+    description: Number of rulesets this API validates against (conformant).
+  fail:
+    type: integer
+    description: Number of rulesets this API fails against (non-conformant).
+  error:
+    type: integer
+    description: Number of rulesets this API could not be run against (validation failed).
+  time:
+    type: string
+    format: date-time
+    description: Timestamp for the validation.

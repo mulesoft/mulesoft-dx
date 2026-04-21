@@ -1,0 +1,24 @@
+summary: Example organization summary (from public-api org_summary_response.json)
+value:
+  assets:
+    total: 17
+    types:
+      - scope: rest-api
+        total: 14
+      - scope: async-api
+        total: 3
+  failed:
+    high: 10
+    low: 2
+    medium: 1
+    total: 13
+  org: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+  profiles:
+    negative: 6
+    positive: 1
+    total: 7
+  targets:
+    negative: 13
+    positive: 4
+    total: 17
+  totalGoverned: 17

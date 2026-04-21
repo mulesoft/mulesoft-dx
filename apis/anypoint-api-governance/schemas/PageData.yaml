@@ -1,0 +1,21 @@
+type: object
+description: Pagination metadata for a page of results.
+additionalProperties: false
+required:
+  - total
+  - numPage
+  - firstIndex
+  - lastIndex
+properties:
+  total:
+    type: integer
+    description: Total number of items across all pages.
+  numPage:
+    type: integer
+    description: Zero-based page index.
+  firstIndex:
+    type: integer
+    description: Index of the first item on this page (in the full list).
+  lastIndex:
+    type: integer
+    description: Index of the last item on this page (in the full list).

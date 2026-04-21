@@ -1,0 +1,178 @@
+# CRUD path items - composed into main api.yaml
+# Schema refs point to ../schemas/*.yaml (not api.yaml) so AMF does not treat the root OAS as a nested spec in the reference tree.
+
+profiles-list:
+  get:
+    operationId: listProfiles
+    summary: List profiles
+    description: Lists the definition of profiles for the organization. Returns all profiles the user has access to, optionally filtered by organization.
+    parameters:
+      - name: organization
+        in: query
+        required: false
+        description: Organization to use. If 'none' is sent, the organization for the user is used.
+        schema:
+          type: string
+          format: uuid
+        example: "56e6f7c7-d59d-4ab1-845d-255d008049af"
+    responses:
+      '200':
+        description: List of profiles returned successfully.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/Profile.yaml'
+            examples:
+              default:
+                $ref: '../examples/Profile-list-example.yaml'
+  post:
+    operationId: createProfile
+    summary: Create profile
+    description: Creates a new profile for the organization using the supplied definition.
+    requestBody:
+      description: The profile request to be created.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ProfileRequest.yaml'
+    responses:
+      '201':
+        description: Profile created successfully.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/Profile.yaml'
+            examples:
+              default:
+                $ref: '../examples/Profile-created-example.yaml'
+
+profiles-profileId:
+  get:
+    operationId: getProfile
+    summary: Get profile
+    description: Returns the definition of a single profile by its ID. Response includes Last-Modified (timestamp) and ETag (profile version UUID). Use the ETag value in the If-Match header when updating the profile with PUT.
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The profile UUID.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Profile returned successfully.
+        headers:
+          Last-Modified:
+            description: Timestamp when the profile was last modified (RFC 7232 / HTTP-date).
+            schema:
+              type: string
+              format: date-time
+          ETag:
+            description: Profile version (UUID). Send this value in If-Match when updating the profile.
+            schema:
+              type: string
+              format: uuid
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/Profile.yaml'
+            examples:
+              default:
+                $ref: '../examples/Profile-created-example.yaml'
+  put:
+    operationId: updateProfile
+    summary: Update profile
+    description: Updates an existing profile. The update is applied only if the If-Match header matches the current profile version (ETag). Request body uses ProfileCreation with rulesets as RulesetCreation; response is the same as GET (Profile with rulesets as Ruleset).
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The profile UUID.
+        schema:
+          type: string
+          format: uuid
+      - name: If-Match
+        in: header
+        required: true
+        description: Profile version (UUID). Must match the current profile ETag for the update to succeed.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      description: Profile creation payload (name, org, filter, rulesets as RulesetCreation).
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ProfileCreation.yaml'
+    responses:
+      '200':
+        description: Profile updated successfully. Same shape as GET profile (Profile with Ruleset items).
+        headers:
+          Last-Modified:
+            description: Timestamp when the profile was last modified.
+            schema:
+              type: string
+              format: date-time
+          ETag:
+            description: New profile version (UUID) after the update.
+            schema:
+              type: string
+              format: uuid
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/Profile.yaml'
+            examples:
+              default:
+                $ref: '../examples/Profile-created-example.yaml'
+      '412':
+        description: Precondition Failed — If-Match does not match the current profile version.
+
+profiles-profileId-activate:
+  put:
+    operationId: activateProfile
+    summary: Activate profile
+    description: Activates the profile. No request body. If-Match must match the current profile version (ETag) for the operation to succeed. Returns the Profile (same as GET).
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        description: The profile UUID.
+        schema:
+          type: string
+          format: uuid
+      - name: If-Match
+        in: header
+        required: true
+        description: Profile version (UUID). Must match the current profile ETag for the activation to succeed.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Profile activated successfully. Same shape as GET profile.
+        headers:
+          Last-Modified:
+            description: Timestamp when the profile was last modified.
+            schema:
+              type: string
+              format: date-time
+          ETag:
+            description: Profile version (UUID) after the activation.
+            schema:
+              type: string
+              format: uuid
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/Profile.yaml'
+            examples:
+              default:
+                $ref: '../examples/Profile-created-example.yaml'
+      '412':
+        description: Precondition Failed — If-Match does not match the current profile version.

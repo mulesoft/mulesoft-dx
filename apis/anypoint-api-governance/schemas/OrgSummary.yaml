@@ -1,0 +1,30 @@
+type: object
+description: Governance summary for a given organization.
+additionalProperties: false
+required:
+  - org
+  - totalGoverned
+  - profiles
+  - targets
+  - failed
+  - assets
+properties:
+  org:
+    type: string
+    format: uuid
+    description: The organization identifier.
+  totalGoverned:
+    type: integer
+    description: Total governed APIs.
+  profiles:
+    $ref: './Stats.yaml'
+    description: Profile statistics.
+  targets:
+    $ref: './Stats.yaml'
+    description: Target statistics.
+  failed:
+    $ref: './FailedStats.yaml'
+    description: Failed statistics by severity.
+  assets:
+    $ref: './AssetsStats.yaml'
+    description: Asset statistics.

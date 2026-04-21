@@ -1,0 +1,32 @@
+summary: Example applied rulesets for an asset
+value:
+  - id:
+      id: "gav://56e6f7c7-d59d-4ab1-845d-255d008049ad/best-practices/1.0.0"
+      label: "Best Practices"
+    version: "1.0.0"
+    owner:
+      id: "67766353-6d44-4604-98be-9878e3dec0de"
+      label: "user"
+    org:
+      id: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+      label: "mule"
+    targetType: "rest-api"
+    lifecycleState: "published"
+    conforms: true
+    tags: []
+    categories: []
+  - id:
+      id: "gav://56e6f7c7-d59d-4ab1-845d-255d008049ad/oas-rules/2.0.0"
+      label: "OAS Rules"
+    version: "2.0.0"
+    owner:
+      id: "67766353-6d44-4604-98be-9878e3dec0de"
+      label: "user"
+    org:
+      id: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+      label: "mule"
+    targetType: "rest-api"
+    lifecycleState: "published"
+    conforms: false
+    tags: []
+    categories: []

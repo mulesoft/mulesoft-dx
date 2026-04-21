@@ -1,0 +1,58 @@
+type: object
+description: A ruleset applied to a specific API target (asset), with validation outcome and metadata.
+additionalProperties: false
+required:
+  - id
+  - version
+  - owner
+  - org
+  - targetType
+  - lifecycleState
+  - conforms
+  - tags
+  - categories
+properties:
+  id:
+    $ref: './LabeledId.yaml'
+    description: The target/ruleset identifier (id and label).
+  version:
+    type: string
+    description: Asset version.
+  owner:
+    $ref: './LabeledId.yaml'
+    description: Asset owner (identifier and label).
+  org:
+    $ref: './LabeledId.yaml'
+    description: Organization (identifier and label).
+  targetType:
+    type: string
+    description: API/asset type. Supported values are async-api, rest-api, http-api, mcp, agent, graphql, soap-api, grpc-api.
+    enum:
+      - async-api
+      - rest-api
+      - http-api
+      - mcp
+      - agent
+      - graphql
+      - soap-api
+      - grpc-api
+  lifecycleState:
+    type: string
+    description: Lifecycle state of the asset.
+    enum:
+      - published
+      - draft
+      - deprecated
+  conforms:
+    type: boolean
+    description: Whether the target conforms to this ruleset.
+  tags:
+    type: array
+    items:
+      type: string
+    description: Tags associated with the asset.
+  categories:
+    type: array
+    items:
+      type: string
+    description: Categories associated with the asset.

@@ -1,0 +1,20 @@
+type: object
+description: Organization summary by profile (paginated). Each profile matches a filter criteria (what APIs to validate) with a set of rulesets; each profile summary indicates how many APIs are conformant, non-conformant, or failed to be validated.
+additionalProperties: false
+required:
+  - org
+  - profiles
+  - pageData
+properties:
+  org:
+    type: string
+    format: uuid
+    description: The organization identifier.
+  profiles:
+    type: array
+    description: One summary per profile for the organization.
+    items:
+      $ref: './ProfileSummary.yaml'
+  pageData:
+    $ref: './PageData.yaml'
+    description: Pagination metadata for this page of profile summaries.

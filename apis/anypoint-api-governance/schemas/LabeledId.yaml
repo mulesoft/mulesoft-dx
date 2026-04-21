@@ -1,0 +1,13 @@
+type: object
+description: Pair of ID and label.
+additionalProperties: false
+required:
+  - id
+  - label
+properties:
+  id:
+    type: string
+    description: The identifier.
+  label:
+    type: string
+    description: The human-readable label.

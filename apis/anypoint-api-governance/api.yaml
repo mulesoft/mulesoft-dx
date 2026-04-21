@@ -1,0 +1,78 @@
+openapi: 3.0.0
+info:
+  title: API Governance Experience API
+  version: 1.0.0
+  description: |
+    API specification (modularized, well documented).
+    Composed from governance (reporting) and CRUD path modules.
+servers:
+  - url: /api/v1
+    description: Base API v1
+
+paths:
+  # --- Governance (reporting) paths ---
+  /report/summary:
+    $ref: './paths/governance.yaml#/report-summary'
+  /stats/organization:
+    $ref: './paths/governance.yaml#/stats-organization'
+  /stats/organization/profiles:
+    $ref: './paths/governance.yaml#/stats-organization-profiles'
+  /stats/organization/targets:
+    $ref: './paths/governance.yaml#/stats-organization-targets'
+  /stats/profiles/{profileId}:
+    $ref: './paths/governance.yaml#/stats-profiles-profileId'
+  /stats/profiles/{profileId}/targets:
+    $ref: './paths/governance.yaml#/stats-profiles-profileId-targets'
+  /stats/applied/rulesets/{group}/{assetId}/{assetVersion}:
+    $ref: './paths/governance.yaml#/stats-applied-rulesets'
+
+  # --- CRUD paths ---
+  /profiles:
+    $ref: './paths/crud.yaml#/profiles-list'
+  /profiles/{profileId}:
+    $ref: './paths/crud.yaml#/profiles-profileId'
+  /profiles/{profileId}/activate:
+    $ref: './paths/crud.yaml#/profiles-profileId-activate'
+
+components:
+  schemas:
+    # Governance schemas
+    OrgSummary:
+      $ref: './schemas/OrgSummary.yaml'
+    Stats:
+      $ref: './schemas/Stats.yaml'
+    FailedStats:
+      $ref: './schemas/FailedStats.yaml'
+    AssetStat:
+      $ref: './schemas/AssetStat.yaml'
+    AssetsStats:
+      $ref: './schemas/AssetsStats.yaml'
+    LabeledId:
+      $ref: './schemas/LabeledId.yaml'
+    PageData:
+      $ref: './schemas/PageData.yaml'
+    ProfileSummary:
+      $ref: './schemas/ProfileSummary.yaml'
+    OrgProfileSummaryPaginated:
+      $ref: './schemas/OrgProfileSummaryPaginated.yaml'
+    TargetSummary:
+      $ref: './schemas/TargetSummary.yaml'
+    OrgTargetSummaryPaginated:
+      $ref: './schemas/OrgTargetSummaryPaginated.yaml'
+    ProfileTargetSummary:
+      $ref: './schemas/ProfileTargetSummary.yaml'
+    TargetAppliedRuleset:
+      $ref: './schemas/TargetAppliedRuleset.yaml'
+    ValidationReport:
+      $ref: './schemas/ValidationReport.yaml'
+    # CRUD schemas
+    Profile:
+      $ref: './schemas/Profile.yaml'
+    ProfileRequest:
+      $ref: './schemas/ProfileRequest.yaml'
+    ProfileCreation:
+      $ref: './schemas/ProfileCreation.yaml'
+    ProfileNotificationConfiguration:
+      $ref: './schemas/ProfileNotificationConfiguration.yaml'
+    Ruleset:
+      $ref: './schemas/Ruleset.yaml'

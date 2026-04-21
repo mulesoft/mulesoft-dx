@@ -1,0 +1,11 @@
+summary: Example profile as returned after creation (201)
+value:
+  id: "56e6f7c7-d59d-4ab1-845d-255d008049ad"
+  version: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  name: "Default API profile"
+  description: "Governance profile for default APIs"
+  org: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+  filter: "scope:rest-api"
+  rulesets: []
+  created: "2024-01-15T10:00:00Z"
+  updated: "2024-03-15T10:30:00Z"

@@ -1,0 +1,21 @@
+type: object
+description: A single notification configuration (e.g. OnFailure).
+additionalProperties: false
+required:
+  - enabled
+  - condition
+  - recipients
+properties:
+  enabled:
+    type: boolean
+    description: Whether this particular notification configuration is enabled.
+  condition:
+    type: string
+    description: The condition that triggers this notification. Currently only OnFailure is supported.
+    enum:
+      - OnFailure
+  recipients:
+    type: array
+    description: Recipients who receive this notification.
+    items:
+      $ref: './NotificationRecipient.yaml'

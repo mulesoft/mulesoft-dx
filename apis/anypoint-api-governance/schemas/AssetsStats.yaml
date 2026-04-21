@@ -1,0 +1,15 @@
+type: object
+description: Asset statistics (total and count by asset type).
+additionalProperties: false
+required:
+  - total
+  - types
+properties:
+  total:
+    type: integer
+    description: Total count of assets.
+  types:
+    type: array
+    description: Count by asset type.
+    items:
+      $ref: './AssetStat.yaml'

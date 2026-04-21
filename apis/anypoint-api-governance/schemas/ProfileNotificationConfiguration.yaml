@@ -1,0 +1,15 @@
+type: object
+description: Profile notification configuration.
+additionalProperties: false
+required:
+  - enabled
+  - notifications
+properties:
+  enabled:
+    type: boolean
+    description: Whether profile notification is enabled.
+  notifications:
+    type: array
+    description: List of specific notification configurations (e.g. OnFailure condition).
+    items:
+      $ref: './NotificationConfiguration.yaml'

@@ -72,6 +72,7 @@ paths:
             - template
             - example
             - custom
+            - mcp
       - name: rootOrganizationId
         description: Root organization ID to scope the asset search
         in: query

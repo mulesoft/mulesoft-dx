@@ -471,29 +471,32 @@ body.detail-page .ms-com-header {
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+/* Light mode: show moon (represents switching TO dark mode) */
 .dark-mode-toggle .theme-icon-dark {
-    display: none;
+    display: block;
 }
 
 .dark-mode-toggle .theme-icon-light {
-    display: block;
-}
-
-[data-theme="dark"] .dark-mode-toggle .theme-icon-dark {
-    display: block;
-}
-
-[data-theme="dark"] .dark-mode-toggle .theme-icon-light {
     display: none;
 }
 
+/* Dark mode: show sun (represents switching TO light mode) */
+[data-theme="dark"] .dark-mode-toggle .theme-icon-dark {
+    display: none;
+}
+
+[data-theme="dark"] .dark-mode-toggle .theme-icon-light {
+    display: block;
+}
+
+/* System preference dark: show sun when no theme override */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) .dark-mode-toggle .theme-icon-dark {
-        display: block;
+        display: none;
     }
 
     :root:not([data-theme]) .dark-mode-toggle .theme-icon-light {
-        display: none;
+        display: block;
     }
 }
 
@@ -1955,7 +1958,7 @@ code {
 
 .detail-layout {
     display: flex;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100vh - 75px);
     background: var(--color-bg-primary);
 }
 
@@ -1964,7 +1967,7 @@ code {
     background: var(--color-bg-surface);
     position: sticky;
     top: 70px;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 75px);
     overflow: hidden;
     flex-shrink: 0;
     display: flex;
@@ -2621,7 +2624,7 @@ button.nav-group-header {
     flex-shrink: 0;
     position: sticky;
     top: 70px;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 75px);
     overflow-y: auto;
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border-primary);

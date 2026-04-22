@@ -18,6 +18,7 @@
         </div>
         {% endif %}
     </div>
+    {% if not prose_only|default(false) %}
     <div class="auth-panel-right">
         <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">
             <span class="auth-status-container" id="authStatusContainer">
@@ -38,8 +39,10 @@
             </span>
         </button>
     </div>
+    {% endif %}
 </div>
 
+{% if not prose_only|default(false) %}
 <div class="auth-modal" id="authModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <div class="auth-modal-overlay" onclick="closeAuthModal()"></div>
     <div class="auth-modal-content">
@@ -103,3 +106,4 @@
         </div>
     </div>
 </div>
+{% endif %}

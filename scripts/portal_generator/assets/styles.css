@@ -6330,7 +6330,6 @@ details[open] .examples-toggle-icon {
     flex-direction: column;
     flex: 1;
     min-height: 200px;
-    /* Ensure content area has minimum height */
 }
 
 .try-response-body,
@@ -6343,14 +6342,12 @@ details[open] .examples-toggle-icon {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: var(--font-size-3);
     color: var(--color-text-primary);
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1;
     min-height: 200px;
-    /* Ensure ACE editor has minimum height */
 }
 
 .try-response-body.active,

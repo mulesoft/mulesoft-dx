@@ -105,6 +105,15 @@ paths:
         allowReserved: true
         schema:
           type: string
+      - name: family
+        in: query
+        description: Filter API instances by family type. Use "agentic" to list MCP server instances, "llm" for LLM-based APIs, or "api" for standard APIs.
+        schema:
+          type: string
+          enum:
+            - api
+            - agentic
+            - llm
       - name: filters
         in: query
         allowReserved: true

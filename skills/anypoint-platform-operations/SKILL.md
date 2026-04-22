@@ -1,5 +1,5 @@
 ---
-name: discover-anypoint-platform-apis
+name: anypoint-platform-operations
 description: |
   Discover and navigate the Anypoint Platform API developer portal to find APIs,
   agent skills, and schemas. Use when bootstrapping knowledge of the Anypoint
@@ -8,7 +8,7 @@ description: |
   x-origin dynamic parameters, or planning multi-API workflows.
 ---
 
-# Discover Anypoint Platform APIs
+# Anypoint Platform Operations
 
 ## Overview
 

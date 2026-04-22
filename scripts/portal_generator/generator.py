@@ -172,7 +172,16 @@ class PortalGenerator:
 
         # Fetch MuleSoft header and footer
         print(f"\n🌐 Fetching MuleSoft header and footer...")
-        self.chrome = fetch_mulesoft_chrome()
+        try:
+            self.chrome = fetch_mulesoft_chrome()
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch chrome elements: {e}")
+            print(f"    ℹ️  Using minimal fallback header/footer")
+            self.chrome = {
+                'dependencies': '',
+                'header': '<header style="padding: 1rem; background: #fff; border-bottom: 1px solid #ddd;"><a href="https://www.mulesoft.com">MuleSoft</a></header>',
+                'footer': '<footer style="padding: 1rem; background: #f5f5f5; border-top: 1px solid #ddd; text-align: center;"><p>© MuleSoft</p></footer>'
+            }
 
         # Generate files
         print(f"\n📝 Generating portal files...")

@@ -335,14 +335,14 @@ outputs:
 - **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Flex Gateway version. Verify the version from the target's actual runtime version in Step 4.
 - **409 Conflict**: The MCP server may already be deployed to this target. List existing deployments with `GET .../deployments` first to check.
 
-## Step 7: List API Instances
+## Step 7: List MCP Server Instances
 
-Lists all API instances in the selected environment. Use this step when you already have an API Manager instance for the MCP server and need to find its ID to apply a policy.
+Lists MCP server instances in the selected environment by filtering with `family=agentic`. Use this step when you already have an API Manager instance for the MCP server and need to find its ID to apply a policy.
 
 **What you'll need:**
 - Organization ID and Environment ID
 
-**Action:** List API instances and select the one corresponding to your MCP server.
+**Action:** List MCP server instances and select the target.
 
 ```yaml
 api: urn:api:api-manager
@@ -358,14 +358,17 @@ inputs:
     from:
       variable: environmentId
     description: Environment ID from Step 3
+  family:
+    value: "agentic"
+    description: Filter for MCP server (agentic) instances only
 outputs:
   - name: environmentApiId
     path: $.assets[*].apis[*].id
     labels: $.assets[*].apis[*].autodiscoveryInstanceName
-    description: The API instance ID in API Manager
+    description: The MCP server instance ID in API Manager
 ```
 
-**What happens next:** You have the API instance ID. Next, browse the policy catalog to select which policy to apply.
+**What happens next:** You have the MCP server instance ID. Next, browse the policy catalog to select which policy to apply.
 
 ## Step 8: Browse Exchange Policy Catalog
 

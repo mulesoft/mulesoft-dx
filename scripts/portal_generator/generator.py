@@ -132,7 +132,7 @@ class PortalGenerator:
         self.repo_root = repo_root
 
         # Discover APIs and skills
-        self.apis = discover_apis(repo_root)
+        self.apis, all_discovered_skills = discover_apis(repo_root)
         self.public_apis = [a for a in self.apis if not a.get('private')]
         self.stats = calculate_stats(self.apis)
 
@@ -146,6 +146,15 @@ class PortalGenerator:
                 if skill['slug'] not in seen_slugs:
                     seen_slugs.add(skill['slug'])
                     self.all_skills.append(skill)
+
+        # Also collect prose-only skills (no API refs, not tied to any API)
+        for skill in all_discovered_skills:
+            if not skill.get('api_refs') and skill['slug'] not in seen_slugs:
+                seen_slugs.add(skill['slug'])
+                self.all_skills.append(skill)
+
+        # Update skill count to include prose-only skills
+        self.stats['skill_count'] = len(self.all_skills)
 
         print(f"\n📊 Statistics:")
         print(f"  • {self.stats['api_count']} APIs")
@@ -305,6 +314,8 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
+            prose_only = skill.get('step_count', 0) == 0
+
             html = template.render(
                 css_path='../assets/styles.css',
                 icons_path='../assets/icons',
@@ -317,6 +328,7 @@ class PortalGenerator:
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                prose_only=prose_only,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:

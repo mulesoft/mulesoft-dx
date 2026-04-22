@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 import frontmatter
 from markdown_it import MarkdownIt
 
-_md = MarkdownIt()
+_md = MarkdownIt().enable('table')
 
 try:
     from ruamel.yaml import YAML

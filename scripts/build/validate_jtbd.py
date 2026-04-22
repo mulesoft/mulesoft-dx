@@ -285,11 +285,22 @@ class JobValidator:
             for error in [e for e in self.errors if 'frontmatter' in e.lower()]:
                 print(f"  ❌ {error}")
 
-        # 2. Extract step headers
+        # 2. Extract step headers and YAML blocks
         print("\n📑 Checking step headers...")
         step_headers = self.extract_step_headers(content)
         print(f"  Found {len(step_headers)} step header(s)")
 
+        print("\n📦 Extracting job steps (YAML blocks)...")
+        steps = self.extract_job_steps(content)
+        print(f"  Found {len(steps)} job step(s)")
+
+        # Prose-only skill: no step headers AND no YAML blocks → valid
+        if len(step_headers) == 0 and len(steps) == 0:
+            print("  ℹ️  Prose-only skill (no steps defined)")
+            self.print_summary()
+            return len(self.errors) == 0
+
+        # Step-based skill: validate step headers
         if not step_headers:
             self.errors.append("No step headers found (expecting '## Step 1:', '## Step 2:', etc.)")
             print(f"  ❌ No step headers found")
@@ -306,12 +317,7 @@ class JobValidator:
             else:
                 print(f"  ✅ Steps are numbered sequentially (1-{len(step_headers)})")
 
-        # 3. Extract YAML steps
-        print("\n📦 Extracting job steps (YAML blocks)...")
-        steps = self.extract_job_steps(content)
-        print(f"  Found {len(steps)} job step(s)")
-
-        # CRITICAL: At least 1 step must be defined
+        # Step-based skill: at least 1 YAML step required
         if len(steps) == 0:
             self.errors.append(
                 "No YAML step blocks found! "

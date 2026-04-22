@@ -141,6 +141,47 @@
     </div>
     {% endif %}
 
+    {% if skill.what_youve_built_html %}
+    <div id="built-section" class="skill-subsection">
+        <h3>What You've Built</h3>
+        <div class="skill-view-markdown">{{ skill.what_youve_built_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.next_steps_html %}
+    <div id="next-steps-section" class="skill-subsection">
+        <h3>Next Steps</h3>
+        <div class="skill-view-markdown">{{ skill.next_steps_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.tips_html %}
+    <div id="tips-section" class="skill-subsection">
+        <h3>Tips and Best Practices</h3>
+        <div class="skill-view-markdown">{{ skill.tips_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.troubleshooting_html %}
+    <div id="troubleshooting-section" class="skill-subsection">
+        <h3>Troubleshooting</h3>
+        <div class="skill-view-markdown">{{ skill.troubleshooting_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.related_jobs_list %}
+    <div id="related-jobs-section" class="skill-subsection">
+        <h3>Related Jobs</h3>
+        <div class="skill-view-markdown">
+            <ul>
+            {% for job in skill.related_jobs_list %}
+                <li><a href="../skills/{{ job.slug }}.html"><strong>{{ job.slug }}</strong></a>: {{ job.description }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     {# Install Command Modal #}
     <div class="install-modal" id="install-modal-{{ slug }}" style="display:none" role="dialog" aria-modal="true">
         <div class="install-modal-overlay" onclick="closeInstallModal('{{ slug }}')"></div>

@@ -1040,10 +1040,11 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        result = discover_skills(tmp_path)
-        assert 'test-api' in result
-        assert len(result['test-api']) == 1
-        assert result['test-api'][0]['slug'] == 'deploy-app'
+        by_api, all_skills = discover_skills(tmp_path)
+        assert 'test-api' in by_api
+        assert len(by_api['test-api']) == 1
+        assert by_api['test-api'][0]['slug'] == 'deploy-app'
+        assert len(all_skills) == 1
 
     def test_skill_has_api_refs(self, tmp_path):
         from tests.conftest import MINIMAL_SKILL_MD
@@ -1051,8 +1052,8 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        result = discover_skills(tmp_path)
-        skill = result['test-api'][0]
+        by_api, _ = discover_skills(tmp_path)
+        skill = by_api['test-api'][0]
         assert 'api_refs' in skill
         assert 'test-api' in skill['api_refs']
 
@@ -1079,15 +1080,19 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(skill_md)
 
-        result = discover_skills(tmp_path)
-        assert 'access-mgmt' in result
-        assert 'api-manager' in result
+        by_api, all_skills = discover_skills(tmp_path)
+        assert 'access-mgmt' in by_api
+        assert 'api-manager' in by_api
         # Same skill object in both
-        assert result['access-mgmt'][0]['slug'] == 'cross-api-skill'
-        assert result['api-manager'][0]['slug'] == 'cross-api-skill'
+        assert by_api['access-mgmt'][0]['slug'] == 'cross-api-skill'
+        assert by_api['api-manager'][0]['slug'] == 'cross-api-skill'
+        # Flat list has it once
+        assert len(all_skills) == 1
 
     def test_no_skills_dir_returns_empty(self, tmp_path):
-        assert discover_skills(tmp_path) == {}
+        by_api, all_skills = discover_skills(tmp_path)
+        assert by_api == {}
+        assert all_skills == []
 
     def test_skips_non_skill_files(self, tmp_path):
         skills_dir = tmp_path / 'skills'
@@ -1095,7 +1100,9 @@ class TestDiscoverSkills:
         (skills_dir / 'README.md').write_text('not a skill')
         (skills_dir / 'some-dir').mkdir()
         # Dir without SKILL.md
-        assert discover_skills(tmp_path) == {}
+        by_api, all_skills = discover_skills(tmp_path)
+        assert by_api == {}
+        assert all_skills == []
 
 
 # ============================================================================

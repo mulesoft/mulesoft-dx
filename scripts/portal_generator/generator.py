@@ -316,6 +316,18 @@ class PortalGenerator:
 
             prose_only = skill.get('step_count', 0) == 0
 
+            # Build linked APIs list for sidebar
+            linked_apis = []
+            for api_slug in api_refs:
+                if api_slug in api_by_slug:
+                    api_data = api_by_slug[api_slug]
+                    linked_apis.append({
+                        'name': api_data.get('name', ''),
+                        'slug': api_slug,
+                        'operation_count': len(api_data.get('operations', [])),
+                        'private': api_data.get('private', False)
+                    })
+
             html = template.render(
                 css_path='../assets/styles.css',
                 icons_path='../assets/icons',
@@ -325,6 +337,7 @@ class PortalGenerator:
                 op_lookup=op_lookup,
                 api_link_prefix='../apis/',
                 private_api_slugs=private_api_slugs,
+                linked_apis=linked_apis,
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,

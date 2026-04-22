@@ -1378,7 +1378,7 @@ code {
     border: 1px solid var(--color-indigo);
 }
 
-/* Hide all other badges (REST API, endpoints, skills) in list view */
+/* Hide all other badges (API, endpoints, skills) in list view */
 .catalog-grid.list-view .badge-api-type,
 .catalog-grid.list-view .badge-count,
 .catalog-grid.list-view .badge-skills {
@@ -1965,17 +1965,19 @@ code {
     position: sticky;
     top: 70px;
     height: calc(100vh - 70px);
-    overflow-y: auto;
+    overflow: hidden;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 100;
     background: var(--color-bg-surface);
     margin: 25px 0px 0px 0px;
     border-bottom: 1px solid var(--color-neutral-4);
+    flex-shrink: 0;
 }
 
 .sidebar-overview-section {
@@ -2101,6 +2103,9 @@ code {
 
 .sidebar-nav {
     padding: var(--space-md) 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .sidebar-nav:first-child {

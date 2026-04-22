@@ -805,7 +805,7 @@ function buildAvailableTags() {
         if (type) {
             tagSet.add(type.toLowerCase());
             // Also add variations
-            if (type === 'api') tagSet.add('rest api');
+            if (type === 'api') tagSet.add('api');
         }
 
         // Extract individual words from name

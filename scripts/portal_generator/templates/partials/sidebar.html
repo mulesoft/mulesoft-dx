@@ -91,7 +91,9 @@
                 <li>
                     <a href="../skills/{{ skill.slug }}.html" class="nav-link nav-operation-flat">
                         <span class="op-name">{{ skill_name }}</span>
+                        {% if step_count > 0 %}
                         <span class="group-count">({{ step_count }} steps)</span>
+                        {% endif %}
                     </a>
                 </li>
                 {% endfor %}

@@ -7,7 +7,7 @@
     <div class="auth-panel-center">
         <h1 class="api-title"><a href="#overview" class="api-title-link">{{ api_name }}</a></h1>
         <span class="badge badge-version">{{ api_version }}</span>
-        {% if is_skill_page %}
+        {% if is_skill_page and not prose_only %}
         <div class="skill-mode-toggle-container">
             <label class="toggle-switch-label">
                 <span class="toggle-label-text">Interactive Mode</span>

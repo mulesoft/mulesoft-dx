@@ -209,8 +209,7 @@ Template: `{portal-url}/schemas/jtbd-template.md`
 
 ## Related Jobs
 
-- **deploy-api-to-managed-flex-gateway-from-exchange**: Deploy an API from Exchange to a managed Flex Gateway target
 - **protect-api-with-policies**: Apply security and traffic management policies to an API instance
-- **list-organization-api-instances**: View all API instances deployed across your organization
-- **deploy-api-with-rate-limiting**: Deploy an API with pre-configured SLA-based rate limiting
-- **manage-consumer-contracts**: Create SLA tiers and manage consumer access contracts
+- **apply-policy-to-api-instance**: Apply a specific policy to an existing API instance
+- **setup-agent-scanner**: Configure scanners to discover AI agents from cloud platforms
+- **run-agent-scan-and-view-results**: Execute a scanner and view discovered agents

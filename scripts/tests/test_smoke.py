@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
-    PRIVATE_EXCHANGE_JSON, setup_schema_docs,
+    PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, setup_schema_docs,
 )
 
 
@@ -31,6 +31,10 @@ def generated_portal(tmp_path):
     skill_dir = repo / 'skills' / 'deploy-app'
     skill_dir.mkdir(parents=True)
     (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
+
+    prose_skill_dir = repo / 'skills' / 'platform-guide'
+    prose_skill_dir.mkdir(parents=True)
+    (prose_skill_dir / 'SKILL.md').write_text(PROSE_ONLY_SKILL_MD)
 
     setup_schema_docs(repo)
 
@@ -139,6 +143,37 @@ class TestSkillPageStructure:
         scripts = self.soup.find_all('script')
         script_text = ' '.join(s.string or '' for s in scripts)
         assert "__API_LINK_PREFIX__" in script_text
+
+
+class TestProseOnlySkillPage:
+    """Prose-only skills render the header but hide auth panel and interactive elements."""
+    @pytest.fixture(autouse=True)
+    def _parse_prose_skill_page(self, generated_portal):
+        html = (generated_portal / 'skills' / 'platform-guide.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_prose_skill_page_exists(self, generated_portal):
+        assert (generated_portal / 'skills' / 'platform-guide.html').exists()
+
+    def test_has_header_bar(self):
+        header = self.soup.find('div', class_='auth-panel-header-bar')
+        assert header is not None
+
+    def test_no_auth_panel_right(self):
+        right = self.soup.find('div', class_='auth-panel-right')
+        assert right is None
+
+    def test_no_auth_modal(self):
+        modal = self.soup.find('div', class_='auth-modal')
+        assert modal is None
+
+    def test_no_interactive_mode_toggle(self):
+        toggle = self.soup.find('div', class_='skill-mode-toggle-container')
+        assert toggle is None
+
+    def test_has_guide_badge(self):
+        badge = self.soup.find('span', class_='badge-version', string='Guide')
+        assert badge is not None
 
 
 class TestHomepageSkillLinks:

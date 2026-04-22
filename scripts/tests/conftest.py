@@ -284,6 +284,22 @@ PRIVATE_EXCHANGE_JSON = json.dumps({
 })
 
 
+PROSE_ONLY_SKILL_MD = textwrap.dedent("""\
+    ---
+    name: platform-guide
+    description: Navigate the Anypoint Platform developer portal.
+    ---
+    ## Overview
+    This is a prose-only guide with no steps.
+
+    ## Tips and Best Practices
+    Start with registry.json for programmatic discovery.
+
+    ## Troubleshooting
+    Check network connectivity if portal files are not accessible.
+""")
+
+
 def setup_schema_docs(repo_root: Path):
     """Create minimal schema doc files under a repo root for testing."""
     schemas_dir = repo_root / 'docs' / 'schemas'

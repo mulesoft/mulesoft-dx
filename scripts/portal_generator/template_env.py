@@ -197,6 +197,26 @@ def _resolve_skill_inputs(inputs_dict, step_details):
     return result
 
 
+_UPPERCASE_WORDS = {'api', 'apis', 'mcp', 'ip', 'id', 'url', 'http', 'https', 'sdk', 'cli', 'jtbd'}
+
+
+def _skill_title(value):
+    """Convert a slug like 'apply-policy-to-api-instance' to 'Apply Policy to API Instance'.
+
+    Preserves known acronyms in uppercase and keeps short words lowercase."""
+    if not value:
+        return ''
+    words = str(value).replace('-', ' ').split()
+    result = []
+    for word in words:
+        lower = word.lower()
+        if lower in _UPPERCASE_WORDS:
+            result.append(lower.upper())
+        else:
+            result.append(word.capitalize())
+    return ' '.join(result)
+
+
 def _truncate_text(text, max_length=25):
     """Truncate text to max_length characters, adding ellipsis if truncated."""
     if not text or len(text) <= max_length:
@@ -239,6 +259,7 @@ def create_env() -> Environment:
     env.filters['titleize_operation'] = _titleize_operation
     env.filters['slugify'] = _slugify
     env.filters['resolve_skill_inputs'] = _resolve_skill_inputs
+    env.filters['skill_title'] = _skill_title
     env.filters['truncate_text'] = _truncate_text
     env.filters['should_collapse_description'] = _should_collapse_description
 

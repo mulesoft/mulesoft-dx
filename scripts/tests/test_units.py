@@ -8,7 +8,7 @@ from markupsafe import Markup
 
 from portal_generator.utils import get_category, CATEGORY_MAPPING
 from portal_generator.builders.tree_builder import build_operation_tree, count_tree_operations
-from portal_generator.template_env import _nl2br, _nl2br_html, _render_markdown, _tojson_raw
+from portal_generator.template_env import _nl2br, _nl2br_html, _render_markdown, _tojson_raw, _skill_title
 from portal_generator.generator import _build_api_meta, _get_example_body, PortalGenerator
 from portal_generator.parsers.skill_parser import (
     _extract_yaml_blocks,
@@ -225,6 +225,33 @@ class TestTojsonRaw:
     def test_custom_indent(self):
         result = _tojson_raw({'a': 1}, indent=4)
         assert '    "a"' in str(result)
+
+
+# ============================================================================
+# _skill_title
+# ============================================================================
+
+class TestSkillTitle:
+    def test_api_uppercase(self):
+        assert _skill_title('apply-policy-to-api-instance') == 'Apply Policy To API Instance'
+
+    def test_mcp_uppercase(self):
+        assert _skill_title('protect-mcp-server-with-policies') == 'Protect MCP Server With Policies'
+
+    def test_multiple_acronyms(self):
+        assert _skill_title('setup-api-with-oauth') == 'Setup API With Oauth'
+
+    def test_no_acronyms(self):
+        assert _skill_title('run-agent-scan-and-view-results') == 'Run Agent Scan And View Results'
+
+    def test_empty_string(self):
+        assert _skill_title('') == ''
+
+    def test_single_word(self):
+        assert _skill_title('api') == 'API'
+
+    def test_already_spaced(self):
+        assert _skill_title('protect api with policies') == 'Protect API With Policies'
 
 
 # ============================================================================

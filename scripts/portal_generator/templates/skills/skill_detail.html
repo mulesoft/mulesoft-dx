@@ -1,7 +1,7 @@
 {% from "skills/step_unified.html" import render_step_unified %}
 
 {% macro render_skill(skill, private_api_slugs=[], api_link_prefix='', op_lookup={}) %}
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
 

@@ -805,7 +805,7 @@ function buildAvailableTags() {
         if (type) {
             tagSet.add(type.toLowerCase());
             // Also add variations
-            if (type === 'api') tagSet.add('rest api');
+            if (type === 'api') tagSet.add('api');
         }
 
         // Extract individual words from name
@@ -3667,7 +3667,7 @@ async function sendRequest(opId, buttonEl) {
 // Helper function to get appropriate ACE theme based on current theme
 function getAceTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return isDark ? 'ace/theme/monokai' : 'ace/theme/textmate';
+    return isDark ? 'ace/theme/one_dark' : 'ace/theme/github';
 }
 
 // Helper function to update ACE editor background color

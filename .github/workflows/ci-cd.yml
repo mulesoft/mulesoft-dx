@@ -6,6 +6,7 @@ on:
       - main
       - master
       - 'release/**'
+      - 'poc/**'
   pull_request:
     branches:
       - main
@@ -155,6 +156,59 @@ jobs:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
           AKAMAI_USERNAME: API_Portal_Team
           AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+
+  deploy-to-poc:
+    name: Deploy to POC
+    needs: validate-specs
+    runs-on: ubuntu-latest
+    # Only run on poc/* branches
+    if: startsWith(github.ref, 'refs/heads/poc/')
+    environment:
+      name: poc
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Install Python dependencies
+        run: pip3 install --no-cache-dir -r scripts/requirements.txt
+
+      - name: Derive POC name
+        id: poc
+        run: |
+          raw="${GITHUB_REF_NAME#poc/}"
+          # Lowercase, replace any non-alphanumeric run with a single hyphen, trim leading/trailing hyphens
+          sanitized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+          if [ -z "$sanitized" ]; then
+            echo "Branch '$GITHUB_REF_NAME' produced an empty POC name after sanitization" >&2
+            exit 1
+          fi
+          echo "name=$sanitized" >> "$GITHUB_OUTPUT"
+          echo "Deploying POC as: $sanitized"
+
+      - name: Generate portal for POC
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-dev-portal.mulesoft.com/pocs/${{ steps.poc.outputs.name }}'
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+
+      - name: Deploy to Akamai POC
+        run: |
+          echo "Deploying portal to POC environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
+          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit"
+        env:
+          AKAMAI_HOST: 564243.ftp.upload.akamai.com
+          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+          POC_NAME: ${{ steps.poc.outputs.name }}
 
   deploy-to-production:
     name: Deploy to Production

@@ -3774,10 +3774,10 @@ function createReadOnlyAceEditor(container, content, language) {
         fontSize: '13px'
     });
 
-    // Use large minLines/maxLines to fill space
+    // Let ACE scroll internally within the container bounds
     editor.setOptions({
         minLines: 10,
-        maxLines: 100
+        maxLines: 50
     });
 
     // Set read-only background

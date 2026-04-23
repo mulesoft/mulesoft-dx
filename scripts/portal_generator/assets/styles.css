@@ -275,6 +275,8 @@
 
 /* Manual dark mode toggle support */
 [data-theme="dark"] {
+    color-scheme: dark;
+
     /* GitHub Dark inspired + Solarized */
     --color-white: #0d1117;
     --color-neutral-1: #0d1117;
@@ -4954,7 +4956,6 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-large);
     min-height: 200px;
 }
 
@@ -6460,7 +6461,8 @@ details[open] .examples-toggle-icon {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 200px;  /* Ensure content area has minimum height */
+    min-height: 200px;
+    overflow: hidden;
 }
 
 .try-response-body,
@@ -6473,13 +6475,12 @@ details[open] .examples-toggle-icon {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: var(--font-size-3);
     color: var(--color-text-primary);
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1;
-    min-height: 200px;  /* Ensure ACE editor has minimum height */
+    min-height: 200px;
 }
 
 .try-response-body.active,

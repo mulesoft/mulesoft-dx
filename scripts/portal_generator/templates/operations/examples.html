@@ -17,8 +17,10 @@
     <div id="{{ example_id }}" class="ace-editor-container">{{ json_str }}</div>
     <script>
         (function() {
+            var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            var theme = isDark ? 'ace/theme/one_dark' : 'ace/theme/github';
             var editor = ace.edit('{{ example_id }}');
-            editor.setTheme('ace/theme/github');
+            editor.setTheme(theme);
             editor.session.setMode('ace/mode/json');
             editor.setReadOnly(true);
             editor.setOptions({
@@ -29,6 +31,8 @@
                 showPrintMargin: false,
                 fontSize: '13px'
             });
+            if (!window.aceEditors) window.aceEditors = {};
+            window.aceEditors['{{ example_id }}'] = editor;
         })();
     </script>
 </div>

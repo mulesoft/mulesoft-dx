@@ -1,4 +1,4 @@
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
 

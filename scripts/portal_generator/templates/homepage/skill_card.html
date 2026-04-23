@@ -1,4 +1,4 @@
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 <a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill">
     <article class="catalog-card">
         <div class="catalog-card-header">

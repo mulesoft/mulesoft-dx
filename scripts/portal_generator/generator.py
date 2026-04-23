@@ -12,7 +12,7 @@ from typing import Dict, List
 from .discovery import discover_apis, calculate_stats
 from .builders.tree_builder import build_operation_tree
 from .assets import get_css, get_js, get_jsonpath_js
-from .template_env import create_env
+from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
 
 
@@ -313,7 +313,7 @@ class PortalGenerator:
         template = self.env.get_template('skill_page.html')
 
         for skill in self.all_skills:
-            skill_name = skill.get('name', skill['slug']).replace('-', ' ').title()
+            skill_name = _skill_title(skill.get('name', skill['slug']))
             api_refs = skill.get('api_refs', [])
 
             # Build op_lookup scoped to APIs this skill references

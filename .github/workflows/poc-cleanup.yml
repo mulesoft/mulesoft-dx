@@ -1,0 +1,40 @@
+name: POC Cleanup
+
+on:
+  delete:
+
+jobs:
+  cleanup-poc:
+    name: Remove POC from Akamai
+    runs-on: ubuntu-latest
+    if: github.event.ref_type == 'branch' && startsWith(github.event.ref, 'poc/')
+    environment:
+      name: poc
+
+    steps:
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Derive POC name
+        id: poc
+        run: |
+          raw="${DELETED_REF#poc/}"
+          sanitized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+          if [ -z "$sanitized" ]; then
+            echo "Deleted branch '$DELETED_REF' produced an empty POC name after sanitization" >&2
+            exit 1
+          fi
+          echo "name=$sanitized" >> "$GITHUB_OUTPUT"
+          echo "Cleaning up POC: $sanitized"
+        env:
+          DELETED_REF: ${{ github.event.ref }}
+
+      - name: Remove POC directory from Akamai
+        run: |
+          echo "Removing POC from TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
+          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; rm -rf /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" || true
+        env:
+          AKAMAI_HOST: 564243.ftp.upload.akamai.com
+          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+          POC_NAME: ${{ steps.poc.outputs.name }}

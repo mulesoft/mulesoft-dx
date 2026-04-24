@@ -1,0 +1,8 @@
+servers:
+  - url: https://anypoint.mulesoft.com/exchange
+  - url: https://eu1.anypoint.mulesoft.com/exchange
+  - url: https://{region}.platform.mulesoft.com/exchange
+    variables:
+      region:
+        default: ca1
+        description: Region identifier for the service endpoint.

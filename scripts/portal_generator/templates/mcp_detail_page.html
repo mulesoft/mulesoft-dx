@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mcp.name }} - Anypoint Platform MCP Servers{% endblock %}
+
+{% block body_attrs %} class="detail-page mcp-detail-page"{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+<script src="../assets/jsonpath-plus.min.js" defer></script>
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% from "mcp/macros.html" import render_tool, render_prompt, render_resource, render_resource_template %}
+{% set api_name = mcp.name %}
+{% set api_version = mcp.version %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "partials/mcp_sidebar.html" %}
+
+    <main class="detail-content" id="main-content">
+        {% include "mcp/overview.html" %}
+
+        {% if mcp.tools %}
+        <div id="mcp-tools-section">
+            {% for tool in mcp.tools %}
+                {{ render_tool(tool, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.prompts %}
+        <div id="mcp-prompts-section">
+            {% for prompt in mcp.prompts %}
+                {{ render_prompt(prompt, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.resources %}
+        <div id="mcp-resources-section">
+            {% for resource in mcp.resources %}
+                {{ render_resource(resource, loop.index0, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.resource_templates %}
+        <div id="mcp-resource-templates-section">
+            {% for template in mcp.resource_templates %}
+                {{ render_resource_template(template, loop.index0, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__MCP_META__ = {{ mcp_meta|tojson_raw }};
+// Shim so shared auth/server helpers (getSelectedServer, etc.) work on MCP pages.
+window.__API_META__ = {
+    servers: {{ mcp_meta.servers|tojson_raw }},
+    securitySchemes: {{ mcp_meta.securitySchemes|tojson_raw }},
+    security: []
+};
+window.__OP_LOOKUP__ = {};
+window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+</script>
+{% endblock %}

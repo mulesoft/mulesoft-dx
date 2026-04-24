@@ -1067,7 +1067,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert 'test-api' in by_api
         assert len(by_api['test-api']) == 1
         assert by_api['test-api'][0]['slug'] == 'deploy-app'
@@ -1079,7 +1079,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        by_api, _ = discover_skills(tmp_path)
+        by_api, _by_mcp, _all = discover_skills(tmp_path)
         skill = by_api['test-api'][0]
         assert 'api_refs' in skill
         assert 'test-api' in skill['api_refs']
@@ -1107,7 +1107,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(skill_md)
 
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert 'access-mgmt' in by_api
         assert 'api-manager' in by_api
         # Same skill object in both
@@ -1117,7 +1117,7 @@ class TestDiscoverSkills:
         assert len(all_skills) == 1
 
     def test_no_skills_dir_returns_empty(self, tmp_path):
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert by_api == {}
         assert all_skills == []
 
@@ -1127,7 +1127,7 @@ class TestDiscoverSkills:
         (skills_dir / 'README.md').write_text('not a skill')
         (skills_dir / 'some-dir').mkdir()
         # Dir without SKILL.md
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert by_api == {}
         assert all_skills == []
 

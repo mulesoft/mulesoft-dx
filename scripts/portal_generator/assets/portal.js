@@ -928,6 +928,7 @@ function filterByTags() {
     const selectedType = activeTab ? activeTab.dataset.filter : 'all';
 
     let visibleApis = 0;
+    let visibleMcps = 0;
     let visibleSkills = 0;
 
     cardLinks.forEach(cardLink => {
@@ -951,6 +952,8 @@ function filterByTags() {
             // Count visible items by type
             if (type === 'api') {
                 visibleApis++;
+            } else if (type === 'mcp') {
+                visibleMcps++;
             } else if (type === 'skill') {
                 visibleSkills++;
             }
@@ -960,7 +963,7 @@ function filterByTags() {
     });
 
     // Update results count and type
-    updateResultsCount(visibleApis + visibleSkills, selectedType);
+    updateResultsCount(visibleApis + visibleMcps + visibleSkills, selectedType);
 
     // Update URL with current filter
     updateURLWithFilter(selectedType);
@@ -1003,6 +1006,8 @@ function updateResultsCount(count, filterType) {
     if (resultsType) {
         if (filterType === 'api') {
             resultsType.textContent = 'APIs';
+        } else if (filterType === 'mcp') {
+            resultsType.textContent = 'MCP Servers';
         } else if (filterType === 'skill') {
             resultsType.textContent = 'Skills';
         } else {
@@ -1074,6 +1079,15 @@ function searchOperations(query) {
 // Navigate to a hash target (shared logic for all navigation)
 // ============================================================================
 
+var MCP_INVOCABLE_PREFIXES = ['tool-', 'prompt-', 'resource-', 'resource-template-'];
+
+function isMcpInvocableId(id) {
+    for (var i = 0; i < MCP_INVOCABLE_PREFIXES.length; i += 1) {
+        if (id.indexOf(MCP_INVOCABLE_PREFIXES[i]) === 0) return true;
+    }
+    return false;
+}
+
 function navigateToHash(hash, smooth) {
     if (!hash || hash === '#') return false;
 
@@ -1093,6 +1107,8 @@ function navigateToHash(hash, smooth) {
     if (targetId.startsWith('op-')) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
+    } else if (isMcpInvocableId(targetId)) {
+        targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
     }
@@ -1328,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-')) return;
+        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-') && !isMcpInvocableId(hash.substring(1))) return;
 
         e.preventDefault();
         if (navigateToHash(hash, true)) {
@@ -1950,6 +1966,261 @@ function getAuthHeaders() {
     var token = sessionStorage.getItem('anypoint_token');
     if (token) return {'Authorization': 'Bearer ' + token};
     return {};
+}
+
+// ============================================================================
+// MCP Try It Out — JSON-RPC over streamable HTTP
+// ============================================================================
+// sendMcpRequest is the MCP counterpart to sendRequest(): it collects inputs
+// from the try panel, builds a JSON-RPC 2.0 payload (tools/call, prompts/get,
+// or resources/read), and posts it through the same proxy used for REST. The
+// Authorization header is injected via getAuthHeaders() so bearer / OAuth2
+// tokens obtained through the shared auth panel flow straight through.
+
+var __mcpJsonRpcId = 0;
+function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
+
+function __mcpEndpointUrl() {
+    var meta = window.__MCP_META__;
+    if (!meta) return null;
+    var base = getSelectedServer(null).replace(/\/$/, '');
+    var transport = meta.transport || {};
+    if (transport.kind === 'streamableHttp') {
+        var path = transport.path || '/mcp';
+        if (path && path.charAt(0) !== '/') path = '/' + path;
+        return base + path;
+    }
+    return null;
+}
+
+function __mcpCoerceValue(value, type) {
+    if (value === '' || value === null || value === undefined) return undefined;
+    if (type === 'integer') {
+        var intVal = parseInt(value, 10);
+        return isNaN(intVal) ? value : intVal;
+    }
+    if (type === 'number') {
+        var numVal = Number(value);
+        return isNaN(numVal) ? value : numVal;
+    }
+    if (type === 'boolean') {
+        if (value === 'true' || value === true) return true;
+        if (value === 'false' || value === false) return false;
+        return undefined;
+    }
+    if (type === 'object' || type === 'array') {
+        try { return JSON.parse(value); }
+        catch (e) { return value; }
+    }
+    return value;
+}
+
+function __mcpCollectArgs(section) {
+    // Returns an arguments object built from inputs with data-mcp-arg attributes.
+    // Supports dotted paths (e.g. payload.name) to build nested objects.
+    // For object/array args the element is a div hosting an ACE editor rather
+    // than an <input>, so read the editor's value via getCodeMirrorEditor.
+    var args = {};
+    var inputs = section.querySelectorAll('[data-mcp-arg]');
+    inputs.forEach(function(input) {
+        var path = input.getAttribute('data-mcp-arg');
+        var type = input.getAttribute('data-type') || 'string';
+        var raw;
+        if (input.tagName === 'DIV') {
+            var editor = getCodeMirrorEditor(input.id);
+            raw = editor ? editor.getValue() : '';
+        } else {
+            raw = input.value;
+        }
+        var coerced = __mcpCoerceValue(raw, type);
+        if (coerced === undefined) return;
+
+        var keys = path.split('.');
+        var cursor = args;
+        for (var i = 0; i < keys.length - 1; i += 1) {
+            if (cursor[keys[i]] === undefined || typeof cursor[keys[i]] !== 'object') {
+                cursor[keys[i]] = {};
+            }
+            cursor = cursor[keys[i]];
+        }
+        cursor[keys[keys.length - 1]] = coerced;
+    });
+    return args;
+}
+
+function __mcpBuildPayload(section) {
+    var kind = section.getAttribute('data-mcp-kind');
+    var id = __nextMcpId();
+    if (kind === 'tool') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'tools/call',
+            params: {
+                name: section.getAttribute('data-mcp-name'),
+                arguments: __mcpCollectArgs(section),
+            },
+        };
+    }
+    if (kind === 'prompt') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'prompts/get',
+            params: {
+                name: section.getAttribute('data-mcp-name'),
+                arguments: __mcpCollectArgs(section),
+            },
+        };
+    }
+    if (kind === 'resource') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'resources/read',
+            params: { uri: section.getAttribute('data-mcp-uri') },
+        };
+    }
+    if (kind === 'resource-template') {
+        var args = __mcpCollectArgs(section);
+        var uri = args.uri || section.getAttribute('data-mcp-uri-template') || '';
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'resources/read',
+            params: { uri: uri },
+        };
+    }
+    return null;
+}
+
+function copyMcpCurlCommand(invocableId, buttonEl) {
+    var section = document.getElementById(invocableId);
+    if (!section) return;
+    var endpoint = __mcpEndpointUrl();
+    if (!endpoint) {
+        alert('cURL is only available for the streamableHttp transport.');
+        return;
+    }
+    var payload = __mcpBuildPayload(section);
+    if (!payload) return;
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var curl = 'curl -X POST \\\n  "' + endpoint + '"';
+    for (var headerName in headers) {
+        curl += ' \\\n  -H "' + headerName + ': ' + headers[headerName] + '"';
+    }
+    var body = JSON.stringify(payload);
+    curl += " \\\n  -d '" + body.replace(/'/g, "'\\''") + "'";
+
+    navigator.clipboard.writeText(curl).then(function() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) {
+                var originalText = textSpan.textContent;
+                textSpan.textContent = 'Copied';
+                setTimeout(function() { textSpan.textContent = originalText; }, 1500);
+            }
+        }
+    }).catch(function(err) {
+        console.error('Failed to copy cURL command:', err);
+        alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
+async function sendMcpRequest(invocableId, buttonEl) {
+    var section = document.getElementById(invocableId);
+    if (!section) return;
+
+    var endpoint = __mcpEndpointUrl();
+    var responseDiv = document.getElementById('response-' + invocableId);
+    var statusBadge = document.getElementById('status-' + invocableId);
+    var responseBody = document.getElementById('respbody-' + invocableId);
+    var responseHeaders = document.getElementById('respheaders-' + invocableId);
+
+    if (responseDiv) { responseDiv.classList.add('empty'); responseDiv.style.display = 'block'; }
+
+    if (!endpoint) {
+        if (statusBadge) { statusBadge.textContent = 'Unsupported'; statusBadge.className = 'response-status-badge status-4xx'; }
+        if (responseBody) {
+            createReadOnlyAceEditor(
+                responseBody,
+                'The interactive console currently supports the streamableHttp transport only. '
+                + 'This MCP server exposes a different transport.',
+                'text'
+            );
+        }
+        return;
+    }
+
+    var payload = __mcpBuildPayload(section);
+    if (!payload) return;
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) { originalText = textSpan.textContent; textSpan.textContent = 'Sending...'; }
+        buttonEl.disabled = true;
+    }
+
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: 'POST',
+                url: endpoint,
+                headers: headers,
+                body: JSON.stringify(payload),
+            }),
+        });
+        var data = await resp.json();
+
+        if (buttonEl) {
+            var textSpan2 = buttonEl.querySelector('span');
+            if (textSpan2) textSpan2.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        if (data.error) {
+            if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
+            if (responseBody) createReadOnlyAceEditor(responseBody, data.error, 'text');
+            if (responseDiv) responseDiv.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+            return;
+        }
+
+        var status = data.status;
+        var statusClass = 'status-' + String(status).charAt(0) + 'xx';
+        if (statusBadge) { statusBadge.textContent = status; statusBadge.className = 'response-status-badge ' + statusClass; }
+
+        displayResponseInAceEditors(responseBody, responseHeaders, data);
+        if (responseDiv) responseDiv.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    } catch (e) {
+        if (buttonEl) {
+            var textSpan3 = buttonEl.querySelector('span');
+            if (textSpan3) textSpan3.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+        if (responseDiv) { responseDiv.classList.remove('empty'); responseDiv.style.display = 'block'; }
+        if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
+        if (responseBody) {
+            createReadOnlyAceEditor(
+                responseBody,
+                'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py',
+                'text'
+            );
+        }
+    }
 }
 
 // ============================================================================

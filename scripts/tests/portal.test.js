@@ -880,3 +880,147 @@ describe('_closeAllSkillDropdowns', () => {
         expect(b.toggle.getAttribute('aria-expanded')).toBe('false');
     });
 });
+
+// ===========================================================================
+// Session TTL Management
+// ===========================================================================
+
+describe('isAccountsUrl', () => {
+    test('returns true for /accounts/ paths', () => {
+        expect(isAccountsUrl('https://anypoint.mulesoft.com/accounts/login')).toBe(true);
+        expect(isAccountsUrl('https://anypoint.mulesoft.com/accounts/api/me')).toBe(true);
+        expect(isAccountsUrl('https://anypoint.mulesoft.com/accounts/oauth2/introspect')).toBe(true);
+    });
+
+    test('returns false for non-accounts paths', () => {
+        expect(isAccountsUrl('https://anypoint.mulesoft.com/apimanager/api/v1/organizations/123/apis')).toBe(false);
+        expect(isAccountsUrl('https://anypoint.mulesoft.com/exchange/api/v2/assets')).toBe(false);
+    });
+
+    test('handles malformed URLs gracefully', () => {
+        expect(isAccountsUrl('not-a-url-with-/accounts/')).toBe(true);
+        expect(isAccountsUrl('not-a-url')).toBe(false);
+    });
+});
+
+describe('setTokenExpiration', () => {
+    beforeEach(() => sessionStorage.clear());
+
+    test('stores expiration in sessionStorage', () => {
+        setTokenExpiration(1777057512412);
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('1777057512412');
+    });
+});
+
+describe('extendTokenExpiration', () => {
+    beforeEach(() => sessionStorage.clear());
+
+    test('does nothing when no token exists', () => {
+        extendTokenExpiration();
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBeNull();
+    });
+
+    test('sets expiration to ~1h from now when token exists', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        var before = Date.now();
+        extendTokenExpiration();
+        var stored = parseInt(sessionStorage.getItem('anypoint_token_expires_at'), 10);
+        expect(stored).toBeGreaterThanOrEqual(before + 3600000 - 100);
+        expect(stored).toBeLessThanOrEqual(Date.now() + 3600000 + 100);
+    });
+});
+
+describe('markTokenExpired', () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+        // Set up minimal DOM elements for updateAuthSummary
+        ['authStatusDot', 'authStatusText', 'authLockIcon'].forEach(id => {
+            if (!document.getElementById(id)) {
+                const el = document.createElement(id === 'authStatusText' ? 'span' : 'img');
+                el.id = id;
+                if (el.tagName === 'IMG') el.src = 'assets/icons/placeholder.svg';
+                document.body.appendChild(el);
+            }
+        });
+    });
+
+    test('sets expiration to 0', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        markTokenExpired();
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('0');
+    });
+
+    test('keeps the token itself (amber state, not red)', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        markTokenExpired();
+        expect(sessionStorage.getItem('anypoint_token')).toBe('test-token');
+    });
+});
+
+describe('handleProxyResponse', () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        // Minimal DOM for updateAuthSummary
+        ['authStatusDot', 'authStatusText', 'authLockIcon'].forEach(id => {
+            if (!document.getElementById(id)) {
+                const el = document.createElement(id === 'authStatusText' ? 'span' : 'img');
+                el.id = id;
+                if (el.tagName === 'IMG') el.src = 'assets/icons/placeholder.svg';
+                document.body.appendChild(el);
+            }
+        });
+    });
+
+    test('marks token expired on 401', () => {
+        handleProxyResponse({ status: 401 }, 'https://anypoint.mulesoft.com/apimanager/api/v1/orgs');
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('0');
+    });
+
+    test('extends TTL on 2xx non-accounts response', () => {
+        var before = Date.now();
+        handleProxyResponse({ status: 200 }, 'https://anypoint.mulesoft.com/apimanager/api/v1/orgs');
+        var stored = parseInt(sessionStorage.getItem('anypoint_token_expires_at'), 10);
+        expect(stored).toBeGreaterThanOrEqual(before + 3600000 - 100);
+    });
+
+    test('does NOT extend TTL on 2xx accounts response', () => {
+        var original = sessionStorage.getItem('anypoint_token_expires_at');
+        handleProxyResponse({ status: 200 }, 'https://anypoint.mulesoft.com/accounts/api/me');
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(original);
+    });
+
+    test('does nothing on non-401 error responses', () => {
+        var original = sessionStorage.getItem('anypoint_token_expires_at');
+        handleProxyResponse({ status: 500 }, 'https://anypoint.mulesoft.com/apimanager/api/v1/orgs');
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(original);
+    });
+});
+
+describe('isTokenExpired (with TTL)', () => {
+    beforeEach(() => sessionStorage.clear());
+
+    test('returns true when no token', () => {
+        expect(isTokenExpired()).toBe(true);
+    });
+
+    test('returns false when token exists with future expiration', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        expect(isTokenExpired()).toBe(false);
+    });
+
+    test('returns true when token exists with past expiration', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() - 1000));
+        expect(isTokenExpired()).toBe(true);
+    });
+
+    test('returns true when expiration is 0 (marked expired)', () => {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', '0');
+        expect(isTokenExpired()).toBe(true);
+    });
+});

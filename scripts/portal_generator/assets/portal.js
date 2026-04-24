@@ -534,7 +534,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data, fullUrl);
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -1967,15 +1967,6 @@ var _ttlExpirationTimerId = null;
 var _TTL_CHECK_INTERVAL = 30000;
 var _SESSION_TTL = 3600000;
 
-function isAccountsUrl(url) {
-    try {
-        var path = new URL(url).pathname;
-        return path.startsWith('/accounts/') || path === '/accounts';
-    } catch (e) {
-        return url.indexOf('/accounts/') !== -1 || url.indexOf('/accounts') === url.length - 9;
-    }
-}
-
 async function introspectToken() {
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) return null;
@@ -2025,12 +2016,6 @@ function scheduleExpirationCheck(expMs) {
     }, delay);
 }
 
-function extendTokenExpiration() {
-    var token = sessionStorage.getItem('anypoint_token');
-    if (!token) return;
-    setTokenExpiration(Date.now() + _SESSION_TTL);
-}
-
 function markTokenExpired() {
     sessionStorage.setItem('anypoint_token_expires_at', '0');
     stopTtlTimer();
@@ -2070,13 +2055,9 @@ async function checkTtlExpiration() {
     }
 }
 
-function handleProxyResponse(data, requestUrl) {
+function handleProxyResponse(data) {
     if (data.status === 401) {
         markTokenExpired();
-        return;
-    }
-    if (data.status >= 200 && data.status < 300 && requestUrl && !isAccountsUrl(requestUrl)) {
-        extendTokenExpiration();
     }
 }
 
@@ -2308,7 +2289,7 @@ async function loadXOriginValues(opId, paramName) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data, fullUrl);
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -2509,7 +2490,7 @@ async function loadXOriginValuesForEnv(paramName) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data, fullUrl);
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -3688,7 +3669,7 @@ async function sendRequest(opId, buttonEl) {
             })
         });
         var data = await resp.json();
-        handleProxyResponse(data, fullUrl);
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -5631,7 +5612,7 @@ async function executePlaygroundStep(sid, buttonEl) {
         });
 
         var result = await resp.json();
-        handleProxyResponse(result, fullUrl);
+        handleProxyResponse(result);
 
         // Restore button
         if (buttonEl) {
@@ -6540,7 +6521,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
             })
         });
         var data = await resp.json();
-        handleProxyResponse(data, fullUrl);
+        handleProxyResponse(data);
 
         if (spinner) spinner.style.display = 'none';
         if (rightPanel) rightPanel.setAttribute('open', '');

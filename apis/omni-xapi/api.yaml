@@ -6634,10 +6634,6 @@ paths:
       summary: Slack Status
       tags:
         - Slack
-servers:
-  -
-    description: Current deployment
-    url: /
 tags:
   -
     description: Agent chat, tool invocation, and streaming conversations

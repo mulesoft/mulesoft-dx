@@ -256,17 +256,53 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
             exchange = {}
 
     slug = mcp_dir.name
+
+    # server.yaml may carry an OpenAPI-style info block that takes precedence
+    # over exchange.json for display purposes.
+    server_info = server_data.get('info') if isinstance(server_data, dict) else {}
+    if not isinstance(server_info, dict):
+        server_info = {}
+
     name = (
-        exchange.get('name')
+        server_info.get('title')
+        or exchange.get('name')
         or mcp_data.get('title')
         or slug.replace('-', ' ').title() + ' MCP'
     )
-    version = str(exchange.get('version') or mcp_data.get('protocolVersion') or '')
-    description_full = str(mcp_data.get('description') or exchange.get('description') or '')
+    version = str(
+        server_info.get('version')
+        or exchange.get('version')
+        or mcp_data.get('protocolVersion')
+        or ''
+    )
+    description_full = str(
+        server_info.get('description')
+        or mcp_data.get('description')
+        or exchange.get('description')
+        or ''
+    )
     description_short = (
         description_full[:200] + '...'
         if len(description_full) > 200 else description_full
     )
+
+    # Tags come from server.yaml (OpenAPI-style top-level tags list). Each
+    # tag is {name, description?}. We keep the full shape for documentation
+    # and also emit a flat list for the homepage tag search.
+    raw_tags = server_data.get('tags') if isinstance(server_data, dict) else []
+    tags: List[Dict] = []
+    tag_names: List[str] = []
+    if isinstance(raw_tags, list):
+        for entry in raw_tags:
+            if isinstance(entry, dict) and entry.get('name'):
+                tags.append({
+                    'name': str(entry['name']),
+                    'description': str(entry.get('description', '')),
+                })
+                tag_names.append(str(entry['name']))
+            elif isinstance(entry, str):
+                tags.append({'name': entry, 'description': ''})
+                tag_names.append(entry)
 
     transport_raw = mcp_data.get('transport') or {}
     transport = {
@@ -331,6 +367,8 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'resource_count': len(resources),
         'resource_template_count': len(resource_templates),
         'security_schemes': security_schemes if isinstance(security_schemes, dict) else {},
+        'tags': tags,
+        'tag_names': tag_names,
         'exchange': exchange,
         'private': is_private,
     }

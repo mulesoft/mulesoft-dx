@@ -1,3 +1,14 @@
+info:
+  title: Exchange MCP API
+  version: 1.0.0
+  description: The Exchange MCP API providess access to the MuleSoft Exchange platform's core services. 
+
+tags: 
+  - name: Exchange
+    description: APIs related to the MuleSoft Exchange platform, including core services, agent management, and tool integrations.
+  - name: Asset Management
+    description: APIs for managing assets in Exchange, including listing, searching, and retrieving asset details.  
+
 servers:
   - url: https://anypoint.mulesoft.com/exchange
   - url: https://eu1.anypoint.mulesoft.com/exchange

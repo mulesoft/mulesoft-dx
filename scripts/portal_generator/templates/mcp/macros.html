@@ -17,7 +17,7 @@
 <div class="try-param-row">
     <label>
         <span class="param-name-wrapper">
-            <code>{{ field_name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}
+            <code>{{ field_name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:
             <code class="param-type-inline">{{ ptype }}</code>
         </span>
         {% if description %}
@@ -294,7 +294,7 @@
         {% call _try_panel(template_id, icons_path) %}
             <div class="try-param-row">
                 <label>
-                    <span class="param-name-wrapper"><code>uri</code>&nbsp;<span class="param-required" title="Required">*</span></span>
+                    <span class="param-name-wrapper"><code>uri</code>&nbsp;<span class="param-required" title="Required">*</span>:</span>
                 </label>
                 <input type="text"
                        data-mcp-arg="uri"

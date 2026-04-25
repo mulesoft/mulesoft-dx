@@ -3877,6 +3877,12 @@ details[open] .examples-toggle-icon {
     margin-bottom: var(--space-medium);
 }
 
+/* Header variant: inline next to the Interactive Mode toggle */
+.skill-actions-bar-header {
+    margin-bottom: 0;
+    margin-left: var(--space-md);
+}
+
 .skill-split-btn {
     position: relative;
     display: inline-flex;

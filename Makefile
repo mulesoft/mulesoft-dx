@@ -7,7 +7,7 @@
 #   make report                - Generate summary report
 #   make help                  - Show this help message
 
-.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions
+.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server
 
 # Colors for output
 RED := \033[0;31m
@@ -51,6 +51,7 @@ help:
 	@echo "  $(YELLOW)make test-portal$(NC)           - Run portal generator test suite"
 	@echo "  $(YELLOW)make validate-xorigin$(NC)      - Validate x-origin annotations across APIs"
 	@echo "  $(YELLOW)make validate-jtbd$(NC)         - Validate all JTBD files in skills/ directories"
+	@echo "  $(YELLOW)make validate-mcp-server$(NC)   - Validate MCP server.yaml files against the JSON Schema"
 	@echo "  $(YELLOW)make validate-descriptions$(NC) - Validate API descriptions use imperative format"
 
 	@echo "  $(YELLOW)make help$(NC)                  - Show this help message"
@@ -372,6 +373,14 @@ validate-xorigin:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@python3 scripts/build/validate_xorigin.py
+	@echo ""
+
+validate-mcp-server:
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  Validating MCP server.yaml files$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@python3 scripts/build/validate_mcp_server.py
 	@echo ""
 
 # Validate all JTBD files in skills directories

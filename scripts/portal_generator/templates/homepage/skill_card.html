@@ -1,5 +1,7 @@
 {% set skill_name = skill.name|skill_title %}
-<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill">
+{% set _skill_tags = [] %}
+{% for t in skill.tag_names|default([]) %}{% set _ = _skill_tags.append(t|lower) %}{% endfor %}
+<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill" data-tags="{{ _skill_tags|join(',') }}">
     <article class="catalog-card">
         <div class="catalog-card-header">
             <div class="catalog-card-title-wrapper">

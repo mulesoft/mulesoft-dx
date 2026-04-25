@@ -808,6 +808,13 @@ function buildAvailableTags() {
             if (type === 'api') tagSet.add('api');
         }
 
+        // Add spec-declared tags (data-tags="tag1,tag2")
+        const tagsAttr = cardLink.dataset.tags || '';
+        tagsAttr.split(',').forEach(t => {
+            const trimmed = t.trim().toLowerCase();
+            if (trimmed) tagSet.add(trimmed);
+        });
+
         // Extract individual words from name
         name.split(/\s+/).forEach(word => {
             if (word.length > 2) tagSet.add(word.toLowerCase());
@@ -935,6 +942,7 @@ function filterByTags() {
         const name = (cardLink.dataset.name || '').toLowerCase();
         const category = (cardLink.dataset.category || '').toLowerCase();
         const type = (cardLink.dataset.type || '').toLowerCase();
+        const tagsAttr = (cardLink.dataset.tags || '').toLowerCase();
 
         // Check type filter
         const matchesType = selectedType === 'all' || type === selectedType;
@@ -942,7 +950,7 @@ function filterByTags() {
         // Check tag filter
         let matchesTags = true;
         if (selectedTags.length > 0) {
-            const searchableText = name + ' ' + category + ' ' + type;
+            const searchableText = name + ' ' + category + ' ' + type + ' ' + tagsAttr;
             matchesTags = selectedTags.some(tag => searchableText.includes(tag));
         }
 

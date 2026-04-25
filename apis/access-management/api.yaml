@@ -11,6 +11,15 @@ servers:
     region:
       default: ca1
       description: Region identifier for the service endpoint.
+tags:
+  - name: Access Management
+    description: APIs for managing access control, identity, and authorization within the Anypoint Platform, including organizations, environments, RBAC, teams, connected applications, identity providers, and client credentials.
+  - name: Identity Providers
+    description: APIs for managing identity providers, including creation, configuration, and assignment to organizations and environments.  
+  - name: Organizations and Environments
+    description: APIs for managing organizations and environments, including creation, configuration, and access control.
+  - name: Role-Based Access Control (RBAC)
+    description: APIs for managing role-based access control, including roles, permissions, and assignments to users and client applications.    
 paths:
   /authorize:
     get:

@@ -1,4 +1,6 @@
-<a href="mcps/{{ mcp.slug }}.html" class="catalog-card-link" data-name="{{ mcp.name|lower }}" data-type="mcp">
+{% set _mcp_tag_list = [] %}
+{% for t in mcp.tags|default([]) %}{% if t is mapping and t.name %}{% set _ = _mcp_tag_list.append(t.name|lower) %}{% elif t is string %}{% set _ = _mcp_tag_list.append(t|lower) %}{% endif %}{% endfor %}
+<a href="mcps/{{ mcp.slug }}.html" class="catalog-card-link" data-name="{{ mcp.name|lower }}" data-type="mcp" data-tags="{{ _mcp_tag_list|join(',') }}">
     <article class="catalog-card">
         <div class="catalog-card-header">
             <div class="catalog-card-title-wrapper">

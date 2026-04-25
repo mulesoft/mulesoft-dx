@@ -41,6 +41,9 @@ python3 scripts/build/validate_xorigin.py
 
 # Validate Jobs To Be Done (JTBD) format
 python3 scripts/build/validate_jtbd.py <path-to-job-file> .
+
+# Validate all mcps/<name>/server.yaml files against the JSON Schema
+python3 scripts/build/validate_mcp_server.py
 ```
 
 ### Portal Generator Tests
@@ -87,9 +90,18 @@ skills/
     └── SKILL.md       # Job-to-be-done written in agent-skill format
 ```
 
-Skills are automatically associated with APIs by parsing `urn:api:` references in their YAML step blocks. A skill that references multiple APIs appears on each of those API's portal pages.
+Skills are automatically associated with APIs by parsing `urn:api:` references in their YAML step blocks. A skill that references multiple APIs appears on each of those API's portal pages. Skills can also reference MCP servers via `urn:mcp:<name>`.
 
-The Makefile auto-discovers APIs by finding `exchange.json` files in the `apis/` directory.
+MCP servers live under a top-level `mcps/` directory:
+```
+mcps/
+└── <server-name>/
+    ├── exchange.json  # Exchange metadata (name, version, visibility, ...)
+    ├── server.yaml    # info + tags + servers (endpoints hosting the MCP server)
+    └── mcp.yaml       # MCP metadata: transport, capabilities, tools, prompts, resources
+```
+
+The Makefile auto-discovers APIs by finding `exchange.json` files in the `apis/` directory, and MCP servers by finding `mcp.yaml` files under `mcps/`.
 
 ### Special Extensions
 
@@ -119,6 +131,88 @@ Schema: `docs/x-jobs-to-be-done-schema.md`
 Examples: `skills/*/SKILL.md`
 
 Validation: `python3 scripts/build/validate_jtbd.py` verifies structure, API references, step dependencies.
+
+#### MCP Server Specs
+
+Each `mcps/<name>/` directory describes one MCP server with three files. The portal renders a detail page per server with a tool/prompt/resource sidebar and an interactive try-it console (JSON-RPC over `streamableHttp`).
+
+**`exchange.json`** — Exchange metadata (same shape as API exchange.json). Fields used by the portal: `name`, `version`, `visibility` (set to `"private"` to hide from the public catalog).
+
+**`server.yaml`** — OpenAPI-style top-level shape:
+```yaml
+info:
+  title: Exchange MCP API            # Required. Display title.
+  description: ...                   # Optional. Rendered in the overview.
+  version: 1.0.0                     # Optional. Overrides exchange.json version.
+tags:                                # Optional. Surfaced in the homepage tag search.
+  - name: Omni
+    description: APIs related to ...
+servers:                             # Required. At least one endpoint.
+  - url: https://anypoint.mulesoft.com/exchange
+    description: Production
+  - url: https://{region}.platform.mulesoft.com/exchange
+    variables:
+      region: { default: ca1, description: Region identifier }
+```
+
+**`mcp.yaml`** — MCP metadata (JSON Schema at `/Users/mdeachaval/labs/mulesoft-emu/agent-fabric-specification/agent-fabric-schema/src/main/resources/mcp_metadata.json`):
+```yaml
+protocolVersion: "2025-06-18"              # Optional MCP protocol version.
+transport:                                 # Required.
+  kind: streamableHttp | sse | stdio
+  path: /mcp                               # streamableHttp
+  ssePath: /sse                            # sse
+  messagesPath: /messages                  # sse
+  instructions: "..."                      # stdio
+capabilities:
+  tools: { listChanged: false }
+  prompts: { listChanged: false }
+  resources: { listChanged: false, subscribe: false }
+tools:                                     # Array of MCP tools.
+  - name: searchAssets
+    title: Search Assets                   # Optional display name.
+    description: ...
+    inputSchema:                           # JSON Schema object.
+      type: object
+      properties: { ... }
+      required: [ ... ]
+    outputSchema: { ... }                  # Optional JSON Schema for the result.
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+prompts:                                   # Optional array of prompts.
+  - name: reviewAsset
+    description: ...
+    arguments:
+      - { name: assetId, description: ..., required: true }
+resources:                                 # Optional array of static resources.
+  - name: readme
+    uri: exchange://docs/readme
+    description: ...
+    mimeType: text/markdown
+resourceTemplates:                         # Optional array of URI templates.
+  - name: assetDoc
+    uriTemplate: exchange://docs/{assetId}
+    description: ...
+securitySchemes: { ... }                   # Optional. a2a-style security schemes.
+```
+
+**Display-field precedence** (highest wins):
+- `name`: `server.yaml.info.title` → `exchange.json.name` → directory-slug.
+- `description`: `server.yaml.info.description` → `mcp.yaml.description` → `exchange.json.description`.
+- `version`: `server.yaml.info.version` → `exchange.json.version` → `mcp.yaml.protocolVersion`.
+
+**Schema:** `docs/schemas/mcp-server.schema.json` defines the allowed structure of `server.yaml`.
+
+**Validation:** `make validate-mcp-server` (or `python3 scripts/build/validate_mcp_server.py`) validates every `mcps/<name>/server.yaml` against the schema.
+
+**Generating `mcp.yaml`:** Use the Anypoint CLI to introspect a running MCP server:
+```bash
+anypoint-cli-v4 agent-network mcp introspect \
+  --url=<MCP_URL> \
+  --auth-type=bearer --auth-value=<TOKEN> \
+  --output=mcps/<name>/mcp.yaml --format=yaml
+```
 
 ### Skills Integration
 
@@ -261,6 +355,8 @@ The portal uses a semantic token system with CSS custom properties. **Always use
 - `Makefile`: Validation orchestration, report generation
 - `scripts/build/validate_xorigin.py`: Validates x-origin annotations across all specs
 - `scripts/build/validate_jtbd.py`: Validates Jobs To Be Done format
+- `scripts/build/validate_mcp_server.py`: Validates every `mcps/<name>/server.yaml` against the schema
+- `docs/schemas/mcp-server.schema.json`: JSON Schema for MCP `server.yaml` (source of truth)
 - `scripts/portal_generator/`: Static API portal generator package
 - `scripts/portal_generator/assets/styles.css`: Design system CSS variables (lines 39-270)
 - `scripts/tests/`: Portal generator test suite (pytest)

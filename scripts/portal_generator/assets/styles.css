@@ -221,6 +221,7 @@
     /* 12px */
     --radius-xl: 1rem;
 
+    --radius-xxl: 2rem;
     --radius-xxxl: 3rem;
 
     /* Typography */
@@ -846,7 +847,7 @@ code {
 .overview-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: var(--space-xl);
 }
 
@@ -2528,7 +2529,7 @@ button.nav-group-header {
     padding: var(--space-xl);
     margin: var(--space-lg);
     background: var(--color-bg-primary);
-    border-radius: 30px;
+    border-radius: var(--radius-xxl);
     border-bottom: none;
     overflow: visible;
     height: 100%;
@@ -2714,10 +2715,7 @@ button.nav-group-header {
     scroll-margin-top: 100px;
     display: none;
     /* Hidden by default, shown via JS */
-    background: var(--color-bg-primary);
-    border-radius: 30px;
-    padding: var(--space-lg);
-    margin: var(--space-lg);
+    
 }
 
 .operation-detail.active {
@@ -3879,6 +3877,12 @@ details[open] .examples-toggle-icon {
     margin-bottom: var(--space-medium);
 }
 
+/* Header variant: inline next to the Interactive Mode toggle */
+.skill-actions-bar-header {
+    margin-bottom: 0;
+    margin-left: var(--space-md);
+}
+
 .skill-split-btn {
     position: relative;
     display: inline-flex;
@@ -4956,6 +4960,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
     min-height: 200px;
 }
 
@@ -7850,4 +7855,137 @@ pre[class*="language-"][class*="language-"] {
 
 .evaluation-result-container.evaluation-success .ace_editor {
     border-color: #86efac;
+}
+/* ============================================================================
+   MCP surfaces
+   ============================================================================
+   Mirrors the API detail page styling. Uses the existing surface / border
+   tokens and introduces a purple accent for MCP method badges so they read
+   distinctly from HTTP methods without clashing with the existing palette.
+*/
+
+:root {
+    --method-mcp-tool-bg: var(--color-purple-50);
+    --method-mcp-tool-text: var(--color-purple-700);
+    --method-mcp-prompt-bg: var(--color-blue-50);
+    --method-mcp-prompt-text: var(--color-blue-700);
+    --method-mcp-resource-bg: var(--color-gray-50);
+    --method-mcp-resource-text: var(--color-gray-800);
+}
+
+[data-theme="dark"] {
+    --method-mcp-tool-bg: rgba(163, 113, 247, 0.15);
+    --method-mcp-tool-text: #a371f7;
+    --method-mcp-prompt-bg: rgba(56, 139, 253, 0.15);
+    --method-mcp-prompt-text: #58a6ff;
+    --method-mcp-resource-bg: rgba(110, 118, 129, 0.15);
+    --method-mcp-resource-text: #c9d1d9;
+}
+
+.method-mcp-tool {
+    background: var(--method-mcp-tool-bg);
+    color: var(--method-mcp-tool-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.method-mcp-prompt {
+    background: var(--method-mcp-prompt-bg);
+    color: var(--method-mcp-prompt-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.method-mcp-resource {
+    background: var(--method-mcp-resource-bg);
+    color: var(--method-mcp-resource-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.badge-mcp-type {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-purple-700);
+    background: var(--color-purple-50);
+    padding: 4px 15px 4px 16px;
+    border-radius: 21px;
+    border: 1px solid var(--color-purple-200, #ddd6fe);
+}
+
+[data-theme="dark"] .badge-mcp-type {
+    color: #d4b8ff;
+    background: rgba(163, 113, 247, 0.15);
+    border-color: rgba(163, 113, 247, 0.3);
+}
+
+/* JSON input textarea used for object/array arguments in MCP try-it */
+.try-mcp-json-input {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-small);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+}
+
+.try-mcp-json-input:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+}
+
+/* MCP overview: label / value info rows */
+.mcp-info-list {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mcp-info-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: var(--space-md);
+    align-items: baseline;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.mcp-info-row:last-child {
+    border-bottom: none;
+}
+
+.mcp-info-row dt {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+}
+
+.mcp-info-row dd {
+    margin: 0;
+    color: var(--color-text-primary);
+    word-break: break-word;
+}
+
+/* MCP filter tab icon coloring on the homepage */
+.hero-tab[data-filter="mcp"]:hover,
+.hero-tab[data-filter="mcp"].active {
+    background-color: var(--color-purple-50);
+    border-color: var(--color-purple-200, #ddd6fe);
+    color: var(--color-purple-700);
+}
+
+[data-theme="dark"] .hero-tab[data-filter="mcp"]:hover,
+[data-theme="dark"] .hero-tab[data-filter="mcp"].active {
+    background-color: rgba(163, 113, 247, 0.15);
+    border-color: rgba(163, 113, 247, 0.3);
+    color: #d4b8ff;
 }

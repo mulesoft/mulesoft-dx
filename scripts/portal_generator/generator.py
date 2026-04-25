@@ -118,6 +118,8 @@ class PortalGenerator:
         self.env = create_env()
         self.apis = []
         self.public_apis = []
+        self.mcp_servers = []
+        self.public_mcps = []
         self.stats = {}
         self.all_skills = []
         self.repo_root = None
@@ -131,25 +133,32 @@ class PortalGenerator:
         # Store repo root for later use
         self.repo_root = repo_root
 
-        # Discover APIs and skills
-        self.apis, all_discovered_skills = discover_apis(repo_root)
+        # Discover APIs, MCP servers, and skills
+        self.apis, self.mcp_servers, all_discovered_skills = discover_apis(repo_root)
         self.public_apis = [a for a in self.apis if not a.get('private')]
-        self.stats = calculate_stats(self.apis)
+        self.public_mcps = [m for m in self.mcp_servers if not m.get('private')]
+        self.stats = calculate_stats(self.apis, self.mcp_servers)
 
         # Pre-compute data for templates
         _prepare_operations(self.apis)
 
-        # Collect unique skills from public APIs only
+        # Collect unique skills from public APIs and MCPs
         seen_slugs = set()
         for api in self.public_apis:
             for skill in api['skills']:
                 if skill['slug'] not in seen_slugs:
                     seen_slugs.add(skill['slug'])
                     self.all_skills.append(skill)
+        for mcp in self.public_mcps:
+            for skill in mcp.get('skills', []):
+                if skill['slug'] not in seen_slugs:
+                    seen_slugs.add(skill['slug'])
+                    self.all_skills.append(skill)
 
-        # Also collect prose-only skills (no API refs, not tied to any API)
+        # Also collect prose-only skills (no API or MCP refs)
         for skill in all_discovered_skills:
-            if not skill.get('api_refs') and skill['slug'] not in seen_slugs:
+            if (not skill.get('api_refs') and not skill.get('mcp_refs')
+                    and skill['slug'] not in seen_slugs):
                 seen_slugs.add(skill['slug'])
                 self.all_skills.append(skill)
 
@@ -159,12 +168,13 @@ class PortalGenerator:
         print(f"\n📊 Statistics:")
         print(f"  • {self.stats['api_count']} APIs")
         print(f"  • {self.stats['endpoint_count']} Endpoints")
+        print(f"  • {self.stats['mcp_count']} MCP Servers ({self.stats['mcp_tool_count']} tools)")
         print(f"  • {self.stats['skill_count']} Skills")
         print(f"  • {len(self.stats['categories'])} Categories")
 
         # Clean and create output directories to avoid stale artifacts
         print(f"\n📁 Creating output directories...")
-        for subdir in ['apis', 'skills', 'assets', 'schemas']:
+        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas']:
             target = self.output_dir / subdir
             if target.exists():
                 shutil.rmtree(target)
@@ -187,6 +197,7 @@ class PortalGenerator:
         print(f"\n📝 Generating portal files...")
         self._generate_homepage()
         self._generate_detail_pages()
+        self._generate_mcp_detail_pages()
         self._generate_skill_pages()
         self._generate_registry()
         self._generate_schemas()
@@ -208,29 +219,32 @@ class PortalGenerator:
         print("  ✓ Generating homepage...")
         template = self.env.get_template('homepage.html')
 
-        # Create unified list of APIs and skills, sorted alphabetically by name
+        # Create unified list of APIs, MCP servers, and skills (alpha by name)
         all_items = []
 
-        # Add APIs with type marker
         for api in self.public_apis:
             api_copy = api.copy()
             api_copy['_item_type'] = 'api'
             all_items.append(api_copy)
 
-        # Add skills with type marker
+        for mcp in self.public_mcps:
+            mcp_copy = mcp.copy()
+            mcp_copy['_item_type'] = 'mcp'
+            all_items.append(mcp_copy)
+
         if self.all_skills:
             for skill in self.all_skills:
                 skill_copy = skill.copy()
                 skill_copy['_item_type'] = 'skill'
                 all_items.append(skill_copy)
 
-        # Sort all items alphabetically by name
         all_items.sort(key=lambda x: x.get('name', '').lower())
 
         html = template.render(
             css_path='assets/styles.css',
             icons_path='assets/icons',
             apis=self.public_apis,
+            mcp_servers=self.public_mcps,
             stats=self.stats,
             all_skills=self.all_skills,
             all_items=all_items,
@@ -298,6 +312,73 @@ class PortalGenerator:
                 base_url=self.base_url,
             )
             output_path = self.output_dir / 'apis' / f"{api['slug']}.html"
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+
+    def _build_mcp_meta(self, mcp: Dict) -> Dict:
+        """Build the metadata object for JavaScript access on the MCP page."""
+        servers = []
+        for s in mcp.get('servers', []):
+            if isinstance(s, dict):
+                variables = {}
+                for vname, vdef in (s.get('variables') or {}).items():
+                    if isinstance(vdef, dict):
+                        variables[str(vname)] = {
+                            'default': str(vdef.get('default', '')),
+                            'description': str(vdef.get('description', '')),
+                        }
+                servers.append({
+                    'url': str(s.get('url', '')),
+                    'description': str(s.get('description', '')),
+                    'variables': variables,
+                })
+
+        security_schemes = {}
+        for name, scheme in mcp.get('security_schemes', {}).items():
+            if isinstance(scheme, dict):
+                security_schemes[str(name)] = {
+                    'type': str(scheme.get('type', '')),
+                    'scheme': str(scheme.get('scheme', '')),
+                    'description': str(scheme.get('description', '')),
+                }
+
+        transport = mcp.get('transport') or {}
+        return {
+            'slug': mcp.get('slug', ''),
+            'servers': servers,
+            'transport': {
+                'kind': str(transport.get('kind', '')),
+                'path': str(transport.get('path', '')),
+                'ssePath': str(transport.get('sse_path', '')),
+                'messagesPath': str(transport.get('messages_path', '')),
+            },
+            'securitySchemes': security_schemes,
+            'tools': mcp.get('tools', []),
+            'prompts': mcp.get('prompts', []),
+            'resources': mcp.get('resources', []),
+            'resourceTemplates': mcp.get('resource_templates', []),
+        }
+
+    def _generate_mcp_detail_pages(self):
+        """Generate individual MCP server pages (public servers only)."""
+        if not self.public_mcps:
+            return
+        print(f"  ✓ Generating {len(self.public_mcps)} MCP detail pages...")
+
+        template = self.env.get_template('mcp_detail_page.html')
+
+        for mcp in self.public_mcps:
+            mcp_meta = self._build_mcp_meta(mcp)
+            html = template.render(
+                css_path='../assets/styles.css',
+                icons_path='../assets/icons',
+                mcp=mcp,
+                mcp_meta=mcp_meta,
+                proxy_url=self.proxy_url,
+                build_label=self.build_label,
+                base_url=self.base_url,
+            )
+            output_path = self.output_dir / 'mcps' / f"{mcp['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html)
 
@@ -419,6 +500,38 @@ class PortalGenerator:
 
             registry.append(entry)
 
+        # Add MCP server documents
+        for mcp in self.mcp_servers:
+            slug = mcp['slug']
+            urn = f"urn:mcp:{slug}"
+
+            # Copy source mcp.yaml + server.yaml to the portal output
+            source_dir = self.repo_root / 'mcps' / slug
+            if source_dir.exists():
+                mcp_output_dir = self.output_dir / 'mcps' / slug
+                mcp_output_dir.mkdir(parents=True, exist_ok=True)
+                for filename in ('mcp.yaml', 'server.yaml', 'exchange.json'):
+                    src = source_dir / filename
+                    if src.exists():
+                        shutil.copy2(src, mcp_output_dir / filename)
+
+            entry = {
+                '$id': urn,
+                'kind': 'mcp',
+                'slug': slug,
+                'name': mcp.get('name', ''),
+                'version': mcp.get('version', ''),
+                'description': mcp.get('description', ''),
+                'href': f"mcps/{slug}/mcp.yaml",
+                'tool_count': mcp.get('tool_count', 0),
+                'resource_count': mcp.get('resource_count', 0),
+                'prompt_count': mcp.get('prompt_count', 0),
+            }
+            if not mcp.get('private'):
+                entry['docs'] = f"mcps/{slug}.html"
+
+            registry.append(entry)
+
         # Add Skill documents (one entry per unique skill, with agent-context preamble)
         for skill in self.all_skills:
             skill_slug = skill.get('slug', '')
@@ -441,6 +554,7 @@ class PortalGenerator:
                 'href': f"skills/{skill_slug}/SKILL.md",
                 'docs': f"skills/{skill_slug}.html",
                 'apis': skill.get('api_refs', []),
+                'mcps': skill.get('mcp_refs', []),
             }
 
             registry.append(skill_entry)
@@ -475,7 +589,11 @@ class PortalGenerator:
         with open(registry_path, 'w', encoding='utf-8') as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
-        print(f"    • {len(self.apis)} APIs + {len(self.all_skills)} Skills + {len(schema_entries)} Schemas = {len(registry)} documents in registry")
+        print(
+            f"    • {len(self.apis)} APIs + {len(self.mcp_servers)} MCPs + "
+            f"{len(self.all_skills)} Skills + {len(schema_entries)} Schemas = "
+            f"{len(registry)} documents in registry"
+        )
 
     def _generate_schemas(self):
         """Copy schema definition files to the portal output."""

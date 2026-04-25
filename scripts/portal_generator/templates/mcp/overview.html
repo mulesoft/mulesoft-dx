@@ -1,0 +1,99 @@
+<section id="overview" class="content-section">
+    <div class="overview-header">
+        <h2>Overview</h2>
+        <div class="overview-stats-panel">
+            <div class="stats-badge">Statistics</div>
+            <div class="stats-compact">
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ mcp.tool_count }}</span>
+                    <span class="stat-compact-label">Tools</span>
+                </div>
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ mcp.prompt_count }}</span>
+                    <span class="stat-compact-label">Prompts</span>
+                </div>
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ mcp.resource_count + mcp.resource_template_count }}</span>
+                    <span class="stat-compact-label">Resources</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if mcp.full_description %}
+    <div class="api-full-description">{{ mcp.full_description|md }}</div>
+    {% endif %}
+
+    {% if mcp.transport and mcp.transport.kind %}
+    <div class="overview-section">
+        <h3>Transport</h3>
+        <dl class="mcp-info-list">
+            <div class="mcp-info-row">
+                <dt>Kind</dt>
+                <dd><code>{{ mcp.transport.kind }}</code></dd>
+            </div>
+            {% if mcp.transport.kind == 'streamableHttp' and mcp.transport.path %}
+            <div class="mcp-info-row">
+                <dt>Path</dt>
+                <dd><code>{{ mcp.transport.path }}</code></dd>
+            </div>
+            {% elif mcp.transport.kind == 'sse' %}
+                {% if mcp.transport.sse_path %}
+                <div class="mcp-info-row">
+                    <dt>SSE Path</dt>
+                    <dd><code>{{ mcp.transport.sse_path }}</code></dd>
+                </div>
+                {% endif %}
+                {% if mcp.transport.messages_path %}
+                <div class="mcp-info-row">
+                    <dt>Messages Path</dt>
+                    <dd><code>{{ mcp.transport.messages_path }}</code></dd>
+                </div>
+                {% endif %}
+            {% elif mcp.transport.kind == 'stdio' and mcp.transport.instructions %}
+            <div class="mcp-info-row">
+                <dt>Instructions</dt>
+                <dd>{{ mcp.transport.instructions }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+        {% if mcp.transport.kind != 'streamableHttp' %}
+        <p class="security-desc">The interactive console currently supports <code>streamableHttp</code>. Other transports are view-only.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if mcp.servers %}
+    <div class="overview-section">
+        <h3>Servers</h3>
+        <ul class="servers-list">
+            {% for server in mcp.servers[:5] %}
+            <li>
+                <code>{{ server.url }}</code>
+                {% if server.description %}
+                <span class="server-desc">{{ server.description }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if mcp.security_schemes %}
+    <div class="overview-section">
+        <h3>Authentication &amp; Security</h3>
+        <ul class="security-list">
+            {% for name, scheme in mcp.security_schemes.items() %}
+            {% if scheme is mapping %}
+            <li>
+                <strong>{{ name }}</strong> <span class="badge badge-security">{{ scheme.type|default('Unknown') }}</span>
+                {% if scheme.description %}
+                <p class="security-desc">{{ scheme.description }}</p>
+                {% endif %}
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</section>

@@ -243,6 +243,27 @@ When updating an existing API specification:
 4. Submit a PR with clear description of changes
 5. Include migration notes if there are breaking changes
 
+## MCP Servers
+
+MCP servers are contributed under `mcps/<server-name>/` with three files:
+
+- `exchange.json` — Exchange metadata (name, version, ...).
+- `server.yaml` — OpenAPI-style `servers:` list describing the MCP endpoints.
+- `mcp.yaml` — MCP metadata (transport, capabilities, tools, prompts, resources).
+
+To generate the `mcp.yaml` metadata by introspecting a running MCP server, use the Anypoint CLI:
+
+```bash
+anypoint-cli-v4 agent-network mcp introspect \
+  --url=https://anypoint.mulesoft.com/exchange \
+  --auth-type=bearer \
+  --auth-value=<YOUR_BEARER_TOKEN> \
+  --output=<PATH_TO_REPO>/mcps/<server-name>/mcp.yaml \
+  --format=yaml
+```
+
+Replace `<YOUR_BEARER_TOKEN>` with a valid Anypoint Platform token and `<PATH_TO_REPO>` with the absolute path to your local checkout of this repository.
+
 ## Agent-Only Validation Skills
 
 Some quality checks are too nuanced for regex-based rules and are implemented as agent skills instead. These are **not** part of the automated CLI/CI pipeline — they require an AI agent to run.

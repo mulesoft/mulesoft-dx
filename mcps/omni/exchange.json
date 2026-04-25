@@ -1,0 +1,13 @@
+{
+  "main": "mcp.yaml",
+  "name": "Omni MCP API",
+  "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
+  "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
+  "assetId": "omni",
+  "version": "2.4.5",
+  "apiVersion": "v2",
+  "classifier": "mcp-metadata",
+  "dependencies": [],
+  "tags": [],
+  "originalFormatVersion": "3.0"
+}

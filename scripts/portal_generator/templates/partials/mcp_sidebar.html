@@ -1,0 +1,105 @@
+<aside class="detail-sidebar" id="detailSidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path></svg>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search…"
+                    aria-label="Filter tools, prompts and resources" onkeyup="filterSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearSidebarSearch()" style="display:none"
+                    aria-label="Clear search">✕</button>
+            </div>
+        </div>
+        <div class="sidebar-overview-section">
+            <a href="#overview" class="nav-link nav-link-overview active">
+                Overview
+            </a>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            {% if mcp.tools %}
+            <li class="nav-group tree-level-0">
+                <button class="nav-group-header tree-node" onclick="toggleGroup('mcp-tools')" aria-expanded="true"
+                    aria-controls="group-mcp-tools">
+                    <img class="group-toggle expanded" id="toggle-mcp-tools" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                    <span class="group-name">Tools</span>
+                    <span class="group-count">({{ mcp.tool_count }})</span>
+                </button>
+                <ul class="nav-group-items" id="group-mcp-tools" style="display: block;">
+                    {% for tool in mcp.tools|sort(attribute='name') %}
+                    <li>
+                        <a href="#tool-{{ tool.name }}" class="nav-link nav-operation nav-operation-flat" title="{{ tool.description|default('')|truncate(120) }}">
+                            <span class="op-name">{{ tool._display_name|default(tool.name) }}</span>
+                            <span class="method-badge method-mcp-tool">TOOL</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if mcp.prompts %}
+            <li class="nav-group tree-level-0">
+                <button class="nav-group-header tree-node" onclick="toggleGroup('mcp-prompts')" aria-expanded="true"
+                    aria-controls="group-mcp-prompts">
+                    <img class="group-toggle expanded" id="toggle-mcp-prompts" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                    <span class="group-name">Prompts</span>
+                    <span class="group-count">({{ mcp.prompt_count }})</span>
+                </button>
+                <ul class="nav-group-items" id="group-mcp-prompts" style="display: block;">
+                    {% for prompt in mcp.prompts|sort(attribute='name') %}
+                    <li>
+                        <a href="#prompt-{{ prompt.name }}" class="nav-link nav-operation nav-operation-flat" title="{{ prompt.description|default('')|truncate(120) }}">
+                            <span class="op-name">{{ prompt._display_name|default(prompt.name) }}</span>
+                            <span class="method-badge method-mcp-prompt">PROMPT</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if mcp.resources %}
+            <li class="nav-group tree-level-0">
+                <button class="nav-group-header tree-node" onclick="toggleGroup('mcp-resources')" aria-expanded="true"
+                    aria-controls="group-mcp-resources">
+                    <img class="group-toggle expanded" id="toggle-mcp-resources" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                    <span class="group-name">Resources</span>
+                    <span class="group-count">({{ mcp.resource_count }})</span>
+                </button>
+                <ul class="nav-group-items" id="group-mcp-resources" style="display: block;">
+                    {% for resource in mcp.resources %}
+                    <li>
+                        <a href="#resource-{{ loop.index0 }}" class="nav-link nav-operation nav-operation-flat" title="{{ resource.uri|default('') }}">
+                            <span class="op-name">{{ resource._display_name|default(resource.name) }}</span>
+                            <span class="method-badge method-mcp-resource">RES</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if mcp.resource_templates %}
+            <li class="nav-group tree-level-0">
+                <button class="nav-group-header tree-node" onclick="toggleGroup('mcp-resource-templates')" aria-expanded="true"
+                    aria-controls="group-mcp-resource-templates">
+                    <img class="group-toggle expanded" id="toggle-mcp-resource-templates" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                    <span class="group-name">Resource Templates</span>
+                    <span class="group-count">({{ mcp.resource_template_count }})</span>
+                </button>
+                <ul class="nav-group-items" id="group-mcp-resource-templates" style="display: block;">
+                    {% for template in mcp.resource_templates %}
+                    <li>
+                        <a href="#resource-template-{{ loop.index0 }}" class="nav-link nav-operation nav-operation-flat" title="{{ template.uriTemplate|default('') }}">
+                            <span class="op-name">{{ template._display_name|default(template.name) }}</span>
+                            <span class="method-badge method-mcp-resource">TPL</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</aside>

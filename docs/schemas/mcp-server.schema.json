@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dev-portal.mulesoft.com/schemas/mcp-server.schema.json",
+  "title": "MCP server.yaml",
+  "description": "Structure for mcps/<name>/server.yaml. Describes the MCP server's info metadata, tags used for search/categorization, and the network endpoints (servers) hosting the MCP instance.",
+  "type": "object",
+  "required": ["servers"],
+  "additionalProperties": false,
+  "properties": {
+    "info": {
+      "type": "object",
+      "description": "OpenAPI-style info block. Overrides exchange.json for display on the MCP detail page.",
+      "required": ["title"],
+      "additionalProperties": true,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable MCP server title. Shown as the page title on the detail page."
+        },
+        "description": {
+          "type": "string",
+          "description": "Long-form description of what the MCP server offers. Rendered in the overview."
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version of the MCP server (x.y.z)."
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "OpenAPI-style tags used by the homepage search to group and filter MCP servers.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Tag identifier."
+              },
+              "description": {
+                "type": "string",
+                "description": "Optional human-readable explanation of what the tag covers."
+              }
+            }
+          },
+          {
+            "type": "string",
+            "minLength": 1,
+            "description": "Shorthand form: a bare tag name."
+          }
+        ]
+      }
+    },
+    "servers": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Network endpoints hosting the MCP server. First entry is the default when rendering the try-it console.",
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Absolute URL or templated URL (OAS variable syntax: https://{region}.platform.mulesoft.com)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of this server (e.g. 'Production', 'EU Region')."
+          },
+          "variables": {
+            "type": "object",
+            "description": "Substitutions for templated URL placeholders.",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["default"],
+              "additionalProperties": false,
+              "properties": {
+                "default": {
+                  "type": "string",
+                  "description": "Default value when the template variable is not supplied."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Explanation of what this variable represents."
+                },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Allowed values for this variable."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -300,6 +300,46 @@ PROSE_ONLY_SKILL_MD = textwrap.dedent("""\
 """)
 
 
+MINIMAL_MCP_SERVER_YAML = textwrap.dedent("""\
+    servers:
+      - url: https://anypoint.mulesoft.com/exchange
+        description: Production
+""")
+
+MINIMAL_MCP_YAML = textwrap.dedent("""\
+    capabilities:
+      tools:
+        listChanged: false
+    transport:
+      kind: streamableHttp
+      path: /mcp
+    tools:
+      - name: searchAssets
+        description: Search for assets
+        inputSchema:
+          type: object
+          properties:
+            q:
+              type: string
+              description: Search query
+          required:
+            - q
+    prompts: []
+    resources: []
+    resourceTemplates: []
+""")
+
+MINIMAL_MCP_EXCHANGE_JSON = json.dumps({
+    'main': 'mcp.yaml',
+    'name': 'Test MCP API',
+    'groupId': 'com.example.anypoint-platform',
+    'assetId': 'test-mcp',
+    'version': '1.0.0',
+    'apiVersion': 'v1',
+    'classifier': 'mcp-metadata',
+})
+
+
 def setup_schema_docs(repo_root: Path):
     """Create minimal schema doc files under a repo root for testing."""
     schemas_dir = repo_root / 'docs' / 'schemas'

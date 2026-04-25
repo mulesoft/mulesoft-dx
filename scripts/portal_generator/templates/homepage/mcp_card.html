@@ -1,0 +1,31 @@
+{% set _mcp_tag_list = [] %}
+{% for t in mcp.tags|default([]) %}{% if t is mapping and t.name %}{% set _ = _mcp_tag_list.append(t.name|lower) %}{% elif t is string %}{% set _ = _mcp_tag_list.append(t|lower) %}{% endif %}{% endfor %}
+<a href="mcps/{{ mcp.slug }}.html" class="catalog-card-link" data-name="{{ mcp.name|lower }}" data-type="mcp" data-tags="{{ _mcp_tag_list|join(',') }}">
+    <article class="catalog-card">
+        <div class="catalog-card-header">
+            <div class="catalog-card-title-wrapper">
+                <img src="assets/icons/mcp-card-icon.svg" width="28" height="28" class="card-icon" alt="">
+                <h3 class="catalog-card-title">{{ mcp.name }}</h3>
+            </div>
+            {% if mcp.version %}
+            <span class="card-version-badge card-version-grid">{{ mcp.version }}</span>
+            {% endif %}
+        </div>
+        <p class="catalog-card-description">{{ mcp.description|default('')|truncate(150) }}</p>
+        <div class="catalog-card-footer">
+            {% if mcp.version %}
+            <span class="card-version-badge card-version-list">{{ mcp.version }}</span>
+            {% endif %}
+            <span class="badge badge-mcp-type">MCP</span>
+            {% if mcp.tool_count > 0 %}
+            <span class="badge badge-count">{{ mcp.tool_count }} tool{{ 's' if mcp.tool_count != 1 else '' }}</span>
+            {% endif %}
+            {% if mcp.prompt_count > 0 %}
+            <span class="badge badge-count">{{ mcp.prompt_count }} prompt{{ 's' if mcp.prompt_count != 1 else '' }}</span>
+            {% endif %}
+            {% if mcp.resource_count > 0 %}
+            <span class="badge badge-count">{{ mcp.resource_count }} resource{{ 's' if mcp.resource_count != 1 else '' }}</span>
+            {% endif %}
+        </div>
+    </article>
+</a>

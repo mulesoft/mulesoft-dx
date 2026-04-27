@@ -1518,6 +1518,15 @@ code {
     background: rgba(46, 160, 67, 0.25);
 }
 
+[data-theme="dark"] .auth-status-container.expired {
+    background: rgba(227, 179, 65, 0.15);
+    border-color: #e3b341;
+}
+
+[data-theme="dark"] .auth-panel-status:hover .auth-status-container.expired {
+    background: rgba(227, 179, 65, 0.25);
+}
+
 [data-theme="dark"] .badge-security {
     background: rgba(110, 118, 129, 0.1);
     color: #8b949e;

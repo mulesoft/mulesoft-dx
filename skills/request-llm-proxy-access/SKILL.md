@@ -59,8 +59,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
   - name: environmentId
@@ -86,14 +85,12 @@ operationId: listEnvironmentLlmProxies
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   endpointType:
@@ -133,8 +130,7 @@ operationId: createOrganizationsByMasterorganizationidApplications
 inputs:
   masterOrganizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1.
 
   name:
@@ -183,26 +179,22 @@ operationId: createOrganizationsEnvironmentsApisContracts
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   environmentApiId:
     from:
-      step: List LLM Proxies
-      output: environmentApiId
+      variable: environmentApiId
     description: LLM proxy ID from Step 3.
 
   applicationId:
     from:
-      step: Create the Client Application in Exchange
-      output: applicationId
+      variable: applicationId
     description: Exchange application ID from Step 4 (integer ≥ 1). Required.
 
   requestedTierId:
@@ -330,4 +322,3 @@ The routing policy rewrites the request body's `model` field to the resolved tar
 
 - **create-llm-proxy-model-based-routing** / **create-llm-proxy-semantic-routing** — Create the proxy in the first place.
 - **apply-token-rate-limiting-to-llm-proxy** — Apply a token budget that'll be enforced against the `client_id` from this contract.
-- **manage-consumer-contracts** — Upgrade / revoke / approve contracts at scale.

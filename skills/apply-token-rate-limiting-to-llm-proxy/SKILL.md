@@ -65,8 +65,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
   - name: environmentId
@@ -92,14 +91,12 @@ operationId: listEnvironmentLlmProxies
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   endpointType:
@@ -136,14 +133,12 @@ operationId: getExchangePolicyTemplates
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   isLlmProxy:
@@ -195,20 +190,17 @@ operationId: createOrganizationsEnvironmentsApisPolicies
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   environmentApiId:
     from:
-      step: List LLM Proxies
-      output: environmentApiId
+      variable: environmentApiId
     description: LLM proxy ID from Step 3.
 
   groupId:

@@ -396,8 +396,15 @@ paths:
           description: Success. Returns `{ instances, targetAllowsPortSharing }`. `instances` is an array of conflicting API references (each with `id`, `port`, `path`) or empty when the port+path is available.
           content:
             application/json:
-              example:
-                $ref: ./examples/responses/gatewayTargetApis.json
+              examples:
+                Available:
+                  summary: Port + path is available — `instances` is empty.
+                  value:
+                    $ref: ./examples/responses/gatewayTargetApis.json
+                Occupied:
+                  summary: Port + path conflicts with another API — `instances` is populated with the conflicting record.
+                  value:
+                    $ref: ./examples/responses/gatewayTargetApisOccupied.json
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
     - $ref: '#/components/parameters/XOrigin_environmentId_Path'

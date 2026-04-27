@@ -79,8 +79,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
   - name: environmentId
@@ -140,13 +139,11 @@ operationId: getGatewayTargets
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 outputs:
   - name: targetId
@@ -178,18 +175,15 @@ operationId: getGatewayTargetApisByPortAndPath
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
   targetId:
     from:
-      step: List Flex Gateway Targets
-      output: targetId
+      variable: targetId
     description: Gateway target ID from Step 4
   port:
     userProvided: true
@@ -237,14 +231,12 @@ operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersio
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   groupId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Exchange group ID (same as organization ID)
 
   assetId:
@@ -326,26 +318,22 @@ operationId: createEnvironmentLlmProxy
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 
   spec.groupId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Exchange group ID (same as organization ID).
 
   spec.assetId:
     from:
-      step: Publish the Exchange Asset
-      input: assetId
+      variable: assetId
     description: Proxy name from Step 6.
 
   spec.version:
@@ -385,20 +373,17 @@ inputs:
 
   deployment.environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID (same as the URL path param).
 
   deployment.targetId:
     from:
-      step: List Flex Gateway Targets
-      output: targetId
+      variable: targetId
     description: Flex Gateway target ID from Step 4.
 
   deployment.targetName:
     from:
-      step: List Flex Gateway Targets
-      output: targetName
+      variable: targetName
     description: Flex Gateway target display name from Step 4.
 
   deployment.type:
@@ -522,20 +507,16 @@ operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEn
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
   environmentApiId:
     from:
-      step: Create the LLM Proxy (Single POST)
-      output: environmentApiId
+      variable: environmentApiId
   proxyDeploymentId:
     from:
-      step: Create the LLM Proxy (Single POST)
-      output: deploymentId
+      variable: deploymentId
     description: Deployment numeric ID from Step 7's `$.deployment.id`.
 outputs:
   - name: deploymentStatus

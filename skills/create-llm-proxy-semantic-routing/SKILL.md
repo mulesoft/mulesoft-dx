@@ -63,8 +63,7 @@ operationId: listEnvironments
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
 outputs:
   - name: environmentId
@@ -85,13 +84,11 @@ operationId: listSemanticServiceConfigs
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
     description: Organization ID from Step 1
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
     description: Environment ID from Step 2
 outputs:
   - name: semanticServiceConfigId
@@ -123,12 +120,10 @@ operationId: createGlobalPromptTopic
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
 
   topicName:
     userProvided: true
@@ -189,12 +184,10 @@ operationId: createSemanticServiceConfig
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
 
   label:
     userProvided: true
@@ -307,12 +300,10 @@ operationId: getGatewayTargets
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
 outputs:
   - name: targetId
     path: $.rows[*].id
@@ -332,16 +323,13 @@ operationId: getGatewayTargetApisByPortAndPath
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
   targetId:
     from:
-      step: List Flex Gateway Targets
-      output: targetId
+      variable: targetId
   port:
     userProvided: true
     example: 8081
@@ -369,12 +357,10 @@ operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersio
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   groupId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   assetId:
     userProvided: true
     example: my-semantic-proxy
@@ -433,21 +419,17 @@ operationId: createEnvironmentLlmProxy
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
 
   spec.groupId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   spec.assetId:
     from:
-      step: Publish the Exchange Asset
-      input: assetId
+      variable: assetId
   spec.version:
     value: "1.0.0"
 
@@ -478,16 +460,13 @@ inputs:
 
   deployment.environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
   deployment.targetId:
     from:
-      step: List Flex Gateway Targets
-      output: targetId
+      variable: targetId
   deployment.targetName:
     from:
-      step: List Flex Gateway Targets
-      output: targetName
+      variable: targetName
   deployment.type:
     value: HY
   deployment.expectedStatus:
@@ -582,8 +561,7 @@ inputs:
 
   metadata.semanticServiceConfigId:
     from:
-      step: List Existing Semantic Service Configurations
-      output: semanticServiceConfigId
+      variable: semanticServiceConfigId
     description: SSC UUID from Step 3 (existing) or Step 5 (newly created). Required for semantic routing. Lives at the top `metadata` level — not inside `globalRouting`.
 
 outputs:
@@ -620,20 +598,16 @@ operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEn
 inputs:
   organizationId:
     from:
-      step: Get Current Organization
-      output: organizationId
+      variable: organizationId
   environmentId:
     from:
-      step: List Environments
-      output: environmentId
+      variable: environmentId
   environmentApiId:
     from:
-      step: Create the LLM Proxy (Single POST)
-      output: environmentApiId
+      variable: environmentApiId
   proxyDeploymentId:
     from:
-      step: Create the LLM Proxy (Single POST)
-      output: deploymentId
+      variable: deploymentId
     description: Deployment ID from Step 9's `$.deployment.id`.
 outputs:
   - name: deploymentStatus

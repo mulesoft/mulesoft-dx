@@ -86,12 +86,14 @@
             {% if api.skills %}
             <div id="skills-panel" class="sidebar-panel" role="tabpanel" aria-labelledby="skills-tab" style="display: none;">
                 {% for skill in api.skills %}
-                {% set skill_name = skill.name|replace('-', ' ')|title %}
+                {% set skill_name = skill.name|skill_title %}
                 {% set step_count = skill.step_details|length %}
                 <li>
                     <a href="../skills/{{ skill.slug }}.html" class="nav-link nav-operation-flat">
                         <span class="op-name">{{ skill_name }}</span>
+                        {% if step_count > 0 %}
                         <span class="group-count">({{ step_count }} steps)</span>
+                        {% endif %}
                     </a>
                 </li>
                 {% endfor %}

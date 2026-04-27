@@ -29,6 +29,18 @@
     <link rel="stylesheet" href="{{ css_path }}">
     {% block extra_styles %}{% endblock %}
 
+    <!-- Dark Mode: Apply theme before render to prevent flash -->
+    <script>
+        (function() {
+            var savedTheme = localStorage.getItem('theme');
+            var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            if (initialTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
     <!-- Ace Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-json.min.js"></script>

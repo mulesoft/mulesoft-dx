@@ -9,7 +9,7 @@ by parsing ``urn:api:<slug>`` references inside their YAML step blocks.
 import json
 import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from .parsers import parse_oas, parse_skill
 from .utils import get_category
@@ -42,18 +42,21 @@ def _extract_api_refs(skill_data: Dict) -> List[str]:
     return sorted(slugs)
 
 
-def discover_skills(repo_root: Path) -> Dict[str, List[Dict]]:
+def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], List[Dict]]:
     """Discover all skills in the top-level skills/ directory.
 
-    Returns a mapping of ``api_slug -> [skill_data, ...]`` built by parsing
-    each skill's ``urn:api:`` references so that every API mentioned in a
-    skill gets that skill in its list.
+    Returns a tuple of:
+    - ``skills_by_api``: mapping of ``api_slug -> [skill_data, ...]`` built by
+      parsing each skill's ``urn:api:`` references.
+    - ``all_skills``: flat list of every discovered skill (including prose-only
+      skills that reference no APIs).
     """
     skills_by_api: Dict[str, List[Dict]] = {}
+    all_skills: List[Dict] = []
     skills_dir = repo_root / 'skills'
 
     if not skills_dir.exists():
-        return skills_by_api
+        return skills_by_api, all_skills
 
     print("🔍 Scanning for skills...")
 
@@ -71,20 +74,26 @@ def discover_skills(repo_root: Path) -> Dict[str, List[Dict]]:
 
         api_refs = _extract_api_refs(skill_data)
         skill_data['api_refs'] = api_refs
+        all_skills.append(skill_data)
         print(f"  🎯 Skill: {skill_data.get('name', skill_dir.name)} → APIs: {', '.join(api_refs) or 'none'}")
 
         for api_slug in api_refs:
             skills_by_api.setdefault(api_slug, []).append(skill_data)
 
-    return skills_by_api
+    return skills_by_api, all_skills
 
 
-def discover_apis(repo_root: Path) -> List[Dict]:
-    """Discover all APIs in the repository"""
+def discover_apis(repo_root: Path) -> Tuple[List[Dict], List[Dict]]:
+    """Discover all APIs in the repository.
+
+    Returns a tuple of (apis, all_discovered_skills) where
+    ``all_discovered_skills`` is the flat list of every skill found,
+    including prose-only skills that reference no APIs.
+    """
     apis = []
 
     # Discover skills once (top-level skills/ folder)
-    skills_by_api = discover_skills(repo_root)
+    skills_by_api, all_discovered_skills = discover_skills(repo_root)
 
     print("🔍 Scanning for APIs...")
 
@@ -152,7 +161,7 @@ def discover_apis(repo_root: Path) -> List[Dict]:
         apis.append(api_data)
 
     print(f"\n✅ Discovered {len(apis)} APIs")
-    return apis
+    return apis, all_discovered_skills
 
 
 def calculate_stats(apis: List[Dict]) -> Dict:

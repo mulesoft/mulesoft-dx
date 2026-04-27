@@ -65,6 +65,7 @@
                                 <label for="sortBy" class="sort-modal-label">Sort by</label>
                                 <select id="sortBy" class="sort-modal-select">
                                     <option value="name">Name</option>
+                                    <option value="type">Type</option>
                                     <option value="endpoints">Endpoints</option>
                                 </select>
                             </div>
@@ -122,14 +123,6 @@
     </div>
 
 </main>
-{% endblock %}
-
-{% block footer %}
-<footer class="footer">
-    <div class="container">
-        <p>Generated from OpenAPI 3.0 specifications</p>
-    </div>
-</footer>
 {% endblock %}
 
 {% block scripts %}

@@ -1,5 +1,25 @@
 <section id="overview" class="content-section">
-    <h2>Overview</h2>
+    <div class="overview-header">
+        <h2>Overview</h2>
+        <div class="overview-stats-panel">
+            <div class="stats-badge">Statistics</div>
+            <div class="stats-compact">
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ api.operation_count }}</span>
+                    <span class="stat-compact-label">Operations</span>
+                </div>
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ api.skill_count }}</span>
+                    <span class="stat-compact-label">Skills</span>
+                </div>
+                <div class="stat-compact-item">
+                    <span class="stat-compact-value">{{ api.category }}</span>
+                    <span class="stat-compact-label">Category</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="api-full-description">{{ api.full_description|md }}</div>
 
     {% if api.servers %}
@@ -37,22 +57,4 @@
         </ul>
     </div>
     {% endif %}
-
-    <div class="overview-section">
-        <h3>Statistics</h3>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-value">{{ api.operation_count }}</div>
-                <div class="stat-label">Operations</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">{{ api.skill_count }}</div>
-                <div class="stat-label">Skills</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">{{ api.category }}</div>
-                <div class="stat-label">Category</div>
-            </div>
-        </div>
-    </div>
 </section>

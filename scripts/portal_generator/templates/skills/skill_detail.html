@@ -1,7 +1,7 @@
 {% from "skills/step_unified.html" import render_step_unified %}
 
 {% macro render_skill(skill, private_api_slugs=[], api_link_prefix='', op_lookup={}) %}
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
 
@@ -141,6 +141,47 @@
     </div>
     {% endif %}
 
+    {% if skill.what_youve_built_html %}
+    <div id="built-section" class="skill-subsection">
+        <h3>What You've Built</h3>
+        <div class="skill-view-markdown">{{ skill.what_youve_built_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.next_steps_html %}
+    <div id="next-steps-section" class="skill-subsection">
+        <h3>Next Steps</h3>
+        <div class="skill-view-markdown">{{ skill.next_steps_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.tips_html %}
+    <div id="tips-section" class="skill-subsection">
+        <h3>Tips and Best Practices</h3>
+        <div class="skill-view-markdown">{{ skill.tips_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.troubleshooting_html %}
+    <div id="troubleshooting-section" class="skill-subsection">
+        <h3>Troubleshooting</h3>
+        <div class="skill-view-markdown">{{ skill.troubleshooting_html|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if skill.related_jobs_list %}
+    <div id="related-jobs-section" class="skill-subsection">
+        <h3>Related Jobs</h3>
+        <div class="skill-view-markdown">
+            <ul>
+            {% for job in skill.related_jobs_list %}
+                <li><a href="../skills/{{ job.slug }}.html"><strong>{{ job.slug }}</strong></a>: {{ job.description }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     {# Install Command Modal #}
     <div class="install-modal" id="install-modal-{{ slug }}" style="display:none" role="dialog" aria-modal="true">
         <div class="install-modal-overlay" onclick="closeInstallModal('{{ slug }}')"></div>
@@ -152,7 +193,7 @@
             <div class="install-modal-body">
                 <div class="install-command-row">
                     <span class="install-command-bracket">[</span>
-                    <code class="install-command-code" id="install-cmd-{{ slug }}">npx skills add https://github.com/mulesoft/anypoint-dev-portal/ --skill {{ slug }}</code>
+                    <code class="install-command-code" id="install-cmd-{{ slug }}">npx skills add https://github.com/mulesoft/mulesoft-dx/ --skill {{ slug }}</code>
                     <span class="install-command-bracket">]</span>
                     <button class="btn-install-copy" onclick="copyInstallFromModal('{{ slug }}', this)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>

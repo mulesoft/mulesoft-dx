@@ -6,6 +6,7 @@
 {% block body_attrs %} class="detail-page skill-page"{% endblock %}
 
 {% block head_scripts %}
+{% if not prose_only %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
@@ -14,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
 <script src="../assets/jsonpath-plus.min.js" defer></script>
+{% endif %}
 <script src="../assets/portal.js" defer></script>
 {% endblock %}
 
@@ -22,7 +24,7 @@
 
 {% block content %}
 {% set api_name = skill_name %}
-{% set api_version = skill.step_count ~ ' steps' %}
+{% set api_version = 'Guide' if prose_only else skill.step_count ~ ' steps' %}
 {% set is_skill_page = true %}
 {% set skill_slug = skill.slug %}
 {% include "partials/auth_panel.html" %}
@@ -34,6 +36,7 @@
     </main>
 </div>
 
+{% if not prose_only %}
 <!-- X-Origin Modal (single instance for entire page) -->
 <div class="xorigin-modal" id="xorigin-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="xorigin-modal-title">
     <div class="xorigin-modal-overlay" onclick="closeXOriginModal()"></div>
@@ -47,13 +50,16 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
+{% if not prose_only %}
 <script>
 window.__API_META__ = {{ api_meta|tojson_raw }};
 window.__OP_LOOKUP__ = {{ op_lookup|tojson_raw }};
 window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
 window.__API_LINK_PREFIX__ = '../apis/';
 </script>
+{% endif %}
 {% endblock %}

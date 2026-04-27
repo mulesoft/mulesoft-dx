@@ -12,7 +12,7 @@ from typing import Dict, List
 from .discovery import discover_apis, calculate_stats
 from .builders.tree_builder import build_operation_tree
 from .assets import get_css, get_js, get_jsonpath_js
-from .template_env import create_env
+from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
 
 
@@ -132,7 +132,7 @@ class PortalGenerator:
         self.repo_root = repo_root
 
         # Discover APIs and skills
-        self.apis = discover_apis(repo_root)
+        self.apis, all_discovered_skills = discover_apis(repo_root)
         self.public_apis = [a for a in self.apis if not a.get('private')]
         self.stats = calculate_stats(self.apis)
 
@@ -146,6 +146,15 @@ class PortalGenerator:
                 if skill['slug'] not in seen_slugs:
                     seen_slugs.add(skill['slug'])
                     self.all_skills.append(skill)
+
+        # Also collect prose-only skills (no API refs, not tied to any API)
+        for skill in all_discovered_skills:
+            if not skill.get('api_refs') and skill['slug'] not in seen_slugs:
+                seen_slugs.add(skill['slug'])
+                self.all_skills.append(skill)
+
+        # Update skill count to include prose-only skills
+        self.stats['skill_count'] = len(self.all_skills)
 
         print(f"\n📊 Statistics:")
         print(f"  • {self.stats['api_count']} APIs")
@@ -163,7 +172,16 @@ class PortalGenerator:
 
         # Fetch MuleSoft header and footer
         print(f"\n🌐 Fetching MuleSoft header and footer...")
-        self.chrome = fetch_mulesoft_chrome()
+        try:
+            self.chrome = fetch_mulesoft_chrome()
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch chrome elements: {e}")
+            print(f"    ℹ️  Using minimal fallback header/footer")
+            self.chrome = {
+                'dependencies': '',
+                'header': '<header style="padding: 1rem; background: #fff; border-bottom: 1px solid #ddd;"><a href="https://www.mulesoft.com">MuleSoft</a></header>',
+                'footer': '<footer style="padding: 1rem; background: #f5f5f5; border-top: 1px solid #ddd; text-align: center;"><p>© MuleSoft</p></footer>'
+            }
 
         # Generate files
         print(f"\n📝 Generating portal files...")
@@ -295,7 +313,7 @@ class PortalGenerator:
         template = self.env.get_template('skill_page.html')
 
         for skill in self.all_skills:
-            skill_name = skill.get('name', skill['slug']).replace('-', ' ').title()
+            skill_name = _skill_title(skill.get('name', skill['slug']))
             api_refs = skill.get('api_refs', [])
 
             # Build op_lookup scoped to APIs this skill references
@@ -304,6 +322,20 @@ class PortalGenerator:
             # Build api_meta from the first referenced API (for auth/server info)
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
+
+            prose_only = skill.get('step_count', 0) == 0
+
+            # Build linked APIs list for sidebar
+            linked_apis = []
+            for api_slug in api_refs:
+                if api_slug in api_by_slug:
+                    api_data = api_by_slug[api_slug]
+                    linked_apis.append({
+                        'name': api_data.get('name', ''),
+                        'slug': api_slug,
+                        'operation_count': len(api_data.get('operations', [])),
+                        'private': api_data.get('private', False)
+                    })
 
             html = template.render(
                 css_path='../assets/styles.css',
@@ -314,9 +346,11 @@ class PortalGenerator:
                 op_lookup=op_lookup,
                 api_link_prefix='../apis/',
                 private_api_slugs=private_api_slugs,
+                linked_apis=linked_apis,
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                prose_only=prose_only,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:

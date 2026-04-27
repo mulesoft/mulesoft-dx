@@ -77,7 +77,57 @@ Each API is an OpenAPI 3.0 specification. Key conventions:
 - **Operations** have unique `operationId` values in camelCase
 - **Parameters** with dynamic enum values use the `x-origin` extension (see schema below)
 - **Server URLs** use `{region}` variable for multi-region support
-- **Authentication** is via Bearer token or OAuth2 client credentials
+- **Authentication** is via Bearer token or OAuth2 client credentials (see [Authentication](#authentication) below)
+
+### Authentication
+
+All APIs require a Bearer token. There are two ways to obtain one, both via the **Access Management API** (`urn:api:access-management`).
+
+#### Option 1: Username & Password (User Token)
+
+```
+POST https://anypoint.mulesoft.com/accounts/api/login
+Content-Type: application/json
+
+{"username": "<username>", "password": "<password>"}
+```
+
+- **operationId:** `createLogin`
+- **Response:** `{"access_token": "...", "token_type": "bearer"}`
+- Use the `access_token` as `Authorization: Bearer <access_token>` on all subsequent requests.
+
+#### Option 2: Client Credentials (Connected App Token)
+
+```
+POST https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+Content-Type: application/json
+
+{"client_id": "<client_id>", "client_secret": "<client_secret>", "grant_type": "client_credentials"}
+```
+
+- **operationId:** `createV2Oauth2Token`
+- **Response:** `{"access_token": "...", "token_type": "bearer", "expires_in": 3600}`
+- Use the `access_token` as `Authorization: Bearer <access_token>` on all subsequent requests.
+
+#### After Authentication
+
+Once you have a token, retrieve your organization ID by calling:
+
+```
+GET https://anypoint.mulesoft.com/accounts/api/me
+Authorization: Bearer <access_token>
+```
+
+- **operationId:** `listMe`
+- The organization ID is at `$.user.organization.id` in the response.
+- Most API operations require `organizationId` as a path parameter.
+
+#### Multi-Region Support
+
+Replace the base URL depending on the region:
+- **US:** `https://anypoint.mulesoft.com/accounts/api`
+- **EU:** `https://eu1.anypoint.mulesoft.com/accounts/api`
+- **Regional:** `https://{region}.platform.mulesoft.com/accounts/api`
 
 ### x-origin Extension
 

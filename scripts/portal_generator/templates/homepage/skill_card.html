@@ -1,4 +1,4 @@
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 <a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill">
     <article class="catalog-card">
         <div class="catalog-card-header">
@@ -11,7 +11,9 @@
         <div class="catalog-card-footer">
             <span class="card-version-badge card-version-list">Skill</span>
             <span class="badge badge-skills">Skill</span>
-            <span class="badge badge-count">{{ skill.step_count|default(0) }} step{{ 's' if skill.step_count != 1 else '' }}</span>
+            {% if skill.step_count|default(0) > 0 %}
+            <span class="badge badge-count">{{ skill.step_count }} step{{ 's' if skill.step_count != 1 else '' }}</span>
+            {% endif %}
         </div>
     </article>
 </a>

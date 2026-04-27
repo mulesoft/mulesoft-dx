@@ -7,7 +7,7 @@
     <div class="auth-panel-center">
         <h1 class="api-title"><a href="#overview" class="api-title-link">{{ api_name }}</a></h1>
         <span class="badge badge-version">{{ api_version }}</span>
-        {% if is_skill_page %}
+        {% if is_skill_page and not prose_only %}
         <div class="skill-mode-toggle-container">
             <label class="toggle-switch-label">
                 <span class="toggle-label-text">Interactive Mode</span>
@@ -18,6 +18,7 @@
         </div>
         {% endif %}
     </div>
+    {% if not prose_only|default(false) %}
     <div class="auth-panel-right">
         <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">
             <span class="auth-status-container" id="authStatusContainer">
@@ -38,8 +39,10 @@
             </span>
         </button>
     </div>
+    {% endif %}
 </div>
 
+{% if not prose_only|default(false) %}
 <div class="auth-modal" id="authModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <div class="auth-modal-overlay" onclick="closeAuthModal()"></div>
     <div class="auth-modal-content">
@@ -103,3 +106,4 @@
         </div>
     </div>
 </div>
+{% endif %}

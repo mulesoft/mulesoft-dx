@@ -1,4 +1,4 @@
-{% set skill_name = skill.name|replace('-', ' ')|title %}
+{% set skill_name = skill.name|skill_title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
 
@@ -9,15 +9,24 @@
                 Overview
             </a>
         </div>
+        {% if step_details %}
         <div class="sidebar-tabs" role="tablist">
             <button class="sidebar-tab active" role="tab" aria-selected="false" aria-controls="steps-panel"
                 data-tab="steps" onclick="switchSidebarTab('steps')">
                 Steps <span class="tab-count" id="steps-count" style="display: none;"></span>
             </button>
+            {% if linked_apis and linked_apis|length > 0 %}
+            <button class="sidebar-tab" role="tab" aria-selected="false" aria-controls="apis-panel"
+                data-tab="apis" onclick="switchSidebarTab('apis')">
+                APIs <span class="tab-count" id="apis-count" style="display: none;"></span>
+            </button>
+            {% endif %}
         </div>
+        {% endif %}
     </div>
     <nav class="sidebar-nav">
         <ul class="nav-list">
+            {% if step_details %}
             <div id="steps-panel" class="sidebar-panel active" role="tabpanel" aria-labelledby="steps-tab">
                 {% for step in step_details %}
                 <li>
@@ -29,6 +38,50 @@
                 </li>
                 {% endfor %}
             </div>
+            {% if linked_apis and linked_apis|length > 0 %}
+            <div id="apis-panel" class="sidebar-panel" role="tabpanel" aria-labelledby="apis-tab" style="display: none;">
+                {% for api in linked_apis %}
+                <li>
+                    <a href="../apis/{{ api.slug }}.html" class="nav-link nav-operation-flat">
+                        <span class="op-name">{{ api.name }}</span>
+                        <span class="group-count">({{ api.operation_count }} operations)</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="sidebar-panel active">
+                {% if skill.prerequisites_html %}
+                <li>
+                    <a href="#prerequisites-section" class="nav-link nav-skill-step" title="Prerequisites">
+                        <span class="step-title-short">Prerequisites</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if skill.tips_html %}
+                <li>
+                    <a href="#tips-section" class="nav-link nav-skill-step" title="Tips and Best Practices">
+                        <span class="step-title-short">Tips and Best Practices</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if skill.troubleshooting_html %}
+                <li>
+                    <a href="#troubleshooting-section" class="nav-link nav-skill-step" title="Troubleshooting">
+                        <span class="step-title-short">Troubleshooting</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if skill.related_jobs_list %}
+                <li>
+                    <a href="#related-jobs-section" class="nav-link nav-skill-step" title="Related Jobs">
+                        <span class="step-title-short">Related Jobs</span>
+                    </a>
+                </li>
+                {% endif %}
+            </div>
+            {% endif %}
         </ul>
     </nav>
 </aside>

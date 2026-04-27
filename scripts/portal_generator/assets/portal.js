@@ -534,6 +534,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -805,7 +806,7 @@ function buildAvailableTags() {
         if (type) {
             tagSet.add(type.toLowerCase());
             // Also add variations
-            if (type === 'api') tagSet.add('rest api');
+            if (type === 'api') tagSet.add('api');
         }
 
         // Extract individual words from name
@@ -961,6 +962,35 @@ function filterByTags() {
 
     // Update results count and type
     updateResultsCount(visibleApis + visibleSkills, selectedType);
+
+    // Update URL with current filter
+    updateURLWithFilter(selectedType);
+}
+
+function updateURLWithFilter(filterType) {
+    const url = new URL(window.location);
+    if (filterType && filterType !== 'all') {
+        url.searchParams.set('filter', filterType);
+        localStorage.setItem('homepage-filter', filterType);
+    } else {
+        url.searchParams.delete('filter');
+        localStorage.removeItem('homepage-filter');
+    }
+    console.log('Updating URL to:', url.toString());
+    window.history.replaceState({}, '', url);
+}
+
+function getFilterFromURL() {
+    const url = new URL(window.location);
+    const urlFilter = url.searchParams.get('filter');
+
+    // Priority: URL parameter > localStorage > default 'all'
+    if (urlFilter) {
+        return urlFilter;
+    }
+
+    const savedFilter = localStorage.getItem('homepage-filter');
+    return savedFilter || 'all';
 }
 
 function updateResultsCount(count, filterType) {
@@ -1126,6 +1156,19 @@ document.addEventListener('DOMContentLoaded', () => {
             filterByTags();
         });
     });
+
+    // Initialize filter from URL on page load
+    const urlFilter = getFilterFromURL();
+    console.log('URL filter:', urlFilter);
+    if (urlFilter !== 'all') {
+        const targetTab = document.querySelector(`.hero-tab[data-filter="${urlFilter}"]`);
+        console.log('Target tab:', targetTab);
+        if (targetTab) {
+            heroTabs.forEach(t => t.classList.remove('active'));
+            targetTab.classList.add('active');
+            filterByTags();
+        }
+    }
 
     // Set up tag search input
     const tagSearchInput = document.getElementById('tagSearchInput');
@@ -1790,6 +1833,7 @@ function setAuthStatus(authenticated, message, authMethod) {
         sessionStorage.removeItem('anypoint_auth_method');
         sessionStorage.removeItem('anypoint_identity');
         sessionStorage.removeItem('anypoint_token_expires_at');
+        stopTtlTimer();
     }
 
     updateAuthSummary();
@@ -1833,16 +1877,16 @@ async function loginBearer() {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', username);
 
-            // Store token expiration time
-            if (body.expires_in) {
-                var expiresAt = Date.now() + (body.expires_in * 1000);
-                sessionStorage.setItem('anypoint_token_expires_at', expiresAt.toString());
+            var introspectResult = await introspectToken();
+            if (introspectResult && introspectResult.exp) {
+                setTokenExpiration(parseInt(introspectResult.exp, 10));
+            } else {
+                setTokenExpiration(Date.now() + _SESSION_TTL);
             }
 
             setAuthStatus(true, null, 'Bearer');
             showAuthMessage('Login successful!', false);
 
-            // Update playground panels with any environment variables that may have been set
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
@@ -1883,16 +1927,20 @@ async function loginOAuth2() {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', clientId);
 
-            // Store token expiration time
             if (body.expires_in) {
-                var expiresAt = Date.now() + (body.expires_in * 1000);
-                sessionStorage.setItem('anypoint_token_expires_at', expiresAt.toString());
+                setTokenExpiration(Date.now() + (body.expires_in * 1000));
+            } else {
+                var introspectResult = await introspectToken();
+                if (introspectResult && introspectResult.exp) {
+                    setTokenExpiration(parseInt(introspectResult.exp, 10));
+                } else {
+                    setTokenExpiration(Date.now() + _SESSION_TTL);
+                }
             }
 
             setAuthStatus(true, null, 'OAuth2');
             showAuthMessage('Token obtained successfully!', false);
 
-            // Update playground panels with any environment variables that may have been set
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
@@ -1908,6 +1956,109 @@ function getAuthHeaders() {
     var token = sessionStorage.getItem('anypoint_token');
     if (token) return {'Authorization': 'Bearer ' + token};
     return {};
+}
+
+// ============================================================================
+// Try It Out — Session TTL Management
+// ============================================================================
+
+var _ttlTimerId = null;
+var _ttlExpirationTimerId = null;
+var _TTL_CHECK_INTERVAL = 30000;
+var _SESSION_TTL = 3600000;
+
+async function introspectToken() {
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) return null;
+    var serverBase = getSelectedBaseUrl();
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: 'POST',
+                url: serverBase + '/accounts/oauth2/introspect',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({token: token, token_type_hint: 'access_token'})
+            })
+        });
+        var data = await resp.json();
+        if (data.error) return null;
+        var body = JSON.parse(data.body);
+        return body;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setTokenExpiration(expMs) {
+    sessionStorage.setItem('anypoint_token_expires_at', String(expMs));
+    startTtlTimer();
+    scheduleExpirationCheck(expMs);
+}
+
+function scheduleExpirationCheck(expMs) {
+    if (_ttlExpirationTimerId !== null) {
+        clearTimeout(_ttlExpirationTimerId);
+        _ttlExpirationTimerId = null;
+    }
+    var delay = expMs - Date.now();
+    if (delay <= 0) {
+        checkTtlExpiration();
+        return;
+    }
+    _ttlExpirationTimerId = setTimeout(function() {
+        _ttlExpirationTimerId = null;
+        checkTtlExpiration();
+    }, delay);
+}
+
+function markTokenExpired() {
+    sessionStorage.setItem('anypoint_token_expires_at', '0');
+    stopTtlTimer();
+    updateAuthSummary();
+}
+
+function startTtlTimer() {
+    stopTtlTimer();
+    _ttlTimerId = setInterval(checkTtlExpiration, _TTL_CHECK_INTERVAL);
+}
+
+function stopTtlTimer() {
+    if (_ttlTimerId !== null) {
+        clearInterval(_ttlTimerId);
+        _ttlTimerId = null;
+    }
+    if (_ttlExpirationTimerId !== null) {
+        clearTimeout(_ttlExpirationTimerId);
+        _ttlExpirationTimerId = null;
+    }
+}
+
+async function checkTtlExpiration() {
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) {
+        stopTtlTimer();
+        return;
+    }
+    if (!isTokenExpired()) return;
+
+    var result = await introspectToken();
+    if (result && result.active === true && result.exp) {
+        setTokenExpiration(parseInt(result.exp, 10));
+        updateAuthSummary();
+    } else if (result && result.active === false) {
+        markTokenExpired();
+    }
+}
+
+function handleProxyResponse(data) {
+    if (data.status === 401) {
+        markTokenExpired();
+    }
 }
 
 // ============================================================================
@@ -2138,6 +2289,7 @@ async function loadXOriginValues(opId, paramName) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -2338,6 +2490,7 @@ async function loadXOriginValuesForEnv(paramName) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -3516,6 +3669,7 @@ async function sendRequest(opId, buttonEl) {
             })
         });
         var data = await resp.json();
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -3625,7 +3779,7 @@ async function sendRequest(opId, buttonEl) {
 // Helper function to get appropriate ACE theme based on current theme
 function getAceTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return isDark ? 'ace/theme/monokai' : 'ace/theme/textmate';
+    return isDark ? 'ace/theme/one_dark' : 'ace/theme/github';
 }
 
 // Helper function to update ACE editor background color
@@ -3732,10 +3886,10 @@ function createReadOnlyAceEditor(container, content, language) {
         fontSize: '13px'
     });
 
-    // Use large minLines/maxLines to fill space
+    // Let ACE scroll internally within the container bounds
     editor.setOptions({
         minLines: 10,
-        maxLines: 100
+        maxLines: 50
     });
 
     // Set read-only background
@@ -5458,6 +5612,7 @@ async function executePlaygroundStep(sid, buttonEl) {
         });
 
         var result = await resp.json();
+        handleProxyResponse(result);
 
         // Restore button
         if (buttonEl) {
@@ -5599,6 +5754,9 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
         var authMethod = sessionStorage.getItem('anypoint_auth_method') || '';
         if (token && authMethod) {
             setAuthStatus(true, null, authMethod);
+            if (sessionStorage.getItem('anypoint_token_expires_at')) {
+                startTtlTimer();
+            }
         }
 
         // Render environment variables
@@ -6363,6 +6521,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
             })
         });
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (spinner) spinner.style.display = 'none';
         if (rightPanel) rightPanel.setAttribute('open', '');
@@ -7133,6 +7292,22 @@ function toggleParamDescription(button) {
                 return direction === 'asc'
                     ? aValue.localeCompare(bValue)
                     : bValue.localeCompare(aValue);
+            } else if (sortBy === 'type') {
+                aValue = a.getAttribute('data-type') || '';
+                bValue = b.getAttribute('data-type') || '';
+                // Sort by type, then by name as secondary sort
+                const typeCompare = direction === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+
+                if (typeCompare !== 0) {
+                    return typeCompare;
+                }
+
+                // Secondary sort by name
+                const aName = a.getAttribute('data-name') || '';
+                const bName = b.getAttribute('data-name') || '';
+                return aName.localeCompare(bName);
             } else if (sortBy === 'endpoints') {
                 // Extract count from the badge text (endpoints for APIs, steps for Skills)
                 const aCard = a.querySelector('.badge-count');
@@ -7313,15 +7488,7 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
-    // Check for saved theme preference or default to system preference
-    var savedTheme = localStorage.getItem('theme');
-    var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-
-    // Apply initial theme
-    if (initialTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
+    // Note: Initial theme is already applied in <head> to prevent flash
 
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');

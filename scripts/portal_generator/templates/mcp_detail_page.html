@@ -61,6 +61,18 @@
         {% endif %}
     </main>
 </div>
+
+<div class="xorigin-modal" id="xorigin-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="xorigin-modal-title">
+    <div class="xorigin-modal-overlay" onclick="closeXOriginModal()"></div>
+    <div class="xorigin-modal-content">
+        <div class="xorigin-modal-header">
+            <h3 id="xorigin-modal-title">Fetch Values</h3>
+            <button class="btn-close-modal" onclick="closeXOriginModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="xorigin-modal-body" id="xorigin-modal-body">
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -72,7 +84,10 @@ window.__API_META__ = {
     securitySchemes: {{ mcp_meta.securitySchemes|tojson_raw }},
     security: []
 };
-window.__OP_LOOKUP__ = {};
+window.__OP_LOOKUP__ = {{ op_lookup|tojson_raw if op_lookup else '{}' }};
+window.__MCP_LOOKUP__ = {{ mcp_lookup|tojson_raw if mcp_lookup else '{}' }};
+window.__API_LINK_PREFIX__ = '../apis/';
+window.__MCP_LINK_PREFIX__ = '';
 window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
 </script>
 {% endblock %}

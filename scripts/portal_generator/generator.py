@@ -359,21 +359,59 @@ class PortalGenerator:
             'resourceTemplates': mcp.get('resource_templates', []),
         }
 
+    def _build_mcp_lookup(self) -> Dict:
+        """Build a lookup map of MCP servers for x-origin resolution.
+
+        Returns ``{mcpSlug: {tools: {name: {inputSchema, description}}, servers, transport}}``.
+        """
+        lookup: Dict = {}
+        for mcp in self.mcp_servers:
+            tools: Dict = {}
+            for tool in mcp.get('tools', []):
+                if isinstance(tool, dict) and tool.get('name'):
+                    tools[tool['name']] = {
+                        'inputSchema': tool.get('inputSchema', {}),
+                        'description': tool.get('description', ''),
+                    }
+            transport = mcp.get('transport') or {}
+            lookup[mcp['slug']] = {
+                'tools': tools,
+                'servers': [
+                    {'url': s.get('url', ''), 'variables': s.get('variables', {})}
+                    for s in mcp.get('servers', []) if isinstance(s, dict)
+                ],
+                'transport': {
+                    'kind': str(transport.get('kind', '')),
+                    'path': str(transport.get('path', '')),
+                },
+            }
+        return lookup
+
     def _generate_mcp_detail_pages(self):
         """Generate individual MCP server pages (public servers only)."""
         if not self.public_mcps:
             return
         print(f"  ✓ Generating {len(self.public_mcps)} MCP detail pages...")
 
+        full_op_lookup = self._build_operation_lookup()
+        full_mcp_lookup = self._build_mcp_lookup()
         template = self.env.get_template('mcp_detail_page.html')
 
         for mcp in self.public_mcps:
             mcp_meta = self._build_mcp_meta(mcp)
+
+            api_refs = mcp.get('xorigin_api_refs', set())
+            mcp_refs = mcp.get('xorigin_mcp_refs', set())
+            op_lookup = {s: full_op_lookup[s] for s in api_refs if s in full_op_lookup}
+            mcp_lookup = {s: full_mcp_lookup[s] for s in mcp_refs if s in full_mcp_lookup}
+
             html = template.render(
                 css_path='../assets/styles.css',
                 icons_path='../assets/icons',
                 mcp=mcp,
                 mcp_meta=mcp_meta,
+                op_lookup=op_lookup,
+                mcp_lookup=mcp_lookup,
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,

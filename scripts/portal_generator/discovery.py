@@ -12,7 +12,7 @@ Scans the repository for:
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .parsers import parse_oas, parse_skill, parse_mcp
 from .utils import get_category
@@ -204,7 +204,7 @@ def discover_apis(repo_root: Path) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     return apis, mcp_servers, all_discovered_skills
 
 
-def calculate_stats(apis: List[Dict], mcp_servers: List[Dict] | None = None) -> Dict:
+def calculate_stats(apis: List[Dict], mcp_servers: Optional[List[Dict]] = None) -> Dict:
     """Calculate portal statistics (excludes private APIs / MCPs)."""
     public_apis = [a for a in apis if not a.get('private')]
     public_mcps = [m for m in (mcp_servers or []) if not m.get('private')]

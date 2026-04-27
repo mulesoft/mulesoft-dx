@@ -880,3 +880,209 @@ describe('_closeAllSkillDropdowns', () => {
         expect(b.toggle.getAttribute('aria-expanded')).toBe('false');
     });
 });
+
+// ===========================================================================
+// unwrapMcpToolResponse
+// ===========================================================================
+describe('unwrapMcpToolResponse', () => {
+    test('extracts JSON object from result.content[0].text', () => {
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: {
+                    content: [{ type: 'text', text: '{"assetId":"my-api","name":"My API"}' }],
+                },
+            }),
+        };
+        expect(unwrapMcpToolResponse(proxyData)).toEqual({ assetId: 'my-api', name: 'My API' });
+    });
+
+    test('extracts JSON array from result.content[0].text', () => {
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: {
+                    content: [{ type: 'text', text: '[{"id":"a"},{"id":"b"}]' }],
+                },
+            }),
+        };
+        expect(unwrapMcpToolResponse(proxyData)).toEqual([{ id: 'a' }, { id: 'b' }]);
+    });
+
+    test('parses NDJSON (newline-delimited JSON) from text field', () => {
+        const ndjson = '{"type":"begin","value":{"totalHits":2}}\n'
+            + '{"type":"hit","value":{"assetId":"cars"}}\n'
+            + '{"type":"hit","value":{"assetId":"bikes"}}\n'
+            + '{"type":"end","value":{}}\n';
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: {
+                    content: [{ type: 'text', text: ndjson }],
+                },
+            }),
+        };
+        const result = unwrapMcpToolResponse(proxyData);
+        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveLength(4);
+        expect(result[0]).toEqual({ type: 'begin', value: { totalHits: 2 } });
+        expect(result[1]).toEqual({ type: 'hit', value: { assetId: 'cars' } });
+        expect(result[3]).toEqual({ type: 'end', value: {} });
+    });
+
+    test('returns raw string when text is not JSON or NDJSON', () => {
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: {
+                    content: [{ type: 'text', text: 'plain text response' }],
+                },
+            }),
+        };
+        expect(unwrapMcpToolResponse(proxyData)).toBe('plain text response');
+    });
+
+    test('returns body object when no text content found', () => {
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: { content: [{ type: 'image', data: 'base64...' }] },
+            }),
+        };
+        const result = unwrapMcpToolResponse(proxyData);
+        expect(result.jsonrpc).toBe('2.0');
+    });
+
+    test('returns empty object when body is not valid JSON', () => {
+        const proxyData = { body: 'not-json' };
+        expect(unwrapMcpToolResponse(proxyData)).toEqual({});
+    });
+
+    test('returns empty object when body is missing', () => {
+        expect(unwrapMcpToolResponse({})).toEqual({});
+    });
+
+    test('returns body when result has no content array', () => {
+        const proxyData = {
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }),
+        };
+        const result = unwrapMcpToolResponse(proxyData);
+        expect(result.jsonrpc).toBe('2.0');
+    });
+
+    test('skips blank lines in NDJSON', () => {
+        const ndjson = '{"type":"hit","value":{"id":"a"}}\n\n{"type":"hit","value":{"id":"b"}}\n\n';
+        const proxyData = {
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                result: { content: [{ type: 'text', text: ndjson }] },
+            }),
+        };
+        const result = unwrapMcpToolResponse(proxyData);
+        expect(result).toHaveLength(2);
+    });
+});
+
+// ===========================================================================
+// getMcpEndpointForSlug
+// ===========================================================================
+describe('getMcpEndpointForSlug', () => {
+    const savedLookup = globalThis.__MCP_LOOKUP__;
+
+    afterEach(() => {
+        globalThis.__MCP_LOOKUP__ = savedLookup;
+        cleanupServerElements();
+    });
+
+    test('resolves endpoint URL from lookup', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            exchange: {
+                servers: [{ url: 'https://anypoint.mulesoft.com/exchange', variables: {} }],
+                transport: { kind: 'streamableHttp', path: '/mcp' },
+            },
+        };
+        withServerType('us', null, () => {
+            expect(getMcpEndpointForSlug('exchange')).toBe(
+                'https://anypoint.mulesoft.com/exchange/mcp',
+            );
+        });
+    });
+
+    test('returns null for unknown slug', () => {
+        globalThis.__MCP_LOOKUP__ = {};
+        expect(getMcpEndpointForSlug('nonexistent')).toBeNull();
+    });
+
+    test('returns null when no servers available', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            empty: { servers: [], transport: { kind: 'streamableHttp', path: '/mcp' } },
+        };
+        expect(getMcpEndpointForSlug('empty')).toBeNull();
+    });
+
+    test('appends transport path to server URL', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            test: {
+                servers: [{ url: 'https://api.example.com', variables: {} }],
+                transport: { kind: 'streamableHttp', path: '/v1/mcp' },
+            },
+        };
+        withServerType('us', null, () => {
+            expect(getMcpEndpointForSlug('test')).toBe(
+                'https://api.example.com/v1/mcp',
+            );
+        });
+    });
+
+    test('handles transport path without leading slash', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            test: {
+                servers: [{ url: 'https://api.example.com', variables: {} }],
+                transport: { kind: 'streamableHttp', path: 'mcp' },
+            },
+        };
+        withServerType('us', null, () => {
+            expect(getMcpEndpointForSlug('test')).toBe(
+                'https://api.example.com/mcp',
+            );
+        });
+    });
+
+    test('defaults path to /mcp when transport path is empty', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            test: {
+                servers: [{ url: 'https://api.example.com', variables: {} }],
+                transport: { kind: 'streamableHttp', path: '' },
+            },
+        };
+        withServerType('us', null, () => {
+            expect(getMcpEndpointForSlug('test')).toBe(
+                'https://api.example.com/mcp',
+            );
+        });
+    });
+
+    test('resolves server with region variable', () => {
+        globalThis.__MCP_LOOKUP__ = {
+            regional: {
+                servers: [
+                    { url: 'https://anypoint.mulesoft.com/exchange', variables: {} },
+                    { url: 'https://eu1.anypoint.mulesoft.com/exchange', variables: {} },
+                    { url: 'https://{region}.platform.mulesoft.com/exchange', variables: { region: { default: 'ca1' } } },
+                ],
+                transport: { kind: 'streamableHttp', path: '/mcp' },
+            },
+        };
+        withServerType('eu', null, () => {
+            expect(getMcpEndpointForSlug('regional')).toBe(
+                'https://eu1.anypoint.mulesoft.com/exchange/mcp',
+            );
+        });
+    });
+});

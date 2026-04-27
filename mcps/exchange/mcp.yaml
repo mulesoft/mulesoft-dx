@@ -18,6 +18,12 @@ tools:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:access-management
+              operation: listMe
+              values: $.user.memberOfOrganizations[*].id
+              labels: $.user.memberOfOrganizations[*].name
+              description: Get organization ID from current user profile
         payload:
           type: object
           required:
@@ -126,10 +132,22 @@ tools:
           examples:
             - customer-api
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].assetId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         groupId:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].groupId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         includeSnapshots:
           default: false
           type: boolean
@@ -152,12 +170,24 @@ tools:
           examples:
             - customer-api
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].assetId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         X-Delete-Type:
           type: string
         groupId:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].groupId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
       required:
         - groupId
         - assetId
@@ -177,12 +207,24 @@ tools:
           examples:
             - customer-api
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].assetId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         X-Delete-Type:
           type: string
         groupId:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].groupId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         version:
           examples:
             - 1.0.0
@@ -203,10 +245,22 @@ tools:
           examples:
             - customer-api
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].assetId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         groupId:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].groupId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         includeComments:
           default: false
           type: boolean
@@ -250,10 +304,22 @@ tools:
           examples:
             - customer-api
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].assetId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         groupId:
           examples:
             - d4e2bceb-baae-484c-92f3-3cc272256c7f
           type: string
+          x-origin:
+            - api: urn:api:exchange-experience
+              operation: getAssetsSearch
+              values: $[*].groupId
+              labels: $[*].name
+              description: Search Exchange assets by keyword
         version:
           examples:
             - 1.0.0

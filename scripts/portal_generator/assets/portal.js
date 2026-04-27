@@ -665,8 +665,11 @@ function useXOriginValue(sourceIdx, valueIdx, valueStr) {
 
     var paramName = currentModal.paramName;
 
-    // Set the value in the input
-    var input = document.getElementById('param-' + currentModal.opId + '-' + paramName);
+    // Set the value in the input — MCP inputs use a different ID pattern
+    var inputId = currentModal.isMcp
+        ? 'mcp-param-' + currentModal.opId + '-' + paramName.replace(/\./g, '-')
+        : 'param-' + currentModal.opId + '-' + paramName;
+    var input = document.getElementById(inputId);
     if (input) {
         input.value = displayVal;
     }
@@ -761,6 +764,457 @@ function switchXOriginTab(sourceIdx, tabName) {
     });
     var activePanel = document.getElementById('xorigin-tab-' + tabName + '-' + sourceIdx);
     if (activePanel) activePanel.classList.add('active');
+}
+
+// ============================================================================
+// X-Origin for MCP Tool Inputs
+// ============================================================================
+
+function openMcpXOriginModal(invocableId, dataPath) {
+    var inputId = 'mcp-param-' + invocableId + '-' + dataPath.replace(/\./g, '-');
+    var input = document.getElementById(inputId);
+    if (!input) return;
+
+    var originsJson = input.getAttribute('data-x-origins');
+    if (!originsJson) return;
+
+    var origins = [];
+    try {
+        if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+            originsJson = atob(originsJson);
+        }
+        origins = JSON.parse(originsJson);
+    } catch (e) {
+        console.error('Failed to parse x-origins for MCP:', e);
+        return;
+    }
+
+    var modal = document.getElementById('xorigin-modal');
+    if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+    }
+
+    xOriginModalStack.push({
+        opId: invocableId,
+        paramName: dataPath,
+        origins: origins,
+        isMcp: true
+    });
+
+    var modal = document.getElementById('xorigin-modal');
+    var title = document.getElementById('xorigin-modal-title');
+    var body = document.getElementById('xorigin-modal-body');
+    if (!modal || !title || !body) return;
+
+    title.textContent = 'Select a value for: ' + dataPath;
+
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var mcpLookup = window.__MCP_LOOKUP__ || {};
+    var envVars = loadEnvVars();
+    var envVarsMap = {};
+    envVars.forEach(function(v) { envVarsMap[v.name] = v.value; });
+
+    var html = '';
+    if (origins.length > 1) {
+        html += '<div class="xorigin-selector-container">';
+        html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
+        origins.forEach(function(origin, idx) {
+            var urn = origin.api || '';
+            var opName = origin.operation || '';
+            var slug = urn.replace(/^urn:(api|mcp):/, '');
+            var sourceType = urn.startsWith('urn:mcp:') ? 'mcp' : 'api';
+            var technicalRef = slug + '#' + opName;
+            var label = origin.name ? (origin.name + ' - ' + technicalRef) : technicalRef;
+            html += '<option value="' + idx + '">[' + sourceType + '] ' + escapeHtml(label) + '</option>';
+        });
+        html += '</select></div>';
+    }
+
+    origins.forEach(function(origin, idx) {
+        var urn = origin.api || '';
+        var opName = origin.operation || '';
+        var isMcpSource = urn.startsWith('urn:mcp:');
+        var slug = urn.replace(/^urn:(api|mcp):/, '');
+
+        html += '<div class="xorigin-source" data-source-idx="' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + '">';
+
+        if (isMcpSource) {
+            html += _buildMcpSourcePanel(idx, slug, opName, origin, mcpLookup, envVarsMap);
+        } else {
+            html += _buildApiSourcePanel(idx, slug, opName, origin, opLookup, envVarsMap);
+        }
+
+        html += '</div>';
+    });
+
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+    initCodeMirrorEditors();
+
+    modal._previousFocus = document.activeElement;
+    var firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) firstFocusable.focus();
+}
+
+function _buildApiSourcePanel(idx, apiSlug, operationId, origin, opLookup, envVarsMap) {
+    var apiEntry = opLookup[apiSlug];
+    var opMeta = apiEntry ? apiEntry.ops[operationId] : null;
+    if (!opMeta) return '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '#' + escapeHtml(operationId) + '" not found in lookup.</div>';
+
+    var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+    var linkPrefix = window.__API_LINK_PREFIX__ || '';
+    var html = '';
+
+    html += '<div class="try-panel-header">';
+    html += '<div class="xorigin-title-section">';
+    html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="xorigin-operation-link">';
+    html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+    html += '</a>';
+    html += _buildXpathInfoHtml(origin);
+    html += '</div>';
+    html += '<div class="try-header-actions">';
+    html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+    html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
+    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
+    html += '</div></div>';
+
+    html += '<div class="operation-url-bar-container">';
+    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
+    html += '</div>';
+
+    var xoriginOpId = 'xorigin-' + idx;
+    html += renderOperationPanel(xoriginOpId, opMeta, {
+        yamlInputs: envVarsMap,
+        enableVariableRefs: false,
+        slug: '',
+        contextType: 'xorigin',
+        showExecuteButton: false
+    });
+
+    return html;
+}
+
+function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVarsMap) {
+    var mcpEntry = mcpLookup[mcpSlug];
+    if (!mcpEntry) return '<div class="xorigin-error">MCP "' + escapeHtml(mcpSlug) + '" not found in lookup.</div>';
+    var toolMeta = mcpEntry.tools[toolName];
+    if (!toolMeta) return '<div class="xorigin-error">Tool "' + escapeHtml(toolName) + '" not found on MCP "' + escapeHtml(mcpSlug) + '".</div>';
+
+    var linkPrefix = window.__MCP_LINK_PREFIX__ || '';
+    var xoriginOpId = 'xorigin-' + idx;
+    var html = '';
+
+    // Header: title + xpath info + action buttons (same as API panel)
+    html += '<div class="try-panel-header">';
+    html += '<div class="xorigin-title-section">';
+    html += '<a href="' + escapeHtml(linkPrefix + mcpSlug + '.html#tool-' + toolName) + '" target="_blank" class="xorigin-operation-link">';
+    html += '<h4>' + escapeHtml(mcpSlug) + '.' + escapeHtml(toolName) + '</h4>';
+    html += '</a>';
+    html += _buildXpathInfoHtml(origin);
+    html += '</div>';
+    html += '<div class="try-header-actions">';
+    html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+    html += '<button class="btn-send" onclick="executeMcpXOriginSource(' + idx + ', this)">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<button class="btn-copy-curl" onclick="copyMcpCurlCommand(\'' + xoriginOpId + '\', ' + idx + ', this)">';
+    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
+    html += '</div></div>';
+
+    // URL bar
+    html += '<div class="operation-url-bar-container">';
+    html += '<div class="operation-url-bar-inline">';
+    html += '<span class="method method-mcp-tool">TOOL</span>';
+    html += '<code class="url-bar-text">' + escapeHtml(toolName) + '</code>';
+    html += '</div></div>';
+
+    var inputSchema = toolMeta.inputSchema || {};
+    var properties = inputSchema.properties || {};
+    var required = inputSchema.required || [];
+
+    // Two-column grid (same as renderOperationPanel)
+    html += '<div class="operation-panel-grid">';
+
+    // Left column: Form + action buttons
+    html += '<div class="operation-panel-form">';
+
+    var propNames = Object.keys(properties);
+    if (propNames.length > 0) {
+        propNames.forEach(function(name) {
+            var prop = properties[name];
+            var ptype = (prop && prop.type) || 'string';
+            var isRequired = required.indexOf(name) !== -1;
+            var defaultVal = prop.default !== undefined && prop.default !== null ? prop.default : '';
+            var placeholder = ptype;
+            var prefilledVal = envVarsMap[name] || defaultVal;
+
+            html += '<div class="try-param-row">';
+            html += '<label><span class="param-name-wrapper"><code>' + escapeHtml(name) + '</code>';
+            if (isRequired) html += '&nbsp;<span class="param-required" title="Required">*</span>';
+            html += ': <code class="param-type-inline">' + escapeHtml(ptype) + '</code></span></label>';
+
+            if (ptype === 'object' || ptype === 'array') {
+                var exampleJson = '';
+                if (prop._example_json) exampleJson = prop._example_json;
+                html += '<div id="mcp-arg-' + xoriginOpId + '-' + name + '" class="try-request-editor-cm"';
+                html += ' data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="' + ptype + '"';
+                html += ' data-content-type="application/json"';
+                html += ' data-example-body="' + escapeHtml(exampleJson) + '"></div>';
+            } else if (ptype === 'boolean') {
+                html += '<select data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="boolean">';
+                html += '<option value=""></option><option value="true">true</option><option value="false">false</option>';
+                html += '</select>';
+            } else {
+                html += '<input type="' + (ptype === 'integer' || ptype === 'number' ? 'number' : 'text') + '"';
+                html += ' data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="' + escapeHtml(ptype) + '"';
+                html += ' placeholder="' + escapeHtml(String(placeholder)) + '"';
+                html += ' value="' + escapeHtml(String(prefilledVal)) + '"';
+                if (isRequired) html += ' required';
+                html += '>';
+            }
+            html += '</div>';
+        });
+    } else {
+        html += '<p class="security-desc">This tool accepts no arguments.</p>';
+    }
+
+    html += '</div>'; // End form column
+
+    // Right column: Response (same structure as renderOperationPanel with xorigin context)
+    html += '<div class="operation-panel-response">';
+    html += '<div class="try-response empty" id="response-' + xoriginOpId + '" aria-live="polite">';
+    html += '<div class="try-response-header"><h5>Response</h5>';
+    html += '<div class="response-badges"><span class="response-status-badge" id="status-' + xoriginOpId + '"></span></div></div>';
+    html += '<div class="try-response-tabs">';
+    html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'extracted\')">Extracted Values</button>';
+    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'body\')">Body</button>';
+    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'headers\')">Headers</button>';
+    html += '</div>';
+    html += '<div class="try-response-content">';
+    html += '<div class="try-response-extracted active" id="respextracted-' + xoriginOpId + '"></div>';
+    html += '<div class="try-response-body" id="respbody-' + xoriginOpId + '"></div>';
+    html += '<div class="try-response-headers" id="respheaders-' + xoriginOpId + '"></div>';
+    html += '</div></div>';
+    html += '</div>'; // End response column
+
+    html += '</div>'; // End grid
+
+    return html;
+}
+
+function _buildXpathInfoHtml(origin) {
+    var html = '';
+    if (origin.values || origin.labels) {
+        html += '<span class="xorigin-xpath-info">';
+        if (origin.values) {
+            html += '<span class="xorigin-path-inline">';
+            html += '<span class="xorigin-path-label">values:</span>';
+            html += '<code class="xorigin-path-value">' + escapeHtml(typeof origin.values === 'string' ? origin.values : JSON.stringify(origin.values)) + '</code>';
+            html += '</span>';
+        }
+        if (origin.labels) {
+            html += '<span class="xorigin-path-inline">';
+            html += '<span class="xorigin-path-label">labels:</span>';
+            html += '<code class="xorigin-path-value">' + escapeHtml(typeof origin.labels === 'string' ? origin.labels : JSON.stringify(origin.labels)) + '</code>';
+            html += '</span>';
+        }
+        html += '</span>';
+    }
+    return html;
+}
+
+function getMcpEndpointForSlug(mcpSlug) {
+    var lookup = window.__MCP_LOOKUP__ || {};
+    var entry = lookup[mcpSlug];
+    if (!entry) return null;
+    var servers = entry.servers || [];
+    if (servers.length === 0) return null;
+    var server = pickServerTemplate(servers);
+    var base = resolveServerUrl(server, null).replace(/\/$/, '');
+    var transport = entry.transport || {};
+    var path = transport.path || '/mcp';
+    if (path.charAt(0) !== '/') path = '/' + path;
+    return base + path;
+}
+
+function unwrapMcpToolResponse(proxyData) {
+    var body = {};
+    try { body = JSON.parse(proxyData.body || '{}'); } catch (e) { return body; }
+    var result = body.result || {};
+    var content = result.content || [];
+    for (var i = 0; i < content.length; i++) {
+        if (content[i].type === 'text' && content[i].text) {
+            try { return JSON.parse(content[i].text); } catch (e) {
+                // Try NDJSON: newline-delimited JSON objects
+                var lines = content[i].text.split('\n').filter(function(l) { return l.trim(); });
+                if (lines.length > 1) {
+                    var parsed = [];
+                    for (var j = 0; j < lines.length; j++) {
+                        try { parsed.push(JSON.parse(lines[j])); } catch (e2) { /* skip */ }
+                    }
+                    if (parsed.length > 0) return parsed;
+                }
+                return content[i].text;
+            }
+        }
+    }
+    return body;
+}
+
+async function executeMcpXOriginSource(sourceIdx, buttonEl) {
+    var xoriginOpId = 'xorigin-' + sourceIdx;
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    var responseDiv = document.getElementById('response-' + xoriginOpId);
+    var statusBadge = document.getElementById('status-' + xoriginOpId);
+    var responseBodyDiv = document.getElementById('respbody-' + xoriginOpId);
+    var responseHeadersDiv = document.getElementById('respheaders-' + xoriginOpId);
+
+    if (!responseDiv || !sourceDiv) return;
+
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) { originalText = textSpan.textContent; textSpan.textContent = 'Sending...'; }
+        buttonEl.disabled = true;
+    }
+
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) return;
+    var origin = currentModal.origins[sourceIdx];
+    var mcpSlug = (origin.api || '').replace('urn:mcp:', '');
+    var toolName = origin.operation || '';
+    var valuesPath = origin.values || '';
+    var labelsPath = origin.labels || '';
+
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) {
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
+        responseDiv.style.display = 'block';
+        _restoreButton(buttonEl, originalText);
+        return;
+    }
+
+    var endpoint = getMcpEndpointForSlug(mcpSlug);
+    if (!endpoint) {
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">MCP endpoint for "' + escapeHtml(mcpSlug) + '" not found.</div>';
+        responseDiv.style.display = 'block';
+        _restoreButton(buttonEl, originalText);
+        return;
+    }
+
+    var args = {};
+    var paramInputs = sourceDiv.querySelectorAll('input[data-param], select[data-param]');
+    paramInputs.forEach(function(input) {
+        var name = input.getAttribute('data-param');
+        var val = input.value;
+        if (val) {
+            var dtype = input.getAttribute('data-type') || 'string';
+            if (dtype === 'integer') args[name] = parseInt(val, 10);
+            else if (dtype === 'number') args[name] = parseFloat(val);
+            else if (dtype === 'boolean') args[name] = val === 'true';
+            else args[name] = val;
+        }
+    });
+    sourceDiv.querySelectorAll('.try-request-editor-cm[data-param]').forEach(function(div) {
+        var name = div.getAttribute('data-param');
+        var editor = getCodeMirrorEditor(div.id);
+        if (editor) {
+            var raw = editor.getValue();
+            try { args[name] = JSON.parse(raw); } catch (e) { args[name] = raw; }
+        }
+    });
+
+    var payload = {
+        jsonrpc: '2.0',
+        id: typeof __nextMcpId === 'function' ? __nextMcpId() : 1,
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+    };
+
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                method: 'POST',
+                url: endpoint,
+                headers: Object.assign({ 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            })
+        });
+
+        var data = await resp.json();
+        _restoreButton(buttonEl, originalText);
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        if (statusBadge) {
+            var sc = 'status-error';
+            if (data.status >= 200 && data.status < 300) sc = 'status-2xx';
+            else if (data.status >= 400 && data.status < 500) sc = 'status-4xx';
+            else if (data.status >= 500) sc = 'status-5xx';
+            statusBadge.className = 'response-status-badge ' + sc;
+            statusBadge.textContent = data.status;
+        }
+
+        if (data.error || data.status < 200 || data.status >= 300) {
+            switchResponseTab(xoriginOpId, 'body');
+            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request failed (status ' + data.status + ')</div>';
+            return;
+        }
+
+        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, data);
+
+        var unwrapped = unwrapMcpToolResponse(data);
+        if (typeof unwrapped !== 'object') {
+            console.warn('MCP x-origin: response content is not JSON, cannot extract values');
+            return;
+        }
+
+        var values = extractXOriginValues(unwrapped, valuesPath);
+        var labels = [];
+        if (labelsPath) {
+            labels = extractXOriginValues(unwrapped, labelsPath);
+            if (labels.length !== values.length) labels = [];
+        }
+
+        var extractedTab = document.getElementById('respextracted-' + xoriginOpId);
+        if (extractedTab) {
+            if (values.length > 0) {
+                var items = values.map(function(val, i) {
+                    var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                    var labelStr = labels[i] ? String(labels[i]) : valueStr;
+                    return { name: labelStr, id: valueStr, index: i };
+                });
+                items.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+                var vh = '<div class="xorigin-values-section"><table class="xorigin-values-table">';
+                vh += '<thead><tr><th>Name</th><th>ID</th><th></th></tr></thead><tbody>';
+                items.forEach(function(item) {
+                    vh += '<tr><td class="xorigin-name-cell">' + escapeHtml(item.name) + '</td>';
+                    vh += '<td class="xorigin-id-cell"><code>' + escapeHtml(item.id) + '</code></td>';
+                    vh += '<td class="xorigin-action-cell"><button class="btn-use-value" data-value="' + escapeHtml(item.id) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + item.index + ', this.getAttribute(\'data-value\'))">Select</button></td>';
+                    vh += '</tr>';
+                });
+                vh += '</tbody></table></div>';
+                extractedTab.innerHTML = vh;
+            } else {
+                extractedTab.innerHTML = '<div class="xorigin-error">No values found at path: ' + escapeHtml(typeof valuesPath === 'string' ? valuesPath : JSON.stringify(valuesPath)) + '</div>';
+            }
+        }
+    } catch (e) {
+        _restoreButton(buttonEl, originalText);
+        if (responseDiv) responseDiv.classList.remove('empty');
+        if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-error'; }
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
+    }
+}
+
+function _restoreButton(buttonEl, originalText) {
+    if (!buttonEl) return;
+    var textSpan = buttonEl.querySelector('span');
+    if (textSpan) textSpan.textContent = originalText;
+    buttonEl.disabled = false;
 }
 
 function escapeHtml(str) {
@@ -3431,6 +3885,74 @@ function copyCurlCommand(opId, buttonEl) {
     }).catch(function(err) {
         console.error('Failed to copy cURL command:', err);
         alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
+function copyMcpCurlCommand(xoriginOpId, sourceIdx, buttonEl) {
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) return;
+    var origin = currentModal.origins[sourceIdx];
+    var mcpSlug = (origin.api || '').replace('urn:mcp:', '');
+    var toolName = origin.operation || '';
+
+    var endpoint = getMcpEndpointForSlug(mcpSlug);
+    if (!endpoint) return;
+
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    if (!sourceDiv) return;
+
+    var args = {};
+    sourceDiv.querySelectorAll('input[data-param], select[data-param]').forEach(function(input) {
+        var name = input.getAttribute('data-param');
+        var val = input.value;
+        if (val) {
+            var dtype = input.getAttribute('data-type') || 'string';
+            if (dtype === 'integer') args[name] = parseInt(val, 10);
+            else if (dtype === 'number') args[name] = parseFloat(val);
+            else if (dtype === 'boolean') args[name] = val === 'true';
+            else args[name] = val;
+        }
+    });
+    sourceDiv.querySelectorAll('.try-request-editor-cm[data-param]').forEach(function(div) {
+        var name = div.getAttribute('data-param');
+        var editor = getCodeMirrorEditor(div.id);
+        if (editor) {
+            var raw = editor.getValue();
+            try { args[name] = JSON.parse(raw); } catch (e) { args[name] = raw; }
+        }
+    });
+
+    var payload = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+    };
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var curlCommand = 'curl -X POST \\\n';
+    curlCommand += '  "' + endpoint + '"';
+    for (var headerName in headers) {
+        curlCommand += ' \\\n  -H "' + headerName + ': ' + headers[headerName] + '"';
+    }
+    var escapedBody = JSON.stringify(payload).replace(/'/g, "'\\''");
+    curlCommand += ' \\\n  -d \'' + escapedBody + '\'';
+
+    navigator.clipboard.writeText(curlCommand).then(function() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) {
+                var originalText = textSpan.textContent;
+                textSpan.textContent = 'Copied';
+                setTimeout(function() { textSpan.textContent = originalText; }, 1500);
+            }
+        }
+    }).catch(function(err) {
+        console.error('Failed to copy cURL command:', err);
     });
 }
 

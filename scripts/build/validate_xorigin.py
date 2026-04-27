@@ -291,6 +291,152 @@ def load_all_apis(repo_root: Path) -> Dict[str, Dict[str, Any]]:
     return all_apis
 
 
+def load_all_mcps(repo_root: Path) -> Dict[str, Dict[str, Any]]:
+    """Load all MCP specs and their tool names."""
+    all_mcps: Dict[str, Dict[str, Any]] = {}
+    mcps_dir = repo_root / 'mcps'
+    if not mcps_dir.exists():
+        return all_mcps
+
+    for mcp_dir in sorted(mcps_dir.iterdir()):
+        if not mcp_dir.is_dir() or mcp_dir.name.startswith('.'):
+            continue
+        mcp_path = mcp_dir / 'mcp.yaml'
+        if not mcp_path.exists():
+            continue
+        try:
+            with open(mcp_path, 'r') as f:
+                mcp_data = yaml.safe_load(f)
+            tool_names: Set[str] = set()
+            for tool in (mcp_data.get('tools') or []):
+                if isinstance(tool, dict) and tool.get('name'):
+                    tool_names.add(tool['name'])
+            all_mcps[mcp_dir.name] = {
+                'data': mcp_data,
+                'tool_names': tool_names,
+            }
+        except Exception as e:
+            print(f"  Warning: Could not load MCP {mcp_dir.name}: {e}")
+
+    return all_mcps
+
+
+def validate_all_mcps(
+    repo_root: Path,
+    schema_path: Path,
+    all_apis: Dict[str, Dict[str, Any]],
+    all_mcps: Dict[str, Dict[str, Any]],
+) -> Dict[str, List[XOriginViolation]]:
+    """Validate x-origin annotations on MCP tool inputSchema properties."""
+    results: Dict[str, List[XOriginViolation]] = {}
+
+    schema = None
+    if schema_path.exists():
+        with open(schema_path, 'r') as f:
+            schema = json.load(f)
+
+    for mcp_slug, mcp_info in sorted(all_mcps.items()):
+        violations: List[XOriginViolation] = []
+        mcp_data = mcp_info['data']
+
+        for tool in (mcp_data.get('tools') or []):
+            if not isinstance(tool, dict):
+                continue
+            tool_name = tool.get('name', '?')
+            input_schema = tool.get('inputSchema') or {}
+            properties = input_schema.get('properties') or {}
+
+            for prop_name, prop_def in properties.items():
+                if not isinstance(prop_def, dict):
+                    continue
+                xorigin = prop_def.get('x-origin')
+                if not xorigin:
+                    continue
+
+                location = f'tools.{tool_name}.inputSchema.properties.{prop_name}'
+
+                if not isinstance(xorigin, list):
+                    violations.append(XOriginViolation(
+                        f'mcp:{mcp_slug}', 'xorigin-must-be-array', location,
+                        'x-origin must be an array of source objects',
+                    ))
+                    continue
+
+                if schema:
+                    try:
+                        validate(instance=xorigin, schema=schema)
+                    except ValidationError as e:
+                        error_path = ' → '.join(str(p) for p in e.path) if e.path else ''
+                        error_loc = f'{location}.x-origin'
+                        if error_path:
+                            error_loc += f'[{error_path}]'
+                        violations.append(XOriginViolation(
+                            f'mcp:{mcp_slug}', 'xorigin-schema-violation',
+                            error_loc, e.message,
+                        ))
+                        continue
+
+                for idx, source in enumerate(xorigin):
+                    source_loc = f'{location}.x-origin[{idx}]'
+
+                    if 'values' in source and 'labels' in source:
+                        values = source['values']
+                        labels = source['labels']
+                        if isinstance(values, list) and isinstance(labels, list):
+                            if len(values) != len(labels):
+                                violations.append(XOriginViolation(
+                                    f'mcp:{mcp_slug}', 'xorigin-mismatched-array-length',
+                                    source_loc,
+                                    f'values and labels arrays must have same length: '
+                                    f'values has {len(values)}, labels has {len(labels)}',
+                                ))
+                        elif isinstance(values, list) != isinstance(labels, list):
+                            violations.append(XOriginViolation(
+                                f'mcp:{mcp_slug}', 'xorigin-mismatched-types',
+                                source_loc,
+                                f'values and labels must both be strings or both be arrays',
+                            ))
+
+                    api_urn = source.get('api', '')
+                    operation = source.get('operation', '')
+                    if not api_urn or not operation:
+                        continue
+
+                    if api_urn.startswith('urn:api:'):
+                        target = api_urn[len('urn:api:'):]
+                        if target not in all_apis:
+                            violations.append(XOriginViolation(
+                                f'mcp:{mcp_slug}', 'xorigin-invalid-api-reference',
+                                source_loc,
+                                f'References non-existent API "{target}"',
+                            ))
+                        elif operation not in all_apis[target]['operation_ids']:
+                            violations.append(XOriginViolation(
+                                f'mcp:{mcp_slug}', 'xorigin-invalid-operation-reference',
+                                source_loc,
+                                f'References non-existent operationId "{operation}" in API "{target}"',
+                            ))
+                    elif api_urn.startswith('urn:mcp:'):
+                        target = api_urn[len('urn:mcp:'):]
+                        if target not in all_mcps:
+                            violations.append(XOriginViolation(
+                                f'mcp:{mcp_slug}', 'xorigin-invalid-mcp-reference',
+                                source_loc,
+                                f'References non-existent MCP "{target}"',
+                            ))
+                        elif operation not in all_mcps[target]['tool_names']:
+                            violations.append(XOriginViolation(
+                                f'mcp:{mcp_slug}', 'xorigin-invalid-tool-reference',
+                                source_loc,
+                                f'References non-existent tool "{operation}" on MCP "{target}"',
+                            ))
+
+        if violations:
+            results[f'mcp:{mcp_slug}'] = violations
+
+    return results
+
+
 def validate_all_apis(repo_root: Path, schema_path: Path) -> Dict[str, List[XOriginViolation]]:
     """Validate all APIs in the repository"""
     results = {}
@@ -342,13 +488,21 @@ def main():
 
     results = validate_all_apis(repo_root, schema_path)
 
+    # Validate MCP tools
+    all_apis = load_all_apis(repo_root)
+    all_mcps = load_all_mcps(repo_root)
+    if all_mcps:
+        print(f"\n  Validating {len(all_mcps)} MCP servers for x-origin...")
+        mcp_results = validate_all_mcps(repo_root, schema_path, all_apis, all_mcps)
+        results.update(mcp_results)
+
     if not results:
-        print("✅ No x-origin violations found!")
+        print("\n✅ No x-origin violations found!")
         return 0
 
     total_violations = sum(len(v) for v in results.values())
 
-    print(f"❌ Found {total_violations} violations across {len(results)} APIs:\n")
+    print(f"\n❌ Found {total_violations} violations across {len(results)} sources:\n")
 
     for api_name, violations in sorted(results.items()):
         print(f"📁 {api_name} ({len(violations)} violations)")

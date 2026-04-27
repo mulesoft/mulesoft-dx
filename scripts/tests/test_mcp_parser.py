@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from portal_generator.parsers.mcp_parser import parse_mcp
+from portal_generator.parsers.mcp_parser import parse_mcp, _collect_xorigin_refs
 
 
 MINIMAL_SERVER_YAML = textwrap.dedent("""\
@@ -220,3 +220,128 @@ class TestParseMcp:
         assert data['prompt_count'] == 0
         assert data['resource_count'] == 0
         assert data['resource_template_count'] == 0
+
+    def test_xorigin_refs_collected_from_tools(self, tmp_path):
+        d = tmp_path / 'with-xorigin'
+        d.mkdir()
+        (d / 'server.yaml').write_text(MINIMAL_SERVER_YAML)
+        (d / 'exchange.json').write_text(EXCHANGE_JSON)
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            transport:
+              kind: streamableHttp
+              path: /mcp
+            tools:
+              - name: getAsset
+                description: Get asset details
+                inputSchema:
+                  type: object
+                  properties:
+                    assetId:
+                      type: string
+                      x-origin:
+                        - api: urn:mcp:exchange
+                          operation: searchAssets
+                          values: $[*].assetId
+                    envId:
+                      type: string
+                      x-origin:
+                        - api: urn:api:access-management
+                          operation: listEnvironments
+                          values: $.data[*].id
+                  required:
+                    - assetId
+        """))
+        data = parse_mcp(d)
+        assert data['xorigin_api_refs'] == {'access-management'}
+        assert data['xorigin_mcp_refs'] == {'exchange'}
+
+    def test_xorigin_refs_empty_when_no_xorigin(self, mcp_dir):
+        data = parse_mcp(mcp_dir)
+        assert data['xorigin_api_refs'] == set()
+        assert data['xorigin_mcp_refs'] == set()
+
+
+class TestCollectXoriginRefs:
+    def test_extracts_api_refs(self):
+        tools = [{'inputSchema': {'properties': {
+            'envId': {'type': 'string', 'x-origin': [
+                {'api': 'urn:api:access-management', 'operation': 'listEnvs', 'values': '$.data[*].id'}
+            ]}
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == {'access-management'}
+        assert mcp_refs == set()
+
+    def test_extracts_mcp_refs(self):
+        tools = [{'inputSchema': {'properties': {
+            'assetId': {'type': 'string', 'x-origin': [
+                {'api': 'urn:mcp:exchange', 'operation': 'searchAssets', 'values': '$[*].assetId'}
+            ]}
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == set()
+        assert mcp_refs == {'exchange'}
+
+    def test_mixed_api_and_mcp_refs(self):
+        tools = [{'inputSchema': {'properties': {
+            'assetId': {'type': 'string', 'x-origin': [
+                {'api': 'urn:mcp:exchange', 'operation': 'searchAssets', 'values': '$[*].assetId'},
+                {'api': 'urn:api:catalog', 'operation': 'listAssets', 'values': '$[*].id'},
+            ]}
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == {'catalog'}
+        assert mcp_refs == {'exchange'}
+
+    def test_multiple_tools_aggregate_refs(self):
+        tools = [
+            {'inputSchema': {'properties': {
+                'envId': {'type': 'string', 'x-origin': [
+                    {'api': 'urn:api:access-management', 'operation': 'listEnvs', 'values': '$.data[*].id'}
+                ]}
+            }}},
+            {'inputSchema': {'properties': {
+                'orgId': {'type': 'string', 'x-origin': [
+                    {'api': 'urn:api:core-services', 'operation': 'getOrgs', 'values': '$[*].id'}
+                ]}
+            }}},
+        ]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == {'access-management', 'core-services'}
+        assert mcp_refs == set()
+
+    def test_no_xorigin_returns_empty(self):
+        tools = [{'inputSchema': {'properties': {
+            'q': {'type': 'string'},
+            'limit': {'type': 'integer'},
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == set()
+        assert mcp_refs == set()
+
+    def test_empty_tools_list(self):
+        api_refs, mcp_refs = _collect_xorigin_refs([])
+        assert api_refs == set()
+        assert mcp_refs == set()
+
+    def test_tool_without_input_schema(self):
+        tools = [{'name': 'noSchema'}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == set()
+        assert mcp_refs == set()
+
+    def test_skips_non_dict_xorigin(self):
+        tools = [{'inputSchema': {'properties': {
+            'x': {'type': 'string', 'x-origin': 'not-a-list'}
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == set()
+        assert mcp_refs == set()
+
+    def test_skips_non_dict_source_entries(self):
+        tools = [{'inputSchema': {'properties': {
+            'x': {'type': 'string', 'x-origin': ['not-a-dict']}
+        }}}]
+        api_refs, mcp_refs = _collect_xorigin_refs(tools)
+        assert api_refs == set()
+        assert mcp_refs == set()

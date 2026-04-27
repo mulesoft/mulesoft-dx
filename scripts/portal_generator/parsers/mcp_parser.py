@@ -13,7 +13,7 @@ contain:
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import yaml
 
@@ -294,6 +294,29 @@ def _default_display_name(item: Dict) -> str:
     return str(item.get('name', ''))
 
 
+def _collect_xorigin_refs(tools: List[Dict]) -> Tuple[Set[str], Set[str]]:
+    """Scan tool inputSchema properties for x-origin and collect referenced slugs."""
+    api_refs: Set[str] = set()
+    mcp_refs: Set[str] = set()
+    for tool in tools:
+        schema = tool.get('inputSchema') or {}
+        for _name, prop_def in (schema.get('properties') or {}).items():
+            if not isinstance(prop_def, dict):
+                continue
+            xorigin = prop_def.get('x-origin')
+            if not isinstance(xorigin, list):
+                continue
+            for source in xorigin:
+                if not isinstance(source, dict):
+                    continue
+                api_urn = source.get('api', '')
+                if api_urn.startswith('urn:api:'):
+                    api_refs.add(api_urn[len('urn:api:'):])
+                elif api_urn.startswith('urn:mcp:'):
+                    mcp_refs.add(api_urn[len('urn:mcp:'):])
+    return api_refs, mcp_refs
+
+
 def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     """Parse an MCP server directory into a normalized record.
 
@@ -409,6 +432,10 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     security_schemes = mcp_data.get('securitySchemes') or {}
     provider = mcp_data.get('provider') or {}
 
+    xorigin_api_refs, xorigin_mcp_refs = _collect_xorigin_refs(
+        [t for t in _ensure_list(mcp_data.get('tools'))]
+    )
+
     is_private = exchange.get('visibility') == 'private'
 
     return {
@@ -435,4 +462,6 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'tag_names': tag_names,
         'exchange': exchange,
         'private': is_private,
+        'xorigin_api_refs': xorigin_api_refs,
+        'xorigin_mcp_refs': xorigin_mcp_refs,
     }

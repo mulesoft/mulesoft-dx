@@ -587,3 +587,122 @@ class TestMcpDetailPage:
         mcp_out = generated_portal / 'mcps' / 'test-mcp'
         assert (mcp_out / 'mcp.yaml').exists()
         assert (mcp_out / 'server.yaml').exists()
+
+    def test_mcp_page_has_xorigin_modal(self):
+        modal = self.soup.find('div', id='xorigin-modal')
+        assert modal is not None
+        assert modal.get('role') == 'dialog'
+
+    def test_mcp_page_injects_mcp_lookup(self):
+        scripts = self.soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert '__MCP_LOOKUP__' in text
+
+    def test_mcp_page_injects_op_lookup(self):
+        scripts = self.soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert '__OP_LOOKUP__' in text
+
+    def test_mcp_page_injects_link_prefixes(self):
+        scripts = self.soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert '__API_LINK_PREFIX__' in text
+        assert '__MCP_LINK_PREFIX__' in text
+
+
+class TestMcpXoriginPage:
+    """Verify MCP page with x-origin has scoped lookups."""
+
+    @pytest.fixture
+    def portal_with_xorigin_mcp(self, tmp_path):
+        import textwrap
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+        api_dir = apis_dir / 'test-api'
+        api_dir.mkdir()
+        (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        mcp_dir = repo / 'mcps' / 'exchange'
+        mcp_dir.mkdir(parents=True)
+        (mcp_dir / 'server.yaml').write_text(MINIMAL_MCP_SERVER_YAML)
+        (mcp_dir / 'exchange.json').write_text(MINIMAL_MCP_EXCHANGE_JSON)
+        (mcp_dir / 'mcp.yaml').write_text(textwrap.dedent("""\
+            capabilities:
+              tools:
+                listChanged: false
+            transport:
+              kind: streamableHttp
+              path: /mcp
+            tools:
+              - name: searchAssets
+                description: Search for assets
+                inputSchema:
+                  type: object
+                  properties:
+                    q:
+                      type: string
+                  required:
+                    - q
+              - name: getAsset
+                description: Get asset details
+                inputSchema:
+                  type: object
+                  properties:
+                    assetId:
+                      type: string
+                      x-origin:
+                        - api: urn:mcp:exchange
+                          operation: searchAssets
+                          values: $[*].assetId
+                          labels: $[*].name
+                    envId:
+                      type: string
+                      x-origin:
+                        - api: urn:api:test-api
+                          operation: listResources
+                          values: $.data[*].id
+                  required:
+                    - assetId
+            prompts: []
+            resources: []
+            resourceTemplates: []
+        """))
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'portal_output'
+        generator = PortalGenerator(output, base_url='https://test.example.com')
+        generator.generate(repo)
+        return output
+
+    def test_mcp_lookup_contains_self_reference(self, portal_with_xorigin_mcp):
+        html = (portal_with_xorigin_mcp / 'mcps' / 'exchange.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        scripts = soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert '"exchange"' in text or "'exchange'" in text
+        assert 'searchAssets' in text
+
+    def test_op_lookup_contains_api_reference(self, portal_with_xorigin_mcp):
+        html = (portal_with_xorigin_mcp / 'mcps' / 'exchange.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        scripts = soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert 'test-api' in text
+        assert 'listResources' in text
+
+    def test_xorigin_input_has_search_button(self, portal_with_xorigin_mcp):
+        html = (portal_with_xorigin_mcp / 'mcps' / 'exchange.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        btn = soup.find('button', class_='btn-xorigin-search')
+        assert btn is not None
+
+    def test_xorigin_input_has_data_attribute(self, portal_with_xorigin_mcp):
+        html = (portal_with_xorigin_mcp / 'mcps' / 'exchange.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        xorigin_input = soup.find('input', attrs={'data-x-origins': True})
+        assert xorigin_input is not None

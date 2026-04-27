@@ -1,0 +1,685 @@
+openapi: 3.0.0
+info:
+  title: LLM Proxy API
+  version: 1.0.0
+  description: Manage LLM (Large Language Model) proxies, semantic service configurations, global prompt topics, and model routing configurations within the Anypoint Platform API Manager experience layer. An LLM proxy is a specialized API instance that routes prompts to multiple LLM providers (OpenAI, Gemini, Azure OpenAI, Bedrock Anthropic, NVIDIA) using either model-based or semantic-based routing, with optional token rate limiting and prompt guarding policies.
+servers:
+- url: https://anypoint.mulesoft.com
+- url: https://eu1.anypoint.mulesoft.com
+- url: https://{region}.platform.mulesoft.com
+  variables:
+    region:
+      default: ca1
+      description: Region identifier for the service endpoint.
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /apimanager/xapi/v1/llm-route-configurations:
+    get:
+      description: Retrieve the static catalog of supported LLM providers and their configurable fields. Returns one entry per provider (OpenAI, Gemini, Azure OpenAI, Bedrock Anthropic, NVIDIA) with the provider's default URL, default model, per-field schema (name, requestKey, dataWeaveRequestKey, type, required, sensitive, placeholder, tooltip), and the enumerated list of target models each provider offers.
+      operationId: listLlmRouteConfigurations
+      responses:
+        '200':
+          description: Success. Returns the LLM provider catalog with per-provider field schemas and target model enumerations.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/llmRouteConfigurations.json
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/apis:
+    get:
+      description: Retrieve the list of API instances in an environment, filterable by endpoint type. Pass `endpointType=llm` to list only LLM proxies. Supports pagination, sorting, and pinned-first ordering.
+      operationId: listEnvironmentLlmProxies
+      parameters:
+      - name: endpointType
+        in: query
+        description: Filter API instances by endpoint type. Use `llm` to list only LLM proxies.
+        required: false
+        schema:
+          type: string
+          enum:
+          - llm
+          - agentic
+          - mcp
+          - rest
+          - http
+      - name: limit
+        in: query
+        description: Maximum number of instances to return per page.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 20
+      - name: offset
+        in: query
+        description: Number of instances to skip (for pagination).
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: sort
+        in: query
+        description: Field to sort results by (e.g., `name`, `createdDate`).
+        required: false
+        schema:
+          type: string
+          default: name
+      - name: ascending
+        in: query
+        description: Sort direction. When true, sorts in ascending order.
+        required: false
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: true
+      - name: pinnedFirst
+        in: query
+        description: When true, pinned instances appear at the top of the list.
+        required: false
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success. Returns a paged list wrapped as `{ total, instances[] }`.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/environmentLlmProxies.json
+    post:
+      description: |
+        Create a new LLM proxy in the specified environment. The proxy is deployed to a Flex Gateway target and routes traffic to one or more LLM provider upstreams based on the configured routing strategy (model-based or semantic-based).
+
+        The request body uses a `spec` wrapper for the Exchange asset coordinates (`spec.groupId`, `spec.assetId`, `spec.version`). The Exchange asset is the backing artifact for the LLM proxy — if it does not already exist, publish it first via the Exchange Experience API (`POST /exchange/api/v2/organizations/{orgId}/assets/{groupId}/{assetId}/{version}` with `type=llm`).
+
+        Each upstream is declared inline inside `routing[].upstreams[]` with its full LLM provider configuration (`llmConfigs` with provider, model, keys, fields, and optionally `promptTopicIDs` for semantic routing). The server auto-generates upstream IDs; the `id` field inside `routing[].upstreams[]` MUST NOT be set on the POST body.
+
+        On this POST body `llmConfigs` lives directly on each upstream — not wrapped in a `metadata` field. The upstream-level GET (`/apis/{environmentApiId}/upstreams/{upstreamId}`) returns it as `metadata.llmConfigs`; the API-instance GET returns `routing[].upstreams[]` as `{id, weight}` references only.
+
+        Provider credentials are configured on each upstream using either static keys (stored encrypted) or DataWeave expressions that extract keys from incoming request headers at runtime. Sensitive fields go under `llmConfigs.keys` in static mode and under `llmConfigs.fields` (using the provider's DataWeave selector name) in DataWeave mode; non-sensitive fields always go under `llmConfigs.fields`.
+      operationId: createEnvironmentLlmProxy
+      requestBody:
+        required: true
+        description: LLM proxy creation payload.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - spec
+              - endpoint
+              properties:
+                spec:
+                  type: object
+                  required:
+                  - groupId
+                  - assetId
+                  - version
+                  properties:
+                    groupId:
+                      type: string
+                      description: Exchange group ID. Typically matches the organization ID.
+                      pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                    assetId:
+                      type: string
+                      description: Exchange asset ID (and name) of the LLM proxy. Must be unique within the organization and kebab-case.
+                      minLength: 1
+                    version:
+                      type: string
+                      description: Semantic version of the Exchange asset (e.g., `1.0.0`).
+                      pattern: '^\d+\.\d+\.\d+.*$'
+                instanceLabel:
+                  type: string
+                  nullable: true
+                  description: Optional user-defined label that identifies this API instance. Must be unique in the environment when set. Send `null` or omit the field when not needed.
+                  minLength: 1
+                technology:
+                  type: string
+                  description: Runtime technology hosting the proxy. Use `flexGateway` for LLM proxies. When omitted the server defaults to `mule3` which is NOT a valid runtime for LLM proxies — always set this explicitly.
+                  enum:
+                  - mule3
+                  - mule4
+                  - flexGateway
+                  - serviceMesh
+                approvalMethod:
+                  type: string
+                  nullable: true
+                  description: "Contract approval mode. `null` means automatic approval (the LLM proxy default); `\"manual\"` means consumers must request access and an API owner approves each contract."
+                  enum:
+                  - manual
+                providerId:
+                  type: string
+                  nullable: true
+                  description: UUID of the Client Provider (IDP) the proxy's Client ID Enforcement policy authenticates against. `null` uses the organization's default Anypoint IDP.
+                  pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                endpointUri:
+                  type: string
+                  nullable: true
+                  description: Optional public consumer URL (custom domain) displayed to consumers. Send `null` to use the Flex Gateway's computed endpoint URL.
+                  format: uri
+                endpoint:
+                  type: object
+                  description: Endpoint configuration. `type=llm` marks the instance as an LLM proxy.
+                  properties:
+                    type:
+                      type: string
+                      description: Endpoint type. Must be `llm` to mark this instance as an LLM proxy.
+                      enum:
+                      - llm
+                    proxyUri:
+                      type: string
+                      description: |-
+                        Internal proxy URI in the form `http://0.0.0.0:{port}/{basePath}`. The port must be one of the ports the chosen Flex Gateway target allows (query the deployment target or attempt creation to discover allowed ports — the server returns `Available ports: ...` in the error message when an unavailable port is used). The base path must begin with `/` and be unique for the gateway target + port combination.
+                      example: http://0.0.0.0:8081/my-llm-proxy
+                    deploymentType:
+                      type: string
+                      description: Deployment type. Must be `HY` (Hybrid) for Flex-Gateway-hosted LLM proxies.
+                      enum:
+                      - CH
+                      - HY
+                      - RF
+                      - SM
+                      - CH2
+                deployment:
+                  type: object
+                  description: Deployment configuration. Set at create time to deploy the proxy immediately onto the Flex Gateway target.
+                  properties:
+                    environmentId:
+                      type: string
+                      description: Environment ID (matches the URL path parameter).
+                      pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                    targetId:
+                      type: string
+                      description: Flex Gateway target ID (the `id` field of a gateway target row, not the underlying `targetId` cloud resource ID).
+                      pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                    targetName:
+                      type: string
+                      description: Human-readable target name (from the `name` field of the gateway target row). Sent alongside `targetId`.
+                    type:
+                      type: string
+                      description: Deployment type (must match `endpoint.deploymentType`).
+                      enum:
+                      - CH
+                      - HY
+                      - RF
+                      - SM
+                      - CH2
+                    expectedStatus:
+                      type: string
+                      description: Expected deployment status after creation. Use `deployed` to deploy immediately.
+                      enum:
+                      - deployed
+                      - undeployed
+                    overwrite:
+                      type: boolean
+                      description: Whether to overwrite an existing deployment on the same target. Typically `false`.
+                      default: false
+                    gatewayVersion:
+                      type: string
+                      description: Flex Gateway configuration version marker used by the backend (the Anypoint UI sends `1.0.0`).
+                routing:
+                  type: array
+                  description: |-
+                    Ordered list of routes. Each route binds a logical label (e.g., `Route A`, `Route B`) to one upstream and a header-based matching rule. Each upstream is declared inline with its full `llmConfigs` (provider, model, keys, fields, optional `promptTopicIDs` for semantic routing, and optional `format` for semantic routing). The server assigns upstream UUIDs on POST and returns them in the response; do NOT set `upstreams[].id` on the POST body.
+                  items:
+                    type: object
+                    required:
+                    - upstreams
+                    properties:
+                      label:
+                        type: string
+                        description: Human-readable route name used in fallback configuration and in response trace headers.
+                        example: Route A
+                      rules:
+                        type: object
+                        description: >-
+                          Route matching rules. Consumers NEVER send these headers directly — `x-routing-header` is the internal dispatch signal that the Model-Based Routing or Semantic Routing policy writes server-side after parsing the request. Set `headers.x-routing-header` to the upstream's provider label (e.g., `openai`, `gemini`). For model-based routing the routing policy reads the consumer's body `model` field and writes the header; for semantic routing it embeds the last user message and writes the header based on topic match.
+                        properties:
+                          headers:
+                            type: object
+                            additionalProperties:
+                              type: string
+                      upstreams:
+                        type: array
+                        minItems: 1
+                        items:
+                          type: object
+                          required:
+                          - weight
+                          properties:
+                            uri:
+                              type: string
+                              description: Upstream base URL. Use the provider's default from `listLlmRouteConfigurations` (e.g., `https://api.openai.com/v1/`).
+                              format: uri
+                            label:
+                              type: string
+                              description: Short provider label (e.g., `openai`, `gemini`). Matches `rules.headers.x-routing-header` of the enclosing route.
+                              minLength: 1
+                            weight:
+                              type: integer
+                              description: Load-balancing weight for this upstream within the route. When there is only one upstream per route (typical for LLM proxies), set to 100.
+                              minimum: 0
+                              maximum: 100
+                              default: 100
+                            llmConfigs:
+                              type: object
+                              description: |-
+                                LLM provider configuration for this upstream. Sent directly on each upstream on the POST body (not under a `metadata` wrapper); the upstream-level GET returns it wrapped as `metadata.llmConfigs`.
+                              required:
+                              - provider
+                              properties:
+                                provider:
+                                  type: string
+                                  description: Provider identifier from the `listLlmRouteConfigurations` catalog.
+                                  enum:
+                                  - openai
+                                  - gemini
+                                  - azureopenai
+                                  - bedrockanthropic
+                                  - nvidia
+                                model:
+                                  type: string
+                                  description: Target model name. When omitted the provider's default model is used (see `listLlmRouteConfigurations`).
+                                format:
+                                  type: string
+                                  description: Inbound request format the proxy accepts from consumers — set on each upstream for semantic-routing proxies (typically `openai` or `gemini`, matching the Exchange asset's `properties.platform`). Omit for model-based routing; the Anypoint UI does not send it on model-based proxies.
+                                keys:
+                                  type: object
+                                  description: |-
+                                    Provider-specific sensitive credential fields (static-key mode). Keys per provider:
+                                    - `openai` / `gemini` / `nvidia`: `{ key }`
+                                    - `azureopenai`: `{ apiKey }`
+                                    - `bedrockanthropic`: `{ awsAccessKeyId, awsSecretAccessKey, awsSessionToken? }`
+                                    Values are stored encrypted and never returned in plain text. Leave as `{}` when using DataWeave mode (see `fields` instead).
+                                  additionalProperties:
+                                    type: string
+                                fields:
+                                  type: object
+                                  description: |-
+                                    Non-sensitive provider-specific fields AND DataWeave selector fields for sensitive values.
+                                    Non-sensitive fields per provider:
+                                    - `azureopenai`: `deploymentId` (required for Chat Completions, optional for Responses API), optional `azureApiVersion`
+                                    - `bedrockanthropic`: `awsRegion` (required; one of 27 regions listed in the catalog)
+                                    - `openai` / `gemini` / `nvidia`: none
+                                    DataWeave selectors for sensitive values (in DataWeave key mode):
+                                    - `openai` / `gemini` / `nvidia`: `apiKeySelector`
+                                    - `azureopenai`: `apiKeySelector`
+                                    - `bedrockanthropic`: `awsAccessKeyIdSelector`, `awsSecretAccessKeySelector` (note: `awsSessionToken` has no DataWeave selector — static only)
+                                  additionalProperties:
+                                    type: string
+                                promptTopicIDs:
+                                  type: array
+                                  description: For semantic routing, the UUIDs of global prompt topics whose utterances represent content that should route to this upstream.
+                                  items:
+                                    type: string
+                                    pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                metadata:
+                  type: object
+                  description: API-level metadata controlling LLM routing strategy and optional semantic service binding.
+                  properties:
+                    globalRouting:
+                      type: object
+                      properties:
+                        llmConfigs:
+                          type: object
+                          required:
+                          - routingType
+                          properties:
+                            routingType:
+                              type: string
+                              description: Routing strategy. `model-based` routes by provider resolved from the request body's `model` field (the Model-Based Routing policy writes `x-routing-header` internally before route matching); `semantic-based` routes by semantic similarity against prompt topics (requires `metadata.semanticServiceConfigId` below).
+                              enum:
+                              - model-based
+                              - semantic-based
+                            fallbackModel:
+                              type: string
+                              description: Target model to use when the fallback route is triggered.
+                              example: gpt-4o-mini
+                            fallbackRoute:
+                              type: string
+                              description: Route label to use when no primary route matches (e.g., when the `model` prefix is unknown for model-based, or on a semantic threshold miss).
+                              example: Route A
+                            fallbackThreshold:
+                              type: number
+                              description: Minimum semantic similarity score (0.0 – 1.0) required to match a primary route. Scores below this threshold trigger the fallback route. Applies only to semantic routing; the Anypoint UI initializes it to 0.5.
+                              minimum: 0
+                              maximum: 1
+                              default: 0.5
+                            denyTopicIDs:
+                              type: array
+                              description: Optional array of Global Prompt Topic UUIDs that, when matched, block the request rather than routing it (used with the semantic prompt guard policy). Applies only to semantic routing; omit the key entirely when not using a deny list.
+                              items:
+                                type: string
+                                pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+                    semanticServiceConfigId:
+                      type: string
+                      description: UUID of the Semantic Service Configuration used for semantic routing. Required when `globalRouting.llmConfigs.routingType` is `semantic-based`; omit for model-based routing.
+                      pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      responses:
+        '201':
+          description: Success. Returns the created LLM proxy including its generated `id`, `endpointUri`, server-assigned upstream IDs inside `routing[].upstreams[].id` (note the API-instance GET shape returns `routing[].upstreams[]` as `{id, weight}` references only — fetch a single upstream via `/apis/{environmentApiId}/upstreams/{upstreamId}` to see `uri`, `label`, and `metadata.llmConfigs`), `deployment.id` (for status polling), and initial deployment status.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/environmentLlmProxy.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/gateway-targets/{targetId}/apis:
+    get:
+      description: Pre-check whether a given Flex Gateway target already hosts an API on the specified `port` + `path` combination. Returns an empty `instances` array when the combination is available, or the conflicting API instance(s) otherwise. Call this before `createEnvironmentLlmProxy` to surface an early, clear error to the user when the port+path is occupied. Also returns `targetAllowsPortSharing` indicating whether the gateway target supports multiple APIs listening on the same port with different base paths.
+      operationId: getGatewayTargetApisByPortAndPath
+      parameters:
+      - name: port
+        in: query
+        description: Port the Flex Gateway listens on for this proxy. Allowed ports are defined per gateway target (typical values are `8081` and `8082`).
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 65535
+      - name: path
+        in: query
+        description: 'Base path the Flex Gateway routes on this target (e.g., `/my-llm-proxy`).'
+        required: true
+        schema:
+          type: string
+          pattern: '^/.+'
+      responses:
+        '200':
+          description: Success. Returns `{ instances, targetAllowsPortSharing }`. `instances` is an array of conflicting API references (each with `id`, `port`, `path`) or empty when the port+path is available.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/gatewayTargetApis.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - name: targetId
+      in: path
+      required: true
+      description: UUID of the Flex Gateway target (the `id` field of a gateway target row).
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:api-portal-xapi
+        operation: getGatewayTargets
+        name: flexGatewayTarget
+        description: 'GET `/apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/gateway-targets`; each row''s `id` is the Flex Gateway target UUID. (Note: the live response wraps rows in a `rows[]` array.)'
+        values: $.rows[*].id
+        labels: $.rows[*].name
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/semantic-service-configs:
+    get:
+      description: List all Semantic Service Configurations in the environment. Each configuration binds an embedding provider (OpenAI or HuggingFace) and optional vector database (Qdrant, Pinecone, or Azure AI Search) for semantic routing and semantic prompt guarding. Returns summary-level details; use `getSemanticServiceConfig` for the full authKey + vectorDBConfig.
+      operationId: listSemanticServiceConfigs
+      responses:
+        '200':
+          description: Success. Returns a bare array of semantic service configuration summaries (each element has `id`, `label`, `provider`, `url`, `model`, `serviceType`).
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/semanticServiceConfigs.json
+    post:
+      description: Create a new Semantic Service Configuration. A configuration binds an embedding provider (OpenAI or HuggingFace) with an optional vector database (Qdrant, Pinecone, or Azure AI Search) used for storing prompt topic embeddings. `serviceType=basic` keeps topic embeddings inside the Flex Gateway's Semantic Routing policy configuration (the Anypoint UI documents a cap of about 6 topics and 10 utterances per topic for basic); `serviceType=advanced` scales via the configured vector DB.
+      operationId: createSemanticServiceConfig
+      requestBody:
+        required: true
+        description: Semantic service configuration payload.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - provider
+              - config
+              properties:
+                label:
+                  type: string
+                  description: Unique label for the configuration within the environment. Sent at the top level of the payload.
+                  minLength: 1
+                serviceType:
+                  type: string
+                  description: '`basic` for up to ~6 in-policy topics; `advanced` for scalable storage in an external vector DB.'
+                  enum:
+                  - basic
+                  - advanced
+                provider:
+                  type: string
+                  description: Embedding provider. The Anypoint UI's create screen only lets users select `openai` or `huggingface`; other values may appear on legacy SSCs but are not offered at creation.
+                  enum:
+                  - openai
+                  - huggingface
+                config:
+                  type: object
+                  required:
+                  - authKey
+                  - url
+                  properties:
+                    authKey:
+                      type: string
+                      description: API key for the embedding provider (OpenAI key or HuggingFace token). Validated live against the embedding provider at creation time; stored encrypted on success.
+                    url:
+                      type: string
+                      description: Embedding endpoint URL. The Anypoint UI defaults to `https://api.openai.com/v1/embeddings` for OpenAI and the HuggingFace router URL for HuggingFace.
+                      format: uri
+                      example: https://api.openai.com/v1/embeddings
+                    model:
+                      type: string
+                      description: Embedding model name (omit to use the provider's default).
+                      example: text-embedding-3-small
+                vectorDBConfig:
+                  type: object
+                  description: Vector database configuration. Required for `serviceType=advanced`; omit for `basic`.
+                  required:
+                  - provider
+                  - url
+                  - apiKey
+                  properties:
+                    provider:
+                      type: string
+                      description: Vector database provider.
+                      enum:
+                      - qdrant
+                      - pinecone
+                      - azure-ai-search
+                    url:
+                      type: string
+                      description: Vector database base URL.
+                      format: uri
+                    apiKey:
+                      type: string
+                      description: API key for the vector database.
+                    collection:
+                      type: string
+                      description: 'Collection name (Qdrant-specific).'
+                    indexName:
+                      type: string
+                      description: 'Index name (Azure AI Search-specific).'
+                    namespace:
+                      type: string
+                      description: 'Namespace (Pinecone-specific).'
+                globalTopics:
+                  type: array
+                  description: >-
+                    Array of Global Prompt Topic UUIDs to bind to this SSC at
+                    creation time. The Anypoint UI uses this when creating an
+                    `advanced` SSC alongside fresh topics — create the topics
+                    first (each with `semanticServiceConfigId: null`), then
+                    pass the resulting IDs here to bind them in one POST.
+                  items:
+                    type: string
+                    pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      responses:
+        '201':
+          description: |-
+            Success. Returns the created Semantic Service Configuration echoing every input field plus the server-generated `id`, `audit`, `masterOrganizationId`, `organizationId`, and `environmentId`. The `config.authKey` and `vectorDBConfig.apiKey` fields are returned in plain text on this create response (they are redacted on later GETs); treat the response body as sensitive.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/semanticServiceConfig.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/semantic-service-configs/{semanticServiceConfigId}:
+    get:
+      description: Retrieve the full details of a Semantic Service Configuration, including the embedding `authKey` and full `vectorDBConfig`. Used by the LLM proxy setup flow to display the current configuration for editing.
+      operationId: getSemanticServiceConfig
+      responses:
+        '200':
+          description: Success. Returns the full Semantic Service Configuration including the embedding authKey and vector database config.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/semanticServiceConfig.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/Path_semanticServiceConfigId'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/semantic-service-configs/{semanticServiceConfigId}/global-prompt-topics:
+    get:
+      description: List all Global Prompt Topics visible to a Semantic Service Configuration. Each topic is linked to one or more upstreams via `upstream.metadata.llmConfigs.promptTopicIDs`; this endpoint returns the full set of topics bound to proxies that use this SSC. The response is a bare array; each element contains `id`, `topicName`, and `utterances` (a plain newline-delimited string with `* ` bullet prefixes).
+      operationId: listGlobalPromptTopicsBySsc
+      responses:
+        '200':
+          description: Success. Returns a bare array of global prompt topics attached to the specified Semantic Service Configuration.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/globalPromptTopics.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/Path_semanticServiceConfigId'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/global-prompt-topics:
+    post:
+      description: >-
+        Create a Global Prompt Topic (a named set of utterances used by the semantic
+        routing policy to classify incoming prompts). Utterances are provided as a
+        plain newline-delimited string with bullet prefixes per utterance. The server
+        stores them and computes embeddings asynchronously against the associated
+        Semantic Service Configuration's embedding provider + vector DB. The POST
+        response shape differs from the list shape — on POST, the utterances field
+        is returned as a nested object containing a data array of utterance entries;
+        on list, it is returned as a plain string.
+      operationId: createGlobalPromptTopic
+      requestBody:
+        required: true
+        description: Global prompt topic payload.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - topicName
+              - utterances
+              properties:
+                topicName:
+                  type: string
+                  description: Human-readable topic name (e.g., `Finance`, `Code`, `Support`).
+                  minLength: 1
+                utterances:
+                  type: string
+                  description: Newline-delimited list of example prompts that represent the topic. Each line is a separate utterance (commonly prefixed with `* ` but any text is accepted). The semantic routing policy embeds each utterance and stores the vector in the configured vector DB for similarity search at runtime.
+                  minLength: 1
+                usedForDenyList:
+                  type: boolean
+                  description: Whether this topic is used as a deny-list topic (blocks matching prompts rather than routing them). Set `false` for routing topics; set `true` only when creating topics for the semantic prompt guard policy. The Anypoint UI always sends `false` on the SSC-create flow.
+                  default: false
+                semanticServiceConfigId:
+                  type: string
+                  nullable: true
+                  description: Pre-bind this topic to an existing SSC at creation time. The Anypoint UI's SSC-create flow sends `null` (topics are created first, unbound; then listed under the SSC's `globalTopics` on SSC creation). Pass an SSC UUID here when binding to an existing SSC directly.
+                  pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      responses:
+        '201':
+          description: >-
+            Success. Returns the created Global Prompt Topic with its generated
+            id, audit, masterOrganizationId, organizationId, environmentId, and
+            utterances wrapped as an object containing a data array of utterance
+            entries.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/globalPromptTopic.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+components:
+  schemas: {}
+  responses: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      name: organizationId
+      in: path
+      required: true
+      description: Organization ID (Business Group GUID) that owns the API instance or configuration.
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+    XOrigin_environmentId_Path:
+      name: environmentId
+      in: path
+      required: true
+      description: Environment ID in which the LLM proxy or configuration lives.
+      schema:
+        type: string
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+    Path_semanticServiceConfigId:
+      name: semanticServiceConfigId
+      in: path
+      required: true
+      description: UUID of the Semantic Service Configuration.
+      schema:
+        type: string
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      x-origin:
+      - api: urn:api:llm-proxy
+        operation: listSemanticServiceConfigs
+        name: semanticServiceConfig
+        description: 'GET `/apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/semantic-service-configs`; pick the Semantic Service Configuration `id`.'
+        values: $[*].id
+        labels: $[*].label
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login'
+    clientAuth:
+      type: oauth2
+      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token'
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  links: {}
+  callbacks: {}

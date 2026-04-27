@@ -8,6 +8,7 @@ required:
 properties:
   etag:
     type: string
+    
     description: The specific etag version; when ruleset is in development, etag indicates the version used in validation.
   uri:
     type: string
@@ -16,3 +17,4 @@ properties:
   version:
     type: string
     description: The specific version URI; same as uri when not using latest.
+    

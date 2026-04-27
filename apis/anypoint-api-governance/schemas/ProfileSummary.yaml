@@ -22,6 +22,7 @@ properties:
     type: array
     items:
       type: string
+      
     description: Tags associated with the profile (reserved for future use).
   status:
     type: string

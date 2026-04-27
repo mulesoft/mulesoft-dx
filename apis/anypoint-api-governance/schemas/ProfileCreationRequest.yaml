@@ -10,9 +10,11 @@ properties:
   name:
     type: string
     description: Profile name.
+    
   description:
     type: string
     description: Profile description.
+    
   org:
     type: string
     format: uuid
@@ -29,14 +31,17 @@ properties:
     type: array
     items:
       type: string
+      
     description: Not used.
   allowing:
     type: array
     items:
       type: string
+      
     description: Not used.
   rulesets:
     type: array
     description: Rulesets applied to filtered APIs (GAV identifiers).
     items:
-      $ref: './RulesetCreation.yaml'
+      type: string
+      pattern: '^gav://([^/\s]+)/([^/\s]+)/([^/\s]+)$'

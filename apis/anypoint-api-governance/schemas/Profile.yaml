@@ -20,9 +20,11 @@ properties:
     description: Profile version UUID.
   name:
     type: string
+    
     description: Profile name.
   description:
     type: string
+    
     description: Profile description.
   org:
     type: string
@@ -40,11 +42,13 @@ properties:
     type: array
     items:
       type: string
+      
     description: Not used.
   allowing:
     type: array
     items:
       type: string
+      
     description: Not used.
   rulesets:
     type: array

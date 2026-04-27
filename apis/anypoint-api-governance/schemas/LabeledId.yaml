@@ -8,6 +8,8 @@ properties:
   id:
     type: string
     description: The identifier.
+    
   label:
     type: string
     description: The human-readable label.
+    

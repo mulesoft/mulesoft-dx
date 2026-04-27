@@ -70,15 +70,19 @@ properties:
                   groupId:
                     description: Ruleset group ID.
                     type: string
+                    
                   assetId:
                     description: Ruleset asset ID.
                     type: string
+                    
                   version:
                     description: Ruleset version.
                     type: string
+                    
                   name:
                     description: Ruleset name.
                     type: string
+                    
               status:
                 type: string
                 description: |

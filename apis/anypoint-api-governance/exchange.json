@@ -3,12 +3,11 @@
   "name": "API Governance Experience API",
   "organizationId": "56e6f7c7-d59d-4ab1-845d-255d008049ad",
   "groupId": "56e6f7c7-d59d-4ab1-845d-255d008049ad",
-  "assetId": "governance-xapi-service",
+  "assetId": "properties",
   "version": "1.0.0",
   "apiVersion": "v1",
   "classifier": "oas",
   "dependencies": [],
-  "tags": [],
-  "originalFormatVersion": "3.0",
-  "descriptorVersion": "1.0.0"
+  "descriptorVersion": "1.0.0",
+  "tags": []
 }

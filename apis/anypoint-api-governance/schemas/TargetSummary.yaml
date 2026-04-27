@@ -25,6 +25,7 @@ properties:
   version:
     type: string
     description: API version.
+
   targetType:
     type: string
     description: The API type. Supported values are async-api, rest-api, http-api, mcp, agent, graphql, soap-api, grpc-api.

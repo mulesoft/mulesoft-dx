@@ -18,6 +18,7 @@ properties:
   version:
     type: string
     description: Asset version.
+    
   owner:
     $ref: './LabeledId.yaml'
     description: Asset owner (identifier and label).
@@ -50,9 +51,11 @@ properties:
     type: array
     items:
       type: string
+      
     description: Tags associated with the asset.
   categories:
     type: array
     items:
       type: string
+      
     description: Categories associated with the asset.

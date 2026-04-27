@@ -16,9 +16,49 @@ violation:
   - output-response-description
   - output-types-described
   - request-body-description
+  - path-environment-identifier
+  - path-organization-identifier
   #- schema-property-description
   #- schema-required-block
+warning:
+  - uri-parameter-x-origin
 validations:
+  path-environment-identifier:
+    message: |
+      Path parameter must be named 'environmentId' (not '{{core.name}}').
+    documentation: >
+      In path parameters, use the name `environmentId` for the environment
+      context. Do not use `envId` or `environment`.
+    targetClass: apiContract.Parameter
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.binding:
+              pattern: path
+      - not:
+          propertyConstraints:
+            core.name:
+              in:
+                - envId
+                - environment
+  path-organization-identifier:
+    message: |
+      Path parameter must be named 'organizationId' (not '{{core.name}}').
+    documentation: >
+      In path parameters, use the name `organizationId` for the organization
+      context. Do not use `orgId` or `organization`.
+    targetClass: apiContract.Parameter
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.binding:
+              pattern: path
+      - not:
+          propertyConstraints:
+            core.name:
+              in:
+                - orgId
+                - organization
   api-info-description:
     message: API info must have a non-empty description explaining the API's domain and purpose.
     documentation: >
@@ -79,13 +119,22 @@ validations:
 
       (naked strings) so that APIs and AI consumers have explicit allowed values.
     targetClass: shapes.ScalarShape
-    or:
-      - propertyConstraints:
-          shacl.in:
-            minCount: 1
-      - propertyConstraints:
-          shapes.format:
-            minCount: 1
+    if:
+      propertyConstraints:
+        shacl.datatype:
+          in:
+            - http://www.w3.org/2001/XMLSchema#string
+    then:
+      or:
+        - propertyConstraints:
+            shacl.in:
+              minCount: 1
+        - propertyConstraints:
+            shapes.format:
+              minCount: 1
+        - propertyConstraints:
+            shacl.pattern:
+              minCount: 1
   oas-only:
     message: API specification must be OpenAPI (OAS) 3.0 or 3.1, not RAML or OAS 2.0.
     documentation: >
@@ -223,3 +272,20 @@ validations:
               propertyConstraints:
                 shacl.minCount:
                   minInclusive: 1
+  uri-parameter-x-origin:
+    message: >
+      URI (path) parameter '{{core.name}}' must define the x-origin extension
+      (e.g. dynamic enum source: api, operation, values).
+    documentation: >
+      OpenAPI `x-origin` on path parameters documents how allowed values are
+      resolved (source API, operation, JSONPath for values/labels). Every path
+      parameter must include it.
+    targetClass: apiContract.Parameter
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.binding:
+              pattern: path
+      - propertyConstraints:
+          apiExt.origin:
+            minCount: 1

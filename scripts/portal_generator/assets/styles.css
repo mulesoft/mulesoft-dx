@@ -2654,12 +2654,12 @@ button.nav-group-header {
     font-size: var(--font-size-3);
 }
 
-.servers-list li::before {
+.server-url-row::before {
     content: '[ ';
     color: var(--color-neutral-8);
 }
 
-.servers-list li::after {
+.server-url-row::after {
     content: ' ]';
     color: var(--color-neutral-8);
 }
@@ -2697,11 +2697,15 @@ button.nav-group-header {
     font-size: var(--font-size-2);
 }
 
+.server-desc {
+    font-style: italic;
+}
+
 .badge-security {
     background: var(--color-primary);
     color: var(--color-white);
     padding: var(--space-xxx-small) var(--space-xx-small);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-large);
     font-family: var(--font-sans);
     font-size: var(--font-size-1);
     font-weight: var(--font-weight-semibold);

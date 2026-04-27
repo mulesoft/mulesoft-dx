@@ -11,6 +11,25 @@
     <div id="overview" class="skill-subsection">
         <div class="overview-header">
             <h2>Overview</h2>
+            <div class="overview-stats-panel">
+                <div class="stats-badge">Statistics</div>
+                <div class="stats-compact">
+                    <div class="stat-compact-item">
+                        <span class="stat-compact-value">{{ step_details|length }}</span>
+                        <span class="stat-compact-label">Step{{ 's' if step_details|length != 1 else '' }}</span>
+                    </div>
+                    <div class="stat-compact-item">
+                        <span class="stat-compact-value">{{ skill.api_refs|default([])|length }}</span>
+                        <span class="stat-compact-label">API{{ 's' if (skill.api_refs|default([])|length) != 1 else '' }}</span>
+                    </div>
+                    {% if skill.category %}
+                    <div class="stat-compact-item">
+                        <span class="stat-compact-value">{{ skill.category }}</span>
+                        <span class="stat-compact-label">Category</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         <div class="skill-view-markdown">
             {% if skill.overview_html %}

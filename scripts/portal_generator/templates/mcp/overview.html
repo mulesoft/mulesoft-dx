@@ -69,7 +69,7 @@
         <ul class="servers-list">
             {% for server in mcp.servers[:5] %}
             <li>
-                <code>{{ server.url }}</code>
+                <span class="server-url-row"><code>{{ server.url }}</code></span>
                 {% if server.description %}
                 <span class="server-desc">{{ server.description }}</span>
                 {% endif %}

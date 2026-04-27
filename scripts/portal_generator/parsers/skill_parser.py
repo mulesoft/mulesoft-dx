@@ -235,6 +235,7 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         return {
             'name': post.get('name', skill_path.parent.name),
             'description': post.get('description', '').strip(),
+            'category': (post.get('category') or '').strip() if isinstance(post.get('category'), str) else '',
             'tag_names': tag_names,
             'content': post.content,
             'content_html': _md.render(display_md),

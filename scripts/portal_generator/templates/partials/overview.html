@@ -29,7 +29,7 @@
             {% for server in api.servers[:3] %}
             {% if server is mapping %}
             <li>
-                <code>{{ server.url|default('') }}</code>
+                <span class="server-url-row"><code>{{ server.url|default('') }}</code></span>
                 {% if server.description %}
                 <span class="server-desc">{{ server.description }}</span>
                 {% endif %}

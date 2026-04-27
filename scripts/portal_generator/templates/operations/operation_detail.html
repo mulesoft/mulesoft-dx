@@ -79,7 +79,8 @@
                         {% set param_xorigin = x_origin(param) %}
                         {% set full_desc = param_desc ~ param_xorigin %}
                         {% set schema = param.schema|default({}) %}
-                        {% set has_constraints = schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined or schema.pattern is defined %}
+                        {% set has_default = schema.default is defined and schema.default is not none %}
+                        {% set has_constraints = schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined or schema.pattern is defined or has_default %}
                         {% set should_collapse = param_desc|should_collapse_description or has_constraints or param.get('x-origin') %}
                         <div class="param-item{% if should_collapse %} has-collapsible{% endif %}">
                             <div class="param-header">
@@ -100,11 +101,16 @@
                                 {% endif %}
                                 {% if has_constraints %}
                                 <div class="param-constraints">
-                                    {%- if schema.minimum is defined -%}min: {{ schema.minimum }}{%- endif -%}
-                                    {%- if schema.maximum is defined -%}{% if schema.minimum is defined %}, {% endif %}max: {{ schema.maximum }}{%- endif -%}
-                                    {%- if schema.minLength is defined -%}{% if schema.minimum is defined or schema.maximum is defined %}, {% endif %}minLength: {{ schema.minLength }}{%- endif -%}
-                                    {%- if schema.maxLength is defined -%}{% if schema.minLength is defined %}, {% endif %}maxLength: {{ schema.maxLength }}{%- endif -%}
-                                    {%- if schema.pattern is defined -%}{% if schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined %}, {% endif %}pattern: <code>{{ schema.pattern }}</code>{%- endif -%}
+                                    {%- set pw = namespace(any=false) -%}
+                                    {%- if has_default -%}
+                                        default: <code>{{ schema.default }}</code>
+                                        {%- set pw.any = true -%}
+                                    {%- endif -%}
+                                    {%- if schema.minimum is defined -%}{% if pw.any %}, {% endif %}min: {{ schema.minimum }}{% set pw.any = true %}{%- endif -%}
+                                    {%- if schema.maximum is defined -%}{% if pw.any %}, {% endif %}max: {{ schema.maximum }}{% set pw.any = true %}{%- endif -%}
+                                    {%- if schema.minLength is defined -%}{% if pw.any %}, {% endif %}minLength: {{ schema.minLength }}{% set pw.any = true %}{%- endif -%}
+                                    {%- if schema.maxLength is defined -%}{% if pw.any %}, {% endif %}maxLength: {{ schema.maxLength }}{% set pw.any = true %}{%- endif -%}
+                                    {%- if schema.pattern is defined -%}{% if pw.any %}, {% endif %}pattern: <code>{{ schema.pattern }}</code>{% set pw.any = true %}{%- endif -%}
                                 </div>
                                 {% endif %}
                                 {% if param.get('x-origin') %}

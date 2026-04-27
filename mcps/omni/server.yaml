@@ -7,9 +7,11 @@ tags:
   - name: Omni
     description: APIs related to the MuleSoft Omni platform, including core services, agent management, and tool integrations.
 
+definition:
+  path: ./mcp.yaml
+
 servers:
   - url: https://dev1.platform.mulesoft.com/mulesoft-omni/
     description: The development MuleSoft Omni API server
   - url: https://omni.mulesoft.com/
-    description: The production MuleSoft Omni API server
- 
+    description: The production MuleSoft Omni API server    

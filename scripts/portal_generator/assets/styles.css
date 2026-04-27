@@ -3198,6 +3198,20 @@ button.nav-group-header {
     /* max-width: 350px; */
 }
 
+/* Annotation badges (read-only / idempotent / open-world / destructive)
+   rendered inline with the MCP tool title. */
+.operation-title-badges {
+    display: inline-flex;
+    gap: var(--space-xs);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.operation-title-badges .badge {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-regular);
+}
+
 /* Paragraph-based parameters layout - Claude API style */
 .params-list {
     display: flex;

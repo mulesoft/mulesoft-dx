@@ -5,12 +5,16 @@ info:
   description: Manage access control, identity, and authorization for the Anypoint Platform. Create and configure organizations, environments, role-based access control (RBAC), teams, connected applications (OAuth clients), identity providers, and client credentials.
 servers:
 - url: https://anypoint.mulesoft.com/accounts/api
+  description: The server for the US region
 - url: https://eu1.anypoint.mulesoft.com/accounts/api
+  description: The server for the EU region 
 - url: https://{region}.platform.mulesoft.com/accounts/api
+  description: The server for a specific region
   variables:
     region:
       default: ca1
       description: Region identifier for the service endpoint.
+
 tags:
   - name: Access Management
     description: APIs for managing access control, identity, and authorization within the Anypoint Platform, including organizations, environments, RBAC, teams, connected applications, identity providers, and client credentials.

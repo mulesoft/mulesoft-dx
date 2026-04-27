@@ -9,7 +9,7 @@ capabilities:
   experimental: {}
 transport:
   kind: streamableHttp
-  path: /mcp
+  path: /mcp/
 tools:
   - name: login
     title: Login to Omni Platform

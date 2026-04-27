@@ -7,18 +7,19 @@
 {% from "operations/schema_table.html" import render_schema_table %}
 
 {% macro _schema_input(field_name, field_schema, required=false, path_prefix='', invocable_id='') %}
-{% set ptype = (field_schema.type if field_schema is mapping else 'string') or 'string' %}
-{% set description = field_schema.description if field_schema is mapping else '' %}
-{% set default_val = (field_schema.default if field_schema is mapping else '') %}
+{% set is_mapping = field_schema is mapping %}
+{% set display_type = field_schema._display_type if is_mapping and field_schema._display_type else ((field_schema.type if is_mapping else 'string') or 'string') %}
+{% set primary_type = field_schema._primary_type if is_mapping and field_schema._primary_type else (display_type.split(' | ')[0] if display_type else 'string') %}
+{% set description = field_schema.description if is_mapping else '' %}
+{% set default_val = (field_schema.default if is_mapping else '') %}
 {% if default_val is none %}{% set default_val = '' %}{% endif %}
-{% set examples = field_schema.examples if field_schema is mapping and field_schema.examples else [] %}
+{% set examples = field_schema.examples if is_mapping and field_schema.examples else [] %}
 {% set example_hint = examples[0] if examples else '' %}
 {% set data_path = (path_prefix ~ '.' if path_prefix else '') ~ field_name %}
 <div class="try-param-row">
     <label>
         <span class="param-name-wrapper">
-            <code>{{ field_name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:
-            <code class="param-type-inline">{{ ptype }}</code>
+            <code>{{ field_name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:&nbsp;<code class="param-type-inline">{{ display_type }}</code>
         </span>
         {% if description %}
         <span class="param-info-wrapper" data-tooltip="{{ description }}">
@@ -26,32 +27,32 @@
         </span>
         {% endif %}
     </label>
-    {% if field_schema is mapping and field_schema.enum %}
-    <select data-mcp-arg="{{ data_path }}" data-type="{{ ptype }}"{% if required %} required{% endif %}>
+    {% if is_mapping and field_schema.enum %}
+    <select data-mcp-arg="{{ data_path }}" data-type="{{ primary_type }}"{% if required %} required{% endif %}>
         {% for opt in field_schema.enum %}
         <option value="{{ opt }}"{% if opt|string == default_val|string %} selected{% endif %}>{{ opt }}</option>
         {% endfor %}
     </select>
-    {% elif ptype in ('object', 'array') %}
-    {% set example_json = field_schema._example_json if field_schema is mapping else '' %}
+    {% elif primary_type in ('object', 'array') %}
+    {% set example_json = field_schema._example_json if is_mapping else '' %}
     {% set initial = default_val|tojson if default_val else example_json %}
     <div id="mcp-arg-{{ invocable_id }}-{{ data_path|replace('.', '-') }}"
          class="try-request-editor-cm"
          data-mcp-arg="{{ data_path }}"
-         data-type="{{ ptype }}"
+         data-type="{{ primary_type }}"
          data-content-type="application/json"
          data-example-body="{{ initial|e }}"></div>
-    {% elif ptype == 'boolean' %}
+    {% elif primary_type == 'boolean' %}
     <select data-mcp-arg="{{ data_path }}" data-type="boolean"{% if required %} required{% endif %}>
         <option value=""{% if default_val == '' %} selected{% endif %}></option>
         <option value="true"{% if default_val|string == 'True' or default_val|string == 'true' %} selected{% endif %}>true</option>
         <option value="false"{% if default_val|string == 'False' or default_val|string == 'false' %} selected{% endif %}>false</option>
     </select>
     {% else %}
-    <input type="{% if ptype in ('integer', 'number') %}number{% else %}text{% endif %}"
+    <input type="{% if primary_type in ('integer', 'number') %}number{% else %}text{% endif %}"
            data-mcp-arg="{{ data_path }}"
-           data-type="{{ ptype }}"
-           placeholder="{{ example_hint or ptype }}"
+           data-type="{{ primary_type }}"
+           placeholder="{{ example_hint or display_type }}"
            value="{{ default_val }}"
            {% if required %}required{% endif %}>
     {% endif %}
@@ -69,11 +70,12 @@
 {% endif %}
 {% endmacro %}
 
-{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, extra_badges='') %}
+{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='') %}
 <div class="operation-title-header">
     <h3 class="operation-title">
         {{ display_name }}
         <span class="operation-id-inline">{{ invocable_name }}</span>
+        {% if title_badges %}<span class="operation-title-badges">{{ title_badges|safe }}</span>{% endif %}
     </h3>
 </div>
 
@@ -81,7 +83,6 @@
     <div class="operation-title-row">
         <span class="method {{ method_class }}">{{ kind_label }}</span>
         <code class="operation-url-bar">{{ invocable_name }}</code>
-        {{ extra_badges|safe }}
     </div>
 </div>
 {% endmacro %}
@@ -138,8 +139,12 @@
 {% macro render_tool(tool, icons_path='../assets/icons') %}
 {% set tool_id = 'tool-' ~ tool.name %}
 {% set extra = [] %}
-{% if tool.annotations and tool.annotations.readOnlyHint %}{% set _ = extra.append('<span class="badge badge-security">read-only</span>') %}{% endif %}
-{% if tool.annotations and tool.annotations.destructiveHint %}{% set _ = extra.append('<span class="badge badge-deprecated">destructive</span>') %}{% endif %}
+{% if tool.annotations %}
+    {% if tool.annotations.readOnlyHint %}{% set _ = extra.append('<span class="badge badge-security">read-only</span>') %}{% endif %}
+    {% if tool.annotations.destructiveHint %}{% set _ = extra.append('<span class="badge badge-deprecated">destructive</span>') %}{% endif %}
+    {% if tool.annotations.idempotentHint %}{% set _ = extra.append('<span class="badge badge-security">idempotent</span>') %}{% endif %}
+    {% if tool.annotations.openWorldHint %}{% set _ = extra.append('<span class="badge badge-security">open-world</span>') %}{% endif %}
+{% endif %}
 <section id="{{ tool_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="tool"

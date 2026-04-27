@@ -1,8 +1,40 @@
+{# ---------------------------------------------------------------------------
+   Render the type string for a JSON Schema / OAS schema node.
+   Collapses anyOf / oneOf / `type: [T, 'null']` into "T1 | T2" form so union
+   types read naturally in the description page.
+   --------------------------------------------------------------------------- #}
+{% macro _type_string(schema) %}
+{%- if schema is mapping -%}
+    {%- if schema.anyOf or schema.oneOf -%}
+        {%- set branches = schema.anyOf or schema.oneOf -%}
+        {%- set parts = [] -%}
+        {%- for b in branches -%}
+            {%- set t = _type_string(b) -%}
+            {%- if t %}{% set _ = parts.append(t) %}{% endif -%}
+        {%- endfor -%}
+        {{ parts|join(' | ') }}
+    {%- elif schema.type is iterable and schema.type is not string -%}
+        {%- set parts = [] -%}
+        {%- for t in schema.type -%}{% if t %}{% set _ = parts.append(t|string) %}{% endif %}{%- endfor -%}
+        {{ parts|join(' | ') }}
+    {%- else -%}
+        {%- set ptype = schema.type|default('') -%}
+        {%- set fmt = schema.format|default('') -%}
+        {%- if ptype == 'array' and schema.items is mapping -%}
+            {%- set inner = _type_string(schema.items) -%}
+            array[{{ inner or 'object' }}]
+        {%- else -%}
+            {%- if fmt %}{% set ptype = (ptype ~ '(' ~ fmt ~ ')') if ptype else fmt %}{% endif -%}
+            {%- if schema.nullable %}{% set ptype = (ptype ~ ' | null') if ptype else 'null' %}{% endif -%}
+            {{ ptype }}
+        {%- endif -%}
+    {%- endif -%}
+{%- endif -%}
+{% endmacro %}
+
 {% macro param_type(schema) %}
 {% if schema %}
-{% set ptype = schema.type|default('') %}
-{% set fmt = schema.format|default('') %}
-{% if fmt %}{% set ptype = ptype ~ '(' ~ fmt ~ ')' %}{% endif %}
+{% set ptype = _type_string(schema)|trim %}
 {% if ptype %}<code class="param-type">{{ ptype }}</code>{% endif %}
 {% if schema.enum %}
 <span class="param-constraint">Enum: {% for v in schema.enum %}<code>{{ v }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</span>
@@ -24,9 +56,7 @@
 
 {% macro param_type_simple(schema) %}
 {% if schema %}
-{% set ptype = schema.type|default('') %}
-{% set fmt = schema.format|default('') %}
-{% if fmt %}{% set ptype = ptype ~ '(' ~ fmt ~ ')' %}{% endif %}
+{% set ptype = _type_string(schema)|trim %}
 {% if ptype %}<code class="param-type">{{ ptype }}</code>{% endif %}
 {% endif %}
 {% endmacro %}

@@ -158,6 +158,55 @@ class TestParseMcp:
         data = parse_mcp(d)
         assert data['private'] is True
 
+    def test_union_type_rendered_as_pipe(self, tmp_path):
+        d = tmp_path / 'union'
+        d.mkdir()
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            transport:
+              kind: streamableHttp
+              path: /mcp
+            tools:
+              - name: withUnion
+                inputSchema:
+                  type: object
+                  properties:
+                    name:
+                      anyOf:
+                        - type: string
+                        - type: 'null'
+                      default: alice
+                    state:
+                      type: [string, 'null']
+                  required: [name]
+        """))
+        data = parse_mcp(d)
+        tool = data['tools'][0]
+        props = tool['inputSchema']['properties']
+        assert props['name']['_display_type'] == 'string | null'
+        assert props['name']['_primary_type'] == 'string'
+        assert props['name']['default'] == 'alice'
+        assert props['state']['_display_type'] == 'string | null'
+
+    def test_default_propagates_to_input_properties(self, tmp_path):
+        d = tmp_path / 'defaults'
+        d.mkdir()
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            transport:
+              kind: streamableHttp
+              path: /mcp
+            tools:
+              - name: withDefaults
+                inputSchema:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      default: 20
+        """))
+        data = parse_mcp(d)
+        prop = data['tools'][0]['_input_properties'][0]
+        assert prop['schema']['default'] == 20
+
     def test_missing_optional_sections_default_to_empty(self, tmp_path):
         d = tmp_path / 'minimal'
         d.mkdir()

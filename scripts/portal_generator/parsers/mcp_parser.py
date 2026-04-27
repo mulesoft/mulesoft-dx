@@ -88,7 +88,24 @@ def _example_from_schema(schema: Any, depth: int = 0) -> Any:
     if isinstance(schema.get('enum'), list) and schema['enum']:
         return schema['enum'][0]
 
+    # anyOf / oneOf: try each branch, skipping 'null' branches first.
+    for key in ('anyOf', 'oneOf'):
+        branches = schema.get(key)
+        if isinstance(branches, list) and branches:
+            non_null = [b for b in branches if not (isinstance(b, dict) and b.get('type') == 'null')]
+            for branch in non_null or branches:
+                sample = _example_from_schema(branch, depth + 1)
+                if sample is not None:
+                    return sample
+            return None
+
     ptype = schema.get('type')
+    # Draft-style `type: [string, 'null']` — pick the first non-null entry.
+    if isinstance(ptype, list):
+        for candidate in ptype:
+            if candidate and candidate != 'null':
+                return _example_from_schema({**schema, 'type': candidate}, depth + 1)
+        return None
     if ptype == 'object':
         props = schema.get('properties') or {}
         result: Dict[str, Any] = {}
@@ -120,11 +137,36 @@ def _example_from_schema(schema: Any, depth: int = 0) -> Any:
     return None
 
 
-def _attach_complex_examples(schema: Any) -> None:
-    """Mutate the schema so complex properties carry a ``_example_json`` field.
+def _primary_type(schema: Any) -> str:
+    """Pick the concrete type to render an input control for.
 
-    The detail-page macro reads ``_example_json`` to pre-populate the textarea
-    for object/array parameters so users see a skeleton instead of an empty box.
+    For ``anyOf``/``oneOf`` or ``type: [T, 'null']`` unions, returns the first
+    non-null branch type. Falls back to 'string' when nothing else fits.
+    """
+    if not isinstance(schema, dict):
+        return 'string'
+    for key in ('anyOf', 'oneOf'):
+        branches = schema.get(key)
+        if isinstance(branches, list):
+            for b in branches:
+                if isinstance(b, dict) and b.get('type') and b.get('type') != 'null':
+                    return str(b['type'])
+    t = schema.get('type')
+    if isinstance(t, list):
+        for candidate in t:
+            if candidate and candidate != 'null':
+                return str(candidate)
+        return 'string'
+    return str(t) if t else 'string'
+
+
+def _attach_input_hints(schema: Any) -> None:
+    """Mutate the schema so each property carries render hints used by the UI.
+
+    Adds:
+      - ``_display_type``: union-aware type label (e.g. 'string | null').
+      - ``_primary_type``: concrete type for the input control.
+      - ``_example_json``: pretty-printed JSON example for object/array inputs.
     """
     if not isinstance(schema, dict):
         return
@@ -134,29 +176,51 @@ def _attach_complex_examples(schema: Any) -> None:
     for name, subschema in props.items():
         if not isinstance(subschema, dict):
             continue
-        ptype = subschema.get('type')
-        if ptype in ('object', 'array') and '_example_json' not in subschema:
+        subschema.setdefault('_display_type', _schema_type(subschema))
+        subschema.setdefault('_primary_type', _primary_type(subschema))
+        primary = subschema['_primary_type']
+        if primary in ('object', 'array') and '_example_json' not in subschema:
             sample = _example_from_schema(subschema)
             if sample is not None:
                 try:
                     subschema['_example_json'] = json.dumps(sample, indent=2)
                 except (TypeError, ValueError):
                     pass
+        # Recurse into nested object properties so deep unions still render.
+        if primary == 'object':
+            _attach_input_hints(subschema)
 
 
 def _schema_type(schema: Dict) -> str:
-    """Produce a short human-readable type string for a JSON Schema node."""
+    """Produce a short human-readable type string for a JSON Schema node.
+
+    Collapses ``anyOf`` / ``oneOf`` unions and JSON-Schema-draft-style
+    ``type: [string, 'null']`` lists into ``"T1 | T2"`` form.
+    """
     if not isinstance(schema, dict):
         return ''
+
+    # Union via anyOf / oneOf
+    for key in ('anyOf', 'oneOf'):
+        branches = schema.get(key)
+        if isinstance(branches, list) and branches:
+            parts = [p for p in (_schema_type(b) for b in branches) if p]
+            if parts:
+                return ' | '.join(parts)
+
+    # Union via type: [string, 'null']
     t = schema.get('type', '')
+    if isinstance(t, list):
+        return ' | '.join(str(x) for x in t if x) or 'object'
+
     fmt = schema.get('format')
     if fmt:
         t = f"{t} ({fmt})" if t else fmt
     if t == 'array' and isinstance(schema.get('items'), dict):
-        items_type = schema['items'].get('type', 'object')
-        return f"array[{items_type}]"
+        items_type = _schema_type(schema['items'])
+        return f"array[{items_type or 'object'}]"
     if schema.get('nullable'):
-        t = (t + ', nullable') if t else 'nullable'
+        t = (t + ' | null') if t else 'null'
     return t or 'object'
 
 
@@ -318,7 +382,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         tool_copy = dict(tool)
         tool_copy['_display_name'] = _tool_display_name(tool_copy)
         input_schema = tool_copy.get('inputSchema') or {}
-        _attach_complex_examples(input_schema)
+        _attach_input_hints(input_schema)
         tool_copy['_input_properties'] = _schema_to_properties(input_schema)
         tool_copy['_output_properties'] = _schema_to_properties(tool_copy.get('outputSchema') or {})
         tools.append(tool_copy)

@@ -2028,6 +2028,9 @@ function __mcpCollectArgs(section) {
     // Supports dotted paths (e.g. payload.name) to build nested objects.
     // For object/array args the element is a div hosting an ACE editor rather
     // than an <input>, so read the editor's value via getCodeMirrorEditor.
+    // If the editor hasn't hydrated yet (e.g. Copy cURL clicked before
+    // initCodeMirrorEditors ran), fall back to the pre-rendered example
+    // stored on data-example-body so the payload isn't silently empty.
     var args = {};
     var inputs = section.querySelectorAll('[data-mcp-arg]');
     inputs.forEach(function(input) {
@@ -2036,7 +2039,11 @@ function __mcpCollectArgs(section) {
         var raw;
         if (input.tagName === 'DIV') {
             var editor = getCodeMirrorEditor(input.id);
-            raw = editor ? editor.getValue() : '';
+            if (editor) {
+                raw = editor.getValue();
+            } else {
+                raw = input.getAttribute('data-example-body') || '';
+            }
         } else {
             raw = input.value;
         }
@@ -2224,7 +2231,7 @@ async function sendMcpRequest(invocableId, buttonEl) {
         if (responseBody) {
             createReadOnlyAceEditor(
                 responseBody,
-                'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py',
+                'Cannot reach proxy at ' + PROXY_URL,
                 'text'
             );
         }
@@ -3933,7 +3940,7 @@ async function sendRequest(opId, buttonEl) {
         }
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
         if (responseBody) {
-            createReadOnlyAceEditor(responseBody, 'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py', 'text');
+            createReadOnlyAceEditor(responseBody, 'Cannot reach proxy at ' + PROXY_URL + '.\n\n  python3 scripts/proxy_server.py', 'text');
         }
         if (responseDiv) responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -6789,7 +6796,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
         if (rightPanel) rightPanel.setAttribute('open', '');
         setWfStepStatus(skillSlug, stepIndex, 'error');
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
-        if (responseBodyEl) responseBodyEl.textContent = 'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py';
+        if (responseBodyEl) responseBodyEl.textContent = 'Cannot reach proxy at ' + PROXY_URL + '.';
     }
 }
 

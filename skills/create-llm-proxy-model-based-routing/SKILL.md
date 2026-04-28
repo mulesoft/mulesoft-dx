@@ -269,7 +269,17 @@ inputs:
 
   properties.platform:
     userProvided: true
-    description: Inbound request format (the OpenAI-format API the consumer calls). Set to `openai` or `gemini` — lowercase.
+    description: |-
+      Inbound request format the consumer calls — the API shape consumers will
+      send (independent of which providers the upstreams route to). Set to
+      `openai` or `gemini`, lowercase.
+
+      If the user hasn't expressed a preference, default to `openai`: it's the
+      universal client format, supports all five upstream providers via
+      transcoding, and supports both `/chat/completions` and `/responses`
+      consumer subpaths. Pick `gemini` only when the user explicitly wants
+      consumers to send Gemini-format bodies — note that Gemini-format proxies
+      are also single-route (one upstream only).
     example: openai
     required: true
 
@@ -455,7 +465,16 @@ inputs:
 
   metadata.globalRouting.llmConfigs.fallbackRoute:
     userProvided: true
-    description: Label of the route to use when no primary `model` prefix matches a configured provider (e.g., `Route A`). Recommended — configure one for every multi-route proxy.
+    description: |-
+      Label of the route to use when no primary `model` prefix matches a
+      configured provider. Recommended — configure one for every multi-route
+      proxy.
+
+      Important: the value MUST be one of the route `label` strings you set in
+      `routing[].label` above, character-for-character. Don't ask the user for
+      a free-text answer — pick from the route labels you just constructed.
+      Mismatched labels are silently accepted by the server, but at runtime
+      fallback never triggers and traffic with unknown providers fails.
     example: Route A
     required: false
 
@@ -478,9 +497,17 @@ outputs:
   - name: publicProxyUri
     path: $.endpointUri
     description: Public Flex Gateway URL consumers call. Populated once the Flex Gateway registers the proxy; may be empty on the immediate POST response.
+  - name: modelPrefixes
+    path: $.routing[*].rules.headers.x-routing-header
+    description: |-
+      The provider prefix values consumers must use as `<prefix>/<model>` in the
+      request body's `model` field (e.g., `openai/gpt-4o-mini`,
+      `gemini/gemini-2.5-flash`). Capture these and surface them to the user so
+      they know what to send. Without a matching prefix, requests are routed to
+      the configured fallback (or 400 if no fallback is configured).
 ```
 
-**What happens next:** The proxy API instance is created with server-assigned upstream UUIDs. Deployment to the Flex Gateway starts asynchronously. Next, poll the deployment status (Step 8) to wait for the proxy to become live.
+**What happens next:** The proxy API instance is created with server-assigned upstream UUIDs. Deployment to the Flex Gateway starts asynchronously. Next, poll the deployment status (Step 8) to wait for the proxy to become live. After the proxy is live, surface the captured `modelPrefixes` to the user — they need these values to construct valid `model` field values when calling the proxy (e.g., if the prefixes are `openai` and `gemini`, valid `model` values include `"openai/gpt-4o-mini"`, `"gemini/gemini-2.5-flash"`, etc.).
 
 **Common issues:**
 - **`Ids are not allowed in POST ...`**: You included `id` under `routing[].upstreams[]`. Remove it — the server generates upstream IDs.
@@ -566,6 +593,7 @@ outputs:
 ### Credential injection
 - **Static keys** are simplest but mean all consumers share the same provider quota. Stored encrypted on the upstream via `llmConfigs.keys.<keyName>` (e.g., `keys.key` for OpenAI/Gemini/NVIDIA, `keys.apiKey` for Azure OpenAI, `keys.awsAccessKeyId` + `keys.awsSecretAccessKey` for Bedrock).
 - **DataWeave expressions** (e.g., `#[attributes.headers['x-openai-key']]`) let each consumer bring their own provider key, keeping billing and quota separation clean. These go into `llmConfigs.fields.<selectorName>` (e.g., `fields.apiKeySelector`, `fields.awsAccessKeyIdSelector`, `fields.awsSecretAccessKeySelector`). Note that Bedrock's `awsSessionToken` is static-only — it has no DataWeave selector.
+- **Mixed mode is allowed per upstream** — modes are chosen per upstream, not per proxy. So one proxy can have OpenAI on a static key (for an internal team that shares a provider quota) AND Gemini on DataWeave (for external consumers who bring their own key). Each upstream's `llmConfigs.keys` and `llmConfigs.fields` are independent, e.g., upstream A may have `keys: { key: "sk-..." }` while upstream B has `keys: {}` and `fields: { apiKeySelector: "#[attributes.headers['x-gemini-key']]" }`.
 
 ### Naming
 - `assetId` must be kebab-case, lowercase, and unique in the organization. Pick something descriptive (e.g., `public-chat-llm-proxy`).

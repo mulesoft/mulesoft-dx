@@ -232,6 +232,12 @@ outputs:
 
 **What happens next:** The policy is active within seconds. Calls to the proxy that exceed the quota receive HTTP 429. Consumers can inspect the remaining budget via the `x-ratelimit-remaining-tokens` and `x-ratelimit-reset-tokens` response headers (added by the LLM Proxy Core Policy).
 
+**Verifying the policy is enforcing.** After ~30 seconds for gateway propagation, make one test call to the proxy with valid credentials and a small request body, then look at the response headers:
+
+- `x-llm-proxy-ratelimit: "Token rate limit: <remaining> tokens remaining of <limit> limit. Reset in <ms>ms."` — present means the policy is live and counting.
+- Header **absent** on a successful 200 response means the gateway hasn't picked up the policy config yet — wait another 30 seconds and retry. If still absent after 90 seconds, suspect the policy didn't apply correctly (re-list policies on the proxy via `listOrganizationsEnvironmentsApisPolicies` and confirm `llm-token-rate-limit` shows up).
+- If the verbose header is present but the consumer expects to see standard `x-ratelimit-*` headers, those only appear on 429 responses (when the bucket is empty). 200 responses get the verbose `x-llm-proxy-ratelimit` instead.
+
 **Note on per-upstream (outbound) policies:** The policy POST endpoint also accepts an optional `upstreamId` field on the body when applying per-upstream (outbound) policies. `llm-token-rate-limit` is an inbound policy and does not use `upstreamId`; omit that field.
 
 **Common issues:**

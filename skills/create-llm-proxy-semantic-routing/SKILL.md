@@ -105,6 +105,13 @@ Create one Global Prompt Topic per semantic bucket you want to route on. Topics 
 
 Repeat once per topic (typically 2–10; the Anypoint UI hard-caps at 100).
 
+**Eliciting utterances from the user.** Each topic needs ~5–20 example user prompts that represent the kind of traffic that should route to that topic. If the user hasn't pre-supplied utterances:
+
+- For each named topic (e.g., `Finance`, `Code`, `Support`), prompt: *"What are some example user prompts that should route to the `<topic name>` topic? Aim for 5–10 diverse phrasings that cover the kinds of questions, commands, or statements you'd expect."*
+- Encourage variety in phrasing, length, and formality — *"Calculate compound interest"*, *"Help me figure out my mortgage payment"*, *"What's the difference between stocks and bonds?"* are better than three slight rewordings of the same sentence.
+- Don't accept fewer than 5 utterances per topic — semantic routing degrades quickly below that.
+- Don't accept utterances that overlap heavily across topics — if *"How do I write a SQL query"* could plausibly belong to both `Code` and `Database`, ask the user which topic owns it.
+
 **Endpoint selection for basic vs advanced SSCs:** The Anypoint UI uses **two different endpoints** depending on the SSC's `serviceType`:
 
 - **`advanced` SSC** → `POST /apimanager/xapi/v1/organizations/:orgId/environments/:envId/global-prompt-topics` (this step). Topics are environment-scoped and bound to the SSC via `SSC.globalTopics[]` on SSC create.

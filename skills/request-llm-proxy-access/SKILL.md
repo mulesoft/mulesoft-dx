@@ -167,6 +167,13 @@ outputs:
 
 Bind the application to the LLM proxy via the API Manager REST API (`POST /apimanager/api/v1/organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/contracts`). The request body schema (`contractPOST.json`) requires `applicationId` and accepts optional `requestedTierId` and `requestAccessInfo.reason`. For LLM proxies created with `approvalMethod: null` (automatic, the default) and no SLA tiers, the contract auto-approves immediately.
 
+**Before posting, check whether the proxy has SLA tiers configured.** If it does, the contract POST will return `400 "tier required"` unless `requestedTierId` is set. To avoid that, list tiers first via the API Manager `listOrganizationsEnvironmentsApisTiers` operation (`GET /apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{apiVersionId}/tiers`):
+
+- If the response is empty, no tiers are configured — proceed without `requestedTierId`.
+- If the response contains tiers, surface them to the user (showing each tier's name, description, and limits) and let them pick. Pass the chosen tier's `id` as `requestedTierId` below.
+
+Tiered LLM proxies are uncommon (LLM proxies usually rate-limit by tokens, not requests), but it does happen — better to discover the tiers explicitly than recover from a 400.
+
 **What you'll need:**
 - Organization ID, Environment ID, `environmentApiId` from earlier steps
 - `applicationId` from Step 4
@@ -246,9 +253,17 @@ outputs:
 
 ## Next Steps
 
-1. **Test the credentials** — call the LLM proxy's public URL with the two auth headers and an OpenAI-format request body. The gateway picks which upstream to call from the body's `model` field (see below), NOT from any user-supplied routing header. The subpath is the standard OpenAI API subpath: `/chat/completions` for Chat Completions, `/responses` for the Responses API, etc. For DataWeave-injected provider keys, additionally pass the header the upstream expects (e.g., `x-openai-key`).
+1. **Test the credentials** — call the LLM proxy's public URL with the two auth headers and an OpenAI-format request body. The gateway picks which upstream to call from the body's `model` field (see below), NOT from any user-supplied routing header. For DataWeave-injected provider keys, additionally pass the header the upstream expects (e.g., `x-openai-key`).
+
+   **Subpath choice.** The proxy exposes two OpenAI-compatible subpaths under its base path:
+
+   - **`/chat/completions`** — universal, works for every supported upstream provider via the per-provider transcoding policies. **Default to this** unless you have a specific reason not to.
+   - **`/responses`** — OpenAI's Responses API. Works when the resolved upstream is OpenAI; the transcoding policies for other providers (Gemini, Bedrock, etc.) don't currently translate `/responses` semantics, so a `/responses` call routed to a non-OpenAI upstream may fail. If the proxy might route to anything other than OpenAI, use `/chat/completions`.
+
+   **What to put in `model`.** The proxy's valid `model` prefixes are determined when it was created — they're whatever was set as each route's `rules.headers.x-routing-header`. To discover them on an existing proxy, fetch it via `listEnvironmentLlmProxies` and read `routing[*].rules.headers.x-routing-header` (those are the valid prefixes). Then construct `"<prefix>/<model>"` — e.g., if the prefixes are `openai` and `gemini`, valid `model` values include `"openai/gpt-4o-mini"`, `"gemini/gemini-2.5-flash"`, etc. The proxy rewrites the model to its upstream's configured target before forwarding, so the `<model>` portion just has to be plausible — the *prefix* is what determines routing.
 
 ```bash
+# Universal example — works for all upstream providers
 curl -X POST 'https://<gateway-domain>/<proxy-base-path>/chat/completions' \
   -H 'Content-Type: application/json' \
   -H 'client_id: <clientId>' \
@@ -258,9 +273,9 @@ curl -X POST 'https://<gateway-domain>/<proxy-base-path>/chat/completions' \
 ```
 
 **How model-based routing selects the provider:**
-- **Explicit**: `"model": "<provider>/<model>"` — e.g., `"openai/gpt-4o-mini"`, `"gemini/gemini-3-flash-preview"`. The `<provider>` prefix must match one of the proxy's `supportedVendors`.
+- **Explicit**: `"model": "<provider>/<model>"` — e.g., `"openai/gpt-4o-mini"`, `"gemini/gemini-2.5-flash"`. The `<provider>` prefix must match one of the proxy's route `x-routing-header` values.
 - **Inferred**: `"model": "<model>"` without a provider prefix — works only if the model name maps unambiguously to a single supported vendor (or there's only one vendor configured).
-- **Fallback**: if the provider in `model` isn't supported, the request falls back to the proxy's configured fallback provider + model (`metadata.globalRouting.llmConfigs.fallbackRoute` + `fallbackModel`).
+- **Fallback**: if the provider in `model` isn't supported, the request falls back to the proxy's configured fallback provider + model (`metadata.globalRouting.llmConfigs.fallbackRoute` + `fallbackModel`). Without a fallback configured, the routing policy returns a 400.
 
 The routing policy rewrites the request body's `model` field to the resolved target model and sets an internal `x-routing-header` header before dispatching.
 

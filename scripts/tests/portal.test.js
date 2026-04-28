@@ -60,7 +60,7 @@ function cleanupServerElements() {
 function withServerType(type, region, fn) {
     cleanupServerElements();
     makeSelect('serverSelect', type);
-    if (type === 'platform' && region) {
+    if ((type === 'platform' || type === 'eu') && region) {
         makeSelect('regionPreset', region);
     }
     try {
@@ -118,9 +118,15 @@ describe('getSelectedBaseUrl', () => {
         expect(getSelectedBaseUrl()).toBe('https://anypoint.mulesoft.com');
     });
 
-    test('returns EU base URL when EU selected', () => {
+    test('returns EU base URL with eu1 default when EU selected', () => {
         withServerType('eu', null, () => {
             expect(getSelectedBaseUrl()).toBe('https://eu1.anypoint.mulesoft.com');
+        });
+    });
+
+    test('returns EU base URL with custom region when EU selected with region', () => {
+        withServerType('eu', 'eu2', () => {
+            expect(getSelectedBaseUrl()).toBe('https://eu2.anypoint.mulesoft.com');
         });
     });
 
@@ -181,7 +187,11 @@ describe('getNonRegionVars', () => {
 // ===========================================================================
 describe('pickServerTemplate', () => {
     const usServer = { url: 'https://anypoint.mulesoft.com/api/v1' };
-    const euServer = { url: 'https://eu1.anypoint.mulesoft.com/api/v1' };
+    const euServer = {
+        url: 'https://{region}.anypoint.mulesoft.com/api/v1',
+        variables: { region: { default: 'eu1' } },
+    };
+    const euServerLegacy = { url: 'https://eu1.anypoint.mulesoft.com/api/v1' };
     const platformServer = {
         url: 'https://{region}.platform.mulesoft.com/api/v1',
         variables: { region: { default: 'ca1' } },
@@ -198,9 +208,15 @@ describe('pickServerTemplate', () => {
         });
     });
 
-    test('returns EU server when EU is selected', () => {
+    test('returns parameterized EU server when EU is selected', () => {
         withServerType('eu', null, () => {
             expect(pickServerTemplate([usServer, euServer, platformServer])).toBe(euServer);
+        });
+    });
+
+    test('falls back to legacy EU server when no parameterized EU exists', () => {
+        withServerType('eu', null, () => {
+            expect(pickServerTemplate([usServer, euServerLegacy, platformServer])).toBe(euServerLegacy);
         });
     });
 
@@ -244,6 +260,18 @@ describe('resolveServerUrl', () => {
         withRegion('sg1', () => {
             expect(resolveServerUrl(server, null)).toBe(
                 'https://sg1.platform.mulesoft.com/api/v1',
+            );
+        });
+    });
+
+    test('substitutes region variable when EU region selected', () => {
+        const server = {
+            url: 'https://{region}.anypoint.mulesoft.com/api/v1',
+            variables: { region: { default: 'eu1' } },
+        };
+        withServerType('eu', 'eu2', () => {
+            expect(resolveServerUrl(server, null)).toBe(
+                'https://eu2.anypoint.mulesoft.com/api/v1',
             );
         });
     });
@@ -303,7 +331,10 @@ describe('resolveServerUrl', () => {
 // ===========================================================================
 describe('getPreferredServerIndex', () => {
     const usServer = { url: 'https://anypoint.mulesoft.com/api' };
-    const euServer = { url: 'https://eu1.anypoint.mulesoft.com/api' };
+    const euServer = {
+        url: 'https://{region}.anypoint.mulesoft.com/api',
+        variables: { region: { default: 'eu1' } },
+    };
     const platformServer = {
         url: 'https://{region}.platform.mulesoft.com/api',
         variables: { region: { default: 'ca1' } },

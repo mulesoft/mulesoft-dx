@@ -3385,7 +3385,7 @@ function getSelectedServerType() {
 
 function getSelectedRegion() {
     var sel = document.getElementById('serverSelect');
-    if (!sel || sel.value !== 'platform') return null;
+    if (!sel || sel.value === 'us') return null;
     var preset = document.getElementById('regionPreset');
     if (!preset) return null;
     if (preset.value === 'custom') {
@@ -3396,13 +3396,10 @@ function getSelectedRegion() {
 }
 
 function getSelectedBaseUrl() {
-    // Returns just the domain part (no API path) for auth endpoints
     var type = getSelectedServerType();
-    if (type === 'eu') return 'https://eu1.anypoint.mulesoft.com';
-    if (type === 'platform') {
-        var region = getSelectedRegion();
-        return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
-    }
+    var region = getSelectedRegion();
+    if (type === 'eu') return 'https://' + (region || 'eu1') + '.anypoint.mulesoft.com';
+    if (type === 'platform') return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
     return 'https://anypoint.mulesoft.com';
 }
 
@@ -3416,6 +3413,10 @@ function pickServerTemplate(servers) {
     var type = getSelectedServerType();
     if (type === 'eu') {
         for (var i = 0; i < servers.length; i++) {
+            if (servers[i].url.indexOf('.anypoint.mulesoft.com') !== -1 &&
+                servers[i].url.indexOf('{region}') !== -1) return servers[i];
+        }
+        for (var i = 0; i < servers.length; i++) {
             if (servers[i].url.indexOf('eu1.anypoint.mulesoft.com') !== -1) return servers[i];
         }
     } else if (type === 'platform') {
@@ -3423,7 +3424,6 @@ function pickServerTemplate(servers) {
             if (servers[i].url.indexOf('platform.mulesoft.com') !== -1) return servers[i];
         }
     }
-    // 'us' or fallback
     return servers[0];
 }
 
@@ -3501,8 +3501,19 @@ function getServerForApi(apiSlug) {
 function onServerChange() {
     var sel = document.getElementById('serverSelect');
     var regionRow = document.getElementById('serverRegionRow');
+    var preset = document.getElementById('regionPreset');
+    var defaultOpt = document.getElementById('regionDefaultOption');
+    var customInput = document.getElementById('regionCustomInput');
     if (sel && regionRow) {
-        regionRow.style.display = sel.value === 'platform' ? 'flex' : 'none';
+        var showRegion = sel.value === 'eu' || sel.value === 'platform';
+        regionRow.style.display = showRegion ? 'flex' : 'none';
+        if (showRegion && preset && defaultOpt) {
+            var isEu = sel.value === 'eu';
+            defaultOpt.value = isEu ? 'eu1' : 'ca1';
+            defaultOpt.textContent = isEu ? 'Europe (eu1)' : 'Canada (ca1)';
+            preset.value = defaultOpt.value;
+            if (customInput) customInput.style.display = 'none';
+        }
     }
     updateAuthSummary();
     updateAllServerCombos();
@@ -3530,6 +3541,10 @@ var _serverSelections = {};
 function getPreferredServerIndex(servers) {
     var type = getSelectedServerType();
     if (type === 'eu') {
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].url.indexOf('.anypoint.mulesoft.com') !== -1 &&
+                servers[i].url.indexOf('{region}') !== -1) return i;
+        }
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].url.indexOf('eu1.anypoint.mulesoft.com') !== -1) return i;
         }

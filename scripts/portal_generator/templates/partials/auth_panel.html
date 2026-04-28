@@ -83,16 +83,16 @@
                 <div class="server-select-wrapper">
                     <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select Anypoint Platform Server">
                         <option value="us">anypoint.mulesoft.com (US)</option>
-                        <option value="eu">eu1.anypoint.mulesoft.com (EU)</option>
+                        <option value="eu">Regional (anypoint.mulesoft.com)</option>
                         <option value="platform">Regional (platform.mulesoft.com)</option>
                     </select>
                 </div>
                 <div class="server-region-row" id="serverRegionRow" style="display:none">
                     <select id="regionPreset" onchange="onRegionPresetChange()" class="server-select region-preset-select" aria-label="Select region">
-                        <option value="ca1">Canada (ca1)</option>
+                        <option id="regionDefaultOption" value="eu1">Europe (eu1)</option>
                         <option value="custom">Custom</option>
                     </select>
-                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. ca1" style="display:none" aria-label="Custom region">
+                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. eu1" style="display:none" aria-label="Custom region">
                 </div>
             </div>
 

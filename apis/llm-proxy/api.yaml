@@ -243,10 +243,12 @@ paths:
                         properties:
                           headers:
                             type: object
+                            description: Map of header-name to expected-value used for route matching. Set `x-routing-header` to the upstream's provider label (e.g., `openai`, `gemini`); the Routing policy writes this header server-side at request time and the gateway dispatches based on the match.
                             additionalProperties:
                               type: string
                       upstreams:
                         type: array
+                        description: Upstream targets bound to this route. For LLM proxies a route typically has exactly one upstream (the provider it dispatches to); the array form is preserved for compatibility with the broader API-Manager upstream model.
                         minItems: 1
                         items:
                           type: object
@@ -318,6 +320,7 @@ paths:
                                   description: For semantic routing, the UUIDs of global prompt topics whose utterances represent content that should route to this upstream.
                                   items:
                                     type: string
+                                    description: UUID of a Global Prompt Topic (the `id` field returned by `createGlobalPromptTopic` or `listGlobalPromptTopicsBySsc`).
                                     pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
                 metadata:
                   type: object
@@ -356,6 +359,7 @@ paths:
                               description: Optional array of Global Prompt Topic UUIDs that, when matched, block the request rather than routing it (used with the semantic prompt guard policy). Applies only to semantic routing; omit the key entirely when not using a deny list.
                               items:
                                 type: string
+                                description: 'UUID of a Global Prompt Topic flagged as `usedForDenyList: true`. Matching prompts are blocked rather than routed.'
                                 pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
                     semanticServiceConfigId:
                       type: string
@@ -522,6 +526,7 @@ paths:
                     pass the resulting IDs here to bind them in one POST.
                   items:
                     type: string
+                    description: 'UUID of an unbound Global Prompt Topic (one that was created with `semanticServiceConfigId: null`). It will be bound to this SSC on creation.'
                     pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
       responses:
         '201':

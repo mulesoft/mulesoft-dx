@@ -11,7 +11,11 @@ tags:
 
 servers:
   - url: https://anypoint.mulesoft.com/exchange
-  - url: https://eu1.anypoint.mulesoft.com/exchange
+  - url: https://{region}.anypoint.mulesoft.com/exchange
+    variables:
+      region:
+        default: eu1
+        description: Region identifier for the service endpoint.
   - url: https://{region}.platform.mulesoft.com/exchange
     variables:
       region:

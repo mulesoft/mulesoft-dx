@@ -6,7 +6,11 @@ info:
 servers:
 - url: https://anypoint.mulesoft.com/accounts/api
   description: The server for the US region
-- url: https://eu1.anypoint.mulesoft.com/accounts/api
+- url: https://{region}.anypoint.mulesoft.com/accounts/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
   description: The server for the EU region 
 - url: https://{region}.platform.mulesoft.com/accounts/api
   description: The server for a specific region

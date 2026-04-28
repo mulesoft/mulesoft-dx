@@ -5,7 +5,11 @@ info:
   version: 0.0.1
 servers:
 - url: https://anypoint.mulesoft.com/agent-scanner
-- url: https://eu1.anypoint.mulesoft.com/agent-scanner
+- url: https://{region}.anypoint.mulesoft.com/agent-scanner
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/agent-scanner
   variables:
     region:

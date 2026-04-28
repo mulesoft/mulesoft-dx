@@ -9,8 +9,11 @@ servers:
     version:
       default: v2
       description: API version identifier.
-- url: https://eu1.anypoint.mulesoft.com/audit/{version}
+- url: https://{region}.anypoint.mulesoft.com/audit/{version}
   variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
     version:
       default: v2
       description: API version identifier.

@@ -5,7 +5,11 @@ info:
   description: Track and replay B2B message activity, review transmission status, and query message contents in Anypoint Partner Manager.
 servers:
 - url: https://anypoint.mulesoft.com/partnermanager/tracking/api/v1
-- url: https://eu1.anypoint.mulesoft.com/partnermanager/tracking/api/v1
+- url: https://{region}.anypoint.mulesoft.com/partnermanager/tracking/api/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/partnermanager/tracking/api/v1
   variables:
     region:

@@ -5,7 +5,11 @@ info:
   description: Manage Runtime Fabric clusters, agents, associations, ingress configurations, and deployment targets.
 servers:
 - url: https://anypoint.mulesoft.com/runtimefabric/api
-- url: https://eu1.anypoint.mulesoft.com/runtimefabric/api
+- url: https://{region}.anypoint.mulesoft.com/runtimefabric/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/runtimefabric/api
   variables:
     region:

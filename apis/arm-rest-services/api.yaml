@@ -5,7 +5,11 @@ info:
   description: Manage applications, clusters, server groups, alerts, and deployment actions in Anypoint Runtime Manager.
 servers:
 - url: https://anypoint.mulesoft.com/hybrid/api/v1
-- url: https://eu1.anypoint.mulesoft.com/hybrid/api/v1
+- url: https://{region}.anypoint.mulesoft.com/hybrid/api/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/hybrid/api/v1
   variables:
     region:

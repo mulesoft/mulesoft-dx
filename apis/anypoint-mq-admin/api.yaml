@@ -5,7 +5,11 @@ info:
   description: Manage Anypoint MQ destinations, exchanges, bindings, and client authorizations across environments.
 servers:
 - url: https://anypoint.mulesoft.com/mq/admin/api
-- url: https://eu1.anypoint.mulesoft.com/mq/admin/api
+- url: https://{region}.anypoint.mulesoft.com/mq/admin/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/mq/admin/api
   variables:
     region:

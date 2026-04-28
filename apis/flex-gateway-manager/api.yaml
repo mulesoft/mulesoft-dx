@@ -5,7 +5,11 @@ info:
   description: Register, manage, and monitor Flex Gateway instances. Configure runtime settings and track gateway status.
 servers:
 - url: https://anypoint.mulesoft.com/gatewaymanager/api/v1
-- url: https://eu1.anypoint.mulesoft.com/gatewaymanager/api/v1
+- url: https://{region}.anypoint.mulesoft.com/gatewaymanager/api/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/gatewaymanager/api/v1
   variables:
     region:

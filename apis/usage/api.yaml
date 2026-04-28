@@ -5,7 +5,11 @@ info:
   description: Query and search platform usage meters and consumption metrics for the Anypoint Platform.
 servers:
 - url: https://anypoint.mulesoft.com/metering/usage/api/v1
-- url: https://eu1.anypoint.mulesoft.com/metering/usage/api/v1
+- url: https://{region}.anypoint.mulesoft.com/metering/usage/api/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/metering/usage/api/v1
   variables:
     region:

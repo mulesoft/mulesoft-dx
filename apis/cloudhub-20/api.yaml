@@ -5,7 +5,11 @@ info:
   description: Manage Private Spaces, connections, egress and ingress configurations, IAM roles, and logs for CloudHub 2.0.
 servers:
 - url: https://anypoint.mulesoft.com/runtimefabric/api
-- url: https://eu1.anypoint.mulesoft.com/runtimefabric/api
+- url: https://{region}.anypoint.mulesoft.com/runtimefabric/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/runtimefabric/api
   variables:
     region:

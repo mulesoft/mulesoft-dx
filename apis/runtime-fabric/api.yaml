@@ -1325,11 +1325,11 @@ paths:
           description: Too many requests. Rate limit exceeded.
       operationId: deleteOrganizationsByOrganizationid
       description: Deletes a organizations.
-  /organizations/{organizationId}/environments/{envId}:
+  /organizations/{organizationId}/environments/{environmentId}:
     delete:
       parameters:
       - $ref: '#/components/parameters/XOrigin_fabricOrganizationId_Path'
-      - name: envId
+      - name: environmentId
         required: true
         in: path
         schema:

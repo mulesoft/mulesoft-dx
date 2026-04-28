@@ -534,6 +534,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -2310,6 +2311,7 @@ function setAuthStatus(authenticated, message, authMethod) {
         sessionStorage.removeItem('anypoint_auth_method');
         sessionStorage.removeItem('anypoint_identity');
         sessionStorage.removeItem('anypoint_token_expires_at');
+        stopTtlTimer();
     }
 
     updateAuthSummary();
@@ -2353,16 +2355,16 @@ async function loginBearer() {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', username);
 
-            // Store token expiration time
-            if (body.expires_in) {
-                var expiresAt = Date.now() + (body.expires_in * 1000);
-                sessionStorage.setItem('anypoint_token_expires_at', expiresAt.toString());
+            var introspectResult = await introspectToken();
+            if (introspectResult && introspectResult.exp) {
+                setTokenExpiration(parseInt(introspectResult.exp, 10));
+            } else {
+                setTokenExpiration(Date.now() + _SESSION_TTL);
             }
 
             setAuthStatus(true, null, 'Bearer');
             showAuthMessage('Login successful!', false);
 
-            // Update playground panels with any environment variables that may have been set
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
@@ -2403,16 +2405,20 @@ async function loginOAuth2() {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', clientId);
 
-            // Store token expiration time
             if (body.expires_in) {
-                var expiresAt = Date.now() + (body.expires_in * 1000);
-                sessionStorage.setItem('anypoint_token_expires_at', expiresAt.toString());
+                setTokenExpiration(Date.now() + (body.expires_in * 1000));
+            } else {
+                var introspectResult = await introspectToken();
+                if (introspectResult && introspectResult.exp) {
+                    setTokenExpiration(parseInt(introspectResult.exp, 10));
+                } else {
+                    setTokenExpiration(Date.now() + _SESSION_TTL);
+                }
             }
 
             setAuthStatus(true, null, 'OAuth2');
             showAuthMessage('Token obtained successfully!', false);
 
-            // Update playground panels with any environment variables that may have been set
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
@@ -2693,6 +2699,109 @@ async function sendMcpRequest(invocableId, buttonEl) {
 }
 
 // ============================================================================
+// Try It Out — Session TTL Management
+// ============================================================================
+
+var _ttlTimerId = null;
+var _ttlExpirationTimerId = null;
+var _TTL_CHECK_INTERVAL = 30000;
+var _SESSION_TTL = 3600000;
+
+async function introspectToken() {
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) return null;
+    var serverBase = getSelectedBaseUrl();
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: 'POST',
+                url: serverBase + '/accounts/oauth2/introspect',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({token: token, token_type_hint: 'access_token'})
+            })
+        });
+        var data = await resp.json();
+        if (data.error) return null;
+        var body = JSON.parse(data.body);
+        return body;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setTokenExpiration(expMs) {
+    sessionStorage.setItem('anypoint_token_expires_at', String(expMs));
+    startTtlTimer();
+    scheduleExpirationCheck(expMs);
+}
+
+function scheduleExpirationCheck(expMs) {
+    if (_ttlExpirationTimerId !== null) {
+        clearTimeout(_ttlExpirationTimerId);
+        _ttlExpirationTimerId = null;
+    }
+    var delay = expMs - Date.now();
+    if (delay <= 0) {
+        checkTtlExpiration();
+        return;
+    }
+    _ttlExpirationTimerId = setTimeout(function() {
+        _ttlExpirationTimerId = null;
+        checkTtlExpiration();
+    }, delay);
+}
+
+function markTokenExpired() {
+    sessionStorage.setItem('anypoint_token_expires_at', '0');
+    stopTtlTimer();
+    updateAuthSummary();
+}
+
+function startTtlTimer() {
+    stopTtlTimer();
+    _ttlTimerId = setInterval(checkTtlExpiration, _TTL_CHECK_INTERVAL);
+}
+
+function stopTtlTimer() {
+    if (_ttlTimerId !== null) {
+        clearInterval(_ttlTimerId);
+        _ttlTimerId = null;
+    }
+    if (_ttlExpirationTimerId !== null) {
+        clearTimeout(_ttlExpirationTimerId);
+        _ttlExpirationTimerId = null;
+    }
+}
+
+async function checkTtlExpiration() {
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) {
+        stopTtlTimer();
+        return;
+    }
+    if (!isTokenExpired()) return;
+
+    var result = await introspectToken();
+    if (result && result.active === true && result.exp) {
+        setTokenExpiration(parseInt(result.exp, 10));
+        updateAuthSummary();
+    } else if (result && result.active === false) {
+        markTokenExpired();
+    }
+}
+
+function handleProxyResponse(data) {
+    if (data.status === 401) {
+        markTokenExpired();
+    }
+}
+
+// ============================================================================
 // Try It Out — Environment Variables
 // ============================================================================
 
@@ -2920,6 +3029,7 @@ async function loadXOriginValues(opId, paramName) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -3120,6 +3230,7 @@ async function loadXOriginValuesForEnv(paramName) {
         });
 
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -4366,6 +4477,7 @@ async function sendRequest(opId, buttonEl) {
             })
         });
         var data = await resp.json();
+        handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -6308,6 +6420,7 @@ async function executePlaygroundStep(sid, buttonEl) {
         });
 
         var result = await resp.json();
+        handleProxyResponse(result);
 
         // Restore button
         if (buttonEl) {
@@ -6449,6 +6562,9 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
         var authMethod = sessionStorage.getItem('anypoint_auth_method') || '';
         if (token && authMethod) {
             setAuthStatus(true, null, authMethod);
+            if (sessionStorage.getItem('anypoint_token_expires_at')) {
+                startTtlTimer();
+            }
         }
 
         // Render environment variables
@@ -7213,6 +7329,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
             })
         });
         var data = await resp.json();
+        handleProxyResponse(data);
 
         if (spinner) spinner.style.display = 'none';
         if (rightPanel) rightPanel.setAttribute('open', '');

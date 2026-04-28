@@ -57,6 +57,18 @@
         ]
       }
     },
+    "definition": {
+      "type": "object",
+      "description": "Optional pointer to the MCP definition file.",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative path to the mcp.yaml file (e.g. ./mcp.yaml)."
+        }
+      }
+    },
     "servers": {
       "type": "array",
       "minItems": 1,

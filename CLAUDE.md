@@ -147,6 +147,8 @@ info:
 tags:                                # Optional. Surfaced in the homepage tag search.
   - name: Omni
     description: APIs related to ...
+definition:                          # Optional. Pointer to the MCP definition file.
+  path: ./mcp.yaml
 servers:                             # Required. At least one endpoint.
   - url: https://anypoint.mulesoft.com/exchange
     description: Production
@@ -407,6 +409,40 @@ Additionally, the `validate-imperative-format` agent skill (not part of the auto
 - **Python 3**: For validation scripts and portal generator
 - **PyYAML**: For Python validators
 - **Portal generator deps**: `pip3 install -r scripts/requirements.txt` (Jinja2, ruamel.yaml, markdown-it-py, pytest, beautifulsoup4)
+
+## Git Hooks
+
+Shared git hooks live in `.githooks/` and delegate to Makefile targets.
+
+### Setup
+
+Hooks are automatically configured the first time any `make` command runs. To manually install or reinstall: `make install-hooks`.
+
+### What Runs
+
+| Hook | Checks | Duration |
+|------|--------|----------|
+| pre-commit | validate-descriptions, validate-mcp-server, validate-xorigin, validate-jtbd | ~2-5s |
+| pre-push | test-portal (pytest + jest), validate-all-governed | ~2-5 min |
+
+### Skipping Hooks
+
+> **Never use `SKIP_HOOKS` or `SKIP_PRE_PUSH` when running git commands.** Always let hooks run and fix any failures. These env vars are for human emergency use only.
+
+```bash
+SKIP_HOOKS=1 git commit -m "emergency fix"    # skip pre-commit (human only)
+SKIP_PRE_PUSH=1 git push                       # skip pre-push only (human only)
+```
+
+Hooks gracefully degrade when tools are missing — pre-commit warns if Python deps are absent, pre-push skips governed validation if Anypoint CLI is not installed. CI remains the authoritative gate.
+
+### Running Manually
+
+```bash
+make pre-commit-hook    # run pre-commit checks without committing
+make pre-push-hook      # run pre-push checks without pushing
+make check-hooks        # check if hooks are active
+```
 
 ## Important Notes
 

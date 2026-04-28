@@ -61,6 +61,10 @@ pip3 install -r scripts/requirements.txt
 
 This installs the `api-spec-validator` skill which validates specs against AI-agent-friendly best practices using Anypoint CLI under the hood.
 
+**4. Git hooks (automatic):**
+
+Git hooks are automatically configured the first time you run any `make` command. Pre-commit runs fast validators (~2-5s) and pre-push runs tests + governed validation. See `make help` for skip options.
+
 ### Makefile Commands
 
 The Makefile provides convenient shortcuts for common tasks:

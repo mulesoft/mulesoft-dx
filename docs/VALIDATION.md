@@ -203,6 +203,13 @@ pipeline {
 | `validate-api API=<name>` | Validate specific API |
 | `report` | Generate comprehensive report |
 | `clean` | Remove validation reports |
+| `install-hooks` | Set up pre-commit and pre-push git hooks |
+| `uninstall-hooks` | Remove git hooks configuration |
+| `check-hooks` | Show git hooks status |
+| `pre-commit-hook` | Run pre-commit checks manually |
+| `pre-push-hook` | Run pre-push checks manually |
+
+> **Note:** Git hooks are automatically configured the first time you run any `make` command.
 
 ## Discovered APIs
 

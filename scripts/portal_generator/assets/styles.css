@@ -143,14 +143,21 @@
     --color-border-secondary: var(--color-neutral-5);
     --color-border-focus: var(--color-primary);
 
-    /* Semantic colors - Text */
-    --color-text-primary: var(--color-neutral-10);
-    --color-text-secondary: var(--color-neutral-8);
-    --color-text-tertiary: var(--color-neutral-7);
-    --color-text-quaternary: var(--color-neutral-6);
+    /* Semantic colors - Text (Editorial optimized) */
+    --color-text-primary: #2D2D2D;
+    --color-text-secondary: #5A5A5A;
+    --color-text-tertiary: #787878;
+    --color-text-quaternary: #9B9B9B;
     --color-text-inverse: var(--color-white);
-    --color-text-link: var(--color-primary);
+    --color-text-link: #0066CC;
     --color-text-link-hover: var(--color-primary-dark);
+
+    /* Editorial Typography Scale */
+    --reading-line-height: 1.75;
+    --heading-line-height: 1.3;
+    --reading-max-width: 70ch;
+    --reading-font-size: 1rem;
+    --reading-letter-spacing: 0.01em;
 
     /* HTTP Method colors */
     --method-get-bg: var(--color-green-50);
@@ -313,9 +320,9 @@
     --color-border-secondary: #21262d;
     --color-border-focus: #58a6ff;
 
-    /* Semantic colors - Text */
-    --color-text-primary: #c9d1d9;
-    --color-text-secondary: #8b949e;
+    /* Semantic colors - Text (Editorial optimized for dark) */
+    --color-text-primary: #E6EDF3;
+    --color-text-secondary: #9198A1;
     --color-text-tertiary: #6e7681;
     --color-text-quaternary: #484f58;
     --color-text-inverse: #0d1117;
@@ -2337,6 +2344,14 @@ button.nav-group-header {
     margin-left: auto;
 }
 
+.api-operation-count {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
 .nav-section-header {
     padding: var(--space-md) var(--space-lg) var(--space-sm) var(--space-lg);
     font-weight: var(--font-weight-bold);
@@ -2563,10 +2578,12 @@ button.nav-group-header {
 
 /* Overview Section */
 .api-full-description {
-    font-size: var(--font-size-5);
-    line-height: 1.6;
-    margin-bottom: var(--space-xl);
-    color: var(--color-neutral-10);
+    font-size: var(--reading-font-size);
+    line-height: var(--reading-line-height);
+    margin-bottom: 2rem;
+    color: var(--color-text-secondary);
+    max-width: var(--reading-max-width);
+    letter-spacing: var(--reading-letter-spacing);
 }
 
 .api-full-description p {
@@ -4701,12 +4718,14 @@ details[open] .examples-toggle-icon {
 
 /* Rendered Markdown Content */
 .skill-view-markdown {
-    line-height: 1.7;
+    line-height: var(--reading-line-height);
     font-family: var(--font-sans);
     color: var(--color-text-secondary);
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: 100%;
+    max-width: var(--reading-max-width);
+    font-size: var(--reading-font-size);
+    letter-spacing: var(--reading-letter-spacing);
 }
 
 .skill-view-markdown h1 {
@@ -5000,6 +5019,31 @@ details[open] .examples-toggle-icon {
 /* Auth panel right column */
 .auth-panel-right {
     justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+/* Skill mode button styling */
+.skill-mode-button .skill-mode-status {
+    background: var(--color-white);
+    border: 1px solid #A4A4A4;
+    border-radius: 100px;
+    padding: 7px 16px;
+    transition: all 0.15s;
+}
+
+.skill-mode-button[data-active="true"] .skill-mode-status {
+    background: #3289CE;
+    border-color: #3289CE;
+}
+
+.skill-mode-button[data-active="true"] .auth-status-text {
+    color: var(--color-white);
+}
+
+.skill-mode-button:hover .skill-mode-status {
+    opacity: 0.85;
 }
 
 /* Auth panel header status button */

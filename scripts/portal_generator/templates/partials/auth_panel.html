@@ -7,45 +7,38 @@
     <div class="auth-panel-center">
         <h1 class="api-title"><a href="#overview" class="api-title-link">{{ api_name }}</a></h1>
         <span class="badge badge-version">{{ api_version }}</span>
-        {% if is_skill_page and not prose_only %}
-        <div class="skill-mode-toggle-container">
-            <label class="toggle-switch-label">
-                <span class="toggle-label-text">Interactive Mode</span>
-                <div class="toggle-switch" onclick="toggleSkillMode('{{ skill_slug }}')" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ skill_slug }}">
-                    <div class="toggle-slider"></div>
-                </div>
-            </label>
-        </div>
-        {% endif %}
-        {% if is_skill_page %}
-        <div class="skill-actions-bar skill-actions-bar-header">
-            <div class="skill-split-btn" id="skill-actions-{{ skill_slug }}">
-                <button class="skill-split-main" onclick="openInstallModal('{{ skill_slug }}')">
-                    <span>Install Command</span>
-                </button>
-                <button class="skill-split-toggle" onclick="toggleSkillDropdown('{{ skill_slug }}')" aria-haspopup="true" aria-expanded="false">
-                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="skill-dropdown-menu" id="skill-dropdown-menu-{{ skill_slug }}" style="display:none">
-                    <button onclick="openInstallModal('{{ skill_slug }}')">
-                        <svg width="12" height="13" viewBox="0 0 12 13" fill="none"><path d="M11 6.5L0.5 13V0.5L11 6.5Z" stroke="currentColor" stroke-linejoin="round"/></svg>
-                        Install Skill Command
-                    </button>
-                    <a href="../skills/{{ skill_slug }}/SKILL.md" target="_blank" rel="noopener">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Open Skill Markdown
-                    </a>
-                    <button onclick="copySkillContent('{{ skill_slug }}', this)">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        Copy Skill
-                    </button>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
     {% if not prose_only|default(false) %}
     <div class="auth-panel-right">
+        {% if is_skill_page %}
+        <button class="auth-panel-status skill-mode-button" onclick="toggleSkillMode('{{ skill_slug }}')" aria-label="Toggle interactive mode" id="skill-mode-btn-{{ skill_slug }}" data-active="false">
+            <span class="auth-status-container skill-mode-status" id="skill-mode-status-{{ skill_slug }}">
+                <span class="auth-status-text">Interactive Mode Off</span>
+            </span>
+        </button>
+        <div class="skill-split-btn" id="skill-actions-{{ skill_slug }}">
+            <button class="skill-split-main" onclick="openInstallModal('{{ skill_slug }}')">
+                <span>Install Command</span>
+            </button>
+            <button class="skill-split-toggle" onclick="toggleSkillDropdown('{{ skill_slug }}')" aria-haspopup="true" aria-expanded="false">
+                <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="skill-dropdown-menu" id="skill-dropdown-menu-{{ skill_slug }}" style="display:none">
+                <button onclick="openInstallModal('{{ skill_slug }}')">
+                    <svg width="12" height="13" viewBox="0 0 12 13" fill="none"><path d="M11 6.5L0.5 13V0.5L11 6.5Z" stroke="currentColor" stroke-linejoin="round"/></svg>
+                    Install Skill Command
+                </button>
+                <a href="../skills/{{ skill_slug }}/SKILL.md" target="_blank" rel="noopener">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Open Skill Markdown
+                </a>
+                <button onclick="copySkillContent('{{ skill_slug }}', this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Skill
+                </button>
+            </div>
+        </div>
+        {% endif %}
         <button class="auth-panel-status" onclick="openAuthModal()" aria-label="Open authentication modal">
             <span class="auth-status-container" id="authStatusContainer">
                 <img class="auth-status-dot" id="authStatusDot" src="{{ icons_path }}/status-dot-red.svg" alt="" aria-hidden="true">
@@ -83,16 +76,16 @@
                 <div class="server-select-wrapper">
                     <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select Anypoint Platform Server">
                         <option value="us">anypoint.mulesoft.com (US)</option>
-                        <option value="eu">Regional (anypoint.mulesoft.com)</option>
+                        <option value="eu">eu1.anypoint.mulesoft.com (EU)</option>
                         <option value="platform">Regional (platform.mulesoft.com)</option>
                     </select>
                 </div>
                 <div class="server-region-row" id="serverRegionRow" style="display:none">
                     <select id="regionPreset" onchange="onRegionPresetChange()" class="server-select region-preset-select" aria-label="Select region">
-                        <option id="regionDefaultOption" value="eu1">Europe (eu1)</option>
+                        <option value="ca1">Canada (ca1)</option>
                         <option value="custom">Custom</option>
                     </select>
-                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. eu1" style="display:none" aria-label="Custom region">
+                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. ca1" style="display:none" aria-label="Custom region">
                 </div>
             </div>
 

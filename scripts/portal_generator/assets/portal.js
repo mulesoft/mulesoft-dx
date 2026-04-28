@@ -5165,12 +5165,19 @@ function renderOperationForm(opId, opMeta, options) {
 
 function toggleSkillMode(slug) {
     var toggle = document.getElementById('toggle-' + slug);
+    var modeButton = document.getElementById('skill-mode-btn-' + slug);
+    var modeButtonText = modeButton ? modeButton.querySelector('.auth-status-text') : null;
     var variablesSidebar = document.getElementById('variables-sidebar-' + slug);
-    var isInteractive = toggle.getAttribute('aria-checked') === 'true';
+    var isInteractive = (toggle && toggle.getAttribute('aria-checked') === 'true') ||
+                        (modeButton && modeButton.getAttribute('data-active') === 'true');
 
     if (isInteractive) {
         // Switch to documentation mode (show curl)
-        toggle.setAttribute('aria-checked', 'false');
+        if (toggle) toggle.setAttribute('aria-checked', 'false');
+        if (modeButton) {
+            modeButton.setAttribute('data-active', 'false');
+            if (modeButtonText) modeButtonText.textContent = 'Interactive Mode Off';
+        }
 
         // Hide variables sidebar
         if (variablesSidebar) variablesSidebar.style.display = 'none';
@@ -5188,7 +5195,11 @@ function toggleSkillMode(slug) {
         window.history.replaceState({}, '', url);
     } else {
         // Switch to interactive mode (show operation runners)
-        toggle.setAttribute('aria-checked', 'true');
+        if (toggle) toggle.setAttribute('aria-checked', 'true');
+        if (modeButton) {
+            modeButton.setAttribute('data-active', 'true');
+            if (modeButtonText) modeButtonText.textContent = 'Interactive Mode On';
+        }
 
         // Show variables sidebar
         if (variablesSidebar) variablesSidebar.style.display = 'block';

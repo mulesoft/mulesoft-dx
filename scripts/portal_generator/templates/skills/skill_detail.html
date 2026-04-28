@@ -9,6 +9,8 @@
     {# Overview and Prerequisites - Always visible in both modes #}
     {% if skill.overview_html or skill.description %}
     <div id="overview" class="skill-subsection">
+        {% set executable_count = (step_details|selectattr('yaml')|list)|length %}
+        {% set mode_label = 'Interactive' if executable_count > 0 else 'Static' %}
         <div class="overview-header">
             <h2>Overview</h2>
             <div class="overview-stats-panel">
@@ -22,12 +24,10 @@
                         <span class="stat-compact-value">{{ skill.api_refs|default([])|length }}</span>
                         <span class="stat-compact-label">API{{ 's' if (skill.api_refs|default([])|length) != 1 else '' }}</span>
                     </div>
-                    {% if skill.category %}
                     <div class="stat-compact-item">
-                        <span class="stat-compact-value">{{ skill.category }}</span>
-                        <span class="stat-compact-label">Category</span>
+                        <span class="stat-compact-value">{{ mode_label }}</span>
+                        <span class="stat-compact-label">Mode</span>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>

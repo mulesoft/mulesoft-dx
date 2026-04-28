@@ -251,7 +251,7 @@ Some quality checks are too nuanced for regex-based rules and are implemented as
 |-------|---------------|------------|
 | `validate-imperative-format` | `info.description` starts with an imperative verb and avoids boilerplate phrasing | Ask your AI agent: *"validate imperative format"* |
 
-These skills live in `.agents/skills/` alongside the automated ones but are clearly marked as agent-only in their documentation.
+These skills live in `.claude/skills/` alongside the automated ones but are clearly marked as agent-only in their documentation.
 
 ## Example Usage with Claude Code
 

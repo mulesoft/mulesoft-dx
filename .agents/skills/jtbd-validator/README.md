@@ -23,20 +23,20 @@ Claude: [Runs validator and reports: ✅ PASSED or ❌ FAILED with errors]
 
 ### Single File
 ```bash
-python3 .claude/skills/jtbd-validator/scripts/validate_jtbd.py path/to/job.md .
+python3 .agents/skills/jtbd-validator/scripts/validate_jtbd.py path/to/job.md .
 ```
 
 ### Multiple Files
 ```bash
 for job in skills/*/SKILL.md; do
-  python3 .claude/skills/jtbd-validator/scripts/validate_jtbd.py "$job" .
+  python3 .agents/skills/jtbd-validator/scripts/validate_jtbd.py "$job" .
 done
 ```
 
 ## Structure
 
 ```
-.claude/skills/jtbd-validator/
+.agents/skills/jtbd-validator/
 ├── README.md           # This file
 ├── SKILL.md            # Skill instructions for Claude
 └── scripts/

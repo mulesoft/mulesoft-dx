@@ -23,14 +23,14 @@ Validates Jobs-to-be-Done (JTBD) markdown files to ensure correct structure, val
 ### Validate a Single File
 
 ```bash
-python3 .claude/skills/jtbd-validator/scripts/validate_jtbd.py path/to/job.md .
+python3 .agents/skills/jtbd-validator/scripts/validate_jtbd.py path/to/job.md .
 ```
 
 ### Validate All JTBDs in a Folder
 
 ```bash
 for job in skills/*/SKILL.md; do
-  python3 .claude/skills/jtbd-validator/scripts/validate_jtbd.py "$job" .
+  python3 .agents/skills/jtbd-validator/scripts/validate_jtbd.py "$job" .
 done
 ```
 
@@ -50,7 +50,7 @@ find . -path "*/skills/*/SKILL.md" -type f | grep -v node_modules
 
 **2. Run validator:**
    ```bash
-   python3 .claude/skills/jtbd-validator/scripts/validate_jtbd.py <file> .
+   python3 .agents/skills/jtbd-validator/scripts/validate_jtbd.py <file> .
    ```
 
 **3. Report results:**

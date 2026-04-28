@@ -116,7 +116,7 @@ Every generated JTBD is validated before saving:
 ## Directory Structure
 
 ```
-.claude/skills/jtbd-generator/
+.agents/skills/jtbd-generator/
 ├── README.md                  # This file
 ├── SKILL.md                   # Skill definition (instructions for Claude)
 ├── lib/                       # Python utilities
@@ -224,7 +224,7 @@ jtbd_content = jtbd_builder.build_complete_jtbd(
 
 ```bash
 # Validate a JTBD file
-python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py path/to/job.md .
+python3 .agents/skills/jtbd-generator/scripts/validate_jtbd.py path/to/job.md .
 ```
 
 ### What It Checks
@@ -395,7 +395,7 @@ Automatically detects parameter sources from:
 **Solutions:**
 - Use trigger phrases: "create a JTBD", "generate workflow"
 - Be explicit: "Use jtbd-generator to document..."
-- Check skill is in `.claude/skills/jtbd-generator/`
+- Check skill is in `.agents/skills/jtbd-generator/`
 
 ### Operation Not Found
 
@@ -459,7 +459,7 @@ python3 << 'EOF'
 import sys
 from pathlib import Path
 
-sys.path.insert(0, '.claude/skills/jtbd-generator')
+sys.path.insert(0, '.agents/skills/jtbd-generator')
 from lib import api_discovery
 
 # Test API discovery
@@ -472,7 +472,7 @@ print(f"Found {len(results)} matching operations")
 EOF
 
 # Test validation
-python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py \
+python3 .agents/skills/jtbd-generator/scripts/validate_jtbd.py \
     skills/deploy-api-with-rate-limiting/SKILL.md .
 ```
 

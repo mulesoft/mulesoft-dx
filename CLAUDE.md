@@ -122,10 +122,12 @@ Validation: `python3 scripts/build/validate_jtbd.py` verifies structure, API ref
 
 ### Skills Integration
 
-The repository integrates with Claude Code via the `mulesoft-api-development` skill marketplace:
+The repository integrates with Claude Code via the `mulesoft-api-development` skill marketplace. All skills live in `.agents/skills/`:
 - `api-spec-validator`: Validate specs against governance rules (automated via ruleset)
 - `api-schema-inferrer`: Generate schemas from examples
 - `api-doc-generator`: Generate documentation and curl examples
+- `jtbd-generator`: Generate Jobs To Be Done skill files
+- `jtbd-validator`: Validate JTBD format and structure
 - `validate-imperative-format`: Validate that `info.description` uses imperative voice (agent-only, not part of the automated pipeline)
 
 Enabled in `.claude/settings.json`.
@@ -265,7 +267,7 @@ The portal uses a semantic token system with CSS custom properties. **Always use
 - `scripts/portal_generator/assets/styles.css`: Design system CSS variables (lines 39-270)
 - `scripts/tests/`: Portal generator test suite (pytest)
 - `scripts/pyproject.toml`: Pytest configuration for the portal generator
-- `.agents/skills/`: Agent skills (api-spec-validator, validate-imperative-format, jtbd-generator, etc.)
+- `.agents/skills/`: Agent skills (api-spec-validator, api-schema-inferrer, api-doc-generator, jtbd-generator, jtbd-validator, validate-imperative-format)
 - `docs/VALIDATION.md`: Detailed validation guide with CI/CD examples
 - `docs/design-system.md`: Complete design system documentation
 - `docs/portal-generator-architecture.md`: Architecture guidelines and best practices

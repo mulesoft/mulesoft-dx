@@ -46,7 +46,7 @@ For each step description:
    from pathlib import Path
 
    # Add JTBD generator library to path
-   sys.path.insert(0, '.claude/skills/jtbd-generator')
+   sys.path.insert(0, '.agents/skills/jtbd-generator')
    from lib import api_discovery
 
    # Search for operations matching the description
@@ -222,7 +222,7 @@ For each step (in order from 1 to N):
 Run the validator to ensure correctness:
 
 ```bash
-python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py /tmp/generated-job.md .
+python3 .agents/skills/jtbd-generator/scripts/validate_jtbd.py /tmp/generated-job.md .
 ```
 
 If validation fails:
@@ -328,7 +328,7 @@ File: skills/deploy-api-with-flex-gateway/SKILL.md
 
 Next steps:
 - Review the generated workflow
-- Test with: python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py skills/deploy-api-with-flex-gateway/SKILL.md .
+- Test with: python3 .agents/skills/jtbd-generator/scripts/validate_jtbd.py skills/deploy-api-with-flex-gateway/SKILL.md .
 - Related workflows: deploy-api-with-rate-limiting, setup-multi-upstream-routing
 ```
 
@@ -446,7 +446,7 @@ Which one should I use?"
 
 ## Available Python Utilities
 
-You have access to these utilities in `.claude/skills/jtbd-generator/lib/`:
+You have access to these utilities in `.agents/skills/jtbd-generator/lib/`:
 
 ### api_discovery.py
 - `list_available_apis(repo_root)` - List all APIs with metadata

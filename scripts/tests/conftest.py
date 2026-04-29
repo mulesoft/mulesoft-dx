@@ -300,19 +300,21 @@ PROSE_ONLY_SKILL_MD = textwrap.dedent("""\
 """)
 
 
-MINIMAL_MCP_SERVER_YAML = textwrap.dedent("""\
-    servers:
-      - url: https://anypoint.mulesoft.com/exchange
-        description: Production
-""")
+MINIMAL_MCP_SERVER_JSON = json.dumps({
+    '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    'name': 'com.example/test-mcp',
+    'title': 'Test MCP API',
+    'description': 'A minimal MCP server used for tests.',
+    'version': '1.0.0',
+    'remotes': [
+        {'type': 'streamable-http', 'url': 'https://anypoint.mulesoft.com/test-mcp/mcp'},
+    ],
+})
 
 MINIMAL_MCP_YAML = textwrap.dedent("""\
     capabilities:
       tools:
         listChanged: false
-    transport:
-      kind: streamableHttp
-      path: /mcp
     tools:
       - name: searchAssets
         description: Search for assets
@@ -337,6 +339,7 @@ MINIMAL_MCP_EXCHANGE_JSON = json.dumps({
     'version': '1.0.0',
     'apiVersion': 'v1',
     'classifier': 'mcp-metadata',
+    'tags': ['Testing'],
 })
 
 

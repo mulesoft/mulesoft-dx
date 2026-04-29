@@ -42,7 +42,7 @@ python3 scripts/build/validate_xorigin.py
 # Validate Jobs To Be Done (JTBD) format
 python3 scripts/build/validate_jtbd.py <path-to-job-file> .
 
-# Validate all mcps/<name>/server.yaml files against the JSON Schema
+# Validate all mcps/<name>/server.json files against the MCP registry schema
 python3 scripts/build/validate_mcp_server.py
 ```
 
@@ -97,7 +97,7 @@ MCP servers live under a top-level `mcps/` directory:
 mcps/
 └── <server-name>/
     ├── exchange.json  # Exchange metadata (name, version, visibility, ...)
-    ├── server.yaml    # info + tags + servers (endpoints hosting the MCP server)
+    ├── server.json    # MCP registry descriptor (title / description / version / remotes)
     └── mcp.yaml       # MCP metadata: transport, capabilities, tools, prompts, resources
 ```
 
@@ -136,36 +136,27 @@ Validation: `python3 scripts/build/validate_jtbd.py` verifies structure, API ref
 
 Each `mcps/<name>/` directory describes one MCP server with three files. The portal renders a detail page per server with a tool/prompt/resource sidebar and an interactive try-it console (JSON-RPC over `streamableHttp`).
 
-**`exchange.json`** — Exchange metadata (same shape as API exchange.json). Fields used by the portal: `name`, `version`, `visibility` (set to `"private"` to hide from the public catalog).
-
-**`server.yaml`** — OpenAPI-style top-level shape:
-```yaml
-info:
-  title: Exchange MCP API            # Required. Display title.
-  description: ...                   # Optional. Rendered in the overview.
-  version: 1.0.0                     # Optional. Overrides exchange.json version.
-tags:                                # Optional. Surfaced in the homepage tag search.
-  - name: Omni
-    description: APIs related to ...
-definition:                          # Optional. Pointer to the MCP definition file.
-  path: ./mcp.yaml
-servers:                             # Required. At least one endpoint.
-  - url: https://anypoint.mulesoft.com/exchange
-    description: Production
-  - url: https://{region}.platform.mulesoft.com/exchange
-    variables:
-      region: { default: ca1, description: Region identifier }
+**`server.json`** — Authoritative MCP registry descriptor. Follows https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json (vendored at `docs/schemas/mcp-server.schema.json`). The portal reads the display fields (`title` / `description` / `version`) and builds the server dropdown + try-it endpoint list from `remotes[]`. Each remote's `url` is treated as the full, fully-qualified endpoint — no path concatenation. For multi-region deployments, list every environment under `remotes[]` explicitly; there's no URL templating in this schema.
+```json
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.mulesoft/exchange",
+  "title": "Anypoint Exchange",
+  "description": "Publish, discover, and govern APIs, assets, and integration artifacts in Anypoint Exchange.",
+  "version": "2.4.5",
+  "websiteUrl": "https://anypoint.mulesoft.com/exchange",
+  "remotes": [
+    { "type": "streamable-http", "url": "https://anypoint.mulesoft.com/exchange/mcp" },
+    { "type": "streamable-http", "url": "https://eu1.anypoint.mulesoft.com/exchange/mcp" },
+    { "type": "streamable-http", "url": "https://ca1.platform.mulesoft.com/exchange/mcp" }
+  ]
+}
 ```
 
-**`mcp.yaml`** — MCP metadata (JSON Schema at `/Users/mdeachaval/labs/mulesoft-emu/agent-fabric-specification/agent-fabric-schema/src/main/resources/mcp_metadata.json`):
+**`exchange.json`** — Exchange publishing metadata. Supplies the `tags` array (a flat list of strings, e.g. `"tags": ["Exchange", "Asset Management"]`) surfaced on the homepage tag search. Visibility is no longer honored for MCPs — every MCP is public.
+
+**`mcp.yaml`** — Tool / prompt / resource definitions not covered by the registry schema:
 ```yaml
-protocolVersion: "2025-06-18"              # Optional MCP protocol version.
-transport:                                 # Required.
-  kind: streamableHttp | sse | stdio
-  path: /mcp                               # streamableHttp
-  ssePath: /sse                            # sse
-  messagesPath: /messages                  # sse
-  instructions: "..."                      # stdio
 capabilities:
   tools: { listChanged: false }
   prompts: { listChanged: false }
@@ -200,13 +191,14 @@ securitySchemes: { ... }                   # Optional. a2a-style security scheme
 ```
 
 **Display-field precedence** (highest wins):
-- `name`: `server.yaml.info.title` → `exchange.json.name` → directory-slug.
-- `description`: `server.yaml.info.description` → `mcp.yaml.description` → `exchange.json.description`.
-- `version`: `server.yaml.info.version` → `exchange.json.version` → `mcp.yaml.protocolVersion`.
+- `name`: `server.json.title` → `server.json.name` → directory-slug.
+- `description`: `server.json.description`.
+- `version`: `server.json.version`.
+- `tags`: `exchange.json.tags` (array of `{name, description}` or strings).
 
-**Schema:** `docs/schemas/mcp-server.schema.json` defines the allowed structure of `server.yaml`.
+**Schema:** `docs/schemas/mcp-server.schema.json` is the vendored copy of the 2025-12-11 MCP registry schema; it defines the allowed structure of `server.json`.
 
-**Validation:** `make validate-mcp-server` (or `python3 scripts/build/validate_mcp_server.py`) validates every `mcps/<name>/server.yaml` against the schema.
+**Validation:** `make validate-mcp-server` (or `python3 scripts/build/validate_mcp_server.py`) validates every `mcps/<name>/server.json` against the schema.
 
 **Generating `mcp.yaml`:** Use the Anypoint CLI to introspect a running MCP server:
 ```bash
@@ -357,8 +349,8 @@ The portal uses a semantic token system with CSS custom properties. **Always use
 - `Makefile`: Validation orchestration, report generation
 - `scripts/build/validate_xorigin.py`: Validates x-origin annotations across all specs
 - `scripts/build/validate_jtbd.py`: Validates Jobs To Be Done format
-- `scripts/build/validate_mcp_server.py`: Validates every `mcps/<name>/server.yaml` against the schema
-- `docs/schemas/mcp-server.schema.json`: JSON Schema for MCP `server.yaml` (source of truth)
+- `scripts/build/validate_mcp_server.py`: Validates every `mcps/<name>/server.json` against the MCP registry schema
+- `docs/schemas/mcp-server.schema.json`: Vendored copy of the MCP 2025-12-11 server descriptor schema
 - `scripts/portal_generator/`: Static API portal generator package
 - `scripts/portal_generator/assets/styles.css`: Design system CSS variables (lines 39-270)
 - `scripts/tests/`: Portal generator test suite (pytest)

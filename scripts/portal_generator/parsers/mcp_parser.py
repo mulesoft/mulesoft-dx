@@ -4,11 +4,15 @@ Reads the per-directory MCP spec files and produces a normalized record the
 portal can render. Each MCP server directory (``mcps/<slug>/``) is expected to
 contain:
 
-* ``exchange.json``  — Exchange metadata (name, version, visibility, ...).
-* ``server.yaml``    — OpenAPI-style ``servers:`` list that describes the
-                       network endpoints hosting the MCP server.
-* ``mcp.yaml``       — MCP metadata conforming to ``mcp_metadata.json``:
-                       transport, capabilities, tools, resources, prompts, ...
+* ``server.json``   — MCP server descriptor following
+                      https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
+                      (name, title, description, version, remotes, ...).
+                      Authoritative for display fields and endpoint URLs.
+* ``exchange.json`` — Exchange publishing metadata. Supplies the ``tags`` list
+                      surfaced on the homepage tag search.
+* ``mcp.yaml``      — Tool / prompt / resource definitions (capabilities,
+                      tools, prompts, resources, resourceTemplates, ...).
+                      Structural parts not covered by the registry schema.
 """
 
 import json
@@ -27,27 +31,36 @@ def _load_yaml(path: Path) -> Optional[Dict]:
         return None
 
 
-def _normalize_servers(raw: Any) -> List[Dict]:
-    """Return the server list in the same shape OAS parsing uses."""
+_TRANSPORT_ALIASES = {
+    'streamable-http': 'streamableHttp',
+    'streamable_http': 'streamableHttp',
+    'streamableHttp': 'streamableHttp',
+    'sse': 'sse',
+    'stdio': 'stdio',
+}
+
+
+def _normalize_remote(entry: Dict) -> Dict:
+    """Convert a server.json ``remotes[]`` entry into the portal's server shape.
+
+    The ``url`` stays as-is (fully-qualified endpoint). We keep an empty
+    ``variables`` dict so downstream code that assumes OAS templating still
+    works — in the new schema each region/env gets its own remote entry.
+    """
+    kind = _TRANSPORT_ALIASES.get(str(entry.get('type', '')), str(entry.get('type', '')))
+    return {
+        'url': str(entry.get('url', '')),
+        'description': str(entry.get('description', '')),
+        'variables': {},
+        '_transport_kind': kind,
+    }
+
+
+def _normalize_remotes(raw: Any) -> List[Dict]:
+    """Normalize the server.json ``remotes`` array into our server list."""
     if not isinstance(raw, list):
         return []
-    servers = []
-    for entry in raw:
-        if not isinstance(entry, dict):
-            continue
-        variables = {}
-        for vname, vdef in (entry.get('variables') or {}).items():
-            if isinstance(vdef, dict):
-                variables[str(vname)] = {
-                    'default': vdef.get('default', ''),
-                    'description': vdef.get('description', ''),
-                }
-        servers.append({
-            'url': str(entry.get('url', '')),
-            'description': str(entry.get('description', '')),
-            'variables': variables,
-        })
-    return servers
+    return [_normalize_remote(entry) for entry in raw if isinstance(entry, dict)]
 
 
 def _ensure_list(value: Any) -> List[Dict]:
@@ -141,10 +154,11 @@ def _primary_type(schema: Any) -> str:
     """Pick the concrete type to render an input control for.
 
     For ``anyOf``/``oneOf`` or ``type: [T, 'null']`` unions, returns the first
-    non-null branch type. Falls back to 'string' when nothing else fits.
+    non-null branch type. Schemas with no ``type`` constraint fall back to
+    ``'any'`` — the JSON Schema convention for "no type restriction".
     """
     if not isinstance(schema, dict):
-        return 'string'
+        return 'any'
     for key in ('anyOf', 'oneOf'):
         branches = schema.get(key)
         if isinstance(branches, list):
@@ -156,8 +170,8 @@ def _primary_type(schema: Any) -> str:
         for candidate in t:
             if candidate and candidate != 'null':
                 return str(candidate)
-        return 'string'
-    return str(t) if t else 'string'
+        return 'any'
+    return str(t) if t else 'any'
 
 
 def _attach_input_hints(schema: Any) -> None:
@@ -211,17 +225,17 @@ def _schema_type(schema: Dict) -> str:
     # Union via type: [string, 'null']
     t = schema.get('type', '')
     if isinstance(t, list):
-        return ' | '.join(str(x) for x in t if x) or 'object'
+        return ' | '.join(str(x) for x in t if x) or 'any'
 
     fmt = schema.get('format')
     if fmt:
         t = f"{t} ({fmt})" if t else fmt
     if t == 'array' and isinstance(schema.get('items'), dict):
         items_type = _schema_type(schema['items'])
-        return f"array[{items_type or 'object'}]"
+        return f"array[{items_type or 'any'}]"
     if schema.get('nullable'):
         t = (t + ' | null') if t else 'null'
-    return t or 'object'
+    return t or 'any'
 
 
 def _schema_to_properties(schema: Dict) -> List[Dict]:
@@ -287,6 +301,42 @@ def _tool_display_name(tool: Dict) -> str:
     return str(tool.get('name', ''))
 
 
+def _uri_authority(uri: str) -> str:
+    """Return the authority (first path segment) of a ``scheme://authority/...`` URI.
+
+    ``ui://api-instance/policies.html`` → ``'api-instance'``.
+    Empty/malformed URIs yield ``''``.
+    """
+    if not isinstance(uri, str) or '://' not in uri:
+        return ''
+    remainder = uri.split('://', 1)[1]
+    if not remainder:
+        return ''
+    # Authority is everything up to the next '/'.
+    authority = remainder.split('/', 1)[0]
+    return authority.strip()
+
+
+def _extract_tool_ui_resource(tool: Dict) -> str:
+    """Pull the ui/resourceUri hint out of a tool's ``_meta`` block.
+
+    Accepts both the flat ``ui/resourceUri`` key and the nested
+    ``ui: { resourceUri: ... }`` shape for tolerance.
+    """
+    meta = tool.get('_meta')
+    if not isinstance(meta, dict):
+        return ''
+    flat = meta.get('ui/resourceUri')
+    if isinstance(flat, str) and flat.strip():
+        return flat.strip()
+    ui = meta.get('ui')
+    if isinstance(ui, dict):
+        nested = ui.get('resourceUri')
+        if isinstance(nested, str) and nested.strip():
+            return nested.strip()
+    return ''
+
+
 def _default_display_name(item: Dict) -> str:
     """Display-name precedence for resources/prompts/templates: title > name."""
     if item.get('title'):
@@ -320,19 +370,26 @@ def _collect_xorigin_refs(tools: List[Dict]) -> Tuple[Set[str], Set[str]]:
 def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     """Parse an MCP server directory into a normalized record.
 
-    Returns ``None`` if the directory doesn't contain the minimum required
-    files (``mcp.yaml`` + either ``server.yaml`` or an Exchange ``main``).
+    Requires ``server.json`` (MCP registry descriptor) and ``mcp.yaml``
+    (tool/prompt/resource definitions). ``exchange.json`` is optional and
+    contributes the ``tags`` list used by the homepage tag search.
     """
     mcp_yaml_path = mcp_dir / 'mcp.yaml'
     if not mcp_yaml_path.exists():
         return None
-
     mcp_data = _load_yaml(mcp_yaml_path)
     if mcp_data is None:
         return None
 
-    server_yaml_path = mcp_dir / 'server.yaml'
-    server_data = _load_yaml(server_yaml_path) if server_yaml_path.exists() else {}
+    server_json_path = mcp_dir / 'server.json'
+    if not server_json_path.exists():
+        return None
+    try:
+        server_data = json.loads(server_json_path.read_text(encoding='utf-8')) or {}
+    except (json.JSONDecodeError, OSError):
+        return None
+    if not isinstance(server_data, dict):
+        return None
 
     exchange_path = mcp_dir / 'exchange.json'
     exchange: Dict = {}
@@ -344,39 +401,23 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
 
     slug = mcp_dir.name
 
-    # server.yaml may carry an OpenAPI-style info block that takes precedence
-    # over exchange.json for display purposes.
-    server_info = server_data.get('info') if isinstance(server_data, dict) else {}
-    if not isinstance(server_info, dict):
-        server_info = {}
-
+    # Display fields come straight from server.json (registry schema).
     name = (
-        server_info.get('title')
-        or exchange.get('name')
-        or mcp_data.get('title')
+        server_data.get('title')
+        or server_data.get('name')
         or slug.replace('-', ' ').title() + ' MCP'
     )
-    version = str(
-        server_info.get('version')
-        or exchange.get('version')
-        or mcp_data.get('protocolVersion')
-        or ''
-    )
-    description_full = str(
-        server_info.get('description')
-        or mcp_data.get('description')
-        or exchange.get('description')
-        or ''
-    )
+    version = str(server_data.get('version') or '')
+    description_full = str(server_data.get('description') or '')
     description_short = (
         description_full[:200] + '...'
         if len(description_full) > 200 else description_full
     )
+    website_url = str(server_data.get('websiteUrl') or '')
 
-    # Tags come from server.yaml (OpenAPI-style top-level tags list). Each
-    # tag is {name, description?}. We keep the full shape for documentation
-    # and also emit a flat list for the homepage tag search.
-    raw_tags = server_data.get('tags') if isinstance(server_data, dict) else []
+    # Tags now come from exchange.json. Accept either the OpenAPI-style
+    # [{name, description}] list or a flat [string, string] list.
+    raw_tags = exchange.get('tags') if isinstance(exchange, dict) else []
     tags: List[Dict] = []
     tag_names: List[str] = []
     if isinstance(raw_tags, list):
@@ -387,18 +428,52 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
                     'description': str(entry.get('description', '')),
                 })
                 tag_names.append(str(entry['name']))
-            elif isinstance(entry, str):
-                tags.append({'name': entry, 'description': ''})
-                tag_names.append(entry)
+            elif isinstance(entry, str) and entry.strip():
+                tags.append({'name': entry.strip(), 'description': ''})
+                tag_names.append(entry.strip())
 
-    transport_raw = mcp_data.get('transport') or {}
+    # Servers + transport derive from server.json remotes[]. Each remote's
+    # ``url`` is the full endpoint — the try-it console posts to it directly.
+    servers = _normalize_remotes(server_data.get('remotes'))
+    primary_remote = next(
+        (s for s in servers if s.get('_transport_kind') == 'streamableHttp'),
+        servers[0] if servers else None,
+    )
     transport = {
-        'kind': str(transport_raw.get('kind', '')),
-        'path': str(transport_raw.get('path', '') or ''),
-        'sse_path': str(transport_raw.get('ssePath', '') or ''),
-        'messages_path': str(transport_raw.get('messagesPath', '') or ''),
-        'instructions': str(transport_raw.get('instructions', '') or ''),
+        'kind': str(primary_remote.get('_transport_kind', '')) if primary_remote else '',
+        # Kept for backwards compatibility with the overview template; the
+        # full URL already includes any path so these are unused by the
+        # try-it console but still useful in view-only displays.
+        'path': '',
+        'sse_path': '',
+        'messages_path': '',
+        'instructions': '',
     }
+
+    # Resources first so we can link tools' _meta.ui/resourceUri hints to
+    # the right section anchor on the detail page.
+    resources = []
+    resource_index_by_uri: Dict[str, int] = {}
+    for idx, resource in enumerate(_ensure_list(mcp_data.get('resources'))):
+        resource_copy = dict(resource)
+        resource_copy['_display_name'] = _default_display_name(resource_copy)
+        resource_copy['_group'] = _uri_authority(str(resource_copy.get('uri', ''))) or 'Other'
+        resource_copy['_index'] = idx
+        resources.append(resource_copy)
+        uri = str(resource_copy.get('uri', '')).strip()
+        if uri:
+            resource_index_by_uri[uri] = idx
+
+    # Bucket resources by URI authority group, preserving insertion order
+    # within each bucket. Empty-authority resources fall into "Other".
+    resource_groups: List[Dict] = []
+    groups_seen: Dict[str, int] = {}
+    for resource in resources:
+        group_name = resource.get('_group') or 'Other'
+        if group_name not in groups_seen:
+            groups_seen[group_name] = len(resource_groups)
+            resource_groups.append({'name': group_name, 'resources': []})
+        resource_groups[groups_seen[group_name]]['resources'].append(resource)
 
     tools = []
     for tool in _ensure_list(mcp_data.get('tools')):
@@ -408,6 +483,16 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         _attach_input_hints(input_schema)
         tool_copy['_input_properties'] = _schema_to_properties(input_schema)
         tool_copy['_output_properties'] = _schema_to_properties(tool_copy.get('outputSchema') or {})
+        ui_resource_uri = _extract_tool_ui_resource(tool_copy)
+        if ui_resource_uri:
+            tool_copy['_ui_resource_uri'] = ui_resource_uri
+            idx = resource_index_by_uri.get(ui_resource_uri)
+            if idx is not None:
+                target = resources[idx]
+                tool_copy['_ui_resource_anchor'] = f'resource-{idx}'
+                tool_copy['_ui_resource_title'] = target.get('_display_name') or target.get('name') or ''
+                tool_copy['_ui_resource_description'] = str(target.get('description') or '')
+                tool_copy['_ui_resource_mime_type'] = str(target.get('mimeType') or '')
         tools.append(tool_copy)
 
     prompts = []
@@ -415,12 +500,6 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         prompt_copy = dict(prompt)
         prompt_copy['_display_name'] = _default_display_name(prompt_copy)
         prompts.append(prompt_copy)
-
-    resources = []
-    for resource in _ensure_list(mcp_data.get('resources')):
-        resource_copy = dict(resource)
-        resource_copy['_display_name'] = _default_display_name(resource_copy)
-        resources.append(resource_copy)
 
     resource_templates = []
     for template in _ensure_list(mcp_data.get('resourceTemplates')):
@@ -436,8 +515,6 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         [t for t in _ensure_list(mcp_data.get('tools'))]
     )
 
-    is_private = exchange.get('visibility') == 'private'
-
     return {
         'id': slug,
         'slug': slug,
@@ -445,13 +522,15 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'version': version,
         'description': description_short,
         'full_description': description_full,
-        'servers': _normalize_servers(server_data.get('servers')),
+        'website_url': website_url,
+        'servers': servers,
         'transport': transport,
         'capabilities': capabilities if isinstance(capabilities, dict) else {},
         'provider': provider if isinstance(provider, dict) else {},
         'tools': tools,
         'prompts': prompts,
         'resources': resources,
+        'resource_groups': resource_groups,
         'resource_templates': resource_templates,
         'tool_count': len(tools),
         'prompt_count': len(prompts),
@@ -461,7 +540,6 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'tags': tags,
         'tag_names': tag_names,
         'exchange': exchange,
-        'private': is_private,
         'xorigin_api_refs': xorigin_api_refs,
         'xorigin_mcp_refs': xorigin_mcp_refs,
     }

@@ -206,6 +206,37 @@
                 {{ render_schema_table(tool._output_properties) }}
             </div>
             {% endif %}
+
+            {% if tool._ui_resource_uri %}
+            <div class="operation-subsection mcp-ui-resource-section">
+                <div class="section-header-with-badge">
+                    <h4>UI Resource</h4>
+                    {% if tool._ui_resource_mime_type %}
+                    <span class="content-type-badge">{{ tool._ui_resource_mime_type }}</span>
+                    {% endif %}
+                </div>
+                <p class="mcp-ui-resource-intro">
+                    Hosts that implement the <a href="https://modelcontextprotocol.io/extensions/apps/overview" target="_blank" rel="noopener">MCP Apps extension</a> render this tool's output through the linked UI resource.
+                </p>
+                <div class="mcp-ui-resource-card">
+                    {% if tool._ui_resource_anchor %}
+                    <a href="#{{ tool._ui_resource_anchor }}" class="mcp-ui-resource-card-link">
+                        <span class="mcp-ui-resource-title">{{ tool._ui_resource_title or tool._ui_resource_uri }}</span>
+                        <code class="mcp-ui-resource-uri">{{ tool._ui_resource_uri }}</code>
+                        {% if tool._ui_resource_description %}
+                        <span class="mcp-ui-resource-description">{{ tool._ui_resource_description }}</span>
+                        {% endif %}
+                        <span class="mcp-ui-resource-cta">View resource →</span>
+                    </a>
+                    {% else %}
+                    <div class="mcp-ui-resource-card-inert">
+                        <code class="mcp-ui-resource-uri">{{ tool._ui_resource_uri }}</code>
+                        <span class="mcp-ui-resource-note">Not declared in this server's resources — shown for reference only.</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

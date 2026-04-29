@@ -10,7 +10,7 @@ from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
     PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, setup_schema_docs,
-    MINIMAL_MCP_SERVER_YAML, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
+    MINIMAL_MCP_SERVER_JSON, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
 )
 
 
@@ -39,7 +39,7 @@ def generated_portal(tmp_path):
 
     mcp_dir = repo / 'mcps' / 'test-mcp'
     mcp_dir.mkdir(parents=True)
-    (mcp_dir / 'server.yaml').write_text(MINIMAL_MCP_SERVER_YAML)
+    (mcp_dir / 'server.json').write_text(MINIMAL_MCP_SERVER_JSON)
     (mcp_dir / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
     (mcp_dir / 'exchange.json').write_text(MINIMAL_MCP_EXCHANGE_JSON)
 
@@ -586,7 +586,7 @@ class TestMcpDetailPage:
     def test_mcp_source_files_copied(self, generated_portal):
         mcp_out = generated_portal / 'mcps' / 'test-mcp'
         assert (mcp_out / 'mcp.yaml').exists()
-        assert (mcp_out / 'server.yaml').exists()
+        assert (mcp_out / 'server.json').exists()
 
     def test_mcp_page_has_xorigin_modal(self):
         modal = self.soup.find('div', id='xorigin-modal')
@@ -628,7 +628,7 @@ class TestMcpXoriginPage:
 
         mcp_dir = repo / 'mcps' / 'exchange'
         mcp_dir.mkdir(parents=True)
-        (mcp_dir / 'server.yaml').write_text(MINIMAL_MCP_SERVER_YAML)
+        (mcp_dir / 'server.json').write_text(MINIMAL_MCP_SERVER_JSON)
         (mcp_dir / 'exchange.json').write_text(MINIMAL_MCP_EXCHANGE_JSON)
         (mcp_dir / 'mcp.yaml').write_text(textwrap.dedent("""\
             capabilities:

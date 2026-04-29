@@ -79,6 +79,36 @@
     </div>
     {% endif %}
 
+    {% if mcp.capabilities %}
+    <div class="overview-section">
+        <h3>Capabilities</h3>
+        <dl class="mcp-info-list mcp-capabilities-list">
+            {% for cap_name, cap_value in mcp.capabilities.items() %}
+            <div class="mcp-info-row">
+                <dt><code>{{ cap_name }}</code></dt>
+                <dd>
+                    {% if cap_value is mapping %}
+                        {% set flags = [] %}
+                        {% for flag_key, flag_val in cap_value.items() %}
+                            {% if flag_val is sameas true %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ '</span>') %}
+                            {% elif flag_val is sameas false %}{% set _ = flags.append('<span class="badge badge-mcp-flag-off">' ~ flag_key ~ ': off</span>') %}
+                            {% elif flag_val is mapping %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ '</span>') %}
+                            {% else %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ ': ' ~ flag_val ~ '</span>') %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if flags %}{{ flags|join(' ')|safe }}{% else %}<em class="mcp-capability-enabled">enabled</em>{% endif %}
+                    {% elif cap_value is sameas true %}
+                        <em class="mcp-capability-enabled">enabled</em>
+                    {% else %}
+                        <code>{{ cap_value }}</code>
+                    {% endif %}
+                </dd>
+            </div>
+            {% endfor %}
+        </dl>
+    </div>
+    {% endif %}
+
     {% if mcp.security_schemes %}
     <div class="overview-section">
         <h3>Authentication &amp; Security</h3>

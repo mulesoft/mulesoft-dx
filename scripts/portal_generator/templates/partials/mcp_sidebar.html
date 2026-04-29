@@ -68,12 +68,25 @@
                     <span class="group-count">({{ mcp.resource_count }})</span>
                 </button>
                 <ul class="nav-group-items" id="group-mcp-resources" style="display: block;">
-                    {% for resource in mcp.resources %}
-                    <li>
-                        <a href="#resource-{{ loop.index0 }}" class="nav-link nav-operation nav-operation-flat" title="{{ resource.uri|default('') }}">
-                            <span class="op-name">{{ resource._display_name|default(resource.name) }}</span>
-                            <span class="method-badge method-mcp-resource">RES</span>
-                        </a>
+                    {% for group in mcp.resource_groups %}
+                    {% set group_id = 'mcp-res-' ~ group.name|slugify %}
+                    <li class="nav-group tree-level-1">
+                        <button class="nav-group-header tree-node" onclick="toggleGroup('{{ group_id }}')" aria-expanded="false"
+                            aria-controls="group-{{ group_id }}">
+                            <img class="group-toggle" id="toggle-{{ group_id }}" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                            <span class="group-name">{{ group.name }}</span>
+                            <span class="group-count">({{ group.resources|length }})</span>
+                        </button>
+                        <ul class="nav-group-items" id="group-{{ group_id }}" style="display: none;">
+                            {% for resource in group.resources %}
+                            <li>
+                                <a href="#resource-{{ resource._index }}" class="nav-link nav-operation nav-operation-flat" title="{{ resource.uri|default('') }}">
+                                    <span class="op-name">{{ resource._display_name|default(resource.name) }}</span>
+                                    <span class="method-badge method-mcp-resource">RES</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </li>
                     {% endfor %}
                 </ul>

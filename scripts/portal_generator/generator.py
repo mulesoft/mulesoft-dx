@@ -136,7 +136,10 @@ class PortalGenerator:
         # Discover APIs, MCP servers, and skills
         self.apis, self.mcp_servers, all_discovered_skills = discover_apis(repo_root)
         self.public_apis = [a for a in self.apis if not a.get('private')]
-        self.public_mcps = [m for m in self.mcp_servers if not m.get('private')]
+        # All MCP servers are public — visibility was dropped when we switched
+        # to the MCP registry server.json schema. Alias kept to avoid churning
+        # callers that still reference public_mcps.
+        self.public_mcps = list(self.mcp_servers)
         self.stats = calculate_stats(self.apis, self.mcp_servers)
 
         # Pre-compute data for templates
@@ -320,17 +323,11 @@ class PortalGenerator:
         servers = []
         for s in mcp.get('servers', []):
             if isinstance(s, dict):
-                variables = {}
-                for vname, vdef in (s.get('variables') or {}).items():
-                    if isinstance(vdef, dict):
-                        variables[str(vname)] = {
-                            'default': str(vdef.get('default', '')),
-                            'description': str(vdef.get('description', '')),
-                        }
                 servers.append({
                     'url': str(s.get('url', '')),
                     'description': str(s.get('description', '')),
-                    'variables': variables,
+                    'variables': {},
+                    'transport': str(s.get('_transport_kind', '')),
                 })
 
         security_schemes = {}
@@ -548,7 +545,7 @@ class PortalGenerator:
             if source_dir.exists():
                 mcp_output_dir = self.output_dir / 'mcps' / slug
                 mcp_output_dir.mkdir(parents=True, exist_ok=True)
-                for filename in ('mcp.yaml', 'server.yaml', 'exchange.json'):
+                for filename in ('mcp.yaml', 'server.json', 'exchange.json'):
                     src = source_dir / filename
                     if src.exists():
                         shutil.copy2(src, mcp_output_dir / filename)
@@ -561,12 +558,11 @@ class PortalGenerator:
                 'version': mcp.get('version', ''),
                 'description': mcp.get('description', ''),
                 'href': f"mcps/{slug}/mcp.yaml",
+                'docs': f"mcps/{slug}.html",
                 'tool_count': mcp.get('tool_count', 0),
                 'resource_count': mcp.get('resource_count', 0),
                 'prompt_count': mcp.get('prompt_count', 0),
             }
-            if not mcp.get('private'):
-                entry['docs'] = f"mcps/{slug}.html"
 
             registry.append(entry)
 

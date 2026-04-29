@@ -54,7 +54,7 @@ help:
 	@echo "  $(YELLOW)make test-portal$(NC)           - Run portal generator test suite"
 	@echo "  $(YELLOW)make validate-xorigin$(NC)      - Validate x-origin annotations across APIs"
 	@echo "  $(YELLOW)make validate-jtbd$(NC)         - Validate all JTBD files in skills/ directories"
-	@echo "  $(YELLOW)make validate-mcp-server$(NC)   - Validate MCP server.yaml files against the JSON Schema"
+	@echo "  $(YELLOW)make validate-mcp-server$(NC)   - Validate MCP server.json files against the MCP registry schema"
 	@echo "  $(YELLOW)make validate-descriptions$(NC) - Validate API descriptions use imperative format"
 	@echo ""
 	@echo "$(GREEN)Git hooks:$(NC)"
@@ -387,7 +387,7 @@ validate-xorigin:
 
 validate-mcp-server:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
-	@echo "$(CYAN)  Validating MCP server.yaml files$(NC)"
+	@echo "$(CYAN)  Validating MCP server.json files$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@python3 scripts/build/validate_mcp_server.py

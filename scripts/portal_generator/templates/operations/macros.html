@@ -13,20 +13,20 @@
             {%- if t %}{% set _ = parts.append(t) %}{% endif -%}
         {%- endfor -%}
         {{ parts|join(' | ') }}
-    {%- elif schema.type is iterable and schema.type is not string -%}
+    {%- elif schema.type is defined and schema.type is iterable and schema.type is not string -%}
         {%- set parts = [] -%}
         {%- for t in schema.type -%}{% if t %}{% set _ = parts.append(t|string) %}{% endif %}{%- endfor -%}
-        {{ parts|join(' | ') }}
+        {{ parts|join(' | ') or 'any' }}
     {%- else -%}
         {%- set ptype = schema.type|default('') -%}
         {%- set fmt = schema.format|default('') -%}
         {%- if ptype == 'array' and schema.items is mapping -%}
             {%- set inner = _type_string(schema.items) -%}
-            array[{{ inner or 'object' }}]
+            array[{{ inner or 'any' }}]
         {%- else -%}
             {%- if fmt %}{% set ptype = (ptype ~ '(' ~ fmt ~ ')') if ptype else fmt %}{% endif -%}
             {%- if schema.nullable %}{% set ptype = (ptype ~ ' | null') if ptype else 'null' %}{% endif -%}
-            {{ ptype }}
+            {{ ptype or 'any' }}
         {%- endif -%}
     {%- endif -%}
 {%- endif -%}

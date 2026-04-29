@@ -8,6 +8,6 @@
   "apiVersion": "v2",
   "classifier": "mcp-metadata",
   "dependencies": [],
-  "tags": [],
+  "tags": ["Exchange", "Asset Management"],
   "originalFormatVersion": "3.0"
 }

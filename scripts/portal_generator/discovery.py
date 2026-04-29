@@ -205,9 +205,10 @@ def discover_apis(repo_root: Path) -> Tuple[List[Dict], List[Dict], List[Dict]]:
 
 
 def calculate_stats(apis: List[Dict], mcp_servers: Optional[List[Dict]] = None) -> Dict:
-    """Calculate portal statistics (excludes private APIs / MCPs)."""
+    """Calculate portal statistics (excludes private APIs)."""
     public_apis = [a for a in apis if not a.get('private')]
-    public_mcps = [m for m in (mcp_servers or []) if not m.get('private')]
+    # All MCPs are public under the new server.json registry schema.
+    public_mcps = list(mcp_servers or [])
     total_operations = sum(api['operation_count'] for api in public_apis)
     total_tools = sum(mcp['tool_count'] for mcp in public_mcps)
     # Count unique skills (a skill may appear under multiple APIs or MCPs)

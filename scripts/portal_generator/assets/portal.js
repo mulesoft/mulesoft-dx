@@ -2449,16 +2449,27 @@ var __mcpJsonRpcId = 0;
 function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
 
 function __mcpEndpointUrl() {
+    // server.json remotes[] already expose fully-qualified endpoint URLs
+    // (including whatever path the server uses), so the selected server URL
+    // is used verbatim. We still filter out sse / stdio remotes because the
+    // try-it console only speaks JSON-RPC over HTTP POST.
     var meta = window.__MCP_META__;
     if (!meta) return null;
-    var base = getSelectedServer(null).replace(/\/$/, '');
-    var transport = meta.transport || {};
-    if (transport.kind === 'streamableHttp') {
-        var path = transport.path || '/mcp';
-        if (path && path.charAt(0) !== '/') path = '/' + path;
-        return base + path;
+    var selected = getSelectedServer(null);
+    if (!selected) return null;
+
+    var remotes = meta.servers || [];
+    var match = null;
+    var normalizedSelected = selected.replace(/\/$/, '');
+    for (var i = 0; i < remotes.length; i += 1) {
+        if ((remotes[i].url || '').replace(/\/$/, '') === normalizedSelected) {
+            match = remotes[i];
+            break;
+        }
     }
-    return null;
+    var kind = (match && match.transport) || (meta.transport && meta.transport.kind) || '';
+    if (kind && kind !== 'streamableHttp') return null;
+    return selected;
 }
 
 function __mcpCoerceValue(value, type) {

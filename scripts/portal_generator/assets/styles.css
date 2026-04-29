@@ -8002,6 +8002,121 @@ pre[class*="language-"][class*="language-"] {
     word-break: break-word;
 }
 
+/* MCP capabilities: flags that are explicitly `false` render dimmer than
+   enabled ones so you can glance at a capability and see which knobs are off. */
+.mcp-capabilities-list .badge {
+    margin-left: 0;
+    margin-right: var(--space-xs);
+}
+
+.badge-mcp-flag-off {
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
+    padding: var(--space-xxx-small) var(--space-xx-small);
+    border-radius: var(--radius-large);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-regular);
+    text-transform: none;
+    letter-spacing: normal;
+    display: inline-block;
+}
+
+.mcp-capability-enabled {
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* MCP tool "UI Resource" section — points at the resource section on the page. */
+.mcp-ui-resource-section .mcp-ui-resource-intro {
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
+}
+
+.mcp-ui-resource-card {
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    background: var(--color-bg-surface);
+    overflow: hidden;
+}
+
+.mcp-ui-resource-card-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "title cta"
+        "uri cta"
+        "desc desc";
+    gap: var(--space-xs) var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: background 0.15s ease;
+}
+
+.mcp-ui-resource-card-link:hover {
+    background: var(--hover-bg);
+}
+
+.mcp-ui-resource-title {
+    grid-area: title;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.mcp-ui-resource-uri {
+    grid-area: uri;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+    background: transparent;
+    padding: 0;
+}
+
+.mcp-ui-resource-description {
+    grid-area: desc;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-2);
+}
+
+.mcp-ui-resource-cta {
+    grid-area: cta;
+    align-self: center;
+    color: var(--color-text-link);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.mcp-ui-resource-card-inert {
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mcp-ui-resource-note {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-2);
+    font-style: italic;
+}
+
+/* Resource group header on the MCP detail page. */
+.mcp-resource-group {
+    margin-bottom: var(--space-xl);
+}
+
+.mcp-resource-group-header {
+    margin: var(--space-lg) var(--space-lg) var(--space-sm) var(--space-lg);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+}
+
 /* MCP filter tab icon coloring on the homepage */
 .hero-tab[data-filter="mcp"]:hover,
 .hero-tab[data-filter="mcp"].active {

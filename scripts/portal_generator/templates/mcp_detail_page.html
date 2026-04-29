@@ -46,8 +46,11 @@
 
         {% if mcp.resources %}
         <div id="mcp-resources-section">
+            {# Resources are grouped in the sidebar only. On the detail page we
+               render each resource section inline — only the active one is
+               visible at a time, so group headers would be orphaned. #}
             {% for resource in mcp.resources %}
-                {{ render_resource(resource, loop.index0, icons_path) }}
+                {{ render_resource(resource, resource._index, icons_path) }}
             {% endfor %}
         </div>
         {% endif %}

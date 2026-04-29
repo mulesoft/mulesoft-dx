@@ -251,9 +251,9 @@ When updating an existing API specification:
 
 MCP servers are contributed under `mcps/<server-name>/` with three files:
 
-- `exchange.json` — Exchange metadata (name, version, ...).
-- `server.yaml` — OpenAPI-style `servers:` list describing the MCP endpoints.
-- `mcp.yaml` — MCP metadata (transport, capabilities, tools, prompts, resources).
+- `server.json` — MCP registry descriptor (title, description, version, `remotes[]`). Follows the [2025-12-11 MCP server schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json); validated by `make validate-mcp-server`.
+- `exchange.json` — Exchange publishing metadata. The portal reads its `tags` array to feed the homepage tag search.
+- `mcp.yaml` — Tool / prompt / resource definitions (capabilities, tools, prompts, resources, resourceTemplates, securitySchemes).
 
 To generate the `mcp.yaml` metadata by introspecting a running MCP server, use the Anypoint CLI:
 

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.mulesoft/omni",
+  "title": "MuleSoft Omni",
+  "description": "Unified Anypoint console: catalogs, governance, monitoring, cost, gateways, provisioning.",
+  "version": "0.1.0",
+  "websiteUrl": "https://omni.mulesoft.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://omni.mulesoft.com/mcp"
+    },
+    {
+      "type": "sse",
+      "url": "https://omni.mulesoft.com/mcp-sse"
+    }
+  ]
+}

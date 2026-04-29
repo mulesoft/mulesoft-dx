@@ -9,24 +9,24 @@ import pytest
 from portal_generator.parsers.mcp_parser import parse_mcp, _collect_xorigin_refs
 
 
-MINIMAL_SERVER_YAML = textwrap.dedent("""\
-    servers:
-      - url: https://anypoint.mulesoft.com/exchange
-      - url: https://eu1.anypoint.mulesoft.com/exchange
-      - url: https://{region}.platform.mulesoft.com/exchange
-        variables:
-          region:
-            default: ca1
-            description: Region identifier
-""")
+MINIMAL_SERVER_JSON = json.dumps({
+    '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    'name': 'com.mulesoft/exchange',
+    'title': 'Exchange MCP API',
+    'description': 'The Exchange MCP server.',
+    'version': '2.4.5',
+    'websiteUrl': 'https://anypoint.mulesoft.com/exchange',
+    'remotes': [
+        {'type': 'streamable-http', 'url': 'https://anypoint.mulesoft.com/exchange/mcp'},
+        {'type': 'streamable-http', 'url': 'https://eu1.anypoint.mulesoft.com/exchange/mcp'},
+        {'type': 'streamable-http', 'url': 'https://ca1.platform.mulesoft.com/exchange/mcp'},
+    ],
+})
 
 MINIMAL_MCP_YAML = textwrap.dedent("""\
     capabilities:
       tools:
         listChanged: false
-    transport:
-      kind: streamableHttp
-      path: /mcp
     tools:
       - name: searchAssets
         description: Search for assets
@@ -74,6 +74,7 @@ EXCHANGE_JSON = json.dumps({
     'version': '2.4.5',
     'apiVersion': 'v2',
     'classifier': 'mcp-metadata',
+    'tags': ['Exchange', 'Asset Management'],
 })
 
 
@@ -81,10 +82,16 @@ EXCHANGE_JSON = json.dumps({
 def mcp_dir(tmp_path):
     d = tmp_path / 'exchange'
     d.mkdir()
-    (d / 'server.yaml').write_text(MINIMAL_SERVER_YAML)
+    (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
     (d / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
     (d / 'exchange.json').write_text(EXCHANGE_JSON)
     return d
+
+
+def _write_minimal(d: Path, *, server_json=MINIMAL_SERVER_JSON, mcp_yaml: str = MINIMAL_MCP_YAML):
+    """Helper: write the minimum files (server.json + mcp.yaml) to a dir."""
+    (d / 'server.json').write_text(server_json)
+    (d / 'mcp.yaml').write_text(mcp_yaml)
 
 
 class TestParseMcp:
@@ -93,35 +100,43 @@ class TestParseMcp:
         empty.mkdir()
         assert parse_mcp(empty) is None
 
-    def test_reads_name_and_version_from_exchange(self, mcp_dir):
+    def test_reads_name_and_version_from_server_json(self, mcp_dir):
         data = parse_mcp(mcp_dir)
         assert data['name'] == 'Exchange MCP API'
         assert data['version'] == '2.4.5'
         assert data['slug'] == 'exchange'
 
-    def test_falls_back_to_directory_name_when_no_exchange(self, tmp_path):
-        d = tmp_path / 'custom-mcp'
+    def test_returns_none_without_server_json(self, tmp_path):
+        d = tmp_path / 'no-server'
         d.mkdir()
         (d / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
+        assert parse_mcp(d) is None
+
+    def test_falls_back_to_directory_name_when_no_title(self, tmp_path):
+        d = tmp_path / 'custom-mcp'
+        d.mkdir()
+        _write_minimal(d, server_json=json.dumps({
+            '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+            'name': 'com.example/custom',
+            'version': '0.0.1',
+            'remotes': [{'type': 'streamable-http', 'url': 'https://example.com/mcp'}],
+        }))
         data = parse_mcp(d)
-        # Title-cased slug + ' MCP'
-        assert 'Custom-Mcp' in data['name'] or 'Custom Mcp' in data['name']
+        # title absent -> fall back to server.name
+        assert data['name'] == 'com.example/custom'
         assert data['slug'] == 'custom-mcp'
 
-    def test_normalizes_transport(self, mcp_dir):
+    def test_transport_derived_from_remotes(self, mcp_dir):
         data = parse_mcp(mcp_dir)
         assert data['transport']['kind'] == 'streamableHttp'
-        assert data['transport']['path'] == '/mcp'
-        assert data['transport']['sse_path'] == ''
 
-    def test_normalizes_servers_with_variables(self, mcp_dir):
+    def test_servers_come_from_remotes(self, mcp_dir):
         data = parse_mcp(mcp_dir)
         assert len(data['servers']) == 3
         urls = [s['url'] for s in data['servers']]
-        assert 'https://anypoint.mulesoft.com/exchange' in urls
-        regional = next(s for s in data['servers'] if '{region}' in s['url'])
-        assert 'region' in regional['variables']
-        assert regional['variables']['region']['default'] == 'ca1'
+        assert 'https://anypoint.mulesoft.com/exchange/mcp' in urls
+        assert 'https://eu1.anypoint.mulesoft.com/exchange/mcp' in urls
+        assert 'https://ca1.platform.mulesoft.com/exchange/mcp' in urls
 
     def test_extracts_tools_with_counts_and_display_names(self, mcp_dir):
         data = parse_mcp(mcp_dir)
@@ -148,23 +163,43 @@ class TestParseMcp:
         assert data['resource_template_count'] == 1
         assert data['resource_templates'][0]['uriTemplate'] == 'exchange://docs/{assetId}'
 
-    def test_marks_private_visibility(self, tmp_path):
-        d = tmp_path / 'priv'
+    def test_tags_come_from_exchange_json(self, mcp_dir):
+        data = parse_mcp(mcp_dir)
+        assert data['tag_names'] == ['Exchange', 'Asset Management']
+        assert data['tags'][0]['name'] == 'Exchange'
+        assert data['tags'][0]['description'] == ''
+
+    def test_tags_empty_when_no_exchange_json(self, tmp_path):
+        d = tmp_path / 'no-tags'
         d.mkdir()
-        (d / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
-        priv_exchange = json.loads(EXCHANGE_JSON)
-        priv_exchange['visibility'] = 'private'
-        (d / 'exchange.json').write_text(json.dumps(priv_exchange))
+        _write_minimal(d)
         data = parse_mcp(d)
-        assert data['private'] is True
+        assert data['tag_names'] == []
+        assert data['tags'] == []
+
+    def test_missing_type_falls_back_to_any(self, tmp_path):
+        d = tmp_path / 'untyped'
+        d.mkdir()
+        (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            tools:
+              - name: anyValue
+                inputSchema:
+                  type: object
+                  properties:
+                    passthrough:
+                      description: Accepts any JSON value
+        """))
+        data = parse_mcp(d)
+        prop = data['tools'][0]['inputSchema']['properties']['passthrough']
+        assert prop['_display_type'] == 'any'
+        assert prop['_primary_type'] == 'any'
 
     def test_union_type_rendered_as_pipe(self, tmp_path):
         d = tmp_path / 'union'
         d.mkdir()
+        (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
         (d / 'mcp.yaml').write_text(textwrap.dedent("""\
-            transport:
-              kind: streamableHttp
-              path: /mcp
             tools:
               - name: withUnion
                 inputSchema:
@@ -190,10 +225,8 @@ class TestParseMcp:
     def test_default_propagates_to_input_properties(self, tmp_path):
         d = tmp_path / 'defaults'
         d.mkdir()
+        (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
         (d / 'mcp.yaml').write_text(textwrap.dedent("""\
-            transport:
-              kind: streamableHttp
-              path: /mcp
             tools:
               - name: withDefaults
                 inputSchema:
@@ -210,10 +243,9 @@ class TestParseMcp:
     def test_missing_optional_sections_default_to_empty(self, tmp_path):
         d = tmp_path / 'minimal'
         d.mkdir()
+        (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
         (d / 'mcp.yaml').write_text(textwrap.dedent("""\
-            transport:
-              kind: streamableHttp
-              path: /mcp
+            capabilities: {}
         """))
         data = parse_mcp(d)
         assert data['tool_count'] == 0
@@ -224,12 +256,9 @@ class TestParseMcp:
     def test_xorigin_refs_collected_from_tools(self, tmp_path):
         d = tmp_path / 'with-xorigin'
         d.mkdir()
-        (d / 'server.yaml').write_text(MINIMAL_SERVER_YAML)
+        (d / 'server.json').write_text(MINIMAL_SERVER_JSON)
         (d / 'exchange.json').write_text(EXCHANGE_JSON)
         (d / 'mcp.yaml').write_text(textwrap.dedent("""\
-            transport:
-              kind: streamableHttp
-              path: /mcp
             tools:
               - name: getAsset
                 description: Get asset details

@@ -8,6 +8,6 @@
   "apiVersion": "v2",
   "classifier": "mcp-metadata",
   "dependencies": [],
-  "tags": [],
+  "tags": ["Omni"],
   "originalFormatVersion": "3.0"
 }

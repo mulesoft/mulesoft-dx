@@ -5,7 +5,11 @@ info:
   description: Manage CloudHub applications, domains, deployments, alerts, and autoscale policies. Monitor dashboard statistics and diagnostics.
 servers:
 - url: https://anypoint.mulesoft.com/cloudhub/api
-- url: https://eu1.anypoint.mulesoft.com/cloudhub/api
+- url: https://{region}.anypoint.mulesoft.com/cloudhub/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/cloudhub/api
   variables:
     region:

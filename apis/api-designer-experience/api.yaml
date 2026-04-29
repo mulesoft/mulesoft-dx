@@ -5,7 +5,11 @@ info:
   version: 1.0.0
 servers:
 - url: https://anypoint.mulesoft.com/designcenter/api-designer
-- url: https://eu1.anypoint.mulesoft.com/designcenter/api-designer
+- url: https://{region}.anypoint.mulesoft.com/designcenter/api-designer
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/designcenter/api-designer
   variables:
     region:

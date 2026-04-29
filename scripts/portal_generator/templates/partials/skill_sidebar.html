@@ -4,6 +4,15 @@
 
 <aside class="detail-sidebar" id="detailSidebar">
     <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path></svg>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search…"
+                    aria-label="Filter steps and APIs" onkeyup="filterSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearSidebarSearch()" style="display:none"
+                    aria-label="Clear search">✕</button>
+            </div>
+        </div>
         <div class="sidebar-overview-section">
             <a href="#overview" class="nav-link nav-link-overview active">
                 Overview
@@ -18,7 +27,7 @@
             {% if linked_apis and linked_apis|length > 0 %}
             <button class="sidebar-tab" role="tab" aria-selected="false" aria-controls="apis-panel"
                 data-tab="apis" onclick="switchSidebarTab('apis')">
-                APIs <span class="tab-count" id="apis-count" style="display: none;"></span>
+                Related APIs <span class="tab-count" id="apis-count" style="display: none;"></span>
             </button>
             {% endif %}
         </div>

@@ -15,8 +15,11 @@ servers:
     organizationId:
       default: unknown
       description: The organization ID for the Anypoint Platform account.
-- url: https://eu1.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+- url: https://{region}.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
   variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.

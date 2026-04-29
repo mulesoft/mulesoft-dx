@@ -5,7 +5,11 @@ info:
   description: Manage APIs, policies, contracts, and SLA tiers within Anypoint Platform. Create, configure, deploy, and monitor APIs across organizations and environments, including API policies, client application contracts, automated policies, API groups, upstream configurations, and TLS contexts.
 servers:
 - url: https://anypoint.mulesoft.com/apimanager/api/v1
-- url: https://eu1.anypoint.mulesoft.com/apimanager/api/v1
+- url: https://{region}.anypoint.mulesoft.com/apimanager/api/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/apimanager/api/v1
   variables:
     region:

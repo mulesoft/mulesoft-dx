@@ -1,4 +1,6 @@
-<a href="apis/{{ api.slug }}.html" class="catalog-card-link" data-category="{{ api.category }}" data-name="{{ api.name|lower }}" data-type="api">
+{% set _api_tag_list = [] %}
+{% for t in api.tags|default([]) %}{% if t is mapping and t.name %}{% set _ = _api_tag_list.append(t.name|lower) %}{% elif t is string %}{% set _ = _api_tag_list.append(t|lower) %}{% endif %}{% endfor %}
+<a href="apis/{{ api.slug }}.html" class="catalog-card-link" data-category="{{ api.category }}" data-name="{{ api.name|lower }}" data-type="api" data-tags="{{ _api_tag_list|join(',') }}">
     <article class="catalog-card">
         <div class="catalog-card-header">
             <div class="catalog-card-title-wrapper">

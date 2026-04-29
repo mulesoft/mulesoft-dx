@@ -9,8 +9,11 @@ servers:
     version:
       default: unknown
       description: API version identifier.
-- url: https://eu1.anypoint.mulesoft.com/secrets-manager/api/{version}/organizations
+- url: https://{region}.anypoint.mulesoft.com/secrets-manager/api/{version}/organizations
   variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.

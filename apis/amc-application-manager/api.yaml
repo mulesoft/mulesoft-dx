@@ -6,7 +6,11 @@ info:
 servers:
 - url: https://anypoint.mulesoft.com/amc/application-manager/api/v2
   description: AMC Application Manager API
-- url: https://eu1.anypoint.mulesoft.com/amc/application-manager/api/v2
+- url: https://{region}.anypoint.mulesoft.com/amc/application-manager/api/v2
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
   description: Regional AMC Application Manager API
 - url: https://{region}.platform.mulesoft.com/amc/application-manager/api/v2
   description: Regional AMC Application Manager API

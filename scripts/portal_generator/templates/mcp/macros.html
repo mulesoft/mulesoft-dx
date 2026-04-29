@@ -1,0 +1,384 @@
+{# ============================================================================
+   MCP detail macros: render tools, prompts, resources, and resource templates.
+   Each "invokable" mirrors the API operation detail page: a breadcrumb,
+   title + badge, description + schema table on the main column, and a
+   try-it panel powered by sendMcpRequest() on the right.
+   ============================================================================ #}
+{% from "operations/schema_table.html" import render_schema_table %}
+
+{% macro _schema_input(field_name, field_schema, required=false, path_prefix='', invocable_id='') %}
+{% set is_mapping = field_schema is mapping %}
+{% set display_type = field_schema._display_type if is_mapping and field_schema._display_type else ((field_schema.type if is_mapping else 'string') or 'string') %}
+{% set primary_type = field_schema._primary_type if is_mapping and field_schema._primary_type else (display_type.split(' | ')[0] if display_type else 'string') %}
+{% set description = field_schema.description if is_mapping else '' %}
+{% set default_val = (field_schema.default if is_mapping else '') %}
+{% if default_val is none %}{% set default_val = '' %}{% endif %}
+{% set examples = field_schema.examples if is_mapping and field_schema.examples else [] %}
+{% set example_hint = examples[0] if examples else '' %}
+{% set data_path = (path_prefix ~ '.' if path_prefix else '') ~ field_name %}
+<div class="try-param-row">
+    <label>
+        <span class="param-name-wrapper">
+            <code>{{ field_name }}</code>{% if required %}&nbsp;<span class="param-required" aria-label="required" title="Required">*</span>{% endif %}:&nbsp;<code class="param-type-inline">{{ display_type }}</code>
+        </span>
+        {% if description %}
+        <span class="param-info-wrapper" data-tooltip="{{ description }}">
+            <span class="param-info-icon" aria-label="more-info"></span>
+        </span>
+        {% endif %}
+    </label>
+    {% if is_mapping and field_schema['x-origin'] %}
+    {% set origins = field_schema['x-origin'] if field_schema['x-origin'] is iterable and field_schema['x-origin'] is not string and field_schema['x-origin'] is not mapping else [field_schema['x-origin']] %}
+    <div class="param-input-with-xorigin">
+        <input type="{% if primary_type in ('integer', 'number') %}number{% else %}text{% endif %}"
+               data-mcp-arg="{{ data_path }}"
+               data-type="{{ primary_type }}"
+               data-x-origins='{{ origins|tojson }}'
+               id="mcp-param-{{ invocable_id }}-{{ data_path|replace('.', '-') }}"
+               placeholder="{{ primary_type }}"
+               value="{{ default_val }}"
+               {% if required %}required{% endif %}>
+        <button type="button" class="btn-xorigin-search"
+                onclick="openMcpXOriginModal('{{ invocable_id }}', '{{ data_path }}'); return false;"
+                title="Fetch values from {{ origins|length }} source(s)"
+                aria-label="Search values">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 14L10.65 10.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
+    {% elif is_mapping and field_schema.enum %}
+    <select data-mcp-arg="{{ data_path }}" data-type="{{ primary_type }}"{% if required %} required{% endif %}>
+        {% for opt in field_schema.enum %}
+        <option value="{{ opt }}"{% if opt|string == default_val|string %} selected{% endif %}>{{ opt }}</option>
+        {% endfor %}
+    </select>
+    {% elif primary_type in ('object', 'array') %}
+    {% set example_json = field_schema._example_json if is_mapping else '' %}
+    {% set initial = default_val|tojson if default_val else example_json %}
+    <div id="mcp-arg-{{ invocable_id }}-{{ data_path|replace('.', '-') }}"
+         class="try-request-editor-cm"
+         data-mcp-arg="{{ data_path }}"
+         data-type="{{ primary_type }}"
+         data-content-type="application/json"
+         data-example-body="{{ initial|e }}"></div>
+    {% elif primary_type == 'boolean' %}
+    <select data-mcp-arg="{{ data_path }}" data-type="boolean"{% if required %} required{% endif %}>
+        <option value=""{% if default_val == '' %} selected{% endif %}></option>
+        <option value="true"{% if default_val|string == 'True' or default_val|string == 'true' %} selected{% endif %}>true</option>
+        <option value="false"{% if default_val|string == 'False' or default_val|string == 'false' %} selected{% endif %}>false</option>
+    </select>
+    {% else %}
+    <input type="{% if primary_type in ('integer', 'number') %}number{% else %}text{% endif %}"
+           data-mcp-arg="{{ data_path }}"
+           data-type="{{ primary_type }}"
+           placeholder="{{ primary_type }}"
+           value="{{ default_val }}"
+           {% if required %}required{% endif %}>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro _schema_form(schema, invocable_id='') %}
+{% if schema is mapping and schema.properties %}
+    {% set required_fields = schema.required|default([]) %}
+    {% for field_name, field_schema in schema.properties.items() %}
+        {{ _schema_input(field_name, field_schema, field_name in required_fields, '', invocable_id) }}
+    {% endfor %}
+{% else %}
+    <p class="security-desc">This invocation has no input parameters.</p>
+{% endif %}
+{% endmacro %}
+
+{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='') %}
+<div class="operation-title-header">
+    <h3 class="operation-title">
+        {{ display_name }}
+        <span class="operation-id-inline">{{ invocable_name }}</span>
+        {% if title_badges %}<span class="operation-title-badges">{{ title_badges|safe }}</span>{% endif %}
+    </h3>
+</div>
+
+<div class="operation-header-detail">
+    <div class="operation-title-row">
+        <span class="method {{ method_class }}">{{ kind_label }}</span>
+        <code class="operation-url-bar">{{ invocable_name }}</code>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro _try_panel(invocable_id, icons_path='../assets/icons') %}
+<div class="operation-try-panel">
+    <div class="try-panel-header">
+        <h4>Try it out</h4>
+        <div class="try-header-actions">
+            <span class="try-spinner" id="spinner-{{ invocable_id }}" style="display:none" aria-live="polite">Sending</span>
+            <button class="btn-send" onclick="sendMcpRequest('{{ invocable_id }}', this)">
+                <img src="{{ icons_path }}/send-icon.svg" alt="" width="13" height="11">
+                <span>Send</span>
+            </button>
+            <button class="btn-copy-curl" onclick="copyMcpCurlCommand('{{ invocable_id }}', this)">
+                <img src="{{ icons_path }}/copy-curl-icon.svg" alt="" width="13" height="13">
+                <span>Copy cURL</span>
+            </button>
+            <button class="btn-expand-try" onclick="toggleTryItOutExpand('{{ invocable_id }}')"
+                    aria-label="Expand try it out panel" title="Expand">
+                <img src="{{ icons_path }}/expand.svg" alt="" width="16" height="16">
+            </button>
+        </div>
+    </div>
+    <div class="try-it-out" id="try-{{ invocable_id }}">
+        <div class="try-form-container">
+            <details class="try-params" open>
+                <summary>Arguments</summary>
+                <div class="try-params-content">
+                    {{ caller() }}
+                </div>
+            </details>
+        </div>
+        <div class="try-response" id="response-{{ invocable_id }}" style="display:none" aria-live="polite">
+            <div class="try-response-header">
+                <h5>Response</h5>
+                <div class="response-badges">
+                    <span class="response-status-badge" id="status-{{ invocable_id }}"></span>
+                </div>
+            </div>
+            <div class="try-response-tabs">
+                <button class="try-tab-btn active" onclick="switchResponseTab('{{ invocable_id }}', 'body')">Body</button>
+                <button class="try-tab-btn" onclick="switchResponseTab('{{ invocable_id }}', 'headers')">Headers</button>
+            </div>
+            <div class="try-response-content">
+                <div class="try-response-body active" id="respbody-{{ invocable_id }}"></div>
+                <div class="try-response-headers" id="respheaders-{{ invocable_id }}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro render_tool(tool, icons_path='../assets/icons') %}
+{% set tool_id = 'tool-' ~ tool.name %}
+{% set extra = [] %}
+{% if tool.annotations %}
+    {% if tool.annotations.readOnlyHint %}{% set _ = extra.append('<span class="badge badge-security">read-only</span>') %}{% endif %}
+    {% if tool.annotations.destructiveHint %}{% set _ = extra.append('<span class="badge badge-deprecated">destructive</span>') %}{% endif %}
+    {% if tool.annotations.idempotentHint %}{% set _ = extra.append('<span class="badge badge-security">idempotent</span>') %}{% endif %}
+    {% if tool.annotations.openWorldHint %}{% set _ = extra.append('<span class="badge badge-security">open-world</span>') %}{% endif %}
+{% endif %}
+<section id="{{ tool_id }}"
+         class="content-section operation-detail mcp-invocable"
+         data-mcp-kind="tool"
+         data-mcp-name="{{ tool.name }}">
+    {{ _invocable_header('TOOL', 'method-mcp-tool', tool._display_name|default(tool.name), tool.name, extra|join('')) }}
+
+    <div class="operation-content-wrapper" id="op-container-{{ tool_id }}">
+        {% call _try_panel(tool_id, icons_path) %}
+            {{ _schema_form(tool.inputSchema|default({}), tool_id) }}
+        {% endcall %}
+
+        <div class="operation-main-content">
+            {% if tool.description %}
+            <div class="operation-description">{{ tool.description|md }}</div>
+            {% endif %}
+
+            {% if tool._input_properties %}
+            <div class="operation-subsection">
+                <div class="section-header-with-badge">
+                    <h4>Input Schema</h4>
+                    <span class="content-type-badge">json-schema</span>
+                </div>
+                {{ render_schema_table(tool._input_properties) }}
+            </div>
+            {% else %}
+            <div class="operation-subsection">
+                <h4>Input Schema</h4>
+                <p class="security-desc">This tool accepts no arguments.</p>
+            </div>
+            {% endif %}
+
+            {% if tool._output_properties %}
+            <div class="operation-subsection">
+                <div class="section-header-with-badge">
+                    <h4>Output Schema</h4>
+                    <span class="content-type-badge">json-schema</span>
+                </div>
+                {{ render_schema_table(tool._output_properties) }}
+            </div>
+            {% endif %}
+
+            {% if tool._ui_resource_uri %}
+            <div class="operation-subsection mcp-ui-resource-section">
+                <div class="section-header-with-badge">
+                    <h4>UI Resource</h4>
+                    {% if tool._ui_resource_mime_type %}
+                    <span class="content-type-badge">{{ tool._ui_resource_mime_type }}</span>
+                    {% endif %}
+                </div>
+                <p class="mcp-ui-resource-intro">
+                    Hosts that implement the <a href="https://modelcontextprotocol.io/extensions/apps/overview" target="_blank" rel="noopener">MCP Apps extension</a> render this tool's output through the linked UI resource.
+                </p>
+                <div class="mcp-ui-resource-card">
+                    {% if tool._ui_resource_anchor %}
+                    <a href="#{{ tool._ui_resource_anchor }}" class="mcp-ui-resource-card-link">
+                        <span class="mcp-ui-resource-title">{{ tool._ui_resource_title or tool._ui_resource_uri }}</span>
+                        <code class="mcp-ui-resource-uri">{{ tool._ui_resource_uri }}</code>
+                        {% if tool._ui_resource_description %}
+                        <span class="mcp-ui-resource-description">{{ tool._ui_resource_description }}</span>
+                        {% endif %}
+                        <span class="mcp-ui-resource-cta">View resource →</span>
+                    </a>
+                    {% else %}
+                    <div class="mcp-ui-resource-card-inert">
+                        <code class="mcp-ui-resource-uri">{{ tool._ui_resource_uri }}</code>
+                        <span class="mcp-ui-resource-note">Not declared in this server's resources — shown for reference only.</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endmacro %}
+
+{% macro render_prompt(prompt, icons_path='../assets/icons') %}
+{% set prompt_id = 'prompt-' ~ prompt.name %}
+<section id="{{ prompt_id }}"
+         class="content-section operation-detail mcp-invocable"
+         data-mcp-kind="prompt"
+         data-mcp-name="{{ prompt.name }}">
+    {{ _invocable_header('PROMPT', 'method-mcp-prompt', prompt._display_name|default(prompt.name), prompt.name) }}
+
+    <div class="operation-content-wrapper" id="op-container-{{ prompt_id }}">
+        {% call _try_panel(prompt_id, icons_path) %}
+            {% if prompt.arguments %}
+            {% for arg in prompt.arguments %}
+            {{ _schema_input(arg.name, {'type': 'string', 'description': arg.description|default('')}, arg.required|default(false)) }}
+            {% endfor %}
+            {% else %}
+            <p class="security-desc">This prompt has no arguments.</p>
+            {% endif %}
+        {% endcall %}
+
+        <div class="operation-main-content">
+            {% if prompt.description %}
+            <div class="operation-description">{{ prompt.description|md }}</div>
+            {% endif %}
+
+            {% if prompt.arguments %}
+            <div class="operation-subsection">
+                <h4>Arguments</h4>
+                <div class="params-list">
+                    {% for arg in prompt.arguments %}
+                    <div class="param-item">
+                        <div class="param-header">
+                            <span class="param-name-wrapper">
+                                <code>{{ arg.name }}</code>{% if arg.required %}&nbsp;<span class="param-required" title="Required">*</span>{% endif %}:
+                            </span>
+                            <code class="param-type-inline">string</code>
+                        </div>
+                        {% if arg.description %}
+                        <div class="param-description-wrapper">
+                            <div class="param-description">{{ arg.description|md }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endmacro %}
+
+{% macro render_resource(resource, idx, icons_path='../assets/icons') %}
+{% set resource_id = 'resource-' ~ idx %}
+{% set extra = '' %}
+{% if resource.mimeType %}{% set extra = '<span class="content-type-badge">' ~ resource.mimeType ~ '</span>' %}{% endif %}
+<section id="{{ resource_id }}"
+         class="content-section operation-detail mcp-invocable"
+         data-mcp-kind="resource"
+         data-mcp-uri="{{ resource.uri|default('') }}">
+    {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, extra) }}
+
+    <div class="operation-content-wrapper" id="op-container-{{ resource_id }}">
+        {% call _try_panel(resource_id, icons_path) %}
+            <p class="security-desc">Reads <code>{{ resource.uri|default('') }}</code> from the MCP server.</p>
+        {% endcall %}
+
+        <div class="operation-main-content">
+            {% if resource.description %}
+            <div class="operation-description">{{ resource.description|md }}</div>
+            {% endif %}
+
+            <div class="operation-subsection">
+                <h4>Resource</h4>
+                <div class="params-list">
+                    <div class="param-item">
+                        <div class="param-header">
+                            <span class="param-name-wrapper"><code>uri</code>:</span>
+                            <code class="param-type-inline">{{ resource.uri|default('') }}</code>
+                        </div>
+                    </div>
+                    {% if resource.mimeType %}
+                    <div class="param-item">
+                        <div class="param-header">
+                            <span class="param-name-wrapper"><code>mimeType</code>:</span>
+                            <code class="param-type-inline">{{ resource.mimeType }}</code>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endmacro %}
+
+{% macro render_resource_template(template, idx, icons_path='../assets/icons') %}
+{% set template_id = 'resource-template-' ~ idx %}
+{% set extra = '' %}
+{% if template.mimeType %}{% set extra = '<span class="content-type-badge">' ~ template.mimeType ~ '</span>' %}{% endif %}
+<section id="{{ template_id }}"
+         class="content-section operation-detail mcp-invocable"
+         data-mcp-kind="resource-template"
+         data-mcp-uri-template="{{ template.uriTemplate|default('') }}">
+    {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, extra) }}
+
+    <div class="operation-content-wrapper" id="op-container-{{ template_id }}">
+        {% call _try_panel(template_id, icons_path) %}
+            <div class="try-param-row">
+                <label>
+                    <span class="param-name-wrapper"><code>uri</code>&nbsp;<span class="param-required" title="Required">*</span>:</span>
+                </label>
+                <input type="text"
+                       data-mcp-arg="uri"
+                       data-type="string"
+                       placeholder="{{ template.uriTemplate|default('') }}"
+                       required>
+            </div>
+            <p class="security-desc">Substitute the template variables into the URI before sending.</p>
+        {% endcall %}
+
+        <div class="operation-main-content">
+            {% if template.description %}
+            <div class="operation-description">{{ template.description|md }}</div>
+            {% endif %}
+
+            <div class="operation-subsection">
+                <h4>URI Template</h4>
+                <div class="params-list">
+                    <div class="param-item">
+                        <div class="param-header">
+                            <span class="param-name-wrapper"><code>uriTemplate</code>:</span>
+                            <code class="param-type-inline">{{ template.uriTemplate|default('') }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endmacro %}

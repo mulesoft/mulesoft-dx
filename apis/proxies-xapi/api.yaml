@@ -5,7 +5,11 @@ info:
   description: Manage API proxy deployments and deployment targets for CloudHub, CloudHub 2.0, and Runtime Fabric.
 servers:
 - url: https://anypoint.mulesoft.com/proxies/xapi/v1
-- url: https://eu1.anypoint.mulesoft.com/proxies/xapi/v1
+- url: https://{region}.anypoint.mulesoft.com/proxies/xapi/v1
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/proxies/xapi/v1
   variables:
     region:

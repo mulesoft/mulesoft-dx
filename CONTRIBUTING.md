@@ -49,10 +49,11 @@ If you're new to our project and looking for some way to make your first contrib
 2. **Fork** the repository on GitHub.
 3. **Clone** the forked repo to your machine.
 4. **Create** a new branch to contain your work (e.g. `git checkout -b fix-issue-11`).
-5. **Commit** changes to your own branch.
-6. **Push** your work back up to your fork (e.g. `git push origin fix-issue-11`).
-7. **Submit** a Pull Request against the `main` branch and refer to the issue(s) you are fixing. Try not to pollute your pull request with unintended changes. Keep it simple and small.
-8. **Sign** the Salesforce CLA (you will be prompted to do so when submitting the Pull Request).
+5. **Run any `make` command** (e.g. `make help`) — this auto-configures pre-commit and pre-push git hooks that validate your changes locally.
+6. **Commit** changes to your own branch.
+7. **Push** your work back up to your fork (e.g. `git push origin fix-issue-11`).
+8. **Submit** a Pull Request against the `main` branch and refer to the issue(s) you are fixing. Try not to pollute your pull request with unintended changes. Keep it simple and small.
+9. **Sign** the Salesforce CLA (you will be prompted to do so when submitting the Pull Request).
 
 > **NOTE**: Be sure to [sync your fork](https://help.github.com/articles/syncing-a-fork/) before making a pull request.
 

@@ -220,9 +220,23 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         else:
             display_md = post.content
 
+        # Tags from frontmatter: accept a YAML list or a comma-separated string.
+        raw_tags = post.get('tags')
+        tag_names: List[str] = []
+        if isinstance(raw_tags, list):
+            for t in raw_tags:
+                if isinstance(t, dict) and t.get('name'):
+                    tag_names.append(str(t['name']))
+                elif isinstance(t, str) and t.strip():
+                    tag_names.append(t.strip())
+        elif isinstance(raw_tags, str):
+            tag_names = [p.strip() for p in raw_tags.split(',') if p.strip()]
+
         return {
             'name': post.get('name', skill_path.parent.name),
             'description': post.get('description', '').strip(),
+            'category': (post.get('category') or '').strip() if isinstance(post.get('category'), str) else '',
+            'tag_names': tag_names,
             'content': post.content,
             'content_html': _md.render(display_md),
             'raw_content': raw_content,

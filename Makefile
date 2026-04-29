@@ -23,7 +23,7 @@ $(if $(shell git config core.hooksPath),,$(shell git config core.hooksPath .gith
 
 # Configuration
 ANYPOINT_CLI := anypoint-cli-v4
-RULESET := ./.agents/skills/api-spec-validator/scripts/ruleset.yaml
+RULESET := ./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 REPORT_DIR := ./validation-reports
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
 
@@ -400,7 +400,7 @@ validate-jtbd:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@files=$$(find . \
-		-type d \( -name .git -o -name .agents -o -name .claude \) -prune -o \
+		-type d \( -name .git -o -name .claude \) -prune -o \
 		-type f -path "*/skills/*.md" -print | sort); \
 	if [ -z "$$files" ]; then \
 		echo "$(YELLOW)No JTBD files found under */skills/*.md$(NC)"; \

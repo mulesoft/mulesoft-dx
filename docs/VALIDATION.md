@@ -251,7 +251,7 @@ The Makefile automatically discovers all API directories by looking for `exchang
 
 The governance rules are defined in:
 ```
-./.agents/skills/api-spec-validator/scripts/ruleset.yaml
+./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 ```
 
 See [api-spec-validator skill documentation](https://github.com/machaval/api-spec-skills) for details on the rules.

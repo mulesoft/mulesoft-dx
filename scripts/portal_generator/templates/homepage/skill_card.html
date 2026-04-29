@@ -1,5 +1,7 @@
-{% set skill_name = skill.name|replace('-', ' ')|title %}
-<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill">
+{% set skill_name = skill.name|skill_title %}
+{% set _skill_tags = [] %}
+{% for t in skill.tag_names|default([]) %}{% set _ = _skill_tags.append(t|lower) %}{% endfor %}
+<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill" data-tags="{{ _skill_tags|join(',') }}">
     <article class="catalog-card" data-popover-title="{{ skill_name }}" data-popover-description="{{ skill.description|default('') }}" data-popover-steps="{{ skill.step_count|default(0) }}" data-popover-type="skill">
         <div class="catalog-card-header">
             <div class="catalog-card-title-wrapper">
@@ -9,7 +11,7 @@
         </div>
         <p class="catalog-card-description">{{ skill.description|default('')|truncate(150) }}</p>
         <div class="catalog-card-type">
-            <span class="badge badge-skills">SKILL</span>
+            <span class="badge badge-skills">Skill</span>
         </div>
         <div class="catalog-card-version">
             <span class="list-version-text">—</span>
@@ -25,8 +27,10 @@
             {% endif %}
         </div>
         <div class="catalog-card-footer">
-            <span class="badge badge-skills">SKILL</span>
-            <span class="badge badge-count">{{ skill.step_count|default(0) }} step{{ 's' if skill.step_count != 1 else '' }}</span>
+            <span class="badge badge-skills">Skill</span>
+            {% if skill.step_count|default(0) > 0 %}
+            <span class="badge badge-count">{{ skill.step_count }} step{{ 's' if skill.step_count != 1 else '' }}</span>
+            {% endif %}
         </div>
     </article>
 </a>

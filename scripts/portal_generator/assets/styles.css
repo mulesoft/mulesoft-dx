@@ -1302,6 +1302,7 @@ code {
 .catalog-grid.list-view {
     display: table;
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     background: var(--color-white);
     border-radius: var(--radius-medium);
@@ -1313,7 +1314,7 @@ code {
 .catalog-grid.list-view .catalog-table-header {
     display: table-row;
     background: var(--color-gray-50);
-    font-size: var(--font-size-2);
+    font-size: 11px;
     font-weight: var(--font-weight-semibold);
     color: var(--color-neutral-7);
     text-transform: uppercase;
@@ -1322,21 +1323,33 @@ code {
 
 .catalog-grid.list-view .catalog-table-header>div {
     display: table-cell;
-    padding: 12px 16px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--color-gray-200);
     vertical-align: middle;
 }
 
 .catalog-grid.list-view .catalog-header-name {
-    width: 25%;
+    width: 22%;
 }
 
 .catalog-grid.list-view .catalog-header-description {
-    width: 60%;
+    width: 42%;
+}
+
+.catalog-grid.list-view .catalog-header-type {
+    width: 8%;
 }
 
 .catalog-grid.list-view .catalog-header-version {
-    width: 15%;
+    width: 10%;
+}
+
+.catalog-grid.list-view .catalog-header-endpoints {
+    width: 9%;
+}
+
+.catalog-grid.list-view .catalog-header-meta {
+    width: 9%;
 }
 
 /* Table rows */
@@ -1361,30 +1374,63 @@ code {
 /* Transform card sections into table cells */
 .catalog-grid.list-view .catalog-card-header,
 .catalog-grid.list-view .catalog-card-description,
-.catalog-grid.list-view .catalog-card-footer {
+.catalog-grid.list-view .catalog-card-type,
+.catalog-grid.list-view .catalog-card-version,
+.catalog-grid.list-view .catalog-card-endpoints,
+.catalog-grid.list-view .catalog-card-meta {
     display: table-cell;
-    padding: 20px 16px;
+    padding: 12px 12px;
     vertical-align: middle;
 }
 
 .catalog-grid.list-view .catalog-card-header {
-    width: 25%;
+    width: 22%;
 }
 
+.catalog-grid.list-view .catalog-card-description {
+    width: 42%;
+}
+
+.catalog-grid.list-view .catalog-card-type {
+    width: 8%;
+}
+
+.catalog-grid.list-view .catalog-card-version {
+    width: 10%;
+}
+
+.catalog-grid.list-view .catalog-card-endpoints {
+    width: 9%;
+}
+
+.catalog-grid.list-view .catalog-card-meta {
+    width: 9%;
+}
 
 .catalog-grid.list-view .catalog-card-footer {
-    width: 15%;
-    margin-top: 0;
+    display: none;
 }
 
 .catalog-grid.list-view .catalog-card-title-wrapper {
-    gap: 12px;
+    gap: 8px;
+}
+
+.catalog-grid.list-view .catalog-card-title-wrapper .card-icon {
+    width: 20px;
+    height: 20px;
 }
 
 .catalog-grid.list-view .catalog-card-title {
-    font-size: var(--font-size-5);
+    font-size: 13px;
     font-weight: var(--font-weight-semibold);
     color: var(--color-gray-900);
+}
+
+.catalog-grid.list-view .catalog-card-description {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Grid view: hide list version badge, show grid version badge */
@@ -1599,6 +1645,14 @@ code {
     text-overflow: ellipsis;
 }
 
+/* Grid view: hide list-only columns */
+.catalog-card-type,
+.catalog-card-version,
+.catalog-card-endpoints,
+.catalog-card-meta {
+    display: none;
+}
+
 .catalog-card-footer {
     display: flex;
     gap: 8px;
@@ -1607,19 +1661,123 @@ code {
     margin-top: auto;
 }
 
+/* List view: show all columns, hide footer */
+.catalog-grid.list-view .catalog-card-type,
+.catalog-grid.list-view .catalog-card-version,
+.catalog-grid.list-view .catalog-card-endpoints,
+.catalog-grid.list-view .catalog-card-meta {
+    display: table-cell;
+}
+
+/* List view text styles */
+.list-version-text,
+.list-endpoints-text,
+.list-meta-text {
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+/* List view: ensure badges display in type column */
+.catalog-grid.list-view .catalog-card-type .badge-api-type,
+.catalog-grid.list-view .catalog-card-type .badge-skills {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 10px;
+}
+
+/* ============================================================================
+   Catalog Row Popover
+   ============================================================================ */
+
+.catalog-popover {
+    position: fixed;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    max-width: 400px;
+    min-width: 300px;
+    pointer-events: none;
+}
+
+.catalog-popover-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.catalog-popover-title {
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+.catalog-popover-badge {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    padding: 4px 12px;
+    border-radius: 21px;
+}
+
+.catalog-popover-badge.api {
+    color: #134878;
+    background: #D7EBEC;
+    border: 1px solid var(--color-indigo);
+}
+
+.catalog-popover-badge.skill {
+    color: #2080c0;
+    background: #DBF1FF;
+    border: 1px solid #e0e7ff;
+}
+
+.catalog-popover-description {
+    font-size: var(--font-size-4);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0 0 var(--space-md) 0;
+}
+
+.catalog-popover-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+}
+
+.catalog-popover-meta-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.catalog-popover-meta-label {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.catalog-popover-meta-value {
+    color: var(--color-text-secondary);
+}
+
 .badge-api-type {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
     color: #134878;
     background: #D7EBEC;
-    padding: 4px 15px 4px 16px;
+    padding: 4px 15px;
     border-radius: 21px;
     border: 1px solid var(--color-indigo);
 }
 
 .badge-skills {
     font-size: var(--font-size-2);
-    font-weight: var(--font-weight-regular);
+    font-weight: var(--font-weight-semibold);
     color: #2080c0;
     padding: 4px 15px;
     border-radius: 21px;
@@ -4169,6 +4327,7 @@ details[open] .examples-toggle-icon {
     letter-spacing: -0.02em;
     line-height: 1.3;
     margin-bottom: var(--space-md);
+    scroll-margin-top: 100px;
 }
 
 .skill-steps-list {
@@ -4978,6 +5137,35 @@ details[open] .examples-toggle-icon {
 .ace_editor.ace_focus {
     outline: 2px solid rgba(1, 118, 211, 0.15);
     border-color: var(--color-primary);
+}
+
+/* ============================================================================
+   Breadcrumb Navigation (Sidebar Bottom)
+   ============================================================================ */
+
+.sidebar-breadcrumb {
+    padding: var(--space-md);
+    border-top: 1px solid var(--color-border-primary);
+    margin-top: auto;
+    background: var(--color-bg-surface);
+}
+
+.breadcrumb-back-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--color-text-link);
+    text-decoration: none;
+    font-size: var(--font-size-3);
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-back-link:hover {
+    color: var(--color-primary);
+}
+
+.breadcrumb-back-link svg {
+    flex-shrink: 0;
 }
 
 /* ============================================================================

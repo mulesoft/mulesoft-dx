@@ -111,7 +111,10 @@
                 <div class="catalog-table-header">
                     <div class="catalog-header-name">NAME</div>
                     <div class="catalog-header-description">DESCRIPTION</div>
+                    <div class="catalog-header-type">TYPE</div>
                     <div class="catalog-header-version">VERSION</div>
+                    <div class="catalog-header-endpoints">ENDPOINTS</div>
+                    <div class="catalog-header-meta">SKILLS/STEPS</div>
                 </div>
                 {% for item in all_items %}
                     {% if item._item_type == 'api' %}
@@ -129,11 +132,122 @@
         </section>
     </div>
 
+    <!-- Catalog Row Popover -->
+    <div class="catalog-popover" id="catalogPopover" style="display: none;">
+        <div class="catalog-popover-header">
+            <h3 class="catalog-popover-title" id="popoverTitle"></h3>
+            <span class="catalog-popover-badge" id="popoverBadge"></span>
+        </div>
+        <p class="catalog-popover-description" id="popoverDescription"></p>
+        <div class="catalog-popover-meta" id="popoverMeta"></div>
+    </div>
+
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script>
 window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+
+// Catalog popover on list view hover
+(function() {
+    const popover = document.getElementById('catalogPopover');
+    const catalogGrid = document.getElementById('catalogGrid');
+    let currentRow = null;
+    let hideTimeout = null;
+
+    function showPopover(card, event) {
+        if (!catalogGrid.classList.contains('list-view')) return;
+
+        clearTimeout(hideTimeout);
+
+        const title = card.dataset.popoverTitle;
+        const description = card.dataset.popoverDescription;
+        const type = card.dataset.popoverType;
+
+        document.getElementById('popoverTitle').textContent = title;
+        document.getElementById('popoverDescription').textContent = description || 'No description available';
+
+        const badge = document.getElementById('popoverBadge');
+        badge.textContent = type === 'api' ? 'API' : 'SKILL';
+        badge.className = 'catalog-popover-badge ' + type;
+
+        const metaDiv = document.getElementById('popoverMeta');
+        metaDiv.innerHTML = '';
+
+        if (type === 'api') {
+            const version = card.dataset.popoverVersion;
+            const endpoints = card.dataset.popoverEndpoints;
+            const skills = card.dataset.popoverSkills;
+
+            metaDiv.innerHTML = `
+                <div class="catalog-popover-meta-row">
+                    <span class="catalog-popover-meta-label">Version:</span>
+                    <span class="catalog-popover-meta-value">${version}</span>
+                </div>
+                <div class="catalog-popover-meta-row">
+                    <span class="catalog-popover-meta-label">Endpoints:</span>
+                    <span class="catalog-popover-meta-value">${endpoints}</span>
+                </div>
+                ${skills > 0 ? `
+                <div class="catalog-popover-meta-row">
+                    <span class="catalog-popover-meta-label">Skills:</span>
+                    <span class="catalog-popover-meta-value">${skills}</span>
+                </div>
+                ` : ''}
+            `;
+        } else {
+            const steps = card.dataset.popoverSteps;
+            if (steps > 0) {
+                metaDiv.innerHTML = `
+                    <div class="catalog-popover-meta-row">
+                        <span class="catalog-popover-meta-label">Steps:</span>
+                        <span class="catalog-popover-meta-value">${steps}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Show popover first to get accurate dimensions
+        popover.style.display = 'block';
+
+        // Get the row element (table row)
+        const row = card.closest('.catalog-card-link');
+        const rowRect = row.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
+
+        // Position below the row
+        const top = rowRect.bottom + window.scrollY + 10;
+
+        // Center horizontally relative to row, but keep within viewport
+        let left = rowRect.left + window.scrollX + (rowRect.width / 2) - (popoverRect.width / 2);
+        left = Math.max(20, Math.min(left, window.innerWidth - popoverRect.width - 20));
+
+        popover.style.top = top + 'px';
+        popover.style.left = left + 'px';
+    }
+
+    function hidePopover() {
+        hideTimeout = setTimeout(() => {
+            popover.style.display = 'none';
+            currentRow = null;
+        }, 100);
+    }
+
+    catalogGrid.addEventListener('mouseover', (e) => {
+        const card = e.target.closest('.catalog-card');
+        if (card && card !== currentRow) {
+            currentRow = card;
+            showPopover(card, e);
+        }
+    });
+
+    catalogGrid.addEventListener('mouseout', (e) => {
+        const card = e.target.closest('.catalog-card');
+        if (card) {
+            hidePopover();
+        }
+    });
+})();
 </script>
 {% endblock %}

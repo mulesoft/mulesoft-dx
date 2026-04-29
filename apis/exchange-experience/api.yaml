@@ -73,6 +73,7 @@ paths:
             - example
             - custom
             - mcp
+            - agent
       - name: rootOrganizationId
         description: Root organization ID to scope the asset search
         in: query

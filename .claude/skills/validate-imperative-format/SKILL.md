@@ -49,7 +49,7 @@ When asked to validate imperative format, follow these steps:
 
 ### Step 1: Discover all API specs
 
-Find all `api.yaml` files in the repository root directories (skip `.agents`, `scripts`, `docs`, `portal`).
+Find all `api.yaml` files in the repository root directories (skip `.claude`, `scripts`, `docs`, `portal`).
 
 ### Step 2: Extract info.description
 

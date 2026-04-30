@@ -117,7 +117,12 @@ Repeat once per topic (typically 2–10; the Anypoint UI hard-caps at 100).
 - **`advanced` SSC** → `POST /apimanager/xapi/v1/organizations/:orgId/environments/:envId/global-prompt-topics` (this step). Topics are environment-scoped and bound to the SSC via `SSC.globalTopics[]` on SSC create.
 - **`basic` SSC** → `POST /apimanager/xapi/v1/organizations/:orgId/environments/:envId/prompt-topics` (different endpoint). The Anypoint UI uses this from within the LLM proxy wizard's outbound step to create topics scoped to a specific proxy via an `apiVersionId` body field. The payload shape is otherwise the same (`topicName`, `utterances`, `usedForDenyList`); `semanticServiceConfigId` is not sent, and `apiVersionId` (the proxy ID) is added instead.
 
-This skill documents the **advanced** flow (recommended for scale). For basic SSCs, create the proxy first without topics, then iterate creating topics via the `prompt-topics` endpoint with the new proxy's `environmentApiId` as `apiVersionId`.
+This skill documents the **advanced** flow only. As of 2026-04-30 the public REST API does not support an end-to-end basic-SSC semantic flow:
+
+- The proxy create rejects `semantic-based` routing without non-empty `promptTopicIDs` on every upstream (`"Upstream in route 'Route A' must have at least one promptTopicID in llmConfigs for semantic-based routing"`), so "create the proxy first without topics" is not actually executable.
+- The `/prompt-topics` endpoint (which is the only endpoint the Anypoint UI uses for basic SSCs) silently rebinds the request's `semanticServiceConfigId` to whichever basic SSC is first/default in the env, regardless of what value was sent. Verified deterministic across multiple runs: a `POST /prompt-topics` body with `semanticServiceConfigId: "<our basic SSC>"` returned `201` with the response carrying a *different* basic SSC's id.
+
+Together these prevent topics created against a non-default basic SSC from being accepted by the proxy validator. Until the platform exposes a way to target a specific basic SSC from `/prompt-topics`, build semantic proxies with `serviceType: advanced` (and a Qdrant / Pinecone / Azure AI Search backing).
 
 **Action:** Create a Global Prompt Topic.
 
@@ -358,6 +363,8 @@ outputs:
 
 An LLM proxy is backed by an Exchange asset. Publish a minimal `type=llm` asset; the publish is asynchronous and returns a `publicationStatusLink` to poll until `status=completed`.
 
+**Critical: the asset's `platform` value must be set via a multipart FILE field, not a plain form field.** The Exchange Experience API is `multipart/form-data`, and it enforces a strict file-naming convention for any field that attaches a file: `files.<classifier>.<packaging>`. Anything else (including a `properties=...;type=application/json` form field, or a flat `platform=openai` field) is silently accepted and ignored. The publish still returns `202 Accepted`, the publication-status poll still says `completed`, and the asset still appears `published` — but its `attributes` end up as `[{key: "platform", value: "other"}]` and the auto-generated `llm-metadata.json` artifact contains `{"platform":"other"}`. At request time the Flex Gateway's `llm-proxy-core` policy fetches that JSON file, classifies the input format as `other`, and the semantic-routing policy refuses to route — every request returns `404 Not Found` with no `x-llm-proxy-*` headers. Always attach the metadata as `files.llm-metadata.json` (verified live, 2026-04-30).
+
 ```yaml
 api: urn:api:exchange-experience
 operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersion
@@ -383,12 +390,18 @@ inputs:
     value: llm
   status:
     value: published
-  properties.apiVersion:
-    value: v1
-  properties.platform:
+  files.llm-metadata.json:
     userProvided: true
-    description: Inbound request format the proxy accepts from consumers. Set to `openai` or `gemini`. Must match `llmConfigs.format` on each upstream in Step 9.
-    example: openai
+    description: |-
+      Multipart FILE field. Attach a JSON file whose contents are
+      `{"platform": "<openai|gemini>"}`. The classifier (`llm-metadata`)
+      and packaging (`json`) MUST appear in the field name exactly as
+      `files.llm-metadata.json` — Exchange validates this with
+      `INVALID_FILE_IDENTIFIER_ERROR: ... files.classifier.packaging`.
+
+      The `platform` value MUST match `llmConfigs.format` on each upstream
+      in Step 9.
+    example: '{"platform":"openai"}'
     required: true
   x-sync-publication:
     value: false
@@ -398,8 +411,33 @@ outputs:
     description: Poll until the response's `status` is `completed` and an `asset` object is present.
 ```
 
+**Concrete `curl` example** (copy-pasteable):
+
+```bash
+echo '{"platform":"openai"}' > /tmp/llm-metadata.json
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "X-Sync-Publication: false" \
+  -F "name=My Semantic Proxy" -F "assetId=my-semantic-proxy" -F "version=1.0.0" \
+  -F "groupId=$ORG" -F "organizationId=$ORG" \
+  -F "type=llm" -F "status=published" \
+  -F "files.llm-metadata.json=@/tmp/llm-metadata.json;type=application/json" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/organizations/$ORG/assets/$ORG/my-semantic-proxy/1.0.0"
+```
+
+**Verify the publish landed correctly** (do this BEFORE creating the proxy):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/assets/$ORG/my-semantic-proxy/1.0.0" \
+  | jq '.attributes'
+# Expect:  [{"key":"platform","value":"openai"}]
+# If you see "value":"other", re-publish with a bumped version.
+```
+
 **Common issues:**
-- **409 `ASSET_PRE_CONDITIONS_FAILED`** — an asset with the same `{groupId, assetId, version}` already exists and is published. Body: `{ status: 409, code: "ASSET_PRE_CONDITIONS_FAILED", message: "Cannot create a new asset with the provided groupId, assetId, version, state", details: { errors: [...], asset: {...} } }`. Pick a different `assetId` and retry.
+
+1. **409 `ASSET_PRE_CONDITIONS_FAILED`** — an asset with the same `{groupId, assetId, version}` already exists and is published. Body: `{ status: 409, code: "ASSET_PRE_CONDITIONS_FAILED", message: "Cannot create a new asset with the provided groupId, assetId, version, state", details: { errors: [...], asset: {...} } }`. Pick a different `assetId` and retry. Even after a `DELETE`, the same `groupId/assetId/version` triple stays locked — bump the version number.
+
+2. **Asset publishes but the proxy 404s every request** with no `x-llm-proxy-*` headers (or, on a model-based proxy variant, with `x-llm-proxy-model-based-routing-success: Request passed through without model-based routing.`). Cause: the multipart upload used the wrong field name for the `llm-metadata` file, so the asset's `attributes[].platform` is `other` and `llm-metadata.json` contains `{"platform":"other"}`. Verification: `GET /exchange/api/v2/assets/{groupId}/{assetId}/{version}` and check `attributes[]`. Recovery: see the **"Recovering a proxy whose asset has `platform: other`"** subsection under Troubleshooting at the bottom of this skill.
 
 ## Step 9: Create the LLM Proxy (Single POST)
 
@@ -414,7 +452,7 @@ Create the semantic LLM proxy in a single POST that carries the full routing con
 - For semantic routing:
   - `metadata.globalRouting.llmConfigs.routingType` is `semantic-based`.
   - `metadata.semanticServiceConfigId` (at the `metadata` level, NOT under `globalRouting`) is required and set to the SSC UUID from Step 3/5.
-  - Each upstream's `llmConfigs` must include `format` (set to match the inbound `properties.platform` from Step 8 — typically `openai`) and `promptTopicIDs` (the Step 4 topic UUIDs that should route to this upstream).
+  - Each upstream's `llmConfigs` must include `format` (set to match the `platform` value in the asset's `llm-metadata.json` from Step 8 — typically `openai`) and `promptTopicIDs` (the Step 4 topic UUIDs that should route to this upstream).
 - `approvalMethod` is `null` for automatic contract approval (default) or `"manual"` for request-access-required proxies.
 - The Anypoint UI includes additional explicit-null fields inside `endpoint` for cross-API-type compatibility: `endpoint.muleVersion4OrAbove: null`, `endpoint.isCloudHub: null`, `endpoint.referencesUserDomain: null`, and `endpoint.tlsContexts.inbound: null`. They aren't LLM-specific and are not listed as inputs below. If you hit a schema validation error mentioning one of those keys, add them as literal `null`s on the POST body.
 
@@ -492,10 +530,11 @@ inputs:
     userProvided: true
     description: >-
       One route per upstream. Each upstream is declared inline with its full
-      `llmConfigs` — provider, model, `format` (matching the inbound
-      `properties.platform`), credential keys/fields, and `promptTopicIDs`
-      (the Global Prompt Topic UUIDs from Step 4 that should route to this
-      upstream). The server assigns `id`s on POST and returns them.
+      `llmConfigs` — provider, model, `format` (matching the `platform`
+      value in the asset's `llm-metadata.json` from Step 8), credential
+      keys/fields, and `promptTopicIDs` (the Global Prompt Topic UUIDs from
+      Step 4 that should route to this upstream). The server assigns `id`s
+      on POST and returns them.
       `rules.headers.x-routing-header` is the internal dispatch signal the
       Semantic Routing policy writes after picking the best-matched topic;
       consumers never send this header.
@@ -586,12 +625,125 @@ outputs:
     description: Public Flex Gateway URL consumers call. Populated once the Flex Gateway registers the proxy.
 ```
 
-**What happens next:** The proxy is created and deployment starts asynchronously. Once the Flex Gateway picks up the configuration, the platform-managed `type: system` policies (LLM Proxy Core, Client ID Enforcement, CORS, per-provider transcoding, per-provider LLM provider policies, and the Semantic Routing policy for the chosen embedding-provider + vector-DB combination) are applied.
+**What happens next:** The proxy is created and deployment starts asynchronously. Once the Flex Gateway picks up the configuration, the platform auto-attaches the generic `type: system` policies (LLM Proxy Core, Client ID Enforcement, CORS, per-provider transcoding, per-provider LLM provider policies). However — see Step 9.5 — the **semantic-routing policy itself is not currently auto-attached**, despite the proxy carrying `routingType: semantic-based` and `metadata.semanticServiceConfigId`. It must be applied manually before requests will route.
 
 **Common issues:**
 - **`Ids are not allowed in POST ...`**: You included `id` on `routing[].upstreams[]`. Remove it.
 - **Missing `semanticServiceConfigId`**: Semantic routing requires the SSC UUID at the `metadata` top level — not inside `globalRouting.llmConfigs`.
 - **Missing `format` on upstream**: For semantic routing, each upstream's `llmConfigs.format` must be set (usually `openai`). Without it the transcoding policy can't be selected.
+
+## Step 9.5: Manually apply the semantic-routing policy
+
+Live observation as of 2026-04-30: after the Step 9 create succeeds and reaches `apiVersionStatus: active`, the expected `semantic-routing-policy-<embeddingProvider>-<vectorDB>` is **not** auto-attached by the platform. `GET /apimanager/api/v1/.../apis/{environmentApiId}/policies` lists only the 6 generic policies (cors, client-id-enforcement, llm-proxy-core, openai-transcoding-policy, gemini-transcoding-policy, gemini-llm-provider-policy). Without the routing policy, every request returns `404 Not Found` with no `x-llm-proxy-*` headers (because nothing extracts the prompt, queries the vector DB, or sets `x-routing-header`).
+
+Verify the policy isn't there, then apply it explicitly:
+
+```bash
+# (a) verify
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://anypoint.mulesoft.com/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID/policies" \
+  | jq '.policies[].template.assetId'
+# If `semantic-routing-policy-*` is absent, continue.
+
+# (b) discover the right template id for the SSC's provider+vector-DB combo
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/exchange-policy-templates?type=system" \
+  | jq '.[] | select(.assetId|startswith("semantic-routing-policy-")) | {id, assetId, version}'
+# Pick the row whose assetId matches your SSC, e.g. `semantic-routing-policy-openai-qdrant`.
+```
+
+**Action:** Apply the policy.
+
+```yaml
+api: urn:api:api-manager
+operation: POST /apis/{environmentApiId}/policies
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+
+  environmentId:
+    from:
+      variable: environmentId
+
+  environmentApiId:
+    from:
+      variable: environmentApiId
+    description: API instance id from Step 9.
+
+  policyTemplateId:
+    userProvided: true
+    description: Template id discovered above (e.g. `449456` in this org's catalog for `semantic-routing-policy-openai-qdrant` 1.0.0).
+    required: true
+
+  groupId:
+    value: "68ef9520-24e9-4cf2-b2f5-620025690913"
+    description: Salesforce-managed group that owns all system policy templates.
+
+  assetId:
+    userProvided: true
+    description: |-
+      Variant matching the SSC's `provider` + `vectorDBConfig.provider`.
+      One of:
+      - `semantic-routing-policy-openai-qdrant`
+      - `semantic-routing-policy-openai-pinecone`
+      - `semantic-routing-policy-openai-azure-ai-search`
+      - `semantic-routing-policy-huggingface-qdrant`
+      - `semantic-routing-policy-huggingface-pinecone`
+      - `semantic-routing-policy-huggingface-azure-ai-search`
+    required: true
+
+  assetVersion:
+    value: "1.0.0"
+
+  configurationData:
+    description: |-
+      Required shape (validated by the policy's JSON schema). Field-name
+      prefixes vary with the variant — `openai*` becomes `huggingface*`,
+      `qdrant*` becomes `pinecone*` / `azureSearch*`. To enumerate the
+      exact required keys for the variant you picked, hit the create with
+      `configurationData: {}`; the resulting `PolicyValidationError` lists
+      every missing property.
+    example:
+      openaiUrl: https://api.openai.com/v1/embeddings
+      openaiApiKey: <OpenAI key — same key as the SSC's `config.authKey`>
+      openaiEmbeddingModel: text-embedding-3-small
+      qdrantUrl: <Qdrant base URL — same as the SSC's `vectorDBConfig.url`>
+      qdrantApiKey: <Qdrant API key>
+      threshold: 0.6  # match `metadata.globalRouting.llmConfigs.fallbackThreshold` from Step 9
+      routes:
+        # one entry per primary route in your Step 9 `routing[]`
+        - provider: openai
+          model: gpt-4o-mini
+          topics:
+            # array of `{ id, name }` — same UUIDs you set on the upstream's
+            # `promptTopicIDs` plus the human-readable topic name.
+            - id: <finance-topic-uuid>
+              name: Finance
+          routeLabel: Route A
+        - provider: gemini
+          model: gemini-2.5-flash
+          topics:
+            - id: <code-topic-uuid>
+              name: Code
+          routeLabel: Route B
+      fallbackRoute:
+        provider: openai
+        model: gpt-4o-mini
+        routeLabel: Route A
+    required: true
+
+outputs:
+  - name: policyId
+    path: $.policyId
+    description: Server-assigned policy id (numeric). Confirms the policy is applied.
+```
+
+**What happens next:** The platform pushes the policy into the deployment payload. Wait ~30 seconds for the gateway to reload, then test (see Step 10's "What happens next"). The new policy emits a new response header `x-llm-proxy-routing-type: Semantic` and a verbose `x-llm-proxy-semantic-routing-success: Request successfully matched '<topic>' topic (Provider: <provider>, Model: <model>). Score: <0.0–1.0>.` on each call.
+
+**Common issues:**
+- **`PolicyValidationError`**: the schema for the routing policy is strict. Common slip-ups: `topics[]` items must be objects `{id, name}` (not bare UUID strings), `fallbackRoute` must be an object (not just a route-label string), and the field-name prefix must match the variant (e.g. `pineconeUrl` for the pinecone variants — not `qdrantUrl`).
+- **Auto-attach starts working in a future platform release**: harmless — the manually-applied policy will already be in place. If both end up applied you'll see a duplicate, which `DELETE /apis/{id}/policies/{policyId}` clears.
 
 ## Step 10: Poll the Deployment Status
 
@@ -632,9 +784,10 @@ outputs:
 - [ ] Semantic Service Configuration exists (Step 3 existing, or Step 5 new)
 - [ ] One Global Prompt Topic per semantic bucket exists (Step 4)
 - [ ] Port + base path checked available (Step 7)
-- [ ] Exchange asset published and `completed` (Step 8)
+- [ ] Exchange asset published with `attributes[].platform = openai|gemini` (Step 8 — verify via `GET /assets`; `platform: other` means the publish format was wrong)
 - [ ] LLM proxy POST returned `environmentApiId`, `deploymentId`, and upstream UUIDs inside `routing[*].upstreams[*].id` (Step 9)
 - [ ] Each upstream's `llmConfigs` carries `format`, `provider`, `model`, credential keys/fields, AND `promptTopicIDs`
+- [ ] `semantic-routing-policy-*` is attached to the proxy (Step 9.5 — `GET /apis/{id}/policies` should list it; the platform does NOT auto-attach this today)
 - [ ] Deployment status reached `applied` with `apiVersionStatus: active` (Step 10)
 - [ ] For advanced SSCs: setup script run against the vector DB so topic embeddings are searchable (side-band)
 - [ ] Proxy shows `status: active` with a populated `endpointUri`
@@ -682,6 +835,41 @@ outputs:
 
 ### 504 Gateway Timeout on create
 **Solutions:** Wait 30 seconds, list LLM proxies, confirm the proxy exists before retrying. Proceed to Step 10 polling if it does.
+
+### Recovering a proxy whose asset has `platform: other`
+**Symptoms:** Proxy is `status: active`, `semantic-routing-policy-*` is attached (per Step 9.5), the gateway accepts the request (auth layer works — wrong creds → 401), but every request returns `404 Not Found` with no `x-llm-proxy-*` headers and (where logs are accessible) the gateway emits `[llm-proxy-core-policy] Input format: other`.
+
+**Cause:** the underlying Exchange asset's `attributes[].platform` is `other` and its `llm-metadata.json` file contains `{"platform":"other"}` because the publish in Step 8 used the wrong multipart field name for the metadata file. See Step 8's "Common issues" #2.
+
+**Recovery procedure** (verified live, 2026-04-30). The asset itself cannot be fixed in place — Exchange returns `409 ASSET_PRE_CONDITIONS_FAILED` for the same `groupId/assetId/version` even after a soft delete, and there is no documented `PATCH /assets/.../attributes` endpoint (`PATCH`, `PUT`, and `POST /attributes`/`/properties` all return `404` or `405`). The working flow is **bump the asset version, then re-point the proxy at it via two PATCHes**:
+
+1. **Republish a new asset version** with the correct multipart format. Reuse the Step 8 yaml block, but bump `version` to `1.0.1` (or whichever is next available) and set `files.llm-metadata.json` to a file containing `{"platform":"openai"}` (or `gemini`). Verify with `GET /exchange/api/v2/assets/{groupId}/{assetId}/1.0.1` that `attributes` shows `[{key:"platform", value:"openai"}]` before continuing.
+
+2. **Update the API instance to reference the new version**:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d '{"assetVersion":"1.0.1"}' \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. **This step alone does NOT make the gateway pick up the new asset** — it only updates API Manager's metadata. The deployment payload pushed to the gateway is unchanged, so the gateway keeps loading the old `1.0.0` asset and the 404 persists.
+
+3. **Force a deployment refresh** by re-asserting the deployment block. Pull the proxy's current `targetId` and `targetName` from the previous GET, then:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$TARGET_ID\",\"targetName\":\"$TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. The deployment's `audit.updated` timestamp ticks; the gateway re-fetches `llm-metadata.json` within ~30 seconds; on the next request the `Input format` log line flips from `other` to `openai` and routing fires normally (`x-llm-proxy-routing-type: Semantic`, `x-llm-proxy-semantic-routing-success: ...`).
+
+The endpoints `POST /apis/{id}/deployments`, `PATCH /apis/{id}/deployments/{deploymentId}`, and `POST .../deployments/{id}/redeploy` all return `404` — they're not the right entrypoint. The full-instance PATCH with `deployment` IS the redeploy lever for an existing API instance.
 
 ## Related Jobs
 

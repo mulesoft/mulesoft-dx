@@ -290,7 +290,7 @@ paths:
                                   description: Target model name. When omitted the provider's default model is used (see `listLlmRouteConfigurations`).
                                 format:
                                   type: string
-                                  description: Inbound request format the proxy accepts from consumers — set on each upstream for semantic-routing proxies (typically `openai` or `gemini`, matching the Exchange asset's `properties.platform`). Omit for model-based routing; the Anypoint UI does not send it on model-based proxies.
+                                  description: Inbound request format the proxy accepts from consumers — set on each upstream for semantic-routing proxies (typically `openai` or `gemini`, matching the `platform` value in the Exchange asset's `llm-metadata.json` file, which is uploaded as the `files.llm-metadata.json` multipart field on the asset publish). Omit for model-based routing; the Anypoint UI does not send it on model-based proxies.
                                 keys:
                                   type: object
                                   description: |-

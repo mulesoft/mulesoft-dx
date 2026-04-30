@@ -218,10 +218,12 @@ outputs:
 
 An LLM proxy is backed by an Exchange asset with the same name as the proxy. Publish a minimal `type=llm` asset so the API instance can reference it by `groupId` + `assetId` + `version`. The publish is asynchronous (`x-sync-publication=false`) and returns a `publicationStatusLink` you poll until `status=completed`.
 
+**Critical: the asset's `platform` value must be set via a multipart FILE field, not a plain form field.** The Exchange Experience API is `multipart/form-data`, and it enforces a strict file-naming convention for any field that attaches a file: `files.<classifier>.<packaging>`. Anything else — including the `properties=...;type=application/json` form documented in earlier guides, or a flat `platform=openai` field — is silently accepted and ignored. The publish still returns `202 Accepted`, the publication-status poll still says `completed`, and the asset still appears `published` — but its `attributes` end up as `[{key: "platform", value: "other"}]` and the auto-generated `llm-metadata.json` artifact contains `{"platform":"other"}`. At request time the Flex Gateway's `llm-proxy-core` policy fetches that JSON file, classifies the input format as `other`, and the model-based-routing policy refuses to route — every request returns `404 Not Found` with `x-llm-proxy-model-based-routing-success: Request passed through without model-based routing.` (verified live, 2026-04-30). Always attach the metadata as `files.llm-metadata.json`.
+
 **What you'll need:**
 - Organization ID (used as both `organizationId` and Exchange `groupId`)
 - The proxy name chosen by the user — this becomes the `assetId` (kebab-case, unique within the organization)
-- The inbound request format the proxy will accept from consumers (`openai` or `gemini`) — stored as the asset's `properties.platform`
+- A small JSON file (e.g. `llm-metadata.json`) on disk whose contents are `{"platform":"<openai|gemini>"}` — this is what the gateway reads to classify the inbound request format
 
 **Action:** Upload an Exchange asset for the LLM proxy.
 
@@ -263,24 +265,26 @@ inputs:
     value: published
     description: Mark the asset as published immediately.
 
-  properties.apiVersion:
-    value: v1
-    description: API-version property attached to the asset. The Anypoint UI sets this to `v1`.
-
-  properties.platform:
+  files.llm-metadata.json:
     userProvided: true
     description: |-
-      Inbound request format the consumer calls — the API shape consumers will
-      send (independent of which providers the upstreams route to). Set to
-      `openai` or `gemini`, lowercase.
+      Multipart FILE field. Attach a JSON file whose contents are
+      `{"platform": "<openai|gemini>"}`. The classifier (`llm-metadata`) and
+      packaging (`json`) MUST appear in the field name exactly as
+      `files.llm-metadata.json` — Exchange validates this with
+      `INVALID_FILE_IDENTIFIER_ERROR: ... files.classifier.packaging`.
 
-      If the user hasn't expressed a preference, default to `openai`: it's the
-      universal client format, supports all five upstream providers via
-      transcoding, and supports both `/chat/completions` and `/responses`
-      consumer subpaths. Pick `gemini` only when the user explicitly wants
-      consumers to send Gemini-format bodies — note that Gemini-format proxies
-      are also single-route (one upstream only).
-    example: openai
+      The `platform` value drives the inbound request format the proxy
+      accepts — the API shape consumers will send (independent of which
+      providers the upstreams route to). `openai` is the universal client
+      format, supports all five upstream providers via transcoding, and
+      supports both `/chat/completions` and `/responses` consumer subpaths.
+      Pick `gemini` only when the user explicitly wants consumers to send
+      Gemini-format bodies — note that Gemini-format proxies are also
+      single-route (one upstream only).
+
+      If the user hasn't expressed a preference, default to `openai`.
+    example: '{"platform":"openai"}'
     required: true
 
   x-sync-publication:
@@ -292,10 +296,36 @@ outputs:
     description: URL to poll for publication status. Wait until the asset publication status reports `completed` and an `asset` object (with `assetId`, `groupId`, `version`) is present before proceeding.
 ```
 
+**Concrete `curl` example** (copy-pasteable, this is what works against the live API):
+
+```bash
+echo '{"platform":"openai"}' > /tmp/llm-metadata.json
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "X-Sync-Publication: false" \
+  -F "name=My Proxy" -F "assetId=my-openai-gemini-proxy" -F "version=1.0.0" \
+  -F "groupId=$ORG" -F "organizationId=$ORG" \
+  -F "type=llm" -F "status=published" \
+  -F "files.llm-metadata.json=@/tmp/llm-metadata.json;type=application/json" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/organizations/$ORG/assets/$ORG/my-openai-gemini-proxy/1.0.0"
+```
+
+**Verify the publish landed correctly** (do this BEFORE creating the proxy — it's much cheaper to catch a wrong `platform` here than at runtime):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/assets/$ORG/my-openai-gemini-proxy/1.0.0" \
+  | jq '.attributes'
+# Expect:  [{"key":"platform","value":"openai"}]
+# If you see "value":"other", the multipart file field name was wrong —
+# re-publish (with a bumped version number, see Common issues #2 below).
+```
+
 **What happens next:** The asset is being published. Poll the `publicationStatusLink` (GET, with the same Bearer token) every few seconds until the response's `status` is `completed` and an `asset` object is present — then proceed to Step 7 using `asset.assetId` and `asset.groupId`.
 
 **Common issues:**
-- **409 `ASSET_PRE_CONDITIONS_FAILED`** — an asset with the same `{groupId, assetId, version}` already exists and is published. The response body is `{ status: 409, code: "ASSET_PRE_CONDITIONS_FAILED", message: "Cannot create a new asset with the provided groupId, assetId, version, state", details: { errors: ["An asset already exists with this version and published lifecycle state."], asset: { organizationId, groupId, assetId, version } } }`. Pick a different `assetId` and retry.
+
+1. **409 `ASSET_PRE_CONDITIONS_FAILED`** — an asset with the same `{groupId, assetId, version}` already exists and is published. The response body is `{ status: 409, code: "ASSET_PRE_CONDITIONS_FAILED", message: "Cannot create a new asset with the provided groupId, assetId, version, state", details: { errors: ["An asset already exists with this version and published lifecycle state."], asset: { organizationId, groupId, assetId, version } } }`. Pick a different `assetId` and retry. **Note:** even after a `DELETE` on the asset, the same `groupId/assetId/version` triple is locked (the version is soft-deleted, not freed). The only path forward is a **bumped version number** (e.g. `1.0.1`).
+
+2. **Asset publishes but the proxy 404s every request** with `x-llm-proxy-model-based-routing-success: Request passed through without model-based routing.` Cause: the multipart upload used the wrong field name for the `llm-metadata` file (e.g. `-F 'properties=...;type=application/json'`, or `-F 'platform=openai'`, or omitted altogether). Exchange silently accepted the publish, but the asset's `attributes` ended up with `{key: "platform", value: "other"}` and its `llm-metadata.json` file contains `{"platform":"other"}`. Verification: `GET /exchange/api/v2/assets/{groupId}/{assetId}/{version}` and check `attributes[]`. Recovery: see the **"Recovering a proxy whose asset has `platform: other`"** subsection under Troubleshooting at the bottom of this skill.
 
 ## Step 7: Create the LLM Proxy (Single POST)
 
@@ -600,7 +630,7 @@ outputs:
 - Route labels (`Route A`, `Route B`, …) are user-defined and referenced by `metadata.globalRouting.llmConfigs.fallbackRoute`.
 
 ### Gemini proxies
-- The Anypoint UI creates single-route proxies when `properties.platform=gemini`. Keep this in mind: a Gemini-format proxy has exactly one route.
+- The Anypoint UI creates single-route proxies when the asset's `llm-metadata.json` is `{"platform":"gemini"}`. Keep this in mind: a Gemini-format proxy has exactly one route.
 
 ### Fallback
 - Configure a fallback route + model for model-based proxies with more than one route. Without it, requests whose `model` prefix doesn't match a configured provider will fail.
@@ -621,6 +651,43 @@ outputs:
 **Symptoms:** `AuthorizationError` on create.
 **Possible causes:** Subscription doesn't include LLM Proxy.
 **Solutions:** Escalate to the Anypoint admin to enable the entitlement.
+
+### Recovering a proxy whose asset has `platform: other`
+**Symptoms:** Proxy is `status: active`, all expected policies are listed under `GET /apis/{id}/policies`, the gateway accepts the request (auth layer works — wrong creds → 401), but every request returns `404 Not Found` with `x-llm-proxy-model-based-routing-success: Request passed through without model-based routing.` and (where logs are accessible) the gateway emits `[llm-proxy-core-policy] Input format: other`.
+
+**Cause:** the underlying Exchange asset's `attributes[].platform` is `other` and its `llm-metadata.json` file contains `{"platform":"other"}` because the publish in Step 6 used the wrong multipart field name for the metadata file. See Step 6's "Common issues" #2.
+
+**Recovery procedure** (verified live, 2026-04-30). The asset itself cannot be fixed in place — Exchange returns `409 ASSET_PRE_CONDITIONS_FAILED` for the same `groupId/assetId/version` even after a soft delete, and there is no documented `PATCH /assets/.../attributes` endpoint (`PATCH`, `PUT`, and `POST /attributes`/`/properties` all return `404` or `405`). The working flow is **bump the asset version, then re-point the proxy at it via two PATCHes**:
+
+1. **Republish a new asset version** with the correct multipart format. Reuse the Step 6 yaml block, but bump `version` to `1.0.1` (or whichever is next available) and set `files.llm-metadata.json` to a file containing `{"platform":"openai"}` (or `gemini`). Verify with `GET /exchange/api/v2/assets/{groupId}/{assetId}/1.0.1` that `attributes` shows `[{key:"platform", value:"openai"}]` before continuing.
+
+2. **Update the API instance to reference the new version**:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d '{"assetVersion":"1.0.1"}' \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. **This step alone does NOT make the gateway pick up the new asset** — it only updates API Manager's metadata. The deployment payload pushed to the gateway is unchanged, so the gateway keeps loading the old `1.0.0` asset and the 404 persists.
+
+3. **Force a deployment refresh** by re-asserting the deployment block. Pull the proxy's current `targetId` and `targetName` from the previous GET, then:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$TARGET_ID\",\"targetName\":\"$TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. The deployment's `audit.updated` timestamp ticks; the gateway re-fetches `llm-metadata.json` within ~30 seconds; on the next request the `Input format` log line flips from `other` to `openai` and routing fires normally (`x-llm-proxy-routing-type: ModelBased`, `x-llm-proxy-routing-fallback: false`, etc.).
+
+The endpoints `POST /apis/{id}/deployments`, `PATCH /apis/{id}/deployments/{deploymentId}`, and `POST .../deployments/{id}/redeploy` all return `404` — they're not the right entrypoint. The full-instance PATCH with `deployment` IS the redeploy lever for an existing API instance.
+
+**If the original `1.0.0` asset is also undesirable** (clutter), it can be left in place — Exchange permanently locks the version coordinate even after delete, so there's no benefit to deleting it.
 
 ## Related Jobs
 

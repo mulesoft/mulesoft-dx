@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mcp.name }} - Anypoint Platform MCP Servers{% endblock %}
+
+{% block body_attrs %} class="detail-page mcp-detail-page"{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+<script src="../assets/jsonpath-plus.min.js" defer></script>
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% from "mcp/macros.html" import render_tool, render_prompt, render_resource, render_resource_template %}
+{% set api_name = mcp.name %}
+{% set api_version = mcp.version %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "partials/mcp_sidebar.html" %}
+
+    <main class="detail-content" id="main-content">
+        {% include "mcp/overview.html" %}
+
+        {% if mcp.tools %}
+        <div id="mcp-tools-section">
+            {% for tool in mcp.tools %}
+                {{ render_tool(tool, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.prompts %}
+        <div id="mcp-prompts-section">
+            {% for prompt in mcp.prompts %}
+                {{ render_prompt(prompt, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.resources %}
+        <div id="mcp-resources-section">
+            {# Resources are grouped in the sidebar only. On the detail page we
+               render each resource section inline — only the active one is
+               visible at a time, so group headers would be orphaned. #}
+            {% for resource in mcp.resources %}
+                {{ render_resource(resource, resource._index, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mcp.resource_templates %}
+        <div id="mcp-resource-templates-section">
+            {% for template in mcp.resource_templates %}
+                {{ render_resource_template(template, loop.index0, icons_path) }}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<div class="xorigin-modal" id="xorigin-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="xorigin-modal-title">
+    <div class="xorigin-modal-overlay" onclick="closeXOriginModal()"></div>
+    <div class="xorigin-modal-content">
+        <div class="xorigin-modal-header">
+            <h3 id="xorigin-modal-title">Fetch Values</h3>
+            <button class="btn-close-modal" onclick="closeXOriginModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="xorigin-modal-body" id="xorigin-modal-body">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__MCP_META__ = {{ mcp_meta|tojson_raw }};
+// Shim so shared auth/server helpers (getSelectedServer, etc.) work on MCP pages.
+window.__API_META__ = {
+    servers: {{ mcp_meta.servers|tojson_raw }},
+    securitySchemes: {{ mcp_meta.securitySchemes|tojson_raw }},
+    security: []
+};
+window.__OP_LOOKUP__ = {{ op_lookup|tojson_raw if op_lookup else '{}' }};
+window.__MCP_LOOKUP__ = {{ mcp_lookup|tojson_raw if mcp_lookup else '{}' }};
+window.__API_LINK_PREFIX__ = '../apis/';
+window.__MCP_LINK_PREFIX__ = '';
+window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.mulesoft/exchange",
+  "title": "MuleSoft Exchange",
+  "description": "The Exchange MCP API providess access to the MuleSoft Exchange platform's core services.",
+  "version": "0.1.0",
+  "websiteUrl": "https://anypoint.mulesoft.com/exchange",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://anypoint.mulesoft.com/exchange/mcp/"
+    }
+  ]
+}        

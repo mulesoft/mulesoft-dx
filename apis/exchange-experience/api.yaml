@@ -6,7 +6,11 @@ info:
 servers:
 - url: https://anypoint.mulesoft.com/exchange/api/v2
   description: Anypoint URL
-- url: https://eu1.anypoint.mulesoft.com/exchange/api/v2
+- url: https://{region}.anypoint.mulesoft.com/exchange/api/v2
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
   description: Regional Anypoint URL
 - url: https://{region}.platform.mulesoft.com/exchange/api/v2
   description: Regional Anypoint URL
@@ -73,6 +77,7 @@ paths:
             - example
             - custom
             - mcp
+            - agent
       - name: rootOrganizationId
         description: Root organization ID to scope the asset search
         in: query

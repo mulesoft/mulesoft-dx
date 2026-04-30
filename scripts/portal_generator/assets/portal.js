@@ -666,8 +666,11 @@ function useXOriginValue(sourceIdx, valueIdx, valueStr) {
 
     var paramName = currentModal.paramName;
 
-    // Set the value in the input
-    var input = document.getElementById('param-' + currentModal.opId + '-' + paramName);
+    // Set the value in the input — MCP inputs use a different ID pattern
+    var inputId = currentModal.isMcp
+        ? 'mcp-param-' + currentModal.opId + '-' + paramName.replace(/\./g, '-')
+        : 'param-' + currentModal.opId + '-' + paramName;
+    var input = document.getElementById(inputId);
     if (input) {
         input.value = displayVal;
     }
@@ -764,6 +767,457 @@ function switchXOriginTab(sourceIdx, tabName) {
     if (activePanel) activePanel.classList.add('active');
 }
 
+// ============================================================================
+// X-Origin for MCP Tool Inputs
+// ============================================================================
+
+function openMcpXOriginModal(invocableId, dataPath) {
+    var inputId = 'mcp-param-' + invocableId + '-' + dataPath.replace(/\./g, '-');
+    var input = document.getElementById(inputId);
+    if (!input) return;
+
+    var originsJson = input.getAttribute('data-x-origins');
+    if (!originsJson) return;
+
+    var origins = [];
+    try {
+        if (originsJson.indexOf('[') !== 0 && originsJson.indexOf('{') !== 0) {
+            originsJson = atob(originsJson);
+        }
+        origins = JSON.parse(originsJson);
+    } catch (e) {
+        console.error('Failed to parse x-origins for MCP:', e);
+        return;
+    }
+
+    var modal = document.getElementById('xorigin-modal');
+    if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+    }
+
+    xOriginModalStack.push({
+        opId: invocableId,
+        paramName: dataPath,
+        origins: origins,
+        isMcp: true
+    });
+
+    var modal = document.getElementById('xorigin-modal');
+    var title = document.getElementById('xorigin-modal-title');
+    var body = document.getElementById('xorigin-modal-body');
+    if (!modal || !title || !body) return;
+
+    title.textContent = 'Select a value for: ' + dataPath;
+
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var mcpLookup = window.__MCP_LOOKUP__ || {};
+    var envVars = loadEnvVars();
+    var envVarsMap = {};
+    envVars.forEach(function(v) { envVarsMap[v.name] = v.value; });
+
+    var html = '';
+    if (origins.length > 1) {
+        html += '<div class="xorigin-selector-container">';
+        html += '<select id="xorigin-source-selector" class="xorigin-source-select" onchange="switchXOriginSource()">';
+        origins.forEach(function(origin, idx) {
+            var urn = origin.api || '';
+            var opName = origin.operation || '';
+            var slug = urn.replace(/^urn:(api|mcp):/, '');
+            var sourceType = urn.startsWith('urn:mcp:') ? 'mcp' : 'api';
+            var technicalRef = slug + '#' + opName;
+            var label = origin.name ? (origin.name + ' - ' + technicalRef) : technicalRef;
+            html += '<option value="' + idx + '">[' + sourceType + '] ' + escapeHtml(label) + '</option>';
+        });
+        html += '</select></div>';
+    }
+
+    origins.forEach(function(origin, idx) {
+        var urn = origin.api || '';
+        var opName = origin.operation || '';
+        var isMcpSource = urn.startsWith('urn:mcp:');
+        var slug = urn.replace(/^urn:(api|mcp):/, '');
+
+        html += '<div class="xorigin-source" data-source-idx="' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + '">';
+
+        if (isMcpSource) {
+            html += _buildMcpSourcePanel(idx, slug, opName, origin, mcpLookup, envVarsMap);
+        } else {
+            html += _buildApiSourcePanel(idx, slug, opName, origin, opLookup, envVarsMap);
+        }
+
+        html += '</div>';
+    });
+
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+    initCodeMirrorEditors();
+
+    modal._previousFocus = document.activeElement;
+    var firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) firstFocusable.focus();
+}
+
+function _buildApiSourcePanel(idx, apiSlug, operationId, origin, opLookup, envVarsMap) {
+    var apiEntry = opLookup[apiSlug];
+    var opMeta = apiEntry ? apiEntry.ops[operationId] : null;
+    if (!opMeta) return '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '#' + escapeHtml(operationId) + '" not found in lookup.</div>';
+
+    var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+    var linkPrefix = window.__API_LINK_PREFIX__ || '';
+    var html = '';
+
+    html += '<div class="try-panel-header">';
+    html += '<div class="xorigin-title-section">';
+    html += '<a href="' + escapeHtml(linkPrefix + apiSlug + '.html#op-' + operationId) + '" target="_blank" class="xorigin-operation-link">';
+    html += '<h4>' + escapeHtml(apiSlug) + '.' + escapeHtml(operationId) + '</h4>';
+    html += '</a>';
+    html += _buildXpathInfoHtml(origin);
+    html += '</div>';
+    html += '<div class="try-header-actions">';
+    html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+    html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
+    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
+    html += '</div></div>';
+
+    html += '<div class="operation-url-bar-container">';
+    html += buildUrlBarHtml(opMeta.method, serverUrl, opMeta.path, null);
+    html += '</div>';
+
+    var xoriginOpId = 'xorigin-' + idx;
+    html += renderOperationPanel(xoriginOpId, opMeta, {
+        yamlInputs: envVarsMap,
+        enableVariableRefs: false,
+        slug: '',
+        contextType: 'xorigin',
+        showExecuteButton: false
+    });
+
+    return html;
+}
+
+function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVarsMap) {
+    var mcpEntry = mcpLookup[mcpSlug];
+    if (!mcpEntry) return '<div class="xorigin-error">MCP "' + escapeHtml(mcpSlug) + '" not found in lookup.</div>';
+    var toolMeta = mcpEntry.tools[toolName];
+    if (!toolMeta) return '<div class="xorigin-error">Tool "' + escapeHtml(toolName) + '" not found on MCP "' + escapeHtml(mcpSlug) + '".</div>';
+
+    var linkPrefix = window.__MCP_LINK_PREFIX__ || '';
+    var xoriginOpId = 'xorigin-' + idx;
+    var html = '';
+
+    // Header: title + xpath info + action buttons (same as API panel)
+    html += '<div class="try-panel-header">';
+    html += '<div class="xorigin-title-section">';
+    html += '<a href="' + escapeHtml(linkPrefix + mcpSlug + '.html#tool-' + toolName) + '" target="_blank" class="xorigin-operation-link">';
+    html += '<h4>' + escapeHtml(mcpSlug) + '.' + escapeHtml(toolName) + '</h4>';
+    html += '</a>';
+    html += _buildXpathInfoHtml(origin);
+    html += '</div>';
+    html += '<div class="try-header-actions">';
+    html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
+    html += '<button class="btn-send" onclick="executeMcpXOriginSource(' + idx + ', this)">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<button class="btn-copy-curl" onclick="copyMcpCurlCommand(\'' + xoriginOpId + '\', ' + idx + ', this)">';
+    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
+    html += '</div></div>';
+
+    // URL bar
+    html += '<div class="operation-url-bar-container">';
+    html += '<div class="operation-url-bar-inline">';
+    html += '<span class="method method-mcp-tool">TOOL</span>';
+    html += '<code class="url-bar-text">' + escapeHtml(toolName) + '</code>';
+    html += '</div></div>';
+
+    var inputSchema = toolMeta.inputSchema || {};
+    var properties = inputSchema.properties || {};
+    var required = inputSchema.required || [];
+
+    // Two-column grid (same as renderOperationPanel)
+    html += '<div class="operation-panel-grid">';
+
+    // Left column: Form + action buttons
+    html += '<div class="operation-panel-form">';
+
+    var propNames = Object.keys(properties);
+    if (propNames.length > 0) {
+        propNames.forEach(function(name) {
+            var prop = properties[name];
+            var ptype = (prop && prop.type) || 'string';
+            var isRequired = required.indexOf(name) !== -1;
+            var defaultVal = prop.default !== undefined && prop.default !== null ? prop.default : '';
+            var placeholder = ptype;
+            var prefilledVal = envVarsMap[name] || defaultVal;
+
+            html += '<div class="try-param-row">';
+            html += '<label><span class="param-name-wrapper"><code>' + escapeHtml(name) + '</code>';
+            if (isRequired) html += '&nbsp;<span class="param-required" title="Required">*</span>';
+            html += ': <code class="param-type-inline">' + escapeHtml(ptype) + '</code></span></label>';
+
+            if (ptype === 'object' || ptype === 'array') {
+                var exampleJson = '';
+                if (prop._example_json) exampleJson = prop._example_json;
+                html += '<div id="mcp-arg-' + xoriginOpId + '-' + name + '" class="try-request-editor-cm"';
+                html += ' data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="' + ptype + '"';
+                html += ' data-content-type="application/json"';
+                html += ' data-example-body="' + escapeHtml(exampleJson) + '"></div>';
+            } else if (ptype === 'boolean') {
+                html += '<select data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="boolean">';
+                html += '<option value=""></option><option value="true">true</option><option value="false">false</option>';
+                html += '</select>';
+            } else {
+                html += '<input type="' + (ptype === 'integer' || ptype === 'number' ? 'number' : 'text') + '"';
+                html += ' data-param="' + escapeHtml(name) + '" data-in="mcp-arg" data-type="' + escapeHtml(ptype) + '"';
+                html += ' placeholder="' + escapeHtml(String(placeholder)) + '"';
+                html += ' value="' + escapeHtml(String(prefilledVal)) + '"';
+                if (isRequired) html += ' required';
+                html += '>';
+            }
+            html += '</div>';
+        });
+    } else {
+        html += '<p class="security-desc">This tool accepts no arguments.</p>';
+    }
+
+    html += '</div>'; // End form column
+
+    // Right column: Response (same structure as renderOperationPanel with xorigin context)
+    html += '<div class="operation-panel-response">';
+    html += '<div class="try-response empty" id="response-' + xoriginOpId + '" aria-live="polite">';
+    html += '<div class="try-response-header"><h5>Response</h5>';
+    html += '<div class="response-badges"><span class="response-status-badge" id="status-' + xoriginOpId + '"></span></div></div>';
+    html += '<div class="try-response-tabs">';
+    html += '<button class="try-tab-btn active" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'extracted\')">Extracted Values</button>';
+    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'body\')">Body</button>';
+    html += '<button class="try-tab-btn" onclick="switchResponseTab(\'' + xoriginOpId + '\', \'headers\')">Headers</button>';
+    html += '</div>';
+    html += '<div class="try-response-content">';
+    html += '<div class="try-response-extracted active" id="respextracted-' + xoriginOpId + '"></div>';
+    html += '<div class="try-response-body" id="respbody-' + xoriginOpId + '"></div>';
+    html += '<div class="try-response-headers" id="respheaders-' + xoriginOpId + '"></div>';
+    html += '</div></div>';
+    html += '</div>'; // End response column
+
+    html += '</div>'; // End grid
+
+    return html;
+}
+
+function _buildXpathInfoHtml(origin) {
+    var html = '';
+    if (origin.values || origin.labels) {
+        html += '<span class="xorigin-xpath-info">';
+        if (origin.values) {
+            html += '<span class="xorigin-path-inline">';
+            html += '<span class="xorigin-path-label">values:</span>';
+            html += '<code class="xorigin-path-value">' + escapeHtml(typeof origin.values === 'string' ? origin.values : JSON.stringify(origin.values)) + '</code>';
+            html += '</span>';
+        }
+        if (origin.labels) {
+            html += '<span class="xorigin-path-inline">';
+            html += '<span class="xorigin-path-label">labels:</span>';
+            html += '<code class="xorigin-path-value">' + escapeHtml(typeof origin.labels === 'string' ? origin.labels : JSON.stringify(origin.labels)) + '</code>';
+            html += '</span>';
+        }
+        html += '</span>';
+    }
+    return html;
+}
+
+function getMcpEndpointForSlug(mcpSlug) {
+    var lookup = window.__MCP_LOOKUP__ || {};
+    var entry = lookup[mcpSlug];
+    if (!entry) return null;
+    var servers = entry.servers || [];
+    if (servers.length === 0) return null;
+    var server = pickServerTemplate(servers);
+    var base = resolveServerUrl(server, null).replace(/\/$/, '');
+    var transport = entry.transport || {};
+    var path = transport.path || '/mcp';
+    if (path.charAt(0) !== '/') path = '/' + path;
+    return base + path;
+}
+
+function unwrapMcpToolResponse(proxyData) {
+    var body = {};
+    try { body = JSON.parse(proxyData.body || '{}'); } catch (e) { return body; }
+    var result = body.result || {};
+    var content = result.content || [];
+    for (var i = 0; i < content.length; i++) {
+        if (content[i].type === 'text' && content[i].text) {
+            try { return JSON.parse(content[i].text); } catch (e) {
+                // Try NDJSON: newline-delimited JSON objects
+                var lines = content[i].text.split('\n').filter(function(l) { return l.trim(); });
+                if (lines.length > 1) {
+                    var parsed = [];
+                    for (var j = 0; j < lines.length; j++) {
+                        try { parsed.push(JSON.parse(lines[j])); } catch (e2) { /* skip */ }
+                    }
+                    if (parsed.length > 0) return parsed;
+                }
+                return content[i].text;
+            }
+        }
+    }
+    return body;
+}
+
+async function executeMcpXOriginSource(sourceIdx, buttonEl) {
+    var xoriginOpId = 'xorigin-' + sourceIdx;
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    var responseDiv = document.getElementById('response-' + xoriginOpId);
+    var statusBadge = document.getElementById('status-' + xoriginOpId);
+    var responseBodyDiv = document.getElementById('respbody-' + xoriginOpId);
+    var responseHeadersDiv = document.getElementById('respheaders-' + xoriginOpId);
+
+    if (!responseDiv || !sourceDiv) return;
+
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) { originalText = textSpan.textContent; textSpan.textContent = 'Sending...'; }
+        buttonEl.disabled = true;
+    }
+
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) return;
+    var origin = currentModal.origins[sourceIdx];
+    var mcpSlug = (origin.api || '').replace('urn:mcp:', '');
+    var toolName = origin.operation || '';
+    var valuesPath = origin.values || '';
+    var labelsPath = origin.labels || '';
+
+    var token = sessionStorage.getItem('anypoint_token');
+    if (!token) {
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
+        responseDiv.style.display = 'block';
+        _restoreButton(buttonEl, originalText);
+        return;
+    }
+
+    var endpoint = getMcpEndpointForSlug(mcpSlug);
+    if (!endpoint) {
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">MCP endpoint for "' + escapeHtml(mcpSlug) + '" not found.</div>';
+        responseDiv.style.display = 'block';
+        _restoreButton(buttonEl, originalText);
+        return;
+    }
+
+    var args = {};
+    var paramInputs = sourceDiv.querySelectorAll('input[data-param], select[data-param]');
+    paramInputs.forEach(function(input) {
+        var name = input.getAttribute('data-param');
+        var val = input.value;
+        if (val) {
+            var dtype = input.getAttribute('data-type') || 'string';
+            if (dtype === 'integer') args[name] = parseInt(val, 10);
+            else if (dtype === 'number') args[name] = parseFloat(val);
+            else if (dtype === 'boolean') args[name] = val === 'true';
+            else args[name] = val;
+        }
+    });
+    sourceDiv.querySelectorAll('.try-request-editor-cm[data-param]').forEach(function(div) {
+        var name = div.getAttribute('data-param');
+        var editor = getCodeMirrorEditor(div.id);
+        if (editor) {
+            var raw = editor.getValue();
+            try { args[name] = JSON.parse(raw); } catch (e) { args[name] = raw; }
+        }
+    });
+
+    var payload = {
+        jsonrpc: '2.0',
+        id: typeof __nextMcpId === 'function' ? __nextMcpId() : 1,
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+    };
+
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                method: 'POST',
+                url: endpoint,
+                headers: Object.assign({ 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            })
+        });
+
+        var data = await resp.json();
+        _restoreButton(buttonEl, originalText);
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        if (statusBadge) {
+            var sc = 'status-error';
+            if (data.status >= 200 && data.status < 300) sc = 'status-2xx';
+            else if (data.status >= 400 && data.status < 500) sc = 'status-4xx';
+            else if (data.status >= 500) sc = 'status-5xx';
+            statusBadge.className = 'response-status-badge ' + sc;
+            statusBadge.textContent = data.status;
+        }
+
+        if (data.error || data.status < 200 || data.status >= 300) {
+            switchResponseTab(xoriginOpId, 'body');
+            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request failed (status ' + data.status + ')</div>';
+            return;
+        }
+
+        displayResponseInAceEditors(responseBodyDiv, responseHeadersDiv, data);
+
+        var unwrapped = unwrapMcpToolResponse(data);
+        if (typeof unwrapped !== 'object') {
+            console.warn('MCP x-origin: response content is not JSON, cannot extract values');
+            return;
+        }
+
+        var values = extractXOriginValues(unwrapped, valuesPath);
+        var labels = [];
+        if (labelsPath) {
+            labels = extractXOriginValues(unwrapped, labelsPath);
+            if (labels.length !== values.length) labels = [];
+        }
+
+        var extractedTab = document.getElementById('respextracted-' + xoriginOpId);
+        if (extractedTab) {
+            if (values.length > 0) {
+                var items = values.map(function(val, i) {
+                    var valueStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                    var labelStr = labels[i] ? String(labels[i]) : valueStr;
+                    return { name: labelStr, id: valueStr, index: i };
+                });
+                items.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+                var vh = '<div class="xorigin-values-section"><table class="xorigin-values-table">';
+                vh += '<thead><tr><th>Name</th><th>ID</th><th></th></tr></thead><tbody>';
+                items.forEach(function(item) {
+                    vh += '<tr><td class="xorigin-name-cell">' + escapeHtml(item.name) + '</td>';
+                    vh += '<td class="xorigin-id-cell"><code>' + escapeHtml(item.id) + '</code></td>';
+                    vh += '<td class="xorigin-action-cell"><button class="btn-use-value" data-value="' + escapeHtml(item.id) + '" onclick="useXOriginValue(' + sourceIdx + ', ' + item.index + ', this.getAttribute(\'data-value\'))">Select</button></td>';
+                    vh += '</tr>';
+                });
+                vh += '</tbody></table></div>';
+                extractedTab.innerHTML = vh;
+            } else {
+                extractedTab.innerHTML = '<div class="xorigin-error">No values found at path: ' + escapeHtml(typeof valuesPath === 'string' ? valuesPath : JSON.stringify(valuesPath)) + '</div>';
+            }
+        }
+    } catch (e) {
+        _restoreButton(buttonEl, originalText);
+        if (responseDiv) responseDiv.classList.remove('empty');
+        if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-error'; }
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
+    }
+}
+
+function _restoreButton(buttonEl, originalText) {
+    if (!buttonEl) return;
+    var textSpan = buttonEl.querySelector('span');
+    if (textSpan) textSpan.textContent = originalText;
+    buttonEl.disabled = false;
+}
+
 function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str;
@@ -808,6 +1262,13 @@ function buildAvailableTags() {
             // Also add variations
             if (type === 'api') tagSet.add('api');
         }
+
+        // Add spec-declared tags (data-tags="tag1,tag2")
+        const tagsAttr = cardLink.dataset.tags || '';
+        tagsAttr.split(',').forEach(t => {
+            const trimmed = t.trim().toLowerCase();
+            if (trimmed) tagSet.add(trimmed);
+        });
 
         // Extract individual words from name
         name.split(/\s+/).forEach(word => {
@@ -929,12 +1390,14 @@ function filterByTags() {
     const selectedType = activeTab ? activeTab.dataset.filter : 'all';
 
     let visibleApis = 0;
+    let visibleMcps = 0;
     let visibleSkills = 0;
 
     cardLinks.forEach(cardLink => {
         const name = (cardLink.dataset.name || '').toLowerCase();
         const category = (cardLink.dataset.category || '').toLowerCase();
         const type = (cardLink.dataset.type || '').toLowerCase();
+        const tagsAttr = (cardLink.dataset.tags || '').toLowerCase();
 
         // Check type filter
         const matchesType = selectedType === 'all' || type === selectedType;
@@ -942,7 +1405,7 @@ function filterByTags() {
         // Check tag filter
         let matchesTags = true;
         if (selectedTags.length > 0) {
-            const searchableText = name + ' ' + category + ' ' + type;
+            const searchableText = name + ' ' + category + ' ' + type + ' ' + tagsAttr;
             matchesTags = selectedTags.some(tag => searchableText.includes(tag));
         }
 
@@ -952,6 +1415,8 @@ function filterByTags() {
             // Count visible items by type
             if (type === 'api') {
                 visibleApis++;
+            } else if (type === 'mcp') {
+                visibleMcps++;
             } else if (type === 'skill') {
                 visibleSkills++;
             }
@@ -961,7 +1426,7 @@ function filterByTags() {
     });
 
     // Update results count and type
-    updateResultsCount(visibleApis + visibleSkills, selectedType);
+    updateResultsCount(visibleApis + visibleMcps + visibleSkills, selectedType);
 
     // Update URL with current filter
     updateURLWithFilter(selectedType);
@@ -1004,6 +1469,8 @@ function updateResultsCount(count, filterType) {
     if (resultsType) {
         if (filterType === 'api') {
             resultsType.textContent = 'APIs';
+        } else if (filterType === 'mcp') {
+            resultsType.textContent = 'MCP Servers';
         } else if (filterType === 'skill') {
             resultsType.textContent = 'Skills';
         } else {
@@ -1075,6 +1542,15 @@ function searchOperations(query) {
 // Navigate to a hash target (shared logic for all navigation)
 // ============================================================================
 
+var MCP_INVOCABLE_PREFIXES = ['tool-', 'prompt-', 'resource-', 'resource-template-'];
+
+function isMcpInvocableId(id) {
+    for (var i = 0; i < MCP_INVOCABLE_PREFIXES.length; i += 1) {
+        if (id.indexOf(MCP_INVOCABLE_PREFIXES[i]) === 0) return true;
+    }
+    return false;
+}
+
 function navigateToHash(hash, smooth) {
     if (!hash || hash === '#') return false;
 
@@ -1094,6 +1570,8 @@ function navigateToHash(hash, smooth) {
     if (targetId.startsWith('op-')) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
+    } else if (isMcpInvocableId(targetId)) {
+        targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
     }
@@ -1329,7 +1807,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-')) return;
+        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-') && !isMcpInvocableId(hash.substring(1))) return;
 
         e.preventDefault();
         if (navigateToHash(hash, true)) {
@@ -1956,6 +2434,279 @@ function getAuthHeaders() {
     var token = sessionStorage.getItem('anypoint_token');
     if (token) return {'Authorization': 'Bearer ' + token};
     return {};
+}
+
+// ============================================================================
+// MCP Try It Out — JSON-RPC over streamable HTTP
+// ============================================================================
+// sendMcpRequest is the MCP counterpart to sendRequest(): it collects inputs
+// from the try panel, builds a JSON-RPC 2.0 payload (tools/call, prompts/get,
+// or resources/read), and posts it through the same proxy used for REST. The
+// Authorization header is injected via getAuthHeaders() so bearer / OAuth2
+// tokens obtained through the shared auth panel flow straight through.
+
+var __mcpJsonRpcId = 0;
+function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
+
+function __mcpEndpointUrl() {
+    // server.json remotes[] already expose fully-qualified endpoint URLs
+    // (including whatever path the server uses), so the selected server URL
+    // is used verbatim. We still filter out sse / stdio remotes because the
+    // try-it console only speaks JSON-RPC over HTTP POST.
+    var meta = window.__MCP_META__;
+    if (!meta) return null;
+    var selected = getSelectedServer(null);
+    if (!selected) return null;
+
+    var remotes = meta.servers || [];
+    var match = null;
+    var normalizedSelected = selected.replace(/\/$/, '');
+    for (var i = 0; i < remotes.length; i += 1) {
+        if ((remotes[i].url || '').replace(/\/$/, '') === normalizedSelected) {
+            match = remotes[i];
+            break;
+        }
+    }
+    var kind = (match && match.transport) || (meta.transport && meta.transport.kind) || '';
+    if (kind && kind !== 'streamableHttp') return null;
+    return selected;
+}
+
+function __mcpCoerceValue(value, type) {
+    if (value === '' || value === null || value === undefined) return undefined;
+    if (type === 'integer') {
+        var intVal = parseInt(value, 10);
+        return isNaN(intVal) ? value : intVal;
+    }
+    if (type === 'number') {
+        var numVal = Number(value);
+        return isNaN(numVal) ? value : numVal;
+    }
+    if (type === 'boolean') {
+        if (value === 'true' || value === true) return true;
+        if (value === 'false' || value === false) return false;
+        return undefined;
+    }
+    if (type === 'object' || type === 'array') {
+        try { return JSON.parse(value); }
+        catch (e) { return value; }
+    }
+    return value;
+}
+
+function __mcpCollectArgs(section) {
+    // Returns an arguments object built from inputs with data-mcp-arg attributes.
+    // Supports dotted paths (e.g. payload.name) to build nested objects.
+    // For object/array args the element is a div hosting an ACE editor rather
+    // than an <input>, so read the editor's value via getCodeMirrorEditor.
+    // If the editor hasn't hydrated yet (e.g. Copy cURL clicked before
+    // initCodeMirrorEditors ran), fall back to the pre-rendered example
+    // stored on data-example-body so the payload isn't silently empty.
+    var args = {};
+    var inputs = section.querySelectorAll('[data-mcp-arg]');
+    inputs.forEach(function(input) {
+        var path = input.getAttribute('data-mcp-arg');
+        var type = input.getAttribute('data-type') || 'string';
+        var raw;
+        if (input.tagName === 'DIV') {
+            var editor = getCodeMirrorEditor(input.id);
+            if (editor) {
+                raw = editor.getValue();
+            } else {
+                raw = input.getAttribute('data-example-body') || '';
+            }
+        } else {
+            raw = input.value;
+        }
+        var coerced = __mcpCoerceValue(raw, type);
+        if (coerced === undefined) return;
+
+        var keys = path.split('.');
+        var cursor = args;
+        for (var i = 0; i < keys.length - 1; i += 1) {
+            if (cursor[keys[i]] === undefined || typeof cursor[keys[i]] !== 'object') {
+                cursor[keys[i]] = {};
+            }
+            cursor = cursor[keys[i]];
+        }
+        cursor[keys[keys.length - 1]] = coerced;
+    });
+    return args;
+}
+
+function __mcpBuildPayload(section) {
+    var kind = section.getAttribute('data-mcp-kind');
+    var id = __nextMcpId();
+    if (kind === 'tool') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'tools/call',
+            params: {
+                name: section.getAttribute('data-mcp-name'),
+                arguments: __mcpCollectArgs(section),
+            },
+        };
+    }
+    if (kind === 'prompt') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'prompts/get',
+            params: {
+                name: section.getAttribute('data-mcp-name'),
+                arguments: __mcpCollectArgs(section),
+            },
+        };
+    }
+    if (kind === 'resource') {
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'resources/read',
+            params: { uri: section.getAttribute('data-mcp-uri') },
+        };
+    }
+    if (kind === 'resource-template') {
+        var args = __mcpCollectArgs(section);
+        var uri = args.uri || section.getAttribute('data-mcp-uri-template') || '';
+        return {
+            jsonrpc: '2.0',
+            id: id,
+            method: 'resources/read',
+            params: { uri: uri },
+        };
+    }
+    return null;
+}
+
+function copyMcpCurlCommand(invocableId, buttonEl) {
+    var section = document.getElementById(invocableId);
+    if (!section) return;
+    var endpoint = __mcpEndpointUrl();
+    if (!endpoint) {
+        alert('cURL is only available for the streamableHttp transport.');
+        return;
+    }
+    var payload = __mcpBuildPayload(section);
+    if (!payload) return;
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var curl = 'curl -X POST \\\n  "' + endpoint + '"';
+    for (var headerName in headers) {
+        curl += ' \\\n  -H "' + headerName + ': ' + headers[headerName] + '"';
+    }
+    var body = JSON.stringify(payload);
+    curl += " \\\n  -d '" + body.replace(/'/g, "'\\''") + "'";
+
+    navigator.clipboard.writeText(curl).then(function() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) {
+                var originalText = textSpan.textContent;
+                textSpan.textContent = 'Copied';
+                setTimeout(function() { textSpan.textContent = originalText; }, 1500);
+            }
+        }
+    }).catch(function(err) {
+        console.error('Failed to copy cURL command:', err);
+        alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
+async function sendMcpRequest(invocableId, buttonEl) {
+    var section = document.getElementById(invocableId);
+    if (!section) return;
+
+    var endpoint = __mcpEndpointUrl();
+    var responseDiv = document.getElementById('response-' + invocableId);
+    var statusBadge = document.getElementById('status-' + invocableId);
+    var responseBody = document.getElementById('respbody-' + invocableId);
+    var responseHeaders = document.getElementById('respheaders-' + invocableId);
+
+    if (responseDiv) { responseDiv.classList.add('empty'); responseDiv.style.display = 'block'; }
+
+    if (!endpoint) {
+        if (statusBadge) { statusBadge.textContent = 'Unsupported'; statusBadge.className = 'response-status-badge status-4xx'; }
+        if (responseBody) {
+            createReadOnlyAceEditor(
+                responseBody,
+                'The interactive console currently supports the streamableHttp transport only. '
+                + 'This MCP server exposes a different transport.',
+                'text'
+            );
+        }
+        return;
+    }
+
+    var payload = __mcpBuildPayload(section);
+    if (!payload) return;
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var originalText = 'Send';
+    if (buttonEl) {
+        var textSpan = buttonEl.querySelector('span');
+        if (textSpan) { originalText = textSpan.textContent; textSpan.textContent = 'Sending...'; }
+        buttonEl.disabled = true;
+    }
+
+    try {
+        var resp = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                method: 'POST',
+                url: endpoint,
+                headers: headers,
+                body: JSON.stringify(payload),
+            }),
+        });
+        var data = await resp.json();
+
+        if (buttonEl) {
+            var textSpan2 = buttonEl.querySelector('span');
+            if (textSpan2) textSpan2.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+        if (responseDiv) responseDiv.classList.remove('empty');
+
+        if (data.error) {
+            if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
+            if (responseBody) createReadOnlyAceEditor(responseBody, data.error, 'text');
+            if (responseDiv) responseDiv.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+            return;
+        }
+
+        var status = data.status;
+        var statusClass = 'status-' + String(status).charAt(0) + 'xx';
+        if (statusBadge) { statusBadge.textContent = status; statusBadge.className = 'response-status-badge ' + statusClass; }
+
+        displayResponseInAceEditors(responseBody, responseHeaders, data);
+        if (responseDiv) responseDiv.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    } catch (e) {
+        if (buttonEl) {
+            var textSpan3 = buttonEl.querySelector('span');
+            if (textSpan3) textSpan3.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+        if (responseDiv) { responseDiv.classList.remove('empty'); responseDiv.style.display = 'block'; }
+        if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
+        if (responseBody) {
+            createReadOnlyAceEditor(
+                responseBody,
+                'Cannot reach proxy at ' + PROXY_URL,
+                'text'
+            );
+        }
+    }
 }
 
 // ============================================================================
@@ -2645,7 +3396,7 @@ function getSelectedServerType() {
 
 function getSelectedRegion() {
     var sel = document.getElementById('serverSelect');
-    if (!sel || sel.value !== 'platform') return null;
+    if (!sel || sel.value === 'us') return null;
     var preset = document.getElementById('regionPreset');
     if (!preset) return null;
     if (preset.value === 'custom') {
@@ -2656,13 +3407,10 @@ function getSelectedRegion() {
 }
 
 function getSelectedBaseUrl() {
-    // Returns just the domain part (no API path) for auth endpoints
     var type = getSelectedServerType();
-    if (type === 'eu') return 'https://eu1.anypoint.mulesoft.com';
-    if (type === 'platform') {
-        var region = getSelectedRegion();
-        return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
-    }
+    var region = getSelectedRegion();
+    if (type === 'eu') return 'https://' + (region || 'eu1') + '.anypoint.mulesoft.com';
+    if (type === 'platform') return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
     return 'https://anypoint.mulesoft.com';
 }
 
@@ -2676,6 +3424,10 @@ function pickServerTemplate(servers) {
     var type = getSelectedServerType();
     if (type === 'eu') {
         for (var i = 0; i < servers.length; i++) {
+            if (servers[i].url.indexOf('.anypoint.mulesoft.com') !== -1 &&
+                servers[i].url.indexOf('{region}') !== -1) return servers[i];
+        }
+        for (var i = 0; i < servers.length; i++) {
             if (servers[i].url.indexOf('eu1.anypoint.mulesoft.com') !== -1) return servers[i];
         }
     } else if (type === 'platform') {
@@ -2683,7 +3435,6 @@ function pickServerTemplate(servers) {
             if (servers[i].url.indexOf('platform.mulesoft.com') !== -1) return servers[i];
         }
     }
-    // 'us' or fallback
     return servers[0];
 }
 
@@ -2761,8 +3512,19 @@ function getServerForApi(apiSlug) {
 function onServerChange() {
     var sel = document.getElementById('serverSelect');
     var regionRow = document.getElementById('serverRegionRow');
+    var preset = document.getElementById('regionPreset');
+    var defaultOpt = document.getElementById('regionDefaultOption');
+    var customInput = document.getElementById('regionCustomInput');
     if (sel && regionRow) {
-        regionRow.style.display = sel.value === 'platform' ? 'flex' : 'none';
+        var showRegion = sel.value === 'eu' || sel.value === 'platform';
+        regionRow.style.display = showRegion ? 'flex' : 'none';
+        if (showRegion && preset && defaultOpt) {
+            var isEu = sel.value === 'eu';
+            defaultOpt.value = isEu ? 'eu1' : 'ca1';
+            defaultOpt.textContent = isEu ? 'Europe (eu1)' : 'Canada (ca1)';
+            preset.value = defaultOpt.value;
+            if (customInput) customInput.style.display = 'none';
+        }
     }
     updateAuthSummary();
     updateAllServerCombos();
@@ -2790,6 +3552,10 @@ var _serverSelections = {};
 function getPreferredServerIndex(servers) {
     var type = getSelectedServerType();
     if (type === 'eu') {
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].url.indexOf('.anypoint.mulesoft.com') !== -1 &&
+                servers[i].url.indexOf('{region}') !== -1) return i;
+        }
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].url.indexOf('eu1.anypoint.mulesoft.com') !== -1) return i;
         }
@@ -3256,6 +4022,74 @@ function copyCurlCommand(opId, buttonEl) {
     }).catch(function(err) {
         console.error('Failed to copy cURL command:', err);
         alert('Failed to copy to clipboard. Please try again.');
+    });
+}
+
+function copyMcpCurlCommand(xoriginOpId, sourceIdx, buttonEl) {
+    var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
+    if (!currentModal) return;
+    var origin = currentModal.origins[sourceIdx];
+    var mcpSlug = (origin.api || '').replace('urn:mcp:', '');
+    var toolName = origin.operation || '';
+
+    var endpoint = getMcpEndpointForSlug(mcpSlug);
+    if (!endpoint) return;
+
+    var sourceDiv = document.querySelector('.xorigin-source[data-source-idx="' + sourceIdx + '"]');
+    if (!sourceDiv) return;
+
+    var args = {};
+    sourceDiv.querySelectorAll('input[data-param], select[data-param]').forEach(function(input) {
+        var name = input.getAttribute('data-param');
+        var val = input.value;
+        if (val) {
+            var dtype = input.getAttribute('data-type') || 'string';
+            if (dtype === 'integer') args[name] = parseInt(val, 10);
+            else if (dtype === 'number') args[name] = parseFloat(val);
+            else if (dtype === 'boolean') args[name] = val === 'true';
+            else args[name] = val;
+        }
+    });
+    sourceDiv.querySelectorAll('.try-request-editor-cm[data-param]').forEach(function(div) {
+        var name = div.getAttribute('data-param');
+        var editor = getCodeMirrorEditor(div.id);
+        if (editor) {
+            var raw = editor.getValue();
+            try { args[name] = JSON.parse(raw); } catch (e) { args[name] = raw; }
+        }
+    });
+
+    var payload = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: toolName, arguments: args }
+    };
+
+    var headers = Object.assign(
+        {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'},
+        getAuthHeaders()
+    );
+
+    var curlCommand = 'curl -X POST \\\n';
+    curlCommand += '  "' + endpoint + '"';
+    for (var headerName in headers) {
+        curlCommand += ' \\\n  -H "' + headerName + ': ' + headers[headerName] + '"';
+    }
+    var escapedBody = JSON.stringify(payload).replace(/'/g, "'\\''");
+    curlCommand += ' \\\n  -d \'' + escapedBody + '\'';
+
+    navigator.clipboard.writeText(curlCommand).then(function() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) {
+                var originalText = textSpan.textContent;
+                textSpan.textContent = 'Copied';
+                setTimeout(function() { textSpan.textContent = originalText; }, 1500);
+            }
+        }
+    }).catch(function(err) {
+        console.error('Failed to copy cURL command:', err);
     });
 }
 
@@ -3766,7 +4600,7 @@ async function sendRequest(opId, buttonEl) {
         }
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
         if (responseBody) {
-            createReadOnlyAceEditor(responseBody, 'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py', 'text');
+            createReadOnlyAceEditor(responseBody, 'Cannot reach proxy at ' + PROXY_URL + '.\n\n  python3 scripts/proxy_server.py', 'text');
         }
         if (responseDiv) responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -6627,7 +7461,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
         if (rightPanel) rightPanel.setAttribute('open', '');
         setWfStepStatus(skillSlug, stepIndex, 'error');
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
-        if (responseBodyEl) responseBodyEl.textContent = 'Cannot reach proxy at ' + PROXY_URL + '.\nMake sure the proxy server is running:\n  python3 scripts/proxy_server.py';
+        if (responseBodyEl) responseBodyEl.textContent = 'Cannot reach proxy at ' + PROXY_URL + '.';
     }
 }
 

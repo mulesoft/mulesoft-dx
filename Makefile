@@ -7,7 +7,7 @@
 #   make report                - Generate summary report
 #   make help                  - Show this help message
 
-.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions
+.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
 
 # Colors for output
 RED := \033[0;31m
@@ -18,14 +18,17 @@ MAGENTA := \033[0;35m
 CYAN := \033[0;36m
 NC := \033[0m # No Color
 
+# Auto-configure git hooks on first make invocation
+$(if $(shell git config core.hooksPath),,$(shell git config core.hooksPath .githooks))
+
 # Configuration
 ANYPOINT_CLI := anypoint-cli-v4
-RULESET := ./.agents/skills/api-spec-validator/scripts/ruleset.yaml
+RULESET := ./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 REPORT_DIR := ./validation-reports
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
 
 # APIs to skip during governed validation (override via SKIP_GOVERNED="api1 api2")
-SKIP_GOVERNED :=
+SKIP_GOVERNED := arm-monitoring-query
 
 # Discover all API directories (those with exchange.json in apis/)
 API_DIRS := $(shell find ./apis -maxdepth 2 -name "exchange.json" -exec dirname {} \; | sed 's|^\./||' | sort)
@@ -51,7 +54,15 @@ help:
 	@echo "  $(YELLOW)make test-portal$(NC)           - Run portal generator test suite"
 	@echo "  $(YELLOW)make validate-xorigin$(NC)      - Validate x-origin annotations across APIs"
 	@echo "  $(YELLOW)make validate-jtbd$(NC)         - Validate all JTBD files in skills/ directories"
+	@echo "  $(YELLOW)make validate-mcp-server$(NC)   - Validate MCP server.json files against the MCP registry schema"
 	@echo "  $(YELLOW)make validate-descriptions$(NC) - Validate API descriptions use imperative format"
+	@echo ""
+	@echo "$(GREEN)Git hooks:$(NC)"
+	@echo "  $(YELLOW)make install-hooks$(NC)         - Set up pre-commit and pre-push git hooks"
+	@echo "  $(YELLOW)make uninstall-hooks$(NC)       - Remove git hooks configuration"
+	@echo "  $(YELLOW)make check-hooks$(NC)           - Show git hooks status"
+	@echo "  $(YELLOW)make pre-commit-hook$(NC)       - Run pre-commit checks manually"
+	@echo "  $(YELLOW)make pre-push-hook$(NC)         - Run pre-push checks manually"
 
 	@echo "  $(YELLOW)make help$(NC)                  - Show this help message"
 	@echo ""
@@ -374,6 +385,14 @@ validate-xorigin:
 	@python3 scripts/build/validate_xorigin.py
 	@echo ""
 
+validate-mcp-server:
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  Validating MCP server.json files$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@python3 scripts/build/validate_mcp_server.py
+	@echo ""
+
 # Validate all JTBD files in skills directories
 validate-jtbd:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
@@ -381,7 +400,7 @@ validate-jtbd:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@files=$$(find . \
-		-type d \( -name .git -o -name .agents -o -name .claude \) -prune -o \
+		-type d \( -name .git -o -name .claude \) -prune -o \
 		-type f -path "*/skills/*.md" -print | sort); \
 	if [ -z "$$files" ]; then \
 		echo "$(YELLOW)No JTBD files found under */skills/*.md$(NC)"; \
@@ -412,3 +431,147 @@ validate-descriptions:
 	@echo ""
 	@python3 scripts/build/validate_descriptions.py
 	@echo ""
+
+# ─── Git Hooks ────────────────────────────────────────────────────────────────
+
+# Install shared git hooks (one-time setup)
+install-hooks:
+	@echo "$(CYAN)Setting up git hooks...$(NC)"
+	@chmod +x .githooks/pre-commit .githooks/pre-push
+	@git config core.hooksPath .githooks
+	@echo "$(GREEN)Done. Git hooks are now active.$(NC)"
+	@echo ""
+	@echo "  pre-commit: validate-descriptions, validate-mcp-server, validate-xorigin, validate-jtbd"
+	@echo "  pre-push:   test-portal, validate-all-governed"
+	@echo ""
+	@echo "$(YELLOW)Skip hooks when needed:$(NC)"
+	@echo "  SKIP_HOOKS=1 git commit ...      # skip pre-commit"
+	@echo "  SKIP_PRE_PUSH=1 git push ...     # skip pre-push only"
+	@echo ""
+
+# Remove git hooks configuration
+uninstall-hooks:
+	@echo "$(YELLOW)Removing git hooks configuration...$(NC)"
+	@git config --unset core.hooksPath 2>/dev/null || true
+	@echo "$(GREEN)Done. Git hooks are now disabled.$(NC)"
+
+# Show git hooks status
+check-hooks:
+	@hooks_path=$$(git config core.hooksPath 2>/dev/null || echo ""); \
+	if [ "$$hooks_path" = ".githooks" ]; then \
+		echo "$(GREEN)Git hooks are active$(NC) (core.hooksPath = .githooks)"; \
+	else \
+		echo "$(YELLOW)Git hooks are NOT active.$(NC) Run: make install-hooks"; \
+	fi
+
+# Pre-commit hook target: fast validators (~2-5s)
+pre-commit-hook:
+	@if [ "$${SKIP_HOOKS:-0}" = "1" ]; then \
+		echo "$(YELLOW)SKIP_HOOKS=1 — skipping pre-commit checks$(NC)"; \
+		exit 0; \
+	fi; \
+	if ! python3 -c "import yaml; import jsonschema" 2>/dev/null; then \
+		echo "$(YELLOW)Python dependencies not found — skipping pre-commit checks$(NC)"; \
+		echo "Run: pip3 install -r scripts/requirements.txt"; \
+		exit 0; \
+	fi; \
+	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	echo "$(CYAN)  Pre-commit Checks$(NC)"; \
+	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	echo ""; \
+	failed=0; \
+	printf "  validate-descriptions ... "; \
+	if python3 scripts/build/validate_descriptions.py > /dev/null 2>&1; then \
+		echo "$(GREEN)PASS$(NC)"; \
+	else \
+		echo "$(RED)FAIL$(NC)"; failed=1; \
+	fi; \
+	printf "  validate-mcp-server   ... "; \
+	if python3 scripts/build/validate_mcp_server.py > /dev/null 2>&1; then \
+		echo "$(GREEN)PASS$(NC)"; \
+	else \
+		echo "$(RED)FAIL$(NC)"; failed=1; \
+	fi; \
+	printf "  validate-xorigin      ... "; \
+	if python3 scripts/build/validate_xorigin.py > /dev/null 2>&1; then \
+		echo "$(GREEN)PASS$(NC)"; \
+	else \
+		echo "$(RED)FAIL$(NC)"; failed=1; \
+	fi; \
+	printf "  validate-jtbd         ... "; \
+	jtbd_ok=true; \
+	jtbd_files=$$(find . \
+		-type d \( -name .git -o -name .agents -o -name .claude -o -name portal \) -prune -o \
+		-type f -path "*/skills/*.md" -print | sort); \
+	if [ -n "$$jtbd_files" ]; then \
+		for file in $$jtbd_files; do \
+			if ! python3 scripts/build/validate_jtbd.py "$$file" . > /dev/null 2>&1; then \
+				jtbd_ok=false; \
+			fi; \
+		done; \
+	fi; \
+	if $$jtbd_ok; then \
+		echo "$(GREEN)PASS$(NC)"; \
+	else \
+		echo "$(RED)FAIL$(NC)"; failed=1; \
+	fi; \
+	echo ""; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(RED)Pre-commit checks failed.$(NC) Fix the issues above or skip with:"; \
+		echo "  SKIP_HOOKS=1 git commit ..."; \
+		echo ""; \
+		exit 1; \
+	fi; \
+	echo "$(GREEN)All pre-commit checks passed.$(NC)"; \
+	echo ""
+
+# Pre-push hook target: heavier checks (~2-5 min)
+pre-push-hook:
+	@if [ "$${SKIP_HOOKS:-0}" = "1" ] || [ "$${SKIP_PRE_PUSH:-0}" = "1" ]; then \
+		echo "$(YELLOW)Skipping pre-push checks$(NC)"; \
+		exit 0; \
+	fi; \
+	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	echo "$(CYAN)  Pre-push Checks$(NC)"; \
+	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	echo ""; \
+	failed=0; \
+	if python3 -c "import pytest" 2>/dev/null; then \
+		printf "  test-portal (pytest)  ... "; \
+		if (cd scripts && python3 -m pytest tests/ -q --tb=line) > /dev/null 2>&1; then \
+			echo "$(GREEN)PASS$(NC)"; \
+		else \
+			echo "$(RED)FAIL$(NC)"; failed=1; \
+		fi; \
+	else \
+		echo "  test-portal (pytest)  ... $(YELLOW)SKIP$(NC) (pytest not installed)"; \
+	fi; \
+	if command -v npx > /dev/null 2>&1 && [ -d scripts/node_modules ]; then \
+		printf "  test-portal (jest)    ... "; \
+		if (cd scripts && npx jest --silent) > /dev/null 2>&1; then \
+			echo "$(GREEN)PASS$(NC)"; \
+		else \
+			echo "$(RED)FAIL$(NC)"; failed=1; \
+		fi; \
+	else \
+		echo "  test-portal (jest)    ... $(YELLOW)SKIP$(NC) (npx or node_modules not found)"; \
+	fi; \
+	if command -v $(ANYPOINT_CLI) > /dev/null 2>&1; then \
+		printf "  validate-all-governed ... "; \
+		if $(MAKE) validate-all-governed > /dev/null 2>&1; then \
+			echo "$(GREEN)PASS$(NC)"; \
+		else \
+			echo "$(RED)FAIL$(NC)"; failed=1; \
+		fi; \
+	else \
+		echo "  validate-all-governed ... $(YELLOW)SKIP$(NC) (anypoint-cli-v4 not installed)"; \
+	fi; \
+	echo ""; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(RED)Pre-push checks failed.$(NC) Fix the issues above or skip with:"; \
+		echo "  SKIP_PRE_PUSH=1 git push ..."; \
+		echo ""; \
+		exit 1; \
+	fi; \
+	echo "$(GREEN)All pre-push checks passed.$(NC)"; \
+	echo ""

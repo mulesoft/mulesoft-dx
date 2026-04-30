@@ -5,7 +5,11 @@ info:
   description: Retrieve policy templates from Exchange and manage gateway targets across organizations and environments within the Anypoint Platform API Manager experience layer.
 servers:
 - url: https://anypoint.mulesoft.com
-- url: https://eu1.anypoint.mulesoft.com
+- url: https://{region}.anypoint.mulesoft.com
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com
   variables:
     region:

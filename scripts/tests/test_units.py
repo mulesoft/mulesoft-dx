@@ -1067,7 +1067,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert 'test-api' in by_api
         assert len(by_api['test-api']) == 1
         assert by_api['test-api'][0]['slug'] == 'deploy-app'
@@ -1079,7 +1079,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
 
-        by_api, _ = discover_skills(tmp_path)
+        by_api, _by_mcp, _all = discover_skills(tmp_path)
         skill = by_api['test-api'][0]
         assert 'api_refs' in skill
         assert 'test-api' in skill['api_refs']
@@ -1107,7 +1107,7 @@ class TestDiscoverSkills:
         skill_dir.mkdir(parents=True)
         (skill_dir / 'SKILL.md').write_text(skill_md)
 
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert 'access-mgmt' in by_api
         assert 'api-manager' in by_api
         # Same skill object in both
@@ -1117,7 +1117,7 @@ class TestDiscoverSkills:
         assert len(all_skills) == 1
 
     def test_no_skills_dir_returns_empty(self, tmp_path):
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert by_api == {}
         assert all_skills == []
 
@@ -1127,7 +1127,7 @@ class TestDiscoverSkills:
         (skills_dir / 'README.md').write_text('not a skill')
         (skills_dir / 'some-dir').mkdir()
         # Dir without SKILL.md
-        by_api, all_skills = discover_skills(tmp_path)
+        by_api, _by_mcp, all_skills = discover_skills(tmp_path)
         assert by_api == {}
         assert all_skills == []
 
@@ -1194,3 +1194,85 @@ class TestValidateStepDependencies:
         ]
         assert validator.validate_step_dependencies(steps) is True
         assert len(validator.warnings) == 0
+
+
+# ============================================================================
+# generator._build_mcp_lookup
+# ============================================================================
+
+class TestBuildMcpLookup:
+    def _make_generator(self, mcp_servers):
+        gen = PortalGenerator.__new__(PortalGenerator)
+        gen.mcp_servers = mcp_servers
+        return gen
+
+    def test_basic_lookup(self):
+        mcps = [{
+            'slug': 'exchange',
+            'tools': [
+                {'name': 'searchAssets', 'description': 'Search', 'inputSchema': {'type': 'object', 'properties': {'q': {'type': 'string'}}}},
+                {'name': 'getAsset', 'description': 'Get asset', 'inputSchema': {'type': 'object', 'properties': {}}},
+            ],
+            'servers': [{'url': 'https://anypoint.mulesoft.com/exchange', 'variables': {}}],
+            'transport': {'kind': 'streamableHttp', 'path': '/mcp'},
+        }]
+        gen = self._make_generator(mcps)
+        lookup = gen._build_mcp_lookup()
+
+        assert 'exchange' in lookup
+        assert 'searchAssets' in lookup['exchange']['tools']
+        assert 'getAsset' in lookup['exchange']['tools']
+        assert lookup['exchange']['tools']['searchAssets']['description'] == 'Search'
+        assert lookup['exchange']['transport'] == {'kind': 'streamableHttp', 'path': '/mcp'}
+        assert len(lookup['exchange']['servers']) == 1
+        assert lookup['exchange']['servers'][0]['url'] == 'https://anypoint.mulesoft.com/exchange'
+
+    def test_empty_mcp_servers(self):
+        gen = self._make_generator([])
+        lookup = gen._build_mcp_lookup()
+        assert lookup == {}
+
+    def test_mcp_without_tools(self):
+        mcps = [{
+            'slug': 'minimal',
+            'tools': [],
+            'servers': [{'url': 'https://example.com'}],
+            'transport': {'kind': 'streamableHttp', 'path': '/mcp'},
+        }]
+        gen = self._make_generator(mcps)
+        lookup = gen._build_mcp_lookup()
+        assert lookup['minimal']['tools'] == {}
+
+    def test_server_variables_preserved(self):
+        mcps = [{
+            'slug': 'regional',
+            'tools': [],
+            'servers': [{'url': 'https://{region}.example.com', 'variables': {'region': {'default': 'us'}}}],
+            'transport': {'kind': 'streamableHttp', 'path': '/mcp'},
+        }]
+        gen = self._make_generator(mcps)
+        lookup = gen._build_mcp_lookup()
+        assert lookup['regional']['servers'][0]['variables'] == {'region': {'default': 'us'}}
+
+    def test_multiple_mcps(self):
+        mcps = [
+            {'slug': 'exchange', 'tools': [{'name': 'search', 'description': 's', 'inputSchema': {}}],
+             'servers': [{'url': 'https://a.com'}], 'transport': {'kind': 'streamableHttp', 'path': '/mcp'}},
+            {'slug': 'design-center', 'tools': [{'name': 'listProjects', 'description': 'l', 'inputSchema': {}}],
+             'servers': [{'url': 'https://b.com'}], 'transport': {'kind': 'streamableHttp', 'path': '/mcp'}},
+        ]
+        gen = self._make_generator(mcps)
+        lookup = gen._build_mcp_lookup()
+        assert set(lookup.keys()) == {'exchange', 'design-center'}
+
+    def test_tool_input_schema_included(self):
+        schema = {'type': 'object', 'properties': {'q': {'type': 'string'}}, 'required': ['q']}
+        mcps = [{
+            'slug': 'test',
+            'tools': [{'name': 'search', 'description': 'Search', 'inputSchema': schema}],
+            'servers': [{'url': 'https://a.com'}],
+            'transport': {'kind': 'streamableHttp', 'path': '/mcp'},
+        }]
+        gen = self._make_generator(mcps)
+        lookup = gen._build_mcp_lookup()
+        assert lookup['test']['tools']['search']['inputSchema'] == schema

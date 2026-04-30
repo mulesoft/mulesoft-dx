@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec make -C "$(git rev-parse --show-toplevel)" pre-commit-hook

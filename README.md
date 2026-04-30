@@ -61,6 +61,10 @@ pip3 install -r scripts/requirements.txt
 
 This installs the `api-spec-validator` skill which validates specs against AI-agent-friendly best practices using Anypoint CLI under the hood.
 
+**4. Git hooks (automatic):**
+
+Git hooks are automatically configured the first time you run any `make` command. Pre-commit runs fast validators (~2-5s) and pre-push runs tests + governed validation. See `make help` for skip options.
+
 ### Makefile Commands
 
 The Makefile provides convenient shortcuts for common tasks:
@@ -243,6 +247,27 @@ When updating an existing API specification:
 4. Submit a PR with clear description of changes
 5. Include migration notes if there are breaking changes
 
+## MCP Servers
+
+MCP servers are contributed under `mcps/<server-name>/` with three files:
+
+- `server.json` — MCP registry descriptor (title, description, version, `remotes[]`). Follows the [2025-12-11 MCP server schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json); validated by `make validate-mcp-server`.
+- `exchange.json` — Exchange publishing metadata. The portal reads its `tags` array to feed the homepage tag search.
+- `mcp.yaml` — Tool / prompt / resource definitions (capabilities, tools, prompts, resources, resourceTemplates, securitySchemes).
+
+To generate the `mcp.yaml` metadata by introspecting a running MCP server, use the Anypoint CLI:
+
+```bash
+anypoint-cli-v4 agent-network mcp introspect \
+  --url=https://anypoint.mulesoft.com/exchange \
+  --auth-type=bearer \
+  --auth-value=<YOUR_BEARER_TOKEN> \
+  --output=<PATH_TO_REPO>/mcps/<server-name>/mcp.yaml \
+  --format=yaml
+```
+
+Replace `<YOUR_BEARER_TOKEN>` with a valid Anypoint Platform token and `<PATH_TO_REPO>` with the absolute path to your local checkout of this repository.
+
 ## Agent-Only Validation Skills
 
 Some quality checks are too nuanced for regex-based rules and are implemented as agent skills instead. These are **not** part of the automated CLI/CI pipeline — they require an AI agent to run.
@@ -251,7 +276,7 @@ Some quality checks are too nuanced for regex-based rules and are implemented as
 |-------|---------------|------------|
 | `validate-imperative-format` | `info.description` starts with an imperative verb and avoids boilerplate phrasing | Ask your AI agent: *"validate imperative format"* |
 
-These skills live in `.agents/skills/` alongside the automated ones but are clearly marked as agent-only in their documentation.
+These skills live in `.claude/skills/` alongside the automated ones but are clearly marked as agent-only in their documentation.
 
 ## Example Usage with Claude Code
 

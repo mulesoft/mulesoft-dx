@@ -203,6 +203,13 @@ pipeline {
 | `validate-api API=<name>` | Validate specific API |
 | `report` | Generate comprehensive report |
 | `clean` | Remove validation reports |
+| `install-hooks` | Set up pre-commit and pre-push git hooks |
+| `uninstall-hooks` | Remove git hooks configuration |
+| `check-hooks` | Show git hooks status |
+| `pre-commit-hook` | Run pre-commit checks manually |
+| `pre-push-hook` | Run pre-push checks manually |
+
+> **Note:** Git hooks are automatically configured the first time you run any `make` command.
 
 ## Discovered APIs
 
@@ -244,7 +251,7 @@ The Makefile automatically discovers all API directories by looking for `exchang
 
 The governance rules are defined in:
 ```
-./.agents/skills/api-spec-validator/scripts/ruleset.yaml
+./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 ```
 
 See [api-spec-validator skill documentation](https://github.com/machaval/api-spec-skills) for details on the rules.

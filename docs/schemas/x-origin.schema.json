@@ -11,22 +11,25 @@
     "properties": {
       "api": {
         "type": "string",
-        "pattern": "^urn:api:[a-z0-9-]+$",
-        "description": "API URN identifying the source API (e.g., 'urn:api:access-management')",
+        "pattern": "^urn:(api|mcp):[a-z0-9-]+$",
+        "description": "URN identifying the source API or MCP server (e.g., 'urn:api:access-management' or 'urn:mcp:exchange')",
         "examples": [
           "urn:api:access-management",
           "urn:api:api-manager",
-          "urn:api:exchange-experience"
+          "urn:api:exchange-experience",
+          "urn:mcp:exchange",
+          "urn:mcp:omni"
         ]
       },
       "operation": {
         "type": "string",
         "minLength": 1,
-        "description": "The operationId in the source API to invoke",
+        "description": "The operationId (for urn:api) or tool name (for urn:mcp) to invoke",
         "examples": [
           "getOrganizations",
           "listEnvironments",
-          "getAssetsSearch"
+          "getAssetsSearch",
+          "searchAssets"
         ]
       },
       "values": {

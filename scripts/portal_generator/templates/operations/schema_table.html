@@ -7,7 +7,8 @@
     {% for prop in properties %}
     {% set prop_desc = prop.description|md if prop.description else '' %}
     {% set schema = prop.schema|default({}) %}
-    {% set has_constraints = schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined or schema.pattern is defined %}
+    {% set has_default = schema.default is defined and schema.default is not none %}
+    {% set has_constraints = schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined or schema.pattern is defined or has_default %}
     {% set should_collapse = prop_desc|should_collapse_description or has_constraints %}
     <div class="param-item{% if should_collapse %} has-collapsible{% endif %}">
         <div class="param-header">
@@ -33,11 +34,16 @@
             {% endif %}
             {% if has_constraints %}
             <div class="param-constraints">
-                {%- if schema.minimum is defined -%}min: {{ schema.minimum }}{%- endif -%}
-                {%- if schema.maximum is defined -%}{% if schema.minimum is defined %}, {% endif %}max: {{ schema.maximum }}{%- endif -%}
-                {%- if schema.minLength is defined -%}{% if schema.minimum is defined or schema.maximum is defined %}, {% endif %}minLength: {{ schema.minLength }}{%- endif -%}
-                {%- if schema.maxLength is defined -%}{% if schema.minLength is defined %}, {% endif %}maxLength: {{ schema.maxLength }}{%- endif -%}
-                {%- if schema.pattern is defined -%}{% if schema.minimum is defined or schema.maximum is defined or schema.minLength is defined or schema.maxLength is defined %}, {% endif %}pattern: <code>{{ schema.pattern }}</code>{%- endif -%}
+                {%- set written = namespace(any=false) -%}
+                {%- if has_default -%}
+                    default: <code>{{ schema.default }}</code>
+                    {%- set written.any = true -%}
+                {%- endif -%}
+                {%- if schema.minimum is defined -%}{% if written.any %}, {% endif %}min: {{ schema.minimum }}{% set written.any = true %}{%- endif -%}
+                {%- if schema.maximum is defined -%}{% if written.any %}, {% endif %}max: {{ schema.maximum }}{% set written.any = true %}{%- endif -%}
+                {%- if schema.minLength is defined -%}{% if written.any %}, {% endif %}minLength: {{ schema.minLength }}{% set written.any = true %}{%- endif -%}
+                {%- if schema.maxLength is defined -%}{% if written.any %}, {% endif %}maxLength: {{ schema.maxLength }}{% set written.any = true %}{%- endif -%}
+                {%- if schema.pattern is defined -%}{% if written.any %}, {% endif %}pattern: <code>{{ schema.pattern }}</code>{% set written.any = true %}{%- endif -%}
             </div>
             {% endif %}
         </div>
@@ -48,7 +54,8 @@
                 {% for child in prop.children %}
                 {% set child_desc = child.description|md if child.description else '' %}
                 {% set child_schema = child.schema|default({}) %}
-                {% set has_child_constraints = child_schema.minimum is defined or child_schema.maximum is defined or child_schema.minLength is defined or child_schema.maxLength is defined or child_schema.pattern is defined %}
+                {% set has_child_default = child_schema.default is defined and child_schema.default is not none %}
+                {% set has_child_constraints = child_schema.minimum is defined or child_schema.maximum is defined or child_schema.minLength is defined or child_schema.maxLength is defined or child_schema.pattern is defined or has_child_default %}
                 {% set should_collapse_child = child_desc|should_collapse_description or has_child_constraints %}
                 <div class="param-item{% if should_collapse_child %} has-collapsible{% endif %}">
                     <div class="param-header">
@@ -69,11 +76,16 @@
                         {% endif %}
                         {% if has_child_constraints %}
                         <div class="param-constraints">
-                            {%- if child_schema.minimum is defined -%}min: {{ child_schema.minimum }}{%- endif -%}
-                            {%- if child_schema.maximum is defined -%}{% if child_schema.minimum is defined %}, {% endif %}max: {{ child_schema.maximum }}{%- endif -%}
-                            {%- if child_schema.minLength is defined -%}{% if child_schema.minimum is defined or child_schema.maximum is defined %}, {% endif %}minLength: {{ child_schema.minLength }}{%- endif -%}
-                            {%- if child_schema.maxLength is defined -%}{% if child_schema.minLength is defined %}, {% endif %}maxLength: {{ child_schema.maxLength }}{%- endif -%}
-                            {%- if child_schema.pattern is defined -%}{% if child_schema.minimum is defined or child_schema.maximum is defined or child_schema.minLength is defined or child_schema.maxLength is defined %}, {% endif %}pattern: <code>{{ child_schema.pattern }}</code>{%- endif -%}
+                            {%- set cw = namespace(any=false) -%}
+                            {%- if has_child_default -%}
+                                default: <code>{{ child_schema.default }}</code>
+                                {%- set cw.any = true -%}
+                            {%- endif -%}
+                            {%- if child_schema.minimum is defined -%}{% if cw.any %}, {% endif %}min: {{ child_schema.minimum }}{% set cw.any = true %}{%- endif -%}
+                            {%- if child_schema.maximum is defined -%}{% if cw.any %}, {% endif %}max: {{ child_schema.maximum }}{% set cw.any = true %}{%- endif -%}
+                            {%- if child_schema.minLength is defined -%}{% if cw.any %}, {% endif %}minLength: {{ child_schema.minLength }}{% set cw.any = true %}{%- endif -%}
+                            {%- if child_schema.maxLength is defined -%}{% if cw.any %}, {% endif %}maxLength: {{ child_schema.maxLength }}{% set cw.any = true %}{%- endif -%}
+                            {%- if child_schema.pattern is defined -%}{% if cw.any %}, {% endif %}pattern: <code>{{ child_schema.pattern }}</code>{% set cw.any = true %}{%- endif -%}
                         </div>
                         {% endif %}
                     </div>

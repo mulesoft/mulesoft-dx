@@ -20,6 +20,10 @@
                     <img src="assets/icons/api-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
                     APIs
                 </button>
+                <button class="hero-tab" data-filter="mcp">
+                    <img src="assets/icons/mcp-card-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
+                    MCP Servers
+                </button>
                 <button class="hero-tab" data-filter="skill">
                     <img src="assets/icons/skill-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
                     Skills
@@ -47,7 +51,7 @@
                         </div>
                         <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                     </div>
-                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
+                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
                 </div>
                 <div class="catalog-controls-right">
                     <button class="sort-btn" aria-label="Sort options">
@@ -113,6 +117,9 @@
                     {% if item._item_type == 'api' %}
                         {% set api = item %}
                         {% include "homepage/api_card.html" %}
+                    {% elif item._item_type == 'mcp' %}
+                        {% set mcp = item %}
+                        {% include "homepage/mcp_card.html" %}
                     {% elif item._item_type == 'skill' %}
                         {% set skill = item %}
                         {% include "homepage/skill_card.html" %}

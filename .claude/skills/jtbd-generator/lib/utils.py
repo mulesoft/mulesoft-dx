@@ -49,13 +49,13 @@ def urn_to_path(urn: str, repo_root: Path) -> Path:
 
     Example:
         urn_to_path("urn:api:api-manager", Path("."))
-        -> Path("api-manager/api.yaml")
+        -> Path("apis/api-manager/api.yaml")
     """
     if not urn.startswith('urn:api:'):
         raise ValueError(f"Invalid URN format: {urn}. Expected 'urn:api:folder-name'")
 
     folder_name = urn.replace('urn:api:', '')
-    api_path = repo_root / folder_name / 'api.yaml'
+    api_path = repo_root / 'apis' / folder_name / 'api.yaml'
 
     return api_path
 
@@ -171,12 +171,12 @@ def find_api_dirs(repo_root: Path) -> list[Path]:
 
     Example:
         find_api_dirs(Path("."))
-        -> [Path("api-manager"), Path("access-management"), ...]
+        -> [Path("apis/api-manager"), Path("apis/access-management"), ...]
     """
     api_dirs = []
 
-    # Search for api.yaml files (excluding hidden dirs and node_modules)
-    for api_file in repo_root.glob('*/api.yaml'):
+    # Search for api.yaml files under apis/ (excluding hidden dirs and node_modules)
+    for api_file in repo_root.glob('apis/*/api.yaml'):
         if not any(part.startswith('.') for part in api_file.parts):
             api_dirs.append(api_file.parent)
 

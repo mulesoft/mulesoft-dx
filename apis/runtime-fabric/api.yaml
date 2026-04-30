@@ -5,7 +5,11 @@ info:
   description: Manage Runtime Fabric clusters, agents, associations, ingress configurations, and deployment targets.
 servers:
 - url: https://anypoint.mulesoft.com/runtimefabric/api
-- url: https://eu1.anypoint.mulesoft.com/runtimefabric/api
+- url: https://{region}.anypoint.mulesoft.com/runtimefabric/api
+  variables:
+    region:
+      default: eu1
+      description: Region identifier for the service endpoint.
 - url: https://{region}.platform.mulesoft.com/runtimefabric/api
   variables:
     region:
@@ -1321,11 +1325,11 @@ paths:
           description: Too many requests. Rate limit exceeded.
       operationId: deleteOrganizationsByOrganizationid
       description: Deletes a organizations.
-  /organizations/{organizationId}/environments/{envId}:
+  /organizations/{organizationId}/environments/{environmentId}:
     delete:
       parameters:
       - $ref: '#/components/parameters/XOrigin_fabricOrganizationId_Path'
-      - name: envId
+      - name: environmentId
         required: true
         in: path
         schema:

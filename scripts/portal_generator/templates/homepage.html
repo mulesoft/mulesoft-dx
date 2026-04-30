@@ -109,12 +109,42 @@
         <section id="catalog" class="unified-catalog">
             <div class="catalog-grid" id="catalogGrid">
                 <div class="catalog-table-header">
-                    <div class="catalog-header-name">NAME</div>
+                    <div class="catalog-header-name sortable" data-sort="name">
+                        NAME
+                        <span class="sort-arrows">
+                            <svg class="sort-arrow sort-asc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 3 L9 7 L3 7 Z" fill="currentColor"/></svg>
+                            <svg class="sort-arrow sort-desc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 9 L3 5 L9 5 Z" fill="currentColor"/></svg>
+                        </span>
+                    </div>
                     <div class="catalog-header-description">DESCRIPTION</div>
-                    <div class="catalog-header-type">TYPE</div>
-                    <div class="catalog-header-version">VERSION</div>
-                    <div class="catalog-header-endpoints">ENDPOINTS</div>
-                    <div class="catalog-header-meta">SKILLS/STEPS</div>
+                    <div class="catalog-header-type sortable" data-sort="type">
+                        TYPE
+                        <span class="sort-arrows">
+                            <svg class="sort-arrow sort-asc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 3 L9 7 L3 7 Z" fill="currentColor"/></svg>
+                            <svg class="sort-arrow sort-desc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 9 L3 5 L9 5 Z" fill="currentColor"/></svg>
+                        </span>
+                    </div>
+                    <div class="catalog-header-version sortable" data-sort="version">
+                        VERSION
+                        <span class="sort-arrows">
+                            <svg class="sort-arrow sort-asc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 3 L9 7 L3 7 Z" fill="currentColor"/></svg>
+                            <svg class="sort-arrow sort-desc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 9 L3 5 L9 5 Z" fill="currentColor"/></svg>
+                        </span>
+                    </div>
+                    <div class="catalog-header-endpoints sortable" data-sort="endpoints">
+                        ENDPOINTS
+                        <span class="sort-arrows">
+                            <svg class="sort-arrow sort-asc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 3 L9 7 L3 7 Z" fill="currentColor"/></svg>
+                            <svg class="sort-arrow sort-desc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 9 L3 5 L9 5 Z" fill="currentColor"/></svg>
+                        </span>
+                    </div>
+                    <div class="catalog-header-meta sortable" data-sort="meta">
+                        SKILLS/STEPS
+                        <span class="sort-arrows">
+                            <svg class="sort-arrow sort-asc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 3 L9 7 L3 7 Z" fill="currentColor"/></svg>
+                            <svg class="sort-arrow sort-desc" width="12" height="12" viewBox="0 0 12 12"><path d="M6 9 L3 5 L9 5 Z" fill="currentColor"/></svg>
+                        </span>
+                    </div>
                 </div>
                 {% for item in all_items %}
                     {% if item._item_type == 'api' %}
@@ -247,6 +277,86 @@ window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
         if (card) {
             hidePopover();
         }
+    });
+})();
+
+// Column sorting for list view
+(function() {
+    const catalogGrid = document.getElementById('catalogGrid');
+    let currentSort = { column: null, direction: null };
+
+    function sortTable(column, direction) {
+        const rows = Array.from(catalogGrid.querySelectorAll('.catalog-card-link'));
+
+        rows.sort((a, b) => {
+            let aVal, bVal;
+
+            switch(column) {
+                case 'name':
+                    aVal = a.dataset.name || '';
+                    bVal = b.dataset.name || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+
+                case 'type':
+                    aVal = a.dataset.type || '';
+                    bVal = b.dataset.type || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+
+                case 'version':
+                    const aCard = a.querySelector('.catalog-card');
+                    const bCard = b.querySelector('.catalog-card');
+                    aVal = aCard.dataset.popoverVersion || '';
+                    bVal = bCard.dataset.popoverVersion || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+
+                case 'endpoints':
+                    const aEndpoints = parseInt(a.querySelector('.catalog-card').dataset.popoverEndpoints || 0);
+                    const bEndpoints = parseInt(b.querySelector('.catalog-card').dataset.popoverEndpoints || 0);
+                    return direction === 'asc' ? aEndpoints - bEndpoints : bEndpoints - aEndpoints;
+
+                case 'meta':
+                    const aSkills = parseInt(a.querySelector('.catalog-card').dataset.popoverSkills || 0);
+                    const bSkills = parseInt(b.querySelector('.catalog-card').dataset.popoverSkills || 0);
+                    const aSteps = parseInt(a.querySelector('.catalog-card').dataset.popoverSteps || 0);
+                    const bSteps = parseInt(b.querySelector('.catalog-card').dataset.popoverSteps || 0);
+                    const aCount = aSkills || aSteps;
+                    const bCount = bSkills || bSteps;
+                    return direction === 'asc' ? aCount - bCount : bCount - aCount;
+
+                default:
+                    return 0;
+            }
+        });
+
+        // Re-append rows in sorted order
+        const header = catalogGrid.querySelector('.catalog-table-header');
+        rows.forEach(row => catalogGrid.appendChild(row));
+    }
+
+    // Add click handlers to sortable headers
+    const sortableHeaders = document.querySelectorAll('.catalog-table-header .sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            if (!catalogGrid.classList.contains('list-view')) return;
+
+            const column = header.dataset.sort;
+            let direction = 'asc';
+
+            // Toggle direction if clicking same column
+            if (currentSort.column === column) {
+                direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            }
+
+            // Update visual state
+            sortableHeaders.forEach(h => {
+                h.classList.remove('sort-active', 'sort-asc', 'sort-desc');
+            });
+            header.classList.add('sort-active', 'sort-' + direction);
+
+            // Perform sort
+            sortTable(column, direction);
+            currentSort = { column, direction };
+        });
     });
 })();
 </script>

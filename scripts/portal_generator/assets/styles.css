@@ -1317,19 +1317,63 @@ code {
 /* Table header row */
 .catalog-grid.list-view .catalog-table-header {
     display: table-row;
-    background: var(--color-gray-50);
-    font-size: 11px;
+    background: var(--color-bg-surface);
+    font-size: 12px;
     font-weight: var(--font-weight-semibold);
-    color: var(--color-neutral-7);
+    color: var(--color-neutral-9);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .catalog-grid.list-view .catalog-table-header>div {
     display: table-cell;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--color-gray-200);
+    padding: 12px 12px;
+    border-bottom: 2px solid var(--color-border-primary);
     vertical-align: middle;
+}
+
+.catalog-grid.list-view .catalog-table-header .sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.catalog-grid.list-view .catalog-table-header .sortable:hover {
+    background: var(--color-gray-100);
+}
+
+.sort-arrows {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0px;
+    margin-left: 6px;
+    opacity: 0.4;
+    vertical-align: middle;
+}
+
+.sortable:hover .sort-arrows {
+    opacity: 0.7;
+}
+
+.sortable.sort-active .sort-arrows {
+    opacity: 1;
+}
+
+.sort-arrow {
+    display: block;
+    color: var(--color-neutral-8);
+}
+
+.sortable.sort-asc .sort-arrow.sort-desc,
+.sortable.sort-desc .sort-arrow.sort-asc {
+    opacity: 0.3;
+}
+
+.sortable.sort-asc .sort-arrow.sort-asc,
+.sortable.sort-desc .sort-arrow.sort-desc {
+    opacity: 1;
+    color: var(--color-primary);
 }
 
 .catalog-grid.list-view .catalog-header-name {

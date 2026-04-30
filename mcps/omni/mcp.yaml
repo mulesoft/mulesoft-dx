@@ -1497,9 +1497,9 @@ tools:
       idempotentHint: true
       openWorldHint: true
   - name: create_scanner
-    title: Create Agent Scanner
+    title: Create Scanner
     description: >-
-      Launch the scanner creation wizard to configure and create a new agent
+      Launch the scanner creation wizard to configure and create a new
       scanner. The wizard will guide you through provider selection,
       authentication, and configuration. On success, returns the created scanner
       details including scannerId. Pass organization_id when calling this tool.
@@ -2473,7 +2473,7 @@ resources:
   - name: scanner-wizard-ui
     title: Scanner Creation Wizard
     uri: 'ui://scanner/wizard-v2.html'
-    description: Interactive wizard for creating agent scanners
+    description: Interactive wizard for creating scanners
     mimeType: text/html;profile=mcp-app
   - name: governance-report-ui
     title: Governance Report

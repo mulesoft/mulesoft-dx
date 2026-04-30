@@ -185,6 +185,8 @@ outputs:
 
 **What happens next:** You have the root organization ID. If your account has sub-organizations (child Business Groups), call `getOrganizations` with this ID to list them and pick the right scope before continuing.
 
+**Reconciling with `.env` or YAML.** If the user's `.env` or `llmproxy.yaml` lists an org id, it may be stale. Always trust `listMe`'s value over `.env`. If they disagree (especially `.env` listing a different `orgId` for the same `username`), surface the mismatch to the user and proceed with the `listMe` value — `.env` org ids are commonly out of date.
+
 ## Step 2: List Environments
 
 **Skip this step if `proxy.environment_id` is already set in `llmproxy.yaml`.** When skipped, just trust the YAML's value and continue to Step 3.
@@ -472,12 +474,21 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 Create the LLM proxy API instance in a single POST that carries the full routing configuration, including each upstream's provider credentials, inline. The server assigns upstream IDs and returns them in the response. Deployment also kicks off inside this call (`deployment.expectedStatus=deployed`); the actual deployment completes asynchronously and is observed by polling (see Step 8).
 
-**Routes — elicit these from the user before building the POST body, if not already in `llmproxy.yaml`.** The proxy's `routing[]` array has one entry per upstream LLM. Don't assume a fixed number (two is NOT a default — the user can have one route, three routes, more); don't assume which providers; don't assume credential modes. For each route, ask:
+**Routes — elicit these from the user before building the POST body, if not already in `llmproxy.yaml`.** The proxy's `routing[]` array has one entry per upstream LLM provider.
 
-1. *"Which LLM provider?"* — accept any of `openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia` (the catalog from Step 3).
+**Critical platform constraint — at most ONE route per provider.** The server deduplicates upstreams by `(provider, uri, label)`. A second route with the same provider as an existing route is silently merged — its `model` and credentials are dropped. Worse, the model-based-routing policy at request time keys off the provider resolved from the consumer's `model` prefix (NOT off the route's `rules.headers.x-routing-header` value), so two routes claiming the same provider but different `x-routing-header` labels collapse to one upstream. **Maximum routes = 5 — one each of `openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia`.** If the user wants two different OpenAI models exposed, they need either (a) a separate proxy per model or (b) a semantic-routing proxy where topics map to upstreams.
+
+**Two more body-shape rules** the server enforces:
+
+- **`upstreams[].label` MUST equal the provider identifier.** E.g. for an OpenAI route the upstream label must be `openai`, NOT `openai-mini` or `openai-full` or anything else. The server returns `400 BadRequestError: "Upstream in route 'X' has provider 'openai' which requires upstream label to be 'openai', but found label 'openai-full'"`. The route's `label` (e.g. `Route A`) is unconstrained, but the upstream's `label` (the value stored on `routing[].upstreams[0].label`) is constrained.
+- **`rules.headers.x-routing-header` per route.** This is what the routing policy writes server-side after parsing the consumer's body `model`. The policy still keys off the resolved provider, not this header value, so it must equal the provider identifier too (e.g. `openai`, `gemini`). Treat this as "set it to the provider name, not the route label."
+
+For each route, ask:
+
+1. *"Which LLM provider?"* — accept one of `openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia` (the catalog from Step 3). Reject duplicates ("you've already added an OpenAI route — add a different provider, or replace the existing one").
 2. *"Which target model for that provider?"* — e.g. `gpt-4o-mini`, `gemini-2.5-flash`, `claude-sonnet-4-6`.
 3. *"Should the upstream API key be **static** (encrypted on the proxy, same key for all consumers) or **DataWeave-extracted** (read from a request header at runtime, e.g. `x-openai-key`)?"* For static, ask which `.env` entry holds the key. For DataWeave, ask which header name.
-4. Pick a label for the route (`Route A`, `Route B`, ...). The agent can propose; the user can rename. The label drives the `x-routing-header` value the policy will write at runtime, and is what the consumer's `model` prefix (`<label-as-provider-name>/<model>`) gets matched against.
+4. Pick a `label` for the route (`Route A`, `Route B`, ...). The route label is for human-readable fallback configuration; the *upstream* label inside the route MUST be the provider identifier (`openai`, `gemini`, etc.) per the rule above.
 
 The user can also configure a fallback (route + model used when the consumer's `model` prefix doesn't match any defined route). Recommended for any multi-route proxy.
 
@@ -535,8 +546,12 @@ inputs:
     description: LLM proxies run on Flex Gateway. Must be set explicitly; the default (`mule3`) is not a valid runtime for LLM proxies.
 
   approvalMethod:
-    value: null
-    description: "`null` for automatic contract approval (default for LLM proxies); `\"manual\"` when consumers must request access. Changes Skill 4's contract-creation behavior."
+    userProvided: false
+    description: |-
+      Resolve from `llmproxy.yaml`'s top-level `approval_method` if present; otherwise default to `null`.
+      `null` → automatic contract approval (default for LLM proxies). `"manual"` → consumers must request access and an API owner approves each contract.
+      Changes the `request-llm-proxy-access` skill's contract-creation behavior.
+    example: null
 
   providerId:
     value: null
@@ -756,6 +771,18 @@ outputs:
 **Common issues:**
 - **401 / 403 / 404 on poll**: The deployment was deleted, the session expired, or you lost permission. Stop polling and surface the error.
 - **`status: failed`**: Look at the `deployment` section of the API instance (via `listEnvironmentLlmProxies`) for the error detail. Common causes: port already taken after check (race), misconfigured provider URL, missing `llmProxy` entitlement.
+- **`status: failed` with no error detail (target-side flake)**: The chosen Flex Gateway target may be in a degraded state even with `ready: true && running: true && status: RUNNING` reported. Recovery is to switch to a different target via a full-instance PATCH on the deployment block (same lever the asset-recovery procedure uses):
+
+  ```bash
+  curl -X PATCH \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$NEW_TARGET_ID\",\"targetName\":\"$NEW_TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+    "$HOST/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+  ```
+
+  The deployment-status poll usually flips to `applied` within seconds on the new target. Note: `endpointUri` on the API instance won't refresh after the migration — pull the canonical URL from `GET /gateway-targets/{NEW_TARGET_ID}.configuration.ingress.publicUrl` instead.
+- **Long polls hit transient TLS / 5xx errors**: stgx polls can run 15+ minutes, and a single curl error along the way is normal. Make the poll loop tolerant — `--max-time 20 --retry 3 --retry-delay 2` on each curl, and don't exit the loop on a single failed poll.
 
 ## Test the Proxy with a real request (final verification)
 
@@ -763,7 +790,9 @@ The proxy is deployed and active, but every call to it currently returns `401 Au
 
 1. **Run the `request-llm-proxy-access` skill** to mint a `client_id` + `client_secret`. That skill creates an Exchange Client Application and a contract against this proxy. After it completes, you'll have credentials to test with.
 
-2. **Send a test request to each route** so the customer can see the proxy actually works. Use the `endpointUri` returned from Step 7 + the base path you configured. Pass the credentials as `client_id` / `client_secret` headers, plus any DataWeave-extracted provider keys as their configured headers (e.g. `x-gemini-key` for a Gemini upstream in DataWeave mode).
+2. **Resolve the public URL.** The `endpointUri` returned by Step 7 is often a **comma-separated list of two URLs** when the gateway target has multiple ingress hosts (typical shape: `<cloudhub-url>,<custom-domain-url>`, e.g. `https://godaddy-gateway-aej28d.t6edxx.usa-e2.stgx.cloudhub.io,https://something.stgxtest.com/`). Don't paste it whole into a curl — split on `,` and use the first cloudhub-style URL (or whichever your environment exposes externally). If the value looks like just one URL, use it as-is. If `endpointUri` is empty or stale (e.g. after a target migration via PATCH), fetch the canonical hostname from the gateway-target row directly: `GET {host}/apimanager/xapi/v1/.../gateway-targets/{targetId}` and read `configuration.ingress.publicUrl` (or the first `endpoints[].url` with `access: "external"`).
+
+3. **Send a test request to each route** so the customer can see the proxy actually works. Use the resolved URL + the base path you configured. Pass the credentials as `client_id` / `client_secret` headers, plus any DataWeave-extracted provider keys as their configured headers (e.g. `x-gemini-key` for a Gemini upstream in DataWeave mode).
 
 ```bash
 # Test Route A (OpenAI, static key) — expect 200 with x-llm-proxy-routing-type: ModelBased

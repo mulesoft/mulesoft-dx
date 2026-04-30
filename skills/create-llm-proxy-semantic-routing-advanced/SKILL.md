@@ -882,7 +882,7 @@ inputs:
 
   metadata.globalRouting.llmConfigs.fallbackThreshold:
     userProvided: true
-    description: Minimum similarity score (0.0–1.0) to match a primary route. Below triggers fallback. UI default is 0.5.
+    description: 'Minimum similarity score (0.0–1.0) required to match a primary route. The comparison is **strictly greater than** — a score of exactly the threshold value triggers the fallback. UI default is 0.5.'
     example: 0.6
     required: false
 
@@ -958,6 +958,20 @@ outputs:
 
 **What happens next:** When `status` reaches `applied` (and `apiVersionStatus: active`), the proxy is live but uncallable until you onboard a consumer — see the next section.
 
+**Common issues:**
+- **`status: failed` with no error detail (target-side flake)**: even with `ready: true && running: true && status: RUNNING`, a Flex Gateway target can be in a degraded state. Recovery is to switch targets via a full-instance PATCH:
+
+  ```bash
+  curl -X PATCH \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$NEW_TARGET_ID\",\"targetName\":\"$NEW_TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+    "$HOST/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+  ```
+
+  Usually flips to `applied` within seconds. `endpointUri` won't refresh — pull from the new gateway target's `configuration.ingress.publicUrl`.
+- **Long polls hit transient curl errors**: stgx polls can run 15+ min. Use `--max-time 20 --retry 3 --retry-delay 2` per call.
+
 ## Test the Proxy with a real request (final verification)
 
 The proxy is deployed and active, but every call to it currently returns `401 Authentication Attempt Failed` because no consumer has been onboarded yet. To send a test request:
@@ -966,7 +980,9 @@ The proxy is deployed and active, but every call to it currently returns `401 Au
 
 2. **Confirm Step 6's hydration script ran end-to-end** and the vector DB actually has rows for the SSC's topics. If the script didn't run (or wrote to the wrong collection), every request will hit the fallback regardless of prompt content.
 
-3. **Send a test request that exercises one of your topics.** Pick a phrase you'd expect to match the topic semantically — e.g. for a `Finance` topic, *"How do I calculate compound interest?"*; for `Code`, *"Write a function to sort a list."* The semantic-routing policy embeds the prompt, queries the vector DB, and dispatches to the bound route.
+3. **Resolve the public URL.** The `endpointUri` from Step 10 is often a **comma-separated list** (e.g. `<cloudhub-url>,<custom-domain-url>`). Split on `,` and use the first cloudhub-style URL. If empty or stale (e.g. after a target migration), fetch the canonical hostname directly: `GET {host}/apimanager/xapi/v1/.../gateway-targets/{targetId}` and read `configuration.ingress.publicUrl`.
+
+4. **Send a test request that exercises one of your topics.** Pick a phrase you'd expect to match the topic semantically — e.g. for a `Finance` topic, *"How do I calculate compound interest?"*; for `Code`, *"Write a function to sort a list."* The semantic-routing policy embeds the prompt, queries the vector DB, and dispatches to the bound route.
 
 ```bash
 # Test a Finance-flavored prompt — should match Finance and route to its bound provider

@@ -404,9 +404,11 @@ You're an LLM agent — read the file the user names, parse it, and assemble the
 
 **Critical — the auto-rebind quirk.** The `/prompt-topics` POST schema accepts `semanticServiceConfigId` in the body and echoes it back in the response. **The server overrides whatever value you send** and binds the topic to whichever basic SSC is the env's default. Verified deterministic across multiple runs on stgx and on prod. So:
 
-- Send `semanticServiceConfigId: null` (or any value — it's a no-op).
-- After the POST, **read `semanticServiceConfigId` off the response** — that resolved value is the SSC the platform actually bound the topic to. Use it for `metadata.semanticServiceConfigId` on the proxy POST in Step 9. If you instead pass the SSC you tried to send, the proxy create will fail with `400 BadRequestError: "The following promptTopicIDs do not exist"`.
+- Send `semanticServiceConfigId: null` (or any value — it's a no-op) on **every** prompt-topic POST. **Do NOT propagate the resolved SSC from topic-1's response into topic-2's request body** — the server resolves to the same env default deterministically across calls, so always send `null` and capture the response.
+- After each POST, **read `semanticServiceConfigId` off the response** — that resolved value is the SSC the platform actually bound the topic to. Use it for `metadata.semanticServiceConfigId` on the proxy POST in Step 9. If you instead pass the SSC you tried to send, the proxy create will fail with `400 BadRequestError: "The following promptTopicIDs do not exist"`.
 - All topics in this Step 5 sequence should resolve to the **same** SSC. If you see them resolving to different SSCs across calls, stop and surface that to the user — the env state is unusual.
+
+**Heads-up if `routing.ssc.embedding.*` was set in YAML but Step 4 was skipped:** that block is silently disregarded once Step 4 doesn't run (the platform reuses the env's existing default basic SSC, regardless of what the YAML's embedding block says). Surface this explicitly to the user so they don't think their YAML's embedding configuration is being applied to a fresh SSC.
 
 **What you'll need:**
 - Organization ID, Environment ID
@@ -781,7 +783,7 @@ inputs:
 
   metadata.globalRouting.llmConfigs.fallbackThreshold:
     userProvided: true
-    description: Minimum similarity score (0.0–1.0) to match a primary route. Below triggers fallback. UI default is 0.5.
+    description: 'Minimum similarity score (0.0–1.0) required to match a primary route. The comparison is **strictly greater than** — a score of exactly the threshold value triggers the fallback (e.g. score 0.50 with threshold 0.50 → fallback). UI default is 0.5.'
     example: 0.6
     required: false
 
@@ -859,13 +861,29 @@ outputs:
 
 **What happens next:** When `status` reaches `applied` (and `apiVersionStatus: active`), the proxy is live but uncallable until you onboard a consumer — see the next section.
 
+**Common issues:**
+- **`status: failed` with no error detail (target-side flake)**: even with `ready: true && running: true && status: RUNNING`, a Flex Gateway target can be in a degraded state. Recovery is to switch to a different target via a full-instance PATCH:
+
+  ```bash
+  curl -X PATCH \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$NEW_TARGET_ID\",\"targetName\":\"$NEW_TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+    "$HOST/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+  ```
+
+  Usually flips to `applied` within seconds on the new target. `endpointUri` won't refresh — pull the canonical URL from the new gateway target's `configuration.ingress.publicUrl`.
+- **Long polls hit transient curl errors**: stgx polls can run 15+ min; a single curl error mid-loop is normal. Use `--max-time 20 --retry 3 --retry-delay 2` and don't exit the loop on a single failed poll.
+
 ## Test the Proxy with a real request (final verification)
 
 The proxy is deployed and active, but every call to it currently returns `401 Authentication Attempt Failed` because no consumer has been onboarded yet. To send a test request:
 
 1. **Run the `request-llm-proxy-access` skill** to mint a `client_id` + `client_secret`. That skill creates an Exchange Client Application and a contract against this proxy. After it completes, you'll have credentials to test with.
 
-2. **Send a test request that exercises one of your topics.** Pick a phrase you'd expect to match the topic semantically — e.g. for a `Finance` topic, *"How do I calculate compound interest?"*; for `Code`, *"Write a function to sort a list."* The semantic-routing policy embeds the prompt, queries the in-policy embedding store, and dispatches to the bound route.
+2. **Resolve the public URL.** The `endpointUri` from Step 9 is often a **comma-separated list** (e.g. `<cloudhub-url>,<custom-domain-url>`). Split on `,` and use the first cloudhub-style URL. If empty or stale (e.g. after a target migration), fetch the canonical hostname directly: `GET {host}/apimanager/xapi/v1/.../gateway-targets/{targetId}` and read `configuration.ingress.publicUrl`.
+
+3. **Send a test request that exercises one of your topics.** Pick a phrase you'd expect to match the topic semantically — e.g. for a `Finance` topic, *"How do I calculate compound interest?"*; for `Code`, *"Write a function to sort a list."* The semantic-routing policy embeds the prompt, queries the in-policy embedding store, and dispatches to the bound route.
 
 ```bash
 # Test a Finance-flavored prompt — should match the Finance topic and route to its bound provider

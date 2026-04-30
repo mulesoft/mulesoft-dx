@@ -120,7 +120,7 @@ outputs:
 
 Fetch the policy catalog to confirm the token rate limit policy is available and extract its `configuration` schema. This step is informational — the Exchange coordinates are fixed, but fetching the schema lets the skill validate the user's configuration before POSTing.
 
-**Note on filtering:** For LLM proxies, the Anypoint UI sends `isLlmProxy=true` (and explicitly omits `injectionPoint`). That flag does NOT restrict the response to LLM templates only — in practice it expands the catalog to include every snapshot/pre-release version of all templates (~1200+ entries vs ~130 without it). Filter the response client-side by `assetId == 'llm-token-rate-limit'` (or `category == 'LLM'`) to locate the token rate limit template.
+**Note on filtering:** For LLM proxies, the Anypoint UI sends `isLlmProxy=true` (and explicitly omits `injectionPoint`). That flag does NOT restrict the response to LLM templates only — in practice it expands the catalog to include every snapshot/pre-release version of all templates (verified live on stgx 2026-04-30: ~101 entries without the flag, ~629 entries with — about 6× expansion, and only the expanded variant exposes both `1.0.0` and `1.0.1` of `llm-token-rate-limit`). Filter the response client-side by `assetId == 'llm-token-rate-limit'` (or `category == 'LLM'`) to locate the template.
 
 **What you'll need:**
 - Organization ID, Environment ID
@@ -213,7 +213,7 @@ inputs:
 
   assetVersion:
     value: "1.0.0"
-    description: Latest stable version of the token rate limit policy.
+    description: Token rate limit policy version. The catalog publishes both `1.0.0` and `1.0.1`; the Anypoint UI applies `1.0.0` and that's what this skill defaults to. `1.0.1` is also a valid value if the user explicitly requests it.
 
   configurationData:
     userProvided: true
@@ -240,9 +240,35 @@ outputs:
 
 **Note on per-upstream (outbound) policies:** The policy POST endpoint also accepts an optional `upstreamId` field on the body when applying per-upstream (outbound) policies. `llm-token-rate-limit` is an inbound policy and does not use `upstreamId`; omit that field.
 
+**Verification curl** (the customer can run this immediately after Step 5 to confirm the policy is attached):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID/policies?fullInfo=true" \
+  | jq '.policies[] | select(.template.assetId == "llm-token-rate-limit")
+                    | {policyId, assetId: .template.assetId, version: .template.assetVersion, configurationData: .configuration}'
+# Expect a single object showing the new policy with the configurationData you sent.
+# Note: the LIST response uses `policyId` (not `id`) for the numeric policy id; some entries
+# also carry an `id: null` alongside the real `policyId` — use `policyId`.
+```
+
+If `jq` returns nothing, the apply hasn't propagated yet — wait ~30 seconds and re-run.
+
 **Common issues:**
 - **400 Bad Request — schema violation**: Ensure all three required fields are present and `timePeriodInMilliseconds` is ≥ 1000. Smaller windows are rejected by the policy schema.
 - **409 Conflict**: The policy is already applied to this proxy. Use `patchOrganizationsEnvironmentsApisPolicy` to update the existing instance instead.
+
+## Cleanup — when removing the rate-limit policy
+
+Skip on a normal apply. Run only when explicitly removing the policy from the proxy (e.g. after a test, or to swap to a different configuration).
+
+```bash
+curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+  "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID/policies/$POLICY_ID"
+# Expected: 204 No Content
+```
+
+`$POLICY_ID` is the numeric value Step 5 returned (the response's `id`, which the LIST response calls `policyId`). The DELETE only removes this specific policy instance — the proxy itself is untouched and remains active.
 
 ## Completion Checklist
 

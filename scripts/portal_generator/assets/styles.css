@@ -228,6 +228,7 @@
     /* 12px */
     --radius-xl: 1rem;
 
+    --radius-xxl: 2rem;
     --radius-xxxl: 3rem;
 
     /* Typography */
@@ -282,6 +283,8 @@
 
 /* Manual dark mode toggle support */
 [data-theme="dark"] {
+    color-scheme: dark;
+
     /* GitHub Dark inspired + Solarized */
     --color-white: #0d1117;
     --color-neutral-1: #0d1117;
@@ -294,6 +297,7 @@
     --color-neutral-8: #b1bac4;
     --color-neutral-9: #c9d1d9;
     --color-neutral-10: #f0f6fc;
+
 
     /* Grays */
     --color-gray-50: #0d1117;
@@ -329,7 +333,7 @@
     --color-text-link: #539bf5;
     --color-text-link-hover: #6cb6ff;
 
-    /* Primary colors - más sutiles */
+    /* Primary colors */
     --color-servers: #539bf5;
     --hero-title: #7d8590;
     --color-primary: #539bf5;
@@ -851,7 +855,7 @@ code {
 .overview-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: var(--space-xl);
 }
 
@@ -1457,7 +1461,7 @@ code {
     border: 1px solid var(--color-indigo);
 }
 
-/* Hide all other badges (REST API, endpoints, skills) in list view */
+/* Hide all other badges (API, endpoints, skills) in list view */
 .catalog-grid.list-view .badge-api-type,
 .catalog-grid.list-view .badge-count,
 .catalog-grid.list-view .badge-skills {
@@ -1567,6 +1571,15 @@ code {
 
 [data-theme="dark"] .auth-panel-status:hover .auth-status-container.authenticated {
     background: rgba(46, 160, 67, 0.25);
+}
+
+[data-theme="dark"] .auth-status-container.expired {
+    background: rgba(227, 179, 65, 0.15);
+    border-color: #e3b341;
+}
+
+[data-theme="dark"] .auth-panel-status:hover .auth-status-container.expired {
+    background: rgba(227, 179, 65, 0.25);
 }
 
 [data-theme="dark"] .badge-security {
@@ -2240,7 +2253,7 @@ code {
 
 .detail-layout {
     display: flex;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100vh - 75px);
     background: var(--color-bg-primary);
 }
 
@@ -2249,18 +2262,20 @@ code {
     background: var(--color-bg-surface);
     position: sticky;
     top: 70px;
-    height: calc(100vh - 70px);
-    overflow-y: auto;
+    height: calc(100vh - 75px);
+    overflow: hidden;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 100;
     background: var(--color-bg-surface);
     margin: 25px 0px 0px 0px;
     border-bottom: 1px solid var(--color-neutral-4);
+    flex-shrink: 0;
 }
 
 .sidebar-overview-section {
@@ -2386,6 +2401,9 @@ code {
 
 .sidebar-nav {
     padding: var(--space-md) 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .sidebar-nav:first-child {
@@ -2694,7 +2712,7 @@ button.nav-group-header {
     padding: var(--space-xl);
     margin: var(--space-lg);
     background: var(--color-bg-primary);
-    border-radius: 30px;
+    border-radius: var(--radius-xxl);
     border-bottom: none;
     overflow: visible;
     height: 100%;
@@ -2812,12 +2830,12 @@ button.nav-group-header {
     font-size: var(--font-size-3);
 }
 
-.servers-list li::before {
+.server-url-row::before {
     content: '[ ';
     color: var(--color-neutral-8);
 }
 
-.servers-list li::after {
+.server-url-row::after {
     content: ' ]';
     color: var(--color-neutral-8);
 }
@@ -2855,11 +2873,15 @@ button.nav-group-header {
     font-size: var(--font-size-2);
 }
 
+.server-desc {
+    font-style: italic;
+}
+
 .badge-security {
     background: var(--color-primary);
     color: var(--color-white);
     padding: var(--space-xxx-small) var(--space-xx-small);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-large);
     font-family: var(--font-sans);
     font-size: var(--font-size-1);
     font-weight: var(--font-weight-semibold);
@@ -2882,10 +2904,7 @@ button.nav-group-header {
     scroll-margin-top: 100px;
     display: none;
     /* Hidden by default, shown via JS */
-    background: var(--color-bg-primary);
-    border-radius: 30px;
-    padding: var(--space-lg);
-    margin: var(--space-lg);
+    
 }
 
 .operation-detail.active {
@@ -2917,7 +2936,7 @@ button.nav-group-header {
     flex-shrink: 0;
     position: sticky;
     top: 70px;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 75px);
     overflow-y: auto;
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border-primary);
@@ -3367,6 +3386,20 @@ button.nav-group-header {
     overflow: hidden;
     text-overflow: ellipsis;
     /* max-width: 350px; */
+}
+
+/* Annotation badges (read-only / idempotent / open-world / destructive)
+   rendered inline with the MCP tool title. */
+.operation-title-badges {
+    display: inline-flex;
+    gap: var(--space-xs);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.operation-title-badges .badge {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-regular);
 }
 
 /* Paragraph-based parameters layout - Claude API style */
@@ -4046,6 +4079,12 @@ details[open] .examples-toggle-icon {
     display: flex;
     justify-content: flex-end;
     margin-bottom: var(--space-medium);
+}
+
+/* Header variant: inline in the auth-panel right cluster, so the parent
+   flex container handles spacing — no extra margins. */
+.skill-actions-bar-header {
+    margin: 0;
 }
 
 .skill-split-btn {
@@ -5130,7 +5169,7 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-large);
+    border-radius: var(--radius-medium);
     min-height: 200px;
 }
 
@@ -6700,7 +6739,8 @@ details[open] .examples-toggle-icon {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 200px;  /* Ensure content area has minimum height */
+    min-height: 200px;
+    overflow: hidden;
 }
 
 .try-response-body,
@@ -6713,13 +6753,12 @@ details[open] .examples-toggle-icon {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: var(--font-size-3);
     color: var(--color-text-primary);
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1;
-    min-height: 200px;  /* Ensure ACE editor has minimum height */
+    min-height: 200px;
 }
 
 .try-response-body.active,
@@ -8150,4 +8189,252 @@ code[class*="language-"][class*="language-"] {
 
 .evaluation-result-container.evaluation-success .ace_editor {
     border-color: #86efac;
+}
+/* ============================================================================
+   MCP surfaces
+   ============================================================================
+   Mirrors the API detail page styling. Uses the existing surface / border
+   tokens and introduces a purple accent for MCP method badges so they read
+   distinctly from HTTP methods without clashing with the existing palette.
+*/
+
+:root {
+    --method-mcp-tool-bg: var(--color-purple-50);
+    --method-mcp-tool-text: var(--color-purple-700);
+    --method-mcp-prompt-bg: var(--color-blue-50);
+    --method-mcp-prompt-text: var(--color-blue-700);
+    --method-mcp-resource-bg: var(--color-gray-50);
+    --method-mcp-resource-text: var(--color-gray-800);
+}
+
+[data-theme="dark"] {
+    --method-mcp-tool-bg: rgba(163, 113, 247, 0.15);
+    --method-mcp-tool-text: #a371f7;
+    --method-mcp-prompt-bg: rgba(56, 139, 253, 0.15);
+    --method-mcp-prompt-text: #58a6ff;
+    --method-mcp-resource-bg: rgba(110, 118, 129, 0.15);
+    --method-mcp-resource-text: #c9d1d9;
+}
+
+.method-mcp-tool {
+    background: var(--method-mcp-tool-bg);
+    color: var(--method-mcp-tool-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.method-mcp-prompt {
+    background: var(--method-mcp-prompt-bg);
+    color: var(--method-mcp-prompt-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.method-mcp-resource {
+    background: var(--method-mcp-resource-bg);
+    color: var(--method-mcp-resource-text);
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.badge-mcp-type {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-purple-700);
+    background: var(--color-purple-50);
+    padding: 4px 15px 4px 16px;
+    border-radius: 21px;
+    border: 1px solid var(--color-purple-200, #ddd6fe);
+}
+
+[data-theme="dark"] .badge-mcp-type {
+    color: #d4b8ff;
+    background: rgba(163, 113, 247, 0.15);
+    border-color: rgba(163, 113, 247, 0.3);
+}
+
+/* JSON input textarea used for object/array arguments in MCP try-it */
+.try-mcp-json-input {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-small);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+}
+
+.try-mcp-json-input:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+}
+
+/* MCP overview: label / value info rows */
+.mcp-info-list {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mcp-info-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: var(--space-md);
+    align-items: baseline;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.mcp-info-row:last-child {
+    border-bottom: none;
+}
+
+.mcp-info-row dt {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+}
+
+.mcp-info-row dd {
+    margin: 0;
+    color: var(--color-text-primary);
+    word-break: break-word;
+}
+
+/* MCP capabilities: flags that are explicitly `false` render dimmer than
+   enabled ones so you can glance at a capability and see which knobs are off. */
+.mcp-capabilities-list .badge {
+    margin-left: 0;
+    margin-right: var(--space-xs);
+}
+
+.badge-mcp-flag-off {
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
+    padding: var(--space-xxx-small) var(--space-xx-small);
+    border-radius: var(--radius-large);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-regular);
+    text-transform: none;
+    letter-spacing: normal;
+    display: inline-block;
+}
+
+.mcp-capability-enabled {
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* MCP tool "UI Resource" section — points at the resource section on the page. */
+.mcp-ui-resource-section .mcp-ui-resource-intro {
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
+}
+
+.mcp-ui-resource-card {
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    background: var(--color-bg-surface);
+    overflow: hidden;
+}
+
+.mcp-ui-resource-card-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "title cta"
+        "uri cta"
+        "desc desc";
+    gap: var(--space-xs) var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: background 0.15s ease;
+}
+
+.mcp-ui-resource-card-link:hover {
+    background: var(--hover-bg);
+}
+
+.mcp-ui-resource-title {
+    grid-area: title;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.mcp-ui-resource-uri {
+    grid-area: uri;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+    background: transparent;
+    padding: 0;
+}
+
+.mcp-ui-resource-description {
+    grid-area: desc;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-2);
+}
+
+.mcp-ui-resource-cta {
+    grid-area: cta;
+    align-self: center;
+    color: var(--color-text-link);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.mcp-ui-resource-card-inert {
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mcp-ui-resource-note {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-2);
+    font-style: italic;
+}
+
+/* Resource group header on the MCP detail page. */
+.mcp-resource-group {
+    margin-bottom: var(--space-xl);
+}
+
+.mcp-resource-group-header {
+    margin: var(--space-lg) var(--space-lg) var(--space-sm) var(--space-lg);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* MCP filter tab icon coloring on the homepage */
+.hero-tab[data-filter="mcp"]:hover,
+.hero-tab[data-filter="mcp"].active {
+    background-color: var(--color-purple-50);
+    border-color: var(--color-purple-200, #ddd6fe);
+    color: var(--color-purple-700);
+}
+
+[data-theme="dark"] .hero-tab[data-filter="mcp"]:hover,
+[data-theme="dark"] .hero-tab[data-filter="mcp"].active {
+    background-color: rgba(163, 113, 247, 0.15);
+    border-color: rgba(163, 113, 247, 0.3);
+    color: #d4b8ff;
 }

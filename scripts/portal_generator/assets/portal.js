@@ -187,11 +187,11 @@ function openXOriginModal(opId, paramName, location) {
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
             html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
-            html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
             html += '</button>';
             html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
-            html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
             html += '<span>Copy cURL</span>';
             html += '</button>';
             html += '</div>';
@@ -332,11 +332,11 @@ function reopenXOriginModal(modalContext) {
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
             html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
-            html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
             html += '</button>';
             html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
-            html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
             html += '<span>Copy cURL</span>';
             html += '</button>';
             html += '</div>';
@@ -4818,11 +4818,11 @@ function renderOperationPanel(opId, opMeta, options) {
     if (showExecuteButton) {
         html += '<div class="operation-panel-actions">';
         html += '<button class="btn-send" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + ', this)"' : '') + '>';
-        html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
         html += '<span>' + executeButtonText + '</span>';
         html += '</button>';
         html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + opId + '\', this)">';
-        html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+        html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         html += '<span>Copy cURL</span>';
         html += '</button>';
         html += '<span class="try-spinner" id="spinner-' + opId + '" style="display:none">Sending...</span>';
@@ -5166,7 +5166,7 @@ function renderOperationForm(opId, opMeta, options) {
 function toggleSkillMode(slug) {
     var toggle = document.getElementById('toggle-' + slug);
     var variablesSidebar = document.getElementById('variables-sidebar-' + slug);
-    var isInteractive = toggle.getAttribute('aria-checked') === 'true';
+    var isInteractive = toggle && toggle.getAttribute('aria-checked') === 'true';
 
     if (isInteractive) {
         // Switch to documentation mode (show curl)
@@ -5625,11 +5625,11 @@ function initializePlaygroundStep(sid) {
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
     html += '<button class="btn-send" onclick="executePlaygroundStep(\'' + sid + '\', this)">';
-    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11">';
+    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
     html += '<span>Send</span>';
     html += '</button>';
     html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + sid + '\', this)">';
-    html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13">';
+    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
     html += '<span>Copy cURL</span>';
     html += '</button>';
     html += '</div>';

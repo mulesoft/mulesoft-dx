@@ -51,9 +51,9 @@
             <div id="apis-panel" class="sidebar-panel" role="tabpanel" aria-labelledby="apis-tab" style="display: none;">
                 {% for api in linked_apis %}
                 <li>
-                    <a href="../apis/{{ api.slug }}.html" class="nav-link nav-operation-flat">
+                    <a href="../apis/{{ api.slug }}.html?from=skill&skill={{ slug }}&skillName={{ skill_name|urlencode }}" class="nav-link nav-operation-flat" title="{{ api.operation_count }} operations">
                         <span class="op-name">{{ api.name }}</span>
-                        <span class="group-count">({{ api.operation_count }} operations)</span>
+                        <span class="api-operation-count">{{ api.operation_count }}</span>
                     </a>
                 </li>
                 {% endfor %}
@@ -93,4 +93,5 @@
             {% endif %}
         </ul>
     </nav>
+    {% include "partials/breadcrumb.html" %}
 </aside>

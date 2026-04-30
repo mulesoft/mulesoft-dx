@@ -34,11 +34,17 @@
                 <div class="try-header-actions">
                     <span class="try-spinner" id="spinner-{{ operation.operationId }}" style="display:none" aria-live="polite">Sending</span>
                     <button class="btn-send" onclick="sendRequest('{{ operation.operationId }}', this)">
-                        <img src="{{ icons_path }}/send-icon.svg" alt="" width="13" height="11">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
                         <span>Send</span>
                     </button>
                     <button class="btn-copy-curl" onclick="copyCurlCommand('{{ operation.operationId }}', this)">
-                        <img src="{{ icons_path }}/copy-curl-icon.svg" alt="" width="13" height="13">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
                         <span>Copy cURL</span>
                     </button>
                     <button class="btn-expand-try" onclick="toggleTryItOutExpand('{{ operation.operationId }}')"

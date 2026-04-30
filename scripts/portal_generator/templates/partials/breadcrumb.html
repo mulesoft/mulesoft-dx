@@ -1,0 +1,41 @@
+<div class="sidebar-breadcrumb" id="sidebarBreadcrumb" style="display: none;">
+    <a href="#" id="breadcrumbBackLink" class="breadcrumb-back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span id="breadcrumbBackText"></span>
+    </a>
+</div>
+
+<script>
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const from = urlParams.get('from');
+
+    if (from === 'api') {
+        const apiSlug = urlParams.get('api');
+        const apiName = urlParams.get('apiName');
+        if (apiSlug && apiName) {
+            const breadcrumb = document.getElementById('sidebarBreadcrumb');
+            const backLink = document.getElementById('breadcrumbBackLink');
+            const backText = document.getElementById('breadcrumbBackText');
+
+            backLink.href = `../apis/${apiSlug}.html`;
+            backText.textContent = decodeURIComponent(apiName);
+            breadcrumb.style.display = 'block';
+        }
+    } else if (from === 'skill') {
+        const skillSlug = urlParams.get('skill');
+        const skillName = urlParams.get('skillName');
+        if (skillSlug && skillName) {
+            const breadcrumb = document.getElementById('sidebarBreadcrumb');
+            const backLink = document.getElementById('breadcrumbBackLink');
+            const backText = document.getElementById('breadcrumbBackText');
+
+            backLink.href = `../skills/${skillSlug}.html`;
+            backText.textContent = decodeURIComponent(skillName);
+            breadcrumb.style.display = 'block';
+        }
+    }
+})();
+</script>

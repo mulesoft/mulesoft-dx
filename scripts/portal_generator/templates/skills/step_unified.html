@@ -3,10 +3,10 @@
 {% set sid = slug ~ '-' ~ step_index %}
 
 {# Step Container #}
-<div class="unified-step-container" id="step-{{ sid }}">
+<div class="unified-step-container">
 
     {# Step Title #}
-    <h3 class="step-title">{{ step.title }}</h3>
+    <h3 class="step-title" id="step-{{ sid }}">{{ step.title }}</h3>
 
     {# Prose Before #}
     {% if step.prose_before_html %}

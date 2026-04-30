@@ -36,6 +36,18 @@ paths:
             type: string
             format: uri
           example: "urn:api:7b976d8f-b47c-4cf7-9ca9-913a74ab81ee:my-api:v1"
+          x-origin:
+            - api: urn:api:anypoint-api-governance
+              operation: getOrganizationTargetSummaries
+              name: governedApis
+              description: '**getOrganizationTargetSummaries** is `GET /stats/organization/targets` in `anypoint-api-governance/api.yaml` (`operationId` getOrganizationTargetSummaries). 
+              
+              Returns the list of apis governed;
+    
+              '
+              values: $.targets[*].id.id
+              labels: $.targets[*].id.label
+
         - name: ruleset
           in: query
           required: false
@@ -104,7 +116,7 @@ paths:
   /stats/organization/targets:
     get:
       operationId: getOrganizationTargetSummaries
-      summary: Get organization summary by target
+      summary: Get organization summary by target 
       description: |
         Returns the organization's summary by target (paginated). One summary per API
         target—each API validated against the rulesets applied by profiles (conformant,
@@ -125,16 +137,10 @@ paths:
   /stats/profiles/{profileId}:
     get:
       operationId: getProfileSummary
-      summary: Get profile summary (working needs provider for profileId)
+      summary: Get profile summary 
       description: Returns the summary for a single profile (conformant, non-conformant, and failed validation counts).
       parameters:
-        - name: profileId
-          in: path
-          required: true
-          description: The profile UUID.
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/param_profile_id'
         - $ref: '#/components/parameters/param_organization_id'
       responses:
         '200':
@@ -153,13 +159,8 @@ paths:
       summary: Get profile target summaries
       description: Returns the list of API targets (summaries) validated by the given profile.
       parameters:
-        - name: profileId
-          in: path
-          required: true
-          description: The profile UUID.
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/param_profile_id'
+        - $ref: '#/components/parameters/param_organization_id'
       responses:
         '200':
           description: Values returned correctly.
@@ -246,7 +247,7 @@ paths:
   /profiles:
     get:
       operationId: listProfiles
-      summary: List profiles (working)
+      summary: List profiles
       description: Lists the definition of profiles for the organization. Returns all profiles the user has access to, optionally filtered by organization.
       parameters:
         - $ref: '#/components/parameters/param_organization_id'
@@ -265,7 +266,7 @@ paths:
     post: #needs more doc or better example or better schema for notification.
     #with no filter it fails, with no notification config it fails
       operationId: createProfile
-      summary: Create profile (to check parameter for org was missing)
+      summary: Create profile
       description: Creates a new profile for the organization using the supplied definition.
       parameters:
         - $ref: '#/components/parameters/param_organization_id'
@@ -290,20 +291,24 @@ paths:
               examples:
                 default:
                   $ref: './examples/profile-response.yaml'
+        '409':
+          description: Profile is duplicate.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/DuplicatedProfileResponse.yaml'
+              examples:
+                default:
+                  $ref: './examples/DuplicatedProfileResponse.yaml'
+
 
   /profiles/{profileId}:
     get:
       operationId: getProfile
-      summary: Get profile (add value provider)
+      summary: Get profile
       description: Returns the definition of a single profile by its ID. Response includes Last-Modified (timestamp) and ETag (profile version UUID). Use the ETag value in the If-Match header when updating the profile with PUT.
       parameters:
-        - name: profileId
-          in: path
-          required: true
-          description: The profile UUID.
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/param_profile_id'
       responses:
         '200':
           description: Profile returned successfully.
@@ -330,13 +335,7 @@ paths:
       summary: Update profile
       description: Updates an existing profile. The update is applied only if the If-Match header matches the current profile version (ETag). Request body uses ProfileCreation with rulesets as RulesetCreation; response is the same as GET (Profile with rulesets as Ruleset).
       parameters:
-        - name: profileId
-          in: path
-          required: true
-          description: The profile UUID.
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/param_profile_id'
         - name: If-Match
           in: header
           required: true
@@ -466,6 +465,30 @@ components:
       $ref: './schemas/Ruleset.yaml'
 
   parameters:
+    param_profile_id:
+      name: profileId
+      in: path
+      required: true
+      example: "07253103-0f08-4e3d-ae97-400184c47ef0"
+      description: '**Profile** GUID. API Governance defines profiles to pair up rulesets and groups of APIs to be validated.
+
+        The profileId returned by **listProfiles** (GET `/profiles?organization={organization}`)
+
+        '
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+        - api: urn:api:anypoint-api-governance
+          operation: listProfiles
+          name: profiles
+          description: '**listProfiles** is `GET /profiles` in `anypoint-api-governance/api.yaml` (`operationId` listProfiles). 
+          
+          Returns the list of governance profiles;
+
+          '
+          values: $.[*].id
+          labels: $.[*].name
     param_organization_id:
       name: organization
       in: query
@@ -477,9 +500,7 @@ components:
 
         - **any element of `subOrganizationIds`** — a **child Business Group** under that org.
 
-        The same UUID shape is used for root and sub-orgs. Resolve **environmentId** via **listEnvironments**
-
-        for the same Business Group (see **param_environment_id**).
+        The same UUID shape is used for root and sub-orgs. 
         
         If none is sent, the users organization is used.
 

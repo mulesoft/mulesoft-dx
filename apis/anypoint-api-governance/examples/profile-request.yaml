@@ -6,6 +6,8 @@ value:
   rulesets:
     - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/mule-api-management-best-practices/latest"
     - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/another-rule/latest"
+  allowing: []
+  denying: []
   notificationConfig:
     enabled: false
     notifications:

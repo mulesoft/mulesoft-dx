@@ -7,6 +7,8 @@ required:
   - filter
   - rulesets
   - notificationConfig
+  - allowing
+  - denying
 properties:
   name:
     type: string
@@ -15,7 +17,6 @@ properties:
   description:
     type: string
     description: Profile description.
-
   org:
     type: string
     format: uuid
@@ -32,13 +33,11 @@ properties:
     type: array
     items:
       type: string
-
     description: Not used.
   allowing:
     type: array
     items:
       type: string
-
     description: Not used.
   rulesets:
     type: array

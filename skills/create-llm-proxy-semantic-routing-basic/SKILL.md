@@ -234,7 +234,13 @@ outputs:
 
 **Skip this step if `routing.ssc.id` is already set in `llmproxy.yaml`** — the user has explicitly named the SSC to bind against, so listing is unnecessary.
 
-A Semantic Service Configuration (SSC) is reusable across proxies. List the existing SSCs so the user can see what's there before creating a new one.
+A Semantic Service Configuration (SSC) is reusable across proxies. List the existing SSCs so the user can decide whether to reuse one or create a new one.
+
+**Filter the response client-side to `serviceType: basic` only.** The endpoint returns BOTH basic and advanced SSCs in the same array; this skill is for basic only, so drop the advanced rows before showing them to the user.
+
+**Then explicitly ASK the user**: *"I see the following basic Semantic Service Configurations in this environment: [list]. Would you like to use one of them, or create a new one?"* Do NOT silently default to "use one of the existing" or "create a new one" — make the user choose.
+
+Note: even when the user picks an existing basic SSC, the auto-rebind quirk in Step 5 (`/prompt-topics` ignores the `semanticServiceConfigId` you send and binds to the env's default basic SSC) may still steer your topics to a different SSC. The skill captures the resolved value off the topic-create response and uses that. Surface this caveat to the user when they pick an existing SSC.
 
 **Important — auto-rebind quirk on basic SSCs.** The `/prompt-topics` POST endpoint used in Step 5 silently **ignores** the `semanticServiceConfigId` you send and always binds new topics to whichever basic SSC is the env's current default. The default is deterministic (verified live across multiple runs on stgx and on prod). Effect: if there are already two or more basic SSCs in the environment, you do NOT actually get to pick which one your topics bind to — the platform picks for you. The skill plans around this in Step 5 by reading the resolved SSC back from the topic-create response and using that for the proxy POST. If listing here shows zero basic SSCs in the env, create one in Step 4 (it'll become the default by virtue of being the only one).
 
@@ -345,9 +351,20 @@ outputs:
 
 ## Step 5: Create Prompt Topics (one per topic)
 
-Each route the proxy supports needs one prompt topic with a few example utterances. Basic mode caps you at **~6 topics with ~10 utterances each** per the Anypoint UI's documented limits (the underlying API may accept more, but the Flex Gateway's in-policy embedding store is sized for the documented cap). For larger sets switch to the advanced flow.
+Each topic the proxy supports needs a prompt topic with a few example utterances. Basic mode caps you at **~6 topics with ~10 utterances each** per the Anypoint UI's documented limits (the underlying API may accept more, but the Flex Gateway's in-policy embedding store is sized for the documented cap). For larger sets switch to the advanced flow.
 
-**Source the topics + utterances** from the first one of these that's available:
+**Before creating topics, you must know what ROUTES they map to.** A "route" is a `{label, provider, model, key}` quadruple — one per upstream LLM the proxy can dispatch to. A topic's `route_label` ties it to one route; **multiple topics can share the same route** (many-to-one is fully supported and common). Don't assume routes are predefined or limited to two — the user can have 1, 3, 5+ routes depending on how many providers they want to fan out to.
+
+**Source the routes** from the first one of these that's available:
+
+1. **`llmproxy.yaml` `routing.routes[]`** — if the YAML already has them, use those directly.
+2. **Elicit routes interactively** before topics, in this order:
+   - *"Which LLM providers should this proxy route to?"* — accept any subset of the catalog from Step 3 (`openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia`). Don't assume two; the user can pick one, three, or more.
+   - For each provider, *"Which target model?"* (e.g. `gpt-4o-mini` for OpenAI, `gemini-2.5-flash` for Gemini). The provider catalog from Step 3 (`routeConfigurations[].fields[*]`) gives the available models if the user is unsure.
+   - For each route, *"Should the upstream API key be **static** (encrypted on the proxy, same key for every consumer) or **DataWeave-extracted** (read from a request header at runtime, e.g. `x-openai-key`)?"* For static, ask which `.env` entry holds the key. For DataWeave, ask which header name to read.
+   - Pick a label for each route (`Route A`, `Route B`, ...). The agent can propose; the user can rename.
+
+Once routes are defined, **source the topics + utterances** from the first one of these that's available:
 
 1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}`.
 2. **`llmproxy.yaml` `routing.topics_csv` or `topics_json` (file path)** — read and parse the file.
@@ -381,6 +398,7 @@ You're an LLM agent — read the file the user names, parse it, and assemble the
 - No more than ~10 utterances per topic.
 - Utterances within a topic should be diverse in phrasing (not slight rewordings).
 - Utterances should not overlap heavily across topics — if a phrase could plausibly belong to two topics, ask the user which one owns it.
+- Every topic's `route_label` must match one of the route labels you defined above. Multiple topics CAN map to the same route — that's a normal pattern (e.g. `Finance` + `Investing` topics → same OpenAI route).
 
 **Now create one topic per row group.** The basic-mode endpoint is `POST .../prompt-topics` (different from the `global-prompt-topics` endpoint used by the advanced flow).
 
@@ -477,7 +495,7 @@ outputs:
     description: Human-readable gateway target name.
 ```
 
-**What happens next:** Pick a target where `ready: true`, `running: true`, and `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`). Targets in `NOT_RUNNING` or unconnected are not usable. If no target is available, register one via Runtime Manager first.
+**What happens next:** Filter the response down to the eligible targets (`ready: true`, `running: true`, `status: RUNNING` — verified live on stgx). **Surface the eligible targets to the user and ASK them to pick one.** Do NOT auto-select even if there's only one eligible candidate. Present each target's `name`, `id`, and `targetType` so the user can decide. If no target is eligible, surface that as a clear error — the user must register a Flex Gateway via Runtime Manager first.
 
 ## Step 7: Pre-check Port + Base Path Availability
 

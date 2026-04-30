@@ -117,6 +117,20 @@ outputs:
 
 Create a new Exchange Client Application via the Exchange Experience API (`POST /exchange/api/v2/organizations/{masterOrganizationId}/applications`). The response includes the application `id`, `clientId` (which becomes the `client_id` header value), and `clientSecret`. On the application POST/GET endpoints the field is `clientId`; the same value appears as `coreServicesId` when an application object is embedded in a contract response.
 
+**Critical — request body shape.** The body MUST be a flat JSON object with **only `name` (required) and `description` (optional)**. Do not include any of the following — they cause failures:
+
+- `applicationId` / `clientId` / `clientSecret` — these are server-generated outputs, not inputs. Sending them as `null` (or any value) confuses the schema and you may get a body where the response echoes them back as `null`.
+- `targetApiInstanceId` / `groupInstanceId` / `apiInstanceId` — not needed at app-create time. (Some agent flows mistakenly include these and get `400 "A target apiInstanceId or groupInstanceId is required to create an application"` — that error is the server saying you sent SOMETHING that triggered the api-instance-bound code path, not that you needed to send these fields. Strip them and retry.)
+- `redirectUri`, `homepageUrl`, etc. — fields from other Exchange endpoints. Not accepted here.
+
+The only correct body is:
+
+```json
+{ "name": "<app-name>", "description": "<optional description>" }
+```
+
+Verified live on stgx (2026-04-30): a `POST` with that minimal body returns `201` with `clientId` + `clientSecret` filled in.
+
 **What you'll need:**
 - Organization ID (used as `masterOrganizationId`)
 - A name for the application

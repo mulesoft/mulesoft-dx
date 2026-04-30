@@ -18,12 +18,13 @@ description: |
 
 Creates an LLM proxy whose routing decision is driven by prompt semantics, using an **advanced** Semantic Service Configuration. The advanced flow stores topic embeddings in an external vector database (Qdrant, Pinecone, or Azure AI Search). The Flex Gateway's Semantic Routing policy queries the vector DB at request time, finds the best-matching topic, and dispatches to the upstream bound to that topic.
 
-Two operational moments distinguish the advanced flow from basic:
+The big operational moment that distinguishes the advanced flow from basic:
 
-1. **Vector DB hydration is a side-band step.** After creating the SSC and its global prompt topics, the platform exposes a `GET /semantic-setup-script` endpoint that returns a `bash` script. The user runs that script locally against their vector DB to seed the topic embeddings. Until they do, the vector DB is empty and every prompt routes to the fallback.
-2. **Routing policy attach is manual.** The platform auto-attaches `semantic-routing-policy-openai` (or `-huggingface`) for **basic** SSCs but does NOT auto-attach the equivalent variant for advanced SSCs (`semantic-routing-policy-<provider>-<vectordb>`). You apply that policy explicitly in Step 11.
+- **Vector DB hydration is a side-band step.** After creating the SSC and its global prompt topics, the platform exposes a `GET /semantic-setup-script` endpoint that returns a `bash` script. The user runs that script locally against their vector DB to seed the topic embeddings. Until they do, the vector DB is empty and every prompt routes to the fallback.
 
-**What you'll build:** a deployed LLM proxy with a Qdrant / Pinecone / Azure AI Search backing, two or more global prompt topics with their utterance embeddings seeded in the vector DB, the routing policy attached, and the routing decision made by the gateway based on vector similarity at request time.
+The routing policy itself (`semantic-routing-policy-<embedding-provider>-<vector-db>` — e.g. `semantic-routing-policy-openai-qdrant`) is **auto-attached by the platform** at proxy-create time, same as basic. No manual policy attach step is needed (verified live on stgx, 2026-04-30).
+
+**What you'll build:** a deployed LLM proxy with a Qdrant / Pinecone / Azure AI Search backing, two or more global prompt topics with their utterance embeddings seeded in the vector DB, and the routing decision made by the gateway based on vector similarity at request time.
 
 ## Prerequisites — what the agent will ask the user
 
@@ -54,7 +55,7 @@ Tell the user upfront what you'll need so they can prep:
 
 Read the prerequisites to the user up front, gather what they can give you immediately (proxy name, port, basepath, platform, provider keys, vector DB creds, topics), and defer the listing-required choices (env, Flex Gateway target, existing SSCs) to the relevant steps.
 
-**Important — verifying the proxy works end-to-end requires a separate skill.** This skill ends with a deployed proxy in `status: active`, but every call to it will return `401 {"error":"Authentication Attempt Failed"}` until the user has been minted a `client_id` + `client_secret`. To complete the loop, run the `request-llm-proxy-access` skill after this one. The final test step (after Step 12) points you at it.
+**Important — verifying the proxy works end-to-end requires a separate skill.** This skill ends with a deployed proxy in `status: active`, but every call to it will return `401 {"error":"Authentication Attempt Failed"}` until the user has been minted a `client_id` + `client_secret`. To complete the loop, run the `request-llm-proxy-access` skill after this one. The final test step (after Step 11) points you at it.
 
 ## Read `llmproxy.yaml` first (preferred input format)
 
@@ -143,7 +144,6 @@ Step-input lookup table:
 | 8 (port + base path) | port + base path | `deployment.port` + `deployment.base_path` | defaults `8081` + `/<proxy.name>` |
 | 9 (asset publish) | proxy name + display name + inbound format | `proxy.name` + `proxy.display_name` + `inbound.format` | required from YAML; if missing, ask user |
 | 10 (proxy create) | full routing block | `routing.routes[]` + `routing.fallback` | required from YAML; if missing, ask user route-by-route |
-| 11 (manual policy attach) | embedding + vector DB config (same as SSC) | derived from `routing.ssc` | the policy variant matches `<embedding.provider>-<vector_db.provider>` |
 
 If the customer hasn't supplied a YAML, run the entire interactive flow — every step still works without it.
 
@@ -162,8 +162,7 @@ If the customer hasn't supplied a YAML, run the entire interactive flow — ever
 | 8 | `getGatewayTargetApisByPortAndPath` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/gateway-targets/{targetId}/apis?port=&path=` |
 | 9 | Exchange asset publish | `POST {host}/exchange/api/v2/organizations/{orgId}/assets/{groupId}/{assetId}/{version}` |
 | 10 | `createEnvironmentLlmProxy` | `POST {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/apis` |
-| 11 | manual policy attach | `POST {host}/apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}/policies` |
-| 12 | deployment status poll | `GET {host}/proxies/xapi/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}/deployments/{deploymentId}/status` |
+| 11 | deployment status poll | `GET {host}/proxies/xapi/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}/deployments/{deploymentId}/status` |
 | (cleanup) | DELETE API instance | `DELETE {host}/apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}` |
 | (cleanup) | DELETE Exchange asset | `DELETE {host}/exchange/api/v2/assets/{groupId}/{assetId}/{version}` (no `organizations/{orgId}` prefix) |
 
@@ -171,7 +170,6 @@ If the customer hasn't supplied a YAML, run the entire interactive flow — ever
 
 URL gotchas:
 - The deployment-status endpoint is at `/proxies/xapi/v1/...`, not `/apimanager/xapi/v1/...` — different prefix from everything else.
-- The manual policy-attach (Step 11) lives at `/apimanager/api/v1/...` (the public API Manager API), NOT `xapi/v1/...`.
 - The Exchange asset DELETE URL drops the `organizations/{orgId}` prefix that the publish URL has. DELETE on the publish URL returns `405 Method Not Allowed`.
 - The single-instance API GET lives at `/apimanager/api/v1/...`, not `/apimanager/xapi/v1/...` (which only allows PATCH).
 
@@ -245,7 +243,11 @@ outputs:
 
 **Skip this step if `routing.ssc.id` is already set in `llmproxy.yaml`** — the user has explicitly named the SSC to reuse, so listing is unnecessary. Also skip Steps 4 + 5 (creation) below.
 
-A Semantic Service Configuration (SSC) is reusable across proxies. List existing SSCs so the user can reuse one (skipping Step 5) instead of creating a new SSC + vector DB collection.
+A Semantic Service Configuration (SSC) is reusable across proxies. List existing SSCs so the user can decide whether to reuse one or create a new one.
+
+**Filter the response client-side to `serviceType: advanced` only.** The endpoint returns BOTH basic and advanced SSCs in the same array; this skill is for advanced only, so drop the basic rows before showing them to the user.
+
+**Then explicitly ASK the user**: *"I see the following advanced Semantic Service Configurations in this environment: [list with each entry showing label, embedding provider, vector DB provider]. Would you like to use one of them, or create a new one?"* Do NOT silently default to "use one of the existing" or "create a new one" — make the user choose. Reusing an existing SSC + its already-bound topics is significantly cheaper than creating a new one (it skips Steps 4 + 5 entirely and the existing vector DB rows are already searchable, so Step 6's hydration script can be skipped too if the existing SSC was previously seeded).
 
 **What you'll need:**
 - Organization ID, Environment ID
@@ -275,9 +277,20 @@ outputs:
 
 **Skip this step if `routing.ssc.id` is already set in `llmproxy.yaml`** — that SSC already has topics bound to it; you can reuse them. Capture the existing topic IDs by calling `listGlobalPromptTopicsBySsc` (`GET {host}/apimanager/xapi/v1/.../semantic-service-configs/{sscId}/global-prompt-topics`) so you have the UUIDs to wire into Step 10.
 
-Each route the proxy supports needs one Global Prompt Topic with a set of example utterances. The advanced flow scales well past basic mode's limits — the Anypoint UI permits up to ~100 topics per environment with up to ~20,000 utterance lines per topic.
+Each topic the proxy supports needs a Global Prompt Topic with a set of example utterances. The advanced flow scales well past basic mode's limits — the Anypoint UI permits up to ~100 topics per environment with up to ~20,000 utterance lines per topic.
 
-**Source the topics + utterances** from the first one of these that's available:
+**Before creating topics, you must know what ROUTES they map to.** A "route" is a `{label, provider, model, key}` quadruple — one per upstream LLM the proxy can dispatch to. A topic's `route_label` ties it to one route; **multiple topics can share the same route** (many-to-one is fully supported and common). Don't assume routes are predefined or limited to two — the user can have 1, 3, 5+ routes depending on how many providers they want to fan out to.
+
+**Source the routes** from the first one of these that's available:
+
+1. **`llmproxy.yaml` `routing.routes[]`** — if the YAML already has them, use those directly.
+2. **Elicit routes interactively** before topics, in this order:
+   - *"Which LLM providers should this proxy route to?"* — accept any subset of `openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia`. Don't assume two; the user can pick one, three, or more.
+   - For each provider, *"Which target model?"* (e.g. `gpt-4o-mini` for OpenAI, `gemini-2.5-flash` for Gemini). The provider catalog (`listLlmRouteConfigurations` if you're unsure of valid model names per provider) is the authoritative source.
+   - For each route, *"Should the upstream API key be **static** (encrypted on the proxy) or **DataWeave-extracted** (read from a request header at runtime)?"* For static, ask which `.env` entry holds the key. For DataWeave, ask which header name to read.
+   - Pick a label for each route (`Route A`, `Route B`, ...).
+
+Once routes are defined, **source the topics + utterances** from the first one of these that's available:
 
 1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}`.
 2. **`llmproxy.yaml` `routing.topics_csv` or `topics_json` (file path)** — read and parse the file.
@@ -311,6 +324,7 @@ You're an LLM agent — read the file the user names, parse it, and assemble the
 - Aim for 10–50 diverse utterances per topic in production; more usually helps.
 - Utterances within a topic should be diverse in phrasing (paraphrases, length, formality).
 - Utterances should not overlap heavily across topics — if a phrase plausibly belongs to two topics, ask the user which one owns it.
+- Every topic's `route_label` must match one of the route labels you defined above. Multiple topics CAN map to the same route — that's a normal pattern (e.g. `Finance` + `Investing` topics → same OpenAI route).
 
 **Now create one Global Prompt Topic per row group via `POST .../global-prompt-topics`.** Pass `semanticServiceConfigId: null` here — you'll bind these topics to the SSC in Step 5 by passing their UUIDs as `globalTopics` on the SSC create.
 
@@ -550,7 +564,7 @@ outputs:
 
 4. **Verify the vector DB has rows.** For Qdrant: hit the cluster's REST API with `GET /collections/<collection>/points/count`; expect a count equal to the total number of utterances across all topics. Skipping this check is the single most common cause of "everything matches the fallback" symptoms downstream.
 
-**What happens next:** Once the script reports success and the vector DB has rows, you can proceed to create the proxy. The vector DB is now searchable, but the LLM proxy doesn't yet have the routing policy attached — that comes in Step 11.
+**What happens next:** Once the script reports success and the vector DB has rows, you can proceed to create the proxy. The vector DB is now searchable; the routing policy will be auto-attached by the platform at proxy-create time.
 
 **Common issues:**
 - **Script exits with `OpenAI 401 Unauthorized`** — the embedding provider key the user supplied at runtime doesn't match the one stored on the SSC, or the key has been rotated. Re-supply the working key.
@@ -582,7 +596,7 @@ outputs:
     description: Human-readable gateway target name.
 ```
 
-**What happens next:** Pick a target where `ready: true`, `running: true`, and `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`). Targets in `NOT_RUNNING` or unconnected are not usable. If no target is available, register one via Runtime Manager first.
+**What happens next:** Filter the response down to the eligible targets (`ready: true`, `running: true`, `status: RUNNING` — verified live on stgx). **Surface the eligible targets to the user and ASK them to pick one.** Do NOT auto-select even if there's only one eligible candidate. Present each target's `name`, `id`, and `targetType` so the user can decide. If no target is eligible, surface that as a clear error — the user must register a Flex Gateway via Runtime Manager first.
 
 ## Step 8: Pre-check Port + Base Path Availability
 
@@ -886,115 +900,28 @@ outputs:
     description: Server-generated upstream UUIDs.
   - name: deploymentId
     path: $.deployment.id
-    description: Deployment ID for Step 12's status polling.
+    description: Deployment ID for Step 11's status polling.
   - name: publicProxyUri
     path: $.endpointUri
     description: Public Flex Gateway URL consumers call. Populated once the gateway registers the proxy.
 ```
 
-**What happens next:** The proxy is created and deployment starts asynchronously. **The platform does NOT auto-attach the semantic-routing policy variant for advanced flows** — you must apply it manually in Step 11 before traffic can route. Skipping Step 11 is the second most common cause of "every request 404s" symptoms (after a missing or unhydrated vector DB).
+**What happens next:** The proxy is created and deployment starts asynchronously. The platform **auto-attaches** the matching `semantic-routing-policy-<embedding-provider>-<vector-db>` variant (e.g. `semantic-routing-policy-openai-qdrant`) at this point — same as basic. You can verify by listing the proxy's policies after a few seconds:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID/policies" \
+  | jq '.policies[].template.assetId'
+# Should include `semantic-routing-policy-<provider>-<vectordb>` along with
+# `llm-proxy-core`, `client-id-enforcement`, `cors`, and the per-provider transcoders.
+```
 
 **Common issues:**
 - **`Ids are not allowed in POST ...`** — you included `id` on `routing[].upstreams[]`. Remove it.
 - **Missing `semanticServiceConfigId`** — semantic routing requires the SSC UUID at the `metadata` top level — not inside `globalRouting.llmConfigs`.
 - **Missing `format` on upstream** — for semantic routing, each upstream's `llmConfigs.format` must be set (usually `openai`). Without it the transcoding policy can't be selected.
 
-## Step 11: Apply the Semantic Routing Policy Manually
-
-Verified live: the platform does NOT auto-attach a `semantic-routing-policy-<provider>-<vectordb>` for advanced SSCs. The policy stack on a freshly-created proxy stops at `llm-proxy-core`, `client-id-enforcement`, CORS, and the per-provider transcoders. Without the routing policy, the gateway never extracts the prompt, never queries the vector DB, never sets `x-routing-header` — and every request returns `404 Not Found` with no `x-llm-proxy-*` headers.
-
-**What you'll need:**
-- Organization ID, Environment ID, `environmentApiId` from Step 10
-- The exact `assetId` of the policy variant matching your SSC's `provider` + `vectorDBConfig.provider`. One of:
-  - `semantic-routing-policy-openai-qdrant`
-  - `semantic-routing-policy-openai-pinecone`
-  - `semantic-routing-policy-openai-azure-ai-search`
-  - `semantic-routing-policy-huggingface-qdrant`
-  - `semantic-routing-policy-huggingface-pinecone`
-  - `semantic-routing-policy-huggingface-azure-ai-search`
-- Embedding provider key (same as SSC's `config.authKey`)
-- Vector DB key + URL (same as SSC's `vectorDBConfig.apiKey` + `.url`)
-- The full topic→provider mapping (`topics[]` array with each `{id, name}`)
-
-**Action:** Apply the policy.
-
-```yaml
-api: urn:api:api-manager
-operationId: createOrganizationsEnvironmentsApisPolicies
-inputs:
-  organizationId:
-    from:
-      variable: organizationId
-  environmentId:
-    from:
-      variable: environmentId
-  environmentApiId:
-    from:
-      variable: environmentApiId
-    description: API instance id from Step 10.
-
-  groupId:
-    value: "68ef9520-24e9-4cf2-b2f5-620025690913"
-    description: Salesforce-managed group that owns all system policy templates.
-
-  assetId:
-    userProvided: true
-    description: |-
-      Variant matching the SSC's `provider` + `vectorDBConfig.provider`. Pick from the six listed above.
-    example: semantic-routing-policy-openai-qdrant
-    required: true
-
-  assetVersion:
-    value: "1.0.0"
-
-  configurationData:
-    userProvided: true
-    description: |-
-      Required shape (validated by the policy's JSON schema). Field-name
-      prefixes vary with the variant — `openai*` becomes `huggingface*`,
-      `qdrant*` becomes `pinecone*` / `azureSearch*`. To enumerate the
-      exact required keys for the variant you picked, hit the create with
-      `configurationData: {}`; the resulting `PolicyValidationError` lists
-      every missing property.
-    example:
-      openaiUrl: https://api.openai.com/v1/embeddings
-      openaiApiKey: <OpenAI key — same as the SSC's `config.authKey`>
-      openaiEmbeddingModel: text-embedding-3-small
-      qdrantUrl: <Qdrant base URL — same as the SSC's `vectorDBConfig.url`>
-      qdrantApiKey: <Qdrant API key>
-      threshold: 0.6
-      routes:
-        - provider: openai
-          model: gpt-4o-mini
-          topics:
-            - id: <finance-topic-uuid>
-              name: Finance
-          routeLabel: Route A
-        - provider: gemini
-          model: gemini-2.5-flash
-          topics:
-            - id: <code-topic-uuid>
-              name: Code
-          routeLabel: Route B
-      fallbackRoute:
-        provider: openai
-        model: gpt-4o-mini
-        routeLabel: Route A
-    required: true
-
-outputs:
-  - name: policyId
-    path: $.id
-    description: Server-assigned policy id (numeric). Confirms the policy is applied.
-```
-
-**What happens next:** The platform pushes the policy into the deployment payload. Wait ~30 seconds for the gateway to reload, then test (see Step 12). The new policy emits `x-llm-proxy-routing-type: Semantic` and `x-llm-proxy-semantic-routing-success: Request successfully matched '<topic>' topic ...` on each call.
-
-**Common issues:**
-- **`PolicyValidationError`** — common slip-ups: `topics[]` items must be objects `{id, name}` (not bare UUID strings), `fallbackRoute` must be an object (not just a route-label string), and the field-name prefix must match the variant (e.g. `pineconeUrl` for the pinecone variants — not `qdrantUrl`).
-- **Auto-attach starts working in a future platform release** — harmless. If both the manual one you applied here and an auto-attached one end up on the proxy you'll see a duplicate; `DELETE /apis/{id}/policies/{policyId}` clears the manual one.
-
-## Step 12: Poll the Deployment Status
+## Step 11: Poll the Deployment Status
 
 Poll deployment status. **Plan for 1–20 minutes total**, environment-dependent. Production envs typically reach `applied` in 60–120 seconds; **stgx and busy shared envs are routinely much slower — observed runs of 15–20 minutes**. Reasonable cadence: 10 seconds for the first 2 minutes, then 30 seconds thereafter, until either `status: applied` or `status: failed`.
 
@@ -1083,10 +1010,10 @@ curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
 If the test returns:
 - **`401 Client ID is not present` / `Authentication Attempt Failed`** — credentials wrong or not yet propagated. Wait ~30s after `request-llm-proxy-access` and retry.
 - **`404 Not Found` with no `x-llm-proxy-*` headers AND `[llm-proxy-core-policy] Input format: other`** — asset's `platform` attribute is `other` (Step 9 publish format mistake). See "Recovering a proxy whose asset has `platform: other`" under Troubleshooting.
-- **`404 Not Found` with no `x-llm-proxy-*` headers but `Input format: openai`** — Step 11's manual policy attach was skipped or failed. Re-run Step 11.
+- **`404 Not Found` with no `x-llm-proxy-*` headers but `Input format: openai`** — the auto-attached `semantic-routing-policy-<provider>-<vectordb>` is missing. List the proxy's policies (`GET /apis/{id}/policies`) and verify the variant is present. If not, the platform's auto-attach didn't fire — re-trigger by re-saving the API instance (PATCH the deployment block) or apply the policy manually via `POST /apis/{id}/policies` with the matching variant + the same embedding-provider + vector-DB credentials the SSC has.
 - **All requests setting `x-llm-proxy-routing-fallback: true`** — even prompts that should match a topic. Most likely Step 6's hydration script wasn't run end-to-end, OR ran against a different collection/namespace than the SSC was configured for. Verify the vector DB has rows.
 
-This is the only step in the skill that proves end-to-end success. `apiVersionStatus: active` from Step 12 alone does not.
+This is the only step in the skill that proves end-to-end success. `apiVersionStatus: active` from Step 11 alone does not.
 
 ## Cleanup — when removing the proxy
 
@@ -1140,8 +1067,8 @@ Skip on a normal create. Run only when explicitly removing the proxy + asset. Or
 - [ ] Exchange asset published with `attributes[].platform = openai|gemini` (Step 9 — verify via `GET /assets`; `platform: other` means the publish format was wrong)
 - [ ] LLM proxy POST returned `environmentApiId`, `deploymentId`, and upstream UUIDs (Step 10)
 - [ ] Each upstream's `llmConfigs` carries `format`, `provider`, `model`, credential keys/fields, AND `promptTopicIDs`
-- [ ] **Semantic-routing policy applied manually** (Step 11) — verify `GET /apis/{id}/policies` lists `semantic-routing-policy-<provider>-<vectordb>`
-- [ ] Deployment status reached `applied` with `apiVersionStatus: active` (Step 12)
+- [ ] **Semantic-routing policy auto-attached** by the platform — verify `GET /apis/{id}/policies` lists `semantic-routing-policy-<provider>-<vectordb>`
+- [ ] Deployment status reached `applied` with `apiVersionStatus: active` (Step 11)
 - [ ] Proxy shows `status: active` with a populated `endpointUri`
 - [ ] Test request returns `x-llm-proxy-routing-type: Semantic` and matches the expected topic
 
@@ -1182,8 +1109,7 @@ Skip on a normal create. Run only when explicitly removing the proxy + asset. Or
 ### Every request hits the fallback route (`x-llm-proxy-routing-fallback: true`)
 **Possible causes (in order of likelihood):**
 1. Vector DB wasn't seeded — Step 6's script wasn't run, or it ran against a different collection/namespace.
-2. Manual semantic-routing policy wasn't applied — Step 11 was skipped.
-3. Threshold too high.
+2. Threshold too high.
 4. Topics' utterances don't match real prompt distribution.
 
 **Solutions:** Verify the vector DB has rows (Step 6), confirm the policy is attached (`GET /apis/{id}/policies`), then iterate on threshold + utterances.
@@ -1191,14 +1117,14 @@ Skip on a normal create. Run only when explicitly removing the proxy + asset. Or
 ### 404 on every request with no `x-llm-proxy-*` headers
 **Possible causes:**
 1. Asset's `platform` attribute is `other` (Step 9 publish format was wrong) — see "Recovering a proxy whose asset has `platform: other`" below.
-2. Manual semantic-routing policy wasn't applied — see Step 11.
+2. The platform's auto-attach of `semantic-routing-policy-<provider>-<vectordb>` didn't fire — verify with `GET /apis/{id}/policies` and re-trigger by PATCHing the deployment block if missing.
 
 ### Topic misclassification
 **Symptoms:** Prompts that should match topic A are routed to topic B.
 **Solutions:** Add more diverse utterances to both topics, or raise the similarity threshold. Re-run Step 6 after editing topics.
 
 ### 504 Gateway Timeout on create
-**Solutions:** Wait 30 seconds, list LLM proxies (`listEnvironmentLlmProxies`), confirm the proxy exists. If it does, proceed to Step 12 polling.
+**Solutions:** Wait 30 seconds, list LLM proxies (`listEnvironmentLlmProxies`), confirm the proxy exists. If it does, proceed to Step 11 polling.
 
 ### Recovering a proxy whose asset has `platform: other`
 **Symptoms:** Proxy is `status: active`, the gateway accepts the request (auth works — wrong creds → 401), but every request returns `404 Not Found` with no `x-llm-proxy-*` headers and (where logs are accessible) the gateway emits `[llm-proxy-core-policy] Input format: other`.

@@ -282,7 +282,9 @@ outputs:
     description: Human-readable gateway target name — pass as `deployment.targetName` alongside `targetId`.
 ```
 
-**What happens next:** User picks a target where `ready: true`, `running: true`, and `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`, not `UP` / `OK` / `DISCONNECTED` / `FAILED` despite what older docs may say). Targets in `NOT_RUNNING` or `kind: selfManaged` that haven't connected are not usable. If no target is available, the user must register one via Runtime Manager — stop the workflow and surface that as a clear error.
+**What happens next:** Filter the response down to the eligible targets — `ready: true`, `running: true`, `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`, not `UP` / `OK` / `DISCONNECTED` / `FAILED` despite what older docs may say). Targets in `NOT_RUNNING` or `kind: selfManaged` that haven't connected are not usable.
+
+**Surface the eligible targets to the user and ASK them to pick one.** Do NOT auto-select, even if there's only one eligible candidate or one with a "right-looking" name. Present each target's `name`, `id`, `targetType` (e.g. `private-space`), and `version` so the user can decide. The agent picks for the user only if the user explicitly delegates the choice. If no target is eligible, surface that as a clear error — the user must register a Flex Gateway via Runtime Manager first.
 
 ## Step 5: Pre-check Port + Base Path Availability
 
@@ -469,6 +471,15 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 ## Step 7: Create the LLM Proxy (Single POST)
 
 Create the LLM proxy API instance in a single POST that carries the full routing configuration, including each upstream's provider credentials, inline. The server assigns upstream IDs and returns them in the response. Deployment also kicks off inside this call (`deployment.expectedStatus=deployed`); the actual deployment completes asynchronously and is observed by polling (see Step 8).
+
+**Routes — elicit these from the user before building the POST body, if not already in `llmproxy.yaml`.** The proxy's `routing[]` array has one entry per upstream LLM. Don't assume a fixed number (two is NOT a default — the user can have one route, three routes, more); don't assume which providers; don't assume credential modes. For each route, ask:
+
+1. *"Which LLM provider?"* — accept any of `openai`, `gemini`, `azureopenai`, `bedrockanthropic`, `nvidia` (the catalog from Step 3).
+2. *"Which target model for that provider?"* — e.g. `gpt-4o-mini`, `gemini-2.5-flash`, `claude-sonnet-4-6`.
+3. *"Should the upstream API key be **static** (encrypted on the proxy, same key for all consumers) or **DataWeave-extracted** (read from a request header at runtime, e.g. `x-openai-key`)?"* For static, ask which `.env` entry holds the key. For DataWeave, ask which header name.
+4. Pick a label for the route (`Route A`, `Route B`, ...). The agent can propose; the user can rename. The label drives the `x-routing-header` value the policy will write at runtime, and is what the consumer's `model` prefix (`<label-as-provider-name>/<model>`) gets matched against.
+
+The user can also configure a fallback (route + model used when the consumer's `model` prefix doesn't match any defined route). Recommended for any multi-route proxy.
 
 **Critical body-shape notes (verified against the Anypoint UI's LLM proxy wizard):**
 

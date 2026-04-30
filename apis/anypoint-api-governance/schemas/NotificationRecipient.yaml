@@ -4,8 +4,6 @@ additionalProperties: false
 required:
   - contactType
   - notificationType
-  - value
-  - label
 properties:
   contactType:
     type: string
@@ -26,5 +24,4 @@ properties:
     description: For "Others" contact type, email IDs should be provided; otherwise the contact identifier.
   label:
     type: string
-    
     description: Additional metadata for the contact.

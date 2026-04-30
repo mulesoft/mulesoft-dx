@@ -1,4 +1,3 @@
-summary: Example profile to post
 value:
   name: "Default API profile"
   description: "Governance profile for default APIs"
@@ -7,3 +6,13 @@ value:
   rulesets:
     - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/mule-api-management-best-practices/latest"
     - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/another-rule/latest"
+  notificationConfig:
+    enabled: false
+    notifications:
+      - enabled: false
+        condition: OnFailure
+        recipients:
+          - contactType: Others
+            notificationType: Email
+            value: publisher@example.com
+            label: API Publisher

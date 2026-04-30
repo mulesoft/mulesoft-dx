@@ -6,15 +6,16 @@ required:
   - org
   - filter
   - rulesets
+  - notificationConfig
 properties:
   name:
     type: string
     description: Profile name.
-    
+
   description:
     type: string
     description: Profile description.
-    
+
   org:
     type: string
     format: uuid
@@ -26,18 +27,18 @@ properties:
     pattern: '^([a-zA-Z]+:[^,]*(,[a-zA-Z]+:[^,]*)*)?$'
   notificationConfig:
     $ref: './ProfileNotificationConfiguration.yaml'
-    description: Notification configuration (optional).
+    description: Notification configuration
   denying:
     type: array
     items:
       type: string
-      
+
     description: Not used.
   allowing:
     type: array
     items:
       type: string
-      
+
     description: Not used.
   rulesets:
     type: array

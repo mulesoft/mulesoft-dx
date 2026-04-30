@@ -125,7 +125,7 @@ paths:
   /stats/profiles/{profileId}:
     get:
       operationId: getProfileSummary
-      summary: Get profile summary
+      summary: Get profile summary (working needs provider for profileId)
       description: Returns the summary for a single profile (conformant, non-conformant, and failed validation counts).
       parameters:
         - name: profileId
@@ -135,6 +135,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/param_organization_id'
       responses:
         '200':
           description: Values returned correctly.
@@ -245,7 +246,7 @@ paths:
   /profiles:
     get:
       operationId: listProfiles
-      summary: List profiles
+      summary: List profiles (working)
       description: Lists the definition of profiles for the organization. Returns all profiles the user has access to, optionally filtered by organization.
       parameters:
         - $ref: '#/components/parameters/param_organization_id'
@@ -264,8 +265,10 @@ paths:
     post: #needs more doc or better example or better schema for notification.
     #with no filter it fails, with no notification config it fails
       operationId: createProfile
-      summary: Create profile
+      summary: Create profile (to check parameter for org was missing)
       description: Creates a new profile for the organization using the supplied definition.
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
       requestBody:
         description: The profile request to be created.
         required: true
@@ -291,7 +294,7 @@ paths:
   /profiles/{profileId}:
     get:
       operationId: getProfile
-      summary: Get profile
+      summary: Get profile (add value provider)
       description: Returns the definition of a single profile by its ID. Response includes Last-Modified (timestamp) and ETag (profile version UUID). Use the ETag value in the If-Match header when updating the profile with PUT.
       parameters:
         - name: profileId
@@ -466,7 +469,7 @@ components:
     param_organization_id:
       name: organization
       in: query
-      required: false
+      required: true
       example: "56e6f7c7-d59d-4ab1-845d-255d008049af"
       description: '**Business group** GUID. API Governance scopes resources by Anypoint Business Group, which may be:
 

@@ -28,9 +28,9 @@ When the consumer's provider prefix doesn't match any configured upstream, the r
 Tell the user upfront what you'll need so they can prep. Some things are easier to enumerate later (after API calls), but the user-supplied values you'll need eventually are:
 
 1. **Authentication and entitlements**
-   - Valid Bearer token for Anypoint Platform
-   - API Manager permissions: **Manage APIs Configuration** and **Exchange Viewer** in the target environment
-   - The organization's `llmProxy` entitlement is enabled (check the JWT's `organization.entitlements.llmProxy: true`)
+   - Anypoint username + password (used in Step 0 to mint a Bearer token; the agent never asks the user for the raw token directly).
+   - API Manager permissions: **Manage APIs Configuration** and **Exchange Viewer** in the target environment.
+   - The organization's `llmProxy` entitlement is enabled — verify by checking the `listMe` response body's `user.organization.entitlements.llmProxy: true` (Step 1).
 
 2. **Proxy basics**
    - Proxy name (kebab-case — becomes the Exchange `assetId` and the API instance name)
@@ -46,7 +46,122 @@ Tell the user upfront what you'll need so they can prep. Some things are easier 
 
 Read the prerequisites to the user up front, gather what they can give you immediately (proxy name, port, basepath, platform, provider keys, fallback choice), and defer the listing-required choices (env, Flex Gateway target) to the relevant steps.
 
+**Important — verifying the proxy works end-to-end requires a separate skill.** This skill ends with a deployed proxy in `status: active`, but every call to it will return `401 {"error":"Authentication Attempt Failed"}` until the user has been minted a `client_id` + `client_secret`. To complete the loop, run the `request-llm-proxy-access` skill after this one. Step 9 of this skill points you at it.
+
+## Read `llmproxy.yaml` first (preferred input format)
+
+Customers can declare their entire proxy config in a single `llmproxy.yaml` file alongside `.env`. If the customer points you at one (or one already exists in the working directory), **read it before Step 1** and use it to populate as many step inputs as possible. Where the YAML defines a value, the corresponding step becomes a no-op (skip the listing/asking and use the value). Where it doesn't, fall back to the interactive flow described in that step.
+
+You're an LLM agent — be flexible about field names and structure. The customer's YAML may not match the recommended shape exactly. Read what's there, infer the meaning of each field, and ask for clarification only when truly ambiguous. The recommended shape (use as a default; accept reasonable variations):
+
+```yaml
+# llmproxy.yaml — model-based example
+proxy:
+  name: my-llm-proxy            # required (kebab-case; becomes Exchange assetId + API instance name)
+  display_name: My LLM Proxy    # optional; defaults to a Title-Cased version of `name`
+  organization_id: <uuid>       # optional — if omitted, agent calls listMe (Step 1)
+  environment_id: <uuid>        # optional — if omitted, agent calls listEnvironments (Step 2)
+
+deployment:
+  flex_gateway_target_id: <uuid>      # optional — if omitted, agent calls getGatewayTargets (Step 4)
+  flex_gateway_target_name: <name>    # optional — must accompany target_id when both are set
+  port: 8081                          # optional — default 8081
+  base_path: /my-llm-proxy            # optional — default /<proxy.name>
+
+inbound:
+  format: openai                # required — openai | gemini
+
+routing:
+  type: model-based             # required — must be model-based for this skill
+  routes:
+    - label: Route A
+      provider: openai          # openai | gemini | azureopenai | bedrockanthropic | nvidia
+      model: gpt-4o-mini
+      key:
+        mode: static            # static | dataweave
+        env_var: OPENAI_KEY     # name of the .env entry holding the actual key (static mode only)
+        # for dataweave: header: x-openai-key   # the request header the policy reads at runtime
+    - label: Route B
+      provider: gemini
+      model: gemini-2.5-flash
+      key:
+        mode: dataweave
+        header: x-gemini-key
+  fallback:                      # optional but strongly recommended
+    route_label: Route A
+    model: gpt-4o-mini
+
+approval_method: null            # optional — null (auto-approve) | "manual"
+```
+
+`.env` keys referenced by `key.env_var` are looked up by exact name from the customer's `.env` file. The `.env` format may use any conventional shape (`KEY=value`, `Key: value`, etc.); read it literally and resolve the value for the name in the YAML. If the referenced env var is missing, stop and ask the user.
+
+Here's the lookup-table for each step's inputs and where they come from:
+
+| Step | What it needs | YAML field | Behavior if missing |
+|---|---|---|---|
+| 1 (listMe) | organization id | `proxy.organization_id` | call `listMe` to discover |
+| 2 (listEnvironments) | environment id | `proxy.environment_id` | call `listEnvironments`, ask user to pick |
+| 3 (listLlmRouteConfigurations) | (none) | n/a | always run (informational) |
+| 4 (getGatewayTargets) | gateway target id + name | `deployment.flex_gateway_target_id` + `_name` | call `getGatewayTargets`, ask user to pick |
+| 5 (port + base path pre-check) | port + base path | `deployment.port` + `deployment.base_path` | use defaults `8081` + `/<proxy.name>` (no user prompt unless conflict) |
+| 6 (asset publish) | proxy name + display name + inbound format | `proxy.name` + `proxy.display_name` + `inbound.format` | required from YAML; if missing, ask user |
+| 7 (proxy create) | full routing block | `routing.routes[]` + `routing.fallback` + `approval_method` | required from YAML; if missing, ask user route-by-route |
+
+If the customer hasn't supplied a YAML, run the entire interactive flow — every step still works without it.
+
+## API endpoints used in this skill
+
+The skill references operations by abstract `urn:api:` + `operationId`. Concrete URLs (so you don't have to read the underlying `api.yaml` files):
+
+| Step | Operation | Method + URL |
+|---|---|---|
+| (auth) | login (one-time, before Step 1) | `POST {host}/accounts/login` |
+| 1 | `listMe` | `GET {host}/accounts/api/me` |
+| 2 | `listEnvironments` | `GET {host}/accounts/api/organizations/{organizationId}/environments` |
+| 3 | `listLlmRouteConfigurations` | `GET {host}/apimanager/xapi/v1/llm-route-configurations` |
+| 4 | `getGatewayTargets` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/gateway-targets` |
+| 5 | `getGatewayTargetApisByPortAndPath` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/gateway-targets/{targetId}/apis?port=&path=` |
+| 6 | Exchange asset publish | `POST {host}/exchange/api/v2/organizations/{orgId}/assets/{groupId}/{assetId}/{version}` |
+| 7 | `createEnvironmentLlmProxy` | `POST {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/apis` |
+| 8 | deployment status poll | `GET {host}/proxies/xapi/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}/deployments/{deploymentId}/status` |
+| 8 (verification curl) | poll publication status | `GET <publicationStatusLink>` (URL is returned by the publish response in Step 6) |
+| 8 (verification curl) | get the API instance | `GET {host}/apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}` |
+| (test) | test the proxy with a real request | `POST {endpointUri}{base_path}/chat/completions` (after running `request-llm-proxy-access` to mint `client_id`/`client_secret`) |
+| (cleanup) | delete API instance | `DELETE {host}/apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}` |
+| (cleanup) | delete Exchange asset | `DELETE {host}/exchange/api/v2/assets/{groupId}/{assetId}/{version}` (note: NO `organizations/{orgId}` prefix on the delete path; the publish path has it but the delete path doesn't) |
+
+`{host}` is `https://anypoint.mulesoft.com` for prod, `https://stgx.anypoint.mulesoft.com` for stgx, `https://eu1.anypoint.mulesoft.com` for EU. Use the same host for every call within one flow.
+
+Some notes the URLs alone don't reveal:
+- The deployment-status endpoint lives under `/proxies/xapi/v1/...`, not `/apimanager/xapi/v1/...` — different prefix from everything else in the flow. Easy to miss.
+- The same resource (`apis/{environmentApiId}`) is GET-able under `/apimanager/api/v1/...` (which the cleanup step uses) but only PATCH-able under `/apimanager/xapi/v1/...`. If you `GET` the xapi path, you'll get `405 Method Not Allowed; Allow: PATCH`. Use the `api/v1` path to read.
+- The Exchange asset DELETE uses a different URL than the publish (different prefix). Don't assume DELETE on the publish URL works — it returns `405`.
+
+## Authenticate first (mint a Bearer token)
+
+Anypoint's experience APIs use bearer-token auth. Mint a token by calling the login endpoint with the user's credentials. This is a one-time setup before Step 1.
+
+**What you'll need:**
+- The Anypoint host (`{host}` from the table above — `https://anypoint.mulesoft.com` for prod, `https://stgx.anypoint.mulesoft.com` for stgx).
+- The user's Anypoint username + password.
+
+**Action:** `POST {host}/accounts/login` with body `{"username": "...", "password": "..."}`. The response is JSON with `access_token` (the Bearer token) and `token_type: "bearer"`. Cache `access_token` for every subsequent call as the `Authorization: Bearer <token>` header. Tokens are typically valid ~24 hours; you can re-mint as needed.
+
+```bash
+TOKEN=$(curl -s -X POST "$HOST/accounts/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"...","password":"..."}' \
+  | jq -r .access_token)
+```
+
+If `access_token` is empty, the login failed — check the username/password and the host.
+
+**What happens next:** You have a Bearer token. Every subsequent step's HTTP call carries it in the `Authorization` header.
+
 ## Step 1: Get Current Organization
+
+**Skip this step if `proxy.organization_id` is already set in `llmproxy.yaml`** — go straight to Step 2 (or Step 3 if `proxy.environment_id` is also set).
 
 Retrieve the caller's profile to discover the organization automatically.
 
@@ -72,10 +187,12 @@ outputs:
 
 ## Step 2: List Environments
 
+**Skip this step if `proxy.environment_id` is already set in `llmproxy.yaml`.** When skipped, just trust the YAML's value and continue to Step 3.
+
 List all environments in the organization so you can select the one where the LLM proxy should be deployed.
 
 **What you'll need:**
-- Organization ID from Step 1
+- Organization ID from Step 1 (or `proxy.organization_id` from YAML)
 
 **Action:** List environments and pick the target.
 
@@ -131,11 +248,13 @@ The target model is picked separately for each upstream (the `model` field — s
 
 ## Step 4: List Flex Gateway Targets
 
+**Skip this step if `deployment.flex_gateway_target_id` and `deployment.flex_gateway_target_name` are both set in `llmproxy.yaml`.** When skipped, trust the YAML's values and continue to Step 5.
+
 Retrieve connected Flex Gateway targets so the user can pick which one will host the LLM proxy.
 
 **What you'll need:**
-- Organization ID from Step 1
-- Environment ID from Step 2
+- Organization ID from Step 1 (or `proxy.organization_id` from YAML)
+- Environment ID from Step 2 (or `proxy.environment_id` from YAML)
 
 **Action:** List gateway targets in the environment.
 
@@ -163,15 +282,15 @@ outputs:
     description: Human-readable gateway target name — pass as `deployment.targetName` alongside `targetId`.
 ```
 
-**What happens next:** User picks a connected, `ready: true` target whose `status` is `UP` / `OK` (not `DISCONNECTED` / `FAILED`). If none are available the user must register one first via Runtime Manager — stop the workflow and surface that as a clear error.
+**What happens next:** User picks a target where `ready: true`, `running: true`, and `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`, not `UP` / `OK` / `DISCONNECTED` / `FAILED` despite what older docs may say). Targets in `NOT_RUNNING` or `kind: selfManaged` that haven't connected are not usable. If no target is available, the user must register one via Runtime Manager — stop the workflow and surface that as a clear error.
 
 ## Step 5: Pre-check Port + Base Path Availability
 
 Before creating the Exchange asset and the API instance, confirm that the chosen `{targetId, port, basePath}` tuple is not already claimed by another API.
 
 **What you'll need:**
-- Organization ID, Environment ID, and `targetId` from Steps 1, 2, 4
-- The port + base path the user wants (typical port is `8081`; base path must begin with `/`)
+- Organization ID, Environment ID, and `targetId` from Steps 1, 2, 4 (or YAML)
+- Port + base path. Resolution order: `deployment.port` from YAML → default `8081`. `deployment.base_path` from YAML → default `/<proxy.name>`. Only ask the user if a conflict is reported below.
 
 **Action:** Query the gateway target for existing APIs on this port+path.
 
@@ -302,7 +421,7 @@ outputs:
     description: URL to poll for publication status. Wait until the asset publication status reports `completed` and an `asset` object (with `assetId`, `groupId`, `version`) is present before proceeding.
 ```
 
-**Concrete `curl` example** (copy-pasteable, this is what works against the live API):
+**Concrete `curl` example** (copy-pasteable, this is what works against the live API). Capture the `publicationStatusLink` from the response — you'll poll it next.
 
 ```bash
 echo '{"platform":"openai"}' > /tmp/llm-metadata.json
@@ -312,6 +431,20 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "X-Sync-Publication: false" \
   -F "type=llm" -F "status=published" \
   -F "files.llm-metadata.json=@/tmp/llm-metadata.json;type=application/json" \
   "https://anypoint.mulesoft.com/exchange/api/v2/organizations/$ORG/assets/$ORG/my-openai-gemini-proxy/1.0.0"
+# Response body has: { "publicationStatusLink": "https://...", ... }
+```
+
+**Poll the publication status until `completed`.** Publish is asynchronous; do not proceed to Step 7 until this returns `status: completed` and includes an `asset` object. Typical completion time: ~5–15 seconds. Poll every 2–3 seconds.
+
+```bash
+# $PUB_STATUS_LINK is the publicationStatusLink from the publish response above
+while true; do
+  STATUS=$(curl -s -H "Authorization: Bearer $TOKEN" "$PUB_STATUS_LINK" | jq -r .status)
+  echo "publish status: $STATUS"
+  [ "$STATUS" = "completed" ] && break
+  [ "$STATUS" = "failed" ]    && { echo "publish failed"; exit 1; }
+  sleep 3
+done
 ```
 
 **Verify the publish landed correctly** (do this BEFORE creating the proxy — it's much cheaper to catch a wrong `platform` here than at runtime):
@@ -545,6 +678,17 @@ outputs:
 
 **What happens next:** The proxy API instance is created with server-assigned upstream UUIDs. Deployment to the Flex Gateway starts asynchronously. Next, poll the deployment status (Step 8) to wait for the proxy to become live. After the proxy is live, surface the captured `modelPrefixes` to the user — they need these values to construct valid `model` field values when calling the proxy (e.g., if the prefixes are `openai` and `gemini`, valid `model` values include `"openai/gpt-4o-mini"`, `"gemini/gemini-2.5-flash"`, etc.).
 
+**Verify the proxy was created** (a quick checkpoint the customer can run):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID" \
+  | jq '{id, assetId, endpointType, technology, status, deployment: .deployment.expectedStatus}'
+# Expect a JSON body with the API instance metadata. `status` may show `unregistered`
+# at this point; that's normal pre-deployment. The deployment poll in Step 8 is what
+# confirms the proxy is actually live.
+```
+
 **Common issues:**
 - **`Ids are not allowed in POST ...`**: You included `id` under `routing[].upstreams[]`. Remove it — the server generates upstream IDs.
 - **`Proxy must be deployed in a port that is available in the Managed Flex target. Available ports: ...`**: The chosen port is not available on this target. Pick one of the listed available ports.
@@ -560,9 +704,12 @@ The POST in Step 7 returns immediately once the database record is created, but 
 - Organization ID, Environment ID from earlier steps
 - `environmentApiId` and `deploymentId` from Step 7's response
 
-**Action:** Poll deployment status (typical client polling interval is 10 seconds until a terminal status is reached). Live captures show the deployment typically reaches the applied state within 60–90 seconds of the POST — the first poll a few seconds after create usually returns `undeployed`, and a follow-up poll ~60 seconds later returns `applied`.
+**Action:** Poll deployment status. **Plan for 1–20 minutes total**, environment-dependent. Production environments typically reach `applied` in 60–120 seconds; **stgx and busy shared envs are routinely much slower — observed runs of 15–20 minutes**. A reasonable polling cadence: 10 seconds for the first 2 minutes, then 30 seconds thereafter, until either `status: applied` or `status: failed` (or a timeout you set).
 
-**Response shape:** `{ status, lastActiveDate, apiVersionStatus? }` where `status` is the deployment-side state (`undeployed` while in progress, `applied` when the Flex Gateway has picked up the config, and `failed` on a deployment error), `apiVersionStatus` is present once the API instance itself is live (`active`), and `lastActiveDate` is `null` until traffic flows.
+**Response shape:** `{ status, lastActiveDate, apiVersionStatus? }` where:
+- `status` is the deployment-side state. While the gateway is propagating you'll see `applying` (most common; sometimes `undeployed`). On success it transitions to `applied`. On failure: `failed`.
+- `apiVersionStatus` is the API-instance-side state. It is `null` on the earliest polls (typically the first ~10 seconds after the create POST returns), then becomes `unregistered`, and finally flips to `active` together with `status: applied`. **Gate on `apiVersionStatus == "active"`, NOT on its presence** — the value is what matters (the older docs that say "appears once deployment reaches applied" are wrong; the field appears earlier than that, just not with `active` yet).
+- `lastActiveDate` is `null` until the proxy serves its first request.
 
 ```yaml
 api: urn:api:proxies-xapi
@@ -584,10 +731,10 @@ inputs:
 outputs:
   - name: deploymentStatus
     path: $.status
-    description: Deployment-side state. `undeployed` while the Flex Gateway is still picking up the configuration; `applied` when the configuration has been applied successfully; `failed` on a deployment error. Keep polling until a terminal state is reached.
+    description: "Deployment-side state. While propagating: `applying` (most common) or `undeployed`. Terminal: `applied` (success) or `failed`. Keep polling until terminal."
   - name: apiVersionStatus
     path: $.apiVersionStatus
-    description: API-instance-side status. Appears once the deployment reaches `applied` and is set to `active` when the proxy is ready to serve traffic.
+    description: "API-instance-side status. Present from the first poll as `unregistered`; flips to `active` together with `status: applied`. Gate on `apiVersionStatus == \"active\"` to confirm the proxy is ready, NOT on the field's presence."
   - name: lastActiveDate
     path: $.lastActiveDate
     description: Timestamp of the last observed traffic. `null` until the proxy serves its first request.
@@ -598,6 +745,100 @@ outputs:
 **Common issues:**
 - **401 / 403 / 404 on poll**: The deployment was deleted, the session expired, or you lost permission. Stop polling and surface the error.
 - **`status: failed`**: Look at the `deployment` section of the API instance (via `listEnvironmentLlmProxies`) for the error detail. Common causes: port already taken after check (race), misconfigured provider URL, missing `llmProxy` entitlement.
+
+## Test the Proxy with a real request (final verification)
+
+The proxy is deployed and active, but every call to it currently returns `401 Authentication Attempt Failed` because no consumer has been onboarded yet. To send a test request:
+
+1. **Run the `request-llm-proxy-access` skill** to mint a `client_id` + `client_secret`. That skill creates an Exchange Client Application and a contract against this proxy. After it completes, you'll have credentials to test with.
+
+2. **Send a test request to each route** so the customer can see the proxy actually works. Use the `endpointUri` returned from Step 7 + the base path you configured. Pass the credentials as `client_id` / `client_secret` headers, plus any DataWeave-extracted provider keys as their configured headers (e.g. `x-gemini-key` for a Gemini upstream in DataWeave mode).
+
+```bash
+# Test Route A (OpenAI, static key) — expect 200 with x-llm-proxy-routing-type: ModelBased
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -d '{
+    "model": "openai/gpt-4o-mini",
+    "messages": [{"role":"user","content":"Reply with exactly the word PONG."}]
+  }'
+# Look for response headers:
+#   x-llm-proxy-routing-type: ModelBased
+#   x-llm-proxy-routing-fallback: false
+#   x-llm-proxy-llm-provider: openai
+#   x-llm-proxy-llm-model: gpt-4o-mini
+#   x-llm-proxy-model-based-routing-success: Request successfully matched. Provider: openai, Model: gpt-4o-mini.
+
+# Test Route B (Gemini, DataWeave key from request header)
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -H "x-gemini-key: $GEMINI_KEY" \
+  -d '{
+    "model": "gemini/gemini-2.5-flash",
+    "messages": [{"role":"user","content":"Reply with exactly the word BEEP!"}]
+  }'
+
+# Test the fallback (model prefix the proxy doesn't know about)
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -d '{
+    "model": "foobar/whatever",
+    "messages": [{"role":"user","content":"Reply with exactly the word OK."}]
+  }'
+# Expect: 200, x-llm-proxy-routing-fallback: true, x-llm-proxy-llm-provider: <fallback provider>
+```
+
+If the test returns:
+- **`401 Client ID is not present`** — `client_id` header is missing or empty.
+- **`401 Authentication Attempt Failed`** — wrong credentials, or the contract hasn't propagated to the gateway yet (wait ~30 seconds after running `request-llm-proxy-access` and retry).
+- **`404 Not Found` with `x-llm-proxy-model-based-routing-success: Request passed through without model-based routing.`** — the asset's `platform` attribute is `other` (publish format mistake from Step 6). Re-run Step 6's "Verify the publish landed correctly" and follow the recovery procedure under Troubleshooting.
+- **`400` with the upstream provider's own error body** — the proxy routed correctly, but the provider rejected the request (often a bad provider API key). The `x-llm-proxy-llm-provider` and `x-llm-proxy-llm-model` response headers will show which upstream the request reached.
+
+This is the only step in the skill that proves end-to-end success. `apiVersionStatus: active` from Step 8 alone does not.
+
+## Cleanup — when removing the proxy
+
+Skip this step on a normal create — only run it when explicitly removing the proxy + asset (e.g. after a test run, or to undo a misconfigured proxy). Order of deletes matters:
+
+1. **If consumers were onboarded against this proxy** (via `request-llm-proxy-access`), delete the **applications** first. Active contracts cannot be deleted directly (`DELETE /apis/{id}/contracts/{contractId}` returns `400 Cannot delete active contract`); deleting the application auto-revokes its contract:
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/exchange/api/v2/organizations/$ORG/applications/$APPLICATION_ID"
+   # Expected: 204 No Content
+   ```
+
+2. **Delete the API instance** (this removes the deployment from the Flex Gateway too):
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   # Expected: 204 No Content
+   ```
+
+   Note this uses `apimanager/api/v1` (not `xapi/v1`); the xapi path only allows `PATCH` on this resource.
+
+3. **Delete the Exchange asset:**
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/exchange/api/v2/assets/$GROUP_ID/$ASSET_ID/$VERSION"
+   # Expected: 204 No Content
+   ```
+
+   The asset DELETE URL is **NOT** the same as the publish URL. Publish goes to `.../organizations/{orgId}/assets/{groupId}/{assetId}/{version}`; delete goes to `.../assets/{groupId}/{assetId}/{version}` (no `organizations/{orgId}` prefix). DELETE on the publish path returns `405 Method Not Allowed`.
+
+4. **Caveat — deleted version coordinates remain locked.** Even after a successful asset DELETE, you cannot create a new asset with the same `{groupId, assetId, version}` triple — Exchange returns `409 ASSET_PRE_CONDITIONS_FAILED`. Bump the `version` (e.g. `1.0.0` → `1.0.1`) on republish.
+
+**Common issues:**
+- **`400 Cannot delete active contract`** on contract DELETE: revoke the contract first via `PATCH /apis/{id}/contracts/{contractId}` with `{ "status": "REVOKED" }`, OR (simpler) delete the application instead — contracts are auto-revoked when their app goes away.
+- **`405 Method Not Allowed`** on asset DELETE: you used the publish URL by mistake. Use the no-`organizations` form above.
 
 ## Completion Checklist
 

@@ -18,16 +18,13 @@ description: |
 
 Creates an LLM proxy whose routing decision is driven by prompt semantics, using a **basic** Semantic Service Configuration. The basic flow embeds each topic's utterances at create time and stores the embeddings **inline in the Flex Gateway's Semantic Routing policy config** — there is no external vector database. The Flex Gateway holds the embeddings in memory and matches incoming prompts against them at request time.
 
-**Trade-offs vs the advanced flow:**
+**Basic-mode limits** (per the Anypoint UI's documented caps):
+- ~6 topics per proxy
+- ~10 utterances per topic
+- No side-band setup; embeddings are computed and stored inline by the platform
+- The platform auto-attaches the basic semantic-routing policy variant
 
-| | Basic (this skill) | Advanced (`-advanced` skill) |
-|---|---|---|
-| Vector DB | None | Qdrant / Pinecone / Azure AI Search |
-| Topics per proxy | ~6 (Anypoint UI cap) | Up to ~100 |
-| Utterances per topic | ~10 (Anypoint UI cap) | Up to ~20,000 |
-| Side-band setup | None | Run a generated shell script to seed the vector DB |
-| Routing policy | Auto-attached by the platform (`semantic-routing-policy-openai` or `-huggingface`) | Manual attach required (`semantic-routing-policy-<provider>-<vectordb>`) |
-| Best for | Demos, small/static topic sets, quick start | Production, large topic sets, scale |
+If you need more, switch to `create-llm-proxy-semantic-routing-advanced` (uses an external vector DB; no per-proxy / per-topic caps).
 
 **What you'll build:** a deployed LLM proxy with two or more semantic topics (e.g. `Finance`, `Code`), each topic bound to one upstream LLM provider, with the routing decision made by the gateway based on prompt embedding similarity.
 
@@ -36,16 +33,17 @@ Creates an LLM proxy whose routing decision is driven by prompt semantics, using
 Tell the user upfront what you'll need so they can prep. Some things are easier to enumerate later (after API calls), but the user-supplied values you'll need eventually are:
 
 1. **Authentication and entitlements**
-   - Valid Bearer token for Anypoint Platform
-   - API Manager permissions: **Manage APIs Configuration**, **Exchange Viewer**, **Manage Policies**
-   - Organization's `llmProxy` entitlement enabled
+   - Anypoint username + password (used in the auth section to mint a Bearer token).
+   - API Manager permissions: **Manage APIs Configuration**, **Exchange Viewer**, **Manage Policies**.
+   - Organization's `llmProxy` entitlement enabled — verify by checking the `listMe` response body's `user.organization.entitlements.llmProxy: true` (Step 1).
 2. **Proxy basics**
    - Proxy name (kebab-case — becomes the Exchange `assetId` and the API instance name)
    - Inbound API format the consumers will send: `openai` (universal default) or `gemini`
    - Port + base path the Flex Gateway will listen on (typical: `8081` + `/<your-proxy-name>`)
-3. **Embedding provider credentials**
-   - OpenAI API key (for `text-embedding-3-small` / `text-embedding-3-large` / `text-embedding-ada-002`), or
-   - HuggingFace token (for `sentence-transformers/all-MiniLM-L6-v2`)
+3. **Embedding service**
+   - Provider — `openai` or `huggingface` (the basic-flow only accepts these two)
+   - The corresponding credential — OpenAI API key, or HuggingFace token
+   - The embedding model — for OpenAI: `text-embedding-3-small`, `text-embedding-3-large`, or `text-embedding-ada-002`. For HuggingFace: `all-MiniLM-L6-v2`
 4. **LLM provider credentials** for each upstream the proxy routes to (OpenAI / Gemini / Azure OpenAI / Bedrock Anthropic / NVIDIA)
 5. **Flex Gateway target** — which gateway target to deploy on. You'll enumerate available targets in Step 6 and let the user pick.
 6. **Topics + utterances** — the routing categories and example prompts per category. Ask the user to provide either:
@@ -54,7 +52,140 @@ Tell the user upfront what you'll need so they can prep. Some things are easier 
 
 Read the prerequisites to the user up front, gather what they can give you immediately (proxy name, port, basepath, platform, provider keys, topics), and defer the listing-required choices (env, Flex Gateway target, existing SSCs) to the relevant steps.
 
+**Important — verifying the proxy works end-to-end requires a separate skill.** This skill ends with a deployed proxy in `status: active`, but every call to it will return `401 {"error":"Authentication Attempt Failed"}` until the user has been minted a `client_id` + `client_secret`. To complete the loop, run the `request-llm-proxy-access` skill after this one. The final test step (after Step 10) points you at it.
+
+## Read `llmproxy.yaml` first (preferred input format)
+
+Customers can declare their entire proxy config in a single `llmproxy.yaml` file alongside `.env`. If the customer points you at one (or one already exists in the working directory), **read it before Step 1** and use it to populate as many step inputs as possible. Where the YAML defines a value, the corresponding step becomes a no-op. Where it doesn't, fall back to the interactive flow described in that step.
+
+You're an LLM agent — be flexible about field names and structure. The customer's YAML may not match the recommended shape exactly. Read what's there, infer field meaning, ask for clarification only when truly ambiguous.
+
+```yaml
+# llmproxy.yaml — semantic-basic example
+proxy:
+  name: my-semantic-proxy        # required (kebab-case)
+  display_name: My Semantic Proxy
+  organization_id: <uuid>        # optional — if omitted, agent calls listMe (Step 1)
+  environment_id: <uuid>         # optional — if omitted, agent calls listEnvironments (Step 2)
+
+deployment:
+  flex_gateway_target_id: <uuid>      # optional — if omitted, agent calls getGatewayTargets (Step 6)
+  flex_gateway_target_name: <name>
+  port: 8081                          # optional — default 8081
+  base_path: /my-semantic-proxy       # optional — default /<proxy.name>
+
+inbound:
+  format: openai                # required — openai | gemini
+
+routing:
+  type: semantic-based          # required — must be semantic-based for this skill
+  ssc:
+    type: basic                 # required — must be basic for this skill
+    id: <existing-ssc-uuid>     # OPTIONAL — if set, skip Step 3/4 (use this SSC). Note: the auto-rebind quirk in Step 5 may still pick a different SSC at topic-create time.
+    embedding:                  # required only if creating a new SSC (Step 4)
+      provider: openai          # openai | huggingface
+      model: text-embedding-3-small
+      env_var: OPENAI_KEY       # name of the .env entry holding the embedding API key
+  topics:
+    # Inline (preferred for ≤3 topics):
+    - name: Finance
+      route_label: Route A      # which route should serve prompts that match this topic
+      utterances:
+        - Calculate compound interest
+        - Explain stock market fundamentals
+        - How to file taxes
+    - name: Code
+      route_label: Route B
+      utterances:
+        - Write a Python function to sort a list
+        - Debug this JavaScript error
+    # OR — alternatives to `topics:` inline (use one of these instead):
+    # topics_csv: ./topics.csv      # CSV with columns topic_name,utterance,route_label
+    # topics_json: ./topics.json    # JSON: [ {topicName, utterances:[], routeLabel}, ... ]
+  routes:
+    - label: Route A
+      provider: openai
+      model: gpt-4o-mini
+      key:
+        mode: static
+        env_var: OPENAI_KEY
+    - label: Route B
+      provider: gemini
+      model: gemini-2.5-flash
+      key:
+        mode: dataweave
+        header: x-gemini-key
+  fallback:
+    route_label: Route A
+    model: gpt-4o-mini
+    threshold: 0.5              # similarity score below which fallback fires; UI default is 0.5
+```
+
+`.env` keys referenced by `key.env_var` and `embedding.env_var` are looked up by exact name. The `.env` format may be `KEY=value` or `Key: value` — read literally. If a referenced env var is missing, stop and ask the user.
+
+Step-input lookup table:
+
+| Step | What it needs | YAML field | Behavior if missing |
+|---|---|---|---|
+| 1 (listMe) | organization id | `proxy.organization_id` | call `listMe` to discover |
+| 2 (listEnvironments) | environment id | `proxy.environment_id` | call `listEnvironments`, ask user to pick |
+| 3 (listSemanticServiceConfigs) | (informational — to surface existing basic SSCs) | `routing.ssc.id` already set → skip | otherwise list and surface to user |
+| 4 (createSemanticServiceConfig) | embedding provider, model, env_var | `routing.ssc.id` set → skip; otherwise needs `routing.ssc.embedding.*` | required from YAML; if missing, ask user |
+| 5 (createPromptTopic) | topics + utterances | `routing.topics` (inline) OR `routing.topics_csv` / `topics_json` (path) | otherwise ask user inline |
+| 6 (getGatewayTargets) | gateway target | `deployment.flex_gateway_target_id` + `_name` | otherwise call API, ask user |
+| 7 (port + base path) | port + base path | `deployment.port` + `deployment.base_path` | defaults `8081` + `/<proxy.name>` |
+| 8 (asset publish) | proxy name + display name + inbound format | `proxy.name` + `proxy.display_name` + `inbound.format` | required from YAML; if missing, ask user |
+| 9 (proxy create) | full routing block | `routing.routes[]` + `routing.fallback` | required from YAML; if missing, ask user route-by-route |
+
+If the customer hasn't supplied a YAML, run the entire interactive flow — every step still works without it.
+
+## API endpoints used in this skill
+
+| Step | Operation | Method + URL |
+|---|---|---|
+| (auth) | login (one-time, before Step 1) | `POST {host}/accounts/login` |
+| 1 | `listMe` | `GET {host}/accounts/api/me` |
+| 2 | `listEnvironments` | `GET {host}/accounts/api/organizations/{organizationId}/environments` |
+| 3 | `listSemanticServiceConfigs` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/semantic-service-configs` |
+| 4 | `createSemanticServiceConfig` | `POST {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/semantic-service-configs` |
+| 5 | `createPromptTopic` | `POST {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/prompt-topics` |
+| 6 | `getGatewayTargets` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/gateway-targets` |
+| 7 | `getGatewayTargetApisByPortAndPath` | `GET {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/gateway-targets/{targetId}/apis?port=&path=` |
+| 8 | Exchange asset publish | `POST {host}/exchange/api/v2/organizations/{orgId}/assets/{groupId}/{assetId}/{version}` |
+| 9 | `createEnvironmentLlmProxy` | `POST {host}/apimanager/xapi/v1/organizations/{orgId}/environments/{envId}/apis` |
+| 10 | deployment status poll | `GET {host}/proxies/xapi/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}/deployments/{deploymentId}/status` |
+| (cleanup) | DELETE API instance | `DELETE {host}/apimanager/api/v1/organizations/{orgId}/environments/{envId}/apis/{environmentApiId}` |
+| (cleanup) | DELETE Exchange asset | `DELETE {host}/exchange/api/v2/assets/{groupId}/{assetId}/{version}` (no `organizations/{orgId}` prefix on the delete path) |
+
+`{host}` is `https://anypoint.mulesoft.com` for prod, `https://stgx.anypoint.mulesoft.com` for stgx, `https://eu1.anypoint.mulesoft.com` for EU. Use the same host for every call within one flow.
+
+URL gotchas:
+- The deployment-status endpoint is at `/proxies/xapi/v1/...`, not `/apimanager/xapi/v1/...` — different prefix from everything else.
+- The Exchange asset DELETE URL drops the `organizations/{orgId}` prefix the publish URL has. DELETE on the publish URL returns `405 Method Not Allowed`.
+- The single-instance API GET lives at `/apimanager/api/v1/...` (used by cleanup), not `/apimanager/xapi/v1/...` (which only allows PATCH).
+
+## Authenticate first (mint a Bearer token)
+
+Anypoint's experience APIs use bearer-token auth. Mint a token by calling the login endpoint with the user's credentials. This is a one-time setup before Step 1.
+
+**What you'll need:**
+- The Anypoint host (`{host}` from the table above).
+- The user's Anypoint username + password.
+
+**Action:** `POST {host}/accounts/login` with body `{"username": "...", "password": "..."}`. The response is JSON with `access_token` and `token_type: "bearer"`. Cache `access_token` for every subsequent call as the `Authorization: Bearer <token>` header.
+
+```bash
+TOKEN=$(curl -s -X POST "$HOST/accounts/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"...","password":"..."}' \
+  | jq -r .access_token)
+```
+
+If `access_token` is empty, login failed — verify the credentials and the host.
+
 ## Step 1: Get Current Organization
+
+**Skip this step if `proxy.organization_id` is already set in `llmproxy.yaml`** — go to Step 2 (or Step 3 if `proxy.environment_id` is also set).
 
 Retrieve the caller's profile to discover the organization automatically.
 
@@ -80,6 +211,8 @@ outputs:
 
 ## Step 2: List Environments
 
+**Skip this step if `proxy.environment_id` is already set in `llmproxy.yaml`.** When skipped, just trust the YAML's value and continue to Step 3.
+
 ```yaml
 api: urn:api:access-management
 operationId: listEnvironments
@@ -98,6 +231,8 @@ outputs:
 **What happens next:** Pick the environment that will host the LLM proxy.
 
 ## Step 3: List Existing Semantic Service Configs (basic ones)
+
+**Skip this step if `routing.ssc.id` is already set in `llmproxy.yaml`** — the user has explicitly named the SSC to bind against, so listing is unnecessary.
 
 A Semantic Service Configuration (SSC) is reusable across proxies. List the existing SSCs so the user can see what's there before creating a new one.
 
@@ -128,7 +263,11 @@ outputs:
 
 ## Step 4: (Conditional) Create a Basic Semantic Service Configuration
 
-Only run this step if Step 3 showed zero basic SSCs in the environment. If at least one already exists, skip — the auto-rebind in Step 5 means you can't pick a specific basic SSC to bind your new topics to anyway.
+**Skip this step if any of:**
+- `routing.ssc.id` is already set in `llmproxy.yaml` (user wants to reuse an SSC).
+- Step 3 showed at least one existing basic SSC in the environment (the auto-rebind in Step 5 will pick one of them anyway, so creating another is wasteful).
+
+Only run this step when none of the above is true — i.e. the env genuinely has zero basic SSCs, or the user explicitly asked for a fresh one.
 
 **What you'll need:**
 - Embedding provider (`openai` or `huggingface`) and its credentials
@@ -208,10 +347,14 @@ outputs:
 
 Each route the proxy supports needs one prompt topic with a few example utterances. Basic mode caps you at **~6 topics with ~10 utterances each** per the Anypoint UI's documented limits (the underlying API may accept more, but the Flex Gateway's in-policy embedding store is sized for the documented cap). For larger sets switch to the advanced flow.
 
-**First, gather topics and utterances from the user.** Ask in this order — **prefer inline if there's a small number, otherwise accept a file path**:
+**Source the topics + utterances** from the first one of these that's available:
 
-- **Inline (preferred for ≤3 topics):** ask the user directly in chat. E.g. *"Tell me each topic and 5–10 example user prompts that should route to it."*
-- **CSV file path:** typical shape is two columns `topic_name,utterance` with one row per utterance:
+1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}`.
+2. **`llmproxy.yaml` `routing.topics_csv` or `topics_json` (file path)** — read and parse the file.
+3. **Inline from the user (in chat)** — if neither is available, ask: *"Tell me each topic and 5–10 example user prompts that should route to it."*
+4. **File path the user names in chat** — if there are too many topics for inline, ask the user for a CSV or JSON file path. Standard shapes:
+
+- **CSV** (preferred): three columns `topic_name,utterance,route_label` (or two columns `topic_name,utterance` if all topics share routing — you'll resolve `route_label` separately):
 
   ```csv
   topic_name,utterance
@@ -311,6 +454,8 @@ outputs:
 
 ## Step 6: List Flex Gateway Targets
 
+**Skip this step if `deployment.flex_gateway_target_id` and `deployment.flex_gateway_target_name` are both set in `llmproxy.yaml`.**
+
 ```yaml
 api: urn:api:api-portal-xapi
 operationId: getGatewayTargets
@@ -332,7 +477,7 @@ outputs:
     description: Human-readable gateway target name.
 ```
 
-**What happens next:** Pick a connected target whose `status` is `UP` and `ready: true`. If none are available, register one via Runtime Manager first.
+**What happens next:** Pick a target where `ready: true`, `running: true`, and `status: RUNNING` (verified live on stgx — the live values are `RUNNING` / `NOT_RUNNING`). Targets in `NOT_RUNNING` or unconnected are not usable. If no target is available, register one via Runtime Manager first.
 
 ## Step 7: Pre-check Port + Base Path Availability
 
@@ -417,7 +562,7 @@ outputs:
     description: Poll until the response's `status` is `completed` and an `asset` object is present.
 ```
 
-**Concrete `curl` example** (copy-pasteable):
+**Concrete `curl` example** (copy-pasteable). Capture the `publicationStatusLink` from the response — you'll poll it next.
 
 ```bash
 echo '{"platform":"openai"}' > /tmp/llm-metadata.json
@@ -427,6 +572,20 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "X-Sync-Publication: false" \
   -F "type=llm" -F "status=published" \
   -F "files.llm-metadata.json=@/tmp/llm-metadata.json;type=application/json" \
   "https://anypoint.mulesoft.com/exchange/api/v2/organizations/$ORG/assets/$ORG/my-semantic-proxy/1.0.0"
+# Response body has: { "publicationStatusLink": "https://...", ... }
+```
+
+**Poll the publication status until `completed`.** Publish is asynchronous; do not proceed to Step 9 until this returns `status: completed` and includes an `asset` object. Typical completion time: ~5–15 seconds. Poll every 2–3 seconds.
+
+```bash
+# $PUB_STATUS_LINK is the publicationStatusLink from the publish response above
+while true; do
+  STATUS=$(curl -s -H "Authorization: Bearer $TOKEN" "$PUB_STATUS_LINK" | jq -r .status)
+  echo "publish status: $STATUS"
+  [ "$STATUS" = "completed" ] && break
+  [ "$STATUS" = "failed" ]    && { echo "publish failed"; exit 1; }
+  sleep 3
+done
 ```
 
 **Verify the publish landed correctly** (do this BEFORE creating the proxy):
@@ -630,6 +789,16 @@ outputs:
 
 **What happens next:** The proxy is created and deployment starts asynchronously. The platform **auto-attaches the basic semantic-routing policy** (`semantic-routing-policy-openai` for an OpenAI embedding SSC, or `semantic-routing-policy-huggingface` for HuggingFace). Unlike the advanced flow, you do NOT need a manual policy attach step.
 
+**Verify the proxy was created** (a quick checkpoint the customer can run):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID" \
+  | jq '{id, assetId, endpointType, technology, status, deployment: .deployment.expectedStatus}'
+# Returns the API instance metadata. `status` may show `unregistered` until the
+# deployment finishes — that's normal. Step 10 is what confirms it's actually live.
+```
+
 **Common issues:**
 - **`Ids are not allowed in POST ...`** — you included `id` on `routing[].upstreams[]`. Remove it.
 - **`The following promptTopicIDs do not exist`** — `metadata.semanticServiceConfigId` doesn't match what `/prompt-topics` resolved to. Fix: use the resolved value from Step 5's response, not the one from Step 4.
@@ -637,9 +806,12 @@ outputs:
 
 ## Step 10: Poll the Deployment Status
 
-Poll deployment status (typical client polling interval is 10 seconds). Live captures show the deployment typically reaches the applied state within 60–90 seconds of the POST.
+Poll deployment status. **Plan for 1–20 minutes total**, environment-dependent. Production envs typically reach `applied` in 60–120 seconds; **stgx and busy shared envs are routinely much slower — observed runs of 15–20 minutes**. Reasonable cadence: 10 seconds for the first 2 minutes, then 30 seconds thereafter, until either `status: applied` or `status: failed`.
 
-**Response shape:** `{ status, lastActiveDate, apiVersionStatus? }` where `status` is `undeployed` while in progress, `applied` when the configuration has been applied, and `failed` on a deployment error. `apiVersionStatus` is set to `active` once the proxy is ready to serve traffic.
+**Response shape:** `{ status, lastActiveDate, apiVersionStatus? }` where:
+- `status` is the deployment-side state. While the gateway is propagating you'll see `applying` (most common; sometimes `undeployed`). On success: `applied`. On failure: `failed`.
+- `apiVersionStatus` is the API-instance-side state. It is `null` on the earliest polls (typically the first ~10 seconds after the create POST returns), then becomes `unregistered`, and finally flips to `active` together with `status: applied`. **Gate on `apiVersionStatus == "active"`, NOT on its presence** — the value is what matters.
+- `lastActiveDate` is `null` until the proxy serves its first request.
 
 ```yaml
 api: urn:api:proxies-xapi
@@ -661,27 +833,110 @@ inputs:
 outputs:
   - name: deploymentStatus
     path: $.status
-    description: "`undeployed` while in progress; `applied` on success; `failed` on error. Keep polling until terminal."
+    description: "Deployment-side state. While propagating: `applying` (most common) or `undeployed`. Terminal: `applied` (success) or `failed`. Keep polling until terminal."
   - name: apiVersionStatus
     path: $.apiVersionStatus
-    description: "API-instance-side status; `active` once the proxy serves traffic."
+    description: "Present from the first poll as `unregistered`; flips to `active` together with `status: applied`. Gate on `apiVersionStatus == \"active\"`, not on the field's presence."
 ```
 
-**What happens next:** When `status` reaches `applied` (and `apiVersionStatus: active`), the proxy is live. Test it with a curl matching one of your topics:
+**What happens next:** When `status` reaches `applied` (and `apiVersionStatus: active`), the proxy is live but uncallable until you onboard a consumer — see the next section.
+
+## Test the Proxy with a real request (final verification)
+
+The proxy is deployed and active, but every call to it currently returns `401 Authentication Attempt Failed` because no consumer has been onboarded yet. To send a test request:
+
+1. **Run the `request-llm-proxy-access` skill** to mint a `client_id` + `client_secret`. That skill creates an Exchange Client Application and a contract against this proxy. After it completes, you'll have credentials to test with.
+
+2. **Send a test request that exercises one of your topics.** Pick a phrase you'd expect to match the topic semantically — e.g. for a `Finance` topic, *"How do I calculate compound interest?"*; for `Code`, *"Write a function to sort a list."* The semantic-routing policy embeds the prompt, queries the in-policy embedding store, and dispatches to the bound route.
 
 ```bash
-curl -X POST 'https://<gateway-domain>/<basepath>/chat/completions' \
+# Test a Finance-flavored prompt — should match the Finance topic and route to its bound provider
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
   -H 'Content-Type: application/json' \
-  -H 'client_id: <clientId>' \
-  -H 'client_secret: <clientSecret>' \
-  -d '{"model":"any-placeholder","messages":[{"role":"user","content":"How do I calculate compound interest?"}]}'
-# Look in the response headers for:
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -d '{
+    "model": "any-placeholder",
+    "messages": [{"role":"user","content":"How do I calculate compound interest?"}]
+  }'
+# Look for response headers:
 #   x-llm-proxy-routing-type: Semantic
-#   x-llm-proxy-semantic-routing-success: Request successfully matched 'Finance' topic ...
-#   x-llm-proxy-llm-provider: openai
+#   x-llm-proxy-semantic-routing-success: Request successfully matched 'Finance' topic ... Score: 0.7x
+#   x-llm-proxy-routing-fallback: false
+#   x-llm-proxy-llm-provider: <provider bound to Finance>
+#   x-llm-proxy-llm-model: <that provider's model>
+
+# Test a Code-flavored prompt
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -d '{
+    "model": "any-placeholder",
+    "messages": [{"role":"user","content":"Write a Python function to sort a list."}]
+  }'
+
+# Test the fallback (an off-topic prompt)
+curl -i -X POST "$ENDPOINT_URI$BASE_PATH/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -H "client_id: $CLIENT_ID" \
+  -H "client_secret: $CLIENT_SECRET" \
+  -d '{
+    "model": "any-placeholder",
+    "messages": [{"role":"user","content":"What is the airspeed velocity of an unladen swallow?"}]
+  }'
+# Expect: 200, x-llm-proxy-routing-fallback: true, x-llm-proxy-llm-provider: <fallback provider>
 ```
 
-To create a consumer (`client_id` + `client_secret`), run the `request-llm-proxy-access` skill.
+If the test returns:
+- **`401 Client ID is not present`** — `client_id` header is missing or empty.
+- **`401 Authentication Attempt Failed`** — wrong credentials, or the contract hasn't propagated to the gateway yet (wait ~30 seconds and retry).
+- **`404 Not Found` with no `x-llm-proxy-*` headers** — the asset's `platform` attribute is `other` (Step 8 publish format mistake). Re-run Step 8's `attributes` verification and follow the Recovery procedure under Troubleshooting.
+- **All requests setting `x-llm-proxy-routing-fallback: true`** — even prompts that should match a topic. The semantic policy isn't matching anything. Check (a) the auto-rebind picked the right SSC (Step 5's `resolvedSemanticServiceConfigId`), (b) topics actually got created (each Step 5 POST returned 201), (c) the prompt is sufficiently distinct from the fallback baseline.
+
+This is the only step in the skill that proves end-to-end success. `apiVersionStatus: active` from Step 10 alone does not.
+
+## Cleanup — when removing the proxy
+
+Skip on a normal create. Run only when explicitly removing the proxy + asset. Order matters:
+
+1. **If consumers were onboarded**, delete the **applications** first (active contracts can't be deleted directly; they auto-revoke when the app goes away):
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/exchange/api/v2/organizations/$ORG/applications/$APPLICATION_ID"
+   # 204 No Content
+   ```
+
+2. **Delete the API instance** (also removes its deployment from the Flex Gateway):
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/apimanager/api/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   # 204
+   ```
+
+   Use `apimanager/api/v1` (not `xapi/v1`); the xapi path only allows `PATCH`.
+
+3. **Delete the Exchange asset:**
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+     "$HOST/exchange/api/v2/assets/$GROUP_ID/$ASSET_ID/$VERSION"
+   # 204
+   ```
+
+   Note the URL: NO `organizations/{orgId}` prefix. DELETE on the publish URL returns `405`.
+
+4. **Caveat — version coordinates remain locked.** Even after a successful asset DELETE, you cannot create a new asset with the same `{groupId, assetId, version}` triple — Exchange returns `409 ASSET_PRE_CONDITIONS_FAILED`. Bump the version on republish.
+
+5. **(Optional) Delete the basic SSC and its prompt topics.** Basic SSCs are env-shared resources; deleting one may break other proxies that rely on the env-default basic SSC. Usually leave alone unless you're sure nothing else uses it. Endpoints if needed:
+   - `DELETE /apimanager/xapi/v1/.../prompt-topics/{topicId}` (one per topic)
+   - `DELETE /apimanager/xapi/v1/.../semantic-service-configs/{sscId}`
+
+**Common issues:**
+- **`400 Cannot delete active contract`** on contract DELETE: revoke first via PATCH, or just delete the application.
+- **`405 Method Not Allowed`** on asset DELETE: you used the publish URL by mistake.
 
 ## Completion Checklist
 

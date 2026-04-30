@@ -623,6 +623,111 @@ paths:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
     - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/semantic-setup-script/semantic-service-configs/{semanticServiceConfigId}:
+    get:
+      description: >-
+        Generate the side-band shell script that hydrates the vector DB
+        attached to a Semantic Service Configuration with topic embeddings.
+        Used in the **advanced** semantic-routing flow only — once the SSC
+        exists and its global prompt topics are bound, this endpoint emits
+        a `bash` script that batches each utterance through the configured
+        embedding provider and upserts the resulting vectors into the
+        configured vector DB (Qdrant / Pinecone / Azure AI Search). The
+        user runs the script locally with their vector-DB credentials —
+        the agent cannot run it remotely. Until the script is run end-to-end,
+        the vector DB contains no embeddings and every prompt routes to the
+        fallback at request time.
+
+        The response is `Content-Type: application/x-sh` with a
+        `content-disposition: attachment; filename="vectordb-embedding-semantic-setup.sh"`
+        header. The script (~15 KB) declares `EMBEDDING_PROVIDER`,
+        `OPENAI_EMBEDDING_MODEL`, `VECTOR_DB_PROVIDER`, and the topic
+        `ENTRIES` populated by this REST API; embedding-provider and
+        vector-DB API keys plus the vector-DB base URL are collected from
+        the user at runtime.
+      operationId: getSemanticSetupScript
+      responses:
+        '200':
+          description: >-
+            Success. Returns a bash script as `application/x-sh`. Save the
+            response body to a `.sh` file, set vector-DB credentials, and
+            run it.
+          content:
+            application/x-sh:
+              schema:
+                type: string
+                description: 'Bash script source. Run with `bash vectordb-embedding-semantic-setup.sh` after providing the embedding-provider key + vector-DB API key + vector-DB base URL via env vars or interactive prompt.'
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
+    - $ref: '#/components/parameters/Path_semanticServiceConfigId'
+  /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/prompt-topics:
+    post:
+      description: >-
+        Create a Prompt Topic for use with **basic** Semantic Service Configurations
+        (`serviceType=basic`). Topic embeddings are computed inline and stored in
+        the Flex Gateway's Semantic Routing policy config — no vector database
+        required. The response carries each utterance plus its computed embedding
+        as a base64-encoded blob in `utterances.data[*].embedding`.
+
+        **Important — auto-rebind quirk** (verified live, 2026-04-30, on stgx and
+        prod). The schema accepts a `semanticServiceConfigId` field but the server
+        ignores whatever value is sent and always binds the topic to whichever
+        basic SSC is the env's default. Always read `semanticServiceConfigId` off
+        the response — that resolved value is the SSC the topic actually got bound
+        to, and is the value you must use as `metadata.semanticServiceConfigId` on
+        a subsequent `createEnvironmentLlmProxy` POST. Sending any other SSC there
+        results in `400 BadRequestError: "The following promptTopicIDs do not exist"`.
+
+        `GET /prompt-topics` returns `405 Method Not Allowed`. There is no list
+        endpoint for basic-mode topics; callers must persist the IDs and the
+        resolved SSC from each create response.
+      operationId: createPromptTopic
+      requestBody:
+        required: true
+        description: Basic-mode prompt topic payload.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - topicName
+              - utterances
+              properties:
+                topicName:
+                  type: string
+                  description: Human-readable topic name (e.g. `Finance`, `Code`, `Support`).
+                  minLength: 1
+                utterances:
+                  type: string
+                  description: |-
+                    Newline-delimited list of example prompts that represent the topic. Each line is one utterance; common prefix is `* ` but any text is accepted. The basic-mode endpoint computes the embedding for each utterance synchronously and returns the embedding inline in the 201 response. The Anypoint UI documents a cap of ~10 utterances per topic for basic mode.
+                  minLength: 1
+                usedForDenyList:
+                  type: boolean
+                  description: Whether this topic is used as a deny-list topic (blocks matching prompts rather than routing them). Always `false` on the routing flow.
+                  default: false
+                semanticServiceConfigId:
+                  type: string
+                  nullable: true
+                  description: 'Server-overridden — the value sent here is ignored and the topic is bound to the env''s default basic SSC. Pass `null`. Read the resolved SSC ID off the response.'
+                  pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+      responses:
+        '201':
+          description: >-
+            Success. Returns the created prompt topic with its generated id, audit,
+            masterOrganizationId, organizationId, environmentId, the resolved
+            `semanticServiceConfigId` (NOT the value sent in the request body),
+            and `utterances` wrapped as `{data: [{utterance, embedding}, ...]}`
+            where each `embedding` is a long base64-encoded blob (~5 KB per
+            utterance for OpenAI `text-embedding-3-small`).
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/promptTopic.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+    - $ref: '#/components/parameters/XOrigin_environmentId_Path'
 components:
   schemas: {}
   responses: {}

@@ -17,6 +17,7 @@ references the skill files cite when describing related-API responses.
 | `semanticServiceConfig.json` | `getSemanticServiceConfig` and `createSemanticServiceConfig` (201) |
 | `globalPromptTopics.json` | `listGlobalPromptTopicsBySsc` |
 | `globalPromptTopic.json` | `createGlobalPromptTopic` (201) |
+| `promptTopic.json` | `createPromptTopic` (201) — basic-mode topic with inline embedding blob (truncated for readability) |
 
 ## Supplementary references (cited by skills, not by `api.yaml`)
 

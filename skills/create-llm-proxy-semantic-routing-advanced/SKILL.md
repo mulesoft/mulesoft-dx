@@ -1,0 +1,981 @@
+---
+name: create-llm-proxy-semantic-routing-advanced
+description: |
+  Create an LLM Gateway proxy that routes prompts by semantic similarity
+  using an **advanced** Semantic Service Configuration backed by a
+  vector database (Qdrant / Pinecone / Azure AI Search). Topic embeddings
+  live in the vector DB and are looked up at request time. Scales beyond
+  basic mode's ~6-topic / ~10-utterance limits — supports up to ~100 topics
+  with up to ~20,000 utterances each. Use when the user wants production-
+  grade semantic routing, large topic sets, or content-aware classification
+  backed by a vector DB. For small/demo cases without a vector DB, see
+  `create-llm-proxy-semantic-routing-basic`.
+---
+
+# Create an LLM Proxy with Semantic Routing — Advanced (with vector DB)
+
+## Overview
+
+Creates an LLM proxy whose routing decision is driven by prompt semantics, using an **advanced** Semantic Service Configuration. The advanced flow stores topic embeddings in an external vector database (Qdrant, Pinecone, or Azure AI Search). The Flex Gateway's Semantic Routing policy queries the vector DB at request time, finds the best-matching topic, and dispatches to the upstream bound to that topic.
+
+Two operational moments distinguish the advanced flow from basic:
+
+1. **Vector DB hydration is a side-band step.** After creating the SSC and its global prompt topics, the platform exposes a `GET /semantic-setup-script` endpoint that returns a `bash` script. The user runs that script locally against their vector DB to seed the topic embeddings. Until they do, the vector DB is empty and every prompt routes to the fallback.
+2. **Routing policy attach is manual.** The platform auto-attaches `semantic-routing-policy-openai` (or `-huggingface`) for **basic** SSCs but does NOT auto-attach the equivalent variant for advanced SSCs (`semantic-routing-policy-<provider>-<vectordb>`). You apply that policy explicitly in Step 11.
+
+**What you'll build:** a deployed LLM proxy with a Qdrant / Pinecone / Azure AI Search backing, two or more global prompt topics with their utterance embeddings seeded in the vector DB, the routing policy attached, and the routing decision made by the gateway based on vector similarity at request time.
+
+## Prerequisites — what the agent will ask the user
+
+Tell the user upfront what you'll need so they can prep:
+
+1. **Authentication and entitlements**
+   - Valid Bearer token for Anypoint Platform
+   - API Manager permissions: **Manage APIs Configuration**, **Exchange Viewer**, **Manage Policies**
+   - Organization's `llmProxy` entitlement enabled
+2. **Proxy basics**
+   - Proxy name (kebab-case — becomes the Exchange `assetId` and the API instance name)
+   - Inbound API format the consumers will send: `openai` (universal default) or `gemini`
+   - Port + base path the Flex Gateway will listen on (typical: `8081` + `/<your-proxy-name>`)
+3. **Embedding provider credentials**
+   - OpenAI API key (for `text-embedding-3-small` / `text-embedding-3-large` / `text-embedding-ada-002`), or
+   - HuggingFace token (for `sentence-transformers/all-MiniLM-L6-v2`)
+4. **Vector database credentials and connection info**
+   - Provider — one of `qdrant`, `pinecone`, `azure-ai-search`
+   - Base URL of the vector DB instance
+   - API key
+   - Collection / namespace / indexName (depending on provider)
+5. **LLM provider credentials** for each upstream the proxy routes to (OpenAI / Gemini / Azure OpenAI / Bedrock Anthropic / NVIDIA)
+6. **Flex Gateway target** — which gateway target to deploy on (you'll enumerate available targets in Step 7 and let the user pick)
+7. **Topics + utterances** — the routing categories and example prompts per category. Ask the user to provide either:
+   - **Inline** in chat (preferred when there are only a couple of topics)
+   - **As a file path** to a CSV or JSON they already have on disk. You'll read and parse it yourself in Step 4.
+8. **Local shell access** — the user will need to run a `bash` script locally in Step 6 to hydrate the vector DB. Confirm they have access to a shell + curl (the script uses only standard tools).
+
+Read the prerequisites to the user up front, gather what they can give you immediately (proxy name, port, basepath, platform, provider keys, vector DB creds, topics), and defer the listing-required choices (env, Flex Gateway target, existing SSCs) to the relevant steps.
+
+## Step 1: Get Current Organization
+
+Retrieve the caller's profile to discover the organization automatically.
+
+**What you'll need:**
+- A valid Bearer token (authentication header)
+
+**Action:** Call the `/me` endpoint to get the current user's organization.
+
+```yaml
+api: urn:api:access-management
+operationId: listMe
+inputs: {}
+outputs:
+  - name: organizationId
+    path: $.user.organization.id
+    description: Root organization Business Group GUID
+  - name: organizationName
+    path: $.user.organization.name
+    description: Organization display name
+```
+
+**What happens next:** You have the root organization ID. If your account has sub-organizations (child Business Groups), call `getOrganizations` with this ID to list them and pick the right scope before continuing.
+
+## Step 2: List Environments
+
+```yaml
+api: urn:api:access-management
+operationId: listEnvironments
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+    description: Organization ID from Step 1
+outputs:
+  - name: environmentId
+    path: $.data[*].id
+    labels: $.data[*].name
+    description: Target environment ID
+```
+
+**What happens next:** Pick the environment that will host the LLM proxy.
+
+## Step 3: List Existing Semantic Service Configs (advanced ones)
+
+A Semantic Service Configuration (SSC) is reusable across proxies. List existing SSCs so the user can reuse one (skipping Step 5) instead of creating a new SSC + vector DB collection.
+
+**What you'll need:**
+- Organization ID, Environment ID
+
+**Action:** List SSCs.
+
+```yaml
+api: urn:api:llm-proxy
+operationId: listSemanticServiceConfigs
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+outputs:
+  - name: semanticServiceConfigId
+    path: $[*].id
+    labels: $[*].label
+    description: Bare-array response. Each element has `id`, `label`, `provider`, `url`, `model`, `serviceType`. Filter client-side for `serviceType=advanced`. If the user picks an existing advanced SSC here, capture its `id` and skip Step 5.
+```
+
+**What happens next:** If the user reuses an existing SSC (and its topics), skip Step 5. The SSC's existing `globalTopics` are still searchable in the vector DB if it was hydrated previously. Otherwise continue to Step 4 to create new topics.
+
+## Step 4: Create Global Prompt Topics (one per topic)
+
+Each route the proxy supports needs one Global Prompt Topic with a set of example utterances. The advanced flow scales well past basic mode's limits — the Anypoint UI permits up to ~100 topics per environment with up to ~20,000 utterance lines per topic.
+
+**First, gather topics and utterances from the user.** Ask in this order — **prefer inline if there's a small number, otherwise accept a file path**:
+
+- **Inline (preferred for ≤3 topics):** ask the user directly in chat. E.g. *"Tell me each topic and 5–10 example user prompts that should route to it."*
+- **CSV file path:** typical shape is two columns `topic_name,utterance` with one row per utterance:
+
+  ```csv
+  topic_name,utterance
+  Finance,Calculate compound interest
+  Finance,Explain stock market fundamentals
+  Code,Write a Python function to sort a list
+  Code,Debug this JavaScript error
+  ```
+
+- **JSON file path:** typical shape is an array of `{topicName, utterances}` objects, where utterances is an array of strings:
+
+  ```json
+  [
+    { "topicName": "Finance", "utterances": ["Calculate compound interest", "Explain stocks"] },
+    { "topicName": "Code", "utterances": ["Sort a list", "Debug error"] }
+  ]
+  ```
+
+You're an LLM agent — read the file the user names, parse it, and assemble the in-memory topic→utterances mapping. No need for a strict schema; figure out the file's shape and proceed. If the user gives you something ambiguous, summarize what you parsed and ask them to confirm before creating topics.
+
+**Validation before continuing:**
+- Each topic should have ≥ 5 utterances (semantic routing degrades quickly below that).
+- Aim for 10–50 diverse utterances per topic in production; more usually helps.
+- Utterances within a topic should be diverse in phrasing (paraphrases, length, formality).
+- Utterances should not overlap heavily across topics — if a phrase plausibly belongs to two topics, ask the user which one owns it.
+
+**Now create one Global Prompt Topic per row group via `POST .../global-prompt-topics`.** Pass `semanticServiceConfigId: null` here — you'll bind these topics to the SSC in Step 5 by passing their UUIDs as `globalTopics` on the SSC create.
+
+**What you'll need:**
+- Organization ID, Environment ID
+- The topics and utterances assembled above
+
+**Action:** Create one Global Prompt Topic. Repeat for each topic.
+
+```yaml
+api: urn:api:llm-proxy
+operationId: createGlobalPromptTopic
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+
+  topicName:
+    userProvided: true
+    description: Short topic label (e.g. `Finance`, `Code`). Referenced by upstreams via `promptTopicIDs`.
+    example: Finance
+    required: true
+
+  utterances:
+    userProvided: true
+    description: >-
+      Newline-delimited string of example prompts. Each line is one
+      utterance; conventional prefix is `* `, but any text works. The
+      Anypoint UI permits up to ~20,000 lines per topic for advanced.
+    example: |
+      * Calculate compound interest
+      * Explain stock market fundamentals
+      * How to file taxes
+      * Investment portfolio strategies
+      * Mortgage calculation formula
+      * What's the difference between stocks and bonds
+      * Compare 401k vs IRA
+      * How to read a balance sheet
+      * Tax-advantaged accounts explained
+      * What's an ETF
+    required: true
+
+  usedForDenyList:
+    value: false
+    description: Set `false` for routing topics. Use `true` only when creating topics for the semantic prompt guard policy.
+
+  semanticServiceConfigId:
+    value: null
+    description: |-
+      Pass `null` here. Bind the topic to the SSC in Step 5 by including
+      its UUID in the SSC's `globalTopics` array.
+
+outputs:
+  - name: promptTopicId
+    path: $.id
+    description: UUID of the created topic. Reference inside `routing[].upstreams[].llmConfigs.promptTopicIDs[]` in Step 10, AND in the SSC's `globalTopics[]` array in Step 5.
+```
+
+**What happens next:** Repeat for each topic. Collect the topic UUIDs. Note that the POST response wraps `utterances` as `{data: [{utterance}, ...]}` — different shape from the list endpoint, which returns the plain newline-string form.
+
+## Step 5: Create the Advanced Semantic Service Configuration
+
+Create an `advanced` SSC wiring the embedding provider + external vector DB. Skip this step if you reused an existing SSC in Step 3.
+
+**What you'll need:**
+- Embedding provider credentials (from Prerequisites)
+- Vector DB credentials + URL + collection/namespace/indexName (from Prerequisites)
+- Topic IDs from Step 4 (passed as `globalTopics`)
+
+**Action:** Create the advanced SSC.
+
+```yaml
+api: urn:api:llm-proxy
+operationId: createSemanticServiceConfig
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+
+  label:
+    userProvided: true
+    description: Unique label within the environment.
+    example: my-llm-proxy-advanced
+    required: true
+
+  serviceType:
+    value: advanced
+    description: |-
+      Advanced mode stores embeddings in the configured external vector DB.
+      Recommended for production and for any workload above basic's
+      ~6-topic / ~10-utterance limits.
+
+  provider:
+    userProvided: true
+    description: Embedding provider — `openai` or `huggingface`.
+    example: openai
+    required: true
+
+  config.authKey:
+    userProvided: true
+    description: |-
+      Embedding provider API key. Validated live at SSC create time —
+      the backend calls the embedding provider with this key and rejects
+      creation with `ValidationError: The authentication key provided is
+      invalid` if it fails. The 201 response echoes the `authKey` back
+      verbatim — treat the response body as sensitive.
+    required: true
+
+  config.url:
+    userProvided: true
+    description: |-
+      Embedding endpoint URL. Defaults the Anypoint UI uses:
+      - openai: `https://api.openai.com/v1/embeddings`
+      - huggingface: `https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction`
+    example: https://api.openai.com/v1/embeddings
+    required: true
+
+  config.model:
+    userProvided: true
+    description: |-
+      Embedding model. Valid values:
+      - openai: `text-embedding-3-small`, `text-embedding-3-large`, `text-embedding-ada-002`
+      - huggingface: `all-MiniLM-L6-v2`
+    example: text-embedding-3-small
+    required: true
+
+  vectorDBConfig.provider:
+    userProvided: true
+    description: Vector database provider — `qdrant`, `pinecone`, or `azure-ai-search`.
+    example: qdrant
+    required: true
+
+  vectorDBConfig.url:
+    userProvided: true
+    description: Vector database base URL.
+    required: true
+
+  vectorDBConfig.apiKey:
+    userProvided: true
+    description: Vector database API key (treat as sensitive).
+    required: true
+
+  vectorDBConfig.collection:
+    userProvided: true
+    description: Collection name (Qdrant). Use `namespace` for Pinecone or `indexName` for Azure AI Search instead.
+    required: false
+
+  vectorDBConfig.namespace:
+    userProvided: true
+    description: Namespace (Pinecone-specific).
+    required: false
+
+  vectorDBConfig.indexName:
+    userProvided: true
+    description: Index name (Azure AI Search-specific).
+    required: false
+
+  globalTopics:
+    userProvided: true
+    description: >-
+      Array of Global Prompt Topic UUIDs from Step 4 to bind to this SSC at
+      creation time. The Anypoint UI's flow is: create topics first with
+      `semanticServiceConfigId: null` (Step 4), then list the resulting
+      UUIDs here on SSC create — that's how the binding is made.
+    required: true
+
+outputs:
+  - name: semanticServiceConfigId
+    path: $.id
+    description: UUID of the created Semantic Service Configuration. Use as `metadata.semanticServiceConfigId` on the proxy POST in Step 10. Also pass to Step 6 to fetch the hydration script.
+```
+
+**What happens next:** The SSC is created and the topics from Step 4 are bound to it. The vector DB is **not yet hydrated** — Step 6 generates the script that does that. Until you run that script, the vector DB will be empty and every request will hit the fallback route.
+
+## Step 6: Hydrate the Vector DB via the Setup Script
+
+This is the side-band step that matters most for advanced. The platform exposes a `GET /semantic-setup-script` endpoint that returns a ~15 KB `bash` script. The script (a) calls the embedding provider for every utterance across every topic in the SSC, (b) batches and upserts the resulting vectors into the configured vector DB. Until the script is run end-to-end, the vector DB contains zero embeddings, and at request time every prompt scores below `fallbackThreshold` and routes to the fallback.
+
+**The agent fetches the script from the API; the user runs it locally.** Your tools probably can't dial into the user's vector DB directly (different network / different credentials), so document what the script needs and present the steps clearly.
+
+**What you'll need:**
+- Organization ID, Environment ID
+- `semanticServiceConfigId` from Step 5 (or Step 3 if reusing)
+
+**Action:** Fetch the setup script.
+
+```yaml
+api: urn:api:llm-proxy
+operationId: getSemanticSetupScript
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+  semanticServiceConfigId:
+    from:
+      variable: semanticServiceConfigId
+    description: SSC id from Step 5 (or Step 3 if reusing).
+outputs:
+  - name: setupScript
+    description: |-
+      The 200 response body is the bash script source. Save it to a file
+      (e.g. `vectordb-embedding-semantic-setup.sh`) — the response carries
+      `Content-Type: application/x-sh` and `Content-Disposition: attachment;
+      filename="vectordb-embedding-semantic-setup.sh"`. The script declares
+      `EMBEDDING_PROVIDER`, `OPENAI_EMBEDDING_MODEL`, `VECTOR_DB_PROVIDER`,
+      and `ENTRIES` (your topic+utterance data) populated server-side.
+```
+
+**Then guide the user through running it:**
+
+1. **Save the response body** to disk as `vectordb-embedding-semantic-setup.sh` (use `chmod +x` to make it executable). Show the user how:
+
+   ```bash
+   curl -s -H "Authorization: Bearer $TOKEN" \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/semantic-setup-script/semantic-service-configs/$SSC_ID" \
+     -o vectordb-embedding-semantic-setup.sh
+   chmod +x vectordb-embedding-semantic-setup.sh
+   ```
+
+2. **Provide the runtime secrets** the script collects from the user. Depending on the embedding provider + vector DB picked, the script will prompt for (or accept via env vars):
+   - The embedding provider's API key (same as `config.authKey` from Step 5)
+   - The vector DB API key (same as `vectorDBConfig.apiKey` from Step 5)
+   - The vector DB base URL (same as `vectorDBConfig.url` from Step 5; sometimes also a `QDRANT_BASE_URL` / `AZURE_SEARCH_URL` env var)
+
+3. **Run the script.** It will batch-call the embedding provider for every utterance and upsert the resulting vectors into the vector DB collection. Run time is typically a few seconds per topic for OpenAI's `text-embedding-3-small` and a few topics' worth.
+
+4. **Verify the vector DB has rows.** For Qdrant: hit the cluster's REST API with `GET /collections/<collection>/points/count`; expect a count equal to the total number of utterances across all topics. Skipping this check is the single most common cause of "everything matches the fallback" symptoms downstream.
+
+**What happens next:** Once the script reports success and the vector DB has rows, you can proceed to create the proxy. The vector DB is now searchable, but the LLM proxy doesn't yet have the routing policy attached — that comes in Step 11.
+
+**Common issues:**
+- **Script exits with `OpenAI 401 Unauthorized`** — the embedding provider key the user supplied at runtime doesn't match the one stored on the SSC, or the key has been rotated. Re-supply the working key.
+- **Script exits with `Qdrant 403`** — the vector DB API key doesn't have write access on the configured collection. Check the cluster's permissions.
+- **Script reports success but vector DB shows 0 rows** — the script may have written to a different collection/namespace than the SSC was configured for. Cross-check `vectorDBConfig.collection` (or `.namespace` / `.indexName`) on the SSC against where the script actually wrote.
+
+## Step 7: List Flex Gateway Targets
+
+```yaml
+api: urn:api:api-portal-xapi
+operationId: getGatewayTargets
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+outputs:
+  - name: targetId
+    path: $.rows[*].id
+    labels: $.rows[*].name
+    description: The `id` field of each gateway target row (a UUID). Pass as both `deployment.targetId` and — combined with the row's `name` — `deployment.targetName` below.
+  - name: targetName
+    path: $.rows[*].name
+    labels: $.rows[*].name
+    description: Human-readable gateway target name.
+```
+
+**What happens next:** Pick a connected target whose `status` is `UP` and `ready: true`.
+
+## Step 8: Pre-check Port + Base Path Availability
+
+```yaml
+api: urn:api:llm-proxy
+operationId: getGatewayTargetApisByPortAndPath
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+  targetId:
+    from:
+      variable: targetId
+  port:
+    userProvided: true
+    example: 8081
+    required: true
+  path:
+    userProvided: true
+    example: /my-semantic-proxy
+    pattern: '^/.+'
+    required: true
+outputs:
+  - name: conflictInstances
+    path: $.instances
+    description: Empty array means the port+path is available. A populated array means another API already occupies it; pick a different path.
+```
+
+**What happens next:** If `instances` is non-empty, ask the user for a different base path.
+
+## Step 9: Publish the Exchange Asset
+
+An LLM proxy is backed by an Exchange asset. Publish a minimal `type=llm` asset; the publish is asynchronous and returns a `publicationStatusLink` to poll until `status=completed`.
+
+**Critical: the asset's `platform` value must be set via a multipart FILE field, not a plain form field.** The Exchange Experience API enforces a strict file-naming convention: `files.<classifier>.<packaging>`. Anything else (a `properties=...;type=application/json` form field, or a flat `platform=openai` field) is silently accepted and ignored. The publish still returns `202 Accepted` and the asset still appears `published` — but its `attributes` end up as `[{key: "platform", value: "other"}]` and the auto-generated `llm-metadata.json` artifact contains `{"platform":"other"}`. At request time the gateway classifies the input format as `other`, the semantic-routing policy refuses to route, and every request returns `404 Not Found` with no `x-llm-proxy-*` headers. Always attach the metadata as `files.llm-metadata.json` (verified live, 2026-04-30).
+
+```yaml
+api: urn:api:exchange-experience
+operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersion
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  groupId:
+    from:
+      variable: organizationId
+  assetId:
+    userProvided: true
+    example: my-semantic-proxy
+    pattern: '^[a-z0-9][a-z0-9.\-_]*$'
+    required: true
+  version:
+    value: "1.0.0"
+  name:
+    userProvided: true
+    description: Display name (human-readable).
+    required: true
+  type:
+    value: llm
+  status:
+    value: published
+  files.llm-metadata.json:
+    userProvided: true
+    description: |-
+      Multipart FILE field. Attach a JSON file whose contents are
+      `{"platform": "<openai|gemini>"}`. The classifier (`llm-metadata`)
+      and packaging (`json`) MUST appear in the field name exactly as
+      `files.llm-metadata.json`.
+
+      The `platform` value MUST match `llmConfigs.format` on each upstream
+      in Step 10.
+    example: '{"platform":"openai"}'
+    required: true
+  x-sync-publication:
+    value: false
+outputs:
+  - name: publicationStatusLink
+    path: $.publicationStatusLink
+    description: Poll until the response's `status` is `completed` and an `asset` object is present.
+```
+
+**Concrete `curl` example** (copy-pasteable):
+
+```bash
+echo '{"platform":"openai"}' > /tmp/llm-metadata.json
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "X-Sync-Publication: false" \
+  -F "name=My Semantic Proxy" -F "assetId=my-semantic-proxy" -F "version=1.0.0" \
+  -F "groupId=$ORG" -F "organizationId=$ORG" \
+  -F "type=llm" -F "status=published" \
+  -F "files.llm-metadata.json=@/tmp/llm-metadata.json;type=application/json" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/organizations/$ORG/assets/$ORG/my-semantic-proxy/1.0.0"
+```
+
+**Verify the publish landed correctly** (do this BEFORE creating the proxy):
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://anypoint.mulesoft.com/exchange/api/v2/assets/$ORG/my-semantic-proxy/1.0.0" \
+  | jq '.attributes'
+# Expect:  [{"key":"platform","value":"openai"}]
+# If you see "value":"other", re-publish with a bumped version.
+```
+
+**Common issues:**
+
+1. **409 `ASSET_PRE_CONDITIONS_FAILED`** — an asset with the same `{groupId, assetId, version}` already exists. Pick a different `assetId` or bump the version. Even after `DELETE`, the same triple stays locked.
+2. **Asset publishes but the proxy 404s every request** — multipart field name was wrong; asset's `attributes[].platform` is `other`. Verify with `GET /exchange/api/v2/assets/...`. Recovery: see "Recovering a proxy whose asset has `platform: other`" under Troubleshooting at the bottom of this skill.
+
+## Step 10: Create the LLM Proxy (Single POST)
+
+Create the advanced semantic LLM proxy in a single POST that carries the full routing configuration, including each upstream's provider credentials, target model, inbound `format`, and the `promptTopicIDs` from Step 4 that should route to it.
+
+**Critical body-shape notes:**
+
+- Asset coordinates go under `spec.{groupId, assetId, version}`.
+- `technology` must be `flexGateway`.
+- `endpoint.type=llm`, `endpoint.deploymentType=HY`, `deployment.type=HY`.
+- For semantic routing:
+  - `metadata.globalRouting.llmConfigs.routingType` is `semantic-based`.
+  - `metadata.semanticServiceConfigId` is set to the SSC UUID from Step 5 (or Step 3 if reusing).
+  - Each upstream's `llmConfigs` includes `format` (matching the asset's `platform` from Step 9), `promptTopicIDs` (the Step 4 topic UUIDs), and the provider credentials.
+- `routing[].upstreams[].id` MUST NOT be set — server-generated.
+- The Anypoint UI sends additional explicit-null `endpoint` fields (`muleVersion4OrAbove`, `isCloudHub`, `referencesUserDomain`, `tlsContexts.inbound`). They aren't LLM-specific; if a schema-validation error mentions them, add them as literal `null`s.
+
+**What you'll need:**
+- Organization ID, Environment ID
+- `assetId` + `groupId` confirmed from Step 9's publication status
+- `targetId` and `targetName` from Step 7
+- Port + base path from Step 8
+- Topic UUIDs from Step 4 + the SSC ID from Step 5
+- Per-provider configuration (provider, target model, URL, credentials)
+
+**Action:**
+
+```yaml
+api: urn:api:llm-proxy
+operationId: createEnvironmentLlmProxy
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+
+  spec.groupId:
+    from:
+      variable: organizationId
+  spec.assetId:
+    from:
+      variable: assetId
+  spec.version:
+    value: "1.0.0"
+
+  technology:
+    value: flexGateway
+
+  approvalMethod:
+    value: null
+    description: "`null` for automatic contract approval (default); `\"manual\"` for request-access."
+
+  providerId:
+    value: null
+    description: Client Provider (IDP) UUID. `null` uses the organization's default Anypoint IDP.
+
+  endpointUri:
+    userProvided: true
+    description: Optional public consumer URL (custom domain). Set to `null` to use the computed Flex Gateway URL.
+    required: false
+
+  endpoint.type:
+    value: llm
+  endpoint.proxyUri:
+    userProvided: true
+    example: http://0.0.0.0:8081/my-semantic-proxy
+    required: true
+  endpoint.deploymentType:
+    value: HY
+
+  deployment.environmentId:
+    from:
+      variable: environmentId
+  deployment.targetId:
+    from:
+      variable: targetId
+  deployment.targetName:
+    from:
+      variable: targetName
+  deployment.type:
+    value: HY
+  deployment.expectedStatus:
+    value: deployed
+  deployment.overwrite:
+    value: false
+  deployment.gatewayVersion:
+    value: "1.0.0"
+
+  instanceLabel:
+    userProvided: true
+    description: Optional label identifying this API instance.
+    required: false
+
+  routing:
+    userProvided: true
+    description: >-
+      One route per upstream. Each upstream is declared inline with its full
+      `llmConfigs` — provider, model, `format` (matching the asset's
+      `platform` from Step 9), credential keys/fields, and `promptTopicIDs`
+      (the Global Prompt Topic UUIDs from Step 4 that should route to this
+      upstream). The server assigns `id`s on POST and returns them.
+      `rules.headers.x-routing-header` is the internal dispatch signal the
+      Semantic Routing policy writes after picking the best-matched topic;
+      consumers never send this header.
+    example:
+      # Route A — OpenAI, static key, bound to the Finance topic
+      - label: Route A
+        rules:
+          headers:
+            x-routing-header: openai
+        upstreams:
+          - uri: https://api.openai.com/v1/
+            label: openai
+            weight: 100
+            llmConfigs:
+              provider: openai
+              model: gpt-4o-mini
+              format: openai
+              keys:
+                key: sk-redacted
+              promptTopicIDs:
+                - <finance-topic-uuid>
+      # Route B — Gemini, DataWeave-extracted key, bound to the Code topic
+      - label: Route B
+        rules:
+          headers:
+            x-routing-header: gemini
+        upstreams:
+          - uri: https://generativelanguage.googleapis.com/v1beta/
+            label: gemini
+            weight: 100
+            llmConfigs:
+              provider: gemini
+              model: gemini-2.5-flash
+              format: openai
+              keys: {}
+              fields:
+                apiKeySelector: "#[attributes.headers['x-gemini-key']]"
+              promptTopicIDs:
+                - <code-topic-uuid>
+    required: true
+
+  metadata.globalRouting.llmConfigs.routingType:
+    value: semantic-based
+
+  metadata.globalRouting.llmConfigs.fallbackRoute:
+    userProvided: true
+    description: Label of the route to use when the best-matched topic's similarity score falls below `fallbackThreshold` (recommended).
+    example: Route A
+    required: false
+
+  metadata.globalRouting.llmConfigs.fallbackModel:
+    userProvided: true
+    description: Target model for the fallback route.
+    example: gpt-4o-mini
+    required: false
+
+  metadata.globalRouting.llmConfigs.fallbackThreshold:
+    userProvided: true
+    description: Minimum similarity score (0.0–1.0) to match a primary route. Below triggers fallback. UI default is 0.5.
+    example: 0.6
+    required: false
+
+  metadata.semanticServiceConfigId:
+    from:
+      variable: semanticServiceConfigId
+    description: SSC UUID from Step 5 (or Step 3 if reusing). Required for semantic routing. Lives at the top `metadata` level — not inside `globalRouting`.
+
+outputs:
+  - name: environmentApiId
+    path: $.id
+    description: Numeric API instance ID.
+  - name: upstreamIds
+    path: $.routing[*].upstreams[*].id
+    description: Server-generated upstream UUIDs.
+  - name: deploymentId
+    path: $.deployment.id
+    description: Deployment ID for Step 12's status polling.
+  - name: publicProxyUri
+    path: $.endpointUri
+    description: Public Flex Gateway URL consumers call. Populated once the gateway registers the proxy.
+```
+
+**What happens next:** The proxy is created and deployment starts asynchronously. **The platform does NOT auto-attach the semantic-routing policy variant for advanced flows** — you must apply it manually in Step 11 before traffic can route. Skipping Step 11 is the second most common cause of "every request 404s" symptoms (after a missing or unhydrated vector DB).
+
+**Common issues:**
+- **`Ids are not allowed in POST ...`** — you included `id` on `routing[].upstreams[]`. Remove it.
+- **Missing `semanticServiceConfigId`** — semantic routing requires the SSC UUID at the `metadata` top level — not inside `globalRouting.llmConfigs`.
+- **Missing `format` on upstream** — for semantic routing, each upstream's `llmConfigs.format` must be set (usually `openai`). Without it the transcoding policy can't be selected.
+
+## Step 11: Apply the Semantic Routing Policy Manually
+
+Verified live: the platform does NOT auto-attach a `semantic-routing-policy-<provider>-<vectordb>` for advanced SSCs. The policy stack on a freshly-created proxy stops at `llm-proxy-core`, `client-id-enforcement`, CORS, and the per-provider transcoders. Without the routing policy, the gateway never extracts the prompt, never queries the vector DB, never sets `x-routing-header` — and every request returns `404 Not Found` with no `x-llm-proxy-*` headers.
+
+**What you'll need:**
+- Organization ID, Environment ID, `environmentApiId` from Step 10
+- The exact `assetId` of the policy variant matching your SSC's `provider` + `vectorDBConfig.provider`. One of:
+  - `semantic-routing-policy-openai-qdrant`
+  - `semantic-routing-policy-openai-pinecone`
+  - `semantic-routing-policy-openai-azure-ai-search`
+  - `semantic-routing-policy-huggingface-qdrant`
+  - `semantic-routing-policy-huggingface-pinecone`
+  - `semantic-routing-policy-huggingface-azure-ai-search`
+- Embedding provider key (same as SSC's `config.authKey`)
+- Vector DB key + URL (same as SSC's `vectorDBConfig.apiKey` + `.url`)
+- The full topic→provider mapping (`topics[]` array with each `{id, name}`)
+
+**Action:** Apply the policy.
+
+```yaml
+api: urn:api:api-manager
+operationId: createOrganizationsEnvironmentsApisPolicies
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+  environmentApiId:
+    from:
+      variable: environmentApiId
+    description: API instance id from Step 10.
+
+  groupId:
+    value: "68ef9520-24e9-4cf2-b2f5-620025690913"
+    description: Salesforce-managed group that owns all system policy templates.
+
+  assetId:
+    userProvided: true
+    description: |-
+      Variant matching the SSC's `provider` + `vectorDBConfig.provider`. Pick from the six listed above.
+    example: semantic-routing-policy-openai-qdrant
+    required: true
+
+  assetVersion:
+    value: "1.0.0"
+
+  configurationData:
+    userProvided: true
+    description: |-
+      Required shape (validated by the policy's JSON schema). Field-name
+      prefixes vary with the variant — `openai*` becomes `huggingface*`,
+      `qdrant*` becomes `pinecone*` / `azureSearch*`. To enumerate the
+      exact required keys for the variant you picked, hit the create with
+      `configurationData: {}`; the resulting `PolicyValidationError` lists
+      every missing property.
+    example:
+      openaiUrl: https://api.openai.com/v1/embeddings
+      openaiApiKey: <OpenAI key — same as the SSC's `config.authKey`>
+      openaiEmbeddingModel: text-embedding-3-small
+      qdrantUrl: <Qdrant base URL — same as the SSC's `vectorDBConfig.url`>
+      qdrantApiKey: <Qdrant API key>
+      threshold: 0.6
+      routes:
+        - provider: openai
+          model: gpt-4o-mini
+          topics:
+            - id: <finance-topic-uuid>
+              name: Finance
+          routeLabel: Route A
+        - provider: gemini
+          model: gemini-2.5-flash
+          topics:
+            - id: <code-topic-uuid>
+              name: Code
+          routeLabel: Route B
+      fallbackRoute:
+        provider: openai
+        model: gpt-4o-mini
+        routeLabel: Route A
+    required: true
+
+outputs:
+  - name: policyId
+    path: $.id
+    description: Server-assigned policy id (numeric). Confirms the policy is applied.
+```
+
+**What happens next:** The platform pushes the policy into the deployment payload. Wait ~30 seconds for the gateway to reload, then test (see Step 12). The new policy emits `x-llm-proxy-routing-type: Semantic` and `x-llm-proxy-semantic-routing-success: Request successfully matched '<topic>' topic ...` on each call.
+
+**Common issues:**
+- **`PolicyValidationError`** — common slip-ups: `topics[]` items must be objects `{id, name}` (not bare UUID strings), `fallbackRoute` must be an object (not just a route-label string), and the field-name prefix must match the variant (e.g. `pineconeUrl` for the pinecone variants — not `qdrantUrl`).
+- **Auto-attach starts working in a future platform release** — harmless. If both the manual one you applied here and an auto-attached one end up on the proxy you'll see a duplicate; `DELETE /apis/{id}/policies/{policyId}` clears the manual one.
+
+## Step 12: Poll the Deployment Status
+
+Poll deployment status (typical client polling interval is 10 seconds). Live captures show the deployment typically reaches the applied state within 60–90 seconds of the POST.
+
+```yaml
+api: urn:api:proxies-xapi
+operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentidStatus
+inputs:
+  organizationId:
+    from:
+      variable: organizationId
+  environmentId:
+    from:
+      variable: environmentId
+  environmentApiId:
+    from:
+      variable: environmentApiId
+  proxyDeploymentId:
+    from:
+      variable: deploymentId
+    description: Deployment ID from Step 10's `$.deployment.id`.
+outputs:
+  - name: deploymentStatus
+    path: $.status
+    description: "`undeployed` while in progress; `applied` on success; `failed` on error. Keep polling until terminal."
+  - name: apiVersionStatus
+    path: $.apiVersionStatus
+    description: "API-instance-side status; `active` once the proxy serves traffic."
+```
+
+**What happens next:** When `status` reaches `applied` (and `apiVersionStatus: active`), the proxy is live. Test it with a curl matching one of your topics:
+
+```bash
+curl -X POST 'https://<gateway-domain>/<basepath>/chat/completions' \
+  -H 'Content-Type: application/json' \
+  -H 'client_id: <clientId>' \
+  -H 'client_secret: <clientSecret>' \
+  -d '{"model":"any-placeholder","messages":[{"role":"user","content":"How do I calculate compound interest?"}]}'
+# Expect on a working proxy:
+#   x-llm-proxy-routing-type: Semantic
+#   x-llm-proxy-semantic-routing-success: Request successfully matched 'Finance' topic ... Score: 0.7x
+#   x-llm-proxy-llm-provider: openai
+```
+
+To create a consumer (`client_id` + `client_secret`), run the `request-llm-proxy-access` skill.
+
+## Completion Checklist
+
+- [ ] Existing advanced SSC reused (Step 3) OR new advanced SSC created (Step 5) with `globalTopics` populated
+- [ ] Global Prompt Topics created (Step 4) with diverse utterances (≥ 5 each)
+- [ ] **Vector DB hydrated** by running the setup script from Step 6 — verified by checking the vector DB has rows
+- [ ] Port + base path checked available (Step 8)
+- [ ] Exchange asset published with `attributes[].platform = openai|gemini` (Step 9 — verify via `GET /assets`; `platform: other` means the publish format was wrong)
+- [ ] LLM proxy POST returned `environmentApiId`, `deploymentId`, and upstream UUIDs (Step 10)
+- [ ] Each upstream's `llmConfigs` carries `format`, `provider`, `model`, credential keys/fields, AND `promptTopicIDs`
+- [ ] **Semantic-routing policy applied manually** (Step 11) — verify `GET /apis/{id}/policies` lists `semantic-routing-policy-<provider>-<vectordb>`
+- [ ] Deployment status reached `applied` with `apiVersionStatus: active` (Step 12)
+- [ ] Proxy shows `status: active` with a populated `endpointUri`
+- [ ] Test request returns `x-llm-proxy-routing-type: Semantic` and matches the expected topic
+
+## What You've Built
+
+- **A semantically routed LLM proxy backed by an external vector DB** — supports up to ~100 topics with ~20,000 utterances each.
+- **Reusable Global Prompt Topics + SSC** — both can be referenced by other proxies in the same env.
+- **Manually-attached semantic-routing policy** — the only variant the platform doesn't auto-wire today.
+- **Fallback-ready** — off-topic prompts route to a dedicated fallback route/model when below `fallbackThreshold`.
+
+## Next Steps
+
+1. **Apply token rate limiting** — run `apply-token-rate-limiting-to-llm-proxy`.
+2. **Onboard consumers** — run `request-llm-proxy-access`.
+3. **Layer on semantic prompt guarding** — apply a `semantic-prompt-guard-policy-<embeddingProvider>-<vectorDB>` policy on deny-listed topics (configured via `metadata.globalRouting.llmConfigs.denyTopicIDs`).
+
+## Tips and Best Practices
+
+### Topic + utterance design
+- 10–50 diverse utterances per topic is a strong baseline. Push toward more if you have the data — vector matching benefits from coverage.
+- Cover variations in phrasing, length, and formality.
+- Avoid heavy overlap between topics — if a phrase plausibly belongs to two topics, ask the user which one owns it.
+
+### Threshold tuning
+- `0.5–0.6` is reasonable to start. Monitor `x-llm-proxy-routing-fallback` in production to gauge fallback rate; tune up if fallback fires for legit on-topic prompts, tune down if off-topic prompts are being matched.
+
+### Vector DB
+- **Qdrant** is the easiest to start with — generous free tier on Cloud, simple REST.
+- **Pinecone** scales further but requires careful index/namespace planning.
+- **Azure AI Search** is the right fit if the user is already in the Microsoft ecosystem.
+- Use separate collections / indexes / namespaces per environment to avoid contamination.
+
+### Hydration script reruns
+- If the user adds or edits a topic later, re-fetch the script (Step 6) and re-run it — it overwrites the vector DB rows for that SSC's topics each time.
+
+## Troubleshooting
+
+### Every request hits the fallback route (`x-llm-proxy-routing-fallback: true`)
+**Possible causes (in order of likelihood):**
+1. Vector DB wasn't seeded — Step 6's script wasn't run, or it ran against a different collection/namespace.
+2. Manual semantic-routing policy wasn't applied — Step 11 was skipped.
+3. Threshold too high.
+4. Topics' utterances don't match real prompt distribution.
+
+**Solutions:** Verify the vector DB has rows (Step 6), confirm the policy is attached (`GET /apis/{id}/policies`), then iterate on threshold + utterances.
+
+### 404 on every request with no `x-llm-proxy-*` headers
+**Possible causes:**
+1. Asset's `platform` attribute is `other` (Step 9 publish format was wrong) — see "Recovering a proxy whose asset has `platform: other`" below.
+2. Manual semantic-routing policy wasn't applied — see Step 11.
+
+### Topic misclassification
+**Symptoms:** Prompts that should match topic A are routed to topic B.
+**Solutions:** Add more diverse utterances to both topics, or raise the similarity threshold. Re-run Step 6 after editing topics.
+
+### 504 Gateway Timeout on create
+**Solutions:** Wait 30 seconds, list LLM proxies (`listEnvironmentLlmProxies`), confirm the proxy exists. If it does, proceed to Step 12 polling.
+
+### Recovering a proxy whose asset has `platform: other`
+**Symptoms:** Proxy is `status: active`, the gateway accepts the request (auth works — wrong creds → 401), but every request returns `404 Not Found` with no `x-llm-proxy-*` headers and (where logs are accessible) the gateway emits `[llm-proxy-core-policy] Input format: other`.
+
+**Cause:** the underlying Exchange asset's `attributes[].platform` is `other` and its `llm-metadata.json` file contains `{"platform":"other"}` because the publish in Step 9 used the wrong multipart field name. See Step 9's "Common issues" #2.
+
+**Recovery procedure** (verified live, 2026-04-30). The asset itself cannot be fixed in place — Exchange returns `409 ASSET_PRE_CONDITIONS_FAILED` for the same `groupId/assetId/version` even after a soft delete. The fix is to bump the asset version and re-point the proxy:
+
+1. **Republish a new asset version** with the correct multipart format (`files.llm-metadata.json` field name). Bump `version` to `1.0.1`. Verify with `GET /assets/.../{1.0.1}` that `attributes` shows `[{key:"platform", value:"openai"}]`.
+
+2. **Update the API instance to reference the new version**:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d '{"assetVersion":"1.0.1"}' \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. **This step alone does NOT make the gateway pick up the new asset** — it only updates API Manager's metadata.
+
+3. **Force a deployment refresh** by re-asserting the deployment block:
+
+   ```bash
+   curl -X PATCH \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d "{\"deployment\":{\"environmentId\":\"$ENV\",\"targetId\":\"$TARGET_ID\",\"targetName\":\"$TARGET_NAME\",\"type\":\"HY\",\"expectedStatus\":\"deployed\",\"overwrite\":true}}" \
+     "https://anypoint.mulesoft.com/apimanager/xapi/v1/organizations/$ORG/environments/$ENV/apis/$ENVIRONMENT_API_ID"
+   ```
+
+   Returns `200`. The gateway re-fetches `llm-metadata.json` within ~30 seconds; on the next request the `Input format` log line flips from `other` to `openai` and routing fires normally.
+
+The endpoints `POST /apis/{id}/deployments`, `PATCH /apis/{id}/deployments/{deploymentId}`, and `POST .../deployments/{id}/redeploy` all return `404` — they're not the right entrypoint. The full-instance PATCH with `deployment` IS the redeploy lever.
+
+## Related Jobs
+
+- **create-llm-proxy-semantic-routing-basic** — Same end goal but with no vector DB; quicker to set up; capped at small topic sets.
+- **create-llm-proxy-model-based-routing** — Routes by the request body's `model` field instead of semantics.
+- **apply-token-rate-limiting-to-llm-proxy** — Adds a token-based rate limit policy.
+- **request-llm-proxy-access** — Creates a consumer client application and contract.

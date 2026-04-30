@@ -299,6 +299,6 @@ outputs:
 ## Related Jobs
 
 - **create-llm-proxy-model-based-routing** — Create the LLM proxy in the first place.
-- **create-llm-proxy-semantic-routing** — Same, with semantic routing.
+- **create-llm-proxy-semantic-routing-basic** / **create-llm-proxy-semantic-routing-advanced** — Same, but with semantic routing (basic = no vector DB; advanced = vector DB).
 - **request-llm-proxy-access** — Create a client application + contract so consumers can call the proxy.
 - **apply-policy-to-api-instance** — Apply any other Exchange policy (non-LLM) to an API instance.

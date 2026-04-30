@@ -27,7 +27,7 @@ Before starting, ensure you have:
    - **Create Applications** and **Manage Contracts** permissions in the target environment
 
 2. **Existing LLM proxy**
-   - An LLM proxy deployed in the environment (created via `create-llm-proxy-model-based-routing` or `create-llm-proxy-semantic-routing`)
+   - An LLM proxy deployed in the environment (created via `create-llm-proxy-model-based-routing`, `create-llm-proxy-semantic-routing-basic`, or `create-llm-proxy-semantic-routing-advanced`)
    - The proxy's `status` is `active`
 
 3. **Consumer details**
@@ -335,5 +335,5 @@ The routing policy rewrites the request body's `model` field to the resolved tar
 
 ## Related Jobs
 
-- **create-llm-proxy-model-based-routing** / **create-llm-proxy-semantic-routing** — Create the proxy in the first place.
+- **create-llm-proxy-model-based-routing** / **create-llm-proxy-semantic-routing-basic** / **create-llm-proxy-semantic-routing-advanced** — Create the proxy in the first place.
 - **apply-token-rate-limiting-to-llm-proxy** — Apply a token budget that'll be enforced against the `client_id` from this contract.

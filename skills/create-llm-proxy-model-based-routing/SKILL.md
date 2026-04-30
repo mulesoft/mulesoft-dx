@@ -23,22 +23,28 @@ When the consumer's provider prefix doesn't match any configured upstream, the r
 
 **What you'll build:** A deployed LLM proxy with one route per provider (e.g., `Route A` → OpenAI, `Route B` → Gemini), a Flex Gateway deployment, and the platform-managed core policies applied automatically (LLM Proxy Core, Client ID Enforcement, CORS, per-provider transcoding, Model-Based Routing).
 
-## Prerequisites
+## Prerequisites — what the agent will ask the user
 
-Before starting, ensure you have:
+Tell the user upfront what you'll need so they can prep. Some things are easier to enumerate later (after API calls), but the user-supplied values you'll need eventually are:
 
 1. **Authentication and entitlements**
    - Valid Bearer token for Anypoint Platform
    - API Manager permissions: **Manage APIs Configuration** and **Exchange Viewer** in the target environment
    - The organization's `llmProxy` entitlement is enabled (check the JWT's `organization.entitlements.llmProxy: true`)
 
-2. **Flex Gateway target registered**
-   - At least one Flex Gateway target is connected and ready in the target environment
-   - You know the gateway target's `id` (a UUID) and which ports it allows — typical values are `8081` and `8082`. An over-used port is rejected at create time with a clear error (`Proxy must be deployed in a port that is available in the Managed Flex target. Available ports: ...`).
+2. **Proxy basics**
+   - Proxy name (kebab-case — becomes the Exchange `assetId` and the API instance name)
+   - Inbound API format the consumers will send: `openai` (universal default — supports all five upstream providers) or `gemini` (single-route only)
+   - Port + base path the Flex Gateway will listen on (typical: `8081` + `/<your-proxy-name>`)
+   - Optional: a fallback route + model for when consumers send an unknown provider prefix
 
-3. **LLM provider credentials**
-   - Valid API keys for each provider you want to route to: OpenAI, Gemini, Azure OpenAI (key + deployment ID), Bedrock Anthropic (AWS access key + secret + region + optional session token), NVIDIA
-   - Decide for each: static (key stored encrypted on the upstream) vs DataWeave (key read from a request header at runtime)
+3. **Flex Gateway target** — which gateway target to deploy on. You'll enumerate available targets in Step 4 and let the user pick. Make sure at least one Flex Gateway target is connected and ready in the target environment; an over-used port is rejected at create time with a clear `Proxy must be deployed in a port that is available... Available ports: ...` error.
+
+4. **LLM provider credentials** for each upstream provider you want to route to (OpenAI / Gemini / Azure OpenAI / Bedrock Anthropic / NVIDIA). For each upstream, decide upfront:
+   - **Static key** — stored encrypted on the upstream; same provider key used for every consumer.
+   - **DataWeave key** — provider key extracted from a request header at runtime (e.g. `#[attributes.headers['x-openai-key']]`). Lets each consumer bring their own provider key. Note: Bedrock's `awsSessionToken` is static-only — no DataWeave variant.
+
+Read the prerequisites to the user up front, gather what they can give you immediately (proxy name, port, basepath, platform, provider keys, fallback choice), and defer the listing-required choices (env, Flex Gateway target) to the relevant steps.
 
 ## Step 1: Get Current Organization
 
@@ -691,6 +697,7 @@ The endpoints `POST /apis/{id}/deployments`, `PATCH /apis/{id}/deployments/{depl
 
 ## Related Jobs
 
-- **create-llm-proxy-semantic-routing** — Same base flow but routes by semantic similarity against prompt topics instead of header matching.
+- **create-llm-proxy-semantic-routing-basic** — Routes by semantic similarity against prompt topics, with embeddings stored inline in the Flex Gateway policy config (no vector DB). Pick this for demos / small topic sets.
+- **create-llm-proxy-semantic-routing-advanced** — Same end goal as the basic flow, but with an external vector DB (Qdrant / Pinecone / Azure AI Search) for production-scale topic sets.
 - **apply-token-rate-limiting-to-llm-proxy** — Adds a token-based rate limit policy to an existing LLM proxy.
 - **request-llm-proxy-access** — Creates a consumer client application and contract against an existing LLM proxy.

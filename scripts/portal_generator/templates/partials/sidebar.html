@@ -89,10 +89,10 @@
                 {% set skill_name = skill.name|skill_title %}
                 {% set step_count = skill.step_details|length %}
                 <li>
-                    <a href="../skills/{{ skill.slug }}.html" class="nav-link nav-operation-flat">
+                    <a href="../skills/{{ skill.slug }}.html?from=api&api={{ api.slug }}&apiName={{ api.name|urlencode }}" class="nav-link nav-operation-flat" title="{{ step_count }} steps">
                         <span class="op-name">{{ skill_name }}</span>
                         {% if step_count > 0 %}
-                        <span class="group-count">({{ step_count }} steps)</span>
+                        <span class="api-operation-count">{{ step_count }}</span>
                         {% endif %}
                     </a>
                 </li>
@@ -101,4 +101,5 @@
             {% endif %}
         </ul>
     </nav>
+    {% include "partials/breadcrumb.html" %}
 </aside>

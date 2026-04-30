@@ -1,16 +1,16 @@
 ---
 name: setup-agent-scanner
 description: |
-  Creates a scanner configuration to discover AI agents from external platforms like AWS Bedrock, Microsoft Copilot, or Google Vertex AI. Use when setting up agent discovery, configuring a new scanner, connecting to cloud AI platforms, or importing agents into Anypoint Exchange.
+  Creates a scanner configuration to discover assets (such as AI agents, MCP servers, and API metadata) from external platforms like AWS Bedrock, Microsoft Copilot, or Google Vertex AI. Use when setting up scanner discovery, configuring a new scanner, connecting to cloud AI platforms, or importing discovered assets into Anypoint Exchange.
 ---
 
-# Set Up an Agent Scanner
+# Set Up a Scanner
 
 ## Overview
 
-Creates a complete scanner configuration that can discover and import AI agents from external platforms into Anypoint Exchange. This involves selecting a target system, creating a connection with credentials, and configuring the scanner.
+Creates a complete scanner configuration that can discover and import assets (such as AI agents, MCP servers, and API metadata) from external platforms into Anypoint Exchange. This involves selecting a target system, creating a connection with credentials, and configuring the scanner.
 
-**What you'll build:** A fully configured scanner that can discover AI agents from your chosen cloud platform (AWS Bedrock, Microsoft Copilot, Google Vertex AI, etc.)
+**What you'll build:** A fully configured scanner that can discover assets from your chosen cloud platform (AWS Bedrock, Microsoft Copilot, Google Vertex AI, etc.)
 
 ## Prerequisites
 
@@ -35,7 +35,7 @@ First, retrieve the list of available target systems to see which platforms you 
 **What you'll need:**
 - Your organization ID
 
-**Action:** Call the Agent Scanner Configuration API to list available target systems for your organization.
+**Action:** Call the Scanners Configuration API to list available target systems for your organization.
 
 ```yaml
 api: urn:api:agent-scanner-configuration-service
@@ -112,7 +112,7 @@ outputs:
 
 ## Step 3: Create Scanner Configuration
 
-Create the scanner configuration that will use your connection to discover agents.
+Create the scanner configuration that will use your connection to discover assets.
 
 **What you'll need:**
 - Connection ID from Step 2
@@ -139,8 +139,8 @@ inputs:
       - notificationEnabled: Whether to send email notifications
     example: |
       {
-        "name": "My Bedrock Agent Scanner",
-        "description": "Scans AWS Bedrock for AI agents",
+        "name": "My Bedrock Scanner",
+        "description": "Scans AWS Bedrock for assets such as AI agents",
         "schedule": "{\"frequency\":\"daily\",\"time\":\"02:00\"}",
         "runPolicy": "{}",
         "connection": {
@@ -180,20 +180,20 @@ Your scanner configuration now has:
 **Configured Scanner**
 - Named scanner configuration
 - Scheduled or manual execution
-- Ready to discover AI agents
+- Ready to discover assets such as AI agents, MCP servers, and API metadata
 
 ## Next Steps
 
 Now that your scanner is configured:
 
 1. **Run the scanner manually**
-   - Use the "Run Agent Scan and View Results" skill to execute immediately
+   - Use the "Run Scan and View Results" skill to execute immediately
 
 2. **Monitor scheduled runs**
    - Check the scanner run history for automated executions
 
-3. **Review discovered agents**
-   - View staging assets to see discovered AI agents before publication
+3. **Review discovered assets**
+   - View staging assets to see discovered assets before publication
 
 ## Tips and Best Practices
 
@@ -219,7 +219,7 @@ Now that your scanner is configured:
 **Solutions:**
 - Verify credentials are correct and not expired
 - Check network/firewall rules allow access to the platform APIs
-- Ensure the credentials have read access to list agents
+- Ensure the credentials have read access to list assets
 
 ### Scanner Configuration Creation Fails
 
@@ -237,4 +237,4 @@ Now that your scanner is configured:
 
 ## Related Jobs
 
-- **run-agent-scan-and-view-results**: Execute a scan and view discovered agents
+- **run-agent-scan-and-view-results**: Execute a scan and view discovered assets

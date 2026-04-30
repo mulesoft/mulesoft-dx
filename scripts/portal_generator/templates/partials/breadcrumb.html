@@ -10,32 +10,98 @@
 <script>
 (function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const from = urlParams.get('from');
+    const breadcrumbParam = urlParams.get('breadcrumb');
 
-    if (from === 'api') {
-        const apiSlug = urlParams.get('api');
-        const apiName = urlParams.get('apiName');
-        if (apiSlug && apiName) {
-            const breadcrumb = document.getElementById('sidebarBreadcrumb');
-            const backLink = document.getElementById('breadcrumbBackLink');
-            const backText = document.getElementById('breadcrumbBackText');
+    // Parse breadcrumb chain: "type1:slug1:name1|type2:slug2:name2|..."
+    function parseBreadcrumb(param) {
+        if (!param) return [];
+        return param.split('|').map(item => {
+            const [type, slug, ...nameParts] = item.split(':');
+            return { type, slug, name: nameParts.join(':') }; // rejoin in case name had colons
+        });
+    }
 
-            backLink.href = `../apis/${apiSlug}.html`;
-            backText.textContent = decodeURIComponent(apiName);
-            breadcrumb.style.display = 'block';
+    // Serialize breadcrumb chain back to param
+    function serializeBreadcrumb(chain) {
+        return chain.map(item => `${item.type}:${item.slug}:${item.name}`).join('|');
+    }
+
+    const breadcrumbChain = parseBreadcrumb(breadcrumbParam);
+
+    // Show back link if we have a chain
+    if (breadcrumbChain.length > 0) {
+        const lastItem = breadcrumbChain[breadcrumbChain.length - 1];
+        const breadcrumb = document.getElementById('sidebarBreadcrumb');
+        const backLink = document.getElementById('breadcrumbBackLink');
+        const backText = document.getElementById('breadcrumbBackText');
+
+        // Build back URL with remaining chain
+        const remainingChain = breadcrumbChain.slice(0, -1);
+        const folder = lastItem.type === 'api' ? 'apis' : 'skills';
+        let backUrl = `../${folder}/${lastItem.slug}.html`;
+
+        if (remainingChain.length > 0) {
+            backUrl += `?breadcrumb=${encodeURIComponent(serializeBreadcrumb(remainingChain))}`;
         }
-    } else if (from === 'skill') {
-        const skillSlug = urlParams.get('skill');
-        const skillName = urlParams.get('skillName');
-        if (skillSlug && skillName) {
-            const breadcrumb = document.getElementById('sidebarBreadcrumb');
-            const backLink = document.getElementById('breadcrumbBackLink');
-            const backText = document.getElementById('breadcrumbBackText');
 
-            backLink.href = `../skills/${skillSlug}.html`;
-            backText.textContent = decodeURIComponent(skillName);
-            breadcrumb.style.display = 'block';
+        backLink.href = backUrl;
+        backText.textContent = decodeURIComponent(lastItem.name);
+        breadcrumb.style.display = 'block';
+    }
+
+    // Update all Related Skills/APIs links to preserve and extend breadcrumb chain
+    function updateRelatedLinks() {
+        // Determine current page type and info from URL
+        const path = window.location.pathname;
+        let currentType, currentSlug, currentName;
+
+        if (path.includes('/apis/')) {
+            currentType = 'api';
+            currentSlug = path.split('/apis/')[1].replace('.html', '');
+            // Try to get name from page title or a data attribute
+            const titleMatch = document.title.match(/^(.+?) API/);
+            currentName = titleMatch ? titleMatch[1] : currentSlug;
+        } else if (path.includes('/skills/')) {
+            currentType = 'skill';
+            currentSlug = path.split('/skills/')[1].replace('.html', '');
+            // Try to get name from page title
+            const titleMatch = document.title.match(/^(.+?)(\s+\||$)/);
+            currentName = titleMatch ? titleMatch[1] : currentSlug;
         }
+
+        if (!currentType || !currentSlug || !currentName) return;
+
+        // Build new chain by appending current page to existing chain
+        const newChain = [...breadcrumbChain, { type: currentType, slug: currentSlug, name: currentName }];
+        const newBreadcrumbParam = serializeBreadcrumb(newChain);
+
+        // Update Related Skills links (in API pages)
+        const skillLinks = document.querySelectorAll('#skills-panel a[href*="skills/"]');
+        skillLinks.forEach(link => {
+            const url = new URL(link.href, window.location.origin);
+            url.searchParams.set('breadcrumb', newBreadcrumbParam);
+            link.href = url.toString();
+        });
+
+        // Update Related APIs links (in Skill pages)
+        const apiLinks = document.querySelectorAll('#apis-panel a[href*="apis/"]');
+        apiLinks.forEach(link => {
+            const url = new URL(link.href, window.location.origin);
+            url.searchParams.set('breadcrumb', newBreadcrumbParam);
+            link.href = url.toString();
+        });
+    }
+
+    // Run on initial load
+    document.addEventListener('DOMContentLoaded', updateRelatedLinks);
+
+    // Also run when tab switches (for when user switches between Steps/APIs tabs)
+    const originalSwitchSidebarTab = window.switchSidebarTab;
+    if (typeof originalSwitchSidebarTab === 'function') {
+        window.switchSidebarTab = function() {
+            originalSwitchSidebarTab.apply(this, arguments);
+            setTimeout(updateRelatedLinks, 0);
+        };
     }
 })();
 </script>

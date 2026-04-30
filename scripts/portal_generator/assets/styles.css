@@ -1707,7 +1707,7 @@ code {
 .catalog-card-version,
 .catalog-card-endpoints,
 .catalog-card-meta {
-    display: none;
+    display: none !important;
 }
 
 .catalog-card-footer {

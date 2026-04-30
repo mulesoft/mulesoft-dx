@@ -24,7 +24,7 @@
 
 {% block content %}
 {% set api_name = skill_name %}
-{% set api_version = 'Guide' if prose_only else skill.step_count ~ ' steps' %}
+{% set api_version = 'Guide' if prose_only else '' %}
 {% set is_skill_page = true %}
 {% set skill_slug = skill.slug %}
 {% include "partials/auth_panel.html" %}

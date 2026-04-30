@@ -8,7 +8,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://omni.mulesoft.com/mcp"
+      "url": "https://dev1.platform.mulesoft.com/mulesoft-omni/mcp/"
     },
     {
       "type": "sse",

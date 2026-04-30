@@ -1,0 +1,533 @@
+openapi: 3.0.3
+info:
+  title: API Governance Experience API
+  version: 1.0.0
+  description: |
+    API Governance specification crate update modify profiles, and query governance status
+
+servers:
+  - url: https://anypoint.mulesoft.com/governance/xapi/api/v1
+    description: Anypoint URL
+  - url: https://eu1.anypoint.mulesoft.com/governance/xapi/api/v1/
+    description: Regional Anypoint URL
+  - url: https://{region}.platform.mulesoft.com/governance/xapi/api/v1/
+
+    description: Regional Anypoint URL
+    variables:
+      region:
+        default: ca1
+        description: Region identifier for the service endpoint.
+
+paths:
+  # --- Governance (reporting) paths ---
+  /report/summary:
+    get:
+      operationId: getReportSummary
+      summary: Get validation report summary
+      description: |
+        Returns the conformance/validation report for an API or asset. By default returns
+        status for all rulesets applied to the asset; optionally filter to specific rulesets.
+      parameters:
+        - name: urn
+          in: query
+          required: true
+          description: URN of the API or asset to check conformance for (URN format, e.g. urn:api:organizationId:assetId:version).
+          schema:
+            type: string
+            format: uri
+          example: "urn:api:7b976d8f-b47c-4cf7-9ca9-913a74ab81ee:my-api:v1"
+          x-origin:
+            - api: urn:api:anypoint-api-governance
+              operation: getOrganizationTargetSummaries
+              name: governedApis
+              description: '**getOrganizationTargetSummaries** is `GET /stats/organization/targets` in `anypoint-api-governance/api.yaml` (`operationId` getOrganizationTargetSummaries). 
+              
+              Returns the list of apis governed;
+    
+              '
+              values: $.targets[*].id.id
+              labels: $.targets[*].id.label
+
+        - name: ruleset
+          in: query
+          required: false
+          description: |
+            If set, only status for these rulesets is returned. Each value must be in format
+            gav://groupId/assetId/version. Omit to fetch status for all rulesets.
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^gav://[^/]+/[^/]+/[^/]+$'
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Validation report retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/ValidationReport.yaml'
+              examples:
+                default:
+                  $ref: './examples/ValidationReport-example.yaml'
+
+  /stats/organization:
+    get:
+      operationId: getOrganizationSummary
+      summary: Get organization summary
+      description: Obtains the global statistics for the organization.
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: Values returned correctly.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/OrgSummary.yaml'
+              examples:
+                default:
+                  $ref: './examples/OrgSummary-example.yaml'
+
+  /stats/organization/profiles:
+    get:
+      operationId: getOrganizationProfileSummaries
+      summary: Get organization summary by profile
+      description: |
+        Returns the organization's summary by profile (paginated). In governance you create
+        profiles to validate different sets of assets; a profile matches a filter criteria
+        (what APIs to validate) with a set of rulesets. Each profile summary indicates
+        the status of that profile—how many APIs are conformant, how many are
+        non-conformant, and how many have failed to be validated.
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: Values returned correctly.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/OrgProfileSummaryPaginated.yaml'
+              examples:
+                default:
+                  $ref: './examples/OrgProfileSummaryPaginated-example.yaml'
+
+  /stats/organization/targets:
+    get:
+      operationId: getOrganizationTargetSummaries
+      summary: Get organization summary by target 
+      description: |
+        Returns the organization's summary by target (paginated). One summary per API
+        target—each API validated against the rulesets applied by profiles (conformant,
+        non-conformant, or failed to validate).
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: Values returned correctly.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/OrgTargetSummaryPaginated.yaml'
+              examples:
+                default:
+                  $ref: './examples/OrgTargetSummaryPaginated-example.yaml'
+
+  /stats/profiles/{profileId}:
+    get:
+      operationId: getProfileSummary
+      summary: Get profile summary 
+      description: Returns the summary for a single profile (conformant, non-conformant, and failed validation counts).
+      parameters:
+        - $ref: '#/components/parameters/param_profile_id'
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: Values returned correctly.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/ProfileSummary.yaml'
+              examples:
+                default:
+                  $ref: './examples/ProfileSummary-example.yaml'
+
+  /stats/profiles/{profileId}/targets:
+    get:
+      operationId: getProfileTargetSummaries
+      summary: Get profile target summaries
+      description: Returns the list of API targets (summaries) validated by the given profile.
+      parameters:
+        - $ref: '#/components/parameters/param_profile_id'
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: Values returned correctly.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/ProfileTargetSummary.yaml'
+              examples:
+                default:
+                  $ref: './examples/ProfileTargetSummary-example.yaml'
+
+  /stats/applied/rulesets/{group}/{assetId}/{assetVersion}:
+    get:
+      operationId: getAppliedRulesets
+      summary: Get applied rulesets for asset
+      description: |
+        Returns all rulesets applied to a specific asset (by group, assetId, and version) across
+        profiles. You can filter by API type, organizations, and whether to include only
+        assets created by the user.
+      parameters:
+        - name: group
+          in: path
+          required: true
+          description: The group ID (e.g. organization or group UUID) for the asset.
+          schema:
+            type: string
+
+        - name: assetId
+          in: path
+          required: true
+          description: The asset ID.
+          schema:
+            type: string
+
+        - name: assetVersion
+          in: path
+          required: true
+          description: The asset version.
+          schema:
+            type: string
+
+        - name: type
+          in: query
+          required: false
+          description: Limit to one supported API type.
+          schema:
+            type: string
+            enum:
+              - async-api
+              - rest-api
+              - http-api
+              - mcp
+              - agent
+              - graphql
+              - soap-api
+              - grpc-api
+        - name: orgs
+          in: query
+          required: false
+          description: Filter by organization UUID(s); can check multiple organizations (e.g. comma-separated UUIDs) as long as you have access to the assets.
+          schema:
+            type: string
+            format: uuid
+        - name: myassets
+          in: query
+          required: false
+          description: If true, only assets created by the user; otherwise all assets the user has read access to.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Applied rulesets retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/TargetAppliedRuleset.yaml'
+              examples:
+                default:
+                  $ref: './examples/TargetAppliedRuleset-array-example.yaml'
+
+  # --- CRUD paths ---
+  /profiles:
+    get:
+      operationId: listProfiles
+      summary: List profiles
+      description: Lists the definition of profiles for the organization. Returns all profiles the user has access to, optionally filtered by organization.
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
+      responses:
+        '200':
+          description: List of profiles returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/Profile.yaml'
+              examples:
+                default:
+                  $ref: './examples/list-profiles-response.yaml'
+    post: #needs more doc or better example or better schema for notification.
+    #with no filter it fails, with no notification config it fails
+      operationId: createProfile
+      summary: Create profile
+      description: Creates a new profile for the organization using the supplied definition.
+      parameters:
+        - $ref: '#/components/parameters/param_organization_id'
+      requestBody:
+        description: The profile request to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/ProfileCreationRequest.yaml'
+            examples:
+              default:
+                $ref: './examples/profile-request.yaml'
+
+      responses:
+        '201':
+          description: Profile created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/Profile.yaml'
+              examples:
+                default:
+                  $ref: './examples/profile-response.yaml'
+        '409':
+          description: Profile is duplicate.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/DuplicatedProfileResponse.yaml'
+              examples:
+                default:
+                  $ref: './examples/DuplicatedProfileResponse.yaml'
+
+
+  /profiles/{profileId}:
+    get:
+      operationId: getProfile
+      summary: Get profile
+      description: Returns the definition of a single profile by its ID. Response includes Last-Modified (timestamp) and ETag (profile version UUID). Use the ETag value in the If-Match header when updating the profile with PUT.
+      parameters:
+        - $ref: '#/components/parameters/param_profile_id'
+      responses:
+        '200':
+          description: Profile returned successfully.
+          headers:
+            Last-Modified:
+              description: Timestamp when the profile was last modified (RFC 7232 / HTTP-date).
+              schema:
+                type: string
+                format: date-time
+            ETag:
+              description: Profile version (UUID). Send this value in If-Match when updating the profile.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/Profile.yaml'
+              examples:
+                default:
+                  $ref: './examples/profile-response.yaml'
+    put:
+      operationId: updateProfile
+      summary: Update profile
+      description: Updates an existing profile. The update is applied only if the If-Match header matches the current profile version (ETag). Request body uses ProfileCreation with rulesets as RulesetCreation; response is the same as GET (Profile with rulesets as Ruleset).
+      parameters:
+        - $ref: '#/components/parameters/param_profile_id'
+        - name: If-Match
+          in: header
+          required: true
+          description: Profile version (UUID). Must match the current profile ETag for the update to succeed.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Profile creation payload (name, org, filter, rulesets as RulesetCreation).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/ProfileCreationRequest.yaml'
+            examples:
+              default:
+                $ref: './examples/profile-request.yaml'
+
+      responses:
+        '200':
+          description: Profile updated successfully. Same shape as GET profile (Profile with Ruleset items).
+          headers:
+            Last-Modified:
+              description: Timestamp when the profile was last modified.
+              schema:
+                type: string
+                format: date-time
+            ETag:
+              description: New profile version (UUID) after the update.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/Profile.yaml'
+              examples:
+                default:
+                  $ref: './examples/profile-response.yaml'
+        '412':
+          description: Precondition Failed — If-Match does not match the current profile version.
+
+####TODO makes no sense to have activate and not draft endpoints.
+#  /profiles/{profileId}/activate:
+#    put:
+#      operationId: activateProfile
+#      summary: Activate profile
+#      description: Activates the profile. No request body. If-Match must match the current profile version (ETag) for the operation to succeed. Returns the Profile (same as GET).
+#      parameters:
+#        - name: profileId
+#          in: path
+#          required: true
+#          description: The profile UUID.
+#          schema:
+#            type: string
+#            format: uuid
+#        - name: If-Match
+#          in: header
+#          required: true
+#          description: Profile version (UUID). Must match the current profile ETag for the activation to succeed.
+#          schema:
+#            type: string
+#            format: uuid
+#      responses:
+#        '200':
+#          description: Profile activated successfully. Same shape as GET profile.
+#          headers:
+#            Last-Modified:
+#              description: Timestamp when the profile was last modified.
+#              schema:
+#                type: string
+#                format: date-time
+#            ETag:
+#              description: Profile version (UUID) after the activation.
+#              schema:
+#                type: string
+#                format: uuid
+#          content:
+#            application/json:
+#              schema:
+#                $ref: './schemas/Profile.yaml'
+#              examples:
+#                default:
+#                  $ref: './examples/Profile-created-example.yaml'
+#        '412':
+#          description: Precondition Failed — If-Match does not match the current profile version.
+
+components:
+  schemas:
+    # Governance schemas
+    OrgSummary:
+      $ref: './schemas/OrgSummary.yaml'
+    Stats:
+      $ref: './schemas/Stats.yaml'
+    FailedStats:
+      $ref: './schemas/FailedStats.yaml'
+    AssetStat:
+      $ref: './schemas/AssetStat.yaml'
+    AssetsStats:
+      $ref: './schemas/AssetsStats.yaml'
+    LabeledId:
+      $ref: './schemas/LabeledId.yaml'
+    PageData:
+      $ref: './schemas/PageData.yaml'
+    ProfileSummary:
+      $ref: './schemas/ProfileSummary.yaml'
+    OrgProfileSummaryPaginated:
+      $ref: './schemas/OrgProfileSummaryPaginated.yaml'
+    TargetSummary:
+      $ref: './schemas/TargetSummary.yaml'
+    OrgTargetSummaryPaginated:
+      $ref: './schemas/OrgTargetSummaryPaginated.yaml'
+    ProfileTargetSummary:
+      $ref: './schemas/ProfileTargetSummary.yaml'
+    TargetAppliedRuleset:
+      $ref: './schemas/TargetAppliedRuleset.yaml'
+    ValidationReport:
+      $ref: './schemas/ValidationReport.yaml'
+    # CRUD schemas
+    Profile:
+      $ref: './schemas/Profile.yaml'
+    ProfileCreation:
+      $ref: './schemas/ProfileCreationRequest.yaml'
+    ProfileNotificationConfiguration:
+      $ref: './schemas/ProfileNotificationConfiguration.yaml'
+    Ruleset:
+      $ref: './schemas/Ruleset.yaml'
+
+  parameters:
+    param_profile_id:
+      name: profileId
+      in: path
+      required: true
+      example: "07253103-0f08-4e3d-ae97-400184c47ef0"
+      description: '**Profile** GUID. API Governance defines profiles to pair up rulesets and groups of APIs to be validated.
+
+        The profileId returned by **listProfiles** (GET `/profiles?organization={organization}`)
+
+        '
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+        - api: urn:api:anypoint-api-governance
+          operation: listProfiles
+          name: profiles
+          description: '**listProfiles** is `GET /profiles` in `anypoint-api-governance/api.yaml` (`operationId` listProfiles). 
+          
+          Returns the list of governance profiles;
+
+          '
+          values: $.[*].id
+          labels: $.[*].name
+    param_organization_id:
+      name: organization
+      in: query
+      required: true
+      example: "56e6f7c7-d59d-4ab1-845d-255d008049af"
+      description: '**Business group** GUID. API Governance scopes resources by Anypoint Business Group, which may be:
+
+        - **`id`** — the organization returned by **getOrganizations** (GET `/organizations/{organizationId}`), or
+
+        - **any element of `subOrganizationIds`** — a **child Business Group** under that org.
+
+        The same UUID shape is used for root and sub-orgs. 
+        
+        If none is sent, the users organization is used.
+
+        '
+      schema:
+        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        type: string
+      x-origin:
+        - api: urn:api:access-management
+          operation: listMe
+          name: rootOrg
+          description: '**listMe** is `GET /me` in `access-management/api.yaml` (`operationId` listMe). Returns the caller profile;
+
+          **user.organization.id** is the primary Business Group GUID for this parameter. Other orgs (memberships, sub-orgs)
+
+          are covered by the **getOrganizations** sources below.
+
+          '
+          values: $.user.organization.id
+          labels: $.user.organization.name
+        - api: urn:api:access-management
+          operation: getOrganizations
+          name: subOrganizations
+          description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
+          values:
+            - $.id
+            - $.subOrganizationIds[*]
+          labels:
+            - $.name
+            - $.subOrganizationIds[*]

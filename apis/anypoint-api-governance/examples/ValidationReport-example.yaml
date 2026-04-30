@@ -1,0 +1,18 @@
+summary: Example validation report for an API
+value:
+  urn: "urn:api:7b976d8f-b47c-4cf7-9ca9-913a74ab81ee:my-api:v1"
+  status: Conformant
+  aspects:
+    - aspect:
+        id: "anypoint.specification"
+        label: "Specification"
+      status: Conformant
+      rulesets:
+        - reported: "2024-03-15T10:30:00Z"
+          ruleset:
+            groupId: "56e6f7c7-d59d-4ab1-845d-255d008049ad"
+            assetId: "best-practices"
+            version: "1.0.0"
+            name: "Best Practices"
+          status: Conformant
+          rules: []

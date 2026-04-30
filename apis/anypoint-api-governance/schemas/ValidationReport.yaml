@@ -1,0 +1,103 @@
+type: object
+description: Complete validation report for an API or asset (conformance status per ruleset).
+additionalProperties: false
+required:
+  - urn
+  - aspects
+properties:
+  urn:
+    type: string
+    format: uri
+    description: URN of the validated API or asset.
+  status:
+    type: string
+    description: |
+      Overall conformance status of the report. Conformant or NonConformant when validation
+      has finished; Pending when validation is not completed yet; Failed when the validation
+      could not be executed.
+    enum:
+      - Conformant
+      - NonConformant
+      - Pending
+      - Failed
+  aspects:
+    type: array
+    description: Validation results grouped by aspect.
+    items:
+      type: object
+      required:
+        - aspect
+        - status
+        - rulesets
+      properties:
+        aspect:
+          $ref: './LabeledId.yaml'
+          description: The aspect evaluated.
+        status:
+          type: string
+          description: |
+            Conformance status of this aspect. Conformant or NonConformant when validation has
+            finished; Pending when validation is not completed yet; Failed when the validation
+            could not be executed; NotApplicable when the aspect is not present in the ruleset.
+          enum:
+            - NotApplicable
+            - Conformant
+            - NonConformant
+            - Pending
+            - Failed
+        rulesets:
+          type: array
+          description: Ruleset reports for this aspect.
+          items:
+            type: object
+            required:
+              - reported
+              - ruleset
+              - status
+            properties:
+              reported:
+                type: string
+                format: date-time
+                description: When the ruleset was applied.
+              ruleset:
+                type: object
+                required:
+                  - groupId
+                  - assetId
+                  - version
+                description: Ruleset identifier (GAV). Format gav://groupId/assetId/version.
+                properties:
+                  groupId:
+                    description: Ruleset group ID.
+                    type: string
+                    
+                  assetId:
+                    description: Ruleset asset ID.
+                    type: string
+                    
+                  version:
+                    description: Ruleset version.
+                    type: string
+                    
+                  name:
+                    description: Ruleset name.
+                    type: string
+                    
+              status:
+                type: string
+                description: |
+                  Conformance status of this ruleset. Conformant or NonConformant when validation
+                  has finished; Pending when validation is not completed yet; Failed when the
+                  validation could not be executed; NotApplicable when the aspect is not present
+                  in the ruleset.
+                enum:
+                  - NotApplicable
+                  - Conformant
+                  - NonConformant
+                  - Pending
+                  - Failed
+              rules:
+                type: array
+                description: Failed-rule details when non-conformant.
+                items:
+                  type: object

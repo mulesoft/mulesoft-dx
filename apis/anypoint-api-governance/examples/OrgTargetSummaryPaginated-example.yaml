@@ -1,0 +1,41 @@
+summary: Example organization target summaries (paginated)
+value:
+  org: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+  targets:
+    - error: 0
+      fail: 0
+      id:
+        id: "gav://7b976d8f-b47c-4cf7-9ca9-913a74ab81ee/newapi-1/2.0.0"
+        label: "newApi-1"
+      org:
+        id: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+        label: "mule"
+      owner:
+        id: "67766353-6d44-4604-98be-9878e3dec0de"
+        label: "user"
+      pass: 1
+      targetType: rest-api
+      time: "1970-01-01T00:00:00Z"
+      total: 1
+      version: "2.0.0"
+    - error: 0
+      fail: 1
+      id:
+        id: "gav://7b976d8f-b47c-4cf7-9ca9-913a74ab81ee/tagged/1.0.0"
+        label: "tagged"
+      org:
+        id: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+        label: "mule"
+      owner:
+        id: "67766353-6d44-4604-98be-9878e3dec0de"
+        label: "user"
+      pass: 5
+      targetType: rest-api
+      time: "2022-10-04T14:33:09Z"
+      total: 6
+      version: "1.0.0"
+  pageData:
+    total: 2
+    numPage: 0
+    firstIndex: 0
+    lastIndex: 1

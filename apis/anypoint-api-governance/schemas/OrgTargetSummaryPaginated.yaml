@@ -1,0 +1,20 @@
+type: object
+description: Organization summary by target (paginated). One summary per API target (each API validated against the rulesets applied by profiles).
+additionalProperties: false
+required:
+  - org
+  - targets
+  - pageData
+properties:
+  org:
+    type: string
+    format: uuid
+    description: The organization identifier.
+  targets:
+    type: array
+    description: One summary per API target for the organization.
+    items:
+      $ref: './TargetSummary.yaml'
+  pageData:
+    $ref: './PageData.yaml'
+    description: Pagination metadata for this page of target summaries.

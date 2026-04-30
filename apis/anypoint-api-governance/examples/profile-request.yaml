@@ -1,0 +1,20 @@
+value:
+  name: "Default API profile"
+  description: "Governance profile for default APIs"
+  org: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+  filter: "scope:rest-api"
+  rulesets:
+    - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/mule-api-management-best-practices/latest"
+    - "gav://68ef9520-24e9-4cf2-b2f5-620025690913/another-rule/latest"
+  allowing: []
+  denying: []
+  notificationConfig:
+    enabled: false
+    notifications:
+      - enabled: false
+        condition: OnFailure
+        recipients:
+          - contactType: Others
+            notificationType: Email
+            value: publisher@example.com
+            label: API Publisher

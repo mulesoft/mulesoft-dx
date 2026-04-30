@@ -1,0 +1,17 @@
+type: object
+description: Statistics (number of run validations, passed, failing).
+additionalProperties: false
+required:
+  - total
+  - positive
+  - negative
+properties:
+  total:
+    type: integer
+    description: Number of run validations.
+  positive:
+    type: integer
+    description: Number of passed validations.
+  negative:
+    type: integer
+    description: Number of failing validations.

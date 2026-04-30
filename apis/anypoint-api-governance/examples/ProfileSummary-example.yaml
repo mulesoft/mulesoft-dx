@@ -1,0 +1,12 @@
+summary: Example profile summary
+value:
+  org: "7b976d8f-b47c-4cf7-9ca9-913a74ab81ee"
+  id:
+    id: "56e6f7c7-d59d-4ab1-845d-255d008049ad"
+    label: "Default API profile"
+  tags: []
+  status: "LIVE"
+  total: 12
+  pass: 9
+  fail: 2
+  time: "2024-03-15T10:30:00Z"

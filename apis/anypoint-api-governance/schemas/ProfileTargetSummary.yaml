@@ -1,0 +1,16 @@
+type: object
+description: Statistics for a specific profile—the list of API targets (summaries) validated by that profile.
+additionalProperties: false
+required:
+  - profileId
+  - targets
+properties:
+  profileId:
+    type: string
+    format: uuid
+    description: The profile UUID.
+  targets:
+    type: array
+    description: The target list (one summary per API validated by this profile).
+    items:
+      $ref: './TargetSummary.yaml'

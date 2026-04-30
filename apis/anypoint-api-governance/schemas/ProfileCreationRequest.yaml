@@ -1,0 +1,47 @@
+type: object
+description: Profile creation/definition payload (name, description, org, filter, rulesets).
+additionalProperties: false
+required:
+  - name
+  - org
+  - filter
+  - rulesets
+  - notificationConfig
+  - allowing
+  - denying
+properties:
+  name:
+    type: string
+    description: Profile name.
+
+  description:
+    type: string
+    description: Profile description.
+  org:
+    type: string
+    format: uuid
+    description: Organization ID to which the profile applies.
+  filter:
+    type: string
+    description: |
+      Comma-separated filters in format filterType:filterValue (e.g. tag:tag1, scope:rest-api, status:stable).
+    pattern: '^([a-zA-Z]+:[^,]*(,[a-zA-Z]+:[^,]*)*)?$'
+  notificationConfig:
+    $ref: './ProfileNotificationConfiguration.yaml'
+    description: Notification configuration
+  denying:
+    type: array
+    items:
+      type: string
+    description: Not used.
+  allowing:
+    type: array
+    items:
+      type: string
+    description: Not used.
+  rulesets:
+    type: array
+    description: Rulesets applied to filtered APIs (GAV identifiers).
+    items:
+      type: string
+      pattern: '^gav://([^/\s]+)/([^/\s]+)/([^/\s]+)$'

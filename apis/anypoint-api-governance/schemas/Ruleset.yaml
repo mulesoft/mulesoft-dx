@@ -1,0 +1,20 @@
+type: object
+description: Ruleset identifier (GAV). Format gav://groupId/assetId/version.
+additionalProperties: false
+required:
+  - etag
+  - uri
+  - version
+properties:
+  etag:
+    type: string
+    
+    description: The specific etag version; when ruleset is in development, etag indicates the version used in validation.
+  uri:
+    type: string
+    format: uri
+    description: The ruleset URI, e.g. gav://groupId/assetId/version.
+  version:
+    type: string
+    description: The specific version URI; same as uri when not using latest.
+    

@@ -1,0 +1,46 @@
+type: object
+description: Statistics for a specific profile. Each profile matches a filter criteria (which APIs to validate) with a set of rulesets; this summary indicates how many APIs are conformant, non-conformant, or failed to be validated.
+additionalProperties: false
+required:
+  - org
+  - id
+  - tags
+  - status
+  - total
+  - pass
+  - fail
+  - time
+properties:
+  org:
+    type: string
+    format: uuid
+    description: The organization identifier.
+  id:
+    $ref: './LabeledId.yaml'
+    description: The profile identifier (id and display label).
+  tags:
+    type: array
+    items:
+      type: string
+      
+    description: Tags associated with the profile (reserved for future use).
+  status:
+    type: string
+    enum:
+      - LIVE
+      - DRAFT
+      - MANAGED
+    description: Profile lifecycle status (LIVE, DRAFT, or MANAGED).
+  total:
+    type: integer
+    description: Total number of APIs validated for this profile.
+  pass:
+    type: integer
+    description: Number of APIs that are conformant (passed validation).
+  fail:
+    type: integer
+    description: Number of APIs that are non-conformant (failed validation).
+  time:
+    type: string
+    format: date-time
+    description: Timestamp of the last validation for this profile.

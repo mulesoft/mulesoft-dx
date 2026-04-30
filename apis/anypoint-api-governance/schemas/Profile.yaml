@@ -1,0 +1,65 @@
+# Profile: list/detail response shape (flat schema to avoid allOf + additionalProperties issues)
+type: object
+description: Profile definition (list/detail). Same as ProfileCreation plus id, version, and timestamps.
+additionalProperties: false
+required:
+  - id
+  - version
+  - name
+  - org
+  - filter
+  - rulesets
+properties:
+  id:
+    type: string
+    format: uuid
+    description: Profile ID.
+  version:
+    type: string
+    format: uuid
+    description: Profile version UUID.
+  name:
+    type: string
+    
+    description: Profile name.
+  description:
+    type: string
+    
+    description: Profile description.
+  org:
+    type: string
+    format: uuid
+    description: Organization ID to which the profile applies.
+  filter:
+    type: string
+    description: |
+      Comma-separated filters in format filterType:filterValue (e.g. tag:tag1, scope:rest-api, status:stable).
+    pattern: '^([a-zA-Z]+:[^,]*(,[a-zA-Z]+:[^,]*)*)?$'
+  notificationConfig:
+    $ref: './ProfileNotificationConfiguration.yaml'
+    description: Notification configuration (optional).
+  denying:
+    type: array
+    items:
+      type: string
+      
+    description: Not used.
+  allowing:
+    type: array
+    items:
+      type: string
+      
+    description: Not used.
+  rulesets:
+    type: array
+    description: Rulesets applied to filtered APIs (GAV identifiers).
+    items:
+      $ref: './Ruleset.yaml'
+  created:
+    type: string
+    format: date-time
+    description: Creation date.
+  updated:
+    type: string
+    format: date-time
+    description: Last update date.

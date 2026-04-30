@@ -1,0 +1,21 @@
+type: object
+description: Failed statistics by severity.
+additionalProperties: false
+required:
+  - total
+  - high
+  - medium
+  - low
+properties:
+  total:
+    type: integer
+    description: Total count of failures.
+  high:
+    type: integer
+    description: High severity count.
+  medium:
+    type: integer
+    description: Medium severity count.
+  low:
+    type: integer
+    description: Low severity count.

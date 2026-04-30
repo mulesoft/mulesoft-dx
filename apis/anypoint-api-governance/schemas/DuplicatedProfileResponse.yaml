@@ -1,0 +1,23 @@
+title: Duplicate profile response
+type: object
+required:
+  - duplicatedProfiles
+  - message
+properties:
+  duplicatedProfiles:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      additionalProperties: false
+  message:
+    type: string
+additionalProperties: false

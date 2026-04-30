@@ -1,0 +1,6 @@
+
+value:
+  duplicatedProfiles:
+      - id: 8daf0096-8eb0-4a39-8076-c0186670b661
+        name: Default API profile
+  message: "Profile with the same filter, rulesets and status already exist:"

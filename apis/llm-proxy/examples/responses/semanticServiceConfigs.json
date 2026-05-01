@@ -1,0 +1,25 @@
+[
+  {
+    "id": "15e32731-fb86-4ea5-af71-67028f229a84",
+    "provider": "openai",
+    "url": "https://api.openai.com/v1/embeddings",
+    "model": "text-embedding-3-small",
+    "label": "aditi-semantic-adv-openai-qdrant",
+    "serviceType": "advanced"
+  },
+  {
+    "id": "124e2e29-b545-4e8b-8f47-c9614f317dc8",
+    "provider": "openai",
+    "url": "https://api.openai.com/v1/embeddings",
+    "model": "text-embedding-3-small",
+    "label": "prachi-basic",
+    "serviceType": "basic"
+  },
+  {
+    "id": "d3eff9a1-7bd3-4d44-8947-0d824ad36bd2",
+    "provider": "huggingface",
+    "url": "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction",
+    "label": "hugging-basic",
+    "serviceType": "basic"
+  }
+]

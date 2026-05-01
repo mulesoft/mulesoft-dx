@@ -1,0 +1,369 @@
+{
+  "routeConfigurations": [
+    {
+      "provider": "openai",
+      "url": "https://api.openai.com/v1/",
+      "model": "gpt-5",
+      "fields": [
+        {
+          "name": "Key",
+          "requestKey": "key",
+          "dataWeaveRequestKey": "apiKeySelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-API-KEY']]\""
+        },
+        {
+          "name": "Target Model",
+          "type": "list",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Choose the model to which the requests should be routed.",
+          "values": [
+            {
+              "value": "gpt-5.2",
+              "label": "GPT 5.2"
+            },
+            {
+              "value": "gpt-5.2-pro",
+              "label": "GPT 5.2 Pro"
+            },
+            {
+              "value": "gpt-5-mini",
+              "label": "GPT 5 Mini"
+            },
+            {
+              "value": "gpt-5.2-codex",
+              "label": "GPT 5.2 Codex"
+            },
+            {
+              "value": "gpt-5-nano",
+              "label": "GPT 5 Nano"
+            },
+            {
+              "value": "gpt-5",
+              "label": "GPT 5"
+            },
+            {
+              "value": "gpt-4.1",
+              "label": "GPT 4.1"
+            },
+            {
+              "value": "gpt-4o-mini",
+              "label": "GPT 4o Mini"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider": "gemini",
+      "url": "https://generativelanguage.googleapis.com/v1beta/",
+      "model": "gemini-2.5-flash",
+      "fields": [
+        {
+          "name": "Key",
+          "requestKey": "key",
+          "dataWeaveRequestKey": "apiKeySelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-API-KEY']]\""
+        },
+        {
+          "name": "Target Model",
+          "type": "list",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Choose the model to which the requests should be routed.",
+          "values": [
+            {
+              "value": "gemini-3-flash-preview",
+              "label": "Gemini 3 Flash Preview"
+            },
+            {
+              "value": "gemini-2.5-flash",
+              "label": "Gemini 2.5 Flash"
+            },
+            {
+              "value": "gemini-2.5-flash-preview-09-2025",
+              "label": "Gemini 2.5 Flash Preview 09-2025"
+            },
+            {
+              "value": "gemini-2.5-flash-lite",
+              "label": "Gemini 2.5 Flash Lite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider": "azureopenai",
+      "url": "https://{resource-name}.openai.azure.com/",
+      "model": "gpt-5",
+      "fields": [
+        {
+          "name": "API Key",
+          "requestKey": "apiKey",
+          "dataWeaveRequestKey": "apiKeySelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-API-KEY']]\""
+        },
+        {
+          "name": "Deployment ID",
+          "requestKey": "deploymentId",
+          "type": "text",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Required for /chat/completions calls. Optional when using only /responses."
+        },
+        {
+          "name": "Azure API version",
+          "requestKey": "azureApiVersion",
+          "type": "text",
+          "required": false,
+          "sensitive": false
+        },
+        {
+          "name": "Target Model",
+          "type": "list",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Choose the model to which the requests should be routed.",
+          "values": [
+            {
+              "value": "gpt-5.2",
+              "label": "GPT 5.2"
+            },
+            {
+              "value": "gpt-5.2-pro",
+              "label": "GPT 5.2 Pro"
+            },
+            {
+              "value": "gpt-5-mini",
+              "label": "GPT 5 Mini"
+            },
+            {
+              "value": "gpt-5.2-codex",
+              "label": "GPT 5.2 Codex"
+            },
+            {
+              "value": "gpt-5-nano",
+              "label": "GPT 5 Nano"
+            },
+            {
+              "value": "gpt-5",
+              "label": "GPT 5"
+            },
+            {
+              "value": "gpt-4.1",
+              "label": "GPT 4.1"
+            },
+            {
+              "value": "gpt-4o-mini",
+              "label": "GPT 4o Mini"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider": "bedrockanthropic",
+      "url": "https://aws.amazon.com/bedrock/anthropic/",
+      "model": "claude-sonnet-4-6",
+      "fields": [
+        {
+          "name": "AWS Access Key ID",
+          "requestKey": "awsAccessKeyId",
+          "dataWeaveRequestKey": "awsAccessKeyIdSelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-ACCESS-KEY-ID']]\""
+        },
+        {
+          "name": "AWS Secret Access Key",
+          "requestKey": "awsSecretAccessKey",
+          "dataWeaveRequestKey": "awsSecretAccessKeySelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-SECRET-ACCESS-KEY']]\""
+        },
+        {
+          "name": "AWS Session Token",
+          "requestKey": "awsSessionToken",
+          "type": "text",
+          "required": false,
+          "sensitive": true,
+          "tooltip": "Required only for temporary security credentials (STS). Optional for long-term IAM users.",
+          "disabledInDataWeave": true
+        },
+        {
+          "name": "AWS Region",
+          "requestKey": "awsRegion",
+          "type": "list",
+          "required": true,
+          "sensitive": false,
+          "values": [
+            {
+              "value": "us-east-1",
+              "label": "US East 1 (N. Virginia)"
+            },
+            {
+              "value": "us-east-2",
+              "label": "US East 2 (Ohio)"
+            },
+            {
+              "value": "us-west-1",
+              "label": "US West 1 (N. California)"
+            },
+            {
+              "value": "us-west-2",
+              "label": "US West 2 (Oregon)"
+            },
+            {
+              "value": "af-south-1",
+              "label": "Africa South 1 (Cape Town)"
+            },
+            {
+              "value": "ap-east-1",
+              "label": "Asia Pacific East 1 (Hong Kong)"
+            },
+            {
+              "value": "ap-south-1",
+              "label": "Asia Pacific South 1 (Mumbai)"
+            },
+            {
+              "value": "ap-south-2",
+              "label": "Asia Pacific South 2 (Hyderabad)"
+            },
+            {
+              "value": "ap-southeast-1",
+              "label": "Asia Pacific Southeast 1 (Singapore)"
+            },
+            {
+              "value": "ap-southeast-2",
+              "label": "Asia Pacific Southeast 2 (Sydney)"
+            },
+            {
+              "value": "ap-southeast-3",
+              "label": "Asia Pacific Southeast 3 (Jakarta)"
+            },
+            {
+              "value": "ap-northeast-1",
+              "label": "Asia Pacific Northeast 1 (Tokyo)"
+            },
+            {
+              "value": "ap-northeast-2",
+              "label": "Asia Pacific Northeast 2 (Seoul)"
+            },
+            {
+              "value": "ap-northeast-3",
+              "label": "Asia Pacific Northeast 3 (Osaka)"
+            },
+            {
+              "value": "ca-central-1",
+              "label": "Canada Central (Central)"
+            },
+            {
+              "value": "eu-central-1",
+              "label": "Europe Central 1 (Frankfurt)"
+            },
+            {
+              "value": "eu-central-2",
+              "label": "Europe Central 2 (Zurich)"
+            },
+            {
+              "value": "eu-west-1",
+              "label": "Europe West 1 (Ireland)"
+            },
+            {
+              "value": "eu-west-2",
+              "label": "Europe West 2 (London)"
+            },
+            {
+              "value": "eu-west-3",
+              "label": "Europe West 3 (Paris)"
+            },
+            {
+              "value": "eu-south-1",
+              "label": "Europe South 1 (Milan)"
+            },
+            {
+              "value": "eu-south-2",
+              "label": "Europe South 2 (Spain)"
+            },
+            {
+              "value": "eu-north-1",
+              "label": "Europe North 1 (Stockholm)"
+            },
+            {
+              "value": "il-central-1",
+              "label": "Israel Central 1 (Tel Aviv)"
+            },
+            {
+              "value": "me-south-1",
+              "label": "Middle East South 1 (Bahrain)"
+            },
+            {
+              "value": "me-central-1",
+              "label": "Middle East Central 1 (UAE)"
+            },
+            {
+              "value": "sa-east-1",
+              "label": "South America East 1 (S\u00e3o Paulo)"
+            }
+          ]
+        },
+        {
+          "name": "Target Model",
+          "type": "text",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Choose the model to which the requests should be routed."
+        }
+      ]
+    },
+    {
+      "provider": "nvidia",
+      "url": "https://integrate.api.nvidia.com/v1/",
+      "model": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+      "fields": [
+        {
+          "name": "Key",
+          "requestKey": "key",
+          "dataWeaveRequestKey": "apiKeySelector",
+          "type": "text",
+          "required": true,
+          "sensitive": true,
+          "dataWeavePlaceholder": "E.g.: \"#[attributes.headers['X-API-KEY']]\""
+        },
+        {
+          "name": "Target Model",
+          "type": "list",
+          "required": false,
+          "sensitive": false,
+          "tooltip": "Choose the model to which the requests should be routed.",
+          "values": [
+            {
+              "value": "nvidia/nemotron-3-nano-30b-a3b",
+              "label": "Nemotron 3 Nano 30B A3B"
+            },
+            {
+              "value": "nvidia/nemotron-3-super-120b-a12b",
+              "label": "Nemotron 3 Super 120B A12B"
+            },
+            {
+              "value": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+              "label": "Llama Nemotron Ultra 253B"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

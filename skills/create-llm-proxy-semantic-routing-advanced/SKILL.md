@@ -247,7 +247,22 @@ A Semantic Service Configuration (SSC) is reusable across proxies. List existing
 
 **Filter the response client-side to `serviceType: advanced` only.** The endpoint returns BOTH basic and advanced SSCs in the same array; this skill is for advanced only, so drop the basic rows before showing them to the user.
 
-**Then explicitly ASK the user**: *"I see the following advanced Semantic Service Configurations in this environment: [list with each entry showing label, embedding provider, vector DB provider]. Would you like to use one of them, or create a new one?"* Do NOT silently default to "use one of the existing" or "create a new one" — make the user choose. Reusing an existing SSC + its already-bound topics is significantly cheaper than creating a new one (it skips Steps 4 + 5 entirely and the existing vector DB rows are already searchable, so Step 6's hydration script can be skipped too if the existing SSC was previously seeded).
+**Decision matrix — what to ask and what to do next:**
+
+| State | Action |
+|---|---|
+| `routing.ssc.id` set in `llmproxy.yaml` | Skip Step 3 + Step 4 + Step 5 entirely. Use the YAML value. (If the existing SSC was previously hydrated, Step 6 can also be skipped.) |
+| Zero advanced SSCs in env | **Skip the ASK** (nothing to choose between). Tell the user *"This environment has no advanced SSCs yet — I'll create new topics + a fresh SSC + hydrate the vector DB"* and proceed to Step 4. |
+| ≥1 advanced SSCs in env | Run the ASK below. Then either reuse one (skip Steps 4 + 5, possibly Step 6 too) or run Step 4 onward (user explicitly wants fresh). |
+
+**ASK prompt (only when ≥1 advanced SSCs exist after filtering):**
+
+*"I found N advanced Semantic Service Configurations in this environment: [list with each entry showing label, embedding provider, vector DB provider, vector DB URL]. How would you like to proceed?*
+
+*1. Reuse one of the above (tell me which) — significantly cheaper: skips topic creation, SSC creation, AND vector DB hydration if the SSC was previously seeded.
+2. Create a fresh advanced SSC for this proxy (I'll ask for embedding provider + vector DB credentials, create new topics, and hydrate the DB)."*
+
+Do NOT silently default to either option — make the user choose. If the user picks "reuse", capture the chosen SSC's `id` and skip Steps 4 and 5; check whether the SSC was previously hydrated to decide if Step 6 is also skippable. If the user picks "create fresh", continue to Step 4.
 
 **What you'll need:**
 - Organization ID, Environment ID
@@ -271,7 +286,12 @@ outputs:
     description: Bare-array response. Each element has `id`, `label`, `provider`, `url`, `model`, `serviceType`. Filter client-side for `serviceType=advanced`. If the user picks an existing advanced SSC here, capture its `id` and skip Step 5.
 ```
 
-**What happens next:** If the user reuses an existing SSC (and its topics), skip Step 5. The SSC's existing `globalTopics` are still searchable in the vector DB if it was hydrated previously. Otherwise continue to Step 4 to create new topics.
+**What happens next:** Apply the decision matrix above:
+
+- **Zero advanced SSCs in env** → skip the ASK, run Step 4 → Step 5 → Step 6 (full create flow). Tell the user this is what's happening.
+- **≥1 advanced SSCs in env, user reuses one** → capture its `id` and its `globalTopics` UUIDs, skip Steps 4 and 5. Check whether the SSC's vector DB was previously hydrated; if yes, also skip Step 6.
+- **≥1 advanced SSCs in env, user explicitly chose "create fresh"** → run Step 4 → Step 5 → Step 6 (full create flow).
+- **`routing.ssc.id` set in YAML** (we should never reach this — we'd have skipped at the top) → use the YAML value, skip Steps 4 + 5.
 
 ## Step 4: Create Global Prompt Topics (one per topic)
 
@@ -292,7 +312,7 @@ Each topic the proxy supports needs a Global Prompt Topic with a set of example 
 
 Once routes are defined, **source the topics + utterances** from the first one of these that's available:
 
-1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}`.
+1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}` in the YAML config shape. **Critical mapping when posting to the API below:** the YAML's `name` field maps to the API's `topicName` field. The API rejects `name` with `400 must have required property 'topicName'`. (The CSV uses `topic_name`, the JSON file uses `topicName`, the YAML uses `name` — but the `createGlobalPromptTopic` POST body always wants camelCase `topicName`.)
 2. **`llmproxy.yaml` `routing.topics_csv` or `topics_json` (file path)** — read and parse the file.
 3. **Inline from the user (in chat)** — if neither is available, ask: *"Tell me each topic and 5–10 example user prompts that should route to it."*
 4. **File path the user names in chat** — if there are too many topics for inline, ask the user for a CSV or JSON file path. **Prefer the file route below for advanced** (since topic counts are typically larger):
@@ -387,6 +407,10 @@ outputs:
 ```
 
 **What happens next:** Repeat for each topic. Collect the topic UUIDs. Note that the POST response wraps `utterances` as `{data: [{utterance}, ...]}` — different shape from the list endpoint, which returns the plain newline-string form.
+
+**Common issues:**
+- **`400 BadRequestError: "/body/topicName must have required property 'topicName'"`** — the API body field is `topicName`, NOT `name`. The YAML config's `routing.topics[].name` (or the JSON file's `topicName`, or the CSV's `topic_name`) all map to the API's camelCase `topicName`. If your first POST sent `name` (reasoning by analogy with the YAML config shape), retry with `topicName`. Verified live — sending `name` returns the exact 400 above.
+- **POST response `utterances` shape differs from list shape** — POST returns `{data: [{utterance}, ...]}`, list endpoints return a plain newline-delimited string. Read the relevant shape per endpoint.
 
 ## Step 5: Create the Advanced Semantic Service Configuration
 

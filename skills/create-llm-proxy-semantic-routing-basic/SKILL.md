@@ -238,7 +238,24 @@ A Semantic Service Configuration (SSC) is reusable across proxies. List the exis
 
 **Filter the response client-side to `serviceType: basic` only.** The endpoint returns BOTH basic and advanced SSCs in the same array; this skill is for basic only, so drop the advanced rows before showing them to the user.
 
-**Then explicitly ASK the user**: *"I see the following basic Semantic Service Configurations in this environment: [list]. Would you like to use one of them, or create a new one?"* Do NOT silently default to "use one of the existing" or "create a new one" — make the user choose.
+**Decision matrix — what to ask and what to do next:**
+
+| State | Action |
+|---|---|
+| `routing.ssc.id` set in `llmproxy.yaml` | Skip Step 3 + Step 4 entirely. Use the YAML value. |
+| Zero basic SSCs in env | **Skip the ASK** (nothing to choose between). Tell the user *"This environment has no basic SSCs yet — I'll create one for the proxy"* and proceed to Step 4 (forced create). |
+| ≥1 basic SSCs in env | Run the ASK below. Then either pick one (skip Step 4) or run Step 4 (user explicitly wants fresh). |
+
+**ASK prompt (only when ≥1 basic SSCs exist after filtering):**
+
+*"I found N basic Semantic Service Configurations in this environment: [list with each entry showing label, provider, model]. How would you like to proceed?*
+
+*1. Reuse one of the above (tell me which)
+2. Create a fresh basic SSC for this proxy (I'll ask for embedding provider + credentials)*
+
+*Heads-up: due to the auto-rebind quirk on basic SSCs (see below), your topics may bind to the env's default basic SSC regardless of which option you pick. 'Create fresh' is mostly meaningful when the env has zero basic SSCs today; when SSCs already exist, reuse is the practical choice."*
+
+Do NOT silently default to either option — make the user choose. If the user picks "reuse", capture the chosen SSC's `id` and skip Step 4. If the user picks "create fresh", continue to Step 4.
 
 Note: even when the user picks an existing basic SSC, the auto-rebind quirk in Step 5 (`/prompt-topics` ignores the `semanticServiceConfigId` you send and binds to the env's default basic SSC) may still steer your topics to a different SSC. The skill captures the resolved value off the topic-create response and uses that. Surface this caveat to the user when they pick an existing SSC.
 
@@ -265,15 +282,24 @@ outputs:
     description: Bare-array response. Each element has `id`, `label`, `provider`, `url`, `model`, `serviceType`. Filter client-side for `serviceType=basic`.
 ```
 
-**What happens next:** If at least one basic SSC exists in the env, skip Step 4 — the auto-rebind in Step 5 will pick one of them anyway. If zero basic SSCs exist, run Step 4 to create one (it will then become the default).
+**What happens next:** Apply the decision matrix above:
+
+- **Zero basic SSCs in env** → skip the ASK, run Step 4 (forced create — tell the user this is what's happening).
+- **≥1 basic SSCs in env, user picked an existing one** → capture its `id`, skip Step 4.
+- **≥1 basic SSCs in env, user explicitly chose "create fresh"** → run Step 4 (with the auto-rebind caveat surfaced).
+- **`routing.ssc.id` set in YAML** (we should never reach this — we'd have skipped the whole step at the top) → use the YAML value, skip Step 4.
 
 ## Step 4: (Conditional) Create a Basic Semantic Service Configuration
 
-**Skip this step if any of:**
-- `routing.ssc.id` is already set in `llmproxy.yaml` (user wants to reuse an SSC).
-- Step 3 showed at least one existing basic SSC in the environment (the auto-rebind in Step 5 will pick one of them anyway, so creating another is wasteful).
+**Run this step only if Step 3's decision matrix indicates "create new SSC":**
+- Zero basic SSCs in env (forced create — no ASK was shown), OR
+- ≥1 basic SSCs in env AND the user explicitly chose "create fresh" via the ASK.
 
-Only run this step when none of the above is true — i.e. the env genuinely has zero basic SSCs, or the user explicitly asked for a fresh one.
+**Skip this step if:**
+- `routing.ssc.id` is already set in `llmproxy.yaml`, OR
+- ≥1 basic SSCs exist in env AND the user picked one of the existing SSCs in Step 3.
+
+When skipped, jump straight to Step 5 with either the YAML's SSC id, the user-picked id, or simply `null` (since auto-rebind will resolve to the env default regardless).
 
 **What you'll need:**
 - Embedding provider (`openai` or `huggingface`) and its credentials
@@ -366,7 +392,7 @@ Each topic the proxy supports needs a prompt topic with a few example utterances
 
 Once routes are defined, **source the topics + utterances** from the first one of these that's available:
 
-1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}`.
+1. **`llmproxy.yaml` `routing.topics` (inline)** — if the YAML already has the topics + utterances, use them directly. No need to ask the user. Each entry is `{name, route_label, utterances:[]}` in the YAML config shape. **Critical mapping when posting to the API below:** the YAML's `name` field maps to the API's `topicName` field. The API rejects `name` with `400 must have required property 'topicName'`. (The CSV uses `topic_name`, the JSON file uses `topicName`, the YAML uses `name` — but the `createPromptTopic` POST body always wants camelCase `topicName`.)
 2. **`llmproxy.yaml` `routing.topics_csv` or `topics_json` (file path)** — read and parse the file.
 3. **Inline from the user (in chat)** — if neither is available, ask: *"Tell me each topic and 5–10 example user prompts that should route to it."*
 4. **File path the user names in chat** — if there are too many topics for inline, ask the user for a CSV or JSON file path. Standard shapes:
@@ -469,6 +495,7 @@ outputs:
 **What happens next:** Repeat for each topic. Collect the topic UUIDs and confirm all of them resolved to the same `semanticServiceConfigId`. Hold both for use in Step 9.
 
 **Common issues:**
+- **`400 BadRequestError: "/body/topicName must have required property 'topicName'"`** — the API body field is `topicName`, NOT `name`. The YAML config's `routing.topics[].name` (or the JSON file's `topicName`, or the CSV's `topic_name`) all map to the API's camelCase `topicName`. If your first POST sent `name` (reasoning by analogy with the YAML config shape), retry with `topicName`. Verified live — sending `name` returns the exact 400 above.
 - **`/prompt-topics` returns `405 Method Not Allowed` on `GET`** — the endpoint is POST-only. There's no list endpoint for basic-mode topics; rely on the IDs you captured.
 - **All topics resolved to a different SSC than the one you created in Step 4** — that's expected; the auto-rebind picks the env's default basic SSC, which may be a pre-existing one. Use the resolved value, not the one from Step 4.
 

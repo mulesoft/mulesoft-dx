@@ -2866,7 +2866,7 @@ button.nav-group-header {
 }
 
 .servers-list li {
-    padding: 0;
+    padding: 0 var(--space-medium);
     background: transparent;
     border: none;
     margin-bottom: var(--space-x-small);

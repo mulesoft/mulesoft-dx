@@ -27,6 +27,14 @@
     </div>
     {% endif %}
 
+    {# Fallback: if the skill uses none of the recognized structured headings,
+       render its full markdown body so the page isn't blank. #}
+    {% if skill.raw_body_html %}
+    <div class="skill-subsection">
+        <div class="skill-view-markdown">{{ skill.raw_body_html|safe }}</div>
+    </div>
+    {% endif %}
+
     {# Unified Content Area #}
     <div id="playground-section" class="skill-playground-section">
     </div>

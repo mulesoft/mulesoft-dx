@@ -220,6 +220,15 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         else:
             display_md = post.content
 
+        # Fallback rendering: when a skill uses none of the recognized structured
+        # headings, render its full markdown body so the page isn't empty.
+        has_structured_content = bool(
+            step_details or overview or prerequisites or starting_point
+            or completion_checklist or what_youve_built or next_steps
+            or tips or troubleshooting or related_jobs or additional_resources
+        )
+        raw_body_html = '' if has_structured_content else _md.render(post.content)
+
         # Tags from frontmatter: accept a YAML list or a comma-separated string.
         raw_tags = post.get('tags')
         tag_names: List[str] = []
@@ -256,6 +265,7 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
             'troubleshooting_html': _md.render(troubleshooting) if troubleshooting else '',
             'related_jobs_list': _extract_related_jobs(related_jobs) if related_jobs else [],
             'additional_resources_html': _md.render(additional_resources) if additional_resources else '',
+            'raw_body_html': raw_body_html,
         }
 
     except Exception as e:

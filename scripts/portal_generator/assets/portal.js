@@ -1428,34 +1428,53 @@ function filterByTags() {
     // Update results count and type
     updateResultsCount(visibleApis + visibleMcps + visibleSkills, selectedType);
 
-    // Update URL with current filter
-    updateURLWithFilter(selectedType);
+    // Update URL with current state
+    updateURLState();
 }
 
-function updateURLWithFilter(filterType) {
+function updateURLState() {
     const url = new URL(window.location);
+
+    const activeTab = document.querySelector('.hero-tab.active');
+    const filterType = activeTab ? activeTab.dataset.filter : 'all';
     if (filterType && filterType !== 'all') {
         url.searchParams.set('filter', filterType);
-        localStorage.setItem('homepage-filter', filterType);
     } else {
         url.searchParams.delete('filter');
-        localStorage.removeItem('homepage-filter');
     }
-    console.log('Updating URL to:', url.toString());
+
+    if (selectedTags.length > 0) {
+        url.searchParams.set('tags', selectedTags.join(','));
+    } else {
+        url.searchParams.delete('tags');
+    }
+
+    const activeViewBtn = document.querySelector('.view-toggle-btn.active');
+    const viewMode = activeViewBtn ? activeViewBtn.dataset.view : null;
+    if (viewMode && viewMode !== 'grid') {
+        url.searchParams.set('view', viewMode);
+    } else {
+        url.searchParams.delete('view');
+    }
+
     window.history.replaceState({}, '', url);
 }
 
 function getFilterFromURL() {
     const url = new URL(window.location);
-    const urlFilter = url.searchParams.get('filter');
+    return url.searchParams.get('filter') || 'all';
+}
 
-    // Priority: URL parameter > localStorage > default 'all'
-    if (urlFilter) {
-        return urlFilter;
-    }
+function getTagsFromURL() {
+    const url = new URL(window.location);
+    const tags = url.searchParams.get('tags');
+    if (!tags) return [];
+    return tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+}
 
-    const savedFilter = localStorage.getItem('homepage-filter');
-    return savedFilter || 'all';
+function getViewFromURL() {
+    const url = new URL(window.location);
+    return url.searchParams.get('view') || 'grid';
 }
 
 function updateResultsCount(count, filterType) {
@@ -1490,7 +1509,6 @@ function toggleView(viewMode) {
 
     if (catalogGrids.length === 0) return;
 
-    // Update active button
     viewButtons.forEach(btn => {
         if (btn.dataset.view === viewMode) {
             btn.classList.add('active');
@@ -1499,7 +1517,6 @@ function toggleView(viewMode) {
         }
     });
 
-    // Toggle view class on all catalog grids
     catalogGrids.forEach(grid => {
         if (viewMode === 'list') {
             grid.classList.add('list-view');
@@ -1508,12 +1525,7 @@ function toggleView(viewMode) {
         }
     });
 
-    // Store preference
-    try {
-        localStorage.setItem('catalogViewMode', viewMode);
-    } catch (e) {
-        // Ignore localStorage errors
-    }
+    updateURLState();
 }
 
 // ============================================================================
@@ -1635,17 +1647,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initialize filter from URL on page load
+    // Restore state from URL on page load
     const urlFilter = getFilterFromURL();
-    console.log('URL filter:', urlFilter);
     if (urlFilter !== 'all') {
         const targetTab = document.querySelector(`.hero-tab[data-filter="${urlFilter}"]`);
-        console.log('Target tab:', targetTab);
         if (targetTab) {
             heroTabs.forEach(t => t.classList.remove('active'));
             targetTab.classList.add('active');
-            filterByTags();
         }
+    }
+
+    const urlTags = getTagsFromURL();
+    if (urlTags.length > 0) {
+        urlTags.forEach(tag => {
+            if (!selectedTags.includes(tag)) {
+                selectedTags.push(tag);
+            }
+        });
+        renderSelectedTags();
+    }
+
+    if (urlFilter !== 'all' || urlTags.length > 0) {
+        filterByTags();
     }
 
     // Set up tag search input
@@ -1725,14 +1748,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Restore saved view preference
-    try {
-        const savedView = localStorage.getItem('catalogViewMode');
-        if (savedView && (savedView === 'list' || savedView === 'grid')) {
-            toggleView(savedView);
-        }
-    } catch (e) {
-        // Ignore localStorage errors
+    // Restore view mode from URL
+    const savedView = getViewFromURL();
+    if (savedView === 'list') {
+        toggleView(savedView);
     }
 
     // Set up operation search (for detail pages)
@@ -8322,7 +8341,9 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
-    // Note: Initial theme is already applied in <head> to prevent flash
+    // Only show toggle when ?darkmode=true is present (feature in development)
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('darkmode') !== 'true') return;
 
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');

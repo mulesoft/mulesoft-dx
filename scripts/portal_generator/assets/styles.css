@@ -747,6 +747,7 @@ code {
 }
 
 .hero-tab[data-filter="api"]:hover,
+.hero-tab[data-filter="mcp"]:hover,
 .hero-tab[data-filter="skill"]:hover {
     background: var(--hover-bg);
     border-color: var(--hover-border);
@@ -756,6 +757,11 @@ code {
 .hero-tab[data-filter="api"]:hover img,
 .hero-tab[data-filter="api"].active img {
     content: url('../assets/icons/api-filter-icon-active.svg');
+}
+
+.hero-tab[data-filter="mcp"]:hover img,
+.hero-tab[data-filter="mcp"].active img {
+    content: url('../assets/icons/mcp-filter-icon-active.svg');
 }
 
 .hero-tab[data-filter="skill"]:hover img,
@@ -8433,17 +8439,3 @@ code[class*="language-"][class*="language-"] {
     font-weight: var(--font-weight-semibold);
 }
 
-/* MCP filter tab icon coloring on the homepage */
-.hero-tab[data-filter="mcp"]:hover,
-.hero-tab[data-filter="mcp"].active {
-    background-color: var(--color-purple-50);
-    border-color: var(--color-purple-200, #ddd6fe);
-    color: var(--color-purple-700);
-}
-
-[data-theme="dark"] .hero-tab[data-filter="mcp"]:hover,
-[data-theme="dark"] .hero-tab[data-filter="mcp"].active {
-    background-color: rgba(163, 113, 247, 0.15);
-    border-color: rgba(163, 113, 247, 0.3);
-    color: #d4b8ff;
-}

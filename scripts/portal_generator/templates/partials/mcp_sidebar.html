@@ -23,14 +23,13 @@
                     aria-controls="group-mcp-tools">
                     <img class="group-toggle expanded" id="toggle-mcp-tools" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
                     <span class="group-name">Tools</span>
-                    <span class="group-count">({{ mcp.tool_count }})</span>
+                    <span class="group-count" title="{{ mcp.tool_count }} tools">({{ mcp.tool_count }})</span>
                 </button>
                 <ul class="nav-group-items" id="group-mcp-tools" style="display: block;">
                     {% for tool in mcp.tools|sort(attribute='name') %}
                     <li>
                         <a href="#tool-{{ tool.name }}" class="nav-link nav-operation nav-operation-flat" title="{{ tool.description|default('')|truncate(120) }}">
                             <span class="op-name">{{ tool._display_name|default(tool.name) }}</span>
-                            <span class="method-badge method-mcp-tool">TOOL</span>
                         </a>
                     </li>
                     {% endfor %}
@@ -44,14 +43,13 @@
                     aria-controls="group-mcp-prompts">
                     <img class="group-toggle expanded" id="toggle-mcp-prompts" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
                     <span class="group-name">Prompts</span>
-                    <span class="group-count">({{ mcp.prompt_count }})</span>
+                    <span class="group-count" title="{{ mcp.prompt_count }} prompts">({{ mcp.prompt_count }})</span>
                 </button>
                 <ul class="nav-group-items" id="group-mcp-prompts" style="display: block;">
                     {% for prompt in mcp.prompts|sort(attribute='name') %}
                     <li>
                         <a href="#prompt-{{ prompt.name }}" class="nav-link nav-operation nav-operation-flat" title="{{ prompt.description|default('')|truncate(120) }}">
                             <span class="op-name">{{ prompt._display_name|default(prompt.name) }}</span>
-                            <span class="method-badge method-mcp-prompt">PROMPT</span>
                         </a>
                     </li>
                     {% endfor %}
@@ -65,7 +63,7 @@
                     aria-controls="group-mcp-resources">
                     <img class="group-toggle expanded" id="toggle-mcp-resources" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
                     <span class="group-name">Resources</span>
-                    <span class="group-count">({{ mcp.resource_count }})</span>
+                    <span class="group-count" title="{{ mcp.resource_count }} resources">({{ mcp.resource_count }})</span>
                 </button>
                 <ul class="nav-group-items" id="group-mcp-resources" style="display: block;">
                     {% for group in mcp.resource_groups %}
@@ -75,14 +73,13 @@
                             aria-controls="group-{{ group_id }}">
                             <img class="group-toggle" id="toggle-{{ group_id }}" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
                             <span class="group-name">{{ group.name }}</span>
-                            <span class="group-count">({{ group.resources|length }})</span>
+                            <span class="group-count" title="{{ group.resources|length }} resources">({{ group.resources|length }})</span>
                         </button>
                         <ul class="nav-group-items" id="group-{{ group_id }}" style="display: none;">
                             {% for resource in group.resources %}
                             <li>
                                 <a href="#resource-{{ resource._index }}" class="nav-link nav-operation nav-operation-flat" title="{{ resource.uri|default('') }}">
                                     <span class="op-name">{{ resource._display_name|default(resource.name) }}</span>
-                                    <span class="method-badge method-mcp-resource">RES</span>
                                 </a>
                             </li>
                             {% endfor %}
@@ -99,14 +96,13 @@
                     aria-controls="group-mcp-resource-templates">
                     <img class="group-toggle expanded" id="toggle-mcp-resource-templates" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
                     <span class="group-name">Resource Templates</span>
-                    <span class="group-count">({{ mcp.resource_template_count }})</span>
+                    <span class="group-count" title="{{ mcp.resource_template_count }} resource templates">({{ mcp.resource_template_count }})</span>
                 </button>
                 <ul class="nav-group-items" id="group-mcp-resource-templates" style="display: block;">
                     {% for template in mcp.resource_templates %}
                     <li>
                         <a href="#resource-template-{{ loop.index0 }}" class="nav-link nav-operation nav-operation-flat" title="{{ template.uriTemplate|default('') }}">
                             <span class="op-name">{{ template._display_name|default(template.name) }}</span>
-                            <span class="method-badge method-mcp-resource">TPL</span>
                         </a>
                     </li>
                     {% endfor %}

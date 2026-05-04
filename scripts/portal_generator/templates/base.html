@@ -29,9 +29,10 @@
     <link rel="stylesheet" href="{{ css_path }}">
     {% block extra_styles %}{% endblock %}
 
-    <!-- Dark Mode: Apply theme before render to prevent flash -->
+    <!-- Dark Mode: Apply theme before render to prevent flash (only when ?darkmode=true) -->
     <script>
         (function() {
+            if (new URLSearchParams(window.location.search).get('darkmode') !== 'true') return;
             var savedTheme = localStorage.getItem('theme');
             var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');

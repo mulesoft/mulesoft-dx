@@ -92,7 +92,7 @@
                     <a href="../skills/{{ skill.slug }}.html?from=api&api={{ api.slug }}&apiName={{ api.name|urlencode }}" class="nav-link nav-operation-flat" title="{{ step_count }} steps">
                         <span class="op-name">{{ skill_name }}</span>
                         {% if step_count > 0 %}
-                        <span class="api-operation-count">{{ step_count }}</span>
+                        <span class="api-operation-count">({{ step_count }})</span>
                         {% endif %}
                     </a>
                 </li>

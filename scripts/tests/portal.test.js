@@ -1218,3 +1218,164 @@ describe('isTokenExpired (with TTL)', () => {
         expect(isTokenExpired()).toBe(true);
     });
 });
+
+// ===========================================================================
+// URL State Management
+// ===========================================================================
+
+function setURL(path) {
+    window.history.replaceState({}, '', path);
+}
+
+describe('getFilterFromURL', () => {
+    afterEach(() => setURL('/'));
+
+    test('returns "all" when no filter param', () => {
+        setURL('/');
+        expect(getFilterFromURL()).toBe('all');
+    });
+
+    test('returns filter value from URL', () => {
+        setURL('/?filter=api');
+        expect(getFilterFromURL()).toBe('api');
+    });
+
+    test('returns "all" for empty filter param', () => {
+        setURL('/?filter=');
+        expect(getFilterFromURL()).toBe('all');
+    });
+});
+
+describe('getTagsFromURL', () => {
+    afterEach(() => setURL('/'));
+
+    test('returns empty array when no tags param', () => {
+        setURL('/');
+        expect(getTagsFromURL()).toEqual([]);
+    });
+
+    test('returns array of tags from comma-separated param', () => {
+        setURL('/?tags=exchange,api,governance');
+        expect(getTagsFromURL()).toEqual(['exchange', 'api', 'governance']);
+    });
+
+    test('normalizes tags to lowercase', () => {
+        setURL('/?tags=Exchange,API');
+        expect(getTagsFromURL()).toEqual(['exchange', 'api']);
+    });
+
+    test('trims whitespace from tags', () => {
+        setURL('/?tags=foo%20,%20bar');
+        expect(getTagsFromURL()).toEqual(['foo', 'bar']);
+    });
+
+    test('filters out empty tags', () => {
+        setURL('/?tags=foo,,bar,');
+        expect(getTagsFromURL()).toEqual(['foo', 'bar']);
+    });
+});
+
+describe('getViewFromURL', () => {
+    afterEach(() => setURL('/'));
+
+    test('returns "grid" when no view param', () => {
+        setURL('/');
+        expect(getViewFromURL()).toBe('grid');
+    });
+
+    test('returns "list" when view=list', () => {
+        setURL('/?view=list');
+        expect(getViewFromURL()).toBe('list');
+    });
+
+    test('returns "grid" for empty view param', () => {
+        setURL('/?view=');
+        expect(getViewFromURL()).toBe('grid');
+    });
+});
+
+describe('updateURLState', () => {
+    beforeEach(() => {
+        setURL('/');
+        document.body.innerHTML = '';
+        selectedTags.length = 0;
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+        selectedTags.length = 0;
+    });
+
+    function addHeroTab(filter, active) {
+        const btn = document.createElement('button');
+        btn.className = 'hero-tab' + (active ? ' active' : '');
+        btn.dataset.filter = filter;
+        document.body.appendChild(btn);
+        return btn;
+    }
+
+    function addViewBtn(view, active) {
+        const btn = document.createElement('button');
+        btn.className = 'view-toggle-btn' + (active ? ' active' : '');
+        btn.dataset.view = view;
+        document.body.appendChild(btn);
+        return btn;
+    }
+
+    function getParams() {
+        return new URL(window.location.href).searchParams;
+    }
+
+    test('sets filter param when not "all"', () => {
+        addHeroTab('api', true);
+        addViewBtn('grid', true);
+        updateURLState();
+        expect(getParams().get('filter')).toBe('api');
+    });
+
+    test('omits filter param when "all"', () => {
+        addHeroTab('all', true);
+        addViewBtn('grid', true);
+        updateURLState();
+        expect(getParams().has('filter')).toBe(false);
+    });
+
+    test('sets tags param from selectedTags', () => {
+        addHeroTab('all', true);
+        addViewBtn('grid', true);
+        selectedTags.push('exchange', 'governance');
+        updateURLState();
+        expect(getParams().get('tags')).toBe('exchange,governance');
+    });
+
+    test('omits tags param when no tags selected', () => {
+        addHeroTab('all', true);
+        addViewBtn('grid', true);
+        updateURLState();
+        expect(getParams().has('tags')).toBe(false);
+    });
+
+    test('sets view param when list mode', () => {
+        addHeroTab('all', true);
+        addViewBtn('list', true);
+        updateURLState();
+        expect(getParams().get('view')).toBe('list');
+    });
+
+    test('omits view param when grid mode (default)', () => {
+        addHeroTab('all', true);
+        addViewBtn('grid', true);
+        updateURLState();
+        expect(getParams().has('view')).toBe(false);
+    });
+
+    test('combines all state in URL', () => {
+        addHeroTab('mcp', true);
+        addViewBtn('list', true);
+        selectedTags.push('exchange');
+        updateURLState();
+        expect(getParams().get('filter')).toBe('mcp');
+        expect(getParams().get('tags')).toBe('exchange');
+        expect(getParams().get('view')).toBe('list');
+    });
+});

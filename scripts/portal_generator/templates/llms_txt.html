@@ -17,12 +17,6 @@
 - [JTBD Skill Schema]({{ base_url }}/schemas/jtbd-schema.md): Agent skill / Jobs-to-be-Done format definition
 - [Skill Template]({{ base_url }}/schemas/jtbd-template.md): Template for creating new SKILL.md files
 
-## APIs
-{% for api in apis %}
-- [{{ api.name }}]({{ base_url }}/apis/{{ api.slug }}/api.yaml): {{ api.description|truncate(120, True) }}
-{%- endfor %}
+## Full Index
 
-## Skills
-{% for skill in all_skills %}
-- [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.html): {{ skill.description|truncate(120, True) }}
-{%- endfor %}
+See [registry.json]({{ base_url }}/registry.json) for the complete machine-readable list of all APIs, MCP servers, and skills.

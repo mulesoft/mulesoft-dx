@@ -1449,13 +1449,14 @@ function updateURLState() {
         url.searchParams.delete('tags');
     }
 
-    const activeViewBtn = document.querySelector('.view-toggle-btn.active');
-    const viewMode = activeViewBtn ? activeViewBtn.dataset.view : null;
-    if (viewMode && viewMode !== 'grid') {
-        url.searchParams.set('view', viewMode);
-    } else {
-        url.searchParams.delete('view');
-    }
+    // View mode disabled for launch - always grid
+    // const activeViewBtn = document.querySelector('.view-toggle-btn.active');
+    // const viewMode = activeViewBtn ? activeViewBtn.dataset.view : null;
+    // if (viewMode && viewMode !== 'grid') {
+    //     url.searchParams.set('view', viewMode);
+    // } else {
+    //     url.searchParams.delete('view');
+    // }
 
     window.history.replaceState({}, '', url);
 }
@@ -1500,33 +1501,33 @@ function updateResultsCount(count, filterType) {
 
 
 // ============================================================================
-// Toggle between grid and list view
+// Toggle between grid and list view (DISABLED FOR LAUNCH)
 // ============================================================================
 
-function toggleView(viewMode) {
-    const catalogGrids = document.querySelectorAll('.catalog-grid');
-    const viewButtons = document.querySelectorAll('.view-toggle-btn');
-
-    if (catalogGrids.length === 0) return;
-
-    viewButtons.forEach(btn => {
-        if (btn.dataset.view === viewMode) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    catalogGrids.forEach(grid => {
-        if (viewMode === 'list') {
-            grid.classList.add('list-view');
-        } else {
-            grid.classList.remove('list-view');
-        }
-    });
-
-    updateURLState();
-}
+// function toggleView(viewMode) {
+//     const catalogGrids = document.querySelectorAll('.catalog-grid');
+//     const viewButtons = document.querySelectorAll('.view-toggle-btn');
+//
+//     if (catalogGrids.length === 0) return;
+//
+//     viewButtons.forEach(btn => {
+//         if (btn.dataset.view === viewMode) {
+//             btn.classList.add('active');
+//         } else {
+//             btn.classList.remove('active');
+//         }
+//     });
+//
+//     catalogGrids.forEach(grid => {
+//         if (viewMode === 'list') {
+//             grid.classList.add('list-view');
+//         } else {
+//             grid.classList.remove('list-view');
+//         }
+//     });
+//
+//     updateURLState();
+// }
 
 // ============================================================================
 // Search operations
@@ -1637,6 +1638,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up hero tabs for filtering
     const heroTabs = document.querySelectorAll('.hero-tab');
     heroTabs.forEach(tab => {
+        // Skip MCP tab - it's disabled (coming soon)
+        if (tab.classList.contains('hero-tab-mcp')) {
+            return;
+        }
+
         tab.addEventListener('click', () => {
             // Remove active class from all tabs
             heroTabs.forEach(t => t.classList.remove('active'));
@@ -1739,20 +1745,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Set up view toggle buttons
-    const viewToggleButtons = document.querySelectorAll('.view-toggle-btn');
-    viewToggleButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const viewMode = e.currentTarget.dataset.view;
-            toggleView(viewMode);
-        });
-    });
+    // Set up view toggle buttons (DISABLED FOR LAUNCH)
+    // const viewToggleButtons = document.querySelectorAll('.view-toggle-btn');
+    // viewToggleButtons.forEach(btn => {
+    //     btn.addEventListener('click', (e) => {
+    //         const viewMode = e.currentTarget.dataset.view;
+    //         toggleView(viewMode);
+    //     });
+    // });
 
-    // Restore view mode from URL
-    const savedView = getViewFromURL();
-    if (savedView === 'list') {
-        toggleView(savedView);
-    }
+    // Restore view mode from URL (DISABLED FOR LAUNCH)
+    // const savedView = getViewFromURL();
+    // if (savedView === 'list') {
+    //     toggleView(savedView);
+    // }
 
     // Set up operation search (for detail pages)
     const searchInput = document.getElementById('searchOperations');

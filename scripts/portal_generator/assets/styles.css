@@ -3422,7 +3422,6 @@ button.nav-group-header {
     overflow: hidden;
 }
 
-<<<<<<< HEAD
 /* URL Combobox - Flat style with chevron aligned to far right */
 .url-combobox {
     display: flex;
@@ -3444,6 +3443,8 @@ button.nav-group-header {
 }
 
 .url-combobox-text {
+    flex: 1;
+    min-width: 0;
     color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;

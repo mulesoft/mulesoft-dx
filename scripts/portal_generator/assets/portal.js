@@ -3628,14 +3628,27 @@ function buildUrlBar(bar, opId, path, servers) {
     var idx = getActiveServerIndex(opId, servers);
     var resolvedUrl = resolveServerUrl(servers[idx], opId);
 
-    // Server part (clickable)
+    // Server part container
+    var serverContainer = document.createElement('span');
+    serverContainer.className = 'url-server-container';
+
+    // Server URL text
     var serverSpan = document.createElement('span');
     serverSpan.className = 'url-server-part';
     serverSpan.textContent = resolvedUrl;
-    serverSpan.title = 'Click to change server';
+    serverContainer.appendChild(serverSpan);
 
     if (servers.length > 1) {
-        serverSpan.addEventListener('click', function(e) {
+        serverContainer.classList.add('has-dropdown');
+        serverContainer.title = 'Click to change server';
+
+        // Add chevron-down icon
+        var chevron = document.createElement('span');
+        chevron.className = 'server-dropdown-chevron';
+        chevron.innerHTML = '▼';
+        serverContainer.appendChild(chevron);
+
+        serverContainer.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleServerDropdown(bar, opId, servers);
         });
@@ -3646,7 +3659,7 @@ function buildUrlBar(bar, opId, path, servers) {
     pathSpan.className = 'url-path-part';
     pathSpan.textContent = path;
 
-    bar.appendChild(serverSpan);
+    bar.appendChild(serverContainer);
     bar.appendChild(pathSpan);
 }
 

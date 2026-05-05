@@ -373,6 +373,10 @@ test-portal:
 	@echo ""
 	@cd scripts && python3 -m pytest tests/ -v
 	@echo ""
+	@if [ ! -d scripts/node_modules ]; then \
+		echo "$(BLUE)Installing Jest dependencies...$(NC)"; \
+		cd scripts && npm install --silent --ignore-scripts; \
+	fi
 	@cd scripts && npx jest --verbose
 	@echo ""
 
@@ -546,15 +550,18 @@ pre-push-hook:
 	else \
 		echo "  test-portal (pytest)  ... $(YELLOW)SKIP$(NC) (pytest not installed)"; \
 	fi; \
-	if command -v npx > /dev/null 2>&1 && [ -d scripts/node_modules ]; then \
+	if command -v npx > /dev/null 2>&1; then \
 		printf "  test-portal (jest)    ... "; \
+		if ! [ -d scripts/node_modules ]; then \
+			(cd scripts && npm install --silent --ignore-scripts) > /dev/null 2>&1; \
+		fi; \
 		if (cd scripts && npx jest --silent) > /dev/null 2>&1; then \
 			echo "$(GREEN)PASS$(NC)"; \
 		else \
 			echo "$(RED)FAIL$(NC)"; failed=1; \
 		fi; \
 	else \
-		echo "  test-portal (jest)    ... $(YELLOW)SKIP$(NC) (npx or node_modules not found)"; \
+		echo "  test-portal (jest)    ... $(YELLOW)SKIP$(NC) (npx not found)"; \
 	fi; \
 	if command -v $(ANYPOINT_CLI) > /dev/null 2>&1; then \
 		printf "  validate-all-governed ... "; \

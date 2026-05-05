@@ -1359,7 +1359,8 @@ describe('updateURLState', () => {
         addHeroTab('all', true);
         addViewBtn('list', true);
         updateURLState();
-        expect(getParams().get('view')).toBe('list');
+        // View mode disabled for launch - always grid
+        expect(getParams().has('view')).toBe(false);
     });
 
     test('omits view param when grid mode (default)', () => {
@@ -1376,6 +1377,7 @@ describe('updateURLState', () => {
         updateURLState();
         expect(getParams().get('filter')).toBe('mcp');
         expect(getParams().get('tags')).toBe('exchange');
-        expect(getParams().get('view')).toBe('list');
+        // View mode disabled for launch - always grid
+        expect(getParams().has('view')).toBe(false);
     });
 });

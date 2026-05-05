@@ -49,14 +49,14 @@ This skill ships small bash scripts under `scripts/`. Invoke them with the `Bash
 
 | Script | Purpose | Output location |
 | --- | --- | --- |
-| `scripts/validate_prerequisites.sh` | Step 0 — validate toolchain, detect/download Mule runtime | `/tmp/mule-dev-env.json` (`mule_version`, `runtime_path`, ...) |
-| `scripts/bootstrap_probe_project.sh` | Step 0 — create a disposable probe project so Phase 1 design commands have a `--project` to point at | `tmp/mule-dev-probe/pom.xml` (workspace-relative); writes `tmp/mule-dev-probe.json` with `probe_project_path` |
-| `scripts/get_latest_connector.sh <search> [nickname]` | Step 2 — search Exchange and print ranked connector candidates (`groupId:assetId:version`, one per line, no score, no winner cue). Writes nothing. | stdout only |
-| `scripts/pick_connector.sh <nickname> <gav>` | Step 2 — record the agent's chosen GAV (after reasoning or an `AskUserQuestion`) as a draft | `tmp/connector-choices/<nickname>.json` (`{groupId, assetId, version}`) |
-| `scripts/commit_connectors.sh` | Step 7 (post-TDD-approval) — promote every draft under `tmp/connector-choices/` to the pinned `tmp/connector-versions/` directory that Phase 2 reads | `tmp/connector-versions/*.json` |
+| `scripts/validate_prerequisites.sh` | Step 1 — validate toolchain, detect/download Mule runtime | `/tmp/mule-dev-env.json` (`mule_version`, `runtime_path`, ...) |
+| `scripts/bootstrap_probe_project.sh` | Step 1 — create a disposable probe project so Phase 1 design commands have a `--project` to point at | `tmp/mule-dev-probe/pom.xml` (workspace-relative); writes `tmp/mule-dev-probe.json` with `probe_project_path` |
+| `scripts/get_latest_connector.sh <search> [nickname]` | Step 3 — search Exchange and print ranked connector candidates (`groupId:assetId:version`, one per line, no score, no winner cue). Writes nothing. | stdout only |
+| `scripts/pick_connector.sh <nickname> <gav>` | Step 3 — record the agent's chosen GAV (after reasoning or an `AskUserQuestion`) as a draft | `tmp/connector-choices/<nickname>.json` (`{groupId, assetId, version}`) |
+| `scripts/commit_connectors.sh` | Step 8 (post-TDD-approval) — promote every draft under `tmp/connector-choices/` to the pinned `tmp/connector-versions/` directory that Phase 2 reads | `tmp/connector-versions/*.json` |
 | `scripts/build_gav.sh <json>` | Turn a saved connector JSON into its `groupId:assetId:version` string | stdout |
-| `scripts/build_deps.sh [versions-dir]` | Step 7 — read every connector pin in `tmp/connector-versions/` and emit a comma-joined GAV string, ready for `dx project create --dependencies`. Skips `db-driver.json` and any non-pin file. | stdout |
-| `scripts/describe_connector.sh <nickname>` | Step 3 — run `dx design describe-connector` against the probe, save full JSON, AND echo `sources[]`+`configs[]` digest to stdout | `tmp/connector-metadata/<nickname>.json` + digest on stdout |
+| `scripts/build_deps.sh [versions-dir]` | Step 8 — read every connector pin in `tmp/connector-versions/` and emit a comma-joined GAV string, ready for `dx project create --dependencies`. Skips `db-driver.json` and any non-pin file. | stdout |
+| `scripts/describe_connector.sh <nickname>` | Step 4 — run `dx design describe-connector` against the probe, save full JSON, AND echo `sources[]`+`configs[]` digest to stdout | `tmp/connector-metadata/<nickname>.json` + digest on stdout |
 | `scripts/maybe_add_http_connector.sh --project <dir> <providers...>` | Phase 2 — defensive check that HTTP connector is present when OAuth providers were chosen; edits `<dir>/pom.xml` | `<dir>/pom.xml` |
 
 Invoke scripts by the absolute path you were given in the "skill is now active" message (it is the directory containing this `SKILL.md`). Do **not** construct relative paths like `../scripts/...` — Cline's working directory shifts across turns and relative paths have produced "No such file or directory" errors in real runs. The inline step examples below write `scripts/...` as shorthand; substitute `<skill-dir>/scripts/...` when you actually execute them.
@@ -69,17 +69,17 @@ Invoke scripts by the absolute path you were given in the "skill is now active" 
 
 This workflow has two phases separated by a hard user-approval gate.
 
-- **Phase 1: Technical Design (Steps 0–6).** Identify systems, search Exchange, describe connectors, pick trigger and providers, present a Technical Design Summary, wait for the user to approve. Phase 1 writes **nothing** to the user's project directory — all artifacts live in `/tmp/mule-dev-env.json` (shared env cache owned by `validate_prerequisites.sh`), and workspace-relative paths `tmp/mule-dev-probe/`, `tmp/mule-dev-probe.json`, `tmp/connector-choices/*.json` (draft connector picks), and `tmp/connector-metadata/*.json`. The pinned `tmp/connector-versions/*.json` directory that Phase 2 reads is only populated after Step 6's approval, by `commit_connectors.sh`.
-- **Phase 2: Build (Steps 7–16).** Create the real project, generate config and flow XML, run the build, declare completion. Phase 2 is the only phase that touches the user's project directory.
+- **Phase 1: Technical Design (Steps 1–7).** Identify systems, search Exchange, describe connectors, pick trigger and providers, present a Technical Design Summary, wait for the user to approve. Phase 1 writes **nothing** to the user's project directory — all artifacts live in `/tmp/mule-dev-env.json` (shared env cache owned by `validate_prerequisites.sh`), and workspace-relative paths `tmp/mule-dev-probe/`, `tmp/mule-dev-probe.json`, `tmp/connector-choices/*.json` (draft connector picks), and `tmp/connector-metadata/*.json`. The pinned `tmp/connector-versions/*.json` directory that Phase 2 reads is only populated after Step 7's approval, by `commit_connectors.sh`.
+- **Phase 2: Build (Steps 8–17).** Create the real project, generate config and flow XML, run the build, declare completion. Phase 2 is the only phase that touches the user's project directory.
 
-Phase 2 MUST NOT start until Step 6's approval gate has been passed explicitly. Skipping Phase 1 — or collapsing it into a single "I'll just use HTTP" decision — is the single highest-impact failure mode of this skill and is what the two-phase structure exists to prevent.
+Phase 2 MUST NOT start until Step 7's approval gate has been passed explicitly. Skipping Phase 1 — or collapsing it into a single "I'll just use HTTP" decision — is the single highest-impact failure mode of this skill and is what the two-phase structure exists to prevent.
 
 ## Workflow-wide discipline (read before Phase 1)
 
-- **Build-and-completion separation (Step 15 → Step 16).** The `mvn clean package` command and the completion signal MUST be in separate responses. In the response that runs `mvn`, emit only the build command — no completion signal, no summary, no additional tool calls. Wait for the build result to come back. Read the result. Only then, in the next response, declare completion.
+- **Build-and-completion separation (Step 16 → Step 17).** The `mvn clean package` command and the completion signal MUST be in separate responses. In the response that runs `mvn`, emit only the build command — no completion signal, no summary, no additional tool calls. Wait for the build result to come back. Read the result. Only then, in the next response, declare completion.
 - **One mvn invocation per response.** When re-running a build after a fix, emit only the `mvn` command in that response. Do not bundle it with further edits, follow-up shell commands, or the completion signal.
 - **"Completion" means the build already passed.** You may only declare completion after a response that ran `mvn clean package` came back with `BUILD SUCCESS`.
-- **Connector versions come ONLY from the Step 2 flow.** Never paste a version from `references/connector-catalog.md`, from training-time memory, or from extrapolation. Step 2 is a three-script dance: `get_latest_connector.sh` lists ranked candidates (stdout only, no pin file), `pick_connector.sh <nickname> <gav>` records the chosen row as a draft in `tmp/connector-choices/`, and `commit_connectors.sh` (Step 7, first action after TDD approval) promotes every draft to `tmp/connector-versions/`. Every GAV that reaches `dx project create --dependencies` or `pom.xml` must be pulled from a `tmp/connector-versions/*.json` file via `scripts/build_deps.sh` (for the full `--dependencies` string at Step 7) or `scripts/build_gav.sh` (for a single connector's GAV elsewhere in Phase 2). The catalog's versions are snapshots that drift — treat it only as a connector-identity reference, not as a version source.
+- **Connector versions come ONLY from the Step 3 flow.** Never paste a version from `references/connector-catalog.md`, from training-time memory, or from extrapolation. Step 3 is a three-script dance: `get_latest_connector.sh` lists ranked candidates (stdout only, no pin file), `pick_connector.sh <nickname> <gav>` records the chosen row as a draft in `tmp/connector-choices/`, and `commit_connectors.sh` (Step 8, first action after TDD approval) promotes every draft to `tmp/connector-versions/`. Every GAV that reaches `dx project create --dependencies` or `pom.xml` must be pulled from a `tmp/connector-versions/*.json` file via `scripts/build_deps.sh` (for the full `--dependencies` string at Step 8) or `scripts/build_gav.sh` (for a single connector's GAV elsewhere in Phase 2). The catalog's versions are snapshots that drift — treat it only as a connector-identity reference, not as a version source.
 - **The agent does the picking, not the script.** `get_latest_connector.sh` deliberately emits a plain ranked list with no score, no emoji, and no "winner" signal. When the list has one row the choice is obvious. When it has several rows the agent must decide which one matches the user's stated system — and if the rows represent real variants of the same family (Slack `mule4-slack-connector` vs `mule-slack-connector`; FTP vs FTPS; Dynamics 365 vs Dynamics GP/NAV/BC; IBM MQ vs Solace vs JMS), the decision belongs to the user via `AskUserQuestion`, not to the agent's guess. The cost of one extra prompt is one turn; the cost of a silent wrong variant is a full Phase-2 rewrite.
 - **No HTTP fallback without evidence.** You may only classify a system as "no dedicated connector exists, use HTTP" AFTER `scripts/get_latest_connector.sh <system>` has run AND returned zero matches (exit 1) OR every row in the ranked list is obviously a different product (no assetId shares tokens with the system name beyond noise words like `mule`/`connector`). Declaring HTTP as the answer before the search has run is forbidden. Exchange carries dedicated connectors for hundreds of SaaS products that are easy to miss when reasoning from training-time knowledge alone — the helper script is the authoritative check. A dedicated connector gives metadata discovery, typed operations, and correct authentication; HTTP gives raw request plumbing the user would then have to wire up by hand, so quietly falling back to HTTP is a real loss, not a neutral choice.
 
@@ -87,9 +87,9 @@ Phase 2 MUST NOT start until Step 6's approval gate has been passed explicitly. 
 
 # Phase 1: Technical Design
 
-## Step 0: Validate Prerequisites
+## Step 1: Validate Prerequisites
 
-Run the prerequisite/runtime bootstrap script. It checks the CLI, Java, and either detects an existing Mule runtime or downloads 4.11.2 using the bearer token from `anypoint-cli-v4 conf token`. It writes `/tmp/mule-dev-env.json` — Step 7 reads `mule_version` from there.
+Run the prerequisite/runtime bootstrap script. It checks the CLI, Java, and either detects an existing Mule runtime or downloads 4.11.2 using the bearer token from `anypoint-cli-v4 conf token`. It writes `/tmp/mule-dev-env.json` — Step 8 reads `mule_version` from there.
 
 Then run the probe-project bootstrap. Phase 1's `describe-connector`, `config-detail`, `source-detail`, and `operation-detail` commands all require `--project <path>` pointing at a directory with a pom.xml, but Phase 1 has not created the real project yet. The probe is a disposable minimal pom.xml at `tmp/mule-dev-probe/` (workspace-relative) that exists purely to satisfy that flag.
 
@@ -110,36 +110,36 @@ PROBE=$(jq -r '.probe_project_path' tmp/mule-dev-probe.json)
 
 ---
 
-## Step 1: Identify Systems and Trigger Hints
+## Step 2: Identify Systems and Trigger Hints
 
-**[BLOCKER] Step 1 MUST NOT prompt the user.** Do not emit an `<ask_followup_question>` or `<AskUserQuestion>` here. The trigger decision happens in Step 4 after connector metadata is on disk — prompting now would force generic options (HTTP Listener / Scheduler) instead of real connector sources, which is the single highest-impact anti-pattern this workflow exists to prevent.
+**[BLOCKER] Step 2 MUST NOT prompt the user.** Do not emit an `<ask_followup_question>` or `<AskUserQuestion>` here. The trigger decision happens in Step 5 after connector metadata is on disk — prompting now would force generic options (HTTP Listener / Scheduler) instead of real connector sources, which is the single highest-impact anti-pattern this workflow exists to prevent.
 
 Produce two records in your response text. These are plain prose — not a thinking block, not a tool call — so later steps (and the user) can read them.
 
-**1. Systems list.** Identify **EXACT system names**: source systems (where data comes from), target systems (where data goes to). Use specific names (Slack, Jira, ServiceNow, Stripe, Shopify), NOT generic terms (chat, ticketing, payments, commerce). Every name on this list will be searched in Step 2; every search must result in a `tmp/connector-choices/<nick>.json` draft on disk (the agent picks from the ranked list and calls `pick_connector.sh`).
+**1. Systems list.** Identify **EXACT system names**: source systems (where data comes from), target systems (where data goes to). Use specific names (Slack, Jira, ServiceNow, Stripe, Shopify), NOT generic terms (chat, ticketing, payments, commerce). Every name on this list will be searched in Step 3; every search must result in a `tmp/connector-choices/<nick>.json` draft on disk (the agent picks from the ranked list and calls `pick_connector.sh`).
 
-**Anti-pattern — inferring a backend from a destination name.** When the prompt mentions a queue, topic, bus, or similar messaging destination, the string that names the destination (e.g. `foo.queue`, `orders.topic`, `events-stream`) is a *label*, not a technology. It does NOT identify which broker is behind it. Do NOT add a specific broker (Anypoint MQ, Kafka, IBM MQ, Solace, SQS, etc.) to the Systems list unless the prompt names it explicitly. If the prompt only says "queue" / "topic" / names a bare destination, list the system as `messaging broker (backend unspecified)` and plan to escalate in Step 2 — the user picks the backend, not the agent. Why this matters: a silently-chosen broker anchors Phase 2 against the wrong connector family, which is a full Phase-2 rewrite to correct.
+**Anti-pattern — inferring a backend from a destination name.** When the prompt mentions a queue, topic, bus, or similar messaging destination, the string that names the destination (e.g. `foo.queue`, `orders.topic`, `events-stream`) is a *label*, not a technology. It does NOT identify which broker is behind it. Do NOT add a specific broker (Anypoint MQ, Kafka, IBM MQ, Solace, SQS, etc.) to the Systems list unless the prompt names it explicitly. If the prompt only says "queue" / "topic" / names a bare destination, list the system as `messaging broker (backend unspecified)` and plan to escalate in Step 3 — the user picks the backend, not the agent. Why this matters: a silently-chosen broker anchors Phase 2 against the wrong connector family, which is a full Phase-2 rewrite to correct.
 
-**2. Trigger hints.** In one or two sentences, note the **verbatim phrases** from the user prompt that describe what starts the flow or names a cadence — e.g. *"every 3 seconds"* or *"listens for new Stripe charges"* or *"makes a GET request to retrieve customers"*. Do NOT classify yet. No class label, no decision tree, no "so the trigger is…". Step 4 does the trigger decision from connector metadata that does not exist yet; committing to a trigger now — even implicitly via a class — tends to anchor the agent against the real `sources[]` that Step 3 will produce.
+**2. Trigger hints.** In one or two sentences, note the **verbatim phrases** from the user prompt that describe what starts the flow or names a cadence — e.g. *"every 3 seconds"* or *"listens for new Stripe charges"* or *"makes a GET request to retrieve customers"*. Do NOT classify yet. No class label, no decision tree, no "so the trigger is…". Step 5 does the trigger decision from connector metadata that does not exist yet; committing to a trigger now — even implicitly via a class — tends to anchor the agent against the real `sources[]` that Step 4 will produce.
 
-If the prompt mentions no trigger or only describes outbound work ("makes a request", "fetches", "calls"), say so explicitly: "No explicit trigger phrase — outbound-only description." Step 4's metadata-first ladder handles this.
+If the prompt mentions no trigger or only describes outbound work ("makes a request", "fetches", "calls"), say so explicitly: "No explicit trigger phrase — outbound-only description." Step 5's metadata-first ladder handles this.
 
 **Connector strategy per system:**
 
-- **Major SaaS platforms** (Salesforce, ServiceNow, NetSuite, Workday) → search for dedicated connector in Step 2.
-- **Standard protocols** (Database, JMS, FTPS, SFTP) → search for protocol-specific connector in Step 2.
-- **Mid-market SaaS** (Stripe, Shopify, HubSpot, Twilio, Plaid, etc.) → search for dedicated connector in Step 2. Do NOT assume these have no connector — Exchange has dedicated connectors for many of them. Training-data intuition that "Stripe/Shopify/etc. is a REST-API-only system" is unreliable; the search is the authority.
-- **Queue or Pub/Sub with a named backend** ("Kafka topic", "IBM MQ", "SQS", "Solace") → search for that specific connector in Step 2.
-- **Queue or Pub/Sub without a named backend** (the prompt uses "queue", "topic", or a bare destination name without naming the broker technology) → per the Step-1 anti-pattern above, the destination name is not the backend. In Step 2, escalate via `AskUserQuestion` to let the user pick the backend (JMS via any broker provider, Kafka, IBM MQ, Solace, SQS, etc.). Only if the user declines to choose should you default to `mule-jms-connector` — JMS is the generic protocol layer that fits any broker, with the broker selected in Step 5 via the connection provider (active-mq, active-mq-nct, generic).
-- **Unknown/Unclear / custom internal APIs** → still search Exchange first in Step 2; HTTP is the fallback only when Step 2's search returns nothing plausibly related.
+- **Major SaaS platforms** (Salesforce, ServiceNow, NetSuite, Workday) → search for dedicated connector in Step 3.
+- **Standard protocols** (Database, JMS, FTPS, SFTP) → search for protocol-specific connector in Step 3.
+- **Mid-market SaaS** (Stripe, Shopify, HubSpot, Twilio, Plaid, etc.) → search for dedicated connector in Step 3. Do NOT assume these have no connector — Exchange has dedicated connectors for many of them. Training-data intuition that "Stripe/Shopify/etc. is a REST-API-only system" is unreliable; the search is the authority.
+- **Queue or Pub/Sub with a named backend** ("Kafka topic", "IBM MQ", "SQS", "Solace") → search for that specific connector in Step 3.
+- **Queue or Pub/Sub without a named backend** (the prompt uses "queue", "topic", or a bare destination name without naming the broker technology) → per the Step-2 anti-pattern above, the destination name is not the backend. In Step 3, escalate via `AskUserQuestion` to let the user pick the backend (JMS via any broker provider, Kafka, IBM MQ, Solace, SQS, etc.). Only if the user declines to choose should you default to `mule-jms-connector` — JMS is the generic protocol layer that fits any broker, with the broker selected in Step 6 via the connection provider (active-mq, active-mq-nct, generic).
+- **Unknown/Unclear / custom internal APIs** → still search Exchange first in Step 3; HTTP is the fallback only when Step 3's search returns nothing plausibly related.
 
-Your next tool call after Step 1 MUST be `get_latest_connector.sh` for a system from your Systems list — NOT an `ask_followup_question`, NOT a describe-connector, NOT anything else. Step 2 is the non-negotiable next step.
+Your next tool call after Step 2 MUST be `get_latest_connector.sh` for a system from your Systems list — NOT an `ask_followup_question`, NOT a describe-connector, NOT anything else. Step 3 is the non-negotiable next step.
 
 ---
 
-## Step 2: Search Exchange for Connectors, Decide, Draft the Choice
+## Step 3: Search Exchange for Connectors, Decide, Draft the Choice
 
-Step 2 is a three-move loop run **once per named system** from Step 1:
+Step 3 is a three-move loop run **once per named system** from Step 2:
 
 1. **List** candidates with `get_latest_connector.sh`.
 2. **Decide** which row is the right fit — inline rationale if the choice is obvious, `AskUserQuestion` if the rows are real variants of the same system family.
@@ -147,7 +147,7 @@ Step 2 is a three-move loop run **once per named system** from Step 1:
 
 The script does not pin a winner. There is no emoji, no score, no "Picked" line in its output. When the list has one row the shape of the output is "one row"; when it has several the shape is "several rows" and that is the cue to read the names and reason about intent — or to escalate.
 
-**Mandatory search rule.** Run `get_latest_connector.sh` for EVERY named system from Step 1 — including systems whose prominence in your training data leads you to assume they have no dedicated connector. Declaring "system X has no dedicated connector" without the script having run is forbidden. This is the rule that prevents silent HTTP fallback — see "No HTTP fallback without evidence" in the workflow-wide discipline.
+**Mandatory search rule.** Run `get_latest_connector.sh` for EVERY named system from Step 2 — including systems whose prominence in your training data leads you to assume they have no dedicated connector. Declaring "system X has no dedicated connector" without the script having run is forbidden. This is the rule that prevents silent HTTP fallback — see "No HTTP fallback without evidence" in the workflow-wide discipline.
 
 **Version source-of-truth rule (MANDATORY):**
 
@@ -209,7 +209,7 @@ If the user's prompt explicitly names one variant ("use the Dynamics 365 connect
 
 ### Move 3 — draft
 
-Record the chosen GAV as a draft. Idempotent — you can re-run with a different GAV if Step 3 or Step 4 metadata reveals a better fit:
+Record the chosen GAV as a draft. Idempotent — you can re-run with a different GAV if Step 4 or Step 5 metadata reveals a better fit:
 
 ```bash
 bash scripts/pick_connector.sh sfdc   com.mulesoft.connectors:mule-salesforce-connector:11.1.0
@@ -218,7 +218,7 @@ bash scripts/pick_connector.sh jms    org.mule.connectors:mule-jms-connector:1.1
 # → tmp/connector-choices/{sfdc,slack,jms}.json now each contain {groupId, assetId, version}
 ```
 
-If you realize after Step 3's metadata digest that the draft is wrong, re-run `pick_connector.sh` with the corrected GAV. Drafts remain mutable until Step 7's `commit_connectors.sh` promotes them.
+If you realize after Step 4's metadata digest that the draft is wrong, re-run `pick_connector.sh` with the corrected GAV. Drafts remain mutable until Step 8's `commit_connectors.sh` promotes them.
 
 **Why drafts instead of pins during Phase 1.** If a connector choice bakes into `tmp/connector-versions/` before the user has seen the Technical Design Summary, the agent — and every downstream check — treats it as settled. Holding the choice as a draft until TDD approval keeps the whole design reversible, and lets the approval gate be the real commitment point.
 
@@ -249,12 +249,12 @@ For any system not in the list, search dynamically with the system name (e.g. `s
 
 ---
 
-## Step 3: Describe Connectors
+## Step 4: Describe Connectors
 
-For each connector resolved in Step 2, retrieve its full metadata and **read the digest** that the wrapper script prints. Use `describe_connector.sh` rather than writing the `describe-connector` pipeline by hand — the wrapper resolves the probe path, saves the full JSON to disk for later steps, AND echoes `sources[]` and `configs[]` to stdout so you see what Step 4 will need:
+For each connector resolved in Step 3, retrieve its full metadata and **read the digest** that the wrapper script prints. Use `describe_connector.sh` rather than writing the `describe-connector` pipeline by hand — the wrapper resolves the probe path, saves the full JSON to disk for later steps, AND echoes `sources[]` and `configs[]` to stdout so you see what Step 5 will need:
 
 ```bash
-bash scripts/describe_connector.sh sfdc       # nickname from Step 2
+bash scripts/describe_connector.sh sfdc       # nickname from Step 3
 bash scripts/describe_connector.sh stripe
 bash scripts/describe_connector.sh http
 ```
@@ -277,7 +277,7 @@ Each invocation writes `tmp/connector-metadata/<nickname>.json` (full response, 
 }
 ```
 
-**Read the `sources[]` array that comes back.** That list is the set of real native triggers the connector supports; it is what Step 4 branches on. Do not skip past the digest straight to the next `describe_connector.sh` call — Step 4's trigger decision depends on you knowing which sources each connector exposes, and the digest is the cheapest place to get that information.
+**Read the `sources[]` array that comes back.** That list is the set of real native triggers the connector supports; it is what Step 5 branches on. Do not skip past the digest straight to the next `describe_connector.sh` call — Step 5's trigger decision depends on you knowing which sources each connector exposes, and the digest is the cheapest place to get that information.
 
 If you ever need the full response (e.g. to introspect `childElements[]` for `oauth-callback-config`), read `tmp/connector-metadata/<nickname>.json` directly.
 
@@ -296,14 +296,14 @@ But in the common case prefer the wrapper — it is one line instead of four and
 
 ---
 
-## Step 4: Select Trigger
+## Step 5: Select Trigger
 
-Every top-level flow (that is not a sub-flow or a `<flow-ref>` target) needs exactly ONE trigger. Step 4 decides *which* trigger by letting connector metadata drive the choice — not prompt-text intuition.
+Every top-level flow (that is not a sub-flow or a `<flow-ref>` target) needs exactly ONE trigger. Step 5 decides *which* trigger by letting connector metadata drive the choice — not prompt-text intuition.
 
-**[BLOCKER] Explore-before-decide gate.** Before committing to a trigger — whether inline or via `AskUserQuestion` — both of the following must be true for EVERY named system from Step 1's Systems list:
+**[BLOCKER] Explore-before-decide gate.** Before committing to a trigger — whether inline or via `AskUserQuestion` — both of the following must be true for EVERY named system from Step 2's Systems list:
 
-1. `tmp/connector-choices/<nick>.json` exists on disk (Step 2, via `pick_connector.sh`).
-2. `tmp/connector-metadata/<nick>.json` exists on disk (Step 3).
+1. `tmp/connector-choices/<nick>.json` exists on disk (Step 3, via `pick_connector.sh`).
+2. `tmp/connector-metadata/<nick>.json` exists on disk (Step 4).
 
 AND you must have the `sources[]` content in view. Run:
 
@@ -314,9 +314,9 @@ for f in tmp/connector-metadata/*.json; do
 done
 ```
 
-in the response that begins Step 4, and read the output. This is the same data the `describe_connector.sh` digest already showed per connector in Step 3, but re-echoing it here puts every connector's sources side-by-side in one place right before the decision. Do not commit to a trigger without having those lists in the current tool output — past turns scroll out of context quickly.
+in the response that begins Step 5, and read the output. This is the same data the `describe_connector.sh` digest already showed per connector in Step 4, but re-echoing it here puts every connector's sources side-by-side in one place right before the decision. Do not commit to a trigger without having those lists in the current tool output — past turns scroll out of context quickly.
 
-Why this gate exists: if the agent commits to a trigger before reading `sources[]`, the usual failure mode is to default to `http:listener` (treating the prompt as a webhook) and silently ignore a real connector source that Step 3 just fetched. A connector's `sources[]` array is the authoritative list of triggers it supports; Step 4 must branch from that list, not from prompt-text intuition.
+Why this gate exists: if the agent commits to a trigger before reading `sources[]`, the usual failure mode is to default to `http:listener` (treating the prompt as a webhook) and silently ignore a real connector source that Step 4 just fetched. A connector's `sources[]` array is the authoritative list of triggers it supports; Step 5 must branch from that list, not from prompt-text intuition.
 
 ### Decision ladder (evaluate in order)
 
@@ -377,7 +377,7 @@ Take this path when:
 
 Use `<scheduler>` with `<fixed-frequency>` or `<cron>`. State the choice inline.
 
-**Record the rejection.** When taking this path, note in one sentence why Rung 1's sources were rejected — e.g. "Shopify's `on-updated-product-trigger` matches 'every 3 seconds' but the user wants to pull by custom date range not 'updated since last poll', so a generic `<scheduler>` + `shopify:product-list` is more appropriate." Step 6's TDD requires this list; capture it now while the reasoning is fresh.
+**Record the rejection.** When taking this path, note in one sentence why Rung 1's sources were rejected — e.g. "Shopify's `on-updated-product-trigger` matches 'every 3 seconds' but the user wants to pull by custom date range not 'updated since last poll', so a generic `<scheduler>` + `shopify:product-list` is more appropriate." Step 7's TDD requires this list; capture it now while the reasoning is fresh.
 
 #### Rung 3 — HTTP Listener path
 
@@ -386,7 +386,7 @@ Take this path when:
 - The prompt explicitly says "expose endpoint", "receive HTTP request", "provide REST API", "webhook at /path", AND
 - No connector source in scope is a webhook-style receiver.
 
-Use `<http:listener>`. State the choice inline. Record which connector sources were considered and why they were rejected (see Step 6).
+Use `<http:listener>`. State the choice inline. Record which connector sources were considered and why they were rejected (see Step 7).
 
 #### Rung 4 — Ask the user
 
@@ -406,19 +406,19 @@ Take this path when none of Rungs 1–3 clearly apply — e.g. the prompt is out
 
 ### After the decision
 
-Record the selected trigger, its owning connector (if any), and — if the path is Rung 2 or Rung 3 — the list of connector sources that were considered and one-line reasons each was dismissed. Step 6's TDD surfaces this list; if it is missing, the TDD is incomplete and Phase 2 cannot start.
+Record the selected trigger, its owning connector (if any), and — if the path is Rung 2 or Rung 3 — the list of connector sources that were considered and one-line reasons each was dismissed. Step 7's TDD surfaces this list; if it is missing, the TDD is incomplete and Phase 2 cannot start.
 
-**[BLOCKER] WAIT for the user's response before moving to Step 5 when this step prompts.**
+**[BLOCKER] WAIT for the user's response before moving to Step 6 when this step prompts.**
 
 ---
 
-## Step 5: Select Connection Providers
+## Step 6: Select Connection Providers
 
-**Ask the user only when there is an actual choice to make.** For each connector, look at the `configs[]` metadata captured in Step 3 — specifically the `connectionProviders` list of the config that owns the operation you intend to call in Phase 2.
+**Ask the user only when there is an actual choice to make.** For each connector, look at the `configs[]` metadata captured in Step 4 — specifically the `connectionProviders` list of the config that owns the operation you intend to call in Phase 2.
 
 **Decision rule:**
 
-- **Multiple configs or multiple providers** → **MUST** use `AskUserQuestion`. The user's choice determines both which `config-name` and which `--connection-provider` you pass to Step 10's `config-detail` call, and which XML structure you write in Step 11.
+- **Multiple configs or multiple providers** → **MUST** use `AskUserQuestion`. The user's choice determines both which `config-name` and which `--connection-provider` you pass to Step 11's `config-detail` call, and which XML structure you write in Step 12.
 - **Exactly one config and exactly one provider** → **DO NOT** prompt. State the choice inline in one line ("Using `s3:config[connection]` — the only option provided by the connector") and proceed. Prompts that offer a single "option" look like pointless ceremony and waste a conversation turn.
 
 **Worked examples from live Exchange metadata:**
@@ -430,7 +430,7 @@ Record the selected trigger, its owning connector (if any), and — if the path 
 | HTTP connector | `listener-config[listener-connection]`, `request-config[request-connection]` | Configs map 1:1 to listener vs request — determined by the flow shape (trigger vs outbound call), not a user preference. Announce, do NOT prompt. |
 | A multi-config connector with stream vs. non-stream configs | `config[basic, role]`, `streams-config[streams]` | **Prompt** — pick the config whose operations match the use case, and if that config has >1 provider, pick a provider. |
 | A connector offering basic / OAuth / JWT / client-credentials | `config[basic, oauth-user-pass, jwt, oauth-client-credentials]` | **Prompt** — real alternatives with different credential models. |
-| Database connector | `config[my-sql-connection, oracle-connection, data-source-connection, generic-connection, ...]` | **Prompt** for the provider, then resolve the JDBC driver GAV in the same step (see "Step 5b — JDBC driver resolution" below). Step 8 is a mechanical `pom.xml` edit. |
+| Database connector | `config[my-sql-connection, oracle-connection, data-source-connection, generic-connection, ...]` | **Prompt** for the provider, then resolve the JDBC driver GAV in the same step (see "Step 6b — JDBC driver resolution" below). Step 9 is a mechanical `pom.xml` edit. |
 
 **When you do prompt,** present only the real alternatives (don't pad with "if unsure..." copy). Example:
 
@@ -453,13 +453,13 @@ anypoint-cli-v4 dx design config-detail \
   --output json > tmp/connector-metadata/sfdc-config.json
 ```
 
-### Step 5b — JDBC driver resolution (only if `mule-db-connector` is in scope)
+### Step 6b — JDBC driver resolution (only if `mule-db-connector` is in scope)
 
-`mule-db-connector` is the one case where the Step-5 provider choice needs more clarification. The provider choice only handles the XML connection element (`<db:my-sql-connection>`, `<db:generic-connection>`, etc.), but the **JDBC driver JAR** is a separate Maven artifact that must ship alongside the connector via `<sharedLibrary>`. Resolve both in Step 5 so Step 6's design summary can show a full `groupId:artifactId:version` for the driver and Step 8 becomes a mechanical `pom.xml` edit with no further prompting.
+`mule-db-connector` is the one case where the Step-6 provider choice needs more clarification. The provider choice only handles the XML connection element (`<db:my-sql-connection>`, `<db:generic-connection>`, etc.), but the **JDBC driver JAR** is a separate Maven artifact that must ship alongside the connector via `<sharedLibrary>`. Resolve both in Step 6 so Step 7's design summary can show a full `groupId:artifactId:version` for the driver and Step 9 becomes a mechanical `pom.xml` edit with no further prompting.
 
-**Branch on the Step-5 provider answer:**
+**Branch on the Step-6 provider answer:**
 
-| Provider picked | Driver auto-pin from the canonical table (Step 8) | Prompt? |
+| Provider picked | Driver auto-pin from the canonical table (Step 9) | Prompt? |
 | --- | --- | --- |
 | `my-sql` | `com.mysql:mysql-connector-j:8.4.0` (8.4 LTS; 9.x requires JDK 21) | No — announce inline |
 | `oracle` | `com.oracle.database.jdbc:ojdbc11:23.9.0.25.07` (Java 17+) | No — announce inline |
@@ -484,12 +484,12 @@ The always-prompt branches all use the same prompt shape:
 </ask_followup_question>
 ```
 
-**What Step 5 must record for Step 8:**
+**What Step 6 must record for Step 9:**
 
-One or more `{groupId, artifactId, version}` tuples, plus the driver class, persisted so Step 8 can emit the `<dependency>` + `<sharedLibrary>` pairs without re-asking. Use a sidecar file next to the connector choice:
+One or more `{groupId, artifactId, version}` tuples, plus the driver class, persisted so Step 9 can emit the `<dependency>` + `<sharedLibrary>` pairs without re-asking. Use a sidecar file next to the connector choice:
 
 ```bash
-# example: after Step 5 picks my-sql
+# example: after Step 6 picks my-sql
 cat > tmp/connector-choices/db-driver.json <<'JSON'
 {
   "dependencies": [
@@ -500,14 +500,14 @@ cat > tmp/connector-choices/db-driver.json <<'JSON'
 JSON
 ```
 
-For `derby:embedded` that file contains three entries; for `generic` with PostgreSQL it contains one. The Step-8 applier reads this file and applies every entry in it to `pom.xml`.
+For `derby:embedded` that file contains three entries; for `generic` with PostgreSQL it contains one. The Step-9 applier reads this file and applies every entry in it to `pom.xml`.
 
-The driver choice will be part of the technical design. Step 6 shows it under "Build-time additions"; the user's approval at Step 6 is what authorizes Step 8 to edit `pom.xml`.
+The driver choice will be part of the technical design. Step 7 shows it under "Build-time additions"; the user's approval at Step 7 is what authorizes Step 9 to edit `pom.xml`.
 ---
 
-## Step 6: Present Technical Design Summary
+## Step 7: Present Technical Design Summary
 
-**[BLOCKER] Present ONLY after Steps 0–5 are complete.** Every connector must have a drafted GAV (from `tmp/connector-choices/*.json`), every connector must have captured metadata (from `tmp/connector-metadata/*.json`), and every config must have a selected provider. If any of those is missing, go back to the relevant step — do not paper over with "TBD" in the summary.
+**[BLOCKER] Present ONLY after Steps 1–6 are complete.** Every connector must have a drafted GAV (from `tmp/connector-choices/*.json`), every connector must have captured metadata (from `tmp/connector-metadata/*.json`), and every config must have a selected provider. If any of those is missing, go back to the relevant step — do not paper over with "TBD" in the summary.
 
 ```
 **Technical Design Summary**
@@ -539,8 +539,8 @@ The driver choice will be part of the technical design. Step 6 shows it under "B
 2. ...
 
 **Build-time additions (auto):**
-- `mule-http-connector` — included if the trigger is HTTP Listener OR any Step 5 provider is OAuth-family (callback listener)
-- JDBC driver(s) — included if `mule-db-connector` is in scope. List **every** `groupId:artifactId:version` recorded in `tmp/connector-choices/db-driver.json` from Step 5b, plus the driver class. Vague phrasing like "PostgreSQL JDBC driver included" is not acceptable here — the user is approving an explicit build edit and needs the exact coordinates.
+- `mule-http-connector` — included if the trigger is HTTP Listener OR any Step 6 provider is OAuth-family (callback listener)
+- JDBC driver(s) — included if `mule-db-connector` is in scope. List **every** `groupId:artifactId:version` recorded in `tmp/connector-choices/db-driver.json` from Step 6b, plus the driver class. Vague phrasing like "PostgreSQL JDBC driver included" is not acceptable here — the user is approving an explicit build edit and needs the exact coordinates.
   Example:
   - `org.postgresql:postgresql:42.7.11` (driver class `org.postgresql.Driver`) — added as `<dependency>` and `<sharedLibrary>` in `pom.xml`.
 
@@ -561,11 +561,11 @@ Then ask for explicit approval:
 </ask_followup_question>
 ```
 
-**[BLOCKER] WAIT for explicit "Yes, proceed to build." before Step 7.** On "No, I want to change the plan.", ask which part (trigger, connectors, providers) and loop back to the relevant step. On "No, cancel generation.", stop the workflow politely.
+**[BLOCKER] WAIT for explicit "Yes, proceed to build." before Step 8.** On "No, I want to change the plan.", ask which part (trigger, connectors, providers) and loop back to the relevant step. On "No, cancel generation.", stop the workflow politely.
 
 Why this gate matters: Phase 1 is the last chance to catch a silent HTTP fallback, a wrong connector variant, a wrong trigger, or a missing clarifying question. Once Phase 2 begins the project skeleton is on disk and rewinding is more expensive for everyone. The summary is the user's chance to correct course; respect "No, I want to change the plan." as a first-class outcome, not an exception.
 
-**After approval, the very first action of Step 7 is `commit_connectors.sh` — that is the script that promotes every Phase-1 draft in `tmp/connector-choices/` to the pinned `tmp/connector-versions/` directory that `dx project create` and `pom.xml` will read from. Do not skip it; `build_deps.sh` / `build_gav.sh` calls later in Phase 2 will fail if the pin files aren't there.**
+**After approval, the very first action of Step 8 is `commit_connectors.sh` — that is the script that promotes every Phase-1 draft in `tmp/connector-choices/` to the pinned `tmp/connector-versions/` directory that `dx project create` and `pom.xml` will read from. Do not skip it; `build_deps.sh` / `build_gav.sh` calls later in Phase 2 will fail if the pin files aren't there.**
 
 **Output:** User approval to proceed.
 
@@ -573,14 +573,14 @@ Why this gate matters: Phase 1 is the last chance to catch a silent HTTP fallbac
 
 # Phase 2: Build
 
-## Step 7: Create Project
+## Step 8: Create Project
 
 **First action — promote Phase 1 drafts to pinned versions.** The user just approved the TDD, so every connector choice in `tmp/connector-choices/` is now official. Promote them in one shot:
 
 ```bash
 bash scripts/commit_connectors.sh
 # → copies every tmp/connector-choices/*.json → tmp/connector-versions/*.json
-# → exits 1 if no drafts exist (means Step 2 was skipped for some system)
+# → exits 1 if no drafts exist (means Step 3 was skipped for some system)
 ```
 
 Then read `/tmp/mule-dev-env.json` for the Mule version and use `build_deps.sh` to emit the full `--dependencies` string from the pins on disk — do not retype GAVs from previous tool output, and do not inline `$(build_gav.sh ...)` once per connector:
@@ -594,7 +594,7 @@ anypoint-cli-v4 dx project create <project-name> \
   --dependencies "$(bash scripts/build_deps.sh)"
 ```
 
-`build_deps.sh` reads every `tmp/connector-versions/*.json` pin, filters out the Step 5b JDBC driver sidecar (`db-driver.json`), and prints a comma-joined GAV string. Any pin file in that directory is included automatically — including `http.json` if you added it via the rule below.
+`build_deps.sh` reads every `tmp/connector-versions/*.json` pin, filters out the Step 6b JDBC driver sidecar (`db-driver.json`), and prints a comma-joined GAV string. Any pin file in that directory is included automatically — including `http.json` if you added it via the rule below.
 
 **Why one wrapper instead of N inlined `$(build_gav.sh …)` substitutions:** with absolute script paths (per the invocation rule above) each inlined `$(…)` is ~165 characters, so a 4-connector project produces a 1000+ character `dx project create` command. The Dev Agent terminal harness loses its completion marker on very long commands and stalls the whole turn until the 2-minute timeout fires. `build_deps.sh` keeps the command under ~250 characters regardless of how many connectors are in scope.
 
@@ -602,13 +602,13 @@ anypoint-cli-v4 dx project create <project-name> \
 
 | Condition | Added connector |
 | --- | --- |
-| Step 4 selected trigger is HTTP Listener (flow contains `<http:listener>`) | `mule-http-connector` |
-| Step 5 selected any OAuth-family provider (OAuth, JWT, auth-code) | `mule-http-connector` (for OAuth callbacks) |
+| Step 5 selected trigger is HTTP Listener (flow contains `<http:listener>`) | `mule-http-connector` |
+| Step 6 selected any OAuth-family provider (OAuth, JWT, auth-code) | `mule-http-connector` (for OAuth callbacks) |
 | Any event-listener source trigger (e.g., `<s3:new-object-listener>`, `<salesforce:replay-topic-listener>`) | None beyond the connector that owns the source — it is already in the TDD |
 
-If either HTTP-trigger condition applies and you have not already picked HTTP in Step 2, run `get_latest_connector.sh mule-http-connector http` + `pick_connector.sh http <gav>` + `commit_connectors.sh` **before** `dx project create` so `tmp/connector-versions/http.json` exists when `build_deps.sh` scans the directory. Missing it causes a first-build failure like `Can't resolve http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd` — self-healable, but it costs a turn.
+If either HTTP-trigger condition applies and you have not already picked HTTP in Step 3, run `get_latest_connector.sh mule-http-connector http` + `pick_connector.sh http <gav>` + `commit_connectors.sh` **before** `dx project create` so `tmp/connector-versions/http.json` exists when `build_deps.sh` scans the directory. Missing it causes a first-build failure like `Can't resolve http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd` — self-healable, but it costs a turn.
 
-**Version source-of-truth (from Step 2):** every GAV in `--dependencies` must come from a `tmp/connector-versions/*.json` file. **Do not** inline a literal version like `com.mulesoft.connectors:mule-amazon-s3-connector:6.6.0` in the `--dependencies` string — if you bypass `build_deps.sh` and the literal version differs from what the helper would have returned, `mvn clean package` will fail with a "not found" error, and the failure is often not self-healable because the version is fictional.
+**Version source-of-truth (from Step 3):** every GAV in `--dependencies` must come from a `tmp/connector-versions/*.json` file. **Do not** inline a literal version like `com.mulesoft.connectors:mule-amazon-s3-connector:6.6.0` in the `--dependencies` string — if you bypass `build_deps.sh` and the literal version differs from what the helper would have returned, `mvn clean package` will fail with a "not found" error, and the failure is often not self-healable because the version is fictional.
 
 **Project structure created:**
 
@@ -619,11 +619,11 @@ If either HTTP-trigger condition applies and you have not already picked HTTP in
 
 ---
 
-## Step 8: Apply JDBC Driver to pom.xml
+## Step 9: Apply JDBC Driver to pom.xml
 
-The driver GAVs were already chosen in Step 5b and approved by the user at Step 6. Step 8 reads `tmp/connector-choices/db-driver.json` and applies every entry to `<project-name>/pom.xml` — one entry produces one `<dependency>` block AND one `<sharedLibrary>` block. Skip this step entirely if `mule-db-connector` is not in scope.
+The driver GAVs were already chosen in Step 6b and approved by the user at Step 7. Step 9 reads `tmp/connector-choices/db-driver.json` and applies every entry to `<project-name>/pom.xml` — one entry produces one `<dependency>` block AND one `<sharedLibrary>` block. Skip this step entirely if `mule-db-connector` is not in scope.
 
-If `tmp/connector-choices/db-driver.json` is missing but `mule-db-connector` is in scope, return to Step 5b — do NOT invent a driver here or assume prematurely.
+If `tmp/connector-choices/db-driver.json` is missing but `mule-db-connector` is in scope, return to Step 6b — do NOT invent a driver here or assume prematurely.
 
 **For every entry in `db-driver.json`'s `dependencies[]` array, add both:**
 
@@ -652,9 +652,9 @@ If `tmp/connector-choices/db-driver.json` is missing but `mule-db-connector` is 
 ```
 ---
 
-## Step 9: Verify HTTP Connector (OAuth/HTTP-Listener defensive check)
+## Step 10: Verify HTTP Connector (OAuth/HTTP-Listener defensive check)
 
-In v7, Step 7's `--dependencies` already includes `mule-http-connector` when Step 4 chose HTTP Listener or Step 5 chose an OAuth-family provider — because Phase 1's approved TDD made that visible. This step is a **defensive no-op check** in the common case: run the helper in case the TDD missed the HTTP addition for some reason.
+In v7, Step 8's `--dependencies` already includes `mule-http-connector` when Step 5 chose HTTP Listener or Step 6 chose an OAuth-family provider — because Phase 1's approved TDD made that visible. This step is a **defensive no-op check** in the common case: run the helper in case the TDD missed the HTTP addition for some reason.
 
 **Skip this step entirely** when none of the selected providers match `oauth|jwt|auth-code|authorization-code` AND the trigger is not HTTP Listener. Running it as a "just to be safe" consumes a turn.
 
@@ -663,24 +663,24 @@ For the OAuth / HTTP-Listener case, run the idempotent helper:
 ```bash
 bash <skill-dir>/scripts/maybe_add_http_connector.sh \
   --project ./<project-name> \
-  "oauth-user-pass"    # one argument per Step-5 provider
+  "oauth-user-pass"    # one argument per Step-6 provider
 ```
 
 `<skill-dir>` is the absolute path you were given in the "skill is now active" message (the directory containing this `SKILL.md`). Using the absolute path avoids the "No such file or directory" errors that come from relative invocation.
 
 If *any* provider argument matches `oauth`, `jwt`, `auth-code`, or `authorization-code` (case-insensitive), the script:
 
-1. Reuses `<project-name>/tmp/connector-choices/http.json` if the agent already picked HTTP in Step 2, otherwise runs `get_latest_connector.sh mule-http-connector http` and drafts the top row via `pick_connector.sh http <gav>` — HTTP is an unambiguous search, so no user prompt is needed.
+1. Reuses `<project-name>/tmp/connector-choices/http.json` if the agent already picked HTTP in Step 3, otherwise runs `get_latest_connector.sh mule-http-connector http` and drafts the top row via `pick_connector.sh http <gav>` — HTTP is an unambiguous search, so no user prompt is needed.
 2. Inserts a `<dependency>` block before `</dependencies>` in `<project-name>/pom.xml` (with `<classifier>mule-plugin</classifier>`).
 3. Is a no-op if the HTTP connector is already present.
 
-**Manual fallback** — also add HTTP connector if: the connector documentation mentions "callback URL" or "redirect URI", or Step 10 `config-detail` shows an `oauth-callback-config` child element. Without HTTP connector the build fails with: `The content of element '<connector>:<connection-provider>' is not complete`.
+**Manual fallback** — also add HTTP connector if: the connector documentation mentions "callback URL" or "redirect URI", or Step 11 `config-detail` shows an `oauth-callback-config` child element. Without HTTP connector the build fails with: `The content of element '<connector>:<connection-provider>' is not complete`.
 
 ---
 
-## Step 10: Get Configuration Details
+## Step 11: Get Configuration Details
 
-Phase 1 Step 5 already persisted `config-detail` output to `tmp/connector-metadata/<nickname>-config.json`. Read it from there:
+Phase 1 Step 6 already persisted `config-detail` output to `tmp/connector-metadata/<nickname>-config.json`. Read it from there:
 
 ```bash
 cat tmp/connector-metadata/sfdc-config.json
@@ -757,9 +757,9 @@ jq '.connectionProviders[0].childElements[] | select(.paramName == "oauthCallbac
 
 ---
 
-## Step 11: Create Configuration Files
+## Step 12: Create Configuration Files
 
-Based on Step 10 metadata, create configuration files.
+Based on Step 11 metadata, create configuration files.
 
 **`src/main/resources/config.yaml`** — extract required attributes and child-element parameters; emit placeholders:
 
@@ -807,7 +807,7 @@ slack:
 
 ---
 
-## Step 12: Get Operation / Source Details
+## Step 13: Get Operation / Source Details
 
 For each operation the flow will call, retrieve metadata:
 
@@ -837,7 +837,7 @@ anypoint-cli-v4 dx design operation-detail \
 }
 ```
 
-**For event-driven triggers** (the Step 4 selected trigger is a connector source, not built-in Scheduler or generic HTTP Listener), also retrieve source details:
+**For event-driven triggers** (the Step 5 selected trigger is a connector source, not built-in Scheduler or generic HTTP Listener), also retrieve source details:
 
 ```bash
 anypoint-cli-v4 dx design source-detail \
@@ -863,9 +863,9 @@ Same `attributes` + `childElements` structure. Always include ALL `required: tru
 
 ---
 
-## Step 13: Generate Complete Flow
+## Step 14: Generate Complete Flow
 
-Generate the complete flow in `src/main/mule/<project-name>.xml` using metadata from Steps 10, 12. Do NOT use hardcoded structures.
+Generate the complete flow in `src/main/mule/<project-name>.xml` using metadata from Steps 11, 13. Do NOT use hardcoded structures.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -922,7 +922,7 @@ Include in `xsi:schemaLocation` exactly one entry for each **module or connector
 
 | Namespace | `xmlns:*` declaration | Why it's excluded from `schemaLocation` |
 |---|---|---|
-| `doc` (`http://www.mulesoft.org/schema/mule/documentation`) | Required when any `doc:name` / `doc:description` is used (Step 14) | No XSD exists at that URL. `doc:*` attributes are accepted by `mule-core` via `anyAttribute`. Adding a schemaLocation entry makes `mvn clean package` fail at `process-classes` with `Can't resolve …/mule-documentation.xsd`. |
+| `doc` (`http://www.mulesoft.org/schema/mule/documentation`) | Required when any `doc:name` / `doc:description` is used (Step 15) | No XSD exists at that URL. `doc:*` attributes are accepted by `mule-core` via `anyAttribute`. Adding a schemaLocation entry makes `mvn clean package` fail at `process-classes` with `Can't resolve …/mule-documentation.xsd`. |
 | `xsi` (`http://www.w3.org/2001/XMLSchema-instance`) | Required to use the `xsi:schemaLocation` attribute itself | `xsi` is a W3C standard namespace, not a Mule schema. |
 
 **Namespace ↔ dependency parity:** if a namespace is declared via `xmlns:X` but has no matching `<dependency>` in `pom.xml`, the correct fix is to **add the dependency or remove the namespace** — not to add a schemaLocation entry that points at a non-existent XSD. Same failure mode as `mule-documentation.xsd` above, different root cause; applies to `mule-scripting`, `mule-objectstore`, `mule-validation`, `mule-http` when those namespaces are declared without their connector dep.
@@ -933,7 +933,7 @@ Include in `xsi:schemaLocation` exactly one entry for each **module or connector
 - Use exact `attributeName` from metadata for all attributes
 - Include every `required: true` attribute and child element
 - Use the correct namespace prefix from metadata
-- Reference `config-ref` names from Step 11
+- Reference `config-ref` names from Step 12
 - **Generate child elements in the exact order of the `childElements[]` array** — XSD schemas enforce strict sequencing
 - **Do not add wrapper elements that are not in metadata** (e.g., use `<reconnect>` not `<reconnection-strategy><reconnect>`)
 - Place reconnection at the config connection level, not operation level (unless metadata explicitly includes it there)
@@ -941,13 +941,13 @@ Include in `xsi:schemaLocation` exactly one entry for each **module or connector
 
 ---
 
-## Step 14: Add `doc:name` and `doc:description` to Canvas-Visible Elements
+## Step 15: Add `doc:name` and `doc:description` to Canvas-Visible Elements
 
 Every XML element that appears as a visible node on the flow canvas MUST have `doc:name` and `doc:description` attributes. `doc:description` is displayed as the label text on the canvas node (overriding `doc:name` when present), so keep it concise and meaningful.
 
 **Prerequisite — namespace declaration:**
 
-Any use of a `doc:*` attribute requires `xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"` on the `<mule>` root (see Step 13). If it is missing, every `doc:name` triggers `The prefix "doc" for attribute "doc:name" associated with an element type "..." is not bound`. The fix is to add the `xmlns:doc` attribute — and, per Step 13's `xsi:schemaLocation` construction rule, **not** to add `mule-documentation` to `xsi:schemaLocation`.
+Any use of a `doc:*` attribute requires `xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"` on the `<mule>` root (see Step 14). If it is missing, every `doc:name` triggers `The prefix "doc" for attribute "doc:name" associated with an element type "..." is not bound`. The fix is to add the `xmlns:doc` attribute — and, per Step 14's `xsi:schemaLocation` construction rule, **not** to add `mule-documentation` to `xsi:schemaLocation`.
 
 Infer descriptions from the `description` field returned by `config-detail`, `operation-detail`, and `source-detail` metadata, the XML structure and element purpose, flow comments, and the overall integration context.
 
@@ -1038,7 +1038,7 @@ payload map { id: $.Id, name: $.Name, email: $.Email }]]></ee:set-payload>
 
 ---
 
-## Step 15: Build and Verify
+## Step 16: Build and Verify
 
 ```bash
 cd <project-name>
@@ -1051,21 +1051,21 @@ Success: `target/<project-name>-1.0.0-SNAPSHOT-mule-application.jar`.
 
 1. Emit `mvn clean package` as the **only** tool call in this response. Do not include a completion signal, a follow-up `ls`, or any other tool call alongside it. Stop and wait for the build output.
 2. Read the output:
-    - If the last line block contains `BUILD SUCCESS`, proceed to Step 16 **in a new response**.
-    - If the last line block contains `BUILD FAILURE`, find the `[ERROR]` line beginning `Failed to execute goal ...`, diagnose the root cause, edit the offending file (revisiting the relevant earlier Step — e.g. Step 13 for XML structure, Step 14 for documentation attributes and namespaces), and return to step 1 of this protocol.
+    - If the last line block contains `BUILD SUCCESS`, proceed to Step 17 **in a new response**.
+    - If the last line block contains `BUILD FAILURE`, find the `[ERROR]` line beginning `Failed to execute goal ...`, diagnose the root cause, edit the offending file (revisiting the relevant earlier Step — e.g. Step 14 for XML structure, Step 15 for documentation attributes and namespaces), and return to step 1 of this protocol.
 
 **After any `<write_to_file>` or `<replace_in_file>` on `pom.xml`, on flow XML, or on config XML, you MUST re-run `mvn clean package` before declaring completion.** Editing without re-verifying silently ships a broken build.
 
 ---
 
-## Step 16: Declare Completion
+## Step 17: Declare Completion
 
-**Pre-condition:** The immediately preceding response must be a build response (per Step 15) whose returned output contains `BUILD SUCCESS`. If this is not true, do NOT enter Step 16 — go back to Step 15.
+**Pre-condition:** The immediately preceding response must be a build response (per Step 16) whose returned output contains `BUILD SUCCESS`. If this is not true, do NOT enter Step 17 — go back to Step 16.
 
 Completion discipline:
 
 - **The completion signal is the ONLY tool call in this response.** Do not run `mvn` here. Do not add follow-up shell commands. The build was already executed and verified in the previous response.
-- **Do not declare completion after a `BUILD FAILURE`, even if you believe the subsequent edit fixes it.** Re-run `mvn clean package` in its own response (Step 15), observe `BUILD SUCCESS`, then declare completion in the next response.
+- **Do not declare completion after a `BUILD FAILURE`, even if you believe the subsequent edit fixes it.** Re-run `mvn clean package` in its own response (Step 16), observe `BUILD SUCCESS`, then declare completion in the next response.
 - **Do not declare completion if the most recent build was never actually executed** (e.g., the command was shown but no result came back). Re-run it in its own response and wait.
 
 **Completion message content — keep it tight.** The user can see the files and the build log. The completion message is evidence that the build passed, not a marketing document. Include exactly these, and nothing else:
@@ -1080,10 +1080,10 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 
 ## Best Practices
 
-**1. Dynamic connector versions.** See Step 2's "Version source-of-truth rule" for the full mandate.
+**1. Dynamic connector versions.** See Step 3's "Version source-of-truth rule" for the full mandate.
 
 - ✅ Phase 1: `get_latest_connector.sh mule-salesforce-connector sfdc` → list → `pick_connector.sh sfdc <gav>` → draft at `tmp/connector-choices/sfdc.json`
-- ✅ Phase 2: `commit_connectors.sh` (first action of Step 7) → `build_deps.sh` for the `dx project create --dependencies` string, or `build_gav.sh tmp/connector-versions/<name>.json` for a single GAV elsewhere
+- ✅ Phase 2: `commit_connectors.sh` (first action of Step 8) → `build_deps.sh` for the `dx project create --dependencies` string, or `build_gav.sh tmp/connector-versions/<name>.json` for a single GAV elsewhere
 - ❌ Hardcoded literal: `com.mulesoft.connectors:mule-salesforce-connector:10.20.0`
 - ❌ Pasted from `references/connector-catalog.md` (snapshot only — drifts)
 - ❌ Search term alone as the GAV: `salesforce`
@@ -1132,9 +1132,9 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 
 **Runtime path required:** first use of design commands prompts for runtime location. The path is saved to `~/.mule-dx/config.json`.
 
-**Database driver missing:** if Step 5b didn't record `tmp/connector-choices/db-driver.json`, return to Step 5b to make the choice (with prompts where the provider is `generic`/`data-source`/`derby`). If the sidecar exists but `pom.xml` is missing the entries, return to Step 8 — it reads that file and applies every entry as a `<dependency>` + `<sharedLibrary>` pair. Do not invent a driver GAV at Step 8.
+**Database driver missing:** if Step 6b didn't record `tmp/connector-choices/db-driver.json`, return to Step 6b to make the choice (with prompts where the provider is `generic`/`data-source`/`derby`). If the sidecar exists but `pom.xml` is missing the entries, return to Step 9 — it reads that file and applies every entry as a `<dependency>` + `<sharedLibrary>` pair. Do not invent a driver GAV at Step 9.
 
-**`The mule application does not contain the following shared libraries: [<artifactId>:<groupId>]`:** the `<dependency>` block is present but the matching `<sharedLibrary>` block inside `mule-maven-plugin` is either missing or has a mismatched `groupId`/`artifactId`. Every driver dependency needs both; see Step 8.
+**`The mule application does not contain the following shared libraries: [<artifactId>:<groupId>]`:** the `<dependency>` block is present but the matching `<sharedLibrary>` block inside `mule-maven-plugin` is either missing or has a mismatched `groupId`/`artifactId`. Every driver dependency needs both; see Step 9.
 
 **Derby driver layout:** see `references/jdbc-drivers.md`. Derby 10.15+ split into multiple artifacts (`derby` + `derbyshared` + `derbytools` for embedded; `derbyclient` + `derbyshared` for network client), so the `<sharedLibrary>` list has multiple entries, not one.
 
@@ -1145,27 +1145,27 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 `<skill-dir>` below is the absolute path you were given in the "skill is now active" message. Use it consistently — do not construct relative `../scripts/...` paths.
 
 ```bash
-# Step 0: prerequisites + runtime discovery + probe project
+# Step 1: prerequisites + runtime discovery + probe project
 bash <skill-dir>/scripts/validate_prerequisites.sh
 bash <skill-dir>/scripts/bootstrap_probe_project.sh
 PROBE=$(jq -r '.probe_project_path' tmp/mule-dev-probe.json)
 
-# Step 2: connector search — list, decide, draft (one loop per system; search
+# Step 3: connector search — list, decide, draft (one loop per system; search
 # EVERY named system including mid-market SaaS; don't pre-judge as "no connector")
 bash <skill-dir>/scripts/get_latest_connector.sh <search-term> [<nickname>]   # prints ranked GAVs to stdout
 # ... agent reads list, decides (or AskUserQuestion for real variant ambiguity), then:
 bash <skill-dir>/scripts/pick_connector.sh <nickname> <groupId:assetId:version>   # drafts to tmp/connector-choices/
 
-# Step 3: describe connectors (Phase 1 — wrapper saves JSON + echoes sources[] digest)
+# Step 4: describe connectors (Phase 1 — wrapper saves JSON + echoes sources[] digest)
 bash <skill-dir>/scripts/describe_connector.sh <nickname>   # one per connector
 
-# Step 5: config-detail (Phase 1 — also cached for Phase 2)
+# Step 6: config-detail (Phase 1 — also cached for Phase 2)
 GAV_A="$(bash <skill-dir>/scripts/build_gav.sh tmp/connector-choices/a.json)"
 anypoint-cli-v4 dx design config-detail --project "$PROBE" --connector "$GAV_A" \
   --config-name <name> --connection-provider <prov> --output json \
   > tmp/connector-metadata/a-config.json
 
-# Step 7: promote drafts to pinned versions, then create the real project (Phase 2)
+# Step 8: promote drafts to pinned versions, then create the real project (Phase 2)
 bash <skill-dir>/scripts/commit_connectors.sh   # tmp/connector-choices/ → tmp/connector-versions/
 MULE_VERSION=$(jq -r '.mule_version' /tmp/mule-dev-env.json)
 anypoint-cli-v4 dx project create <name> \
@@ -1173,11 +1173,11 @@ anypoint-cli-v4 dx project create <name> \
   --mule-version "$MULE_VERSION" \
   --dependencies "$(bash <skill-dir>/scripts/build_deps.sh)"   # reads every tmp/connector-versions/*.json pin
 
-# Step 9: OAuth → HTTP defensive check (only when Step 5 chose OAuth/JWT/auth-code
+# Step 10: OAuth → HTTP defensive check (only when Step 6 chose OAuth/JWT/auth-code
 # or the trigger is HTTP Listener)
 bash <skill-dir>/scripts/maybe_add_http_connector.sh --project ./<name> "<provider1>" "<provider2>"
 
-# Step 12: operation / source details (Phase 2 — real project now exists)
+# Step 13: operation / source details (Phase 2 — real project now exists)
 anypoint-cli-v4 dx design operation-detail --project ./<name> --connector "$GAV_A" --operation-name <op>  --output json
 anypoint-cli-v4 dx design source-detail    --project ./<name> --connector "$GAV_A" --source-name    <src> --output json
 ```

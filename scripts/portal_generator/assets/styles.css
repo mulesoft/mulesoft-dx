@@ -5221,8 +5221,8 @@ details[open] .examples-toggle-icon {
 
 .skill-view-markdown ul,
 .skill-view-markdown ol,
-.skill-page ul,
-.skill-page ol {
+.skill-page .content-section ul,
+.skill-page .content-section ol {
     margin-left: var(--space-lg);
     padding-left: var(--space-xl);
     margin-bottom: var(--space-medium);

@@ -972,7 +972,7 @@ code {
     grid-template-columns: repeat(3, minmax(0, 389px));
     gap: 32px; /* Same horizontal gap as card grid */
     align-items: center;
-    justify-content: start;
+    justify-content: center;
 }
 
 .catalog-search-and-results {
@@ -1427,18 +1427,20 @@ code {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 389px));
     gap: 36px 32px; /* 36px vertical, 32px horizontal gap for equal "streets" */
-    justify-content: start;
+    justify-content: center;
 }
 
 @media (max-width: 1200px) {
     .catalog-grid {
         grid-template-columns: repeat(2, minmax(0, 389px));
         gap: 36px 32px;
+        justify-content: center;
     }
 
     .catalog-results-header {
         grid-template-columns: repeat(2, minmax(0, 389px));
         gap: 32px;
+        justify-content: center;
     }
 
     .catalog-search-and-results {

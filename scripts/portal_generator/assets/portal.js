@@ -3661,6 +3661,7 @@ function buildUrlBar(bar, opId, path, servers) {
         urlText.textContent = fullUrl;
         bar.appendChild(urlText);
     }
+    }
 }
 
 function toggleServerDropdown(bar, opId, servers) {

@@ -3627,40 +3627,40 @@ function buildUrlBar(bar, opId, path, servers) {
 
     var idx = getActiveServerIndex(opId, servers);
     var resolvedUrl = resolveServerUrl(servers[idx], opId);
-
-    // Server part container
-    var serverContainer = document.createElement('span');
-    serverContainer.className = 'url-server-container';
-
-    // Server URL text
-    var serverSpan = document.createElement('span');
-    serverSpan.className = 'url-server-part';
-    serverSpan.textContent = resolvedUrl;
-    serverContainer.appendChild(serverSpan);
+    var fullUrl = resolvedUrl + path;
 
     if (servers.length > 1) {
-        serverContainer.classList.add('has-dropdown');
-        serverContainer.title = 'Click to change server';
+        // Create combobox-style container
+        var combobox = document.createElement('div');
+        combobox.className = 'url-combobox';
+        combobox.title = 'Click to change server';
 
-        // Add chevron-down icon
+        // URL text
+        var urlText = document.createElement('span');
+        urlText.className = 'url-combobox-text';
+        urlText.textContent = fullUrl;
+
+        // Chevron icon
         var chevron = document.createElement('span');
-        chevron.className = 'server-dropdown-chevron';
-        chevron.innerHTML = '▼';
-        serverContainer.appendChild(chevron);
+        chevron.className = 'url-combobox-chevron';
+        chevron.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-        serverContainer.addEventListener('click', function(e) {
+        combobox.appendChild(urlText);
+        combobox.appendChild(chevron);
+
+        combobox.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleServerDropdown(bar, opId, servers);
         });
+
+        bar.appendChild(combobox);
+    } else {
+        // Single server - just show URL as plain text
+        var urlText = document.createElement('span');
+        urlText.className = 'url-text-plain';
+        urlText.textContent = fullUrl;
+        bar.appendChild(urlText);
     }
-
-    // Path part
-    var pathSpan = document.createElement('span');
-    pathSpan.className = 'url-path-part';
-    pathSpan.textContent = path;
-
-    bar.appendChild(serverContainer);
-    bar.appendChild(pathSpan);
 }
 
 function toggleServerDropdown(bar, opId, servers) {

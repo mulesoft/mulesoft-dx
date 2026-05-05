@@ -1152,14 +1152,15 @@ code {
 
 .tag-chip {
     display: inline-flex;
-    border: 1px solid var(--color-neutral-5);
+    border: 1px solid var(--color-border-primary);
     align-items: center;
     gap: var(--space-xx-small);
     padding: var(--space-xxx-small) var(--space-x-small);
-    color: var(--color-neutral-5);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
     border-radius: var(--radius-xl);
     font-size: var(--font-size-3);
-    font-weight: var(--font-weight-regular);
+    font-weight: var(--font-weight-medium);
     transition: background 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
     white-space: nowrap;
     height: 1.5rem;

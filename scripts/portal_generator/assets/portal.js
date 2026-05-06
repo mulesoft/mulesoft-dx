@@ -66,7 +66,6 @@ function buildUrlBarHtml(method, serverUrl, path, link) {
 var xOriginModalStack = [];
 
 function openXOriginModal(opId, paramName, location) {
-    console.log('openXOriginModal called with:', { opId, paramName, location });
     var inputId = 'param-' + opId + '-' + paramName;
     var input = document.getElementById(inputId);
     if (!input) {
@@ -4445,7 +4444,6 @@ function switchResponseTab(opId, tabName) {
 }
 
 async function sendRequest(opId, buttonEl) {
-    console.log('[DEBUG] sendRequest called with opId:', opId);
     var section = document.getElementById('op-' + opId);
     if (!section) {
         console.error('[DEBUG] Section not found for opId:', opId);
@@ -4459,7 +4457,6 @@ async function sendRequest(opId, buttonEl) {
         console.error('[DEBUG] Try panel not found for opId:', opId);
         return;
     }
-    console.log('[DEBUG] Found section and tryPanel');
 
     // Collect parameters
     var path = pathTemplate;
@@ -4528,13 +4525,9 @@ async function sendRequest(opId, buttonEl) {
 
     // Always show response area with 'empty' class before request
     // Override template's inline display:none
-    console.log('[DEBUG] Response div before request:', responseDiv);
-    console.log('[DEBUG] Response div display before:', responseDiv ? responseDiv.style.display : 'N/A');
     if (responseDiv) {
         responseDiv.classList.add('empty');
         responseDiv.style.display = 'block';  // Show the response area
-        console.log('[DEBUG] Response div display after setting to block:', responseDiv.style.display);
-        console.log('[DEBUG] Response div classes:', responseDiv.className);
     }
 
     try {
@@ -4558,25 +4551,9 @@ async function sendRequest(opId, buttonEl) {
             buttonEl.disabled = false;
         }
 
-        console.log('[DEBUG] Response received successfully');
         if (responseDiv) {
             responseDiv.style.display = 'block';  // Keep response visible
             responseDiv.classList.remove('empty');
-            console.log('[DEBUG] Response div after removing empty:', responseDiv.style.display, responseDiv.className);
-
-            // Check dimensions and visibility
-            var rect = responseDiv.getBoundingClientRect();
-            var computedStyle = window.getComputedStyle(responseDiv);
-            console.log('[DEBUG] Response div dimensions:', {
-                width: rect.width,
-                height: rect.height,
-                top: rect.top,
-                left: rect.left,
-                display: computedStyle.display,
-                visibility: computedStyle.visibility,
-                opacity: computedStyle.opacity,
-                overflow: computedStyle.overflow
-            });
         }
 
         if (data.error) {
@@ -4594,41 +4571,10 @@ async function sendRequest(opId, buttonEl) {
         var statusClass = 'status-' + String(status).charAt(0) + 'xx';
         if (statusBadge) { statusBadge.textContent = status; statusBadge.className = 'response-status-badge ' + statusClass; }
 
-        // Display response body and headers
-        console.log('[DEBUG] About to display response in ACE editors');
-        console.log('[DEBUG] responseBody element:', responseBody);
-        console.log('[DEBUG] responseHeaders element:', responseHeaders);
-
-        // Check responseBody visibility before
-        if (responseBody) {
-            var bodyRect = responseBody.getBoundingClientRect();
-            var bodyComputed = window.getComputedStyle(responseBody);
-            console.log('[DEBUG] responseBody BEFORE display:', {
-                width: bodyRect.width,
-                height: bodyRect.height,
-                display: bodyComputed.display,
-                hasActiveClass: responseBody.classList.contains('active')
-            });
-        }
-
         displayResponseInAceEditors(responseBody, responseHeaders, data);
-        console.log('[DEBUG] Finished displaying response');
-
-        // Check responseBody visibility after
-        if (responseBody) {
-            var bodyRect2 = responseBody.getBoundingClientRect();
-            var bodyComputed2 = window.getComputedStyle(responseBody);
-            console.log('[DEBUG] responseBody AFTER display:', {
-                width: bodyRect2.width,
-                height: bodyRect2.height,
-                display: bodyComputed2.display,
-                hasActiveClass: responseBody.classList.contains('active')
-            });
-        }
 
         // Scroll response into view
         if (responseDiv) {
-            console.log('[DEBUG] Scrolling response into view');
             responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -5283,7 +5229,6 @@ var debuggerState = {};
 var skillVariables = {};
 
 function startDebugger(slug) {
-    console.log('Starting debugger for:', slug);
 
     // Initialize debugger state
     debuggerState[slug] = {
@@ -5304,7 +5249,6 @@ function startDebugger(slug) {
 }
 
 function cancelDebugger(slug) {
-    console.log('Canceling debugger for:', slug);
 
     // Reset state and clear variables
     debuggerState[slug] = { isRunning: false };
@@ -5347,12 +5291,10 @@ function nextStep(slug) {
         // Check if we just executed the last step
         if (nextIndex === state.totalSteps - 1) {
             state.allStepsCompleted = true;
-            console.log('Last step executed. Click Next again to finish.');
         }
     } else if (nextIndex >= state.totalSteps) {
         // Clicked Next after last step was executed
         if (state.allStepsCompleted) {
-            console.log('All steps completed. Finishing debugger.');
             cancelDebugger(slug);
         }
     }
@@ -5389,7 +5331,6 @@ function previousStep(slug) {
 
 // Clean variables that were captured by steps after the current step
 function cleanFutureStepVariables(slug, currentIndex) {
-    console.log('Cleaning variables from steps after index:', currentIndex);
 
     var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
     var variablesToKeep = {};
@@ -5419,13 +5360,11 @@ function cleanFutureStepVariables(slug, currentIndex) {
         }
     }
 
-    console.log('Variables to keep:', Object.keys(variablesToKeep));
 
     // Remove variables not in the keep list
     if (skillVariables[slug]) {
         for (var varName in skillVariables[slug]) {
             if (!variablesToKeep[varName]) {
-                console.log('Removing variable:', varName);
                 delete skillVariables[slug][varName];
             }
         }
@@ -5538,7 +5477,6 @@ function scrollToStepByIndex(slug, index) {
 
 // Scroll to the step that defines a variable
 function scrollToVariableSource(slug, varName) {
-    console.log('Scrolling to source of variable:', varName);
 
     var foundStep = null;
 
@@ -5724,7 +5662,6 @@ function captureVariablesFromResponse(panel, result) {
     var outputs = {};
     try {
         outputs = JSON.parse(outputsJson);
-        console.log('Parsed outputs:', outputs);
     } catch (e) {
         console.error('Failed to parse outputs:', e);
         return;
@@ -5764,7 +5701,6 @@ function captureVariablesFromResponse(panel, result) {
         }
     }
 
-    console.log('Response body:', responseBody);
 
     // Extract variables using JSONPath-like simple extraction
     var capturedVars = {};
@@ -5777,7 +5713,6 @@ function captureVariablesFromResponse(panel, result) {
             var path = outputDef.path;
             var labelsPath = outputDef.labels; // Optional labels path
 
-            console.log('Processing variable:', varName, 'Path:', path, 'Labels:', labelsPath);
 
             if (!varName || !path) {
                 console.warn('Missing name or path in output definition:', outputDef);
@@ -5785,7 +5720,6 @@ function captureVariablesFromResponse(panel, result) {
             }
 
             var value = extractValueByPath(responseBody, path);
-            console.log('Extracted value for', varName, ':', value);
 
             if (value !== undefined) {
                 capturedVars[varName] = value;
@@ -5793,7 +5727,6 @@ function captureVariablesFromResponse(panel, result) {
                 // If labels path is provided, extract labels too
                 if (labelsPath && Array.isArray(value)) {
                     var labels = extractValueByPath(responseBody, labelsPath);
-                    console.log('Extracted labels for', varName, ':', labels);
                     if (labels && Array.isArray(labels)) {
                         // Store labels alongside values
                         if (!capturedVars.__labels__) {
@@ -5808,7 +5741,6 @@ function captureVariablesFromResponse(panel, result) {
         // Handle object format: {var1: '$.path', var2: {path: '$.path', labels: '$.path'}}
         for (var varName in outputs) {
             var pathConfig = outputs[varName];
-            console.log('Processing variable:', varName, 'Path config:', pathConfig);
 
             // Handle both string paths and object configs
             var path;
@@ -5824,14 +5756,12 @@ function captureVariablesFromResponse(panel, result) {
             }
 
             var value = extractValueByPath(responseBody, path);
-            console.log('Extracted value for', varName, ':', value);
             if (value !== undefined) {
                 capturedVars[varName] = value;
 
                 // If labels path is provided, extract labels too
                 if (labelsPath && Array.isArray(value)) {
                     var labels = extractValueByPath(responseBody, labelsPath);
-                    console.log('Extracted labels for', varName, ':', labels);
                     if (labels && Array.isArray(labels)) {
                         // Store labels alongside values
                         if (!capturedVars.__labels__) {
@@ -5880,22 +5810,18 @@ function captureVariablesFromResponse(panel, result) {
             // Store labels if available
             if (labelsMap[varName]) {
                 window.skillArrayLabels[slug][varName] = labelsMap[varName];
-                console.log('Array variable', varName, '- storing labels:', labelsMap[varName]);
             }
 
             // Only set to first element if variable doesn't exist yet (preserve user selection)
             if (skillVariables[slug][varName] === undefined) {
                 skillVariables[slug][varName] = value[0];
-                console.log('Array variable', varName, '- storing first element as default:', value[0]);
             } else {
-                console.log('Array variable', varName, '- preserving existing selection:', skillVariables[slug][varName]);
             }
         } else {
             skillVariables[slug][varName] = value;
         }
     }
 
-    console.log('After assign, skillVariables[' + slug + ']:', skillVariables[slug]);
 
     // Update variables table with ALL accumulated variables
     // For array variables, pass the full array; for others, pass the value
@@ -5917,37 +5843,27 @@ function captureVariablesFromResponse(panel, result) {
 
 // Update tooltips and resolved value displays on input fields that contain variable references
 function updateVariableTooltips(slug) {
-    console.log('=== updateVariableTooltips START ===');
-    console.log('slug:', slug);
-    console.log('skillVariables[' + slug + ']:', skillVariables[slug]);
 
     // Find all steps for this skill
     var steps = document.querySelectorAll('[id^="step-' + slug + '-"]');
-    console.log('Found', steps.length, 'steps');
 
     steps.forEach(function(step, stepIndex) {
-        console.log('Processing step', stepIndex);
 
         // Find the playground panel within this step
         var panel = step.querySelector('[id^="playground-panel-"]');
         if (!panel) {
-            console.log('  No panel found in this step');
             return;
         }
-        console.log('  Panel found:', panel.id);
 
         // Find ALL text inputs in this panel
         var allInputs = panel.querySelectorAll('input[type="text"]');
-        console.log('  Found', allInputs.length, 'text inputs in panel');
 
         allInputs.forEach(function(input) {
             var value = input.value;
             var varRefs = detectVariableReferences(value);
 
             if (varRefs.length > 0) {
-                console.log('Input has variable references:', value);
                 var substitutedValue = substituteVariables(value, slug);
-                console.log('  Substituted to:', substitutedValue);
 
                 if (substitutedValue !== value) {
                     // Add the has-variable-ref class if not already present
@@ -5958,17 +5874,14 @@ function updateVariableTooltips(slug) {
                     // Update or create the resolved value span
                     var nextSibling = input.nextElementSibling;
                     if (nextSibling && nextSibling.classList.contains('variable-resolved-value')) {
-                        console.log('  Updating existing span');
                         nextSibling.textContent = substitutedValue;
                     } else if (nextSibling && nextSibling.classList.contains('btn-xorigin-search')) {
                         // For x-origin fields, the button comes first, check after it
                         var spanAfterButton = nextSibling.nextElementSibling;
                         if (spanAfterButton && spanAfterButton.classList.contains('variable-resolved-value')) {
-                            console.log('  Updating existing span after button');
                             spanAfterButton.textContent = substitutedValue;
                         } else {
                             // Create new span after the button
-                            console.log('  Creating new span after button');
                             var span = document.createElement('span');
                             span.className = 'variable-resolved-value';
                             span.textContent = substitutedValue;
@@ -5976,7 +5889,6 @@ function updateVariableTooltips(slug) {
                         }
                     } else {
                         // Create new span
-                        console.log('  Creating new span after input');
                         var span = document.createElement('span');
                         span.className = 'variable-resolved-value';
                         span.textContent = substitutedValue;
@@ -5991,7 +5903,6 @@ function updateVariableTooltips(slug) {
             }
         });
     });
-    console.log('=== updateVariableTooltips END ===\n');
 }
 
 // Substitute variable references in a value
@@ -6085,48 +5996,36 @@ function extractValueByPath(obj, path) {
 
 // Update variables table with captured values
 function updateVariablesTable(slug, variables, source) {
-    console.log('=== updateVariablesTable START ===');
-    console.log('slug:', slug);
-    console.log('variables:', JSON.stringify(variables, null, 2));
-    console.log('source:', source);
 
     var tableBody = document.querySelector('#variables-table-' + slug + ' tbody');
     if (!tableBody) {
         console.error('❌ Table body not found for slug:', slug);
-        console.log('Looking for selector:', '#variables-table-' + slug + ' tbody');
         return;
     }
-    console.log('✓ Table body found');
 
     // Clear "No variables" message if present
     var noVarsRow = tableBody.querySelector('.no-variables-row');
     if (noVarsRow) {
-        console.log('Clearing "No variables" message');
         noVarsRow.remove();
     }
 
     // Count existing rows
     var existingRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
-    console.log('Existing rows in table:', existingRowsCount);
 
     // Add or update each variable
     var variableCount = 0;
     for (var varName in variables) {
         variableCount++;
         var value = variables[varName];
-        console.log('Processing variable #' + variableCount + ':', varName, 'value:', value);
 
         // Check if variable already exists
         var existingRow = tableBody.querySelector('tr[data-var-name="' + varName + '"]');
 
         if (existingRow) {
             // Update existing row - update ONLY the value cell, keep original source
-            console.log('  → Updating existing variable:', varName);
             renderVariableValue(existingRow.cells[1], value, varName, slug);
-            console.log('  → Source remains:', existingRow.cells[2].textContent);
             // Do NOT update source - keep the original step that produced this variable
         } else {
-            console.log('  → Adding NEW variable:', varName, 'with source:', source);
             // Add new row
             var row = document.createElement('tr');
             row.className = 'variable-row';
@@ -6156,14 +6055,11 @@ function updateVariablesTable(slug, variables, source) {
             row.appendChild(actionsCell);
 
             tableBody.appendChild(row);
-            console.log('  → Row appended to table');
         }
     }
 
     // Count final rows
     var finalRowsCount = tableBody.querySelectorAll('tr[data-var-name]').length;
-    console.log('Final rows in table:', finalRowsCount);
-    console.log('=== updateVariablesTable END ===');
 }
 
 // Render variable value based on its type
@@ -6219,7 +6115,6 @@ function renderVariableValue(cell, value, varName, slug) {
             // Store selected value (not array) in skillVariables
             if (skillVariables[slug]) {
                 skillVariables[slug][varName] = arrayData[selectedIndex];
-                console.log('Array selection changed:', varName, '→', arrayData[selectedIndex]);
 
                 // Update all input tooltips to reflect new value
                 updateVariableTooltips(slug);
@@ -6236,7 +6131,6 @@ function renderVariableValue(cell, value, varName, slug) {
                 var currentStr = typeof currentValue === 'object' ? JSON.stringify(currentValue) : String(currentValue);
                 if (itemStr === currentStr) {
                     select.selectedIndex = j;
-                    console.log('Restored selection for', varName, 'to index', j);
                     break;
                 }
             }
@@ -6538,11 +6432,9 @@ async function executePlaygroundStep(sid, buttonEl) {
             try {
                 // Try to parse the response body as JSON
                 window.lastStepResponse = JSON.parse(result.body);
-                console.log('Stored response for evaluation:', window.lastStepResponse);
             } catch (e) {
                 // If not JSON, store the raw text
                 window.lastStepResponse = result.body;
-                console.log('Stored raw response for evaluation:', window.lastStepResponse);
             }
         }
 
@@ -6596,7 +6488,6 @@ function markStepFailed(skillSlug, sid) {
 
         // Stop debugger if running
         if (debuggerState[skillSlug].isRunning) {
-            console.log('Step failed, stopping debugger');
             cancelDebugger(skillSlug);
         }
     }
@@ -7963,8 +7854,6 @@ function evaluateExpression(slug) {
         // Get the last response from the most recent step execution
         var lastResponse = window.lastStepResponse || null;
 
-        console.log('Evaluating expression:', expression);
-        console.log('Available response:', lastResponse);
 
         if (!lastResponse) {
             // Remove any existing ACE editor and show placeholder
@@ -7979,7 +7868,6 @@ function evaluateExpression(slug) {
 
         // Evaluate JSONPath expression
         var result = evaluateJsonPath(lastResponse, expression);
-        console.log('Evaluation result:', result);
 
         if (result === undefined || result === null) {
             // Remove any existing ACE editor and show placeholder
@@ -8279,7 +8167,6 @@ function addManualVariable(slug) {
             // Update variable tooltips
             updateVariableTooltips(slug);
 
-            console.log('Manual variable added:', name, '=', value);
         } else if (!name && !value) {
             // Remove empty row
             row.remove();
@@ -8317,7 +8204,6 @@ function deleteVariable(button, slug) {
         // Remove from skillVariables
         if (skillVariables[slug] && skillVariables[slug][varName]) {
             delete skillVariables[slug][varName];
-            console.log('Variable deleted:', varName);
         }
 
         // Update variable tooltips
@@ -8358,7 +8244,6 @@ function clearAllVariables(slug) {
     // Update variable tooltips
     updateVariableTooltips(slug);
 
-    console.log('All variables cleared for:', slug);
 }
 
 // ============================================================================

@@ -1381,3 +1381,97 @@ describe('updateURLState', () => {
         expect(getParams().has('view')).toBe(false);
     });
 });
+
+// ---------------------------------------------------------------------------
+// __mcpCoerceValue — type coercion for MCP tool arguments
+// ---------------------------------------------------------------------------
+describe('__mcpCoerceValue', () => {
+    test('returns undefined for empty string', () => {
+        expect(__mcpCoerceValue('', 'string')).toBeUndefined();
+    });
+
+    test('returns undefined for null', () => {
+        expect(__mcpCoerceValue(null, 'string')).toBeUndefined();
+    });
+
+    test('coerces string to integer', () => {
+        expect(__mcpCoerceValue('42', 'integer')).toBe(42);
+    });
+
+    test('returns raw value for non-numeric integer', () => {
+        expect(__mcpCoerceValue('abc', 'integer')).toBe('abc');
+    });
+
+    test('coerces string to number (float)', () => {
+        expect(__mcpCoerceValue('3.14', 'number')).toBeCloseTo(3.14);
+    });
+
+    test('coerces "true" to boolean true', () => {
+        expect(__mcpCoerceValue('true', 'boolean')).toBe(true);
+    });
+
+    test('coerces "false" to boolean false', () => {
+        expect(__mcpCoerceValue('false', 'boolean')).toBe(false);
+    });
+
+    test('returns undefined for invalid boolean', () => {
+        expect(__mcpCoerceValue('yes', 'boolean')).toBeUndefined();
+    });
+
+    test('parses JSON for object type', () => {
+        expect(__mcpCoerceValue('{"a":1}', 'object')).toEqual({ a: 1 });
+    });
+
+    test('parses JSON for array type', () => {
+        expect(__mcpCoerceValue('[1,2,3]', 'array')).toEqual([1, 2, 3]);
+    });
+
+    test('returns raw string for invalid JSON object', () => {
+        expect(__mcpCoerceValue('{bad', 'object')).toBe('{bad');
+    });
+
+    test('returns string as-is for string type', () => {
+        expect(__mcpCoerceValue('hello', 'string')).toBe('hello');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// substituteVariables — ${var} replacement in skill workflows
+// ---------------------------------------------------------------------------
+describe('substituteVariables', () => {
+    beforeEach(() => {
+        // skillVariables is a global in portal.js
+        skillVariables = {};
+    });
+
+    test('replaces single variable', () => {
+        skillVariables['myskill'] = { orgId: '12345' };
+        expect(substituteVariables('org: ${orgId}', 'myskill')).toBe('org: 12345');
+    });
+
+    test('replaces multiple variables', () => {
+        skillVariables['s1'] = { org: 'acme', env: 'prod' };
+        expect(substituteVariables('${org}/${env}', 's1')).toBe('acme/prod');
+    });
+
+    test('leaves unresolved variables as-is', () => {
+        skillVariables['s1'] = {};
+        expect(substituteVariables('${missing}', 's1')).toBe('${missing}');
+    });
+
+    test('returns non-string values unchanged', () => {
+        expect(substituteVariables(null, 'x')).toBe(null);
+        expect(substituteVariables(undefined, 'x')).toBe(undefined);
+        expect(substituteVariables(42, 'x')).toBe(42);
+    });
+
+    test('stringifies object variable values', () => {
+        skillVariables['s1'] = { data: { key: 'val' } };
+        expect(substituteVariables('${data}', 's1')).toBe('{"key":"val"}');
+    });
+
+    test('handles empty slug gracefully', () => {
+        skillVariables = {};
+        expect(substituteVariables('${x}', 'nope')).toBe('${x}');
+    });
+});

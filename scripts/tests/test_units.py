@@ -8,7 +8,7 @@ from markupsafe import Markup
 
 from portal_generator.utils import get_category, CATEGORY_MAPPING
 from portal_generator.builders.tree_builder import build_operation_tree, count_tree_operations
-from portal_generator.template_env import _nl2br, _render_markdown, _tojson_raw, _skill_title
+from portal_generator.template_env import _nl2br, _render_markdown, _tojson_raw, _skill_title, _titleize_operation, _slugify, _resolve_skill_inputs
 from portal_generator.generator import _build_api_meta, _get_example_body, PortalGenerator
 from portal_generator.parsers.skill_parser import (
     _extract_yaml_blocks,
@@ -19,6 +19,7 @@ from portal_generator.parsers.skill_parser import (
     _convert_to_plain,
     parse_skill,
 )
+from portal_generator.parsers.mcp_parser import _example_from_schema
 from portal_generator.discovery import calculate_stats, _extract_api_refs, discover_skills
 
 import sys
@@ -1326,3 +1327,174 @@ class TestRenderSchemaTableIds:
         html = render(self._items_row(), prefix='')
         assert 'id="items-1"' in html
         assert "toggleNestedProps('items-1')" in html
+
+
+class TestTitleizeOperation:
+    def test_simple_camel_case(self):
+        assert _titleize_operation('createApplication') == 'Create Application'
+
+    def test_consecutive_uppercase_acronym(self):
+        assert _titleize_operation('getAPIInstance') == 'Get API Instance'
+
+    def test_trailing_word(self):
+        assert _titleize_operation('listApis') == 'List Apis'
+
+    def test_multiple_words(self):
+        assert _titleize_operation('createOrganizationsApplications') == 'Create Organizations Applications'
+
+    def test_single_word(self):
+        assert _titleize_operation('list') == 'List'
+
+    def test_already_capitalized(self):
+        assert _titleize_operation('List') == 'List'
+
+    def test_empty_string(self):
+        assert _titleize_operation('') == ''
+
+    def test_none(self):
+        assert _titleize_operation(None) == ''
+
+    def test_multi_acronym(self):
+        assert _titleize_operation('getHTTPSUrl') == 'Get HTTPS Url'
+
+
+class TestSlugify:
+    def test_basic_title(self):
+        assert _slugify('Get Current Organization') == 'get-current-organization'
+
+    def test_preserves_hyphens(self):
+        assert _slugify('List Environments') == 'list-environments'
+
+    def test_special_characters(self):
+        assert _slugify('Create App (v2)') == 'create-app-v2'
+
+    def test_multiple_spaces(self):
+        assert _slugify('get   current   org') == 'get-current-org'
+
+    def test_underscores_become_hyphens(self):
+        assert _slugify('get_current_org') == 'get-current-org'
+
+    def test_strips_leading_trailing_hyphens(self):
+        assert _slugify('-hello-world-') == 'hello-world'
+
+    def test_empty_string(self):
+        assert _slugify('') == ''
+
+    def test_none(self):
+        assert _slugify(None) == ''
+
+    def test_unicode(self):
+        assert _slugify('café latte') == 'café-latte'
+
+
+class TestResolveSkillInputs:
+    def test_variable_reference(self):
+        inputs = {
+            'organizationId': {
+                'from': {'variable': 'organizationId'},
+                'description': 'The org ID'
+            }
+        }
+        result = _resolve_skill_inputs(inputs, [])
+        assert result['organizationId']['ref'] == '${organizationId}'
+        assert result['organizationId']['description'] == 'The org ID'
+        assert 'from' not in result['organizationId']
+
+    def test_api_reference_removes_from(self):
+        inputs = {
+            'envId': {
+                'from': {'api': 'urn:api:access-management', 'operation': 'listEnvs'},
+                'description': 'Env ID'
+            }
+        }
+        result = _resolve_skill_inputs(inputs, [])
+        assert 'from' not in result['envId']
+        assert 'ref' not in result['envId']
+        assert result['envId']['description'] == 'Env ID'
+
+    def test_simple_value_passthrough(self):
+        inputs = {'name': 'literal-value'}
+        result = _resolve_skill_inputs(inputs, [])
+        assert result['name'] == 'literal-value'
+
+    def test_dict_without_from_passthrough(self):
+        inputs = {'name': {'description': 'just a desc', 'type': 'string'}}
+        result = _resolve_skill_inputs(inputs, [])
+        assert result['name'] == {'description': 'just a desc', 'type': 'string'}
+
+    def test_none_input(self):
+        assert _resolve_skill_inputs(None, []) is None
+
+    def test_empty_dict(self):
+        assert _resolve_skill_inputs({}, []) == {}
+
+    def test_non_dict_input(self):
+        assert _resolve_skill_inputs('not a dict', []) == 'not a dict'
+
+
+class TestExampleFromSchema:
+    def test_explicit_example(self):
+        assert _example_from_schema({'type': 'string', 'example': 'hello'}) == 'hello'
+
+    def test_examples_list(self):
+        assert _example_from_schema({'type': 'string', 'examples': ['a', 'b']}) == 'a'
+
+    def test_default_value(self):
+        assert _example_from_schema({'type': 'integer', 'default': 42}) == 42
+
+    def test_enum_picks_first(self):
+        assert _example_from_schema({'type': 'string', 'enum': ['active', 'inactive']}) == 'active'
+
+    def test_string_no_format(self):
+        assert _example_from_schema({'type': 'string'}) == ''
+
+    def test_string_email_format(self):
+        assert _example_from_schema({'type': 'string', 'format': 'email'}) == 'user@example.com'
+
+    def test_string_uuid_format(self):
+        assert _example_from_schema({'type': 'string', 'format': 'uuid'}) == '00000000-0000-0000-0000-000000000000'
+
+    def test_string_datetime_format(self):
+        assert _example_from_schema({'type': 'string', 'format': 'date-time'}) == '2026-04-24T00:00:00Z'
+
+    def test_integer(self):
+        assert _example_from_schema({'type': 'integer'}) == 0
+
+    def test_number(self):
+        assert _example_from_schema({'type': 'number'}) == 0
+
+    def test_boolean(self):
+        assert _example_from_schema({'type': 'boolean'}) is False
+
+    def test_object_with_properties(self):
+        schema = {
+            'type': 'object',
+            'properties': {
+                'name': {'type': 'string'},
+                'age': {'type': 'integer'}
+            }
+        }
+        result = _example_from_schema(schema)
+        assert result == {'name': '', 'age': 0}
+
+    def test_array_with_items(self):
+        schema = {'type': 'array', 'items': {'type': 'string'}}
+        result = _example_from_schema(schema)
+        assert result == ['']
+
+    def test_anyof_skips_null(self):
+        schema = {'anyOf': [{'type': 'null'}, {'type': 'string'}]}
+        assert _example_from_schema(schema) == ''
+
+    def test_type_list_picks_non_null(self):
+        schema = {'type': ['string', 'null']}
+        assert _example_from_schema(schema) == ''
+
+    def test_depth_guard(self):
+        assert _example_from_schema({'type': 'object', 'properties': {'x': {'type': 'string'}}}, depth=7) is None
+
+    def test_none_input(self):
+        assert _example_from_schema(None) is None
+
+    def test_empty_dict(self):
+        assert _example_from_schema({}) is None

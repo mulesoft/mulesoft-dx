@@ -747,8 +747,14 @@ code {
 }
 
 .hero-tab[data-filter="api"]:hover,
-.hero-tab[data-filter="mcp"]:hover,
 .hero-tab[data-filter="skill"]:hover {
+    background: var(--hover-bg);
+    border-color: var(--hover-border);
+    color: var(--hover-text);
+}
+
+/* MCP hover is handled separately below due to disabled state */
+.hero-tab[data-filter="mcp"]:hover:not(.hero-tab-mcp) {
     background: var(--hover-bg);
     border-color: var(--hover-border);
     color: var(--hover-text);
@@ -759,10 +765,11 @@ code {
     content: url('../assets/icons/api-filter-icon-active.svg');
 }
 
-.hero-tab[data-filter="mcp"]:hover img,
 .hero-tab[data-filter="mcp"].active img {
     content: url('../assets/icons/mcp-filter-icon-active.svg');
 }
+
+/* MCP hover icon is handled separately with grayscale filter */
 
 .hero-tab[data-filter="skill"]:hover img,
 .hero-tab[data-filter="skill"].active img {
@@ -818,10 +825,18 @@ code {
 }
 
 
-/* Hover state for MCP tab */
+/* Hover state for MCP tab - disabled appearance but interactive tooltip/badge */
 .hero-tab-mcp:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+    box-shadow: none !important;
+    background: #f5f5f5 !important;
+    border-color: #d0d0d0 !important;
+    color: #999999 !important;
+}
+
+.hero-tab-mcp:hover img {
+    filter: grayscale(100%) opacity(0.3) !important;
+    content: url('../assets/icons/mcp-filter-icon.svg') !important;
 }
 
 .hero-tab-mcp:hover .coming-soon-badge {
@@ -850,7 +865,7 @@ code {
 
 /* Tooltip on hover - liquid glass effect */
 .hero-tab-mcp::after {
-    content: "Something wonderful is going to happen.";
+    content: "In final testing - launching this month";
     position: absolute;
     bottom: -40px;
     left: 50%;
@@ -972,7 +987,7 @@ code {
     grid-template-columns: repeat(3, minmax(0, 389px));
     gap: 32px; /* Same horizontal gap as card grid */
     align-items: center;
-    justify-content: start;
+    justify-content: center;
 }
 
 .catalog-search-and-results {
@@ -1152,14 +1167,15 @@ code {
 
 .tag-chip {
     display: inline-flex;
-    border: 1px solid var(--color-neutral-5);
+    border: 1px solid var(--color-border-primary);
     align-items: center;
     gap: var(--space-xx-small);
     padding: var(--space-xxx-small) var(--space-x-small);
-    color: var(--color-neutral-5);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
     border-radius: var(--radius-xl);
     font-size: var(--font-size-3);
-    font-weight: var(--font-weight-regular);
+    font-weight: var(--font-weight-medium);
     transition: background 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
     white-space: nowrap;
     height: 1.5rem;
@@ -1427,18 +1443,20 @@ code {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 389px));
     gap: 36px 32px; /* 36px vertical, 32px horizontal gap for equal "streets" */
-    justify-content: start;
+    justify-content: center;
 }
 
 @media (max-width: 1200px) {
     .catalog-grid {
         grid-template-columns: repeat(2, minmax(0, 389px));
         gap: 36px 32px;
+        justify-content: center;
     }
 
     .catalog-results-header {
         grid-template-columns: repeat(2, minmax(0, 389px));
         gap: 32px;
+        justify-content: center;
     }
 
     .catalog-search-and-results {
@@ -3419,41 +3437,52 @@ button.nav-group-header {
     overflow: hidden;
 }
 
-.url-server-container {
-    display: inline-flex;
+/* URL Combobox - Flat style with chevron aligned to far right */
+.url-combobox {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    position: relative;
-}
-
-.url-server-container.has-dropdown {
+    justify-content: space-between;
+    width: 100%;
     cursor: pointer;
-    border-bottom: 1px dashed transparent;
-    transition: border-color 0.15s, color 0.15s;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    min-height: 24px;
 }
 
-.url-server-container.has-dropdown:hover {
-    color: var(--color-primary);
-    border-bottom-color: var(--color-primary);
-}
-
-.url-server-container.has-dropdown:hover .server-dropdown-chevron {
+.url-combobox:hover .url-combobox-text {
     color: var(--color-primary);
 }
 
-.url-server-part {
-    color: var(--color-text-secondary);
+.url-combobox:hover .url-combobox-chevron {
+    color: var(--color-primary);
 }
 
-.server-dropdown-chevron {
-    font-size: 10px;
-    color: var(--color-text-secondary);
-    transition: color 0.15s;
-    line-height: 1;
-    user-select: none;
+.url-combobox-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: var(--space-lg);
 }
 
-.url-path-part {
+.url-combobox-chevron {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.url-combobox-chevron svg {
+    display: block;
+}
+
+/* Plain URL text for single server */
+.url-text-plain {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
     color: var(--color-text-primary);
 }
 
@@ -3971,7 +4000,6 @@ details[open] .examples-toggle-icon {
 
 .ace-editor-container {
     border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-small);
     overflow: hidden;
 }
 
@@ -4812,7 +4840,6 @@ details[open] .examples-toggle-icon {
 .example-block {
     margin: var(--space-sm) 0;
     border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-small);
     overflow: hidden;
     max-width: 100%;
 }
@@ -5211,8 +5238,11 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-view-markdown ul,
-.skill-view-markdown ol {
-    padding-left: var(--space-x-large);
+.skill-view-markdown ol,
+.skill-page .content-section ul,
+.skill-page .content-section ol {
+    margin-left: var(--space-lg);
+    padding-left: var(--space-xl);
     margin-bottom: var(--space-medium);
 }
 
@@ -5373,7 +5403,6 @@ details[open] .examples-toggle-icon {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-medium);
     min-height: 200px;
 }
 

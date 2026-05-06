@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Part of mule-dev skill
 #
-# Step 2 helper — search Exchange for MuleSoft connector candidates and
+# Step 3 helper — search Exchange for MuleSoft connector candidates and
 # print the ranked list to stdout. No pin file is written; no "winner"
 # is named. The agent reads the list and decides: a single row is obvious,
 # multiple rows of genuinely different system families are still usually

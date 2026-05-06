@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Part of mule-dev skill, version: 7.0.3
+# Part of mule-dev skill
 #
-# Step 0 helper — validates the toolchain and emits a machine-readable env
+# Step 1 helper — validates the toolchain and emits a machine-readable env
 # report to /tmp/mule-dev-env.json so later steps can consume it.
 #
 # This script only VALIDATES — it never downloads, installs, or modifies
@@ -36,9 +36,9 @@ fi
 
 # 2. DX plugin
 if command -v anypoint-cli-v4 >/dev/null 2>&1; then
-    if ! anypoint-cli-v4 dx --help >/dev/null 2>&1; then
+    if ! anypoint-cli-v4 dx mule --help >/dev/null 2>&1; then
         echo "❌ DX plugin not installed"
-        ERRORS+=("DX plugin not installed. Install: npm install -g @mulesoft/anypoint-cli-dx-tooling-plugin")
+        ERRORS+=("DX plugin not installed. Install: npm install -g @mulesoft/anypoint-cli-dx-mule-plugin")
     else
         echo "✅ DX plugin found"
     fi
@@ -80,9 +80,9 @@ if [ -n "$RUNTIME_PATH" ]; then
     echo "✅ Runtime detected: $RUNTIME_NAME (Mule $MULE_VERSION)"
 else
     echo "❌ No Mule runtime found"
-    echo "   ACTION REQUIRED: Run 'anypoint-cli-v4 dx runtime download' to download the Mule runtime before proceeding."
-    echo "   After download, run 'anypoint-cli-v4 dx runtime path --set <path>' to configure the runtime path."
-    ERRORS+=("No Mule runtime found. You MUST run 'anypoint-cli-v4 dx runtime download' to install it, then 'anypoint-cli-v4 dx runtime path --set <path>' to configure. No design commands will work until this is resolved.")
+    echo "   ACTION REQUIRED: Run 'anypoint-cli-v4 dx mule runtime download' to download the Mule runtime before proceeding."
+    echo "   After download, run 'anypoint-cli-v4 dx mule runtime path --set <path>' to configure the runtime path."
+    ERRORS+=("No Mule runtime found. You MUST run 'anypoint-cli-v4 dx mule runtime download' to install it, then 'anypoint-cli-v4 dx mule runtime path --set <path>' to configure. No describe-connector commands will work until this is resolved.")
 fi
 
 # Build result JSON

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Part of mule-dev skill
 #
-# Step 5.5 helper — if any of the selected connection providers is an OAuth
+# Step 6.5 helper — if any of the selected connection providers is an OAuth
 # flow, ensure the HTTP connector is present in the project's pom.xml.
 # OAuth callbacks need an http:listener, which requires the HTTP connector
 # dependency.
@@ -23,9 +23,9 @@
 # can invoke this script from anywhere (repo root, workspace root, anywhere)
 # as long as --project points at the Mule project. The HTTP draft lands in
 # <project>/tmp/connector-choices/http.json to keep it consistent with
-# Step 2's layout, though Phase-2 pom edits use the GAV directly here.
+# Step 3's layout, though Phase-2 pom edits use the GAV directly here.
 #
-# Each provider argument is a connection-provider name (as chosen in Step 5).
+# Each provider argument is a connection-provider name (as chosen in Step 6).
 # The script is idempotent: if no provider looks like OAuth, or if the HTTP
 # connector is already present in pom.xml, it exits 0 without changes.
 #
@@ -112,7 +112,7 @@ fi
 echo "🔍 Resolving latest HTTP connector from Exchange..."
 # v8: get_latest_connector.sh emits a ranked GAV list on stdout and writes
 # nothing. HTTP is unambiguous — take the top row. If a draft already
-# exists (e.g., the agent pre-picked http in Step 2), prefer that to keep
+# exists (e.g., the agent pre-picked http in Step 3), prefer that to keep
 # the Step-2 decision authoritative.
 HTTP_CHOICE_JSON="tmp/connector-choices/http.json"
 if [ -f "$HTTP_CHOICE_JSON" ]; then

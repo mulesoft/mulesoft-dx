@@ -2196,7 +2196,11 @@ function closeAuthModal() {
 function switchAuthTab(tab) {
     var tabs = document.querySelectorAll('.auth-tab');
     var panels = document.querySelectorAll('.auth-tab-content');
-    tabs.forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === tab); });
+    tabs.forEach(function(t) {
+        var isActive = t.getAttribute('data-tab') === tab;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
     panels.forEach(function(p) { p.classList.remove('active'); });
     var targetId = tab === 'bearer' ? 'authTabBearer' : 'authTabOauth2';
     var target = document.getElementById(targetId);
@@ -4410,11 +4414,15 @@ function switchResponseTab(opId, tabName) {
     var tabButtons = responseDiv.querySelectorAll('.try-tab-btn');
     tabButtons.forEach(function(btn) {
         btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
     });
     var activeTab = Array.from(tabButtons).find(function(btn) {
         return btn.textContent.toLowerCase().includes(tabName.toLowerCase());
     });
-    if (activeTab) activeTab.classList.add('active');
+    if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.setAttribute('aria-selected', 'true');
+    }
 
     // Update content
     var bodyContent = document.getElementById('respbody-' + opId);
@@ -7912,11 +7920,9 @@ function switchExecutionTab(slug, tab) {
     // Switch tab active state
     var tabs = document.querySelectorAll('.execution-tab');
     tabs.forEach(function(t) {
-        if (t.getAttribute('data-tab') === tab) {
-            t.classList.add('active');
-        } else {
-            t.classList.remove('active');
-        }
+        var isActive = t.getAttribute('data-tab') === tab;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
     
     // Switch content visibility

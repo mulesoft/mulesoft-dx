@@ -134,13 +134,13 @@
                 <span class="content-type-badge" id="content-type-badge-{{ op_id }}" style="display:none"></span>
             </div>
         </div>
-        <div class="try-response-tabs">
-            <button class="try-tab-btn active" onclick="switchResponseTab('{{ op_id }}', 'body')">Body</button>
-            <button class="try-tab-btn" onclick="switchResponseTab('{{ op_id }}', 'headers')">Headers</button>
+        <div class="try-response-tabs" role="tablist">
+            <button class="try-tab-btn active" role="tab" aria-selected="true" aria-controls="respbody-{{ op_id }}" onclick="switchResponseTab('{{ op_id }}', 'body')">Body</button>
+            <button class="try-tab-btn" role="tab" aria-selected="false" aria-controls="respheaders-{{ op_id }}" onclick="switchResponseTab('{{ op_id }}', 'headers')">Headers</button>
         </div>
         <div class="try-response-content">
-            <div class="try-response-body active" id="respbody-{{ op_id }}"></div>
-            <div class="try-response-headers" id="respheaders-{{ op_id }}"></div>
+            <div class="try-response-body active" id="respbody-{{ op_id }}" role="tabpanel"></div>
+            <div class="try-response-headers" id="respheaders-{{ op_id }}" role="tabpanel"></div>
         </div>
     </div>
 </div>

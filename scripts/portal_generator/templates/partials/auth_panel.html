@@ -14,7 +14,7 @@
         <div class="skill-mode-toggle-container">
             <label class="toggle-switch-label">
                 <span class="toggle-label-text">Interactive Mode</span>
-                <div class="toggle-switch" onclick="toggleSkillMode('{{ skill_slug }}')" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ skill_slug }}">
+                <div class="toggle-switch" tabindex="0" onclick="toggleSkillMode('{{ skill_slug }}')" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSkillMode('{{ skill_slug }}')}" role="switch" aria-checked="false" aria-label="Toggle interactive mode" id="toggle-{{ skill_slug }}">
                     <div class="toggle-slider"></div>
                 </div>
             </label>
@@ -96,16 +96,16 @@
                 </div>
             </div>
 
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="bearer" onclick="switchAuthTab('bearer')">
+            <div class="auth-tabs" role="tablist">
+                <button class="auth-tab active" role="tab" aria-selected="true" aria-controls="authTabBearer" data-tab="bearer" onclick="switchAuthTab('bearer')">
                     Bearer Token (User)
                 </button>
-                <button class="auth-tab" data-tab="oauth2" onclick="switchAuthTab('oauth2')">
+                <button class="auth-tab" role="tab" aria-selected="false" aria-controls="authTabOauth2" data-tab="oauth2" onclick="switchAuthTab('oauth2')">
                     OAuth2 (Client)
                 </button>
             </div>
 
-            <div class="auth-tab-content active" id="authTabBearer">
+            <div class="auth-tab-content active" id="authTabBearer" role="tabpanel">
                 <div class="auth-form">
                     <input id="authUsername" type="text" placeholder="Username" autocomplete="username" aria-label="Username">
                     <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password">
@@ -113,7 +113,7 @@
                 </div>
             </div>
 
-            <div class="auth-tab-content" id="authTabOauth2">
+            <div class="auth-tab-content" id="authTabOauth2" role="tabpanel">
                 <div class="auth-form">
                     <input id="authClientId" type="text" placeholder="Client Id" aria-label="Client Id">
                     <input id="authClientSecret" type="password" placeholder="Client Secret" aria-label="Client Secret">

@@ -43,13 +43,13 @@
         {# Execution Panel - Hidden by default, shown in playground mode #}
         <aside class="execution-panel" id="variables-sidebar-{{ slug }}" style="display: none;">
             {# Panel Tabs #}
-            <div class="execution-panel-tabs">
-                <button class="execution-tab active" data-tab="variables" onclick="switchExecutionTab('{{ slug }}', 'variables')">Variables</button>
-                <button class="execution-tab" data-tab="evaluation" onclick="switchExecutionTab('{{ slug }}', 'evaluation')">Evaluation</button>
+            <div class="execution-panel-tabs" role="tablist">
+                <button class="execution-tab active" role="tab" aria-selected="true" aria-controls="execution-variables-{{ slug }}" data-tab="variables" onclick="switchExecutionTab('{{ slug }}', 'variables')">Variables</button>
+                <button class="execution-tab" role="tab" aria-selected="false" aria-controls="execution-evaluation-{{ slug }}" data-tab="evaluation" onclick="switchExecutionTab('{{ slug }}', 'evaluation')">Evaluation</button>
             </div>
 
             {# Variables Section #}
-            <div class="execution-panel-content" id="execution-variables-{{ slug }}">
+            <div class="execution-panel-content" id="execution-variables-{{ slug }}" role="tabpanel">
                 <div class="variables-toolbar">
                     <button class="btn-add-variable" onclick="addManualVariable('{{ slug }}')" title="Add Variable">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -86,7 +86,7 @@
             </div>
 
             {# Evaluation Section #}
-            <div class="execution-panel-content" id="execution-evaluation-{{ slug }}" style="display:none">
+            <div class="execution-panel-content" id="execution-evaluation-{{ slug }}" role="tabpanel" style="display:none">
                 <div class="evaluation-input-section">
                     <label for="evaluation-input-{{ slug }}">JSONPath Expression</label>
                     <div class="evaluation-input-row">
@@ -157,11 +157,11 @@
     {% endif %}
 
     {# Install Command Modal #}
-    <div class="install-modal" id="install-modal-{{ slug }}" style="display:none" role="dialog" aria-modal="true">
+    <div class="install-modal" id="install-modal-{{ slug }}" style="display:none" role="dialog" aria-modal="true" aria-labelledby="install-modal-title-{{ slug }}">
         <div class="install-modal-overlay" onclick="closeInstallModal('{{ slug }}')"></div>
         <div class="install-modal-content">
             <div class="install-modal-header">
-                <h3>Install Command</h3>
+                <h3 id="install-modal-title-{{ slug }}">Install Command</h3>
                 <button class="btn-close-modal" onclick="closeInstallModal('{{ slug }}')" aria-label="Close modal">&times;</button>
             </div>
             <div class="install-modal-body">

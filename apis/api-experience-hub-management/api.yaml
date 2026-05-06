@@ -1,7 +1,29 @@
 openapi: 3.0.1
 info:
   title: API Experience Hub Management API
-  description: API Experience Hub API
+  description: |
+    Administer API Experience Hub portals, members and the assets they expose.
+
+    Use this API as a portal owner to provision and operate Salesforce-hosted developer
+    portals that surface APIs from Anypoint Exchange. The management surface covers four
+    jobs:
+
+    - **Connections and portals** — list Salesforce connections, enumerate the portals
+      attached to each connection, and resolve the external organization id used by the
+      Consumer API.
+    - **Asset curation** — publish, search, update and remove the Exchange assets that
+      appear in a portal's catalog, including version visibility.
+    - **Members and prospects** — list portal users, enable or disable accounts, review
+      pending sign-ups, and approve or reject prospects.
+    - **User groups and access** — create user groups, manage their group mappings to
+      external IdP groups, and assign or revoke user-group memberships.
+
+    All paths are scoped by `connectionId` (the Salesforce connection registered in the
+    hub) and `portalId` (the portal hosted under that connection). Both are obtained from
+    `GET /connections` and `GET /connections/{connectionId}/apiPortals`. Authentication is
+    via bearer token. Errors follow the standard Anypoint JSON error envelope; list
+    endpoints support `searchTerm` filtering and header-based pagination
+    (`x-limit` / `x-offset`).
   version: 1.0.0
 servers:
 - url: https://anypoint.mulesoft.com/api-experience-hub
@@ -41,6 +63,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       responses:
         "400":
           description: Bad Request
@@ -88,6 +116,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -95,6 +129,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: targetUserId
         in: path
         description: Unique identifier of the target portal user
@@ -102,6 +142,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getCommunityUsers
+          values: $[*].id
+          labels: $[*].name
+          description: Portal user enrolled in the selected portal
       requestBody:
         description: List of user group IDs to assign to the user (maximum 20)
         content:
@@ -185,6 +231,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -192,6 +244,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       responses:
         "400":
           description: Bad Request
@@ -246,6 +304,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -253,6 +317,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       requestBody:
         description: User group creation request with name and optional description
         content:
@@ -300,6 +370,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllProfilesByPortal
+          values: $[*].id
+          labels: $[*].name
+          description: User group or profile defined in the portal
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -307,6 +383,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -314,6 +396,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       responses:
         "400":
           description: Bad Request
@@ -353,6 +441,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllProfilesByPortal
+          values: $[*].id
+          labels: $[*].name
+          description: User group or profile defined in the portal
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -360,6 +454,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -367,6 +467,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       requestBody:
         description: "Group mapping to add, with identity provider ID and group name"
         content:
@@ -407,6 +513,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -414,6 +526,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       requestBody:
         description: "List of assets to publish, identified by group ID and asset ID"
         content:
@@ -467,6 +585,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -474,6 +598,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: x-limit
         in: header
         description: Maximum number of search results to return
@@ -561,6 +691,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -568,6 +704,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: x-limit
         in: header
         description: Maximum number of search results to return
@@ -655,6 +797,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -662,6 +810,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       requestBody:
         description: "List of assets to remove, identified by group ID and asset ID"
         content:
@@ -704,6 +858,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -711,6 +871,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: x-limit
         in: header
         description: Maximum number of search results to return
@@ -790,6 +956,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -797,6 +969,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: targetUserId
         in: path
         description: Unique identifier of the target portal user
@@ -804,6 +982,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getCommunityUsers
+          values: $[*].id
+          labels: $[*].name
+          description: Portal user enrolled in the selected portal
       responses:
         "400":
           description: Bad Request
@@ -834,6 +1018,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -841,6 +1031,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: targetUserId
         in: path
         description: Unique identifier of the target portal user
@@ -848,6 +1044,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getCommunityUsers
+          values: $[*].id
+          labels: $[*].name
+          description: Portal user enrolled in the selected portal
       responses:
         "400":
           description: Bad Request
@@ -878,6 +1080,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllProfilesByPortal
+          values: $[*].id
+          labels: $[*].name
+          description: User group or profile defined in the portal
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -885,6 +1093,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -892,6 +1106,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       responses:
         "400":
           description: Bad Request
@@ -921,6 +1141,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllProfilesByPortal
+          values: $[*].id
+          labels: $[*].name
+          description: User group or profile defined in the portal
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -928,6 +1154,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -935,6 +1167,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       requestBody:
         description: User group update request with new name or description
         content:
@@ -989,6 +1227,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -996,6 +1240,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: prospectId
         in: path
         description: Unique identifier of the prospect
@@ -1003,6 +1253,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getProspects
+          values: $[*].id
+          labels: $[*].email
+          description: Prospect awaiting approval into the portal
       responses:
         "400":
           description: Bad Request
@@ -1039,6 +1295,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1046,6 +1308,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: prospectId
         in: path
         description: Unique identifier of the prospect
@@ -1053,6 +1321,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getProspects
+          values: $[*].id
+          labels: $[*].email
+          description: Prospect awaiting approval into the portal
       requestBody:
         description: Prospect approval configuration with user group assignments
         content:
@@ -1093,6 +1367,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1100,18 +1380,35 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: searchCommunityAssets
+          values: $.assets[*].groupId
+          description: Exchange group identifier for an asset published in the portal
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: searchCommunityAssets
+          values: $.assets[*].assetId
+          labels: $.assets[*].name
+          description: Asset published in the portal
       responses:
         "400":
           description: Bad Request
@@ -1155,6 +1452,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1162,18 +1465,35 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: searchCommunityAssets
+          values: $.assets[*].groupId
+          description: Exchange group identifier for an asset published in the portal
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: searchCommunityAssets
+          values: $.assets[*].assetId
+          labels: $.assets[*].name
+          description: Asset published in the portal
       requestBody:
         description: Visibility settings to apply to the asset's minor versions and instances
         content:
@@ -1221,6 +1541,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1228,6 +1554,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: searchTerm
         in: query
         description: Text to search for in user names and emails
@@ -1305,6 +1637,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1312,6 +1650,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: userId
         in: path
         description: Unique identifier of the portal user
@@ -1319,6 +1663,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getCommunityUsers
+          values: $[*].id
+          labels: $[*].name
+          description: Portal user enrolled in the selected portal
       responses:
         "400":
           description: Bad Request
@@ -1366,6 +1716,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1373,6 +1729,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: searchTerm
         in: query
         description: Text to search for in prospect names and emails
@@ -1428,6 +1790,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1435,6 +1803,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       responses:
         "400":
           description: Bad Request
@@ -1471,6 +1845,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllProfilesByPortal
+          values: $[*].id
+          labels: $[*].name
+          description: User group or profile defined in the portal
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -1478,6 +1858,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal hosted under the selected connection
       - name: connectionId
         in: path
         description: Unique identifier of the Salesforce connection
@@ -1485,6 +1871,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
       - name: idpId
         in: path
         description: Identity provider ID
@@ -1492,12 +1884,23 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:access-management
+          operation: getIdentityProviders
+          values: $.data[*].id
+          labels: $.data[*].name
+          description: Identity provider configured for the organization
       - name: groupMappingName
         in: path
         description: Name of the group mapping to remove
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getGroupMappings
+          values: $[*].name
+          description: Existing group-mapping name on the user group
       responses:
         "400":
           description: Bad Request

@@ -1,7 +1,28 @@
 openapi: 3.0.1
 info:
   title: API Experience Hub Consumer API
-  description: API Experience Hub API
+  description: |
+    Discover APIs and request access from a published API Experience Hub portal.
+
+    Use this API to act on behalf of an authenticated portal consumer (developer) browsing a
+    Salesforce-hosted developer portal that exposes assets from Anypoint Exchange. The
+    consumer surface covers three jobs:
+
+    - **Asset discovery** — list, search and inspect API assets published in the portal,
+      including documentation pages, terms and conditions, and downloadable resources.
+    - **Application management** — create, update and delete client applications, manage
+      OAuth credentials and rotate client secrets.
+    - **Request access** — request an API contract for an application, choose an SLA tier,
+      and inspect available grant types and instances for an asset.
+
+    Every path is scoped by `targetOrganizationId` (the external organization id tied to
+    the connection — for SALESFORCE connections this is the Salesforce organization id,
+    obtained from `GET /connections` on the Management API) and a portal id
+    (`portalId` / `targetPortalId`). The portal id and connection are managed through the
+    companion API Experience Hub Management API.
+
+    Authentication is via bearer token. Endpoints return Anypoint-style JSON error bodies
+    on 4xx; responses are paginated where applicable using `limit` and `offset`.
   version: 1.0.0
 servers:
 - url: https://anypoint.mulesoft.com/api-experience-hub
@@ -37,13 +58,24 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections).
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -51,6 +83,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       responses:
         "400":
           description: Bad Request
@@ -100,13 +138,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -114,6 +164,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       requestBody:
         description: "Application update request with new name, description or OAuth settings"
         content:
@@ -179,13 +235,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -193,6 +261,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       responses:
         "400":
           description: Bad Request
@@ -228,32 +302,59 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: targetPortalId
         in: path
         description: Unique identifier of the portal
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       requestBody:
         description: Shape selection for the API console model
         content:
@@ -298,14 +399,25 @@ paths:
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: x-limit
         in: header
         description: Maximum number of search results to return
@@ -382,18 +494,34 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -401,13 +529,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       requestBody:
         description: "Application creation request with name, instance ID and optional OAuth settings"
         content:
@@ -465,18 +605,34 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -484,13 +640,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       requestBody:
         description: "Contract creation request with application ID, instance ID and accepted terms"
         content:
@@ -555,13 +723,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -569,6 +749,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       responses:
         "400":
           description: Bad Request
@@ -605,13 +791,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -619,6 +817,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       - name: contractId
         in: path
         description: Unique identifier of the contract
@@ -626,6 +830,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getContractsByApplicationId
+          values: $[*].contractId
+          labels: $[*].assetName
+          description: Contract belonging to the selected application
       - name: tierId
         in: path
         description: ID of the SLA tier to assign
@@ -633,6 +843,12 @@ paths:
         schema:
           type: integer
           format: int32
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getTiers
+          values: $[*].id
+          labels: $[*].name
+          description: SLA tier available on the API instance
       responses:
         "400":
           description: Bad Request
@@ -679,14 +895,25 @@ paths:
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: limit
         in: query
         description: Maximum number of assets to return (max 250)
@@ -753,32 +980,59 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: targetPortalId
         in: path
         description: Unique identifier of the portal
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       responses:
         "400":
           description: Bad Request
@@ -814,32 +1068,59 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: targetPortalId
         in: path
         description: Unique identifier of the portal
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: resourceId
         in: path
         description: Unique identifier of the asset resource file
@@ -847,6 +1128,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.files[*].externalLink
+          labels: $.files[*].label
+          description: Resource file attached to the asset's documentation
       responses:
         "400":
           description: Bad Request
@@ -883,32 +1170,59 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: targetPortalId
         in: path
         description: Unique identifier of the portal
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       responses:
         "400":
           description: Bad Request
@@ -944,32 +1258,59 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: targetPortalId
         in: path
         description: Unique identifier of the portal
         required: true
         schema:
           type: string
-          format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       responses:
         "400":
           description: Bad Request
@@ -1042,18 +1383,34 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -1061,13 +1418,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: instanceId
         in: path
         description: Unique identifier of the API instance
@@ -1075,6 +1444,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.instances[*].id
+          labels: $.instances[*].name
+          description: API instance defined for the selected asset
       responses:
         "400":
           description: Bad Request
@@ -1131,18 +1506,34 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -1150,13 +1541,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: instanceId
         in: path
         description: Unique identifier of the API instance
@@ -1164,6 +1567,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.instances[*].id
+          labels: $.instances[*].name
+          description: API instance defined for the selected asset
       responses:
         "400":
           description: Bad Request
@@ -1213,18 +1622,34 @@ paths:
         schema:
           type: string
           pattern: ^v?\d+$
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.minorVersion
+          description: Minor version published for the selected asset
       - name: assetId
         in: path
         description: Exchange asset ID
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].assetId
+          labels: $[*].name
+          description: Exchange asset published in the portal
       - name: groupId
         in: path
         description: Exchange group ID of the asset
         required: true
         schema:
           type: string
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: listAssetsCommunityAsset
+          values: $[*].groupId
+          description: Exchange group identifier for the selected asset
       - name: portalId
         in: path
         description: Unique identifier of the portal
@@ -1232,13 +1657,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -1246,6 +1683,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       - name: instanceId
         in: path
         description: Unique identifier of the API instance
@@ -1253,6 +1696,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getAssetDetails
+          values: $.instances[*].id
+          labels: $.instances[*].name
+          description: API instance defined for the selected asset
       responses:
         "400":
           description: Bad Request
@@ -1300,13 +1749,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: instanceId
         in: query
         description: Filter applications by API instance ID
@@ -1379,13 +1840,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -1393,6 +1866,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       responses:
         "400":
           description: Bad Request
@@ -1442,13 +1921,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: applicationId
         in: path
         description: Unique identifier of the application
@@ -1456,6 +1947,12 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-consumer
+          operation: getApplications
+          values: $[*].id
+          labels: $[*].name
+          description: Application owned by the caller within the selected portal
       - name: limit
         in: query
         description: Maximum number of results to return
@@ -1521,13 +2018,25 @@ paths:
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].targetPortalId
+          labels: $[*].name
+          description: Portal identifier from the management API's portal list for the active connection
       - name: targetOrganizationId
         in: path
-        description: Anypoint Platform organization ID that owns the portal
+        description: External organization ID tied to the connection (e.g. Salesforce organization ID for SALESFORCE connections). Obtained from the connection record, not from Anypoint access-management.
         required: true
         schema:
           type: string
           format: uuid
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].targetOrganizationId
+          labels: $[*].targetOrganizationDomain
+          description: External organization identifier for the connection (e.g. Salesforce org ID)
       - name: appName
         in: query
         description: Application name to check for availability

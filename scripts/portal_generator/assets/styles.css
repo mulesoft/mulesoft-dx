@@ -432,6 +432,30 @@ body.detail-page .ms-com-header {
     z-index: 200;
 }
 
+/* MuleSoft chrome header — dark mode overrides.
+   Same pattern as the footer: the header HTML + CSS is fetched from mulesoft.com
+   and hardcodes a white background. Flip the background + text to dark tokens. */
+/* [data-theme="dark"] .ms-com-content-header, */
+[data-theme="dark"] .ms-com-header,
+[data-theme="dark"] .ms-com-header .header-wrapper {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-content-header {
+    border-bottom-color: var(--color-border-primary) !important;
+}
+
+/* [data-theme="dark"] .ms-com-header a, */
+[data-theme="dark"] .ms-com-header .menu-item>span {
+    color: var(--color-text-primary) !important;
+}
+
+/* [data-theme="dark"] .ms-com-header a:hover,
+[data-theme="dark"] .ms-com-header .menu-item>a:hover {
+    color: var(--color-text-link) !important;
+} */
+
 /* Dark mode toggle button */
 .dark-mode-toggle {
     position: fixed;
@@ -2482,6 +2506,75 @@ code {
     font-size: var(--font-size-4);
 }
 
+/* MuleSoft chrome footer — dark mode overrides.
+   The footer HTML is fetched from mulesoft.com and ships with its own stylesheet
+   that hardcodes a white background. Re-skin it to match the portal's dark tokens. */
+[data-theme="dark"] .ms-com-content-footer,
+[data-theme="dark"] .ms-com-content-footer.custom-footer-white-bg,
+[data-theme="dark"] .ms-com-footer,
+[data-theme="dark"] .ms-com-footer .footer-top,
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-top {
+    border-top: 1px solid var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    border-top: 1px solid var(--color-border-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer nav ul li span {
+    color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a,
+[data-theme="dark"] .ms-com-footer nav ul li a,
+[data-theme="dark"] .ms-com-footer .footer-links a,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a,
+[data-theme="dark"] .ms-com-footer .footer-copyright a {
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a:hover,
+[data-theme="dark"] .ms-com-footer nav ul li a:hover,
+[data-theme="dark"] .ms-com-footer .footer-links a:hover,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a:hover,
+[data-theme="dark"] .ms-com-footer .footer-copyright a:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-copyright,
+[data-theme="dark"] .ms-com-footer .footer-copyright span {
+    color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-links-separator {
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings,
+[data-theme="dark"] .ms-com-footer button.ot-sdk-show-settings {
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .social-logos a {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9);
+}
+
+[data-theme="dark"] .ms-com-content-header header.ms-com-header.desktop-header .header-inside .right-side>.contact>* {
+    color: white !important;
+}
+
+
 /* ============================================================================
    Detail Page Layout (Sidebar + Content)
    ============================================================================ */
@@ -3139,7 +3232,7 @@ button.nav-group-header {
     scroll-margin-top: 100px;
     display: none;
     /* Hidden by default, shown via JS */
-    
+
 }
 
 .operation-detail.active {
@@ -8422,6 +8515,7 @@ code[class*="language-"][class*="language-"] {
 .evaluation-result-container.evaluation-success .ace_editor {
     border-color: #86efac;
 }
+
 /* ============================================================================
    MCP surfaces
    ============================================================================
@@ -8655,4 +8749,3 @@ code[class*="language-"][class*="language-"] {
     font-size: var(--font-size-6);
     font-weight: var(--font-weight-semibold);
 }
-

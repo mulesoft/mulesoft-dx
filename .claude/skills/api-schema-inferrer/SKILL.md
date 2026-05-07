@@ -41,9 +41,24 @@ python3 skills/api-schema-inferrer/scripts/infer_schemas.py path/to/spec.yaml
 
 This will:
 1. Create a backup file (`spec.yaml.backup`)
-2. Infer schemas from all examples in requests and responses
-3. Add schemas where they are missing
-4. Preserve existing schemas (never overwrites)
+2. Relocate any `example` nested inside a `schema:` block up to the media-type level (the OAS-canonical sibling location)
+3. Infer schemas from all examples in requests and responses, including shared bodies under `components.requestBodies` and `components.responses`
+4. Add schemas where they are missing
+5. Preserve existing schemas (never overwrites)
+
+### Why the relocation pre-step matters
+
+Some toolchains (notably AMF) emit specs where `example` is nested inside `schema:`:
+
+```yaml
+content:
+  application/json:
+    schema:
+      example:
+        foo: bar
+```
+
+OAS 3.x defines `example` as a **sibling** of `schema` at the Media Type Object level. Tooling that follows the spec (including the portal generator in this repo) won't render schema-nested examples. The script automatically moves them so both the inferrer and downstream tooling can find them.
 
 ## What It Does
 

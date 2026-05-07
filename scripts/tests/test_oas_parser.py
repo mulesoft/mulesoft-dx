@@ -661,6 +661,82 @@ class TestExtractOperations:
         names = [p['name'] for p in resp['schemas']['application/json']]
         assert names == ['id', 'name']
 
+    def test_request_body_top_level_ref_to_components_request_bodies(self, tmp_path):
+        """Regression: operations using `requestBody: { $ref: '#/components/requestBodies/X' }`
+        must resolve through the reference. AMF-emitted specs commonly hoist shared
+        request bodies into components.requestBodies and reference them by $ref."""
+        paths = {
+            '/clients/{clientId}/roles': {
+                'post': {
+                    'operationId': 'addRolesToClient',
+                    'requestBody': {'$ref': '#/components/requestBodies/RoleAssignment'},
+                    'responses': {},
+                },
+            }
+        }
+        components = {
+            'requestBodies': {
+                'RoleAssignment': {
+                    'description': 'Role assignment payload',
+                    'content': {
+                        'application/json': {
+                            'schema': {
+                                'type': 'object',
+                                'required': ['roleId'],
+                                'properties': {
+                                    'roleId': {'type': 'string'},
+                                    'scope': {'type': 'string'},
+                                },
+                            },
+                            'example': {'roleId': 'admin', 'scope': 'org'},
+                        }
+                    },
+                }
+            }
+        }
+        ops = extract_operations(paths, components, tmp_path)
+        rb = ops[0]['requestBody']
+        assert rb is not None, 'requestBody must resolve through $ref to components.requestBodies'
+        assert 'application/json' in rb['content_types']
+        names = [p['name'] for p in rb['schemas']['application/json']]
+        assert names == ['roleId', 'scope']
+        assert rb['examples']['application/json']['Default']
+
+    def test_response_top_level_ref_to_components_responses(self, tmp_path):
+        """Regression: operations using a $ref to components.responses must resolve."""
+        paths = {
+            '/items': {
+                'get': {
+                    'operationId': 'listItems',
+                    'responses': {
+                        '404': {'$ref': '#/components/responses/NotFound'},
+                    },
+                },
+            }
+        }
+        components = {
+            'responses': {
+                'NotFound': {
+                    'description': 'Resource not found',
+                    'content': {
+                        'application/json': {
+                            'schema': {
+                                'type': 'object',
+                                'properties': {'message': {'type': 'string'}},
+                            },
+                            'example': {'message': 'not found'},
+                        }
+                    },
+                }
+            }
+        }
+        ops = extract_operations(paths, components, tmp_path)
+        resp = ops[0]['responses']['404']
+        assert resp['description'] == 'Resource not found'
+        names = [p['name'] for p in resp['schemas']['application/json']]
+        assert names == ['message']
+        assert resp['examples']['application/json']['Default']
+
     def test_empty_paths(self):
         assert extract_operations({}) == []
         assert extract_operations(None) == []

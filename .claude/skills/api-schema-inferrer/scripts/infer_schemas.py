@@ -94,6 +94,87 @@ def infer_schema_from_value(value: Any, key_name: str = None) -> Dict[str, Any]:
     return schema
 
 
+def relocate_example_in_media_type(media_type: Dict[str, Any]) -> bool:
+    """Move 'example' from inside a schema up to the media-type level.
+
+    AMF-emitted specs commonly nest `example` under `schema`, e.g.:
+
+        application/json:
+          schema:
+            example: { ... }
+
+    OAS 3.x defines `example` as a sibling of `schema` at the Media Type
+    Object level. Tooling that follows the spec strictly (including the
+    portal generator) won't render schema-nested examples. This helper
+    relocates them so they're discoverable.
+
+    If the media type already has its own `example` or `examples`, the
+    nested one is dropped silently to avoid a conflict. If `schema`
+    becomes empty after removal, the empty `schema:` key is removed
+    too so the inferrer can generate a fresh one in its place.
+
+    Returns True if anything was relocated.
+    """
+    if not isinstance(media_type, dict):
+        return False
+    schema = media_type.get("schema")
+    if not isinstance(schema, dict) or "example" not in schema:
+        return False
+    if "example" in media_type or "examples" in media_type:
+        schema.pop("example", None)
+    else:
+        media_type["example"] = schema.pop("example")
+    if not schema:
+        del media_type["schema"]
+    return True
+
+
+def relocate_examples_in_content(content: Dict[str, Any]) -> int:
+    """Run relocate_example_in_media_type across every media type in a content block."""
+    if not isinstance(content, dict):
+        return 0
+    moved = 0
+    for media_type in content.values():
+        if relocate_example_in_media_type(media_type):
+            moved += 1
+    return moved
+
+
+def relocate_examples(spec: Dict[str, Any]) -> int:
+    """Walk the entire spec and relocate schema-nested examples to media-type level.
+
+    Covers all four locations where Media Type Objects appear:
+      - paths.<path>.<method>.requestBody.content.<media-type>
+      - paths.<path>.<method>.responses.<status>.content.<media-type>
+      - components.requestBodies.<name>.content.<media-type>
+      - components.responses.<name>.content.<media-type>
+    """
+    total = 0
+
+    paths = spec.get("paths", {}) or {}
+    for path, methods in paths.items():
+        if not isinstance(methods, dict):
+            continue
+        for method in ("get", "post", "put", "patch", "delete", "options", "head"):
+            op = methods.get(method)
+            if not isinstance(op, dict):
+                continue
+            rb = op.get("requestBody")
+            if isinstance(rb, dict):
+                total += relocate_examples_in_content(rb.get("content", {}))
+            for response in (op.get("responses") or {}).values():
+                if isinstance(response, dict):
+                    total += relocate_examples_in_content(response.get("content", {}))
+
+    components = spec.get("components", {}) or {}
+    for kind in ("requestBodies", "responses"):
+        for body in (components.get(kind) or {}).values():
+            if isinstance(body, dict):
+                total += relocate_examples_in_content(body.get("content", {}))
+
+    return total
+
+
 def process_media_type_content(content: Dict[str, Any], location: str) -> bool:
     """
     Process a content dictionary (from requestBody or response) to infer schema from examples.
@@ -171,20 +252,34 @@ def infer_schemas(spec: Dict[str, Any]) -> int:
     """
     Process entire OAS spec and infer schemas from examples.
 
+    Walks both inline operations under `paths` and shared bodies under
+    `components.requestBodies` / `components.responses`, since OAS 3.x
+    permits operations to reference shared bodies via $ref.
+
     Returns:
         Number of schemas added
     """
     total_schemas_added = 0
 
-    # Process paths
-    paths = spec.get("paths", {})
-
+    paths = spec.get("paths", {}) or {}
     for path, methods in paths.items():
+        if not isinstance(methods, dict):
+            continue
         for method in ["get", "post", "put", "patch", "delete", "options", "head"]:
             if method in methods:
                 operation = methods[method]
-                schemas_added = process_operation(path, method, operation)
-                total_schemas_added += schemas_added
+                if isinstance(operation, dict):
+                    total_schemas_added += process_operation(path, method, operation)
+
+    components = spec.get("components", {}) or {}
+    for name, body in (components.get("requestBodies") or {}).items():
+        if isinstance(body, dict) and "content" in body:
+            if process_media_type_content(body["content"], f"components.requestBodies.{name}"):
+                total_schemas_added += 1
+    for name, body in (components.get("responses") or {}).items():
+        if isinstance(body, dict) and "content" in body:
+            if process_media_type_content(body["content"], f"components.responses.{name}"):
+                total_schemas_added += 1
 
     return total_schemas_added
 
@@ -240,15 +335,21 @@ def main():
     spec = load_spec(spec_path)
 
     # Make a copy for comparison if dry run
-    if dry_run:
-        spec_copy = deepcopy(spec)
-        schemas_added = infer_schemas(spec_copy)
-    else:
-        schemas_added = infer_schemas(spec)
+    target = deepcopy(spec) if dry_run else spec
 
-    print(f"\n{'Would add' if dry_run else 'Added'} {schemas_added} schema(s)")
+    # Relocate any 'example' nested inside 'schema' up to the media-type level
+    # so the inferrer (and downstream tooling that follows OAS strictly) can find
+    # them. AMF-emitted specs commonly need this.
+    moved = relocate_examples(target)
+    if moved:
+        print(f"  ↪ Relocated {moved} schema-nested example(s) to media-type level")
 
-    if schemas_added == 0:
+    schemas_added = infer_schemas(target)
+
+    print(f"\n{'Would add' if dry_run else 'Added'} {schemas_added} schema(s)"
+          f"{f' and relocate {moved} example(s)' if moved else ''}")
+
+    if schemas_added == 0 and moved == 0:
         print("\n✓ No schemas to infer. All examples already have schemas defined.")
         sys.exit(0)
 

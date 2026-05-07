@@ -57,8 +57,14 @@ def _render_markdown(value):
 
 
 def _tojson_raw(value, indent=2):
-    """Serialize to JSON with indentation for embedding in <script> tags."""
-    return Markup(json.dumps(value, indent=indent))
+    """Serialize to JSON with indentation for embedding in <script> tags.
+
+    Falls back to str() for types json.dumps doesn't know — notably datetime.date
+    and datetime.datetime, which ruamel.yaml produces from unquoted ISO dates in
+    spec examples. Without this, a date-typed example anywhere in an op's parsed
+    metadata crashes the whole detail page render.
+    """
+    return Markup(json.dumps(value, indent=indent, default=str))
 
 
 def _titleize_operation(value):

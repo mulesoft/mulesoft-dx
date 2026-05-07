@@ -281,113 +281,112 @@
 }
 
 
-/* Manual dark mode toggle support */
+/* Manual dark mode toggle support - Slack inspired */
 [data-theme="dark"] {
     color-scheme: dark;
 
-    /* GitHub Dark inspired + Solarized */
-    --color-white: #0d1117;
-    --color-neutral-1: #0d1117;
-    --color-neutral-2: #161b22;
-    --color-neutral-3: #21262d;
-    --color-neutral-4: #30363d;
-    --color-neutral-5: #484f58;
-    --color-neutral-6: #6e7681;
-    --color-neutral-7: #8b949e;
-    --color-neutral-8: #b1bac4;
-    --color-neutral-9: #c9d1d9;
-    --color-neutral-10: #f0f6fc;
+    /* Slack-inspired dark palette - Much darker backgrounds */
+    --color-white: #1A1D21;
+    --color-neutral-1: #1A1D21;
+    --color-neutral-2: #232529;
+    --color-neutral-3: #2C2D30;
+    --color-neutral-4: #3A3B3F;
+    --color-neutral-5: #5E5F63;
+    --color-neutral-6: #868689;
+    --color-neutral-7: #ABABAD;
+    --color-neutral-8: #C9CACC;
+    --color-neutral-9: #D1D2D3;
+    --color-neutral-10: #FFFFFF;
 
+    /* Grays - Slack-style with high contrast */
+    --color-gray-50: #1A1D21;
+    --color-gray-100: #232529;
+    --color-gray-200: #2C2D30;
+    --color-gray-300: #3A3B3F;
+    --color-gray-400: #9CA6AF;   /* Slack secondary text color */
+    --color-gray-500: #ABABAD;   /* Lighter for better readability */
+    --color-gray-600: #C9CACC;   /* Even lighter */
+    --color-gray-700: #D1D2D3;   /* Very light for primary text */
+    --color-gray-800: #E8E8E8;   /* Near white */
+    --color-gray-900: #FFFFFF;   /* Pure white for emphasis */
 
-    /* Grays */
-    --color-gray-50: #0d1117;
-    --color-gray-100: #161b22;
-    --color-gray-200: #21262d;
-    --color-gray-300: #30363d;
-    --color-gray-400: #484f58;
-    --color-gray-500: #6e7681;
-    --color-gray-600: #8b949e;
-    --color-gray-700: #b1bac4;
-    --color-gray-800: #c9d1d9;
-    --color-gray-900: #f0f6fc;
+    /* Semantic colors - Backgrounds (Slack-style) */
+    --color-bg-primary: #1A1D21;
+    --color-bg-secondary: #232529;
+    --color-bg-surface: #232529;
+    --color-bg-overlay: rgba(26, 29, 33, 0.95);
 
-    /* Semantic colors - Backgrounds */
-    --color-bg-primary: #0d1117;
-    --color-bg-secondary: #161b22;
-    --color-bg-surface: #161b22;
-    --color-bg-overlay: rgba(13, 17, 23, 0.9);
+    --color-indigo: #232529;
 
-    --color-indigo: #161b22;
+    /* Semantic colors - Borders (subtle but visible) */
+    --color-border-primary: #3A3B3F;
+    --color-border-secondary: #2C2D30;
+    --color-border-focus: #2D7A9E;
 
-    /* Semantic colors - Borders */
-    --color-border-primary: #30363d;
-    --color-border-secondary: #21262d;
-    --color-border-focus: #58a6ff;
+    /* Semantic colors - Text (Slack-optimized) */
+    --color-text-primary: #D1D2D3;
+    --color-text-secondary: #9CA6AF;
+    --color-text-tertiary: #868689;
+    --color-text-quaternary: #5E5F63;
+    --color-text-inverse: #1A1D21;
+    --color-text-link: #1D9BD1;
+    --color-text-link-hover: #1164A3;
 
-    /* Semantic colors - Text (Editorial optimized for dark) */
-    --color-text-primary: #E6EDF3;
-    --color-text-secondary: #9198A1;
-    --color-text-tertiary: #6e7681;
-    --color-text-quaternary: #484f58;
-    --color-text-inverse: #0d1117;
-    --color-text-link: #539bf5;
-    --color-text-link-hover: #6cb6ff;
+    /* Primary colors - Slack blue (desaturated for dark mode) */
+    --color-servers: #1D9BD1;
+    --hero-title: #9CA6AF;
+    --color-primary: #2D7A9E;
+    --color-primary-hover: #3A8CB0;
+    --color-primary-dark: #226380;
 
-    /* Primary colors */
-    --color-servers: #539bf5;
-    --hero-title: #7d8590;
-    --color-primary: #539bf5;
-    --color-primary-hover: #6cb6ff;
-    --color-primary-dark: #409eff;
+    /* HTTP Method colors - Slack-style with better visibility */
+    --method-get-bg: rgba(46, 160, 67, 0.2);
+    --method-get-text: #4FC46B;
+    --method-get-bg-hover: rgba(46, 160, 67, 0.3);
 
-    /* HTTP Method colors - GitHub style */
-    --method-get-bg: rgba(63, 185, 80, 0.15);
-    --method-get-text: #3fb950;
-    --method-get-bg-hover: rgba(63, 185, 80, 0.25);
+    --method-post-bg: rgba(29, 155, 209, 0.2);
+    --method-post-text: #36C5F0;
+    --method-post-bg-hover: rgba(29, 155, 209, 0.3);
 
-    --method-post-bg: rgba(56, 139, 253, 0.15);
-    --method-post-text: #58a6ff;
-    --method-post-bg-hover: rgba(56, 139, 253, 0.25);
+    --method-put-bg: rgba(224, 175, 82, 0.2);
+    --method-put-text: #ECB22E;
+    --method-put-bg-hover: rgba(224, 175, 82, 0.3);
+    --method-put-text-hover: #ECB22E;
 
-    --method-put-bg: rgba(187, 128, 9, 0.15);
-    --method-put-text: #d29922;
-    --method-put-bg-hover: rgba(187, 128, 9, 0.25);
-    --method-put-text-hover: #d29922;
+    --method-patch-bg: rgba(176, 137, 255, 0.2);
+    --method-patch-text: #B089FF;
+    --method-patch-bg-hover: rgba(176, 137, 255, 0.3);
+    --method-patch-text-hover: #B089FF;
 
-    --method-patch-bg: rgba(163, 113, 247, 0.15);
-    --method-patch-text: #a371f7;
-    --method-patch-bg-hover: rgba(163, 113, 247, 0.25);
-    --method-patch-text-hover: #a371f7;
+    --method-delete-bg: rgba(232, 77, 77, 0.2);
+    --method-delete-text: #E84D4D;
+    --method-delete-bg-hover: rgba(232, 77, 77, 0.3);
+    --method-delete-text-hover: #E84D4D;
 
-    --method-delete-bg: rgba(248, 81, 73, 0.15);
-    --method-delete-text: #f85149;
-    --method-delete-bg-hover: rgba(248, 81, 73, 0.25);
-    --method-delete-text-hover: #f85149;
+    --method-other-bg: rgba(156, 166, 175, 0.2);
+    --method-other-text: #9CA6AF;
+    --method-other-bg-hover: rgba(156, 166, 175, 0.3);
+    --method-other-text-hover: #9CA6AF;
 
-    --method-other-bg: rgba(110, 118, 129, 0.15);
-    --method-other-text: #8b949e;
-    --method-other-bg-hover: rgba(110, 118, 129, 0.25);
-    --method-other-text-hover: #8b949e;
+    /* Interactive states - Desaturated blue selection */
+    --hover-bg: rgba(45, 122, 158, 0.15);
+    --hover-border: #2D7A9E;
+    --hover-text: #4A9FC4;
+    --selected-bg: rgba(45, 122, 158, 0.25);
+    --selected-border: #2D7A9E;
+    --selected-text: #FFFFFF;
 
-    /* Interactive states */
-    --hover-bg: rgba(74, 158, 255, 0.1);
-    --hover-border: #5A8BC7;
-    --hover-text: #70B4FF;
-    --selected-bg: rgba(74, 158, 255, 0.15);
-    --selected-border: #5A8BC7;
-    --selected-text: #70B4FF;
-
-    /* Shadows - Lighter for dark mode */
-    --shadow-sm: rgba(0, 0, 0, 0.3);
-    --shadow-md: rgba(0, 0, 0, 0.4);
-    --shadow-lg: rgba(0, 0, 0, 0.5);
-    --shadow-xl: rgba(0, 0, 0, 0.6);
-    --shadow-blue: rgba(74, 158, 255, 0.2);
-    --shadow-blue-md: rgba(74, 158, 255, 0.25);
-    --overlay-light: rgba(0, 0, 0, 0.3);
-    --overlay-lighter: rgba(0, 0, 0, 0.2);
-    --focus-ring-blue: rgba(74, 158, 255, 0.2);
-    --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.5);
+    /* Shadows - Deeper for dark mode */
+    --shadow-sm: rgba(0, 0, 0, 0.4);
+    --shadow-md: rgba(0, 0, 0, 0.5);
+    --shadow-lg: rgba(0, 0, 0, 0.6);
+    --shadow-xl: rgba(0, 0, 0, 0.7);
+    --shadow-blue: rgba(17, 100, 163, 0.3);
+    --shadow-blue-md: rgba(17, 100, 163, 0.4);
+    --overlay-light: rgba(0, 0, 0, 0.4);
+    --overlay-lighter: rgba(0, 0, 0, 0.3);
+    --focus-ring-blue: rgba(29, 155, 209, 0.3);
+    --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.7);
 }
 
 
@@ -708,12 +707,20 @@ code {
     line-height: 1.2;
 }
 
+[data-theme="dark"] .hero-title {
+    color: #ABABAD;
+}
+
 .hero-subtitle {
     font-size: var(--font-size-6);
     color: var(--hero-title);
     margin: 0 0 32px 0;
     line-height: 1.5;
     font-weight: var(--font-weight-regular);
+}
+
+[data-theme="dark"] .hero-subtitle {
+    color: #9CA6AF;
 }
 
 .hero-tabs {
@@ -1592,11 +1599,11 @@ code {
 }
 
 [data-theme="dark"] .catalog-card-title {
-    color: #c9d1d9 !important;
+    color: #FFFFFF !important;
 }
 
 [data-theme="dark"] .catalog-card-description {
-    color: #8b949e;
+    color: #9CA6AF;
 }
 
 [data-theme="dark"] .badge-api-type {
@@ -1680,13 +1687,13 @@ code {
 }
 
 [data-theme="dark"] .btn-send {
-    background: #1557BE;
+    background: #2D7A9E;
     color: #ffffff;
-    border: 1px solid #1557BE;
+    border: 1px solid #2D7A9E;
 }
 
 [data-theme="dark"] .btn-send:hover {
-    background: #1f6feb;
+    background: #3A8CB0;
 }
 
 .catalog-card-link:hover .catalog-card {
@@ -5743,6 +5750,17 @@ details[open] .examples-toggle-icon {
     border-color: #80BFFF;
 }
 
+[data-theme="dark"] .btn-auth-login {
+    background: #2D7A9E;
+    color: #FFFFFF;
+    border-color: #2D7A9E;
+}
+
+[data-theme="dark"] .btn-auth-login:hover {
+    background: #3A8CB0;
+    border-color: #3A8CB0;
+}
+
 .auth-message {
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
@@ -7066,6 +7084,10 @@ details[open] .examples-toggle-icon {
     background-position: center;
 }
 
+[data-theme="dark"] .param-info-icon::before {
+    filter: brightness(0) saturate(100%) invert(54%) sepia(19%) saturate(808%) hue-rotate(153deg) brightness(88%) contrast(88%);
+}
+
 .param-required {
     font-size: var(--font-size-5);
 }
@@ -8029,6 +8051,17 @@ code[class*="language-"][class*="language-"] {
     border-color: #80BFFF;
 }
 
+[data-theme="dark"] .btn-add-variable {
+    background: rgba(45, 122, 158, 0.2);
+    border-color: #3A3B3F;
+    color: #9CA6AF;
+}
+
+[data-theme="dark"] .btn-add-variable:hover {
+    background: rgba(45, 122, 158, 0.3);
+    border-color: #2D7A9E;
+}
+
 .btn-clear-variables {
     display: flex;
     align-items: center;
@@ -8512,3 +8545,10 @@ code[class*="language-"][class*="language-"] {
     font-weight: var(--font-weight-semibold);
 }
 
+/* Dark mode: Change all blue (#0176D3) icons to desaturated blue */
+[data-theme="dark"] img[src*="expand.svg"],
+[data-theme="dark"] img[src*="collapse.svg"],
+[data-theme="dark"] img[src*="copy-curl-icon.svg"],
+[data-theme="dark"] .group-toggle {
+    filter: brightness(0) saturate(100%) invert(54%) sepia(19%) saturate(808%) hue-rotate(153deg) brightness(88%) contrast(88%);
+}

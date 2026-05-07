@@ -109,6 +109,9 @@ def _prepare_operations(apis: List[Dict]):
 
 
 class PortalGenerator:
+    REPO_URL = 'https://github.com/mulesoft/anypoint-public-api-specs'
+    REPO_BRANCH = 'master'
+
     def __init__(self, output_dir: Path, proxy_url: str = 'http://localhost:8080/proxy',
                  build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com'):
         self.output_dir = output_dir
@@ -313,6 +316,11 @@ class PortalGenerator:
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"apis/{api['slug']}/api.yaml",
+                asset_type='api',
+                asset_name=api.get('name', api['slug']),
             )
             output_path = self.output_dir / 'apis' / f"{api['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -412,6 +420,11 @@ class PortalGenerator:
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"mcps/{mcp['slug']}/mcp.yaml",
+                asset_type='mcp',
+                asset_name=mcp.get('name', mcp['slug']),
             )
             output_path = self.output_dir / 'mcps' / f"{mcp['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -467,6 +480,11 @@ class PortalGenerator:
                 build_label=self.build_label,
                 base_url=self.base_url,
                 prose_only=prose_only,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"skills/{skill['slug']}/SKILL.md",
+                asset_type='skill',
+                asset_name=skill_name,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:

@@ -252,7 +252,7 @@ class PortalGenerator:
             all_skills=self.all_skills,
             all_items=all_items,
             proxy_url=self.proxy_url,
-            chrome=self.chrome,
+            chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
             build_label=self.build_label,
             base_url=self.base_url,
         )
@@ -313,6 +313,7 @@ class PortalGenerator:
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
             )
             output_path = self.output_dir / 'apis' / f"{api['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -412,6 +413,7 @@ class PortalGenerator:
                 proxy_url=self.proxy_url,
                 build_label=self.build_label,
                 base_url=self.base_url,
+                chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
             )
             output_path = self.output_dir / 'mcps' / f"{mcp['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -467,6 +469,7 @@ class PortalGenerator:
                 build_label=self.build_label,
                 base_url=self.base_url,
                 prose_only=prose_only,
+                chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:

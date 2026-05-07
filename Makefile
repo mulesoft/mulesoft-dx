@@ -273,6 +273,9 @@ endif
 ifdef BASE_URL
 PORTAL_ARGS += --base-url "$(BASE_URL)"
 endif
+ifdef PROXY_URL
+PORTAL_ARGS += --proxy-url "$(PROXY_URL)"
+endif
 
 generate-portal:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"

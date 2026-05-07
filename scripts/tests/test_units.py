@@ -217,6 +217,22 @@ class TestTojsonRaw:
         result = _tojson_raw({'a': 1}, indent=4)
         assert '    "a"' in str(result)
 
+    def test_serializes_date_via_default_str(self):
+        """ruamel.yaml parses unquoted ISO dates in spec examples as datetime.date.
+        Those leak through into requestBody/response metadata that gets embedded
+        in <script> tags via op_lookup. Without a fallback, the whole detail page
+        render crashes. The filter must coerce unknown types to str."""
+        import datetime
+        result = _tojson_raw({'expirationDate': datetime.date(2026, 11, 22)})
+        parsed = json.loads(str(result))
+        assert parsed == {'expirationDate': '2026-11-22'}
+
+    def test_serializes_datetime_via_default_str(self):
+        import datetime
+        result = _tojson_raw({'when': datetime.datetime(2026, 11, 22, 10, 30)})
+        parsed = json.loads(str(result))
+        assert parsed['when'].startswith('2026-11-22')
+
 
 # ============================================================================
 # _skill_title

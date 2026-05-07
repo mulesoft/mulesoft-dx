@@ -410,8 +410,7 @@ body {
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     line-height: 1.6;
-    padding-top: 80px;
-    /* Space for MuleSoft fixed header */
+    padding-top: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -710,7 +709,7 @@ code {
 
 .hero {
     position: relative;
-    padding: 60px 0 20px 0;
+    padding: 20px 0 20px 0;
     overflow: visible;
 }
 

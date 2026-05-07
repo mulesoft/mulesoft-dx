@@ -1637,11 +1637,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up hero tabs for filtering
     const heroTabs = document.querySelectorAll('.hero-tab');
     heroTabs.forEach(tab => {
-        // Skip MCP tab - it's disabled (coming soon)
-        if (tab.classList.contains('hero-tab-mcp')) {
-            return;
-        }
-
         tab.addEventListener('click', () => {
             // Remove active class from all tabs
             heroTabs.forEach(t => t.classList.remove('active'));

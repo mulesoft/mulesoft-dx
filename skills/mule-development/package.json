@@ -1,6 +1,6 @@
 {
-  "name": "@mulesoft/mule-dx-skills",
-  "version": "0.1.0",
+  "name": "mulesoft-vibes-skills",
+  "version": "1.0.0",
   "description": "MuleSoft DX skills to enhance Mule developement",
   "private": true,
   "license": "UNLICENSED",

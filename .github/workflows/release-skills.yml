@@ -46,18 +46,4 @@ jobs:
 
       - name: Publish to npm
         if: steps.check.outputs.should_publish == 'true'
-        # NOTE: Provenance is intentionally disabled.
-        # Per OSPO policy, provenance must be turned OFF for EMU-org repos
-        # approved for public npm publishing.
-        run: npm publish --access public --provenance=false
-
-  # Next steps for you:
-  # 1. Configure trusted publishing on npmjs.com for @mulesoft/mule-dx-skills:
-  #    npmjs.com → package settings → Trusted Publisher → GitHub Actions
-  #    → org: mulesoft, repo: mulesoft-dx, workflow: release-skills.yml,
-  #      environment: (leave blank unless you add one).
-  # 2. Bump skills/mule-development/package.json version each time you want a release —
-  #    the workflow won't publish if the version is unchanged.
-  # 3. First-time publish of @mulesoft/mule-dx-skills may need a one-time manual
-  #    npm publish to claim the name on the @mulesoft scope before OIDC can take over.
-  # 4. Remove "private": true from package.json before the workflow can publish.
+        run: npm publish --access public --provenance=true

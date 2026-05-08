@@ -4299,6 +4299,18 @@ details[open] .examples-toggle-icon {
     overflow: visible;
 }
 
+.terraform-page .skill-view-markdown {
+    max-width: 100%;
+}
+
+.terraform-page .skill-subsection[id^="doc-"] {
+    display: none;
+}
+
+.terraform-page .skill-subsection[id^="doc-"].active {
+    display: block;
+}
+
 .skill-header-detail {
     margin-bottom: var(--space-large);
 }

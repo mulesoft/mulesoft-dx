@@ -501,58 +501,31 @@ class PortalGenerator:
         return preamble + "\n" + content
 
     def _generate_terraform_pages(self):
-        """Generate Terraform provider documentation pages."""
+        """Generate Terraform provider documentation pages (one page per provider)."""
         if not self.terraform_providers:
             return
         total_docs = sum(p['doc_count'] for p in self.terraform_providers)
-        print(f"  ✓ Generating {total_docs} Terraform doc pages across {len(self.terraform_providers)} provider(s)...")
+        print(f"  ✓ Generating {len(self.terraform_providers)} Terraform provider page(s) ({total_docs} docs)...")
 
-        index_template = self.env.get_template('terraform/terraform_provider_index.html')
-        page_template = self.env.get_template('terraform_page.html')
+        template = self.env.get_template('terraform_page.html')
 
         for provider in self.terraform_providers:
-            provider_output = self.output_dir / 'terraform' / provider['slug']
-            provider_output.mkdir(parents=True, exist_ok=True)
-
             nav_tree = provider['nav_tree']
             nav_tree_by_type = provider['nav_tree_by_type']
 
-            # Generate provider index page
-            html = index_template.render(
+            html = template.render(
                 css_path='../assets/styles.css',
                 icons_path='../assets/icons',
                 provider=provider,
                 nav_tree=nav_tree,
                 nav_tree_by_type=nav_tree_by_type,
-                doc=None,
-                link_prefix=f'{provider["slug"]}/',
-                index_link=f'{provider["slug"]}.html',
                 home_link='../index.html',
                 build_label=self.build_label,
                 base_url=self.base_url,
             )
-            index_path = self.output_dir / 'terraform' / f"{provider['slug']}.html"
-            with open(index_path, 'w', encoding='utf-8') as f:
+            output_path = self.output_dir / 'terraform' / f"{provider['slug']}.html"
+            with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html)
-
-            # Generate individual doc pages
-            for doc in provider['docs']:
-                html = page_template.render(
-                    css_path='../../assets/styles.css',
-                    icons_path='../../assets/icons',
-                    provider=provider,
-                    doc=doc,
-                    nav_tree=nav_tree,
-                    nav_tree_by_type=nav_tree_by_type,
-                    link_prefix='',
-                    index_link=f'../{provider["slug"]}.html',
-                    home_link='../../index.html',
-                    build_label=self.build_label,
-                    base_url=self.base_url,
-                )
-                output_path = provider_output / f"{doc['slug']}.html"
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(html)
 
     def _generate_registry(self):
         """Generate registry.json - a document registry for APIs, Skills, and Schemas."""

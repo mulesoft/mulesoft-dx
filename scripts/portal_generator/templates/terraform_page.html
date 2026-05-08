@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ doc.name }} - {{ provider.name }}{% endblock %}
+{% block title %}{{ provider.name }} - Terraform Provider{% endblock %}
 
 {% block body_attrs %} class="detail-page terraform-page"{% endblock %}
 
@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-hcl.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
-<script src="../../assets/portal.js" defer></script>
+<script src="../assets/portal.js" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -22,7 +22,7 @@
 {% include "partials/auth_panel.html" %}
 
 <div class="detail-layout">
-    {% include "terraform/terraform_sidebar.html" %}
+    {% include "partials/terraform_sidebar.html" %}
     <main class="detail-content" id="main-content">
         {% include "terraform/terraform_detail.html" %}
     </main>

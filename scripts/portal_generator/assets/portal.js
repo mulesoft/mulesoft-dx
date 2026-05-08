@@ -1582,10 +1582,19 @@ function navigateToHash(hash, smooth) {
     if (targetId.startsWith('op-')) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
+    } else if (targetId.startsWith('doc-')) {
+        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
+        targetElement.classList.add('active');
+        if (overview) overview.style.display = 'none';
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
+        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
     }
 
     targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });

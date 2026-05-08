@@ -10,7 +10,7 @@
             </div>
         </div>
         <div class="sidebar-overview-section">
-            <a href="#overview" class="nav-link nav-link-overview">
+            <a href="#overview" class="nav-link nav-link-overview active">
                 Overview
             </a>
         </div>
@@ -33,8 +33,8 @@
                         <ul class="nav-doc-list">
                             {% for item in nav_tree_by_type[doc_type][subcategory] %}
                             <li>
-                                <a href="{{ link_prefix }}{{ item.slug }}.html"
-                                   class="nav-link nav-skill-step{% if doc and item.slug == doc.slug %} active{% endif %}"
+                                <a href="#doc-{{ item.slug }}"
+                                   class="nav-link nav-skill-step"
                                    title="{{ item.description }}">
                                     <span class="step-title-short">{{ item.name }}</span>
                                 </a>

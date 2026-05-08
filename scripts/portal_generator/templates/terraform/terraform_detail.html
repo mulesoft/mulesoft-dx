@@ -1,0 +1,16 @@
+<section class="content-section skill-detail">
+    {% if doc.description %}
+    <div class="skill-subsection">
+        <h3 id="overview">Overview</h3>
+        <div class="skill-view-markdown">
+            <p>{{ doc.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="skill-subsection">
+        <div class="skill-view-markdown">
+            {{ doc.body_html|safe }}
+        </div>
+    </div>
+</section>

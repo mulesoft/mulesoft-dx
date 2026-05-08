@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ provider.name }} - Terraform Provider{% endblock %}
+
+{% block body_attrs %} class="detail-page terraform-page"{% endblock %}
+
+{% block head_scripts %}
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% set api_name = provider.name %}
+{% set api_version = '' %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "terraform/terraform_sidebar.html" %}
+    <main class="detail-content" id="main-content">
+        <section class="content-section">
+            <h1>{{ provider.name }}</h1>
+            <p class="terraform-provider-summary">{{ provider.doc_count }} documentation pages across {{ nav_tree|length }} categories.</p>
+
+            <div class="skill-view-markdown">
+            {% for subcategory in nav_tree|sort %}
+            <h2>{{ subcategory }}</h2>
+            {% for doc_type in nav_tree[subcategory]|sort %}
+            <h3>{{ doc_type|replace('-', ' ')|title }}</h3>
+            <ul class="terraform-doc-list">
+                {% for item in nav_tree[subcategory][doc_type] %}
+                <li>
+                    <a href="{{ link_prefix }}{{ item.slug }}.html">{{ item.name }}</a>
+                    {% if item.description %}<span class="terraform-doc-desc"> — {{ item.description }}</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+            {% endfor %}
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+---
+page_title: "anypoint_api_policy_a2a_pii_detector Resource - terraform-provider-anypoint"
+subcategory: "API Policies"
+description: |-
+  Manages a A2A PII Detector policy on an Anypoint API instance.
+---
+
+# anypoint_api_policy_a2a_pii_detector (Resource)
+
+Manages a A2A PII Detector policy on an Anypoint API instance.
+
+## Example Usage
+
+```terraform
+resource "anypoint_api_policy_a2a_pii_detector" "example" {
+  organization_id = var.organization_id
+  environment_id  = var.environment_id
+  api_instance_id = anypoint_api_instance.example.id
+
+  configuration = {
+    entities = ["EMAIL", "PHONE_NUMBER", "CREDIT_CARD"]
+    action   = "mask"
+  }
+
+  order = 1
+}
+```
+
+## Schema
+
+### Required
+
+- `environment_id` (String) The environment ID.
+- `api_instance_id` (String) The API instance ID.
+- `configuration` (Block) The policy configuration. See [Configuration](#nestedschema--configuration) below.
+
+### Optional
+
+- `organization_id` (String) The organization ID. If not provided, the organization ID will be inferred from the connected app credentials.
+- `label` (String) A human-readable label for this policy instance.
+- `order` (Number) The order of policy execution.
+- `asset_version` (String) The policy asset version. Defaults to `1.0.1`.
+- `disabled` (Boolean) Whether the policy is disabled. Defaults to `false`.
+- `upstream_ids` (List of String) List of upstream IDs this policy applies to.
+
+### Read-Only
+
+- `id` (String) The policy ID.
+- `policy_template_id` (String) The policy template ID assigned by the server.
+
+<a id="nestedschema--configuration"></a>
+### Nested Schema for `configuration`
+
+Required:
+
+- `entities` (Dynamic) Array of PII entity types to detect (e.g. `EMAIL`, `PHONE_NUMBER`).
+
+Optional:
+
+- `action` (String) Action to take when PII is detected (e.g. `mask`, `block`).
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import anypoint_api_policy_a2a_pii_detector.example {organization_id}/{environment_id}/{api_instance_id}/{policy_id}
+```

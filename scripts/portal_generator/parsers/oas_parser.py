@@ -359,18 +359,29 @@ def extract_operations(paths: Dict, components: Dict = None, base_dir: Path = No
                                     param = resolved
                             parameters.append(_extract_param(param))
 
-                # Extract request body with resolved schemas and examples
+                # Extract request body with resolved schemas and examples.
+                # Top-level $ref points at components.requestBodies — OAS 3.x allows
+                # operations to reuse request bodies via $ref, so resolve that first.
                 request_body = None
                 if 'requestBody' in op:
                     rb = op['requestBody']
                     if isinstance(rb, dict):
+                        if '$ref' in rb:
+                            resolved = resolve_ref(rb['$ref'], components)
+                            if resolved:
+                                rb = resolved
                         request_body = _extract_request_body(rb, base_dir, components)
 
-                # Extract responses with resolved schemas and examples
+                # Extract responses with resolved schemas and examples.
+                # Same applies to per-status response $refs into components.responses.
                 responses = {}
                 if 'responses' in op:
                     for status, response in op.get('responses', {}).items():
                         if isinstance(response, dict):
+                            if '$ref' in response:
+                                resolved = resolve_ref(response['$ref'], components)
+                                if resolved:
+                                    response = resolved
                             responses[str(status)] = _extract_response(response, base_dir, components)
 
                 operations.append({

@@ -4156,9 +4156,22 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-detail.active,
-.skill-page .skill-detail {
+.skill-page .skill-detail,
+.terraform-page .skill-detail {
     display: block;
     overflow: visible;
+}
+
+.terraform-page .skill-view-markdown {
+    max-width: 100%;
+}
+
+.terraform-page .skill-subsection[id^="doc-"] {
+    display: none;
+}
+
+.terraform-page .skill-subsection[id^="doc-"].active {
+    display: block;
 }
 
 .skill-header-detail {
@@ -8374,6 +8387,22 @@ code[class*="language-"][class*="language-"] {
     border-color: rgba(163, 113, 247, 0.3);
 }
 
+.badge-terraform-type {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: #5c4199;
+    background: #ede9fe;
+    padding: 4px 15px 4px 16px;
+    border-radius: 21px;
+    border: 1px solid #c4b5fd;
+}
+
+[data-theme="dark"] .badge-terraform-type {
+    color: #c4b5fd;
+    background: rgba(124, 58, 237, 0.15);
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
 /* JSON input textarea used for object/array arguments in MCP try-it */
 .try-mcp-json-input {
     font-family: var(--font-mono);
@@ -8551,4 +8580,111 @@ code[class*="language-"][class*="language-"] {
 [data-theme="dark"] img[src*="copy-curl-icon.svg"],
 [data-theme="dark"] .group-toggle {
     filter: brightness(0) saturate(100%) invert(54%) sepia(19%) saturate(808%) hue-rotate(153deg) brightness(88%) contrast(88%);
+}
+
+/* ============================================
+   Terraform Provider Documentation
+   ============================================ */
+
+.nav-category {
+    list-style: none;
+    margin-bottom: var(--space-xs);
+}
+
+.nav-category-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-small);
+    width: 100%;
+    padding: var(--space-small) var(--space-md);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-align: left;
+    border-radius: var(--radius-medium);
+    transition: background 0.15s ease;
+}
+
+.nav-category-toggle:hover {
+    background: var(--color-bg-primary);
+}
+
+.nav-category-toggle .chevron-icon {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    transform: rotate(90deg);
+}
+
+.nav-category-toggle[aria-expanded="false"] .chevron-icon {
+    transform: rotate(0deg);
+}
+
+.nav-category-toggle-sub {
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+}
+
+.nav-subcategory-list {
+    list-style: none;
+    padding: 0 0 0 var(--space-md);
+    margin: 0;
+}
+
+.nav-doc-type {
+    margin-bottom: var(--space-xs);
+}
+
+.doc-type-label {
+    display: block;
+    padding: var(--space-xs) var(--space-md);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nav-doc-list {
+    list-style: none;
+    padding: 0 0 0 var(--space-md);
+    margin: 0;
+}
+
+/* Terraform doc content area */
+
+.terraform-provider-summary {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-xl);
+}
+
+.terraform-doc-list {
+    list-style: none;
+    padding: 0;
+}
+
+.terraform-doc-list li {
+    margin-bottom: var(--space-xs);
+}
+
+.terraform-doc-list a {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    color: var(--color-text-link);
+    text-decoration: none;
+}
+
+.terraform-doc-list a:hover {
+    text-decoration: underline;
+}
+
+.terraform-doc-desc {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
 }

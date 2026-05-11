@@ -1582,10 +1582,19 @@ function navigateToHash(hash, smooth) {
     if (targetId.startsWith('op-')) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
+    } else if (targetId.startsWith('doc-')) {
+        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
+        targetElement.classList.add('active');
+        if (overview) overview.style.display = 'none';
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
+        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
     }
 
     targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
@@ -8323,3 +8332,56 @@ function clearAllVariables(slug) {
     }
 })();
 
+
+// Terraform sidebar navigation
+function toggleTerraformCategory(btn) {
+    var expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    var list = btn.nextElementSibling;
+    if (list) list.style.display = expanded ? 'none' : '';
+    btn.querySelector('.chevron-icon').style.transform = expanded ? '' : 'rotate(90deg)';
+}
+
+function filterTerraformSidebar(query) {
+    var lowerQuery = query.toLowerCase();
+    var clearBtn = document.querySelector('.btn-clear-sidebar-search');
+    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+
+    // Filter individual doc links
+    document.querySelectorAll('.nav-doc-list .nav-link').forEach(function(link) {
+        var text = link.textContent.toLowerCase();
+        var li = link.closest('li');
+        if (li) li.style.display = (!query || text.includes(lowerQuery)) ? '' : 'none';
+    });
+
+    // Show/hide subcategories (inner .nav-category) based on visible doc items
+    document.querySelectorAll('.nav-subcategory-list > .nav-category').forEach(function(subcat) {
+        var docList = subcat.querySelector('.nav-doc-list');
+        var hasVisible = false;
+        if (docList) {
+            var items = docList.querySelectorAll(':scope > li');
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].style.display !== 'none') { hasVisible = true; break; }
+            }
+        }
+        subcat.style.display = (!query || hasVisible) ? '' : 'none';
+    });
+
+    // Show/hide top-level categories based on visible subcategories
+    document.querySelectorAll('.nav-list > .nav-category').forEach(function(cat) {
+        var subcatList = cat.querySelector('.nav-subcategory-list');
+        var hasVisible = false;
+        if (subcatList) {
+            var subcats = subcatList.querySelectorAll(':scope > .nav-category');
+            for (var i = 0; i < subcats.length; i++) {
+                if (subcats[i].style.display !== 'none') { hasVisible = true; break; }
+            }
+        }
+        cat.style.display = (!query || hasVisible) ? '' : 'none';
+    });
+}
+
+function clearTerraformSidebarSearch() {
+    var input = document.getElementById('sidebarSearch');
+    if (input) { input.value = ''; filterTerraformSidebar(''); }
+}

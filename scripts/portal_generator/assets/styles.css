@@ -4161,164 +4161,6 @@ details[open] .examples-toggle-icon {
     overflow: visible;
 }
 
-.terraform-detail {
-    display: block;
-    overflow: visible;
-}
-
-.terraform-view-markdown {
-    line-height: var(--reading-line-height);
-    font-family: var(--font-sans);
-    color: var(--color-text-secondary);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    font-size: var(--reading-font-size);
-    letter-spacing: var(--reading-letter-spacing);
-}
-
-.terraform-view-markdown h1 {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-7);
-    font-weight: var(--font-weight-bold);
-    margin: var(--space-x-large) 0 var(--space-medium);
-    padding-bottom: var(--space-small);
-    border-bottom: 1px solid var(--color-neutral-4);
-    color: var(--color-neutral-10);
-}
-
-.terraform-view-markdown h2 {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-6);
-    font-weight: var(--font-weight-semibold);
-    margin: var(--space-large) 0 var(--space-medium);
-    color: var(--color-neutral-10);
-}
-
-.terraform-view-markdown h3 {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-5);
-    font-weight: var(--font-weight-semibold);
-    margin: var(--space-medium) 0 var(--space-small);
-    color: var(--color-neutral-10);
-}
-
-.terraform-view-markdown h4 {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-4);
-    font-weight: var(--font-weight-semibold);
-    margin: var(--space-medium) 0 var(--space-small);
-    color: var(--color-neutral-10);
-}
-
-.terraform-view-markdown p {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-4);
-    margin-bottom: var(--space-medium);
-    color: var(--color-text-secondary);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-.terraform-view-markdown ul,
-.terraform-view-markdown ol {
-    margin-left: var(--space-lg);
-    padding-left: var(--space-xl);
-    margin-bottom: var(--space-medium);
-}
-
-.terraform-view-markdown li {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-4);
-    margin-bottom: var(--space-x-small);
-}
-
-.terraform-view-markdown pre {
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-medium);
-    padding: var(--space-medium);
-    overflow-x: auto;
-    margin-bottom: var(--space-medium);
-}
-
-.terraform-view-markdown pre code {
-    background: transparent;
-    padding: 0;
-    font-size: var(--font-size-3);
-    font-family: var(--font-mono);
-    color: var(--color-text-primary);
-    display: block;
-    white-space: pre;
-    line-height: 1.55;
-}
-
-.terraform-view-markdown code:not(pre code) {
-    background: var(--color-bg-primary);
-    padding: var(--space-xxx-small) var(--space-xx-small);
-    border-radius: var(--radius-small);
-    border: 1px solid var(--color-neutral-5);
-    font-size: var(--font-size-2);
-    font-family: var(--font-mono);
-    color: var(--color-text-primary);
-}
-
-.terraform-view-markdown blockquote {
-    border-left: 3px solid var(--color-primary);
-    padding-left: var(--space-medium);
-    color: var(--color-neutral-8);
-    margin: 0 0 var(--space-medium) 0;
-}
-
-.terraform-view-markdown strong {
-    font-weight: var(--font-weight-semibold);
-}
-
-.terraform-view-markdown table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: var(--space-md);
-    font-size: var(--font-size-4);
-}
-
-.terraform-view-markdown th,
-.terraform-view-markdown td {
-    border: 1px solid var(--color-border-primary);
-    padding: var(--space-xs) var(--space-sm);
-    text-align: left;
-}
-
-.terraform-view-markdown th {
-    background: var(--color-bg-surface);
-    font-weight: var(--font-weight-semibold);
-}
-
-.terraform-subsection[id^="doc-"] {
-    display: none;
-}
-
-.terraform-subsection[id^="doc-"].active {
-    display: block;
-}
-
-.nav-terraform-step {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-size: var(--font-size-3);
-    font-family: var(--font-sans);
-    padding: var(--space-xs) var(--space-lg) !important;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.nav-terraform-step:hover,
-.nav-terraform-step.active {
-    background: var(--selected-bg);
-    border-left-color: var(--selected-border);
-}
-
 .skill-header-detail {
     margin-bottom: var(--space-large);
 }
@@ -8730,6 +8572,164 @@ code[class*="language-"][class*="language-"] {
 /* ============================================
    Terraform Provider Documentation
    ============================================ */
+
+.terraform-detail {
+    display: block;
+    overflow: visible;
+}
+
+.terraform-view-markdown {
+    line-height: var(--reading-line-height);
+    font-family: var(--font-sans);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    font-size: var(--reading-font-size);
+    letter-spacing: var(--reading-letter-spacing);
+}
+
+.terraform-view-markdown h1 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-7);
+    font-weight: var(--font-weight-bold);
+    margin: var(--space-x-large) 0 var(--space-medium);
+    padding-bottom: var(--space-small);
+    border-bottom: 1px solid var(--color-neutral-4);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h2 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-large) 0 var(--space-medium);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h3 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h4 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown p {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-medium);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.terraform-view-markdown ul,
+.terraform-view-markdown ol {
+    margin-left: var(--space-lg);
+    padding-left: var(--space-xl);
+    margin-bottom: var(--space-medium);
+}
+
+.terraform-view-markdown li {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-x-small);
+}
+
+.terraform-view-markdown pre {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
+    padding: var(--space-medium);
+    overflow-x: auto;
+    margin-bottom: var(--space-medium);
+}
+
+.terraform-view-markdown pre code {
+    background: transparent;
+    padding: 0;
+    font-size: var(--font-size-3);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+    display: block;
+    white-space: pre;
+    line-height: 1.55;
+}
+
+.terraform-view-markdown code:not(pre code) {
+    background: var(--color-bg-primary);
+    padding: var(--space-xxx-small) var(--space-xx-small);
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-neutral-5);
+    font-size: var(--font-size-2);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+}
+
+.terraform-view-markdown blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: var(--space-medium);
+    color: var(--color-neutral-8);
+    margin: 0 0 var(--space-medium) 0;
+}
+
+.terraform-view-markdown strong {
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-view-markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-4);
+}
+
+.terraform-view-markdown th,
+.terraform-view-markdown td {
+    border: 1px solid var(--color-border-primary);
+    padding: var(--space-xs) var(--space-sm);
+    text-align: left;
+}
+
+.terraform-view-markdown th {
+    background: var(--color-bg-surface);
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-subsection[id^="doc-"] {
+    display: none;
+}
+
+.terraform-subsection[id^="doc-"].active {
+    display: block;
+}
+
+.nav-terraform-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-3);
+    font-family: var(--font-sans);
+    padding: var(--space-xs) var(--space-lg) !important;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.nav-terraform-step:hover,
+.nav-terraform-step.active {
+    background: var(--selected-bg);
+    border-left-color: var(--selected-border);
+}
 
 .nav-category {
     list-style: none;

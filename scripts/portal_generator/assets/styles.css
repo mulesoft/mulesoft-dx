@@ -2755,7 +2755,8 @@ button.nav-group-header {
 
 /* Skill steps in sidebar */
 .nav-skill-step,
-.nav-skill-overview {
+.nav-skill-overview,
+.nav-terraform-step {
     display: flex;
     align-items: center;
     gap: var(--space-xs);
@@ -2769,8 +2770,10 @@ button.nav-group-header {
 
 .nav-skill-step:hover,
 .nav-skill-overview:hover,
+.nav-terraform-step:hover,
 .nav-skill-step.active,
-.nav-skill-overview.active {
+.nav-skill-overview.active,
+.nav-terraform-step.active {
     background: var(--selected-bg);
     border-left-color: var(--selected-border);
 }
@@ -4157,20 +4160,20 @@ details[open] .examples-toggle-icon {
 
 .skill-detail.active,
 .skill-page .skill-detail,
-.terraform-page .skill-detail {
+.terraform-detail {
     display: block;
     overflow: visible;
 }
 
-.terraform-page .skill-view-markdown {
+.terraform-view-markdown {
     max-width: 100%;
 }
 
-.terraform-page .skill-subsection[id^="doc-"] {
+.terraform-subsection[id^="doc-"] {
     display: none;
 }
 
-.terraform-page .skill-subsection[id^="doc-"].active {
+.terraform-subsection[id^="doc-"].active {
     display: block;
 }
 
@@ -5059,7 +5062,8 @@ details[open] .examples-toggle-icon {
 }
 
 /* Rendered Markdown Content */
-.skill-view-markdown {
+.skill-view-markdown,
+.terraform-view-markdown {
     line-height: var(--reading-line-height);
     font-family: var(--font-sans);
     color: var(--color-text-secondary);
@@ -5070,7 +5074,8 @@ details[open] .examples-toggle-icon {
     letter-spacing: var(--reading-letter-spacing);
 }
 
-.skill-view-markdown h1 {
+.skill-view-markdown,
+.terraform-view-markdown h1 {
     font-family: var(--font-sans);
     font-size: var(--font-size-7);
     font-weight: var(--font-weight-bold);
@@ -5080,7 +5085,8 @@ details[open] .examples-toggle-icon {
     color: var(--color-neutral-10);
 }
 
-.skill-view-markdown h2 {
+.skill-view-markdown,
+.terraform-view-markdown h2 {
     font-family: var(--font-sans);
     font-size: var(--font-size-6);
     font-weight: var(--font-weight-semibold);
@@ -5088,7 +5094,8 @@ details[open] .examples-toggle-icon {
     color: var(--color-neutral-10);
 }
 
-.skill-view-markdown h3 {
+.skill-view-markdown,
+.terraform-view-markdown h3 {
     font-family: var(--font-sans);
     font-size: var(--font-size-5);
     font-weight: var(--font-weight-semibold);
@@ -5096,7 +5103,8 @@ details[open] .examples-toggle-icon {
     color: var(--color-neutral-10);
 }
 
-.skill-view-markdown h4 {
+.skill-view-markdown,
+.terraform-view-markdown h4 {
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
     font-weight: var(--font-weight-semibold);
@@ -5104,7 +5112,8 @@ details[open] .examples-toggle-icon {
     color: var(--color-neutral-10);
 }
 
-.skill-view-markdown p {
+.skill-view-markdown,
+.terraform-view-markdown p {
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
     margin-bottom: var(--space-medium);
@@ -5113,8 +5122,10 @@ details[open] .examples-toggle-icon {
     overflow-wrap: break-word;
 }
 
-.skill-view-markdown ul,
-.skill-view-markdown ol,
+.skill-view-markdown,
+.terraform-view-markdown ul,
+.skill-view-markdown,
+.terraform-view-markdown ol,
 .skill-page .content-section ul,
 .skill-page .content-section ol {
     margin-left: var(--space-lg);
@@ -5122,7 +5133,8 @@ details[open] .examples-toggle-icon {
     margin-bottom: var(--space-medium);
 }
 
-.skill-view-markdown li {
+.skill-view-markdown,
+.terraform-view-markdown li {
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
     margin-bottom: var(--space-x-small);
@@ -5131,7 +5143,8 @@ details[open] .examples-toggle-icon {
 /* Static skill code blocks. Mirrors the interactive try-it console
    (subtle border, theme-aware surface, rounded corners) — no terminal
    chrome. */
-.skill-view-markdown pre {
+.skill-view-markdown,
+.terraform-view-markdown pre {
     background: var(--color-bg-primary);
     border: 1px solid var(--color-neutral-5);
     border-radius: var(--radius-medium);
@@ -5140,7 +5153,8 @@ details[open] .examples-toggle-icon {
     margin-bottom: var(--space-medium);
 }
 
-.skill-view-markdown pre code {
+.skill-view-markdown,
+.terraform-view-markdown pre code {
     background: transparent;
     padding: 0;
     font-size: var(--font-size-3);
@@ -5152,7 +5166,8 @@ details[open] .examples-toggle-icon {
 }
 
 /* Inline code (not in pre blocks) */
-.skill-view-markdown code:not(pre code) {
+.skill-view-markdown,
+.terraform-view-markdown code:not(pre code) {
     background: var(--color-bg-primary);
     padding: var(--space-xxx-small) var(--space-xx-small);
     border-radius: var(--radius-small);
@@ -5162,37 +5177,44 @@ details[open] .examples-toggle-icon {
     color: var(--color-text-primary);
 }
 
-.skill-view-markdown blockquote {
+.skill-view-markdown,
+.terraform-view-markdown blockquote {
     border-left: 3px solid var(--color-primary);
     padding-left: var(--space-medium);
     color: var(--color-neutral-8);
     margin: 0 0 var(--space-medium) 0;
 }
 
-.skill-view-markdown strong {
+.skill-view-markdown,
+.terraform-view-markdown strong {
     font-weight: var(--font-weight-semibold);
 }
 
-.skill-view-markdown table {
+.skill-view-markdown,
+.terraform-view-markdown table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: var(--space-md);
     font-size: var(--font-size-4);
 }
 
-.skill-view-markdown th,
-.skill-view-markdown td {
+.skill-view-markdown,
+.terraform-view-markdown th,
+.skill-view-markdown,
+.terraform-view-markdown td {
     border: 1px solid var(--color-border-primary);
     padding: var(--space-xs) var(--space-sm);
     text-align: left;
 }
 
-.skill-view-markdown th {
+.skill-view-markdown,
+.terraform-view-markdown th {
     background: var(--color-bg-surface);
     font-weight: var(--font-weight-semibold);
 }
 
-.skill-view-markdown hr {
+.skill-view-markdown,
+.terraform-view-markdown hr {
     border: none;
     border-top: 1px solid var(--color-border-primary);
     margin: var(--space-lg) 0;
@@ -7528,7 +7550,8 @@ input.has-variable-ref:focus {
 }
 
 
-.skill-view-markdown .token,
+.skill-view-markdown,
+.terraform-view-markdown .token,
 .skill-subsection .token {
     background: none !important;
 }

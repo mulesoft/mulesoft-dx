@@ -8394,3 +8394,37 @@ function clearTerraformSidebarSearch() {
     var input = document.getElementById('sidebarSearch');
     if (input) { input.value = ''; filterTerraformSidebar(''); }
 }
+
+function wrapTerraformCodeBlocks() {
+    document.querySelectorAll('.terraform-view-markdown pre').forEach(function(pre) {
+        if (pre.parentElement.classList.contains('terraform-code-wrapper')) return;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'terraform-code-wrapper';
+        var header = document.createElement('div');
+        header.className = 'terraform-code-header';
+        var btn = document.createElement('button');
+        btn.className = 'terraform-btn-copy';
+        btn.onclick = function() { copyTerraformCode(btn); };
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        header.appendChild(btn);
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+    });
+}
+
+function copyTerraformCode(button) {
+    var wrapper = button.closest('.terraform-code-wrapper');
+    if (!wrapper) return;
+    var code = wrapper.querySelector('pre code') || wrapper.querySelector('pre');
+    var text = code.textContent || code.innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        var originalHTML = button.innerHTML;
+        button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        button.style.color = '#04844B';
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.style.color = '';
+        }, 1500);
+    });
+}

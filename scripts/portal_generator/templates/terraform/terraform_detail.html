@@ -1,7 +1,7 @@
-<section class="content-section terraform-detail">
-    <div class="terraform-subsection">
+<section class="content-section skill-detail">
+    <div class="skill-subsection">
         <h3 id="overview">Overview</h3>
-        <div class="terraform-view-markdown">
+        <div class="skill-view-markdown">
             <p>The <strong>{{ provider.name }}</strong> Terraform provider enables you to manage Anypoint Platform resources declaratively using Infrastructure as Code (IaC). Define, provision, and update your API management configuration through Terraform plans.</p>
 
             <h4>What's included</h4>
@@ -29,12 +29,12 @@
     {% for doc_type in nav_tree_by_type|sort %}
     {% for subcategory in nav_tree_by_type[doc_type]|sort %}
     {% for doc in nav_tree_by_type[doc_type][subcategory] %}
-    <div class="terraform-subsection" id="doc-{{ doc.slug }}">
+    <div class="skill-subsection" id="doc-{{ doc.slug }}">
         <h3>{{ doc.name }}</h3>
         {% if doc.description %}
         <p class="terraform-doc-desc">{{ doc.description }}</p>
         {% endif %}
-        <div class="terraform-view-markdown">
+        <div class="skill-view-markdown">
             {{ doc.body_html|safe }}
         </div>
     </div>

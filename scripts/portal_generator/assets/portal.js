@@ -1583,7 +1583,7 @@ function navigateToHash(hash, smooth) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
     } else if (targetId.startsWith('doc-')) {
-        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
             s.classList.remove('active');
         });
         targetElement.classList.add('active');
@@ -1592,7 +1592,7 @@ function navigateToHash(hash, smooth) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
-        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
             s.classList.remove('active');
         });
     }
@@ -8349,9 +8349,18 @@ function filterTerraformSidebar(query) {
 
     // Filter individual doc links
     document.querySelectorAll('.nav-doc-list .nav-link').forEach(function(link) {
-        var text = link.textContent.toLowerCase();
+        var titleEl = link.querySelector('.step-title-short');
+        var text = (titleEl || link).textContent.toLowerCase();
+        var matches = !query || text.includes(lowerQuery);
         var li = link.closest('li');
-        if (li) li.style.display = (!query || text.includes(lowerQuery)) ? '' : 'none';
+        if (li) li.style.display = matches ? '' : 'none';
+        if (titleEl) {
+            if (!titleEl.hasAttribute('data-original-text')) {
+                titleEl.setAttribute('data-original-text', titleEl.textContent);
+            }
+            var originalText = titleEl.getAttribute('data-original-text');
+            titleEl.innerHTML = (query && matches) ? highlightText(originalText, query) : originalText;
+        }
     });
 
     // Show/hide subcategories (inner .nav-category) based on visible doc items

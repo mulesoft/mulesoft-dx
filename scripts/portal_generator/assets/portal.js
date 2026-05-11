@@ -1583,7 +1583,7 @@ function navigateToHash(hash, smooth) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
     } else if (targetId.startsWith('doc-')) {
-        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
             s.classList.remove('active');
         });
         targetElement.classList.add('active');
@@ -1592,7 +1592,7 @@ function navigateToHash(hash, smooth) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
-        document.querySelectorAll('.skill-subsection[id^="doc-"]').forEach(function(s) {
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
             s.classList.remove('active');
         });
     }

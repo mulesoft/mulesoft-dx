@@ -17,7 +17,7 @@
     </div>
     <nav class="sidebar-nav">
         <ul class="nav-list">
-            {% for doc_type in nav_tree_by_type|sort %}
+            {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
             <li class="nav-category">
                 <button class="nav-category-toggle" onclick="toggleTerraformCategory(this)" aria-expanded="true">
                     <svg class="chevron-icon" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 2l4 4-4 4"/></svg>

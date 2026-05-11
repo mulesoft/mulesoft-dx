@@ -7,7 +7,7 @@
             <h4>What's included</h4>
             <p>This provider covers <strong>{{ provider.doc_count }}</strong> documentation pages organized in {{ nav_tree_by_type|length }} categories:</p>
             <ul>
-            {% for doc_type in nav_tree_by_type|sort %}
+            {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
                 {% set doc_count = nav_tree_by_type[doc_type].values()|map('length')|sum %}
                 <li><strong>{{ doc_type|replace('-', ' ')|title }}</strong> — {{ doc_count }} items across {{ nav_tree_by_type[doc_type]|length }} subcategories</li>
             {% endfor %}
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    {% for doc_type in nav_tree_by_type|sort %}
+    {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
     {% for subcategory in nav_tree_by_type[doc_type]|sort %}
     {% for doc in nav_tree_by_type[doc_type][subcategory] %}
     <div class="terraform-subsection" id="doc-{{ doc.slug }}">

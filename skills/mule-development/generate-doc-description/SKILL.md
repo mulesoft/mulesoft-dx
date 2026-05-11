@@ -1,5 +1,5 @@
 ---
-name: add-doc-description
+name: generate-doc-description
 description: Call use_skill as your FIRST and ONLY action when the user asks to document, add descriptions to, annotate, or add doc:description attributes to Mule XML files, flows, components, or connectors. Do not read project files first — this skill provides instructions for when to read files. Covers documenting all Mule elements in src/main/mule including flows, sub-flows, configs, listeners, processors, transforms, error handlers, and connectors. When you call use_skill, it must be the only tool call in that response.
 metadata:
   author: mule-dx-tooling

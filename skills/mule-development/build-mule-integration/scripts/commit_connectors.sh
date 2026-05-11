@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Part of mule-dev skill
 #
-# Step 7 helper (Phase 2 bootstrap) — promote every connector draft in
+# Step 8 helper (Phase 2 bootstrap) — promote every connector draft in
 # tmp/connector-choices/ to the pinned tmp/connector-versions/ directory
 # that Phase 2 scripts read from.
 #
 # Runs exactly once per session, as the first action after the user
-# approves the Technical Design Summary in Step 6. Missing drafts here
-# mean the agent skipped Step 2 for some system — Phase 2 will fail fast
+# approves the Technical Design Summary in Step 7. Missing drafts here
+# mean the agent skipped Step 3 for some system — Phase 2 will fail fast
 # on build_gav.sh when it can't find the pin file, which is the intended
 # signal that the design is incomplete.
 #
@@ -24,7 +24,7 @@ VERSIONS_DIR="${CONNECTOR_VERSIONS_DIR:-tmp/connector-versions}"
 
 if [ ! -d "$CHOICES_DIR" ]; then
     echo "No drafts directory at $CHOICES_DIR." >&2
-    echo "Run pick_connector.sh for each connector in Step 2 before committing." >&2
+    echo "Run pick_connector.sh for each connector in Step 3 before committing." >&2
     exit 1
 fi
 
@@ -34,7 +34,7 @@ shopt -u nullglob
 
 if [ ${#DRAFTS[@]} -eq 0 ]; then
     echo "No drafts in $CHOICES_DIR." >&2
-    echo "Run pick_connector.sh for each connector in Step 2 before committing." >&2
+    echo "Run pick_connector.sh for each connector in Step 3 before committing." >&2
     exit 1
 fi
 

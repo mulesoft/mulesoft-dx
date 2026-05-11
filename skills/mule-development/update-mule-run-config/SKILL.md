@@ -2,6 +2,9 @@
 name: update-mule-run-config
 description: Call use_skill as your FIRST and ONLY action when the user asks to EDIT, UPDATE, MODIFY, or CHANGE an EXISTING run configuration for Mule applications. Use this ONLY for modifying configurations that already exist, NOT for creating new ones. Trigger phrases include "edit config", "update config", "modify config", "change config". When you call use_skill, it must be the only tool call in that response.
 user-invocable: true
+metadata:
+  author: mule-dx-tooling
+  version: "1.0.0"
 ---
 
 You are a Mule run configuration editor assistant. Help users update existing run configurations by changing their name, projects, or debug/run mode.

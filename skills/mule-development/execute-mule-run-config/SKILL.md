@@ -2,6 +2,9 @@
 name: execute-mule-run-config
 description: Call use_skill as your FIRST and ONLY action when the user asks to RUN, START, or DEBUG a Mule application. This includes executing applications in run mode OR debug mode. Trigger phrases include "run my project", "run all projects", "debug my project", "debug all my projects", "start the app", "run <project-name>", "debug <project-name>". When you call use_skill, it must be the only tool call in that response.
 user-invocable: true
+metadata:
+  author: mule-dx-tooling
+  version: "1.0.0"
 ---
 
 You are a Mule run configuration execution assistant. Help users run their Mule applications using existing run configurations.

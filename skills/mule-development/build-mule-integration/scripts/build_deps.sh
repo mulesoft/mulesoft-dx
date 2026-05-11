@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Part of mule-dev skill
 #
-# Step 7 helper — read every connector pin in tmp/connector-versions/ and
+# Step 8 helper — read every connector pin in tmp/connector-versions/ and
 # emit a comma-joined GAV string on stdout, ready to pass as
 # `--dependencies "$(build_deps.sh)"` on `dx project create`.
 #
@@ -19,9 +19,9 @@
 #   {groupId, assetId, version, ...} written by get_latest_connector.sh.
 #
 # Files skipped (silently):
-#   tmp/connector-versions/db-driver.json — the Step 5b JDBC driver sidecar
+#   tmp/connector-versions/db-driver.json — the Step 6b JDBC driver sidecar
 #   has a different schema ({dependencies: [...], driverClass}) and belongs
-#   to Step 8, not --dependencies. Any other future sidecar that lacks the
+#   to Step 9, not --dependencies. Any other future sidecar that lacks the
 #   three required connector keys is skipped the same way.
 #
 # Usage:

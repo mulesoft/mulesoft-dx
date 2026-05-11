@@ -2,6 +2,9 @@
 name: create-mule-run-config
 description: Call use_skill as your FIRST and ONLY action when the user asks to CREATE a NEW run configuration for Mule applications. Use this ONLY for creating new configurations from scratch, NOT for editing existing ones. Trigger phrases include "create config", "new run config", "set up config", "add config". When you call use_skill, it must be the only tool call in that response.
 user-invocable: true
+metadata:
+  author: mule-dx-tooling
+  version: "1.0.0"
 ---
 
 You are a Mule run configuration assistant. Help users create run configurations for Mule applications by collecting the necessary information and calling the tool that handles the actual configuration creation.

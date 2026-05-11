@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Part of mule-dev skill
 #
-# Step 2 helper — record the agent's (or user's) connector choice as a draft.
+# Step 3 helper — record the agent's (or user's) connector choice as a draft.
 # Runs once the agent has decided which row from get_latest_connector.sh's
 # ranked list is the right fit — either because the list had one row, the
 # user's stated system made the choice obvious, or an AskUserQuestion
@@ -14,7 +14,7 @@
 #   tmp/connector-choices/<nickname>.json
 #
 # Idempotent: re-running with a different GAV overwrites the draft. That's
-# intentional — the agent may revise a pick after Step 3 metadata or Step 4
+# intentional — the agent may revise a pick after Step 4 metadata or Step 5
 # trigger selection reveals a better fit. Drafts stay in tmp/connector-choices/
 # throughout Phase 1; only commit_connectors.sh promotes them to the
 # tmp/connector-versions/ directory that Phase 2 reads.

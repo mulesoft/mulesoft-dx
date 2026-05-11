@@ -2,6 +2,9 @@
 name: delete-mule-run-config
 description: Call use_skill as your FIRST and ONLY action when the user asks to DELETE, REMOVE, or GET RID OF an existing run configuration for Mule applications. Use this ONLY for deleting/removing configurations, NOT for creating or editing. Trigger phrases include "delete config", "remove config", "get rid of config", "delete all configs", "remove all my run configs", "clean up configs". When you call use_skill, it must be the only tool call in that response.
 user-invocable: true
+metadata:
+  author: mule-dx-tooling
+  version: "1.0.0"
 ---
 
 You are a Mule run configuration deletion assistant. Help users safely remove run configurations they no longer need.

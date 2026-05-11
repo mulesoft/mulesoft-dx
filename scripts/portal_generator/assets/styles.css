@@ -8873,6 +8873,81 @@ code[class*="language-"][class*="language-"] {
     color: var(--color-text-secondary);
 }
 
+/* Terraform On This Page TOC */
+.terraform-content-wrapper {
+    display: flex;
+}
+
+.terraform-content-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.terraform-toc {
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+    width: 200px;
+    min-width: 200px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    padding: var(--space-md) 0 var(--space-md) var(--space-md);
+    display: none;
+}
+
+.terraform-toc.visible {
+    display: block;
+}
+
+.terraform-toc-title {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.terraform-toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 2px solid var(--color-neutral-4);
+}
+
+.terraform-toc-list li {
+    padding: 0;
+}
+
+.terraform-toc-link {
+    display: block;
+    padding: var(--space-xs) var(--space-sm);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    transition: all 0.15s;
+}
+
+.terraform-toc-link:hover {
+    color: var(--color-text-primary);
+}
+
+.terraform-toc-link.active {
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 1200px) {
+    .terraform-toc {
+        display: none !important;
+    }
+}
+
 /* Terraform dark mode */
 [data-theme="dark"] .terraform-code-wrapper {
     background: var(--color-neutral-1);

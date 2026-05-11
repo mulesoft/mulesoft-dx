@@ -21,12 +21,21 @@
 {% block content %}
 {% set api_name = provider.name %}
 {% set api_version = '' %}
+{% set prose_only = true %}
 {% include "partials/auth_panel.html" %}
 
 <div class="detail-layout">
     {% include "partials/terraform_sidebar.html" %}
     <main class="detail-content" id="main-content">
-        {% include "terraform/terraform_detail.html" %}
+        <div class="terraform-content-wrapper">
+            <div class="terraform-content-body">
+                {% include "terraform/terraform_detail.html" %}
+            </div>
+            <aside class="terraform-toc" id="terraformToc">
+                <h4 class="terraform-toc-title">ON THIS PAGE</h4>
+                <ul class="terraform-toc-list" id="terraformTocList"></ul>
+            </aside>
+        </div>
     </main>
 </div>
 {% endblock %}

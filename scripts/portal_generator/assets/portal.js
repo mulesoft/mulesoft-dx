@@ -1588,6 +1588,7 @@ function navigateToHash(hash, smooth) {
         });
         targetElement.classList.add('active');
         if (overview) overview.style.display = 'none';
+        if (typeof buildTerraformToc === 'function') buildTerraformToc(targetElement);
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
@@ -1595,6 +1596,7 @@ function navigateToHash(hash, smooth) {
         document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
             s.classList.remove('active');
         });
+        if (typeof buildTerraformToc === 'function') buildTerraformToc(null);
     }
 
     targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
@@ -8427,4 +8429,61 @@ function copyTerraformCode(button) {
             button.style.color = '';
         }, 1500);
     });
+}
+
+var _terraformTocObserver = null;
+
+function buildTerraformToc(subsection) {
+    var toc = document.getElementById('terraformToc');
+    var list = document.getElementById('terraformTocList');
+    if (!toc || !list) return;
+
+    if (_terraformTocObserver) {
+        _terraformTocObserver.disconnect();
+        _terraformTocObserver = null;
+    }
+
+    list.textContent = '';
+
+    if (!subsection) {
+        toc.classList.remove('visible');
+        return;
+    }
+
+    var allHeadings = subsection.querySelectorAll('h2, h3, h4');
+    var headings = Array.prototype.filter.call(allHeadings, function(h, i) {
+        return i > 0;
+    });
+    if (headings.length < 1) {
+        toc.classList.remove('visible');
+        return;
+    }
+
+    headings.forEach(function(h) {
+        var li = document.createElement('li');
+        var link = document.createElement('a');
+        link.className = 'terraform-toc-link';
+        link.textContent = h.textContent;
+        link.onclick = function(e) {
+            e.preventDefault();
+            h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        li.appendChild(link);
+        list.appendChild(li);
+    });
+
+    toc.classList.add('visible');
+
+    _terraformTocObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var idx = Array.prototype.indexOf.call(headings, entry.target);
+                list.querySelectorAll('.terraform-toc-link').forEach(function(l, i) {
+                    l.classList.toggle('active', i === idx);
+                });
+            }
+        });
+    }, { rootMargin: '0px 0px -70% 0px', threshold: 0 });
+
+    headings.forEach(function(h) { _terraformTocObserver.observe(h); });
 }

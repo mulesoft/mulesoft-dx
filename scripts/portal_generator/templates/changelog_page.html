@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Changelog - MuleSoft Developer Portal{% endblock %}
+
+{% block head_scripts %}
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block body_attrs %} class="detail-page changelog-page"{% endblock %}
+
+{% block content %}
+<main id="main-content" class="changelog-layout">
+    <div class="changelog-header">
+        <div class="changelog-header-content">
+            <a href="../index.html" class="changelog-back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Back to Portal
+            </a>
+            <h1 class="changelog-title">Changelog</h1>
+            <p class="changelog-subtitle">Recent changes to APIs, Skills, MCP Servers, and Terraform Providers</p>
+        </div>
+    </div>
+
+    <div class="changelog-container">
+        <aside class="changelog-filters">
+            <div class="changelog-filter-group">
+                <h3 class="changelog-filter-heading">Type</h3>
+                <div class="changelog-filter-pills" id="typeFilters">
+                    <button class="changelog-pill active" data-filter-type="all">All</button>
+                    {% for action in action_types %}
+                    <button class="changelog-pill" data-filter-type="{{ action.key }}">
+                        <span class="changelog-action-dot changelog-action-{{ action.key }}"></span>{{ action.label }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="changelog-filter-group">
+                <h3 class="changelog-filter-heading">Artifact</h3>
+                <div class="changelog-filter-pills" id="artifactFilters">
+                    <button class="changelog-pill active" data-filter-artifact="all">All</button>
+                    {% for artifact_type in artifact_types %}
+                    <button class="changelog-pill" data-filter-artifact="{{ artifact_type|lower }}">{{ artifact_type }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <div class="changelog-feed">
+            <p class="changelog-results-count"><span id="changelogCount">{{ total_entries }}</span> changes</p>
+
+            {% for week in weeks %}
+            <div class="changelog-week" data-week="{{ week.monday }}">
+                <h2 class="changelog-week-heading">{{ week.label }}</h2>
+                <div class="changelog-entries">
+                    {% for entry in week.entries %}
+                    <div class="changelog-entry"
+                         data-action="{{ entry.action }}"
+                         data-artifact-type="{{ entry.artifact_type|lower }}">
+                        <span class="changelog-col-action">
+                            <span class="changelog-action-badge changelog-action-{{ entry.action }}">{{ entry.action_label }}</span>
+                        </span>
+                        <span class="changelog-col-type">
+                            <span class="changelog-artifact-badge changelog-artifact-{{ entry.artifact_type|lower }}">{{ entry.artifact_type }}</span>
+                        </span>
+                        <span class="changelog-col-name">
+                            {% if entry.artifact_name %}
+                            <span class="changelog-artifact-name-pill">{{ entry.artifact_name }}</span>
+                            {% endif %}
+                        </span>
+                        <span class="changelog-col-desc">
+                            {% if entry.commit_url %}
+                            <a href="{{ entry.commit_url }}" class="changelog-entry-link" target="_blank" rel="noopener">{{ entry.description }}</a>
+                            {% else %}
+                            <span class="changelog-entry-text">{{ entry.description }}</span>
+                            {% endif %}
+                        </span>
+                        <time class="changelog-col-date" datetime="{{ entry.date }}">{{ entry.date }}</time>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not weeks %}
+            <div class="changelog-empty">
+                <p>No changelog entries found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<script>
+(function() {
+    function applyFilters() {
+        var typeFilter = document.querySelector('#typeFilters .changelog-pill.active');
+        var artifactFilter = document.querySelector('#artifactFilters .changelog-pill.active');
+        var selectedType = typeFilter ? typeFilter.getAttribute('data-filter-type') : 'all';
+        var selectedArtifact = artifactFilter ? artifactFilter.getAttribute('data-filter-artifact') : 'all';
+
+        var entries = document.querySelectorAll('.changelog-entry');
+        var visibleCount = 0;
+
+        entries.forEach(function(entry) {
+            var matchType = selectedType === 'all' || entry.getAttribute('data-action') === selectedType;
+            var matchArtifact = selectedArtifact === 'all' || entry.getAttribute('data-artifact-type') === selectedArtifact;
+            var visible = matchType && matchArtifact;
+            entry.style.display = visible ? '' : 'none';
+            if (visible) visibleCount++;
+        });
+
+        document.querySelectorAll('.changelog-week').forEach(function(week) {
+            var visibleEntries = week.querySelectorAll('.changelog-entry:not([style*="display: none"])');
+            week.style.display = visibleEntries.length > 0 ? '' : 'none';
+        });
+
+        var counter = document.getElementById('changelogCount');
+        if (counter) counter.textContent = visibleCount;
+    }
+
+    document.querySelectorAll('.changelog-filter-pills').forEach(function(group) {
+        group.addEventListener('click', function(e) {
+            var pill = e.target.closest('.changelog-pill');
+            if (!pill) return;
+            group.querySelectorAll('.changelog-pill').forEach(function(p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+            applyFilters();
+        });
+    });
+})();
+</script>
+{% endblock %}

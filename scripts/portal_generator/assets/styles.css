@@ -9071,3 +9071,372 @@ code[class*="language-"][class*="language-"] {
 [data-theme="dark"] .terraform-install-intro code {
     background: var(--color-neutral-2);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHANGELOG PAGE
+   ═══════════════════════════════════════════════════════════════ */
+
+.changelog-layout {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.changelog-header {
+    margin-bottom: var(--space-xl);
+}
+
+.changelog-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-2);
+    margin-bottom: var(--space-md);
+    transition: color 0.15s;
+}
+
+.changelog-back-link:hover {
+    color: var(--color-text-link);
+}
+
+.changelog-title {
+    font-size: var(--font-size-9);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+    line-height: var(--heading-line-height);
+}
+
+.changelog-subtitle {
+    font-size: var(--font-size-4);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.changelog-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* Filters */
+
+.changelog-filters {
+    display: flex;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.changelog-filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.changelog-filter-heading {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.changelog-filter-pills {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.changelog-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xx-small) var(--space-sm);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-2);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+
+.changelog-pill:hover {
+    border-color: var(--hover-border);
+    color: var(--hover-text);
+    background: var(--hover-bg);
+}
+
+.changelog-pill.active {
+    border-color: var(--selected-border);
+    background: var(--selected-bg);
+    color: var(--selected-text);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Action dots (inline color indicators) */
+
+.changelog-action-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.changelog-action-dot.changelog-action-add { background: var(--color-green-700); }
+.changelog-action-dot.changelog-action-update { background: var(--color-primary); }
+.changelog-action-dot.changelog-action-fix { background: var(--color-yellow-700); }
+.changelog-action-dot.changelog-action-remove { background: var(--color-red-700); }
+.changelog-action-dot.changelog-action-deprecate { background: var(--color-purple-700); }
+
+/* Results count */
+
+.changelog-results-count {
+    font-size: var(--font-size-2);
+    color: var(--color-text-tertiary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+/* Feed */
+
+.changelog-feed {
+    flex: 1;
+}
+
+.changelog-week {
+    margin-bottom: var(--space-xl);
+}
+
+.changelog-week-heading {
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 var(--space-sm) 0;
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.changelog-entries {
+    display: flex;
+    flex-direction: column;
+}
+
+.changelog-entry {
+    display: grid;
+    grid-template-columns: 80px 80px minmax(100px, 180px) 1fr auto;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-neutral-4);
+}
+
+.changelog-entry:last-child {
+    border-bottom: none;
+}
+
+/* Column alignment */
+
+.changelog-col-action,
+.changelog-col-type,
+.changelog-col-name {
+    display: flex;
+    justify-content: center;
+}
+
+.changelog-col-desc {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.changelog-col-date {
+    text-align: right;
+}
+
+/* Action badges */
+
+.changelog-action-badge {
+    display: inline-block;
+    padding: 1px var(--space-xs);
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+    min-width: 64px;
+    text-align: center;
+}
+
+.changelog-action-add {
+    background: var(--color-green-50);
+    color: var(--color-green-700);
+}
+
+.changelog-action-update {
+    background: var(--color-blue-50);
+    color: var(--color-blue-700);
+}
+
+.changelog-action-fix {
+    background: var(--color-yellow-50);
+    color: var(--color-yellow-700);
+}
+
+.changelog-action-remove {
+    background: var(--color-red-50);
+    color: var(--color-red-700);
+}
+
+.changelog-action-deprecate {
+    background: var(--color-purple-50);
+    color: var(--color-purple-700);
+}
+
+/* Artifact badges */
+
+.changelog-artifact-badge {
+    display: inline-block;
+    padding: 1px var(--space-xs);
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.6;
+    background: var(--color-neutral-3);
+    color: var(--color-text-secondary);
+}
+
+.changelog-artifact-api { background: var(--color-blue-50); color: var(--color-blue-700); }
+.changelog-artifact-skill { background: var(--color-green-50); color: var(--color-green-700); }
+.changelog-artifact-mcp { background: var(--color-purple-50); color: var(--color-purple-700); }
+.changelog-artifact-terraform { background: var(--color-yellow-50); color: var(--color-yellow-700); }
+.changelog-artifact-portal { background: var(--color-neutral-3); color: var(--color-text-secondary); }
+
+/* Artifact name pill */
+
+.changelog-artifact-name-pill {
+    display: inline-block;
+    padding: 1px var(--space-xs);
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.6;
+    background: var(--color-neutral-3);
+    color: var(--color-text-primary);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Entry content */
+
+.changelog-entry-link {
+    color: var(--color-text-link);
+    text-decoration: none;
+    font-size: var(--font-size-3);
+}
+
+.changelog-entry-link:hover {
+    text-decoration: underline;
+    color: var(--color-text-link-hover);
+}
+
+.changelog-entry-text {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-3);
+}
+
+.changelog-col-date {
+    font-size: var(--font-size-2);
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+}
+
+.changelog-empty {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-tertiary);
+}
+
+/* Homepage changelog link */
+
+.changelog-link-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-xs) 0;
+}
+
+.changelog-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-2);
+    padding: var(--space-xx-small) var(--space-sm);
+    border-radius: var(--radius-large);
+    transition: all 0.15s;
+}
+
+.changelog-nav-link:hover {
+    color: var(--color-text-link);
+    background: var(--hover-bg);
+}
+
+/* Dark mode overrides */
+
+[data-theme="dark"] .changelog-action-add { background: rgba(4, 132, 75, 0.2); color: #4FC46B; }
+[data-theme="dark"] .changelog-action-update { background: rgba(29, 155, 209, 0.2); color: #36C5F0; }
+[data-theme="dark"] .changelog-action-fix { background: rgba(180, 83, 9, 0.2); color: #FCD34D; }
+[data-theme="dark"] .changelog-action-remove { background: rgba(220, 38, 38, 0.2); color: #F87171; }
+[data-theme="dark"] .changelog-action-deprecate { background: rgba(109, 40, 217, 0.2); color: #C4B5FD; }
+
+[data-theme="dark"] .changelog-artifact-api { background: rgba(29, 155, 209, 0.15); color: #36C5F0; }
+[data-theme="dark"] .changelog-artifact-skill { background: rgba(4, 132, 75, 0.15); color: #4FC46B; }
+[data-theme="dark"] .changelog-artifact-mcp { background: rgba(109, 40, 217, 0.15); color: #C4B5FD; }
+[data-theme="dark"] .changelog-artifact-terraform { background: rgba(180, 83, 9, 0.15); color: #FCD34D; }
+[data-theme="dark"] .changelog-artifact-portal { background: var(--color-neutral-3); }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .changelog-layout {
+        padding: var(--space-md);
+    }
+
+    .changelog-entry {
+        grid-template-columns: auto auto 1fr auto;
+        grid-template-rows: auto auto;
+    }
+
+    .changelog-col-name {
+        grid-column: 3;
+    }
+
+    .changelog-col-desc {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        white-space: normal;
+    }
+
+    .changelog-col-date {
+        grid-column: 4;
+        grid-row: 1;
+    }
+
+    .changelog-filters {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+}

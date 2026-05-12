@@ -58,6 +58,10 @@
                     <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)</h2>
                 </div>
                 <div class="catalog-controls-right">
+                    <a href="changelog/index.html" class="changelog-nav-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                        Changelog
+                    </a>
                     <button class="sort-btn" aria-label="Sort options">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="14" height="14" class="block shrink-0 text-current" aria-hidden="true" focusable="false" style="margin-right: 6px;">
                             <path d="M7.293 4.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1-1.414 1.414L9 7.414V19a1 1 0 1 1-2 0V7.414L5.707 8.707a1 1 0 0 1-1.414-1.414l3-3ZM16 4a1 1 0 0 1 1 1v11.586l1.293-1.293a1 1 0 0 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 1.414-1.414L15 16.586V5a1 1 0 0 1 1-1Z"></path>

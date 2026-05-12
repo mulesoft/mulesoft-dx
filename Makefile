@@ -7,7 +7,7 @@
 #   make report                - Generate summary report
 #   make help                  - Show this help message
 
-.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
+.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server validate-commit-msg install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
 
 # Colors for output
 RED := \033[0;31m
@@ -444,10 +444,11 @@ validate-descriptions:
 # Install shared git hooks (one-time setup)
 install-hooks:
 	@echo "$(CYAN)Setting up git hooks...$(NC)"
-	@chmod +x .githooks/pre-commit .githooks/pre-push
+	@chmod +x .githooks/pre-commit .githooks/pre-push .githooks/commit-msg
 	@git config core.hooksPath .githooks
 	@echo "$(GREEN)Done. Git hooks are now active.$(NC)"
 	@echo ""
+	@echo "  commit-msg: validate-commit-msg (action, description, issue ref)"
 	@echo "  pre-commit: validate-descriptions, validate-mcp-server, validate-xorigin, validate-jtbd"
 	@echo "  pre-push:   test-portal, validate-all-governed"
 	@echo ""
@@ -470,6 +471,22 @@ check-hooks:
 	else \
 		echo "$(YELLOW)Git hooks are NOT active.$(NC) Run: make install-hooks"; \
 	fi
+
+# Update changelog.yaml with new commits since last update
+changelog-update:
+	@python3 scripts/build/update_changelog.py
+
+# Seed changelog.yaml from full git history (first run only)
+changelog-seed:
+	@python3 scripts/build/update_changelog.py --seed
+
+# Validate a commit message against changelog format
+validate-commit-msg:
+	@if [ -z "$(MSG)" ]; then \
+		echo "$(RED)Usage: make validate-commit-msg MSG='add: your description here'$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(MSG)" | python3 scripts/build/validate_commit_msg.py --stdin
 
 # Pre-commit hook target: fast validators (~2-5s)
 pre-commit-hook:

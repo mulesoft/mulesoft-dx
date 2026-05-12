@@ -1,0 +1,1151 @@
+last_commit: 7765b43
+entries:
+- hash: 7765b43
+  date: '2026-05-12'
+  action: add
+  description: add Use Provider modal and terraform tests
+  author: Leandro Gil
+  artifacts:
+  - type: Terraform
+    name: anypoint-provider
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7765b43
+- hash: f84c990
+  date: '2026-05-11'
+  action: add
+  description: add On This Page TOC, code block copy button, Prism dark mode, and hide auth panel for terraform
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/f84c990
+- hash: f061125
+  date: '2026-05-11'
+  action: add
+  description: add code block wrapper with copy button and Prism dark mode for terraform
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/f061125
+- hash: 18f6ae9
+  date: '2026-05-11'
+  action: update
+  description: move terraform CSS rules to their own section
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/18f6ae9
+- hash: fa09707
+  date: '2026-05-11'
+  action: add
+  description: add data-sources docs and sort resources first in nav
+  author: Leandro Gil
+  artifacts:
+  - type: Terraform
+    name: anypoint-provider
+  url: https://github.com/mulesoft/mulesoft-dx/commit/fa09707
+- hash: 7a51de4
+  date: '2026-05-11'
+  action: update
+  description: use terraform-specific classes and update icon/search highlight
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7a51de4
+- hash: 774d281
+  date: '2026-05-11'
+  action: update
+  description: rename terraform classes from skill-* to terraform-*
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/774d281
+- hash: 93b9123
+  date: '2026-05-08'
+  action: update
+  description: add remaining terraform provider doc files
+  author: Leandro Gil
+  artifacts:
+  - type: Terraform
+    name: anypoint-provider
+  url: https://github.com/mulesoft/mulesoft-dx/commit/93b9123
+- hash: e6dfd84
+  date: '2026-05-08'
+  action: update
+  description: single-page architecture for terraform provider docs
+  author: Leandro Gil
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e6dfd84
+- hash: d57af5d
+  date: '2026-05-08'
+  action: add
+  description: add terraform provider documentation to portal generator
+  author: Leandro Gil
+  artifacts:
+  - type: Terraform
+    name: anypoint-provider
+  url: https://github.com/mulesoft/mulesoft-dx/commit/d57af5d
+- hash: 8160c26
+  date: '2026-05-07'
+  action: update
+  description: Implement Slack-inspired dark mode with accessibility improvements
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/8160c26
+- hash: 49215cc
+  date: '2026-05-07'
+  action: update
+  description: add meaningful descriptions
+  author: Nicolas Battiato
+  artifacts:
+  - type: API
+    name: access-management
+  url: https://github.com/mulesoft/mulesoft-dx/commit/49215cc
+- hash: 28bbac7
+  date: '2026-05-07'
+  action: update
+  description: improved access-management api
+  author: Nicolas Battiato
+  artifacts:
+  - type: API
+    name: access-management
+  url: https://github.com/mulesoft/mulesoft-dx/commit/28bbac7
+- hash: 84159f9
+  date: '2026-05-07'
+  action: update
+  description: Add --proxy-url option for POC branch deployments
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/84159f9
+- hash: e14d19d
+  date: '2026-05-07'
+  action: update
+  description: Restore MCP servers and re-enable MCP filter tab
+  author: Fernando Lescano
+  artifacts:
+  - type: MCP
+    name: exchange
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e14d19d
+- hash: d2b4877
+  date: '2026-05-06'
+  action: update
+  description: Remove debug console.logs, fix branding, and remove draft MCP servers
+  author: Fernando Lescano
+  artifacts:
+  - type: MCP
+    name: exchange
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/d2b4877
+- hash: 9cdd67b
+  date: '2026-05-06'
+  action: update
+  description: Add unit tests for critical untested functions
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/9cdd67b
+- hash: 43e7faf
+  date: '2026-05-06'
+  action: update
+  description: Fix WCAG 2.2 Level A accessibility violations
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/43e7faf
+- hash: 912fb2a
+  date: '2026-05-06'
+  action: update
+  description: Remove unused _nl2br_html filter that bypassed autoescaping
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/912fb2a
+- hash: ee438c8
+  date: '2026-05-06'
+  action: update
+  description: Improve MCP tab UX with disabled state visual feedback on hover  (#51)
+  author: marcelocominguez-debug
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/ee438c8
+- hash: 4651d52
+  date: '2026-05-06'
+  action: update
+  description: Render array request bodies and responses with expandable items
+  author: Nicolas Battiato
+  artifacts:
+  - type: API
+    name: api-experience-hub-consumer
+  url: https://github.com/mulesoft/mulesoft-dx/commit/4651d52
+- hash: a4f62e7
+  date: '2026-05-06'
+  action: update
+  description: Fix portal generator to resolve internal  schemas in request bodies and responses
+  author: Nicolas Battiato
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a4f62e7
+- hash: 28c61ed
+  date: '2026-05-06'
+  action: update
+  description: Improve AEH apis
+  author: Nicolas Battiato
+  artifacts:
+  - type: API
+    name: api-experience-hub-consumer
+  - type: API
+    name: api-experience-hub-management
+  url: https://github.com/mulesoft/mulesoft-dx/commit/28c61ed
+- hash: '1324453'
+  date: '2026-05-06'
+  action: update
+  description: 'UI improvements: homepage layout, navigation, and component styling (#50)'
+  author: marcelocominguez-debug
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/1324453
+- hash: 88ac3d0
+  date: '2026-05-05'
+  action: update
+  description: Add API Experience Hub consumer and management APIs with portal skills
+  author: Nicolas Battiato
+  artifacts:
+  - type: API
+    name: api-experience-hub-consumer
+  - type: API
+    name: api-experience-hub-management
+  - type: Skill
+    name: curate-portal-assets
+  - type: Skill
+    name: discover-portal-apis
+  - type: Skill
+    name: manage-portal-applications
+  - type: Skill
+    name: manage-portal-members-and-prospects
+  - type: Skill
+    name: manage-portal-user-groups
+  - type: Skill
+    name: request-api-access
+  url: https://github.com/mulesoft/mulesoft-dx/commit/88ac3d0
+- hash: c523b0a
+  date: '2026-05-05'
+  action: update
+  description: Fix catalog grid alignment and add server dropdown chevron indicator (#47)
+  author: marcelocominguez-debug
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c523b0a
+- hash: 8e4c783
+  date: '2026-05-05'
+  action: update
+  description: Poc/marce4 (#41)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/8e4c783
+- hash: 65f73d5
+  date: '2026-05-05'
+  action: update
+  description: '@W-2234183 Update homepage tagline to emphasize developers and AI agents (#45)'
+  author: Fernando
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/65f73d5
+- hash: 5d7ae8a
+  date: '2026-05-04'
+  action: update
+  description: Add parentheses to sidebar counts and tooltips to MCP group counts
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/5d7ae8a
+- hash: 247d469
+  date: '2026-05-04'
+  action: update
+  description: Remove redundant type badges from MCP sidebar navigation
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/247d469
+- hash: c7a08ba
+  date: '2026-05-04'
+  action: update
+  description: Fix MCP hero tab to use same blue active style as APIs and Skills
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c7a08ba
+- hash: fb7a4a3
+  date: '2026-05-04'
+  action: update
+  description: Add consistent MCP filter icon for hero tabs
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/fb7a4a3
+- hash: 0a1317a
+  date: '2026-05-04'
+  action: update
+  description: Gate dark mode toggle behind ?darkmode=true query param
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/0a1317a
+- hash: 5a05dd7
+  date: '2026-05-04'
+  action: update
+  description: Trim llms.txt to structure-only, remove per-item listings
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/5a05dd7
+- hash: 9e30a0e
+  date: '2026-05-04'
+  action: update
+  description: Move homepage state persistence to URL params
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/9e30a0e
+- hash: e1396d8
+  date: '2026-05-04'
+  action: update
+  description: Update portal main title to "Mulesoft Developer Portal"
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e1396d8
+- hash: c311633
+  date: '2026-04-30'
+  action: update
+  description: Fix card display issues and implement unlimited breadcrumb navigation
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c311633
+- hash: c586c37
+  date: '2026-04-30'
+  action: update
+  description: Small change
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c586c37
+- hash: 0f52b56
+  date: '2026-04-30'
+  action: update
+  description: fixed some enpoints an x-origins
+  author: Sandra Untersander
+  artifacts:
+  - type: API
+    name: anypoint-api-governance
+  url: https://github.com/mulesoft/mulesoft-dx/commit/0f52b56
+- hash: 03d63a3
+  date: '2026-04-30'
+  action: update
+  description: Add column sorting to homepage list view
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/03d63a3
+- hash: faca800
+  date: '2026-04-30'
+  action: update
+  description: Move Interactive Mode + Install Command next to the auth status
+  author: Mariano de Achaval
+  artifacts:
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/faca800
+- hash: 1456aa1
+  date: '2026-04-29'
+  action: update
+  description: 'Fix failing smoke tests: Guide badge and skill card casing'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/1456aa1
+- hash: a5993cf
+  date: '2026-04-29'
+  action: update
+  description: Fix duplicated skill toolbar in header
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a5993cf
+- hash: d7e1f62
+  date: '2026-04-29'
+  action: update
+  description: 'Portal improvements: breadcrumb navigation and enhanced list view'
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/d7e1f62
+- hash: 85aa7d7
+  date: '2026-04-29'
+  action: update
+  description: 'Portal UX improvements: unified button styling, editorial typography, and toolbar reorganization'
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/85aa7d7
+- hash: 0cfd753
+  date: '2026-04-28'
+  action: update
+  description: Move skill toolbar to header with updated Interactive Mode button
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/0cfd753
+- hash: fac3b46
+  date: '2026-04-23'
+  action: update
+  description: Complete dark mode improvements and UI refinements
+  author: mcominguez
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/fac3b46
+- hash: 12c90f9
+  date: '2026-04-30'
+  action: update
+  description: some changes
+  author: Sandra Untersander
+  artifacts:
+  - type: API
+    name: anypoint-api-governance
+  url: https://github.com/mulesoft/mulesoft-dx/commit/12c90f9
+- hash: 1d81c48
+  date: '2026-04-29'
+  action: update
+  description: MCP Icon
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/1d81c48
+- hash: b407597
+  date: '2026-04-29'
+  action: update
+  description: Migrate MCPs to the registry server.json schema
+  author: Mariano de Achaval
+  artifacts:
+  - type: MCP
+    name: exchange
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/b407597
+- hash: a23c4a8
+  date: '2026-04-28'
+  action: update
+  description: Skills overview
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a23c4a8
+- hash: a52b6ac
+  date: '2026-04-27'
+  action: update
+  description: Add skill Statistics panel and tighten server URL brackets
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a52b6ac
+- hash: 7869f90
+  date: '2026-04-29'
+  action: update
+  description: '@W-22137891 Add protect-agent-with-policies skill and fix skill tooling paths (#33)'
+  author: Fernando
+  artifacts:
+  - type: API
+    name: exchange-experience
+  - type: Skill
+    name: protect-agent-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7869f90
+- hash: e388869
+  date: '2026-04-28'
+  action: update
+  description: Add EU region selector to portal server panel
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e388869
+- hash: b8af03c
+  date: '2026-04-28'
+  action: update
+  description: Parameterize eu1.anypoint.mulesoft.com server URLs with region variable
+  author: Fernando Lescano
+  artifacts:
+  - type: API
+    name: access-management
+  - type: API
+    name: agent-scanner-configuration-service
+  - type: API
+    name: amc-application-manager
+  - type: API
+    name: analytics-event-export
+  - type: API
+    name: anypoint-mq-admin
+  - type: API
+    name: anypoint-mq-stats
+  - type: API
+    name: anypoint-security-policies
+  - type: API
+    name: api-designer-experience
+  - type: API
+    name: api-manager
+  - type: API
+    name: api-platform
+  - type: API
+    name: api-portal-xapi
+  - type: API
+    name: arm-monitoring-query
+  - type: API
+    name: arm-rest-services
+  - type: API
+    name: audit-log-query
+  - type: API
+    name: cloudhub-20
+  - type: API
+    name: cloudhub
+  - type: API
+    name: exchange-experience
+  - type: API
+    name: flex-gateway-manager
+  - type: API
+    name: metrics
+  - type: API
+    name: partner-manager-v2-partners
+  - type: API
+    name: partner-manager-v2-tracking
+  - type: API
+    name: proxies-xapi
+  - type: API
+    name: runtime-fabric
+  - type: API
+    name: secrets-manager
+  - type: API
+    name: tokenization-creation-and-mgmt
+  - type: API
+    name: usage
+  - type: MCP
+    name: exchange
+  url: https://github.com/mulesoft/mulesoft-dx/commit/b8af03c
+- hash: 7adc62e
+  date: '2026-04-27'
+  action: update
+  description: updated runtime-fabric to use environmentId
+  author: sandrau
+  artifacts:
+  - type: API
+    name: runtime-fabric
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7adc62e
+- hash: 153484f
+  date: '2026-04-27'
+  action: update
+  description: Add MCP x-origin support for dynamic enum resolution in portal
+  author: Fernando Lescano
+  artifacts:
+  - type: MCP
+    name: exchange
+  url: https://github.com/mulesoft/mulesoft-dx/commit/153484f
+- hash: 686fa48
+  date: '2026-04-27'
+  action: update
+  description: Remove API from MCP
+  author: Mariano de Achaval
+  artifacts:
+  - type: MCP
+    name: exchange
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/686fa48
+- hash: 0b89ca0
+  date: '2026-04-27'
+  action: update
+  description: Render anyOf unions, schema defaults, and polish MCP try-it console
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: access-management
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/0b89ca0
+- hash: 96acfd2
+  date: '2026-04-27'
+  action: update
+  description: Adding related skills and related apis
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/96acfd2
+- hash: 36c23bd
+  date: '2026-04-27'
+  action: update
+  description: updated api
+  author: Sandra Untersander
+  artifacts:
+  - type: API
+    name: anypoint-api-governance
+  url: https://github.com/mulesoft/mulesoft-dx/commit/36c23bd
+- hash: ac458d2
+  date: '2026-04-27'
+  action: update
+  description: '@W-22137898 Add session TTL management with auto-expiration UI updates (#30)'
+  author: Fernando
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/ac458d2
+- hash: '5353583'
+  date: '2026-04-25'
+  action: update
+  description: Extend MCP support with validation, tag search, and UX polish
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: access-management
+  - type: MCP
+    name: exchange
+  - type: MCP
+    name: omni
+  url: https://github.com/mulesoft/mulesoft-dx/commit/5353583
+- hash: 21848b1
+  date: '2026-04-24'
+  action: update
+  description: Add MCP server support to the portal
+  author: Mariano de Achaval
+  artifacts:
+  - type: MCP
+    name: exchange
+  url: https://github.com/mulesoft/mulesoft-dx/commit/21848b1
+- hash: 7553c09
+  date: '2026-04-23'
+  action: update
+  description: '@W-22137880 Fix skill title casing: API and MCP now render in uppercase'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7553c09
+- hash: fcc4663
+  date: '2026-04-23'
+  action: update
+  description: '@W-22137880 Fix dark mode scrollbars, ACE editor theme consistency, and response overflow'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/fcc4663
+- hash: b8083aa
+  date: '2026-04-23'
+  action: update
+  description: '@W-22137880 Marce adjustments: dark mode, sidebar, overview metrics'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/b8083aa
+- hash: 39f9493
+  date: '2026-04-23'
+  action: update
+  description: Add authentication guide to AGENTS.md
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/39f9493
+- hash: 03dcb3e
+  date: '2026-04-22'
+  action: update
+  description: '@W-22137880 add protect mcp skill (#23)'
+  author: Fernando
+  artifacts:
+  - type: API
+    name: api-manager
+  - type: API
+    name: exchange-experience
+  - type: Skill
+    name: protect-api-with-policies
+  - type: Skill
+    name: protect-mcp-server-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/03dcb3e
+- hash: df61cda
+  date: '2026-04-22'
+  action: update
+  description: '@W-22137891 Add Prose only Skill & clean up (#22)'
+  author: Fernando
+  artifacts:
+  - type: Skill
+    name: anypoint-platform-operations
+  - type: Skill
+    name: deploy-api-to-managed-flex-gateway-from-exchange
+  - type: Skill
+    name: deploy-api-with-rate-limiting
+  - type: Skill
+    name: list-organization-api-instances
+  - type: Skill
+    name: manage-consumer-contracts
+  - type: Skill
+    name: setup-multi-upstream-routing
+  url: https://github.com/mulesoft/mulesoft-dx/commit/df61cda
+- hash: dd8a5c5
+  date: '2026-04-21'
+  action: update
+  description: first approach
+  author: Sandra Untersander
+  artifacts:
+  - type: API
+    name: anypoint-api-governance
+  url: https://github.com/mulesoft/mulesoft-dx/commit/dd8a5c5
+- hash: 45be9a9
+  date: '2026-04-21'
+  action: update
+  description: Improve sort modal styling and code formatting
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/45be9a9
+- hash: 7df4d0d
+  date: '2026-04-21'
+  action: update
+  description: Add filter persistence and type sort to homepage
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7df4d0d
+- hash: '5672356'
+  date: '2026-04-21'
+  action: update
+  description: Fix dark mode flash by applying theme in blocking head script (#20)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/5672356
+- hash: 4a38617
+  date: '2026-04-20'
+  action: update
+  description: Enhance x-origin validator to check cross-API operation references (#19)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/4a38617
+- hash: 4564ae4
+  date: '2026-04-20'
+  action: update
+  description: Fix Try It Out response display and improve dark mode support (#18)
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: agent-scanner-configuration-service
+  url: https://github.com/mulesoft/mulesoft-dx/commit/4564ae4
+- hash: a4da8f8
+  date: '2026-04-20'
+  action: update
+  description: Add comprehensive dark mode support to portal (#17)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a4da8f8
+- hash: 40caa52
+  date: '2026-04-17'
+  action: update
+  description: Fix tests
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/40caa52
+- hash: e3b4664
+  date: '2026-04-17'
+  action: update
+  description: 'Portal UX improvements: status dropdown, skill badges, icons, and alphabetical sorting'
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e3b4664
+- hash: f4ba7a2
+  date: '2026-04-17'
+  action: update
+  description: Adding new icons and small rounded buttons (#15)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/f4ba7a2
+- hash: 1f9846a
+  date: '2026-04-17'
+  action: update
+  description: '@W-21859986 improve login modal (#13)'
+  author: Fernando
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/1f9846a
+- hash: 01a2680
+  date: '2026-04-17'
+  action: update
+  description: Fixing combo box (#14)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/01a2680
+- hash: ef2f9df
+  date: '2026-04-17'
+  action: update
+  description: Ux small changes (#12)
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/ef2f9df
+- hash: 782a5b1
+  date: '2026-04-17'
+  action: update
+  description: '@W-21859986  Ux design system (#11)'
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/782a5b1
+- hash: 868f65a
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Polish install modal and copy feedback styles'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/868f65a
+- hash: 25e7577
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Add install command modal with copy, prerequisites, and updated dropdown'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/25e7577
+- hash: 9c414db
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Restyle skill split button with pill shape and sidebar hover'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/9c414db
+- hash: a575c2e
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Fetch SKILL.md on click instead of embedding in template'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/a575c2e
+- hash: 021c7bc
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Add split copy button with dropdown to skill pages'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/021c7bc
+- hash: e7682b3
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Update portal URLs to new dev-portal domain'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/e7682b3
+- hash: '7687507'
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Replace from:step: with from:variable: in JTBD skills'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: apply-policy-to-api-instance
+  - type: Skill
+    name: deploy-api-to-managed-flex-gateway-from-exchange
+  - type: Skill
+    name: deploy-api-with-rate-limiting
+  - type: Skill
+    name: list-organization-api-instances
+  - type: Skill
+    name: manage-consumer-contracts
+  - type: Skill
+    name: protect-api-with-policies
+  - type: Skill
+    name: run-agent-scan-and-view-results
+  - type: Skill
+    name: setup-agent-scanner
+  - type: Skill
+    name: setup-multi-upstream-routing
+  url: https://github.com/mulesoft/mulesoft-dx/commit/7687507
+- hash: f6112fa
+  date: '2026-04-16'
+  action: update
+  description: '@W-21859986 Enhance skill portal interactive mode with light theme and improved e… (#7)'
+  author: Mariano de Achaval
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/f6112fa
+- hash: 54cb685
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Rename Starting Point to Execution Paths with named routes'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/54cb685
+- hash: f3ce48d
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Ask user to confirm or override each policy config property'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/f3ce48d
+- hash: 40db27f
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Copy $ref subdirectories alongside api.yaml in portal output'
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/40db27f
+- hash: 1ae3eea
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Replace PATCH with proxies-xapi deployment, add proxyUri, fix gatewayVersion'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/1ae3eea
+- hash: d242a63
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Restructure protect-api-with-policies to embed deployment in instance creation'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/d242a63
+- hash: c70e91a
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Add deployment step, missing inputs, and target selection to protect-api-with-policies'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c70e91a
+- hash: b6f321e
+  date: '2026-04-15'
+  action: update
+  description: '@W-21859986 Add Internal APIs section to AGENTS.md for private API discoverability'
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: protect-api-with-policies
+  url: https://github.com/mulesoft/mulesoft-dx/commit/b6f321e
+- hash: 2cce610
+  date: '2026-04-14'
+  action: update
+  description: '@W-21859986 New skills UI with playground mode (#6)'
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: api-manager
+  url: https://github.com/mulesoft/mulesoft-dx/commit/2cce610
+- hash: 6e435bd
+  date: '2026-04-13'
+  action: update
+  description: Fix broken YAML frontmatter in run-agent-scan-and-view-results SKILL.md
+  author: Fernando Lescano
+  artifacts:
+  - type: Skill
+    name: run-agent-scan-and-view-results
+  url: https://github.com/mulesoft/mulesoft-dx/commit/6e435bd
+- hash: 366a384
+  date: '2026-04-13'
+  action: update
+  description: Fix agent-scanner-configuration-service validation violations and update oas-only rule
+  author: Fernando Lescano
+  artifacts:
+  - type: API
+    name: agent-scanner-configuration-service
+  url: https://github.com/mulesoft/mulesoft-dx/commit/366a384
+- hash: 9137ac7
+  date: '2026-04-11'
+  action: update
+  description: Fix long URL horizontal overflow in operation URL bars
+  author: Fernando Lescano
+  artifacts:
+  - type: Portal
+    name: ''
+  url: https://github.com/mulesoft/mulesoft-dx/commit/9137ac7
+- hash: 0853f70
+  date: '2026-04-11'
+  action: update
+  description: Add GitHub Actions CI/CD pipeline and portal generator infrastructure (#4)
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: agent-scanner-configuration-service
+  - type: API
+    name: api-manager
+  - type: API
+    name: api-portal-xapi
+  - type: API
+    name: proxies-xapi
+  - type: API
+    name: sfdc_metadata
+  - type: API
+    name: validation-reports
+  - type: Skill
+    name: apply-policy-to-api-instance
+  - type: Skill
+    name: deploy-api-to-managed-flex-gateway-from-exchange
+  - type: Skill
+    name: deploy-api-with-rate-limiting
+  - type: Skill
+    name: list-organization-api-instances
+  - type: Skill
+    name: manage-consumer-contracts
+  - type: Skill
+    name: run-agent-scan-and-view-results
+  - type: Skill
+    name: setup-agent-scanner
+  - type: Skill
+    name: setup-multi-upstream-routing
+  url: https://github.com/mulesoft/mulesoft-dx/commit/0853f70
+- hash: c6d1d5c
+  date: '2026-04-07'
+  action: update
+  description: Initial commit
+  author: Mariano de Achaval
+  artifacts:
+  - type: API
+    name: access-management
+  - type: API
+    name: amc-application-manager
+  - type: API
+    name: analytics-event-export
+  - type: API
+    name: anypoint-monitoring-archive
+  - type: API
+    name: anypoint-mq-admin
+  - type: API
+    name: anypoint-mq-broker
+  - type: API
+    name: anypoint-mq-stats
+  - type: API
+    name: anypoint-security-policies
+  - type: API
+    name: api-designer-experience
+  - type: API
+    name: api-manager
+  - type: API
+    name: api-platform
+  - type: API
+    name: arm-monitoring-query
+  - type: API
+    name: arm-rest-services
+  - type: API
+    name: audit-log-query
+  - type: API
+    name: citizen-platform-experience
+  - type: API
+    name: cloudhub-20
+  - type: API
+    name: cloudhub
+  - type: API
+    name: exchange-experience
+  - type: API
+    name: flex-gateway-manager
+  - type: API
+    name: metrics
+  - type: API
+    name: mule-agent-plugin
+  - type: API
+    name: object-store-v2-stats
+  - type: API
+    name: object-store-v2
+  - type: API
+    name: partner-manager-v2-partners
+  - type: API
+    name: partner-manager-v2-tracking
+  - type: API
+    name: runtime-fabric
+  - type: API
+    name: secrets-manager
+  - type: API
+    name: sfdc_metadata
+  - type: API
+    name: tokenization-creation-and-mgmt
+  - type: API
+    name: tokenization-runtime-service
+  - type: API
+    name: usage
+  - type: API
+    name: validation-reports
+  url: https://github.com/mulesoft/mulesoft-dx/commit/c6d1d5c

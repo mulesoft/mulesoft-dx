@@ -11,6 +11,7 @@ from typing import Dict, List
 
 from .discovery import discover_apis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
+from .builders.changelog_builder import build_changelog
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
@@ -181,7 +182,7 @@ class PortalGenerator:
 
         # Clean and create output directories to avoid stale artifacts
         print(f"\n📁 Creating output directories...")
-        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas', 'terraform']:
+        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas', 'terraform', 'changelog']:
             target = self.output_dir / subdir
             if target.exists():
                 shutil.rmtree(target)
@@ -207,6 +208,7 @@ class PortalGenerator:
         self._generate_mcp_detail_pages()
         self._generate_skill_pages()
         self._generate_terraform_pages()
+        self._generate_changelog_page()
         self._generate_registry()
         self._generate_schemas()
         self._generate_agents_md()
@@ -526,6 +528,30 @@ class PortalGenerator:
             output_path = self.output_dir / 'terraform' / f"{provider['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html)
+
+    def _generate_changelog_page(self):
+        """Generate the changelog page from git history."""
+        print("  ✓ Generating changelog page...")
+
+        changelog_data = build_changelog(self.repo_root)
+
+        template = self.env.get_template('changelog_page.html')
+        html = template.render(
+            css_path='../assets/styles.css',
+            icons_path='../assets/icons',
+            weeks=changelog_data['weeks'],
+            artifact_types=changelog_data['artifact_types'],
+            action_types=changelog_data['action_types'],
+            total_entries=changelog_data['total_entries'],
+            build_label=self.build_label,
+            base_url=self.base_url,
+        )
+
+        output_path = self.output_dir / 'changelog' / 'index.html'
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+
+        print(f"    • {changelog_data['total_entries']} entries across {len(changelog_data['weeks'])} weeks")
 
     def _generate_registry(self):
         """Generate registry.json - a document registry for APIs, Skills, and Schemas."""

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec python3 "$(git rev-parse --show-toplevel)/scripts/build/validate_commit_msg.py" "$1"

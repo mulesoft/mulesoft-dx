@@ -8973,3 +8973,101 @@ code[class*="language-"][class*="language-"] {
 [data-theme="dark"] .terraform-view-markdown pre {
     background: var(--color-neutral-1) !important;
 }
+
+/* Terraform Use Provider button */
+.terraform-use-provider-btn {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0 1rem;
+    font-size: var(--font-size-4);
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-normal);
+    color: #3289CE;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-slate);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.terraform-use-provider-btn:hover {
+    opacity: 0.9;
+}
+
+/* Terraform install modal */
+.terraform-install-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.terraform-install-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.terraform-install-modal-content {
+    position: relative;
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-xl);
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.terraform-install-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-neutral-4);
+}
+
+.terraform-install-modal-header h3 {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.terraform-install-modal-body {
+    padding: var(--space-lg);
+}
+
+.terraform-install-intro {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.terraform-install-intro code {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    background: var(--color-neutral-2);
+    padding: 2px 6px;
+    border-radius: var(--radius-small);
+}
+
+.terraform-install-version-heading {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+[data-theme="dark"] .terraform-install-intro code {
+    background: var(--color-neutral-2);
+}

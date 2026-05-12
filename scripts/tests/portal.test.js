@@ -1475,3 +1475,247 @@ describe('substituteVariables', () => {
         expect(substituteVariables('${x}', 'nope')).toBe('${x}');
     });
 });
+
+// ===========================================================================
+// wrapTerraformCodeBlocks
+// ===========================================================================
+describe('wrapTerraformCodeBlocks', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function buildMarkdown(preCount) {
+        const container = document.createElement('div');
+        container.className = 'terraform-view-markdown';
+        for (let i = 0; i < preCount; i++) {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            code.textContent = 'resource "x" "y" {}';
+            pre.appendChild(code);
+            container.appendChild(pre);
+        }
+        document.body.appendChild(container);
+        return container;
+    }
+
+    test('wraps each pre with a terraform-code-wrapper containing a header and copy button', () => {
+        buildMarkdown(2);
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(2);
+        wrappers.forEach((w) => {
+            expect(w.querySelector('.terraform-code-header')).not.toBeNull();
+            expect(w.querySelector('pre')).not.toBeNull();
+        });
+    });
+
+    test('is idempotent when called twice', () => {
+        buildMarkdown(2);
+        wrapTerraformCodeBlocks();
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(2);
+    });
+
+    test('does nothing when no terraform-view-markdown pre exists', () => {
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(0);
+    });
+
+    test('inserted button has class terraform-btn-copy and contains an SVG', () => {
+        buildMarkdown(1);
+        wrapTerraformCodeBlocks();
+        const btn = document.querySelector('.terraform-btn-copy');
+        expect(btn).not.toBeNull();
+        expect(btn.querySelector('svg')).not.toBeNull();
+    });
+});
+
+// ===========================================================================
+// copyTerraformCode
+// ===========================================================================
+describe('copyTerraformCode', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        globalThis.navigator = globalThis.navigator || {};
+        globalThis.navigator.clipboard = { writeText: jest.fn().mockResolvedValue(undefined) };
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+        document.body.innerHTML = '';
+    });
+
+    function buildWrapper(text) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'terraform-code-wrapper';
+        const header = document.createElement('div');
+        header.className = 'terraform-code-header';
+        const btn = document.createElement('button');
+        btn.className = 'terraform-btn-copy';
+        btn.innerHTML = '<svg><rect></rect></svg>';
+        header.appendChild(btn);
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = text;
+        pre.appendChild(code);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+        document.body.appendChild(wrapper);
+        return { wrapper, btn };
+    }
+
+    test('calls clipboard.writeText with the pre code text content', () => {
+        const { btn } = buildWrapper('resource "anypoint_api" "x" {}');
+        copyTerraformCode(btn);
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('resource "anypoint_api" "x" {}');
+    });
+
+    test('replaces button.innerHTML with checkmark SVG on success', async () => {
+        const { btn } = buildWrapper('foo');
+        copyTerraformCode(btn);
+        await Promise.resolve();
+        expect(btn.innerHTML).toContain('polyline');
+    });
+
+    test('restores original innerHTML after 1500ms', async () => {
+        const { btn } = buildWrapper('foo');
+        const original = btn.innerHTML;
+        copyTerraformCode(btn);
+        await Promise.resolve();
+        expect(btn.innerHTML).not.toBe(original);
+        jest.advanceTimersByTime(1500);
+        expect(btn.innerHTML).toBe(original);
+    });
+
+    test('does nothing when called with element not inside a wrapper', () => {
+        const orphan = document.createElement('button');
+        document.body.appendChild(orphan);
+        copyTerraformCode(orphan);
+        expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    });
+});
+
+// ===========================================================================
+// buildTerraformToc
+// ===========================================================================
+describe('buildTerraformToc', () => {
+    beforeEach(() => {
+        globalThis.IntersectionObserver = jest.fn(function (cb) {
+            this.observe = jest.fn();
+            this.disconnect = jest.fn();
+            this.unobserve = jest.fn();
+        });
+        Element.prototype.scrollIntoView = jest.fn();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function buildToc() {
+        const aside = document.createElement('aside');
+        aside.id = 'terraformToc';
+        const list = document.createElement('ul');
+        list.id = 'terraformTocList';
+        aside.appendChild(list);
+        document.body.appendChild(aside);
+        return { aside, list };
+    }
+
+    function buildSubsection(headings) {
+        const sub = document.createElement('div');
+        sub.className = 'terraform-subsection';
+        headings.forEach(({ tag, text }) => {
+            const h = document.createElement(tag);
+            h.textContent = text;
+            sub.appendChild(h);
+        });
+        document.body.appendChild(sub);
+        return sub;
+    }
+
+    test('removes existing list items before rebuilding', () => {
+        const { list } = buildToc();
+        const stale = document.createElement('li');
+        stale.textContent = 'stale';
+        list.appendChild(stale);
+        const sub = buildSubsection([
+            { tag: 'h2', text: 'Title' },
+            { tag: 'h3', text: 'Section A' },
+        ]);
+        buildTerraformToc(sub);
+        expect(list.querySelectorAll('li').length).toBe(1);
+        expect(list.textContent).not.toContain('stale');
+    });
+
+    test('hides toc when subsection is null', () => {
+        const { aside } = buildToc();
+        aside.classList.add('visible');
+        buildTerraformToc(null);
+        expect(aside.classList.contains('visible')).toBe(false);
+    });
+
+    test('hides toc when subsection has only one heading', () => {
+        const { aside } = buildToc();
+        const sub = buildSubsection([{ tag: 'h2', text: 'Only' }]);
+        buildTerraformToc(sub);
+        expect(aside.classList.contains('visible')).toBe(false);
+    });
+
+    test('excludes the first heading', () => {
+        const { list } = buildToc();
+        const sub = buildSubsection([
+            { tag: 'h2', text: 'Resource Title' },
+            { tag: 'h3', text: 'Example Usage' },
+            { tag: 'h3', text: 'Schema' },
+        ]);
+        buildTerraformToc(sub);
+        const texts = Array.from(list.querySelectorAll('a')).map((a) => a.textContent);
+        expect(texts).toEqual(['Example Usage', 'Schema']);
+    });
+
+    test('creates one anchor per remaining heading with the correct textContent', () => {
+        const { list } = buildToc();
+        const sub = buildSubsection([
+            { tag: 'h2', text: 'Title' },
+            { tag: 'h3', text: 'Section A' },
+            { tag: 'h4', text: 'Section B' },
+        ]);
+        buildTerraformToc(sub);
+        const anchors = list.querySelectorAll('a.terraform-toc-link');
+        expect(anchors.length).toBe(2);
+        expect(anchors[0].textContent).toBe('Section A');
+        expect(anchors[1].textContent).toBe('Section B');
+    });
+
+    test('clicking a link calls scrollIntoView on the heading', () => {
+        const { list } = buildToc();
+        const sub = buildSubsection([
+            { tag: 'h2', text: 'Title' },
+            { tag: 'h3', text: 'Section A' },
+        ]);
+        buildTerraformToc(sub);
+        const link = list.querySelector('a.terraform-toc-link');
+        link.onclick({ preventDefault: () => {} });
+        expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    });
+
+    test('disconnects previous observer when called again', () => {
+        buildToc();
+        const sub1 = buildSubsection([
+            { tag: 'h2', text: 'Title' },
+            { tag: 'h3', text: 'Section A' },
+        ]);
+        buildTerraformToc(sub1);
+        const firstInstance = IntersectionObserver.mock.instances[0];
+
+        const sub2 = buildSubsection([
+            { tag: 'h2', text: 'Title 2' },
+            { tag: 'h3', text: 'Section B' },
+        ]);
+        buildTerraformToc(sub2);
+        expect(firstInstance.disconnect).toHaveBeenCalled();
+    });
+});

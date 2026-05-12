@@ -8431,6 +8431,16 @@ function copyTerraformCode(button) {
     });
 }
 
+function openTerraformProviderModal() {
+    var modal = document.getElementById('terraform-install-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeTerraformProviderModal() {
+    var modal = document.getElementById('terraform-install-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 var _terraformTocObserver = null;
 
 function buildTerraformToc(subsection) {

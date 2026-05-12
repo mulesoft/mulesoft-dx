@@ -1,0 +1,22 @@
+{
+  "name": "@saleseforce/mulesoft-vibes-skills",
+  "version": "1.0.1",
+  "description": "MuleSoft DX skills to enhance Mule developement",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "files": [
+    "*/SKILL.md",
+    "*/scripts/**",
+    "*/references/**",
+    "LICENSE.txt"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "homepage": "https://github.com/mulesoft/mulesoft-dx/tree/master/skills/mule-developement",
+  "keywords": [
+    "mulesoft",
+    "mule",
+    "dx"
+  ]
+}

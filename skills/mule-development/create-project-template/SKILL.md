@@ -1,6 +1,6 @@
 ---
 name: create-project-template
-description: Workflow for generating MuleSoft projects from Anypoint Exchange templates, local .jar templates, or from scratch via the `mule-mcp-server`. Use when users ask to "create a project", "generate project", "build integration", "create API", "use template", or "from template". Performs template discovery and calls create_mule_project only after explicit user confirmation; delegates flow generation to the `mule-dev` skill.
+description: Workflow for generating MuleSoft projects from Anypoint Exchange templates, local .jar templates, or from scratch via the `mule-mcp-server`. Use when users ask to "create a project", "generate project", "build integration", "create API", "use template", or "from template". Performs template discovery and calls create_mule_project only after explicit user confirmation; delegates flow generation to the `build-mule-integration` skill.
 license: Apache-2.0
 compatibility: Requires the mule-mcp-server (create_mule_project), Anypoint CLI v4 (`anypoint-cli-v4` on PATH), `jq`, and Maven 3.6+ for validation
 metadata:
@@ -13,7 +13,7 @@ allowed-tools: Bash Read AskUserQuestion
 
 # Mule Project Generation
 
-Guide the user through multi-step Mule project generation via the `create-project-template` skill . For **any** project creation request, the request **must go through this workflow**. Do not call `create_mule_project` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `create_mule_project` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `mule-dev` skill.
+Guide the user through multi-step Mule project generation via the `create-project-template` skill . For **any** project creation request, the request **must go through this workflow**. Do not call `create_mule_project` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `create_mule_project` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `build-mule-integration` skill.
 
 **Triggers:**
 
@@ -63,12 +63,12 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 
 - **Template selection:** Wait for explicit user choice before proceeding. Do not assume which template the user wants.
 - **Project creation:** Do not call `create_mule_project` until the user explicitly approves (e.g. Template Integration Plan for Exchange, or equivalent confirmation for Local/Scratch). Calling `create_mule_project` without having completed the workflow and received this approval is prohibited.
-- **Flow generation:** Do not hand off to the `mule-dev` skill until the user explicitly approves flow customization.
+- **Flow generation:** Do not hand off to the `build-mule-integration` skill until the user explicitly approves flow customization.
 
 ### Flow Generation Workflow (delegated)
 
-- For any step that involves generating or updating Mule flows (E5, S3, L5), flow generation is **entirely delegated** to the **`mule-dev` skill**. Follow that skill in full. This workflow does **not** perform flow generation itself; the `mule-dev` skill handles it after its Technical Summary is approved and its verification gate passes.
-- **Flow generation:** Reference the `mule-dev` skill.
+- For any step that involves generating or updating Mule flows (E5, S3, L5), flow generation is **entirely delegated** to the **`build-mule-integration` skill**. Follow that skill in full. This workflow does **not** perform flow generation itself; the `build-mule-integration` skill handles it after its Technical Summary is approved and its verification gate passes.
+- **Flow generation:** Reference the `build-mule-integration` skill.
 
 ### Local Template Format
 
@@ -259,7 +259,7 @@ Before generation, present a comprehensive plan for user approval:
 - Property files in `src/main/resources/`
 - [Any additional resources from template]
 
-**Post-Generation:** Flow generation is **entirely delegated to the `mule-dev` skill**. That skill handles connector discovery, trigger selection, technical summary, and the actual flow generation.
+**Post-Generation:** Flow generation is **entirely delegated to the `build-mule-integration` skill**. That skill handles connector discovery, trigger selection, technical summary, and the actual flow generation.
 
 Then prompt via `AskUserQuestion`:
 
@@ -313,11 +313,11 @@ After generation, verify:
 
 ### Step E5: Generate/Update Mule Flows
 
-After project creation, flow generation or updates follow the **`mule-dev` skill**.
+After project creation, flow generation or updates follow the **`build-mule-integration` skill**.
 
 #### E5a. Prepare for Flow Confirmation (do not perform flow generation here)
 
-Gather only what is needed to present the confirmation question: project path and list of XML files in `src/main/mule/`. **All flow-generation work** (reading flow content, connector discovery, trigger selection, and the flow generation itself) is **entirely delegated to `mule-dev`**; do not do it in this step.
+Gather only what is needed to present the confirmation question: project path and list of XML files in `src/main/mule/`. **All flow-generation work** (reading flow content, connector discovery, trigger selection, and the flow generation itself) is **entirely delegated to `build-mule-integration`**; do not do it in this step.
 
 #### E5b. Confirm Flow Generation
 
@@ -335,11 +335,11 @@ What flow changes would you like?</question>
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `mule-dev` skill.
+> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `build-mule-integration` skill.
 
-#### E5c. Handoff to mule-dev skill
+#### E5c. Handoff to build-mule-integration skill
 
-When the user approves flow generation, switch to and follow the `mule-dev` skill. Validation and success reporting are handled entirely by that skill.
+When the user approves flow generation, switch to and follow the `build-mule-integration` skill. Validation and success reporting are handled entirely by that skill.
 
 ---
 
@@ -389,7 +389,7 @@ No template parameters; creates minimal scaffold project.
 
 ### Step S3: Generate/Update Mule Flows
 
-Flow generation follows the **`mule-dev` skill**.
+Flow generation follows the **`build-mule-integration` skill**.
 
 #### S3a. Confirm Flow Generation
 
@@ -406,11 +406,11 @@ What flows would you like to generate?</question>
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `mule-dev`.
+> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `build-mule-integration`.
 
-#### S3b. Handoff to mule-dev
+#### S3b. Handoff to build-mule-integration
 
-When the user approves flow generation, switch to and follow the `mule-dev` skill. Validation and success reporting are handled entirely by that skill.
+When the user approves flow generation, switch to and follow the `build-mule-integration` skill. Validation and success reporting are handled entirely by that skill.
 
 ---
 
@@ -524,11 +524,11 @@ Call `create_mule_project` per **Reference → `create_mule_project` Schema**.
 
 ### Step L5: Generate/Update Mule Flows
 
-Flow generation or updates follow the **`mule-dev` skill**
+Flow generation or updates follow the **`build-mule-integration` skill**
 
 #### L5a. Prepare for Flow Confirmation (do not perform flow generation here)
 
-Gather only what is needed to present the confirmation question: project path, template path, and list of XML files in `src/main/mule/`. **All flow-generation work** (reading flow content, connector discovery, trigger selection, and the flow generation itself) is **entirely delegated to `mule-dev`**; do not do it in this step.
+Gather only what is needed to present the confirmation question: project path, template path, and list of XML files in `src/main/mule/`. **All flow-generation work** (reading flow content, connector discovery, trigger selection, and the flow generation itself) is **entirely delegated to `build-mule-integration`**; do not do it in this step.
 
 #### L5b. Confirm Flow Generation
 
@@ -547,11 +547,11 @@ What flow changes would you like?</question>
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `mule-dev`.
+> **Important:** Per **Confirmation Checkpoints** (flow generation): get approval before handing off to `build-mule-integration`.
 
-#### L5c. Handoff to mule-dev
+#### L5c. Handoff to build-mule-integration
 
-When the user approves flow generation, switch to and follow the `mule-dev` skill. Validation and success reporting are handled entirely by that skill.
+When the user approves flow generation, switch to and follow the `build-mule-integration` skill. Validation and success reporting are handled entirely by that skill.
 
 ---
 
@@ -568,7 +568,7 @@ When the user approves flow generation, switch to and follow the `mule-dev` skil
 | Template search returns no results | Fallback to **Scratch** | S1 → S2 → S3 | — |
 | Local `.jar` validation fails | Offer **Exchange** or **Scratch** | Step 1 re-entry | — |
 
-*Scratch and Local end at handoff to `mule-dev` (S3b, L5c); Exchange ends at E5c. Validation and success reporting for flows are handled by `mule-dev`.*
+*Scratch and Local end at handoff to `build-mule-integration` (S3b, L5c); Exchange ends at E5c. Validation and success reporting for flows are handled by `build-mule-integration`.*
 
 ### Flow Switching Rules
 
@@ -591,7 +591,7 @@ Users can switch between flows at specific checkpoints. Honor these requests:
 | `scripts/search_templates.sh <query>` | Step E2a — search Anypoint Exchange for templates (private and public) and return an enriched, ranked JSON array on stdout (max 10 rows). | No (read-only Bash call) |
 | `create_mule_project` (mule-mcp-server) | Create project from template or scratch. **Do not call directly** — only call from within this workflow at Step E4, S2, or L4 after the corresponding confirmation checkpoint has been satisfied. | **YES** (workflow + user approval required) |
 
-> **Note:** Flow generation (E5, S3, L5) is handled entirely by the `mule-dev` skill — this workflow does not invoke any flow-generation tool directly.
+> **Note:** Flow generation (E5, S3, L5) is handled entirely by the `build-mule-integration` skill — this workflow does not invoke any flow-generation tool directly.
 
 ### `scripts/search_templates.sh` Reference
 
@@ -683,7 +683,7 @@ Use this format when reporting project generation success. Set variant as **Exch
 - Call with `assetId`, `groupId`, `version`, `assetType: "template"`.
 - Validate project compiles.
 
-**Step E5:** Flow generation is **entirely delegated to the `mule-dev` skill**. Ask user for flow customization approval (E5b); when approved, switch to and follow the `mule-dev` skill. It runs in full (project investigation, trigger and connector discovery, technical summary, flow generation, validation, and success reporting). No further project-generation steps after handoff.
+**Step E5:** Flow generation is **entirely delegated to the `build-mule-integration` skill**. Ask user for flow customization approval (E5b); when approved, switch to and follow the `build-mule-integration` skill. It runs in full (project investigation, trigger and connector discovery, technical summary, flow generation, validation, and success reporting). No further project-generation steps after handoff.
 
 ---
 
@@ -695,6 +695,6 @@ A successful Mule project generation requires:
 - **User Confirmation**: see **Confirmation Checkpoints** and **Validation Standard** (Core Rules).
 - **Valid Output**: generated project compiles successfully with Maven.
 - **Best Practices**: follows MuleSoft naming conventions, proper error handling, externalized configuration.
-- **Completeness**: all user requirements addressed through template customization and (when the user approves) flow generation via `mule-dev` (delegated).
+- **Completeness**: all user requirements addressed through template customization and (when the user approves) flow generation via `build-mule-integration` (delegated).
 
 > **Important:** See **Confirmation Checkpoints** and **Validation Standard** (Core Rules).

@@ -13,7 +13,7 @@ allowed-tools: Bash Read AskUserQuestion
 
 # Mule Project Generation
 
-Guide the user through multi-step Mule project generation via the `mule-project-generation` skill . For **any** project creation request, the request **must go through this workflow**. Do not call `create_mule_project` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `create_mule_project` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `mule-dev` skill.
+Guide the user through multi-step Mule project generation via the `create-project-template` skill . For **any** project creation request, the request **must go through this workflow**. Do not call `create_mule_project` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `create_mule_project` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `mule-dev` skill.
 
 **Triggers:**
 

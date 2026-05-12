@@ -98,6 +98,7 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
         if not skill_data:
             continue
 
+        skill_data['skill_rel_path'] = str(skill_dir.relative_to(skills_dir))
         api_refs = _extract_api_refs(skill_data)
         mcp_refs = _extract_mcp_refs(skill_data)
         skill_data['api_refs'] = api_refs

@@ -300,6 +300,28 @@ PROSE_ONLY_SKILL_MD = textwrap.dedent("""\
 """)
 
 
+NESTED_SKILL_MD = textwrap.dedent("""\
+    ---
+    name: run-diagnostics
+    description: Run system diagnostics on a deployed app
+    ---
+    ## Overview
+    This skill runs diagnostics.
+
+    ## Step 1: Check health
+    Check the application health endpoint.
+
+    ```yaml
+    api: urn:api:test-api
+    operation: listResources
+    inputs:
+      - name: limit
+        source: literal
+        value: "1"
+    ```
+""")
+
+
 MINIMAL_MCP_SERVER_JSON = json.dumps({
     '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
     'name': 'com.example/test-mcp',

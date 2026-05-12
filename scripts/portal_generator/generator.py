@@ -494,7 +494,7 @@ class PortalGenerator:
                 prose_only=prose_only,
                 repo_url=self.REPO_URL,
                 repo_branch=self.REPO_BRANCH,
-                source_path=f"skills/{skill['slug']}/SKILL.md",
+                source_path=f"skills/{skill.get('skill_rel_path', skill['slug'])}/SKILL.md",
                 asset_type='skill',
                 asset_name=skill_name,
             )
@@ -626,11 +626,12 @@ class PortalGenerator:
         # Add Skill documents (one entry per unique skill, with agent-context preamble)
         for skill in self.all_skills:
             skill_slug = skill.get('slug', '')
+            skill_rel = skill.get('skill_rel_path', skill_slug)
             skill_urn = f"urn:skill:{skill_slug}"
 
-            source_skill = self.repo_root / 'skills' / skill_slug / 'SKILL.md'
+            source_skill = self.repo_root / 'skills' / skill_rel / 'SKILL.md'
             if source_skill.exists():
-                skill_output_dir = self.output_dir / 'skills' / skill_slug
+                skill_output_dir = self.output_dir / 'skills' / skill_rel
                 skill_output_dir.mkdir(parents=True, exist_ok=True)
                 dest_skill = skill_output_dir / 'SKILL.md'
                 original = source_skill.read_text(encoding='utf-8')
@@ -642,7 +643,7 @@ class PortalGenerator:
                 'slug': skill_slug,
                 'name': skill.get('name', ''),
                 'description': skill.get('description', ''),
-                'href': f"skills/{skill_slug}/SKILL.md",
+                'href': f"skills/{skill_rel}/SKILL.md",
                 'docs': f"skills/{skill_slug}.html",
                 'apis': skill.get('api_refs', []),
                 'mcps': skill.get('mcp_refs', []),

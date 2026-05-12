@@ -35,14 +35,14 @@ def build_changelog(repo_root: Path, **_kwargs) -> Dict:
     """
     changelog_path = repo_root / 'changelog.yaml'
     if not changelog_path.exists():
-        return {'weeks': [], 'artifact_types': [], 'total_entries': 0}
+        return {'weeks': [], 'artifact_types': [], 'action_types': [], 'total_entries': 0}
 
     with open(changelog_path, 'r') as f:
         data = yaml.safe_load(f) or {}
 
     raw_entries = data.get('entries', [])
     if not raw_entries:
-        return {'weeks': [], 'artifact_types': [], 'total_entries': 0}
+        return {'weeks': [], 'artifact_types': [], 'action_types': [], 'total_entries': 0}
 
     weeks_map = defaultdict(list)
     artifact_types_seen = set()

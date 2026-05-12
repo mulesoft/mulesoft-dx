@@ -13,7 +13,12 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "homepage": "https://github.com/mulesoft/mulesoft-dx/tree/master/skills/mule-developement",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mulesoft/mulesoft-dx.git",
+    "directory": "skills/mule-development"
+  },
+  "homepage": "https://github.com/mulesoft/mulesoft-dx/tree/master/skills/mule-development",
   "keywords": [
     "mulesoft",
     "mule",

@@ -8255,6 +8255,10 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
+    // Only show toggle when ?darkmode=true is present (feature in development)
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('darkmode') !== 'true') return;
+
     // Restore saved theme immediately to prevent flash
     var savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {

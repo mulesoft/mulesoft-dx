@@ -162,7 +162,7 @@ class TestSkillPageStructure:
 
 
 class TestProseOnlySkillPage:
-    """Prose-only skills render the header but hide auth panel and interactive elements."""
+    """Prose-only skills render the header but hide auth and interactive elements, keep Install Command."""
     @pytest.fixture(autouse=True)
     def _parse_prose_skill_page(self, generated_portal):
         html = (generated_portal / 'skills' / 'platform-guide.html').read_text(encoding='utf-8')
@@ -175,9 +175,14 @@ class TestProseOnlySkillPage:
         header = self.soup.find('div', class_='auth-panel-header-bar')
         assert header is not None
 
-    def test_no_auth_panel_right(self):
-        right = self.soup.find('div', class_='auth-panel-right')
-        assert right is None
+    def test_has_install_command(self):
+        btn = self.soup.find('button', class_='skill-split-main')
+        assert btn is not None
+        assert 'Install Command' in btn.get_text()
+
+    def test_no_auth_button(self):
+        auth_btn = self.soup.find('button', class_='auth-panel-status')
+        assert auth_btn is None
 
     def test_no_auth_modal(self):
         modal = self.soup.find('div', class_='auth-modal')
@@ -193,7 +198,7 @@ class TestProseOnlySkillPage:
 
 
 class TestNonApiStepsSkillPage:
-    """Skills with step headers but no YAML API blocks should be treated as prose-only."""
+    """Skills with step headers but no YAML API blocks should hide auth and interactive mode, keep Install Command."""
 
     @pytest.fixture(autouse=True)
     def _parse_non_api_skill_page(self, generated_portal):
@@ -203,9 +208,18 @@ class TestNonApiStepsSkillPage:
     def test_page_exists(self, generated_portal):
         assert (generated_portal / 'skills' / 'build-mule-app.html').exists()
 
+    def test_has_install_command(self):
+        btn = self.soup.find('button', class_='skill-split-main')
+        assert btn is not None
+        assert 'Install Command' in btn.get_text()
+
     def test_no_interactive_mode_toggle(self):
         toggle = self.soup.find('div', class_='skill-mode-toggle-container')
         assert toggle is None
+
+    def test_no_auth_button(self):
+        auth_btn = self.soup.find('button', class_='auth-panel-status')
+        assert auth_btn is None
 
     def test_no_api_meta_script(self):
         scripts = self.soup.find_all('script')

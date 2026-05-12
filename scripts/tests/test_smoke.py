@@ -10,7 +10,7 @@ from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
     PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, NESTED_SKILL_MD,
-    setup_schema_docs,
+    NON_API_STEPS_SKILL_MD, setup_schema_docs,
     MINIMAL_MCP_SERVER_JSON, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
 )
 
@@ -41,6 +41,10 @@ def generated_portal(tmp_path):
     nested_skill_dir = repo / 'skills' / 'ops-category' / 'run-diagnostics'
     nested_skill_dir.mkdir(parents=True)
     (nested_skill_dir / 'SKILL.md').write_text(NESTED_SKILL_MD)
+
+    non_api_skill_dir = repo / 'skills' / 'build-mule-app'
+    non_api_skill_dir.mkdir(parents=True)
+    (non_api_skill_dir / 'SKILL.md').write_text(NON_API_STEPS_SKILL_MD)
 
     mcp_dir = repo / 'mcps' / 'test-mcp'
     mcp_dir.mkdir(parents=True)
@@ -182,6 +186,31 @@ class TestProseOnlySkillPage:
     def test_no_interactive_mode_toggle(self):
         toggle = self.soup.find('div', class_='skill-mode-toggle-container')
         assert toggle is None
+
+    def test_has_guide_badge(self):
+        badge = self.soup.find('span', class_='badge-version', string='Guide')
+        assert badge is not None
+
+
+class TestNonApiStepsSkillPage:
+    """Skills with step headers but no YAML API blocks should be treated as prose-only."""
+
+    @pytest.fixture(autouse=True)
+    def _parse_non_api_skill_page(self, generated_portal):
+        html = (generated_portal / 'skills' / 'build-mule-app.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_page_exists(self, generated_portal):
+        assert (generated_portal / 'skills' / 'build-mule-app.html').exists()
+
+    def test_no_interactive_mode_toggle(self):
+        toggle = self.soup.find('div', class_='skill-mode-toggle-container')
+        assert toggle is None
+
+    def test_no_api_meta_script(self):
+        scripts = self.soup.find_all('script')
+        api_meta = [s for s in scripts if s.string and '__API_META__' in s.string]
+        assert len(api_meta) == 0
 
     def test_has_guide_badge(self):
         badge = self.soup.find('span', class_='badge-version', string='Guide')

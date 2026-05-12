@@ -322,6 +322,22 @@ NESTED_SKILL_MD = textwrap.dedent("""\
 """)
 
 
+NON_API_STEPS_SKILL_MD = textwrap.dedent("""\
+    ---
+    name: build-mule-app
+    description: Build a Mule application from scratch
+    ---
+    ## Overview
+    This skill walks you through building a Mule app.
+
+    ## Step 1: Create project
+    Create a new Mule project in your IDE.
+
+    ## Step 2: Add connector
+    Add the HTTP connector to your project.
+""")
+
+
 MINIMAL_MCP_SERVER_JSON = json.dumps({
     '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
     'name': 'com.example/test-mcp',

@@ -34,7 +34,7 @@
                         <svg width="12" height="13" viewBox="0 0 12 13" fill="none"><path d="M11 6.5L0.5 13V0.5L11 6.5Z" stroke="currentColor" stroke-linejoin="round"/></svg>
                         Install Skill Command
                     </button>
-                    <a href="../skills/{{ skill_slug }}/SKILL.md" target="_blank" rel="noopener">
+                    <a href="../skills/{{ skill_rel_path|default(skill_slug) }}/SKILL.md" target="_blank" rel="noopener">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         Open Skill Markdown
                     </a>

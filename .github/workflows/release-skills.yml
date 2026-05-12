@@ -1,15 +1,13 @@
 name: release-skills
 
 on:
-  pull_request:
+  push:
     branches: [master]
-    types: [closed]
-    paths: ['skills/mule-development/*']
+    paths: ['skills/mule-development/**']
   workflow_dispatch:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read

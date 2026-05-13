@@ -6798,7 +6798,7 @@ components:
           default: false
           type: boolean
     CipherSuitesFlexGw:
-      description: List of acceptable cipher suites for Flex Gateway target if min TLS version is < 1.3. If you are are not using the defaults and select individual ciphers, please select ciphers that match the configured keystore to ensure that TLS can setup a connection. For a keystore with an RSA key (the most common type), select ciphers which contain the string RSA (there are some exceptions). If using ECC ciphers, select ciphers which contain the string "ECDSA".  TLS standards and documentation can be consulted for more background information.
+      description: List of acceptable cipher suites for Omni Gateway target if min TLS version is < 1.3. If you are are not using the defaults and select individual ciphers, please select ciphers that match the configured keystore to ensure that TLS can setup a connection. For a keystore with an RSA key (the most common type), select ciphers which contain the string RSA (there are some exceptions). If using ECC ciphers, select ciphers which contain the string "ECDSA".  TLS standards and documentation can be consulted for more background information.
       type: array
       items:
         enum:

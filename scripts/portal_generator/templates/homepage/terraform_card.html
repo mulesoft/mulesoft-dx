@@ -1,0 +1,21 @@
+<a href="terraform/{{ terraform.slug }}.html" class="catalog-card-link" data-name="{{ terraform.name|lower }}" data-type="terraform">
+    <article class="catalog-card" data-popover-title="{{ terraform.name }}" data-popover-description="Terraform provider with {{ terraform.doc_count }} resources/data sources" data-popover-type="terraform">
+        <div class="catalog-card-header">
+            <div class="catalog-card-title-wrapper">
+                <img src="{{ icons_path }}/terraform-filter-icon.svg" width="28" height="28" class="card-icon" alt="">
+                <h3 class="catalog-card-title">{{ terraform.name }}</h3>
+            </div>
+        </div>
+        <p class="catalog-card-description">Terraform provider with {{ terraform.doc_count }} resources and data sources</p>
+        <div class="catalog-card-type">
+            <span class="badge badge-terraform-type">Terraform</span>
+        </div>
+        <div class="catalog-card-endpoints">
+            <span class="list-endpoints-text">{{ terraform.doc_count }}</span>
+        </div>
+        <div class="catalog-card-footer">
+            <span class="badge badge-terraform-type">Terraform</span>
+            <span class="badge badge-count">{{ terraform.doc_count }} doc{{ 's' if terraform.doc_count != 1 else '' }}</span>
+        </div>
+    </article>
+</a>

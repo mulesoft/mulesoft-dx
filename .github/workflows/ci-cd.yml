@@ -195,7 +195,7 @@ jobs:
           echo "Deploying POC as: $sanitized"
 
       - name: Generate portal for POC
-        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-dev-portal.mulesoft.com/pocs/${{ steps.poc.outputs.name }}'
+        run: 'make generate-portal BUILD_LABEL="${{ github.ref_name }}: ${{ github.sha }}" BASE_URL=https://test-dev-portal.mulesoft.com/pocs/${{ steps.poc.outputs.name }} PROXY_URL=https://test-dev-portal.mulesoft.com/proxy'
         env:
           BRANCH_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}

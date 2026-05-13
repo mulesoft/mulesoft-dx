@@ -27,6 +27,7 @@
 {% set api_version = 'Guide' if prose_only else '' %}
 {% set is_skill_page = true %}
 {% set skill_slug = skill.slug %}
+{% set skill_rel_path = skill.skill_rel_path|default(skill.slug) %}
 {% include "partials/auth_panel.html" %}
 
 <div class="detail-layout">

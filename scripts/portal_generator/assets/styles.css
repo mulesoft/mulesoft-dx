@@ -281,113 +281,112 @@
 }
 
 
-/* Manual dark mode toggle support */
+/* Manual dark mode toggle support - Slack inspired */
 [data-theme="dark"] {
     color-scheme: dark;
 
-    /* GitHub Dark inspired + Solarized */
-    --color-white: #0d1117;
-    --color-neutral-1: #0d1117;
-    --color-neutral-2: #161b22;
-    --color-neutral-3: #21262d;
-    --color-neutral-4: #30363d;
-    --color-neutral-5: #484f58;
-    --color-neutral-6: #6e7681;
-    --color-neutral-7: #8b949e;
-    --color-neutral-8: #b1bac4;
-    --color-neutral-9: #c9d1d9;
-    --color-neutral-10: #f0f6fc;
+    /* Slack-inspired dark palette - Much darker backgrounds */
+    --color-white: #1A1D21;
+    --color-neutral-1: #1A1D21;
+    --color-neutral-2: #232529;
+    --color-neutral-3: #2C2D30;
+    --color-neutral-4: #3A3B3F;
+    --color-neutral-5: #5E5F63;
+    --color-neutral-6: #868689;
+    --color-neutral-7: #ABABAD;
+    --color-neutral-8: #C9CACC;
+    --color-neutral-9: #D1D2D3;
+    --color-neutral-10: #FFFFFF;
 
+    /* Grays - Slack-style with high contrast */
+    --color-gray-50: #1A1D21;
+    --color-gray-100: #232529;
+    --color-gray-200: #2C2D30;
+    --color-gray-300: #3A3B3F;
+    --color-gray-400: #9CA6AF;   /* Slack secondary text color */
+    --color-gray-500: #ABABAD;   /* Lighter for better readability */
+    --color-gray-600: #C9CACC;   /* Even lighter */
+    --color-gray-700: #D1D2D3;   /* Very light for primary text */
+    --color-gray-800: #E8E8E8;   /* Near white */
+    --color-gray-900: #FFFFFF;   /* Pure white for emphasis */
 
-    /* Grays */
-    --color-gray-50: #0d1117;
-    --color-gray-100: #161b22;
-    --color-gray-200: #21262d;
-    --color-gray-300: #30363d;
-    --color-gray-400: #484f58;
-    --color-gray-500: #6e7681;
-    --color-gray-600: #8b949e;
-    --color-gray-700: #b1bac4;
-    --color-gray-800: #c9d1d9;
-    --color-gray-900: #f0f6fc;
+    /* Semantic colors - Backgrounds (Slack-style) */
+    --color-bg-primary: #1A1D21;
+    --color-bg-secondary: #232529;
+    --color-bg-surface: #232529;
+    --color-bg-overlay: rgba(26, 29, 33, 0.95);
 
-    /* Semantic colors - Backgrounds */
-    --color-bg-primary: #0d1117;
-    --color-bg-secondary: #161b22;
-    --color-bg-surface: #161b22;
-    --color-bg-overlay: rgba(13, 17, 23, 0.9);
+    --color-indigo: #232529;
 
-    --color-indigo: #161b22;
+    /* Semantic colors - Borders (subtle but visible) */
+    --color-border-primary: #3A3B3F;
+    --color-border-secondary: #2C2D30;
+    --color-border-focus: #2D7A9E;
 
-    /* Semantic colors - Borders */
-    --color-border-primary: #30363d;
-    --color-border-secondary: #21262d;
-    --color-border-focus: #58a6ff;
+    /* Semantic colors - Text (Slack-optimized) */
+    --color-text-primary: #D1D2D3;
+    --color-text-secondary: #9CA6AF;
+    --color-text-tertiary: #868689;
+    --color-text-quaternary: #5E5F63;
+    --color-text-inverse: #1A1D21;
+    --color-text-link: #1D9BD1;
+    --color-text-link-hover: #1164A3;
 
-    /* Semantic colors - Text (Editorial optimized for dark) */
-    --color-text-primary: #E6EDF3;
-    --color-text-secondary: #9198A1;
-    --color-text-tertiary: #6e7681;
-    --color-text-quaternary: #484f58;
-    --color-text-inverse: #0d1117;
-    --color-text-link: #539bf5;
-    --color-text-link-hover: #6cb6ff;
+    /* Primary colors - Slack blue (desaturated for dark mode) */
+    --color-servers: #1D9BD1;
+    --hero-title: #9CA6AF;
+    --color-primary: #2D7A9E;
+    --color-primary-hover: #3A8CB0;
+    --color-primary-dark: #226380;
 
-    /* Primary colors */
-    --color-servers: #539bf5;
-    --hero-title: #7d8590;
-    --color-primary: #539bf5;
-    --color-primary-hover: #6cb6ff;
-    --color-primary-dark: #409eff;
+    /* HTTP Method colors - Slack-style with better visibility */
+    --method-get-bg: rgba(46, 160, 67, 0.2);
+    --method-get-text: #4FC46B;
+    --method-get-bg-hover: rgba(46, 160, 67, 0.3);
 
-    /* HTTP Method colors - GitHub style */
-    --method-get-bg: rgba(63, 185, 80, 0.15);
-    --method-get-text: #3fb950;
-    --method-get-bg-hover: rgba(63, 185, 80, 0.25);
+    --method-post-bg: rgba(29, 155, 209, 0.2);
+    --method-post-text: #36C5F0;
+    --method-post-bg-hover: rgba(29, 155, 209, 0.3);
 
-    --method-post-bg: rgba(56, 139, 253, 0.15);
-    --method-post-text: #58a6ff;
-    --method-post-bg-hover: rgba(56, 139, 253, 0.25);
+    --method-put-bg: rgba(224, 175, 82, 0.2);
+    --method-put-text: #ECB22E;
+    --method-put-bg-hover: rgba(224, 175, 82, 0.3);
+    --method-put-text-hover: #ECB22E;
 
-    --method-put-bg: rgba(187, 128, 9, 0.15);
-    --method-put-text: #d29922;
-    --method-put-bg-hover: rgba(187, 128, 9, 0.25);
-    --method-put-text-hover: #d29922;
+    --method-patch-bg: rgba(176, 137, 255, 0.2);
+    --method-patch-text: #B089FF;
+    --method-patch-bg-hover: rgba(176, 137, 255, 0.3);
+    --method-patch-text-hover: #B089FF;
 
-    --method-patch-bg: rgba(163, 113, 247, 0.15);
-    --method-patch-text: #a371f7;
-    --method-patch-bg-hover: rgba(163, 113, 247, 0.25);
-    --method-patch-text-hover: #a371f7;
+    --method-delete-bg: rgba(232, 77, 77, 0.2);
+    --method-delete-text: #E84D4D;
+    --method-delete-bg-hover: rgba(232, 77, 77, 0.3);
+    --method-delete-text-hover: #E84D4D;
 
-    --method-delete-bg: rgba(248, 81, 73, 0.15);
-    --method-delete-text: #f85149;
-    --method-delete-bg-hover: rgba(248, 81, 73, 0.25);
-    --method-delete-text-hover: #f85149;
+    --method-other-bg: rgba(156, 166, 175, 0.2);
+    --method-other-text: #9CA6AF;
+    --method-other-bg-hover: rgba(156, 166, 175, 0.3);
+    --method-other-text-hover: #9CA6AF;
 
-    --method-other-bg: rgba(110, 118, 129, 0.15);
-    --method-other-text: #8b949e;
-    --method-other-bg-hover: rgba(110, 118, 129, 0.25);
-    --method-other-text-hover: #8b949e;
+    /* Interactive states - Desaturated blue selection */
+    --hover-bg: rgba(45, 122, 158, 0.15);
+    --hover-border: #2D7A9E;
+    --hover-text: #4A9FC4;
+    --selected-bg: rgba(45, 122, 158, 0.25);
+    --selected-border: #2D7A9E;
+    --selected-text: #FFFFFF;
 
-    /* Interactive states */
-    --hover-bg: rgba(74, 158, 255, 0.1);
-    --hover-border: #5A8BC7;
-    --hover-text: #70B4FF;
-    --selected-bg: rgba(74, 158, 255, 0.15);
-    --selected-border: #5A8BC7;
-    --selected-text: #70B4FF;
-
-    /* Shadows - Lighter for dark mode */
-    --shadow-sm: rgba(0, 0, 0, 0.3);
-    --shadow-md: rgba(0, 0, 0, 0.4);
-    --shadow-lg: rgba(0, 0, 0, 0.5);
-    --shadow-xl: rgba(0, 0, 0, 0.6);
-    --shadow-blue: rgba(74, 158, 255, 0.2);
-    --shadow-blue-md: rgba(74, 158, 255, 0.25);
-    --overlay-light: rgba(0, 0, 0, 0.3);
-    --overlay-lighter: rgba(0, 0, 0, 0.2);
-    --focus-ring-blue: rgba(74, 158, 255, 0.2);
-    --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.5);
+    /* Shadows - Deeper for dark mode */
+    --shadow-sm: rgba(0, 0, 0, 0.4);
+    --shadow-md: rgba(0, 0, 0, 0.5);
+    --shadow-lg: rgba(0, 0, 0, 0.6);
+    --shadow-xl: rgba(0, 0, 0, 0.7);
+    --shadow-blue: rgba(17, 100, 163, 0.3);
+    --shadow-blue-md: rgba(17, 100, 163, 0.4);
+    --overlay-light: rgba(0, 0, 0, 0.4);
+    --overlay-lighter: rgba(0, 0, 0, 0.3);
+    --focus-ring-blue: rgba(29, 155, 209, 0.3);
+    --shadow-large: 0 12px 24px 0 rgba(0, 0, 0, 0.7);
 }
 
 
@@ -708,12 +707,20 @@ code {
     line-height: 1.2;
 }
 
+[data-theme="dark"] .hero-title {
+    color: #ABABAD;
+}
+
 .hero-subtitle {
     font-size: var(--font-size-6);
     color: var(--hero-title);
     margin: 0 0 32px 0;
     line-height: 1.5;
     font-weight: var(--font-weight-regular);
+}
+
+[data-theme="dark"] .hero-subtitle {
+    color: #9CA6AF;
 }
 
 .hero-tabs {
@@ -753,8 +760,7 @@ code {
     color: var(--hover-text);
 }
 
-/* MCP hover is handled separately below due to disabled state */
-.hero-tab[data-filter="mcp"]:hover:not(.hero-tab-mcp) {
+.hero-tab[data-filter="mcp"]:hover {
     background: var(--hover-bg);
     border-color: var(--hover-border);
     color: var(--hover-text);
@@ -765,11 +771,10 @@ code {
     content: url('../assets/icons/api-filter-icon-active.svg');
 }
 
+.hero-tab[data-filter="mcp"]:hover img,
 .hero-tab[data-filter="mcp"].active img {
     content: url('../assets/icons/mcp-filter-icon-active.svg');
 }
-
-/* MCP hover icon is handled separately with grayscale filter */
 
 .hero-tab[data-filter="skill"]:hover img,
 .hero-tab[data-filter="skill"].active img {
@@ -797,148 +802,6 @@ code {
 
 .hero-tab[data-filter="all"] {
     padding: 10px 10px;
-}
-
-/* MCP Coming Soon Badge & Animations */
-.hero-tab-mcp {
-    position: relative;
-    overflow: visible;
-    cursor: not-allowed;
-    pointer-events: auto;
-}
-
-.coming-soon-badge {
-    position: absolute;
-    top: -12px;
-    right: -12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-size: 200% 200%;
-    color: white;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-    z-index: 10;
-}
-
-
-/* Hover state for MCP tab - disabled appearance but interactive tooltip/badge */
-.hero-tab-mcp:hover {
-    transform: scale(1.05);
-    box-shadow: none !important;
-    background: #f5f5f5 !important;
-    border-color: #d0d0d0 !important;
-    color: #999999 !important;
-}
-
-.hero-tab-mcp:hover img {
-    filter: grayscale(100%) opacity(0.3) !important;
-    content: url('../assets/icons/mcp-filter-icon.svg') !important;
-}
-
-.hero-tab-mcp:hover .coming-soon-badge {
-    animation: pulse-badge 2s ease-in-out infinite, gradient-shift 3s ease infinite;
-}
-
-@keyframes pulse-badge {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
-    }
-}
-
-@keyframes gradient-shift {
-    0%, 100% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-}
-
-/* Tooltip on hover - liquid glass effect */
-.hero-tab-mcp::after {
-    content: "In final testing - launching this month";
-    position: absolute;
-    bottom: -40px;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0.3) 100%);
-    padding: 10px 16px;
-    border-radius: 14px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 1000;
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-
-    /* Purple to turquoise gradient text */
-    background-image: linear-gradient(90deg,
-        #5E5CE6 0%,
-        #4E7BDB 25%,
-        #3E9AD0 50%,
-        #2EB9C5 75%,
-        #00C7BE 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.hero-tab-mcp:hover::after {
-    opacity: 1;
-    transform: translateX(-50%) translateY(5px);
-}
-
-/* Dark mode adjustments */
-[data-theme="dark"] .coming-soon-badge {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5);
-}
-
-[data-theme="dark"] .hero-tab-mcp:hover {
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
-}
-
-[data-theme="dark"] .hero-tab-mcp::after {
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.12) 100%);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-
-    /* Same purple to turquoise gradient for dark mode */
-    background-image: linear-gradient(90deg,
-        #5E5CE6 0%,
-        #4E7BDB 25%,
-        #3E9AD0 50%,
-        #2EB9C5 75%,
-        #00C7BE 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 
@@ -1736,11 +1599,11 @@ code {
 }
 
 [data-theme="dark"] .catalog-card-title {
-    color: #c9d1d9 !important;
+    color: #FFFFFF !important;
 }
 
 [data-theme="dark"] .catalog-card-description {
-    color: #8b949e;
+    color: #9CA6AF;
 }
 
 [data-theme="dark"] .badge-api-type {
@@ -1824,13 +1687,13 @@ code {
 }
 
 [data-theme="dark"] .btn-send {
-    background: #1557BE;
+    background: #2D7A9E;
     color: #ffffff;
-    border: 1px solid #1557BE;
+    border: 1px solid #2D7A9E;
 }
 
 [data-theme="dark"] .btn-send:hover {
-    background: #1f6feb;
+    background: #3A8CB0;
 }
 
 .catalog-card-link:hover .catalog-card {
@@ -5951,6 +5814,17 @@ details[open] .examples-toggle-icon {
     border-color: #80BFFF;
 }
 
+[data-theme="dark"] .btn-auth-login {
+    background: #2D7A9E;
+    color: #FFFFFF;
+    border-color: #2D7A9E;
+}
+
+[data-theme="dark"] .btn-auth-login:hover {
+    background: #3A8CB0;
+    border-color: #3A8CB0;
+}
+
 .auth-message {
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
@@ -7274,6 +7148,10 @@ details[open] .examples-toggle-icon {
     background-position: center;
 }
 
+[data-theme="dark"] .param-info-icon::before {
+    filter: brightness(0) saturate(100%) invert(54%) sepia(19%) saturate(808%) hue-rotate(153deg) brightness(88%) contrast(88%);
+}
+
 .param-required {
     font-size: var(--font-size-5);
 }
@@ -8237,6 +8115,17 @@ code[class*="language-"][class*="language-"] {
     border-color: #80BFFF;
 }
 
+[data-theme="dark"] .btn-add-variable {
+    background: rgba(45, 122, 158, 0.2);
+    border-color: #3A3B3F;
+    color: #9CA6AF;
+}
+
+[data-theme="dark"] .btn-add-variable:hover {
+    background: rgba(45, 122, 158, 0.3);
+    border-color: #2D7A9E;
+}
+
 .btn-clear-variables {
     display: flex;
     align-items: center;
@@ -8549,6 +8438,22 @@ code[class*="language-"][class*="language-"] {
     border-color: rgba(163, 113, 247, 0.3);
 }
 
+.badge-terraform-type {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-semibold);
+    color: #5c4199;
+    background: #ede9fe;
+    padding: 4px 15px 4px 16px;
+    border-radius: 21px;
+    border: 1px solid #c4b5fd;
+}
+
+[data-theme="dark"] .badge-terraform-type {
+    color: #c4b5fd;
+    background: rgba(124, 58, 237, 0.15);
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
 /* JSON input textarea used for object/array arguments in MCP try-it */
 .try-mcp-json-input {
     font-family: var(--font-mono);
@@ -8720,3 +8625,275 @@ code[class*="language-"][class*="language-"] {
     font-weight: var(--font-weight-semibold);
 }
 
+/* Dark mode: Change all blue (#0176D3) icons to desaturated blue */
+[data-theme="dark"] img[src*="expand.svg"],
+[data-theme="dark"] img[src*="collapse.svg"],
+[data-theme="dark"] img[src*="copy-curl-icon.svg"],
+[data-theme="dark"] .group-toggle {
+    filter: brightness(0) saturate(100%) invert(54%) sepia(19%) saturate(808%) hue-rotate(153deg) brightness(88%) contrast(88%);
+}
+
+/* ============================================
+   Terraform Provider Documentation
+   ============================================ */
+
+.terraform-detail {
+    display: block;
+    overflow: visible;
+}
+
+.terraform-view-markdown {
+    line-height: var(--reading-line-height);
+    font-family: var(--font-sans);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    font-size: var(--reading-font-size);
+    letter-spacing: var(--reading-letter-spacing);
+}
+
+.terraform-view-markdown h1 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-7);
+    font-weight: var(--font-weight-bold);
+    margin: var(--space-x-large) 0 var(--space-medium);
+    padding-bottom: var(--space-small);
+    border-bottom: 1px solid var(--color-neutral-4);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h2 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-large) 0 var(--space-medium);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h3 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown h4 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.terraform-view-markdown p {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-medium);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.terraform-view-markdown ul,
+.terraform-view-markdown ol {
+    margin-left: var(--space-lg);
+    padding-left: var(--space-xl);
+    margin-bottom: var(--space-medium);
+}
+
+.terraform-view-markdown li {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-x-small);
+}
+
+.terraform-view-markdown pre {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
+    padding: var(--space-medium);
+    overflow-x: auto;
+    margin-bottom: var(--space-medium);
+}
+
+.terraform-view-markdown pre code {
+    background: transparent;
+    padding: 0;
+    font-size: var(--font-size-3);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+    display: block;
+    white-space: pre;
+    line-height: 1.55;
+}
+
+.terraform-view-markdown code:not(pre code) {
+    background: var(--color-bg-primary);
+    padding: var(--space-xxx-small) var(--space-xx-small);
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-neutral-5);
+    font-size: var(--font-size-2);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+}
+
+.terraform-view-markdown blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: var(--space-medium);
+    color: var(--color-neutral-8);
+    margin: 0 0 var(--space-medium) 0;
+}
+
+.terraform-view-markdown strong {
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-view-markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-4);
+}
+
+.terraform-view-markdown th,
+.terraform-view-markdown td {
+    border: 1px solid var(--color-border-primary);
+    padding: var(--space-xs) var(--space-sm);
+    text-align: left;
+}
+
+.terraform-view-markdown th {
+    background: var(--color-bg-surface);
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-subsection[id^="doc-"] {
+    display: none;
+}
+
+.terraform-subsection[id^="doc-"].active {
+    display: block;
+}
+
+.nav-terraform-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-3);
+    font-family: var(--font-sans);
+    padding: var(--space-xs) var(--space-lg) !important;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.nav-terraform-step:hover,
+.nav-terraform-step.active {
+    background: var(--selected-bg);
+    border-left-color: var(--selected-border);
+}
+
+.nav-category {
+    list-style: none;
+    margin-bottom: var(--space-xs);
+}
+
+.nav-category-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-small);
+    width: 100%;
+    padding: var(--space-small) var(--space-md);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-align: left;
+    border-radius: var(--radius-medium);
+    transition: background 0.15s ease;
+}
+
+.nav-category-toggle:hover {
+    background: var(--color-bg-primary);
+}
+
+.nav-category-toggle .chevron-icon {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    transform: rotate(90deg);
+}
+
+.nav-category-toggle[aria-expanded="false"] .chevron-icon {
+    transform: rotate(0deg);
+}
+
+.nav-category-toggle-sub {
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+}
+
+.nav-subcategory-list {
+    list-style: none;
+    padding: 0 0 0 var(--space-md);
+    margin: 0;
+}
+
+.nav-doc-type {
+    margin-bottom: var(--space-xs);
+}
+
+.doc-type-label {
+    display: block;
+    padding: var(--space-xs) var(--space-md);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nav-doc-list {
+    list-style: none;
+    padding: 0 0 0 var(--space-md);
+    margin: 0;
+}
+
+/* Terraform doc content area */
+
+.terraform-provider-summary {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-xl);
+}
+
+.terraform-doc-list {
+    list-style: none;
+    padding: 0;
+}
+
+.terraform-doc-list li {
+    margin-bottom: var(--space-xs);
+}
+
+.terraform-doc-list a {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    color: var(--color-text-link);
+    text-decoration: none;
+}
+
+.terraform-doc-list a:hover {
+    text-decoration: underline;
+}
+
+.terraform-doc-desc {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+}

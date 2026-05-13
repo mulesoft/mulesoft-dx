@@ -1138,6 +1138,29 @@ class TestDiscoverSkills:
         assert by_api == {}
         assert all_skills == []
 
+    def test_nested_skill_has_rel_path(self, tmp_path):
+        from tests.conftest import NESTED_SKILL_MD
+        nested_dir = tmp_path / 'skills' / 'ops-category' / 'run-diagnostics'
+        nested_dir.mkdir(parents=True)
+        (nested_dir / 'SKILL.md').write_text(NESTED_SKILL_MD)
+
+        _by_api, _by_mcp, all_skills = discover_skills(tmp_path)
+        assert len(all_skills) == 1
+        skill = all_skills[0]
+        assert skill['slug'] == 'run-diagnostics'
+        assert skill['skill_rel_path'] == 'ops-category/run-diagnostics'
+
+    def test_flat_skill_has_rel_path_equal_to_slug(self, tmp_path):
+        from tests.conftest import MINIMAL_SKILL_MD
+        skill_dir = tmp_path / 'skills' / 'deploy-app'
+        skill_dir.mkdir(parents=True)
+        (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
+
+        _by_api, _by_mcp, all_skills = discover_skills(tmp_path)
+        skill = all_skills[0]
+        assert skill['slug'] == 'deploy-app'
+        assert skill['skill_rel_path'] == 'deploy-app'
+
 
 # ============================================================================
 # validate_jtbd.JobValidator.validate_step_dependencies

@@ -24,10 +24,13 @@
                     <img src="assets/icons/skill-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
                     Skills
                 </button>
-                <button class="hero-tab hero-tab-mcp" data-filter="mcp">
+                <button class="hero-tab" data-filter="mcp">
                     <img src="assets/icons/mcp-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
                     MCP Servers
-                    <span class="coming-soon-badge">Coming Soon</span>
+                </button>
+                <button class="hero-tab" data-filter="terraform">
+                    <img src="assets/icons/terraform-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
+                    Terraform
                 </button>
             </div>
         </div>
@@ -52,7 +55,7 @@
                         </div>
                         <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                     </div>
-                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) }}</span> Results)</h2>
+                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)</h2>
                 </div>
                 <div class="catalog-controls-right">
                     <button class="sort-btn" aria-label="Sort options">
@@ -102,6 +105,9 @@
                     {% elif item._item_type == 'skill' %}
                         {% set skill = item %}
                         {% include "homepage/skill_card.html" %}
+                    {% elif item._item_type == 'terraform' %}
+                        {% set terraform = item %}
+                        {% include "homepage/terraform_card.html" %}
                     {% endif %}
                 {% endfor %}
             </div>

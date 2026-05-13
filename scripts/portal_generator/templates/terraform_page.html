@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ provider.name }} - Terraform Provider{% endblock %}
+
+{% block body_attrs %} class="detail-page terraform-page"{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-hcl.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
+<script src="../assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% set api_name = provider.name %}
+{% set api_version = '' %}
+{% include "partials/auth_panel.html" %}
+
+<div class="detail-layout">
+    {% include "partials/terraform_sidebar.html" %}
+    <main class="detail-content" id="main-content">
+        {% include "terraform/terraform_detail.html" %}
+    </main>
+</div>
+{% endblock %}

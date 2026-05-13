@@ -42,6 +42,8 @@ def main():
                         help='Build label (default: auto-detect from git)')
     parser.add_argument('--base-url', type=str, default='https://dev-portal.mulesoft.com',
                         help='Base URL of the deployed portal (default: https://dev-portal.mulesoft.com)')
+    parser.add_argument('--proxy-url', type=str, default=None,
+                        help='Proxy URL override (default: <base-url>/proxy)')
 
     args = parser.parse_args()
 
@@ -63,7 +65,7 @@ def main():
             build_label = "unknown"
 
     base_url = args.base_url.rstrip('/')
-    proxy_url = f"{base_url}/proxy"
+    proxy_url = args.proxy_url if args.proxy_url else f"{base_url}/proxy"
     generator = PortalGenerator(output_dir, proxy_url=proxy_url, build_label=build_label, base_url=base_url)
     generator.generate(repo_root)
 

@@ -1582,10 +1582,19 @@ function navigateToHash(hash, smooth) {
     if (targetId.startsWith('op-')) {
         targetElement.classList.add('active');
         applyEnvVarsToPanel('try-' + targetId.substring(3));
+    } else if (targetId.startsWith('doc-')) {
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
+        targetElement.classList.add('active');
+        if (overview) overview.style.display = 'none';
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
         if (overview) overview.style.display = 'block';
+        document.querySelectorAll('.terraform-subsection[id^="doc-"]').forEach(function(s) {
+            s.classList.remove('active');
+        });
     }
 
     targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
@@ -1637,11 +1646,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up hero tabs for filtering
     const heroTabs = document.querySelectorAll('.hero-tab');
     heroTabs.forEach(tab => {
-        // Skip MCP tab - it's disabled (coming soon)
-        if (tab.classList.contains('hero-tab-mcp')) {
-            return;
-        }
-
         tab.addEventListener('click', () => {
             // Remove active class from all tabs
             heroTabs.forEach(t => t.classList.remove('active'));
@@ -8255,6 +8259,15 @@ function clearAllVariables(slug) {
     var params = new URLSearchParams(window.location.search);
     if (params.get('darkmode') !== 'true') return;
 
+    // Restore saved theme immediately to prevent flash
+    var savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (savedTheme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    // If no saved theme, respect system preference (handled by CSS)
+
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');
     toggleButton.id = 'dark-mode-toggle';
@@ -8323,3 +8336,65 @@ function clearAllVariables(slug) {
     }
 })();
 
+
+// Terraform sidebar navigation
+function toggleTerraformCategory(btn) {
+    var expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    var list = btn.nextElementSibling;
+    if (list) list.style.display = expanded ? 'none' : '';
+    btn.querySelector('.chevron-icon').style.transform = expanded ? '' : 'rotate(90deg)';
+}
+
+function filterTerraformSidebar(query) {
+    var lowerQuery = query.toLowerCase();
+    var clearBtn = document.querySelector('.btn-clear-sidebar-search');
+    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+
+    // Filter individual doc links
+    document.querySelectorAll('.nav-doc-list .nav-link').forEach(function(link) {
+        var titleEl = link.querySelector('.step-title-short');
+        var text = (titleEl || link).textContent.toLowerCase();
+        var matches = !query || text.includes(lowerQuery);
+        var li = link.closest('li');
+        if (li) li.style.display = matches ? '' : 'none';
+        if (titleEl) {
+            if (!titleEl.hasAttribute('data-original-text')) {
+                titleEl.setAttribute('data-original-text', titleEl.textContent);
+            }
+            var originalText = titleEl.getAttribute('data-original-text');
+            titleEl.innerHTML = (query && matches) ? highlightText(originalText, query) : originalText;
+        }
+    });
+
+    // Show/hide subcategories (inner .nav-category) based on visible doc items
+    document.querySelectorAll('.nav-subcategory-list > .nav-category').forEach(function(subcat) {
+        var docList = subcat.querySelector('.nav-doc-list');
+        var hasVisible = false;
+        if (docList) {
+            var items = docList.querySelectorAll(':scope > li');
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].style.display !== 'none') { hasVisible = true; break; }
+            }
+        }
+        subcat.style.display = (!query || hasVisible) ? '' : 'none';
+    });
+
+    // Show/hide top-level categories based on visible subcategories
+    document.querySelectorAll('.nav-list > .nav-category').forEach(function(cat) {
+        var subcatList = cat.querySelector('.nav-subcategory-list');
+        var hasVisible = false;
+        if (subcatList) {
+            var subcats = subcatList.querySelectorAll(':scope > .nav-category');
+            for (var i = 0; i < subcats.length; i++) {
+                if (subcats[i].style.display !== 'none') { hasVisible = true; break; }
+            }
+        }
+        cat.style.display = (!query || hasVisible) ? '' : 'none';
+    });
+}
+
+function clearTerraformSidebarSearch() {
+    var input = document.getElementById('sidebarSearch');
+    if (input) { input.value = ''; filterTerraformSidebar(''); }
+}

@@ -211,5 +211,5 @@ Template: `{portal-url}/schemas/jtbd-template.md`
 
 - **protect-api-with-policies**: Apply security and traffic management policies to an API instance
 - **apply-policy-to-api-instance**: Apply a specific policy to an existing API instance
-- **setup-agent-scanner**: Configure scanners to discover AI agents from cloud platforms
-- **run-agent-scan-and-view-results**: Execute a scanner and view discovered agents
+- **setup-agent-scanner**: Configure scanners to discover assets from cloud platforms
+- **run-agent-scan-and-view-results**: Execute a scanner and view discovered assets

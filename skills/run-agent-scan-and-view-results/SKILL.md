@@ -1,23 +1,23 @@
 ---
 name: run-agent-scan-and-view-results
 description: |
-  Executes an agent scanner and views the discovered AI agents. Use when running an agent scan, checking scan status, viewing scan history, reviewing discovered agents from external platforms, or importing agents into Anypoint Exchange.
+  Executes a scanner and views discovered assets (such as AI agents, MCP servers, and API metadata). Use when running a scan, checking scan status, viewing scan history, reviewing discovered assets from external platforms, or importing assets into Anypoint Exchange.
 ---
 
-# Run Agent Scan and View Results
+# Run Scan and View Results
 
 ## Overview
 
-Executes a scanner configuration to discover AI agents from an external platform, then retrieves the scan results including all discovered agents. This is useful for manually triggering scans or reviewing what agents were found.
+Executes a scanner configuration to discover assets from an external platform, then retrieves the scan results including all discovered assets. This is useful for manually triggering scans or reviewing what was found.
 
-**What you'll build:** A complete scan execution with visibility into discovered AI agents ready for publication to Exchange.
+**What you'll build:** A complete scan execution with visibility into discovered assets ready for publication to Exchange.
 
 ## Prerequisites
 
 Before starting, ensure you have:
 
 1. **Existing Scanner Configuration**
-  - A scanner configuration already set up (see "Set Up an Agent Scanner" skill)
+  - A scanner configuration already set up (see "Set Up a Scanner" skill)
   - Valid connection credentials that haven't expired
 2. **Anypoint Platform Access**
   - Valid authorization token
@@ -25,7 +25,7 @@ Before starting, ensure you have:
 
 ## Step 1: Execute the Scanner
 
-Trigger the scanner to start discovering agents from the configured external platform.
+Trigger the scanner to start discovering assets from the configured external platform.
 
 **What you'll need:**
 
@@ -54,7 +54,7 @@ inputs:
 outputs: []
 ```
 
-**What happens next:** The scan starts asynchronously. You'll receive a 202 Accepted response. The scan runs in the background, discovering agents from the external platform.
+**What happens next:** The scan starts asynchronously. You'll receive a 202 Accepted response. The scan runs in the background, discovering assets from the external platform.
 
 **Common issues:**
 
@@ -113,9 +113,9 @@ outputs:
 - **Empty results**: No scans have been run yet for this scanner
 - **Status shows FAILED**: Check the scanner configuration's lastRunStatusDetail for error information
 
-## Step 3: View Discovered Agents
+## Step 3: View Discovered Assets
 
-Once the scan completes, retrieve the list of discovered agents (staging assets).
+Once the scan completes, retrieve the list of discovered assets (staging assets).
 
 **What you'll need:**
 
@@ -148,7 +148,7 @@ outputs:
     description: The asset ID in Exchange (if published)
   - name: assetName
     path: $.content[*].name
-    description: Name of the discovered agent
+    description: Name of the discovered asset
   - name: stagingStatus
     path: $.content[*].stagingStatus
     description: Status (NEW, EXISTING, PUBLISHED, FAILED)
@@ -157,7 +157,7 @@ outputs:
     description: What action was taken (CREATE, UPDATE, DELETE, SKIP)
 ```
 
-**What happens next:** You receive a list of all agents discovered during the scan, including their names, descriptions, and publication status.
+**What happens next:** You receive a list of all assets discovered during the scan, including their names, descriptions, and publication status.
 
 ## Completion Checklist
 
@@ -165,8 +165,8 @@ After completing all steps, verify:
 
 - Scan was triggered (202 Accepted)
 - Scan run appears in history with status COMPLETED
-- Staging assets list shows discovered agents
-- Review agent details for accuracy before publication
+- Staging assets list shows discovered assets
+- Review asset details for accuracy before publication
 
 ## What You've Built
 
@@ -176,24 +176,24 @@ Your scan execution has produced:
 
 - Timestamped execution record
 - Status tracking (RUNNING -> COMPLETED)
-- Summary of discovered agents
+- Summary of discovered assets
 
-**Discovered Agents**
+**Discovered Assets**
 
-- List of AI agents from the external platform
-- Agent metadata (name, description, capabilities)
+- List of assets from the external platform
+- Asset metadata (name, description, capabilities)
 - Staging status for Exchange publication
 
 ## Next Steps
 
-Now that you've seen the discovered agents:
+Now that you've seen the discovered assets:
 
-1. **Review agent details**
-  - Check the assetPayload/agentCard for each agent's A2A card
+1. **Review asset details**
+  - Check the asset payload for each discovered asset
 2. **Monitor publication**
   - Agents with stagingStatus PUBLISHED are live in Exchange
 3. **Handle failures**
-  - Review agents with stagingStatus FAILED for issues
+  - Review assets with stagingStatus FAILED for issues
 4. **Schedule regular scans**
   - Configure automatic scheduled scans for continuous discovery
 
@@ -202,15 +202,15 @@ Now that you've seen the discovered agents:
 ### Monitoring Scans
 
 - **Poll status**: For long-running scans, poll getScannerRunHistory every 30-60 seconds
-- **Check summary**: The scan run summary field contains counts of discovered/updated/failed agents
+- **Check summary**: The scan run summary field contains counts of discovered/updated/failed assets
 
 ### Understanding Staging Status
 
-- **NEW**: Agent discovered for the first time
-- **EXISTING**: Agent already known, checked for updates
+- **NEW**: Asset discovered for the first time
+- **EXISTING**: Asset already known, checked for updates
 - **PUBLISHED**: Successfully published to Exchange
 - **FAILED**: Publication failed (check summary for details)
-- **PENDING_UPDATE**: Agent has changes pending publication
+- **PENDING_UPDATE**: Asset has changes pending publication
 
 ## Troubleshooting
 
@@ -220,7 +220,7 @@ Now that you've seen the discovered agents:
 
 **Possible causes:**
 
-- Large number of agents to discover
+- Large number of assets to discover
 - Network issues with external platform
 - Processing delays
 
@@ -230,19 +230,19 @@ Now that you've seen the discovered agents:
 - Check external platform connectivity
 - Use abort endpoint if scan appears stuck
 
-### No Agents Discovered
+### No Assets Discovered
 
 **Symptoms:** Scan completes but staging assets list is empty
 
 **Possible causes:**
 
-- No agents exist in the external platform
+- No assets exist in the external platform
 - Connection credentials lack read permissions
-- Platform-specific filters exclude all agents
+- Platform-specific filters exclude all assets
 
 **Solutions:**
 
-- Verify agents exist in the source platform
+- Verify assets exist in the source platform
 - Check connection credentials have appropriate permissions
 - Review scanner configuration parameters
 

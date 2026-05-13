@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Agent Scanner Configuration Service API
-  description: REST API for Agent Scanner Configuration Service
+  title: Scanners Configuration Service API
+  description: REST API for Scanners Configuration Service
   version: 0.0.1
 servers:
 - url: https://anypoint.mulesoft.com/agent-scanner
@@ -874,7 +874,7 @@ components:
       - $ref: "#/components/schemas/FormField"
     ScannerConfiguration:
       type: object
-      description: Represents a scanner configuration for agent scanning operations
+      description: Represents a scanner configuration for scanning operations
       properties:
         id:
           type: string

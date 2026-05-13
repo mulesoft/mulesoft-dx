@@ -814,21 +814,16 @@ class TestTerraformPageGeneration:
         btn = terraform_soup.find(class_='auth-panel-status')
         assert btn is None
 
-    def test_terraform_toc_aside_present(self, terraform_soup):
-        """The on-this-page TOC aside is rendered."""
-        aside = terraform_soup.find('aside', class_='terraform-toc')
-        assert aside is not None
-
     def test_sidebar_links_to_doc_anchors(self, terraform_soup):
         """At least one sidebar link points to a #doc-<slug> anchor."""
         link = terraform_soup.find('a', href=lambda h: h and h.startswith('#doc-'))
         assert link is not None
 
     def test_resources_appear_before_data_sources_in_nav(self, terraform_soup):
-        """Sidebar lists 'Resources' category before 'Data Sources'."""
-        category_names = [el.get_text(strip=True) for el in terraform_soup.select('.sidebar-nav .category-name')]
-        resources_idx = category_names.index('Resources')
-        data_sources_idx = category_names.index('Data Sources')
+        """Sidebar lists 'Resources' before 'Data Sources' within each category."""
+        group_names = [el.get_text(strip=True) for el in terraform_soup.select('.sidebar-nav .group-name')]
+        resources_idx = group_names.index('Resources')
+        data_sources_idx = group_names.index('Data Sources')
         assert resources_idx < data_sources_idx
 
     def test_prism_light_and_dark_themes_loaded(self, terraform_soup):

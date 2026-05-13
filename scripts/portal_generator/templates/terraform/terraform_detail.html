@@ -14,15 +14,38 @@
             </ul>
 
             <h4>Getting started</h4>
+            {% if provider.install_info %}
+            <ol>
+                <li>Install <strong>Terraform CLI</strong> (v{{ provider.install_info.min_terraform_version }}+).</li>
+                <li>Add the provider to your Terraform configuration:
+                    <div class="terraform-view-markdown">
+                        <pre><code class="language-hcl">terraform {
+  required_providers {
+    {{ provider.install_info.local_name }} = {
+      source  = "{{ provider.install_info.source }}"
+      version = "{{ provider.install_info.version }}"
+    }
+  }
+}
+
+provider "{{ provider.install_info.local_name }}" {
+  # Configuration options
+}</code></pre>
+                    </div>
+                </li>
+                <li>Run <code>terraform init</code>, <code>terraform plan</code>, and <code>terraform apply</code>.</li>
+                {% if provider.install_info.registry_url %}
+                <li>For more details, visit the <a href="{{ provider.install_info.registry_url }}" target="_blank" rel="noopener">Terraform Registry</a>.</li>
+                {% endif %}
+            </ol>
+            {% else %}
             <ol>
                 <li>Install Terraform CLI (v1.0+)</li>
                 <li>Configure the provider block with your Anypoint Platform credentials</li>
                 <li>Define resources in <code>.tf</code> files</li>
                 <li>Run <code>terraform init</code>, <code>terraform plan</code>, and <code>terraform apply</code></li>
             </ol>
-
-            <h4>Authentication</h4>
-            <p>The provider supports authentication via Connected App credentials (client ID and secret) or bearer token. Configure your credentials in the provider block or via environment variables.</p>
+            {% endif %}
         </div>
     </div>
 

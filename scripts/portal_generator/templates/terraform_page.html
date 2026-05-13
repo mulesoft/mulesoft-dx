@@ -58,15 +58,7 @@ provider "{{ terraform_install_info.local_name }}" {
 <div class="detail-layout">
     {% include "partials/terraform_sidebar.html" %}
     <main class="detail-content" id="main-content">
-        <div class="terraform-content-wrapper">
-            <div class="terraform-content-body">
-                {% include "terraform/terraform_detail.html" %}
-            </div>
-            <aside class="terraform-toc" id="terraformToc">
-                <h4 class="terraform-toc-title">ON THIS PAGE</h4>
-                <ul class="terraform-toc-list" id="terraformTocList"></ul>
-            </aside>
-        </div>
+        {% include "terraform/terraform_detail.html" %}
     </main>
 </div>
 {% endblock %}

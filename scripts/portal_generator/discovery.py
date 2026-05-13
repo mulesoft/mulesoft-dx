@@ -75,18 +75,30 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
 
     print("🔍 Scanning for skills...")
 
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
+    # Collect SKILL.md files at skills/<slug>/SKILL.md and
+    # skills/<category>/<slug>/SKILL.md (one level of nesting).
+    skill_files: List[Path] = []
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
             continue
-
-        skill_file = skill_dir / 'SKILL.md'
-        if not skill_file.exists():
+        direct = entry / 'SKILL.md'
+        if direct.exists():
+            skill_files.append(direct)
             continue
+        for nested in sorted(entry.iterdir()):
+            if not nested.is_dir():
+                continue
+            nested_skill = nested / 'SKILL.md'
+            if nested_skill.exists():
+                skill_files.append(nested_skill)
 
+    for skill_file in skill_files:
+        skill_dir = skill_file.parent
         skill_data = parse_skill(skill_file)
         if not skill_data:
             continue
 
+        skill_data['skill_rel_path'] = str(skill_dir.relative_to(skills_dir))
         api_refs = _extract_api_refs(skill_data)
         mcp_refs = _extract_mcp_refs(skill_data)
         skill_data['api_refs'] = api_refs

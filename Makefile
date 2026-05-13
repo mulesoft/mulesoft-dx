@@ -408,9 +408,9 @@ validate-jtbd:
 	@echo ""
 	@files=$$(find . \
 		-type d \( -name .git -o -name .claude \) -prune -o \
-		-type f -path "*/skills/*.md" -print | sort); \
+		-type f -path "*/skills/*/SKILL.md" -print | sort); \
 	if [ -z "$$files" ]; then \
-		echo "$(YELLOW)No JTBD files found under */skills/*.md$(NC)"; \
+		echo "$(YELLOW)No JTBD files found under */skills/*/SKILL.md$(NC)"; \
 		exit 0; \
 	fi; \
 	passed=0; failed=0; \
@@ -509,7 +509,7 @@ pre-commit-hook:
 	jtbd_ok=true; \
 	jtbd_files=$$(find . \
 		-type d \( -name .git -o -name .agents -o -name .claude -o -name portal \) -prune -o \
-		-type f -path "*/skills/*.md" -print | sort); \
+		-type f -path "*/skills/*/SKILL.md" -print | sort); \
 	if [ -n "$$jtbd_files" ]; then \
 		for file in $$jtbd_files; do \
 			if ! python3 scripts/build/validate_jtbd.py "$$file" . > /dev/null 2>&1; then \

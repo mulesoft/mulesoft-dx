@@ -9,7 +9,8 @@ from bs4 import BeautifulSoup
 from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
-    PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, setup_schema_docs,
+    PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, NESTED_SKILL_MD,
+    NON_API_STEPS_SKILL_MD, setup_schema_docs,
     MINIMAL_MCP_SERVER_JSON, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
     MINIMAL_TERRAFORM_MD,
 )
@@ -37,6 +38,14 @@ def generated_portal(tmp_path):
     prose_skill_dir = repo / 'skills' / 'platform-guide'
     prose_skill_dir.mkdir(parents=True)
     (prose_skill_dir / 'SKILL.md').write_text(PROSE_ONLY_SKILL_MD)
+
+    nested_skill_dir = repo / 'skills' / 'ops-category' / 'run-diagnostics'
+    nested_skill_dir.mkdir(parents=True)
+    (nested_skill_dir / 'SKILL.md').write_text(NESTED_SKILL_MD)
+
+    non_api_skill_dir = repo / 'skills' / 'build-mule-app'
+    non_api_skill_dir.mkdir(parents=True)
+    (non_api_skill_dir / 'SKILL.md').write_text(NON_API_STEPS_SKILL_MD)
 
     mcp_dir = repo / 'mcps' / 'test-mcp'
     mcp_dir.mkdir(parents=True)
@@ -154,7 +163,7 @@ class TestSkillPageStructure:
 
 
 class TestProseOnlySkillPage:
-    """Prose-only skills render the header but hide auth panel and interactive elements."""
+    """Prose-only skills render the header but hide auth and interactive elements, keep Install Command."""
     @pytest.fixture(autouse=True)
     def _parse_prose_skill_page(self, generated_portal):
         html = (generated_portal / 'skills' / 'platform-guide.html').read_text(encoding='utf-8')
@@ -167,9 +176,14 @@ class TestProseOnlySkillPage:
         header = self.soup.find('div', class_='auth-panel-header-bar')
         assert header is not None
 
-    def test_no_auth_panel_right(self):
-        right = self.soup.find('div', class_='auth-panel-right')
-        assert right is None
+    def test_has_install_command(self):
+        btn = self.soup.find('button', class_='skill-split-main')
+        assert btn is not None
+        assert 'Install Command' in btn.get_text()
+
+    def test_no_auth_button(self):
+        auth_btn = self.soup.find('button', class_='auth-panel-status')
+        assert auth_btn is None
 
     def test_no_auth_modal(self):
         modal = self.soup.find('div', class_='auth-modal')
@@ -178,6 +192,40 @@ class TestProseOnlySkillPage:
     def test_no_interactive_mode_toggle(self):
         toggle = self.soup.find('div', class_='skill-mode-toggle-container')
         assert toggle is None
+
+    def test_has_guide_badge(self):
+        badge = self.soup.find('span', class_='badge-version', string='Guide')
+        assert badge is not None
+
+
+class TestNonApiStepsSkillPage:
+    """Skills with step headers but no YAML API blocks should hide auth and interactive mode, keep Install Command."""
+
+    @pytest.fixture(autouse=True)
+    def _parse_non_api_skill_page(self, generated_portal):
+        html = (generated_portal / 'skills' / 'build-mule-app.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+
+    def test_page_exists(self, generated_portal):
+        assert (generated_portal / 'skills' / 'build-mule-app.html').exists()
+
+    def test_has_install_command(self):
+        btn = self.soup.find('button', class_='skill-split-main')
+        assert btn is not None
+        assert 'Install Command' in btn.get_text()
+
+    def test_no_interactive_mode_toggle(self):
+        toggle = self.soup.find('div', class_='skill-mode-toggle-container')
+        assert toggle is None
+
+    def test_no_auth_button(self):
+        auth_btn = self.soup.find('button', class_='auth-panel-status')
+        assert auth_btn is None
+
+    def test_no_api_meta_script(self):
+        scripts = self.soup.find_all('script')
+        api_meta = [s for s in scripts if s.string and '__API_META__' in s.string]
+        assert len(api_meta) == 0
 
     def test_has_guide_badge(self):
         badge = self.soup.find('span', class_='badge-version', string='Guide')
@@ -232,14 +280,23 @@ class TestRegistryStructure:
             assert isinstance(entry['apis'], list)
             assert 'api' not in entry
 
-    def test_skill_href_is_flat_path(self, generated_portal):
+    def test_skill_href_points_to_skill_md(self, generated_portal):
         registry = json.loads((generated_portal / 'registry.json').read_text())
         skill_entries = [e for e in registry if e['kind'] == 'agent-skill']
         for entry in skill_entries:
-            parts = entry['href'].split('/')
-            assert len(parts) == 3, f"Expected skills/{{slug}}/SKILL.md, got {entry['href']}"
-            assert parts[0] == 'skills'
-            assert parts[2] == 'SKILL.md'
+            assert entry['href'].startswith('skills/'), f"Expected skills/ prefix, got {entry['href']}"
+            assert entry['href'].endswith('/SKILL.md'), f"Expected /SKILL.md suffix, got {entry['href']}"
+
+    def test_nested_skill_href_includes_category(self, generated_portal):
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        entry = next(e for e in registry if e.get('slug') == 'run-diagnostics')
+        assert entry['href'] == 'skills/ops-category/run-diagnostics/SKILL.md'
+
+    def test_nested_skill_copy_exists(self, generated_portal):
+        skill_md = generated_portal / 'skills' / 'ops-category' / 'run-diagnostics' / 'SKILL.md'
+        assert skill_md.exists()
+        content = skill_md.read_text(encoding='utf-8')
+        assert 'name: run-diagnostics' in content
 
     def test_registry_has_schema_entries(self, generated_portal):
         registry = json.loads((generated_portal / 'registry.json').read_text())

@@ -89,7 +89,7 @@ def kebab_case(text: str) -> str:
         kebab-case version
 
     Examples:
-        kebab_case("Deploy API with Flex Gateway") -> "deploy-api-with-flex-gateway"
+        kebab_case("Deploy API with Omni Gateway") -> "deploy-api-with-flex-gateway"
         kebab_case("Get GAV from Exchange") -> "get-gav-from-exchange"
     """
     # Convert to lowercase

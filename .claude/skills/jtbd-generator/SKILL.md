@@ -143,7 +143,7 @@ For each step (in order from 1 to N):
    ```python
    from lib.utils import kebab_case
 
-   name = kebab_case("Deploy API with Flex Gateway")
+   name = kebab_case("Deploy API with Omni Gateway")
    # Result: "deploy-api-with-flex-gateway"
    ```
 
@@ -195,13 +195,13 @@ For each step (in order from 1 to N):
    # Assemble complete JTBD
    jtbd_content = jtbd_builder.build_complete_jtbd(
        name="deploy-api-with-flex-gateway",
-       description="Deploy API instance to Flex Gateway. Use when deploying APIs to Flex Gateway, setting up API instances, or connecting Exchange assets to gateways.",
-       title="Deploy API with Flex Gateway",
-       overview="Deploys an API instance to a Flex Gateway by retrieving asset details from Exchange, discovering available gateway targets, and creating the API instance in API Manager with the proper configuration.",
-       what_youll_build="An API instance connected to your Flex Gateway target",
+       description="Deploy API instance to Omni Gateway. Use when deploying APIs to Omni Gateway, setting up API instances, or connecting Exchange assets to gateways.",
+       title="Deploy API with Omni Gateway",
+       overview="Deploys an API instance to a Omni Gateway by retrieving asset details from Exchange, discovering available gateway targets, and creating the API instance in API Manager with the proper configuration.",
+       what_youll_build="An API instance connected to your Omni Gateway target",
        prerequisites=[
            "**Authentication** - Valid Bearer token for Anypoint Platform with API Manager and Exchange permissions",
-           "**Resources** - API asset published in Exchange and Flex Gateway deployed"
+           "**Resources** - API asset published in Exchange and Omni Gateway deployed"
        ],
        steps=steps,
        completion_items=[
@@ -209,7 +209,7 @@ For each step (in order from 1 to N):
            "Gateway target identified",
            "API instance created in API Manager"
        ],
-       what_youve_built="✅ **API Deployment** - Connected Exchange asset to API Manager, configured Flex Gateway as target, API ready for policy configuration",
+       what_youve_built="✅ **API Deployment** - Connected Exchange asset to API Manager, configured Omni Gateway as target, API ready for policy configuration",
        next_steps=[
            "**Apply Policies** - Add security policies (OAuth2, IP allowlist) and configure rate limiting",
            "**Test API** - Verify endpoint is accessible and test through gateway"
@@ -269,9 +269,9 @@ If validation succeeds:
 
 ```
 User: Create a JTBD with these prerequisites: user logged in, API asset in Exchange.
-Steps: 1) Get GAV from Exchange, 2) Get flex gateway targets, 3) Create API in api-manager.
+Steps: 1) Get GAV from Exchange, 2) Get omni gateway targets, 3) Create API in api-manager.
 
-You: I'll create a workflow for deploying an API with a Flex Gateway target.
+You: I'll create a workflow for deploying an API with a Omni Gateway target.
 
 Let me find the right operations for each step...
 
@@ -284,7 +284,7 @@ Step 1: Get GAV from Exchange
      GET /assets/{groupId}/{assetId}
      Score: 0.85
 
-Step 2: Get flex gateway targets
+Step 2: Get omni gateway targets
   → getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways (urn:api:flex-gateway-manager)
      GET /organizations/{organizationId}/environments/{environmentId}/gateways
      Score: 0.78
@@ -312,7 +312,7 @@ Data flow detected:
 Generated JTBD:
 - Name: deploy-api-with-flex-gateway
 - Steps: 3
-- Prerequisites: User authentication, Exchange asset, Flex Gateway
+- Prerequisites: User authentication, Exchange asset, Omni Gateway
 
 [Validates]
 
@@ -412,7 +412,7 @@ Regenerating..."
 "Step 2: 'Get gateway targets' is ambiguous.
 
 I found operations in two APIs:
-1. Flex Gateway Manager - List flex gateways
+1. Omni Gateway Manager - List omni gateways
 2. Runtime Manager - List CloudHub workers
 
 Which one should I use?"

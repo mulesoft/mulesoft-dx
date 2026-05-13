@@ -24,7 +24,7 @@ def build_frontmatter(name: str, description: str) -> str:
     Example:
         fm = build_frontmatter(
             "deploy-api-with-flex-gateway",
-            "Deploy API instance to Flex Gateway. Use when deploying APIs, setting up gateways."
+            "Deploy API instance to Omni Gateway. Use when deploying APIs, setting up gateways."
         )
     """
     frontmatter_data = {
@@ -255,10 +255,10 @@ def build_complete_jtbd(
     Example:
         jtbd = build_complete_jtbd(
             name="deploy-api-with-flex-gateway",
-            description="Deploy API instance to Flex Gateway...",
-            title="Deploy API with Flex Gateway",
+            description="Deploy API instance to Omni Gateway...",
+            title="Deploy API with Omni Gateway",
             overview="Deploys an API instance...",
-            what_youll_build="An API instance connected to your Flex Gateway",
+            what_youll_build="An API instance connected to your Omni Gateway",
             prerequisites=["User authenticated", "Asset exists"],
             steps=[...],
             completion_items=["API deployed", "Gateway connected"],

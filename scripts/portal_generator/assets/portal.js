@@ -8271,14 +8271,9 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
-    // Restore saved theme immediately to prevent flash
-    var savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (savedTheme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
-    }
-    // If no saved theme, respect system preference (handled by CSS)
+    // Only show toggle when ?darkmode=true is present (feature in development)
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('darkmode') !== 'true') return;
 
     // Restore saved theme immediately to prevent flash
     var savedTheme = localStorage.getItem('theme');
@@ -8289,10 +8284,6 @@ function clearAllVariables(slug) {
     }
     // If no saved theme, respect system preference (handled by CSS)
 
-    // DARK MODE TOGGLE TEMPORARILY HIDDEN
-    // The toggle button is commented out but functionality remains via ?darkmode=true query param
-    // Uncomment the code below to restore the floating toggle button
-    /*
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');
     toggleButton.id = 'dark-mode-toggle';
@@ -8316,9 +8307,7 @@ function clearAllVariables(slug) {
         // Update button state
         updateToggleButton();
     }
-    */
 
-    /*
     function toggleDarkMode() {
         var currentTheme = document.documentElement.getAttribute('data-theme');
         var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -8345,7 +8334,6 @@ function clearAllVariables(slug) {
     } else {
         addToggleButton();
     }
-    */
 
     // Listen for system theme changes
     if (window.matchMedia) {
@@ -8357,6 +8345,7 @@ function clearAllVariables(slug) {
                 } else {
                     document.documentElement.removeAttribute('data-theme');
                 }
+                updateToggleButton();
                 updateAllAceEditors();
             }
         });

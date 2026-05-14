@@ -1688,9 +1688,9 @@ code {
 }
 
 [data-theme="dark"] .badge-security {
-    background: rgba(110, 118, 129, 0.1);
-    color: #8b949e;
-    border: 1px solid #30363d;
+    background: var(--color-neutral-2);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
 }
 
 [data-theme="dark"] .btn-send {
@@ -3047,9 +3047,9 @@ button.nav-group-header {
 }
 
 .badge-security {
-    background: var(--color-primary);
-    color: var(--color-white);
-    padding: var(--space-xxx-small) var(--space-xx-small);
+    background: var(--color-neutral-3);
+    color: var(--color-text-primary);
+    padding: var(--space-xxx-small) var(--space-small);
     border-radius: var(--radius-large);
     font-family: var(--font-sans);
     font-size: var(--font-size-1);
@@ -3057,6 +3057,7 @@ button.nav-group-header {
     margin-left: var(--space-small);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border: 1px solid var(--color-border-primary);
 }
 
 /* ============================================================================

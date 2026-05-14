@@ -788,6 +788,42 @@ code {
     content: url('../assets/icons/skill-filter-icon-active.svg');
 }
 
+.hero-tab[data-filter="terraform"]:hover img,
+.hero-tab[data-filter="terraform"].active img {
+    content: url('../assets/icons/terraform-filter-icon-active.svg');
+}
+
+/* Sidebar empty state (terraform search) */
+.sidebar-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-xl) var(--space-md);
+    gap: var(--space-xs);
+}
+
+.sidebar-empty-state img {
+    width: 96px;
+    height: auto;
+    margin-bottom: var(--space-sm);
+}
+
+.sidebar-empty-title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.sidebar-empty-hint {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+}
+
 [data-theme="dark"] .hero-tab img {
     filter: brightness(0) saturate(100%) invert(60%) sepia(7%) saturate(494%) hue-rotate(169deg) brightness(89%) contrast(87%);
 }

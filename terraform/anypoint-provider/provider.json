@@ -1,0 +1,8 @@
+{
+  "local_name": "anypoint",
+  "source": "mulesoft/anypoint",
+  "version": "0.0.6",
+  "min_terraform_version": "0.13",
+  "registry_url": "https://registry.terraform.io/providers/mulesoft/anypoint",
+  "source_code_url": "https://github.com/mulesoft/terraform-provider-anypoint/tree/main/docs/resources"
+}

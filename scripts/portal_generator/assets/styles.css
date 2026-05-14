@@ -119,6 +119,13 @@
     --color-purple-700: #6d28d9;
     --color-purple-800: #5b21b6;
 
+    /* Violet scale (terraform palette, hue 272°) */
+    --color-violet-50: #F3EBFB;
+    --color-violet-200: #C9A1E8;
+    --color-violet-500: #A067DA;
+    --color-violet-700: #5B2F8E;
+    --color-violet-300-dark: #D4B5F2;
+
     --color-servers: #DDEFFF;
 
     /* Common rgba patterns */
@@ -8529,17 +8536,25 @@ code[class*="language-"][class*="language-"] {
 .badge-terraform-type {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
-    color: #5c4199;
-    background: #ede9fe;
+    color: var(--color-violet-700);
+    background: var(--color-violet-50);
     padding: 4px 15px 4px 16px;
     border-radius: 21px;
-    border: 1px solid #c4b5fd;
+    border: 1px solid var(--color-violet-200);
 }
 
 [data-theme="dark"] .badge-terraform-type {
-    color: #c4b5fd;
-    background: rgba(124, 58, 237, 0.15);
-    border-color: rgba(124, 58, 237, 0.3);
+    color: var(--color-violet-300-dark);
+    background: rgba(160, 103, 218, 0.15);
+    border-color: rgba(160, 103, 218, 0.35);
+}
+
+.card-icon-terraform {
+    filter: brightness(0) saturate(100%) invert(25%) sepia(40%) saturate(2200%) hue-rotate(248deg) brightness(72%) contrast(95%);
+}
+
+[data-theme="dark"] .card-icon-terraform {
+    filter: brightness(0) saturate(100%) invert(80%) sepia(15%) saturate(1200%) hue-rotate(220deg) brightness(105%) contrast(95%);
 }
 
 /* JSON input textarea used for object/array arguments in MCP try-it */
@@ -8797,13 +8812,52 @@ code[class*="language-"][class*="language-"] {
     margin-bottom: var(--space-x-small);
 }
 
-.terraform-view-markdown pre {
-    background: var(--color-bg-primary);
+.terraform-code-wrapper {
+    background: var(--color-white);
     border: 1px solid var(--color-neutral-5);
     border-radius: var(--radius-medium);
+    margin-bottom: var(--space-medium);
+    overflow: hidden;
+}
+
+.terraform-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.625rem 1rem;
+    background: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-neutral-5);
+}
+
+.terraform-btn-copy {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 28px;
+    padding: 0 0.75rem;
+    background: var(--color-white);
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-xl);
+    color: var(--color-neutral-8);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.terraform-btn-copy:hover {
+    background: var(--color-neutral-2);
+    border-color: var(--color-neutral-7);
+}
+
+.terraform-view-markdown pre {
+    background: white !important;
+    border: none;
+    border-radius: 0;
     padding: var(--space-medium);
     overflow-x: auto;
-    margin-bottom: var(--space-medium);
+    margin: 0;
 }
 
 .terraform-view-markdown pre code {
@@ -8865,91 +8919,20 @@ code[class*="language-"][class*="language-"] {
     display: block;
 }
 
-.nav-terraform-step {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-size: var(--font-size-3);
-    font-family: var(--font-sans);
-    padding: var(--space-xs) var(--space-lg) !important;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    transition: all 0.2s;
+/* Terraform sidebar — multi-line doc names within nav-group-items */
+.terraform-page .nav-group-items .op-name {
+    line-height: 1.4;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
-.nav-terraform-step:hover,
-.nav-terraform-step.active {
-    background: var(--selected-bg);
-    border-left-color: var(--selected-border);
-}
-
-.nav-category {
-    list-style: none;
+.terraform-page .nav-group-items > li {
     margin-bottom: var(--space-xs);
-}
-
-.nav-category-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--space-small);
-    width: 100%;
-    padding: var(--space-small) var(--space-md);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-4);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
-    text-align: left;
-    border-radius: var(--radius-medium);
-    transition: background 0.15s ease;
-}
-
-.nav-category-toggle:hover {
-    background: var(--color-bg-primary);
-}
-
-.nav-category-toggle .chevron-icon {
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
-    transform: rotate(90deg);
-}
-
-.nav-category-toggle[aria-expanded="false"] .chevron-icon {
-    transform: rotate(0deg);
-}
-
-.nav-category-toggle-sub {
-    font-size: var(--font-size-3);
-    font-weight: var(--font-weight-medium);
-}
-
-.nav-subcategory-list {
-    list-style: none;
-    padding: 0 0 0 var(--space-md);
-    margin: 0;
-}
-
-.nav-doc-type {
-    margin-bottom: var(--space-xs);
-}
-
-.doc-type-label {
-    display: block;
-    padding: var(--space-xs) var(--space-md);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-2);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.nav-doc-list {
-    list-style: none;
-    padding: 0 0 0 var(--space-md);
-    margin: 0;
 }
 
 /* Terraform doc content area */
@@ -8984,4 +8967,255 @@ code[class*="language-"][class*="language-"] {
     font-family: var(--font-sans);
     font-size: var(--font-size-2);
     color: var(--color-text-secondary);
+}
+
+/* Terraform dark mode */
+[data-theme="dark"] .terraform-code-wrapper {
+    background: var(--color-neutral-1);
+    border-color: var(--color-neutral-7);
+}
+
+[data-theme="dark"] .terraform-code-header {
+    background: var(--color-neutral-2);
+    border-bottom-color: var(--color-neutral-4);
+}
+
+[data-theme="dark"] .terraform-btn-copy {
+    background: transparent;
+    border-color: var(--color-neutral-4);
+    color: var(--color-neutral-7);
+}
+
+[data-theme="dark"] .terraform-btn-copy:hover {
+    background: var(--color-neutral-4);
+    border-color: var(--color-neutral-7);
+}
+
+[data-theme="dark"] .terraform-view-markdown pre {
+    background: var(--color-neutral-1) !important;
+}
+
+/* Terraform Prism token color overrides — pastel palette (no red), inspired by skills */
+.terraform-page .token.keyword,
+.terraform-page .token.tag,
+.terraform-page .token.builtin,
+.terraform-install-modal .token.keyword,
+.terraform-install-modal .token.tag,
+.terraform-install-modal .token.builtin {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-page .token.property,
+.terraform-page .token.attr-name,
+.terraform-install-modal .token.property,
+.terraform-install-modal .token.attr-name {
+    color: #2E7D9B;
+}
+
+.terraform-page .token.string,
+.terraform-page .token.attr-value,
+.terraform-install-modal .token.string,
+.terraform-install-modal .token.attr-value {
+    color: var(--color-text-primary);
+}
+
+.terraform-page .token.variable,
+.terraform-page .token.interpolation,
+.terraform-install-modal .token.variable,
+.terraform-install-modal .token.interpolation {
+    color: #014486;
+}
+
+.terraform-page .token.function,
+.terraform-page .token.class-name,
+.terraform-install-modal .token.function,
+.terraform-install-modal .token.class-name {
+    color: #2E7D9B;
+}
+
+.terraform-page .token.number,
+.terraform-install-modal .token.number {
+    color: #C77B30;
+}
+
+.terraform-page .token.boolean,
+.terraform-page .token.constant,
+.terraform-install-modal .token.boolean,
+.terraform-install-modal .token.constant {
+    color: #8E5DB8;
+    font-weight: var(--font-weight-semibold);
+}
+
+.terraform-page .token.operator,
+.terraform-page .token.assign,
+.terraform-install-modal .token.operator,
+.terraform-install-modal .token.assign {
+    color: #6BAFEA;
+}
+
+.terraform-page .token.punctuation,
+.terraform-install-modal .token.punctuation {
+    color: #5A7CA0;
+}
+
+.terraform-page .token.namespace,
+.terraform-install-modal .token.namespace {
+    color: #5A7CA0;
+    opacity: 0.85;
+}
+
+.terraform-page .token.comment,
+.terraform-install-modal .token.comment {
+    color: #6E8B73;
+    font-style: italic;
+}
+
+[data-theme="dark"] .terraform-page .token.keyword,
+[data-theme="dark"] .terraform-page .token.tag,
+[data-theme="dark"] .terraform-page .token.builtin,
+[data-theme="dark"] .terraform-install-modal .token.keyword,
+[data-theme="dark"] .terraform-install-modal .token.tag,
+[data-theme="dark"] .terraform-install-modal .token.builtin {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+[data-theme="dark"] .terraform-page .token.property,
+[data-theme="dark"] .terraform-page .token.attr-name,
+[data-theme="dark"] .terraform-install-modal .token.property,
+[data-theme="dark"] .terraform-install-modal .token.attr-name {
+    color: #7DC4D9;
+}
+
+[data-theme="dark"] .terraform-page .token.string,
+[data-theme="dark"] .terraform-page .token.attr-value,
+[data-theme="dark"] .terraform-install-modal .token.string,
+[data-theme="dark"] .terraform-install-modal .token.attr-value {
+    color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .terraform-page .token.variable,
+[data-theme="dark"] .terraform-page .token.interpolation,
+[data-theme="dark"] .terraform-install-modal .token.variable,
+[data-theme="dark"] .terraform-install-modal .token.interpolation {
+    color: #57C7F2;
+}
+
+[data-theme="dark"] .terraform-page .token.function,
+[data-theme="dark"] .terraform-page .token.class-name,
+[data-theme="dark"] .terraform-install-modal .token.function,
+[data-theme="dark"] .terraform-install-modal .token.class-name {
+    color: #7DC4D9;
+}
+
+[data-theme="dark"] .terraform-page .token.number,
+[data-theme="dark"] .terraform-install-modal .token.number {
+    color: #E0B689;
+}
+
+[data-theme="dark"] .terraform-page .token.boolean,
+[data-theme="dark"] .terraform-page .token.constant,
+[data-theme="dark"] .terraform-install-modal .token.boolean,
+[data-theme="dark"] .terraform-install-modal .token.constant {
+    color: #C5A8E8;
+    font-weight: var(--font-weight-semibold);
+}
+
+[data-theme="dark"] .terraform-page .token.operator,
+[data-theme="dark"] .terraform-page .token.assign,
+[data-theme="dark"] .terraform-install-modal .token.operator,
+[data-theme="dark"] .terraform-install-modal .token.assign {
+    color: #88C7F5;
+}
+
+[data-theme="dark"] .terraform-page .token.punctuation,
+[data-theme="dark"] .terraform-install-modal .token.punctuation {
+    color: #98B7D6;
+}
+
+[data-theme="dark"] .terraform-page .token.namespace,
+[data-theme="dark"] .terraform-install-modal .token.namespace {
+    color: #98B7D6;
+    opacity: 0.85;
+}
+
+[data-theme="dark"] .terraform-page .token.comment,
+[data-theme="dark"] .terraform-install-modal .token.comment {
+    color: #9CB89C;
+    font-style: italic;
+}
+
+/* Terraform install modal */
+.terraform-install-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.terraform-install-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.terraform-install-modal-content {
+    position: relative;
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-xl);
+    width: 90%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.terraform-install-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-neutral-4);
+}
+
+.terraform-install-modal-header h3 {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.terraform-install-modal-body {
+    padding: var(--space-lg);
+}
+
+.terraform-install-intro {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.terraform-install-intro code {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    background: var(--color-neutral-2);
+    padding: 2px 6px;
+    border-radius: var(--radius-small);
+}
+
+.terraform-install-version-heading {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+[data-theme="dark"] .terraform-install-intro code {
+    background: var(--color-neutral-2);
 }

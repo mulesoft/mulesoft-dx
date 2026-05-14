@@ -49,6 +49,11 @@ def parse_terraform_doc(filepath: Path) -> Optional[Dict]:
 
     # Extract resource name from page_title: "anypoint_api_instance Resource - ..."
     name = page_title.split(' - ')[0].strip() if ' - ' in page_title else page_title
+    # Strip trailing " Resource" / " Data Source" suffix (already implied by section)
+    for suffix in (' Data Source', ' Data-Source', ' Resource'):
+        if name.endswith(suffix):
+            name = name[: -len(suffix)].rstrip()
+            break
 
     body = content[m.end():]
     body_html = _md.render(body)

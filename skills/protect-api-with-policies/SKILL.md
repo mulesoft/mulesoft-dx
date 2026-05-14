@@ -12,9 +12,9 @@ description: |
 
 ## Overview
 
-Applies a security or traffic management policy to an API and deploys it to a self-managed Flex Gateway, walking through the full process from identifying the target API to selecting a policy, configuring it, and deploying. Supports multiple starting points depending on what the user already has set up — an API Manager instance, an Exchange asset, or just an API URL.
+Applies a security or traffic management policy to an API and deploys it to a self-managed Omni Gateway, walking through the full process from identifying the target API to selecting a policy, configuring it, and deploying. Supports multiple starting points depending on what the user already has set up — an API Manager instance, an Exchange asset, or just an API URL.
 
-**What you'll build:** A fully configured policy enforced on your API instance, deployed to a Flex Gateway
+**What you'll build:** A fully configured policy enforced on your API instance, deployed to a Omni Gateway
 
 ## Prerequisites
 
@@ -134,7 +134,7 @@ List available gateway targets registered in the environment. You need the targe
 **What you'll need:**
 - Organization ID and Environment ID
 
-**Action:** List gateway targets and select the Flex Gateway where the API will run. Prefer a target with `status: "RUNNING"`.
+**Action:** List gateway targets and select the Omni Gateway where the API will run. Prefer a target with `status: "RUNNING"`.
 
 ```yaml
 api: urn:api:api-portal-xapi
@@ -167,9 +167,9 @@ outputs:
 
 ## Step 4: Create API Manager Instance
 
-Creates a managed API instance in API Manager from your Exchange asset. This creates the API configuration; deployment to the Flex Gateway happens in Step 5.
+Creates a managed API instance in API Manager from your Exchange asset. This creates the API configuration; deployment to the Omni Gateway happens in Step 5.
 
-**Important:** For Flex Gateway instances, `isCloudHub` must be `null` (not `false`). Setting it to `false` causes a validation error.
+**Important:** For Omni Gateway instances, `isCloudHub` must be `null` (not `false`). Setting it to `false` causes a validation error.
 
 **What you'll need:**
 - Organization ID and Environment ID
@@ -209,13 +209,13 @@ inputs:
     example: "cars-api-v1"
   technology:
     value: "flexGateway"
-    description: Gateway technology — this skill targets Flex Gateway deployments
+    description: Gateway technology — this skill targets Omni Gateway deployments
   endpoint.isCloudHub:
     value: null
     description: "Must be null for flexGateway technology (not false — false causes a validation error)"
   endpoint.proxyUri:
     userProvided: true
-    description: "The proxy listener URI. Ask the user which port the Flex Gateway should listen on, then use http://0.0.0.0:<port>/"
+    description: "The proxy listener URI. Ask the user which port the Omni Gateway should listen on, then use http://0.0.0.0:<port>/"
     example: "http://0.0.0.0:8081/"
   endpoint.uri:
     userProvided: true
@@ -228,17 +228,17 @@ outputs:
     description: The API instance ID in API Manager
 ```
 
-**What happens next:** The API instance exists but is not yet deployed. Next, deploy it to the Flex Gateway target selected in Step 3.
+**What happens next:** The API instance exists but is not yet deployed. Next, deploy it to the Omni Gateway target selected in Step 3.
 
-## Step 5: Deploy to Flex Gateway
+## Step 5: Deploy to Omni Gateway
 
-Deploys the API instance to the selected Flex Gateway target. This uses the Proxies API deployment endpoint with flat top-level fields — do **not** use the nested `target` object, which requires additional fields that are not needed for self-managed Flex Gateway deployments.
+Deploys the API instance to the selected Omni Gateway target. This uses the Proxies API deployment endpoint with flat top-level fields — do **not** use the nested `target` object, which requires additional fields that are not needed for self-managed Omni Gateway deployments.
 
 **What you'll need:**
 - Organization ID, Environment ID, and API instance ID from Step 4
 - Deployment target ID and gateway version from Step 3
 
-**Action:** Create a deployment for the API instance on the selected Flex Gateway.
+**Action:** Create a deployment for the API instance on the selected Omni Gateway.
 
 ```yaml
 api: urn:api:proxies-xapi
@@ -260,15 +260,15 @@ inputs:
     description: API instance ID from Step 4
   type:
     value: "HY"
-    description: "Deployment type for self-managed Flex Gateway (HY = Hybrid)"
+    description: "Deployment type for self-managed Omni Gateway (HY = Hybrid)"
   targetId:
     from:
       variable: targetId
-    description: Flex Gateway target ID from Step 3
+    description: Omni Gateway target ID from Step 3
   targetName:
     from:
       variable: targetName
-    description: Flex Gateway target name from Step 3
+    description: Omni Gateway target name from Step 3
   gatewayVersion:
     value: "1.0.0"
     description: "Gateway version for deployment. Use \"1.0.0\" as the default."
@@ -294,12 +294,12 @@ outputs:
 }
 ```
 
-**What happens next:** The API instance is now deployed to the Flex Gateway. Next, browse the policy catalog to select which policy to apply.
+**What happens next:** The API instance is now deployed to the Omni Gateway. Next, browse the policy catalog to select which policy to apply.
 
 **Common issues:**
 - **`"Field environmentId is required for deployment type HY"`**: The `environmentId` must be in the request body, not just the URL path parameter.
 - **`"Field gatewayVersion is required for deployment type HY"`**: Use the version from the `getGatewayTargets` response (Step 3). Using an incorrect version causes policy implementation errors.
-- **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Flex Gateway version. Verify the version from the target's actual runtime version in Step 3.
+- **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Omni Gateway version. Verify the version from the target's actual runtime version in Step 3.
 - **409 Conflict**: The API may already be deployed to this target. List existing deployments with `GET .../deployments` first to check.
 
 ## Step 6: Browse Exchange Policy Catalog
@@ -312,7 +312,7 @@ List all available policy templates from Exchange for your organization. This en
 - Organization ID
 - Environment ID and API instance ID (to filter for compatible templates)
 
-**Action:** List Exchange policy templates and select the one to apply. Pass `apiInstanceId` and `environmentId` to filter for templates compatible with your API's gateway type (e.g., Flex Gateway, Mule Gateway).
+**Action:** List Exchange policy templates and select the one to apply. Pass `apiInstanceId` and `environmentId` to filter for templates compatible with your API's gateway type (e.g., Omni Gateway, Mule Gateway).
 
 ```yaml
 api: urn:api:api-portal-xapi
@@ -407,11 +407,11 @@ outputs:
     description: The ID of the applied policy instance
 ```
 
-**What happens next:** Your API is now protected with the selected policy. Since the API instance was configured with deployment information in Step 5, the policy is active and enforcing on the Flex Gateway.
+**What happens next:** Your API is now protected with the selected policy. Since the API instance was configured with deployment information in Step 5, the policy is active and enforcing on the Omni Gateway.
 
 **Common issues:**
 - **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 6) to get these values.
-- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 6's `policyConfiguration` output, not from the generic template endpoint. For example, Flex Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
+- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 6's `policyConfiguration` output, not from the generic template endpoint. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
 - **409 Conflict**: A policy of this type may already be applied to the API instance. List existing policies first to check, or add `?allowDuplicated=true` to the request URL to apply a second instance of the same policy type.
 - **403 Forbidden**: You need **Manage Policies** permission in the target environment.
 
@@ -419,7 +419,7 @@ outputs:
 
 After completing all steps, verify:
 
-- [ ] API instance is bound to the Flex Gateway target (deployment info visible in API Manager)
+- [ ] API instance is bound to the Omni Gateway target (deployment info visible in API Manager)
 - [ ] Policy appears in the API instance's policy list
 - [ ] Policy status shows as "Active"
 - [ ] API requests are being evaluated against the policy rules
@@ -433,9 +433,9 @@ Your API is now protected with:
 - Selected policy is active on your API instance
 - All incoming traffic is evaluated against policy rules
 
-✅ **Bound to Flex Gateway**
-- API instance is created with deployment configuration targeting a self-managed Flex Gateway
-- The Flex Gateway picks up the configuration automatically
+✅ **Bound to Omni Gateway**
+- API instance is created with deployment configuration targeting a self-managed Omni Gateway
+- The Omni Gateway picks up the configuration automatically
 
 ✅ **Managed configuration**
 - Policy settings are version-controlled in API Manager
@@ -470,7 +470,7 @@ Your API is now protected with:
 
 ### Gateway Compatibility
 - Always use `getExchangePolicyTemplates` with `apiInstanceId` to get gateway-compatible templates
-- Configuration property names and defaults vary by gateway type (Flex Gateway vs. Mule Gateway)
+- Configuration property names and defaults vary by gateway type (Omni Gateway vs. Mule Gateway)
 - The Exchange template version may differ from the generic template version
 
 ## Troubleshooting

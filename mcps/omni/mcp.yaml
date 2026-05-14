@@ -1301,7 +1301,7 @@ tools:
   - name: list_provider_gateways
     title: List Provider Gateways
     description: >-
-      List gateways for the active provider. Currently returns Flex Gateways
+      List gateways for the active provider. Currently returns Omni Gateways
       when the active provider is MuleSoft.
     inputSchema:
       type: object
@@ -1327,9 +1327,9 @@ tools:
         resourceUri: 'ui://provider-gateways/app.html'
       ui/resourceUri: 'ui://provider-gateways/app.html'
   - name: create_flex_gateway
-    title: Create Flex Gateway
+    title: Create Omni Gateway
     description: >-
-      Launch the managed Flex Gateway creation wizard for the active MuleSoft
+      Launch the managed Omni Gateway creation wizard for the active MuleSoft
       provider. When fully configured, creates the gateway in Anypoint Platform.
     inputSchema:
       type: object
@@ -1391,8 +1391,8 @@ tools:
         resourceUri: 'ui://flex-gateway/wizard.html'
       ui/resourceUri: 'ui://flex-gateway/wizard.html'
   - name: list_flex_gateway_environments
-    title: List Flex Gateway Environments
-    description: List Anypoint environments available for managed Flex Gateway creation.
+    title: List Omni Gateway Environments
+    description: List Anypoint environments available for managed Omni Gateway creation.
     inputSchema:
       type: object
       properties:
@@ -1414,8 +1414,8 @@ tools:
       idempotentHint: true
       openWorldHint: true
   - name: list_flex_gateway_targets
-    title: List Flex Gateway Targets
-    description: List managed Flex Gateway deployment targets for an environment.
+    title: List Omni Gateway Targets
+    description: List managed Omni Gateway deployment targets for an environment.
     inputSchema:
       type: object
       properties:
@@ -1442,8 +1442,8 @@ tools:
       idempotentHint: true
       openWorldHint: true
   - name: get_flex_gateway_target_domains
-    title: Get Flex Gateway Target Domains
-    description: Get ingress domains and app unique id for a managed Flex Gateway target.
+    title: Get Omni Gateway Target Domains
+    description: Get ingress domains and app unique id for a managed Omni Gateway target.
     inputSchema:
       type: object
       properties:
@@ -1474,8 +1474,8 @@ tools:
       idempotentHint: true
       openWorldHint: true
   - name: get_flex_gateway_usage_report
-    title: Get Flex Gateway Usage Report
-    description: Get current managed Flex Gateway size entitlement usage.
+    title: Get Omni Gateway Usage Report
+    description: Get current managed Omni Gateway size entitlement usage.
     inputSchema:
       type: object
       properties:
@@ -2466,9 +2466,9 @@ resources:
     description: Gateway inventory for the active provider
     mimeType: text/html;profile=mcp-app
   - name: flex-gateway-wizard-ui
-    title: Flex Gateway Wizard
+    title: Omni Gateway Wizard
     uri: 'ui://flex-gateway/wizard.html'
-    description: Interactive wizard for creating a managed Flex Gateway
+    description: Interactive wizard for creating a managed Omni Gateway
     mimeType: text/html;profile=mcp-app
   - name: scanner-wizard-ui
     title: Scanner Creation Wizard

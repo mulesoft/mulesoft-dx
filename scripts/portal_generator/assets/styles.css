@@ -119,6 +119,13 @@
     --color-purple-700: #6d28d9;
     --color-purple-800: #5b21b6;
 
+    /* Violet scale (terraform palette, hue 272°) */
+    --color-violet-50: #F3EBFB;
+    --color-violet-200: #C9A1E8;
+    --color-violet-500: #A067DA;
+    --color-violet-700: #5B2F8E;
+    --color-violet-300-dark: #D4B5F2;
+
     --color-servers: #DDEFFF;
 
     /* Common rgba patterns */
@@ -8441,17 +8448,17 @@ code[class*="language-"][class*="language-"] {
 .badge-terraform-type {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
-    color: #5c4199;
-    background: #ede9fe;
+    color: var(--color-violet-700);
+    background: var(--color-violet-50);
     padding: 4px 15px 4px 16px;
     border-radius: 21px;
-    border: 1px solid #c4b5fd;
+    border: 1px solid var(--color-violet-200);
 }
 
 [data-theme="dark"] .badge-terraform-type {
-    color: #c4b5fd;
-    background: rgba(124, 58, 237, 0.15);
-    border-color: rgba(124, 58, 237, 0.3);
+    color: var(--color-violet-300-dark);
+    background: rgba(160, 103, 218, 0.15);
+    border-color: rgba(160, 103, 218, 0.35);
 }
 
 .card-icon-terraform {

@@ -22,7 +22,7 @@ class TestParseTerraformDoc:
         assert 'Manages an API instance' in result['description']
 
     def test_extracts_name_from_page_title(self, tmp_path):
-        """Name is the part before ' - ' in page_title."""
+        """Name is the part before ' - ' in page_title, stripping ' Resource' / ' Data Source' suffix."""
         md = textwrap.dedent("""\
             ---
             page_title: "foo Resource - terraform-provider-anypoint"
@@ -36,7 +36,7 @@ class TestParseTerraformDoc:
         md_file.write_text(md)
 
         result = parse_terraform_doc(md_file)
-        assert result['name'] == 'foo Resource'
+        assert result['name'] == 'foo'
 
     def test_name_falls_back_when_no_separator(self, tmp_path):
         """When page_title has no ' - ', name equals page_title."""

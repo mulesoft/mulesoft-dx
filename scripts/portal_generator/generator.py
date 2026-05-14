@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Dict, List
 
-from .discovery import discover_apis, calculate_stats
+from .discovery import discover_apis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
@@ -109,6 +109,9 @@ def _prepare_operations(apis: List[Dict]):
 
 
 class PortalGenerator:
+    REPO_URL = 'https://github.com/mulesoft/anypoint-public-api-specs'
+    REPO_BRANCH = 'master'
+
     def __init__(self, output_dir: Path, proxy_url: str = 'http://localhost:8080/proxy',
                  build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com'):
         self.output_dir = output_dir
@@ -122,6 +125,7 @@ class PortalGenerator:
         self.public_mcps = []
         self.stats = {}
         self.all_skills = []
+        self.terraform_providers = []
         self.repo_root = None
         self.chrome = None
 
@@ -168,6 +172,9 @@ class PortalGenerator:
         # Update skill count to include prose-only skills
         self.stats['skill_count'] = len(self.all_skills)
 
+        # Discover Terraform providers
+        self.terraform_providers = discover_terraform(repo_root)
+
         print(f"\n📊 Statistics:")
         print(f"  • {self.stats['api_count']} APIs")
         print(f"  • {self.stats['endpoint_count']} Endpoints")
@@ -177,7 +184,7 @@ class PortalGenerator:
 
         # Clean and create output directories to avoid stale artifacts
         print(f"\n📁 Creating output directories...")
-        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas']:
+        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas', 'terraform']:
             target = self.output_dir / subdir
             if target.exists():
                 shutil.rmtree(target)
@@ -202,6 +209,7 @@ class PortalGenerator:
         self._generate_detail_pages()
         self._generate_mcp_detail_pages()
         self._generate_skill_pages()
+        self._generate_terraform_pages()
         self._generate_registry()
         self._generate_schemas()
         self._generate_agents_md()
@@ -241,6 +249,12 @@ class PortalGenerator:
                 skill_copy['_item_type'] = 'skill'
                 all_items.append(skill_copy)
 
+        if self.terraform_providers:
+            for provider in self.terraform_providers:
+                provider_copy = provider.copy()
+                provider_copy['_item_type'] = 'terraform'
+                all_items.append(provider_copy)
+
         all_items.sort(key=lambda x: x.get('name', '').lower())
 
         html = template.render(
@@ -250,6 +264,7 @@ class PortalGenerator:
             mcp_servers=self.public_mcps,
             stats=self.stats,
             all_skills=self.all_skills,
+            terraform_providers=self.terraform_providers,
             all_items=all_items,
             proxy_url=self.proxy_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
@@ -314,6 +329,11 @@ class PortalGenerator:
                 build_label=self.build_label,
                 base_url=self.base_url,
                 chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"apis/{api['slug']}/api.yaml",
+                asset_type='api',
+                asset_name=api.get('name', api['slug']),
             )
             output_path = self.output_dir / 'apis' / f"{api['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -414,6 +434,11 @@ class PortalGenerator:
                 build_label=self.build_label,
                 base_url=self.base_url,
                 chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"mcps/{mcp['slug']}/mcp.yaml",
+                asset_type='mcp',
+                asset_name=mcp.get('name', mcp['slug']),
             )
             output_path = self.output_dir / 'mcps' / f"{mcp['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -441,7 +466,11 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
-            prose_only = skill.get('step_count', 0) == 0
+            has_api_steps = any(
+                s.get('yaml') and s['yaml'].get('api')
+                for s in skill.get('step_details', [])
+            )
+            prose_only = not has_api_steps
 
             # Build linked APIs list for sidebar
             linked_apis = []
@@ -470,6 +499,11 @@ class PortalGenerator:
                 base_url=self.base_url,
                 prose_only=prose_only,
                 chrome={'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                repo_url=self.REPO_URL,
+                repo_branch=self.REPO_BRANCH,
+                source_path=f"skills/{skill.get('skill_rel_path', skill['slug'])}/SKILL.md",
+                asset_type='skill',
+                asset_name=skill_name,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -490,6 +524,33 @@ class PortalGenerator:
         if len(parts) >= 3:
             return f"---{parts[1]}---\n\n{preamble}\n{parts[2]}"
         return preamble + "\n" + content
+
+    def _generate_terraform_pages(self):
+        """Generate Terraform provider documentation pages (one page per provider)."""
+        if not self.terraform_providers:
+            return
+        total_docs = sum(p['doc_count'] for p in self.terraform_providers)
+        print(f"  ✓ Generating {len(self.terraform_providers)} Terraform provider page(s) ({total_docs} docs)...")
+
+        template = self.env.get_template('terraform_page.html')
+
+        for provider in self.terraform_providers:
+            nav_tree = provider['nav_tree']
+            nav_tree_by_type = provider['nav_tree_by_type']
+
+            html = template.render(
+                css_path='../assets/styles.css',
+                icons_path='../assets/icons',
+                provider=provider,
+                nav_tree=nav_tree,
+                nav_tree_by_type=nav_tree_by_type,
+                home_link='../index.html',
+                build_label=self.build_label,
+                base_url=self.base_url,
+            )
+            output_path = self.output_dir / 'terraform' / f"{provider['slug']}.html"
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(html)
 
     def _generate_registry(self):
         """Generate registry.json - a document registry for APIs, Skills, and Schemas."""
@@ -572,11 +633,12 @@ class PortalGenerator:
         # Add Skill documents (one entry per unique skill, with agent-context preamble)
         for skill in self.all_skills:
             skill_slug = skill.get('slug', '')
+            skill_rel = skill.get('skill_rel_path', skill_slug)
             skill_urn = f"urn:skill:{skill_slug}"
 
-            source_skill = self.repo_root / 'skills' / skill_slug / 'SKILL.md'
+            source_skill = self.repo_root / 'skills' / skill_rel / 'SKILL.md'
             if source_skill.exists():
-                skill_output_dir = self.output_dir / 'skills' / skill_slug
+                skill_output_dir = self.output_dir / 'skills' / skill_rel
                 skill_output_dir.mkdir(parents=True, exist_ok=True)
                 dest_skill = skill_output_dir / 'SKILL.md'
                 original = source_skill.read_text(encoding='utf-8')
@@ -588,7 +650,7 @@ class PortalGenerator:
                 'slug': skill_slug,
                 'name': skill.get('name', ''),
                 'description': skill.get('description', ''),
-                'href': f"skills/{skill_slug}/SKILL.md",
+                'href': f"skills/{skill_rel}/SKILL.md",
                 'docs': f"skills/{skill_slug}.html",
                 'apis': skill.get('api_refs', []),
                 'mcps': skill.get('mcp_refs', []),

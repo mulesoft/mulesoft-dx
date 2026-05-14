@@ -26,7 +26,7 @@ A good `info.description` starts with an **imperative verb** — a direct comman
 - `Manage APIs, policies, contracts, and SLA tiers.`
 - `Query audit log events and actions for organizations.`
 - `Search and describe metric types for the Observability platform.`
-- `Deploy, configure, and monitor Flex Gateway instances.`
+- `Deploy, configure, and monitor Omni Gateway instances.`
 - `Tokenize and detokenize sensitive data using configured services.`
 
 Common imperative verbs in this context include: Manage, Query, Search, Retrieve, List, Monitor, Track, Deploy, Configure, Create, Export, Publish, Register, Design, Validate, Secure, Transform, among others.

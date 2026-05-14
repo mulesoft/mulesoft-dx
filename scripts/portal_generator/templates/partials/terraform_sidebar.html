@@ -1,0 +1,52 @@
+<aside class="detail-sidebar" id="detailSidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path></svg>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search…"
+                    aria-label="Search" onkeyup="filterTerraformSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearTerraformSidebarSearch()" style="display:none"
+                    aria-label="Clear search">✕</button>
+            </div>
+        </div>
+        <div class="sidebar-overview-section">
+            <a href="#overview" class="nav-link nav-link-overview active">
+                Overview
+            </a>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
+            <li class="nav-category">
+                <button class="nav-category-toggle" onclick="toggleTerraformCategory(this)" aria-expanded="true">
+                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 2l4 4-4 4"/></svg>
+                    <span class="category-name">{{ doc_type|replace('-', ' ')|title }}</span>
+                </button>
+                <ul class="nav-subcategory-list">
+                    {% for subcategory in nav_tree_by_type[doc_type]|sort %}
+                    <li class="nav-category">
+                        <button class="nav-category-toggle nav-category-toggle-sub" onclick="toggleTerraformCategory(this)" aria-expanded="true">
+                            <svg class="chevron-icon" width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 2l4 4-4 4"/></svg>
+                            <span class="category-name">{{ subcategory }}</span>
+                        </button>
+                        <ul class="nav-doc-list">
+                            {% for item in nav_tree_by_type[doc_type][subcategory] %}
+                            <li>
+                                <a href="#doc-{{ item.slug }}"
+                                   class="nav-link nav-terraform-step"
+                                   title="{{ item.description }}">
+                                    <span class="step-title-short">{{ item.name }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% include "partials/breadcrumb.html" %}
+</aside>

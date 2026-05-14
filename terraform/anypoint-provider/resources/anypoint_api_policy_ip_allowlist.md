@@ -1,0 +1,70 @@
+---
+page_title: "anypoint_api_policy_ip_allowlist Resource - terraform-provider-anypoint"
+subcategory: "API Policies"
+description: |-
+  Manages a IP Allowlist policy on an Anypoint API instance.
+---
+
+# anypoint_api_policy_ip_allowlist (Resource)
+
+Manages a IP Allowlist policy on an Anypoint API instance.
+
+## Example Usage
+
+```terraform
+resource "anypoint_api_policy_ip_allowlist" "example" {
+  organization_id = var.organization_id
+  environment_id  = var.environment_id
+  api_instance_id = anypoint_api_instance.example.id
+
+  configuration = {
+    ip_expression  = "#[attributes.remoteAddress]"
+    ips            = ["10.0.0.0/8", "172.16.0.0/12"]
+    methods_string = "GET|POST"
+  }
+
+  order = 1
+}
+```
+
+## Schema
+
+### Required
+
+- `environment_id` (String) The environment ID.
+- `api_instance_id` (String) The API instance ID.
+- `configuration` (Block) The policy configuration. See [Configuration](#nestedschema--configuration) below.
+
+### Optional
+
+- `organization_id` (String) The organization ID. If not provided, the organization ID will be inferred from the connected app credentials.
+- `label` (String) A human-readable label for this policy instance.
+- `order` (Number) The order of policy execution.
+- `asset_version` (String) The policy asset version. Defaults to `1.1.2`.
+- `disabled` (Boolean) Whether the policy is disabled. Defaults to `false`.
+- `upstream_ids` (List of String) List of upstream IDs this policy applies to.
+
+### Read-Only
+
+- `id` (String) The policy ID.
+- `policy_template_id` (String) The policy template ID assigned by the server.
+
+<a id="nestedschema--configuration"></a>
+### Nested Schema for `configuration`
+
+Required:
+
+- `ip_expression` (String) Expression to extract the client IP address from the request.
+- `ips` (List of String) List of IP addresses or CIDR blocks. Must be a list of strings, not a comma-separated string.
+
+Optional:
+
+- `methods_string` (String) Pipe-separated list of HTTP methods to apply the policy to (e.g. `GET|POST`).
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import anypoint_api_policy_ip_allowlist.example {organization_id}/{environment_id}/{api_instance_id}/{policy_id}
+```

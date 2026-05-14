@@ -1,5 +1,5 @@
 """
-API, MCP server, and skill discovery.
+API, MCP server, skill, and Terraform provider discovery.
 
 Scans the repository for:
 - API directories under ``apis/`` (containing ``api.yaml``).
@@ -7,6 +7,8 @@ Scans the repository for:
 - Skill files under ``skills/``, associated with APIs and MCPs by parsing
   ``urn:api:<slug>`` / ``urn:mcp:<slug>`` references inside their YAML step
   blocks.
+- Terraform provider docs under ``terraform/<provider>/`` (containing
+  ``resources/`` and/or ``data-sources/`` subdirectories with markdown files).
 """
 
 import json
@@ -14,7 +16,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from .parsers import parse_oas, parse_skill, parse_mcp
+from .parsers import parse_oas, parse_skill, parse_mcp, parse_terraform_doc
 from .utils import get_category
 
 _URN_API_RE = re.compile(r'urn:api:([a-z0-9-]+)')
@@ -73,18 +75,30 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
 
     print("🔍 Scanning for skills...")
 
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
+    # Collect SKILL.md files at skills/<slug>/SKILL.md and
+    # skills/<category>/<slug>/SKILL.md (one level of nesting).
+    skill_files: List[Path] = []
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
             continue
-
-        skill_file = skill_dir / 'SKILL.md'
-        if not skill_file.exists():
+        direct = entry / 'SKILL.md'
+        if direct.exists():
+            skill_files.append(direct)
             continue
+        for nested in sorted(entry.iterdir()):
+            if not nested.is_dir():
+                continue
+            nested_skill = nested / 'SKILL.md'
+            if nested_skill.exists():
+                skill_files.append(nested_skill)
 
+    for skill_file in skill_files:
+        skill_dir = skill_file.parent
         skill_data = parse_skill(skill_file)
         if not skill_data:
             continue
 
+        skill_data['skill_rel_path'] = str(skill_dir.relative_to(skills_dir))
         api_refs = _extract_api_refs(skill_data)
         mcp_refs = _extract_mcp_refs(skill_data)
         skill_data['api_refs'] = api_refs
@@ -231,3 +245,65 @@ def calculate_stats(apis: List[Dict], mcp_servers: Optional[List[Dict]] = None) 
         'skill_count': total_skills,
         'categories': sorted(categories),
     }
+
+
+def discover_terraform(repo_root: Path) -> List[Dict]:
+    """Discover Terraform provider documentation.
+
+    Scans ``terraform/<provider>/{resources,data-sources}/*.md`` and returns
+    a list of provider dicts, each containing:
+    - ``slug``: provider directory name
+    - ``name``: human-friendly provider name
+    - ``docs``: list of parsed doc dicts (from parse_terraform_doc)
+    - ``nav_tree``: nested dict {subcategory: {doc_type: [doc, ...]}} for sidebar
+    """
+    terraform_dir = repo_root / 'terraform'
+    if not terraform_dir.exists():
+        return []
+
+    print("\n🔍 Scanning for Terraform providers...")
+    providers: List[Dict] = []
+
+    for provider_dir in sorted(terraform_dir.iterdir()):
+        if not provider_dir.is_dir() or provider_dir.name.startswith('.'):
+            continue
+
+        docs: List[Dict] = []
+        for doc_type_dir in sorted(provider_dir.iterdir()):
+            if not doc_type_dir.is_dir():
+                continue
+            if doc_type_dir.name not in ('resources', 'data-sources', 'guides'):
+                continue
+            for md_file in sorted(doc_type_dir.glob('*.md')):
+                doc = parse_terraform_doc(md_file)
+                if doc:
+                    docs.append(doc)
+
+        if not docs:
+            continue
+
+        # Build navigation tree: subcategory -> doc_type -> [docs]
+        nav_tree: Dict[str, Dict[str, List[Dict]]] = {}
+        # Build inverted tree: doc_type -> subcategory -> [docs]
+        nav_tree_by_type: Dict[str, Dict[str, List[Dict]]] = {}
+        for doc in docs:
+            subcat = doc['subcategory']
+            dtype = doc['doc_type']
+            nav_tree.setdefault(subcat, {}).setdefault(dtype, []).append(doc)
+            nav_tree_by_type.setdefault(dtype, {}).setdefault(subcat, []).append(doc)
+
+        provider_name = provider_dir.name.replace('-', ' ').title()
+        provider = {
+            'slug': provider_dir.name,
+            'name': provider_name,
+            'docs': docs,
+            'nav_tree': nav_tree,
+            'nav_tree_by_type': nav_tree_by_type,
+            'doc_count': len(docs),
+        }
+        providers.append(provider)
+        print(f"  🏗️  Provider: {provider_name} ({len(docs)} docs)")
+
+    if providers:
+        print(f"✅ Discovered {len(providers)} Terraform provider(s)")
+    return providers

@@ -4104,7 +4104,7 @@ paths:
                                 - enabled
                               flexGateway:
                                 type: object
-                                description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                                description: 'Whether Anypoint Omni Gateway is available to the organization.'
                                 properties:
                                   enabled:
                                     type: boolean
@@ -5995,7 +5995,7 @@ paths:
                         - enabled
                       flexGateway:
                         type: object
-                        description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                        description: 'Whether Anypoint Omni Gateway is available to the organization.'
                         properties:
                           enabled:
                             type: boolean
@@ -7019,7 +7019,7 @@ paths:
                       - enabled
                     flexGateway:
                       type: object
-                      description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                      description: 'Whether Anypoint Omni Gateway is available to the organization.'
                       properties:
                         enabled:
                           type: boolean
@@ -8028,7 +8028,7 @@ paths:
                         - enabled
                       flexGateway:
                         type: object
-                        description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                        description: 'Whether Anypoint Omni Gateway is available to the organization.'
                         properties:
                           enabled:
                             type: boolean
@@ -18327,7 +18327,7 @@ paths:
                                   - enabled
                                 flexGateway:
                                   type: object
-                                  description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                                  description: 'Whether Anypoint Omni Gateway is available to the organization.'
                                   properties:
                                     enabled:
                                       type: boolean
@@ -19683,7 +19683,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -20892,7 +20892,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -23027,7 +23027,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -26082,7 +26082,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -27228,7 +27228,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -28624,7 +28624,7 @@ paths:
                                   - enabled
                                 flexGateway:
                                   type: object
-                                  description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                                  description: 'Whether Anypoint Omni Gateway is available to the organization.'
                                   properties:
                                     enabled:
                                       type: boolean
@@ -29920,7 +29920,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean
@@ -31486,7 +31486,7 @@ paths:
                             - enabled
                           flexGateway:
                             type: object
-                            description: 'Whether Anypoint Flex Gateway is available to the organization.'
+                            description: 'Whether Anypoint Omni Gateway is available to the organization.'
                             properties:
                               enabled:
                                 type: boolean

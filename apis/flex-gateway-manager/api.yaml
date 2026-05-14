@@ -1,8 +1,8 @@
 openapi: 3.0.1
 info:
-  title: Flex Gateway Manager API
+  title: Omni Gateway Manager API
   version: 0.1.0
-  description: Register, manage, and monitor Flex Gateway instances. Configure runtime settings and track gateway status.
+  description: Register, manage, and monitor Omni Gateway instances. Configure runtime settings and track gateway status.
 servers:
 - url: https://anypoint.mulesoft.com/gatewaymanager/api/v1
 - url: https://{region}.anypoint.mulesoft.com/gatewaymanager/api/v1
@@ -67,7 +67,7 @@ paths:
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-configuration:
     get:
       operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
-      description: Get the runtime configuration of a Managed or Self-Managed Flex Gateway
+      description: Get the runtime configuration of a Managed or Self-Managed Omni Gateway
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'

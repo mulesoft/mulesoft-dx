@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Overview
-The Anypoint Flex Gateway Manager API provides endpoints to manage Flex Gateways registered in Anypoint Platform. It exposes all CRUD (Create, Read, Update, Delete) operations on Anypoint Managed Flex Gateways (Flex Gateways deployed to Cloudhub 2.0) through this RESTful API.
+The Anypoint Omni Gateway Manager API provides endpoints to manage Omni Gateways registered in Anypoint Platform. It exposes all CRUD (Create, Read, Update, Delete) operations on Anypoint Managed Omni Gateways (Omni Gateways deployed to Cloudhub 2.0) through this RESTful API.
 
 ## Base URL
 The API is accessible through the Anypoint Platform base URL in `/gatewaymanager` path. For example:
@@ -55,18 +55,18 @@ All API requests require authentication using Anypoint Platform credentials.
 
 ### Get Runtime Configuration
 - **Endpoint**: `GET /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-configuration`
-- **Description**: Retrieves the runtime configuration of a Managed or Self-Managed Flex Gateway
+- **Description**: Retrieves the runtime configuration of a Managed or Self-Managed Omni Gateway
 - **Path Parameters**:
   - `gatewayId`: UUID of the gateway
 
 ### Upsert Runtime Configuration
 - **Endpoint**: `PUT /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-configuration`
-- **Description**: Creates or updates the runtime configuration of a Managed or Self-Managed Flex Gateway
+- **Description**: Creates or updates the runtime configuration of a Managed or Self-Managed Omni Gateway
 - **Path Parameters**:
   - `gatewayId`: UUID of the gateway
 - **Request Body**: A JSON object with a required `configuration` property. The shape of `configuration` depends on the gateway type and runtime version (e.g. 1.12.1).
 
-**Configuration overview (Flex Gateway 1.12.1)**
+**Configuration overview (Omni Gateway 1.12.1)**
 
 - **Logging**: Forward logs to Anypoint (`logging.anypoint.forwardLogs`), runtime log level (`logging.runtimeLogs.logLevel`: `debug`, `info`, `warn`, `error`, `fatal`). Self-managed gateways additionally support Fluent Bit–based `logging.outputs` (e.g. stdout, file, http, kafka, elasticsearch) and output toggles for access/runtime logs.
 - **Tracing**: Enable/disable tracing, provider (`anypoint` for both; self-managed also supports `opentelemetry`), sampling (e.g. `overall` 0–100), and optional labels (literal, request header, or environment variable with name and default value).
@@ -77,7 +77,7 @@ All API requests require authentication using Anypoint Platform credentials.
 - **Routing**: `rewriteHostHeader` to control host header rewriting on upstream requests.
 - **Probe** (self-managed only): Optional health probe with `path`, `port`, and `enabled`.
 
-**Example — Managed Flex Gateway (1.12.1)**
+**Example — Managed Omni Gateway (1.12.1)**
 
 ```json
 {
@@ -102,7 +102,7 @@ All API requests require authentication using Anypoint Platform credentials.
 }
 ```
 
-**Example — Self-Managed Flex Gateway (1.12.1)**
+**Example — Self-Managed Omni Gateway (1.12.1)**
 
 ```json
 {

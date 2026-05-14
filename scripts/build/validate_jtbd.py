@@ -317,17 +317,24 @@ class JobValidator:
             else:
                 print(f"  ✅ Steps are numbered sequentially (1-{len(step_headers)})")
 
-        # Step-based skill: at least 1 YAML step required
-        if len(steps) == 0:
-            self.errors.append(
-                "No YAML step blocks found! "
-                "Jobs must have at least 1 step defined in a YAML code block with 'api' and 'operationId' fields."
-            )
-            print(f"  ❌ {self.errors[-1]}")
-            self.print_summary()
-            return False
+        # Skills under skills/mule-development/ are not API-step-based — they
+        # use ## Step N: headers for prose workflow phases, not for YAML
+        # api/operationId blocks — so skip the YAML-block requirement there.
+        is_mule_development = 'skills/mule-development/' in self.job_file.as_posix()
 
-        print("  ✅ At least 1 YAML step is defined")
+        if len(steps) == 0:
+            if is_mule_development:
+                print("  ℹ️  No YAML step blocks found (mule-development skill — skipped)")
+            else:
+                self.errors.append(
+                    "No YAML step blocks found! "
+                    "Jobs must have at least 1 step defined in a YAML code block with 'api' and 'operationId' fields."
+                )
+                print(f"  ❌ {self.errors[-1]}")
+                self.print_summary()
+                return False
+        else:
+            print("  ✅ At least 1 YAML step is defined")
 
         # Check that number of headers matches number of YAML blocks
         if step_headers and steps:
@@ -418,7 +425,7 @@ def main():
         print("  ✓ At least 1 step header is defined (## Step 1:, ## Step 2:, etc.)")
         print("  ✓ Step headers are numbered sequentially")
         print("  ✓ Step header count matches YAML block count")
-        print("  ✓ At least 1 job step is defined (YAML block)")
+        print("  ✓ At least 1 job step is defined (YAML block) — except for skills/mule-development/")
         print("  ✓ Each step has a valid YAML code block with required fields")
         print("  ✓ API URN points to an existing folder")
         print("  ✓ OperationId exists in the referenced API spec")

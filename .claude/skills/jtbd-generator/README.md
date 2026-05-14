@@ -10,7 +10,7 @@ The JTBD Generator takes simple step descriptions like:
 Prerequisites: user logged in, API asset in exchange
 Steps:
 1. Search assets in Exchange
-2. List Flex Gateway targets
+2. List Omni Gateway targets
 3. Create API in API Manager pointing to asset and gateway
 ```
 
@@ -209,10 +209,10 @@ yaml_block = jtbd_builder.build_step_yaml(
 # Build complete JTBD
 jtbd_content = jtbd_builder.build_complete_jtbd(
     name='deploy-api-with-flex-gateway',
-    description='Deploy API instance to Flex Gateway...',
-    title='Deploy API with Flex Gateway',
+    description='Deploy API instance to Omni Gateway...',
+    title='Deploy API with Omni Gateway',
     overview='Deploys an API instance...',
-    what_youll_build='An API instance connected to your Flex Gateway',
+    what_youll_build='An API instance connected to your Omni Gateway',
     prerequisites=['Authentication', 'Resources'],
     steps=[...]
 )
@@ -288,7 +288,7 @@ outputs:
 ```
 Steps:
 1. Search assets in Exchange
-2. List Flex Gateway targets
+2. List Omni Gateway targets
 3. Create API in API Manager
 ```
 
@@ -341,7 +341,7 @@ cp -r skills/deploy-api-with-flex-gateway-from-exchange \
 ```
 
 Now Claude can execute the workflow when you say:
-- "Deploy my API to Flex Gateway"
+- "Deploy my API to Omni Gateway"
 - "Set up an API with rate limiting"
 - "Promote this API to production"
 
@@ -361,7 +361,7 @@ The skill works with all APIs in the repository:
 - **Access Management** (identity, orgs, environments)
 - **API Manager** (APIs, policies, tiers, contracts)
 - **Exchange Experience** (asset discovery, publishing)
-- **Flex Gateway Manager** (gateway targets, configuration)
+- **Omni Gateway Manager** (gateway targets, configuration)
 - **API Designer Experience** (design-time operations)
 - **API Platform** (repository operations)
 - **Runtime Manager** (CloudHub deployments)

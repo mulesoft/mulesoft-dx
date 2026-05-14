@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 3 helper — search Exchange for MuleSoft connector candidates and
 # print the ranked list to stdout. No pin file is written; no "winner"
@@ -64,21 +64,32 @@ fi
 # (Sandbox, Production, ...). In some automation contexts ANYPOINT_ENV is
 # set to a deployment short-name (e.g., "test1") which the CLI does not
 # recognize. Exchange search is org-scoped, so unset it for this call only.
-TMPDIR_="$(mktemp -d)"
+mkdir -p tmp
+TMPDIR_="$(mktemp -d tmp/mule-dev-exchange-XXXXXX)"
 trap 'rm -rf "$TMPDIR_"' EXIT
 
 # Fetch two pages in parallel. Page A (offset 0) is authoritative — if it
 # fails we bail out. Page B (offset 200) is additive — if it fails, log a
 # warning and proceed with Page A alone.
-(env -u ANYPOINT_ENV anypoint-cli-v4 exchange asset list \
-        "$SEARCH_TERM" --limit 200 --offset 0 --output json >"$TMPDIR_/page-a.json" 2>&1) &
-(env -u ANYPOINT_ENV anypoint-cli-v4 exchange asset list \
-        "$SEARCH_TERM" --limit 200 --offset 200 --output json >"$TMPDIR_/page-b.json" 2>&1) &
+#
+# stderr is redirected to a side-file (not merged into the JSON file with
+# `2>&1`). Node prints DEP0040 punycode warnings to stderr at startup; if
+# those land in the page file, jq's `type == "array"` check fails and the
+# script falsely reports "exchange asset list failed" while dumping the
+# (warning-prefixed) raw payload. NODE_NO_WARNINGS suppresses the warning
+# at the source for these two CLI invocations only.
+(NODE_NO_WARNINGS=1 env -u ANYPOINT_ENV anypoint-cli-v4 exchange asset list \
+        "$SEARCH_TERM" --limit 200 --offset 0 --output json \
+        >"$TMPDIR_/page-a.json" 2>"$TMPDIR_/page-a.err") &
+(NODE_NO_WARNINGS=1 env -u ANYPOINT_ENV anypoint-cli-v4 exchange asset list \
+        "$SEARCH_TERM" --limit 200 --offset 200 --output json \
+        >"$TMPDIR_/page-b.json" 2>"$TMPDIR_/page-b.err") &
 wait
 
 if ! jq -e 'type == "array"' "$TMPDIR_/page-a.json" >/dev/null 2>&1; then
     echo "exchange asset list failed for '$SEARCH_TERM' (page 1):" >&2
-    cat "$TMPDIR_/page-a.json" >&2
+    [ -s "$TMPDIR_/page-a.err" ] && cat "$TMPDIR_/page-a.err" >&2
+    [ -s "$TMPDIR_/page-a.json" ] && cat "$TMPDIR_/page-a.json" >&2
     exit 1
 fi
 
@@ -92,7 +103,7 @@ RANKED=$(jq -s --arg search "$SEARCH_TERM" '
 
   ($search | ascii_downcase | split("-") | map(select(. != "" and . != "mule" and . != "connector"))) as $search_tokens |
 
-  [$all[] | select(.type == "extension")] |
+  [$all[] | select(.type == "extension") | select(.version | test("-(SNAPSHOT|RC|alpha|beta|M[0-9])") | not)] |
 
   group_by([.groupId, .assetId]) |
   map({
@@ -140,4 +151,17 @@ fi
 # A single row → the agent acknowledges it and picks. Multiple rows → the
 # agent must reason about which matches the user's intent, and escalate
 # to AskUserQuestion if the answer isn't obvious from the names alone.
-printf '%s' "$RANKED" | jq -r '.[] | "\(.groupId):\(.assetId):\(.version)"'
+OUTPUT=$(printf '%s' "$RANKED" | jq -r '.[] | "\(.groupId):\(.assetId):\(.version)"')
+
+# ── BEGIN WORKAROUND: HTTP connector 1.11.2 broken POM on Exchange ──────
+# HTTP connector 1.11.2 was published to all Exchange environments with a
+# stripped POM (no <parent>, no <dependencies>). This means Maven cannot
+# resolve the transitive mule-sockets-connector dep that HTTP needs at
+# runtime (TcpClientSocketProperties). Adding sockets explicitly causes a
+# split-package conflict. Net result: 1.11.2 is unusable.
+# Pin to 1.11.1 (last known good) until MuleSoft publishes a fix.
+# Tracked: remove this block once 1.11.3+ is available with a correct POM.
+OUTPUT=$(printf '%s\n' "$OUTPUT" | sed 's|mule-http-connector:1\.11\.2$|mule-http-connector:1.11.1|')
+# ── END WORKAROUND: HTTP connector 1.11.2 broken POM on Exchange ────────
+
+printf '%s\n' "$OUTPUT"

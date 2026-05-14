@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 6.5 helper — if any of the selected connection providers is an OAuth
 # flow, ensure the HTTP connector is present in the project's pom.xml.
@@ -38,7 +38,7 @@
 #   0  no OAuth, or HTTP already present, or HTTP inserted successfully
 #   1  OAuth detected but HTTP could not be resolved or pom.xml edit failed
 #   2  bad invocation (missing --project or no providers)
-set -u
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR=""

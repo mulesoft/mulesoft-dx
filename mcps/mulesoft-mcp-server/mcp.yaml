@@ -1,0 +1,1186 @@
+capabilities:
+  tools:
+    listChanged: true
+transport:
+  kind: stdio
+  command: npx mulesoft-mcp-server start
+tools:
+  - name: create_mule_project
+    description: Create an integration project.
+    inputSchema:
+      type: object
+      properties:
+        projectPath:
+          type: string
+          description: >-
+            Optional directory to create project in (defaults to current
+            workspace)
+        projectName:
+          type: string
+          description: Optional name for the project (defaults to a generated name)
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: generate_mule_flow
+    description: >-
+      Generate, modify, or enhance Mule flows or subflows. Always Use this tool
+      for ANY request involving flow/sub-flow changes or modifications,
+      including: Java method calls, logging, Salesforce operations, adding
+      connectors, transformations, or any flow/sub-flow modifications.
+    inputSchema:
+      type: object
+      properties:
+        projectPath:
+          type: string
+          description: >-
+            Path to the existing Mule project directory where the flow should be
+            modified
+        projectXmlPath:
+          type: string
+          description: >-
+            Path to the existing Mule project xml file where the flow should be
+            modified
+        originalPrompt:
+          type: string
+          description: >-
+            MUST be the original user query without any modifications - use for
+            requests like: updating flows, adding Java methods, logging,
+            Salesforce operations, connectors, or any flow changes
+        xmlContent:
+          type: string
+          description: >-
+            Provide all relevant flow or sub-flow sections from the app.xml that
+            are necessary to understand and fulfill the user request. This
+            applies to both creating a new flow and updating an existing one. If
+            the request depends on or references multiple flows or sub-flows
+            (e.g., creating a new flow that calls an existing flow via
+            flow-ref), include ALL those relevant sections together in a single
+            call for proper context. If a single flow is too large, include only
+            the specific valid section or sub-section requested by the user,
+            wrapped inside <flow>...</flow>. Exclude connector configurations
+            and global elements. For new projects with no existing XML content,
+            provide an empty string.
+        globalConfigPath:
+          type: string
+          description: >-
+            FILE PATH (not file contents) to the existing global.xml or
+            connector config xml file. MUST provide the full path to the file if
+            it exists (e.g., /path/to/project/src/main/mule/global.xml). If the
+            file exists in the project, you MUST provide its path. If not
+            provided, will automatically look for src/main/mule/global.xml in
+            the project directory
+        projectPomPath:
+          type: string
+          description: >-
+            FILE PATH (not file contents) to the existing pom.xml file. MUST
+            provide the full path to the file if it exists (e.g.,
+            /path/to/project/pom.xml). If the file exists in the project, you
+            MUST provide its path. If not provided, will automatically look for
+            pom.xml in the project root directory
+        connectorGavs:
+          type: array
+          items:
+            type: string
+          description: >-
+            Optional list of connector coordinates in groupId:assetId:version
+            format (e.g.,
+            ["com.mulesoft.connectors:mule-salesforce-connector:10.18.0"]). Use
+            when connectors are pre-determined from a technical summary.
+      required:
+        - projectPath
+        - projectXmlPath
+        - originalPrompt
+        - xmlContent
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: create_mcp_server
+    description: >-
+      Create a MuleSoft MCP server. This tool handles requests for creating MCP
+      servers using the Anypoint Connector for MCP (MCP Connector).
+      Prerequisite: Install the MCP Connector.
+    inputSchema:
+      type: object
+      properties:
+        projectPath:
+          type: string
+          description: Path where the Mule project folder is located.
+        projectXmlPath:
+          type: string
+          description: Path where the Mule project XML file is located.
+        originalPrompt:
+          type: string
+          description: >-
+            The original user input without modifications. Use this input for
+            requests to update a flow, add a Java method, logging, and any other
+            flow changes.
+      required:
+        - projectPath
+        - projectXmlPath
+        - originalPrompt
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: deploy_mule_application
+    description: >-
+      Deploy your application to CloudHub 2.0 or Runtime Fabric and run it. You
+      can deploy from a local project or Anypoint Exchange asset. This tool
+      supports security, high availability, and performance optimization
+      deployment options.
+    inputSchema:
+      type: object
+      properties:
+        projectPath:
+          type: string
+          description: Optional. Path to Maven project root directory.
+        groupId:
+          type: string
+          description: Optional. Group ID of the asset in Anypoint Exchange.
+        artifactId:
+          type: string
+          description: Optional. Artifact ID of the asset in Anypoint Exchange.
+        version:
+          type: string
+          description: Optional. Version of the asset or application.
+        organizationId:
+          type: string
+          description: Optional. The ID of the organization to deploy the application to.
+        secure:
+          type: boolean
+          default: false
+          description: Optional. Enables enhanced security features.
+        highAvailability:
+          type: boolean
+          default: false
+          description: Optional. Enables high availability features.
+        performanceOptimization:
+          type: boolean
+          default: false
+          description: Optional. Enable performance optimization features.
+        minimumReplicas:
+          type: number
+          default: 1
+          description: >-
+            Optional. Minimum number of replicas if high availability or
+            performance optimization is enabled. Minimum is 1.
+        appName:
+          type: string
+          description: Optional. The name of the application you want to deploy.
+        environmentName:
+          type: string
+          description: Optional. Name of the environment to deploy the app to.
+        deploymentTargetName:
+          type: string
+          description: Optional. Name of the deployment target.
+        runtimeVersion:
+          type: string
+          description: Optional. Runtime version to use.
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: list_applications
+    description: >-
+      Get information about all applications in the environment you specify. You
+      can also specify an optional deployment name. Results are sorted by last
+      update date and time, in descending order.
+    inputSchema:
+      type: object
+      properties:
+        environmentName:
+          type: string
+          description: Name of the environment to list applications from.
+        appName:
+          type: string
+          description: Optional. Specify an application you want to search for.
+        organizationId:
+          type: string
+          description: Optional. The ID of the organization to list applications from.
+        page:
+          type: number
+          default: 1
+          description: The page number of the result.
+        includeCpuMetrics:
+          type: boolean
+          default: false
+          description: >-
+            Set value to true to include CPU metrics when searching for an
+            application.
+        includeHeapMetrics:
+          type: boolean
+          default: false
+          description: >-
+            Set value to true to include used and total heap metrics when
+            searching for an application.
+        includeLogs:
+          type: boolean
+          default: false
+          description: >-
+            Set value to true to include logs from searching for an application.
+            Maximum 500 entries.
+        logLevel:
+          type: string
+          enum:
+            - INFO
+            - WARN
+            - ERROR
+            - DEBUG
+          default: ERROR
+          description: >-
+            If Include Log is true, this parameter contains the level of log
+            detail. Valid values are INFO, DEBUG, WARN, ERROR. Default is ERROR.
+        logsPage:
+          type: number
+          default: 1
+          description: Page number of log. Maximum is 20. Default is 1.
+        timeFrame:
+          type: string
+          enum:
+            - 5m
+            - 15m
+            - 30m
+            - 1h
+            - 3h
+            - 6h
+            - 12h
+            - 24h
+            - 3d
+            - 5d
+            - 7d
+            - 15d
+            - 30d
+          default: 30m
+          description: >-
+            Optional. If Include CPU Metrics, Include Help Metrics Or Include
+            Logs is true, then this parameter contains the timeframe for
+            metrics. Valid values are 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h, 3d,
+            5d, 7d, 15d, and 30d. The default value is 30m.
+      required:
+        - environmentName
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: update_mule_application
+    description: >-
+      Update a Mule application deployed to CloudHub 2.0 or Runtime Fabric.
+      Update runtime version, configuration, and other application settings.
+    inputSchema:
+      type: object
+      properties:
+        applicationId:
+          type: string
+          description: >-
+            The ID of the application to update with the latest Mule runtime
+            patch release.
+        environmentId:
+          type: string
+          description: The ID of the environment where the application is deployed.
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization where the application is
+            deployed.
+        runtimeVersion:
+          type: string
+          description: 'Optional. Mule runtime version to use. For example, 4.9.4:2e-java17.'
+        hasPersistentObjectStore:
+          type: boolean
+          description: Optional. Whether to enable persistent object store.
+        replicaSize:
+          type: string
+          enum:
+            - mule.nano
+            - mule.micro
+            - mule.micro.mem
+            - mule.small
+            - mule.medium
+            - mule.medium.mem
+            - mule.large
+            - mule.large.mem
+            - mule.xlarge
+            - mule.xlarge.mem
+            - mule.2xlarge
+            - '0.1'
+            - '0.2'
+            - '0.5'
+            - '1'
+            - '1.5'
+            - '2'
+            - '2.5'
+            - '3'
+            - '3.5'
+            - '4'
+          description: >-
+            Optional. Replica size for CloudHub 2.0 applications. Express size
+            in vCores or instance type size.
+        cpuReserved:
+          type: string
+          description: 'Optional. Reserved vCPUs for the application. For example, 1.'
+        cpuLimit:
+          type: string
+          description: 'Optional. Maximum vCPUs for the application. For example, 2.'
+        memory:
+          type: string
+          description: >-
+            Optional. Memory allocation for the allocation in GB. For example,
+            1.
+        replicas:
+          type: number
+          description: Optional. Number of replicas.
+        minReplicas:
+          type: number
+          description: >-
+            Optional. If hasHighAvailability=true or
+            hasPerformanceOptimization=true, this value is the minimum number of
+            replicas.
+        maxReplicas:
+          type: number
+          description: >-
+            Optional. If hasHighAvailability=true or
+            hasPerformanceOptimization=true, this value is the maximum number of
+            replicas.
+        hasAutoscaling:
+          type: boolean
+          description: Optional. Whether to enable autoscaling.
+        hasTracing:
+          type: boolean
+          description: Optional. Whether to enable autoscaling.
+        enforceDeployingReplicasAcrossNodes:
+          type: boolean
+          description: >-
+            Optional. Whether to enforce deploying replicas across nodes
+            (Runtime Fabric only).
+        deploymentModel:
+          type: string
+          enum:
+            - rolling
+            - recreate
+          description: >-
+            Optional. The deployment strategy for application updates. You can
+            incrementally update replicas or terminate replicas before
+            redeployment. Valid values are rolling or recreate.
+        hasClustering:
+          type: boolean
+          description: Optional. Whether to enable clustering for the application.
+        stopApplication:
+          type: boolean
+          description: Optional. Whether to stop the application
+        startApplication:
+          type: boolean
+          description: Optional. Whether to start the application
+        hasHighAvailability:
+          type: boolean
+          description: Optional. Whether to enable high availability for the application.
+        hasPerformanceOptimization:
+          type: boolean
+          description: Optional. Whether to enable performance optimization
+        isSecure:
+          type: boolean
+          description: Optional. Whether to enable advanced security features.
+      required:
+        - applicationId
+        - environmentId
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: run_local_mule_application
+    description: Deploy and run your application locally.
+    inputSchema:
+      type: object
+      properties:
+        projectPath:
+          type: string
+          description: Path to the Mule project directory to run locally
+        javaHome:
+          type: string
+          description: >-
+            JAVA_HOME from JDK from "AnypointCodeBuilder" (grep for exact name)
+            installation if exists. Installation is usually located in user home
+            directory. If installation does not exist, get user's java_home. If
+            multiple JDKs exist, choose the latest one that matches
+            javaSpecificationVersions in mule-artifacts.json. If JDK version
+            does not match any of the versions in mule-artifacts.json, return 
+            'No JAVA_HOME found. Don't retry.'
+      required:
+        - projectPath
+        - javaHome
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: create_install_runtime_fabric
+    description: >-
+      Create and install a new Runtime Fabric on your own kubernetes cluster.
+      This tool creates the fabric target, installs it via helm, and associates
+      it with an environment.
+    inputSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Required. The name of the Runtime Fabric cluster.
+        environmentName:
+          type: string
+          description: >-
+            Required. The name of the environment to associate with the Runtime
+            Fabric.
+        muleLicense:
+          type: string
+          description: >-
+            Required. The Mule license key for the Runtime Fabric installation.
+            Must be Base64 encoded.
+        namespace:
+          type: string
+          default: rtf
+          description: >-
+            Optional. The kubernetes namespace to install the Runtime Fabric in.
+            Defaults to rtf
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization. Defaults to the organization
+            of the current session.
+        vendor:
+          type: string
+          enum:
+            - gravitational
+            - rtfc
+            - aks
+            - eks
+            - gke
+            - eksa
+            - openshift
+            - rancher
+            - ack
+            - tanzu
+          default: eks
+          description: Optional. The Kubernetes vendor (defaults to "eks".
+        version:
+          type: string
+          description: Optional. The desired agent version of the Runtime Fabric.
+        channel:
+          type: string
+          description: Optional. The desired release channel to subscribe to.
+        additionalProperties:
+          type: object
+          additionalProperties: {}
+          description: Optional. Additional properties for the Runtime Fabric.
+      required:
+        - name
+        - environmentName
+        - muleLicense
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: delete_runtime_fabric
+    description: >-
+      Delete a Runtime Fabric target. Applications must be deleted before
+      deleting the Runtime Fabric unless force is set to true.
+    inputSchema:
+      type: object
+      properties:
+        fabricId:
+          type: string
+          description: Required. The ID of the Runtime Fabric to delete.
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization. Defaults to the organization
+            of the current session.
+        force:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether to force delete even if there are deployments.
+            Defaults to false.
+        cleanupCluster:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether to clean up the Kubernetes cluster after deletion.
+            Defaults to false.
+        namespace:
+          type: string
+          description: >-
+            Optional. The Kubernetes namespace to clean up if cleanupCluster is
+            true.
+      required:
+        - fabricId
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: upgrade_runtime_fabric
+    description: Upgrade a Runtime Fabric to a new agent version.
+    inputSchema:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: >-
+            Required. The kubernetes namespace where the Runtime Fabric is
+            installed.
+        agentVersion:
+          type: string
+          description: Required. The desired agent version of the Runtime Fabric.
+      required:
+        - namespace
+        - agentVersion
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: create_and_manage_assets
+    description: 'Create, update, and delete assets in Anypoint Exchange.'
+    inputSchema:
+      type: object
+      properties:
+        operation:
+          type: string
+          description: >-
+            The type of operation. Valid values are 'Create', 'Update' and
+            'Delete'.
+        groupId:
+          type: string
+          description: Group ID of the asset in Anypoint Exchange.
+        assetId:
+          type: string
+          description: The ID of the asset.
+        version:
+          type: string
+          description: 'Version of the asset. Example: 1.4.0. Required for asset creation.'
+        organizationId:
+          type: string
+          description: >-
+            The ID of the org where the asset will be published. Optional for
+            asset creation.
+        classifier:
+          type: string
+          description: >-
+            The type of asset. Valid values are: raml-fragment, raml, oas, wsdl,
+            http-api, custom, evented-api, graphql, mule-application,
+            mule-plugin. Required for asset creation.
+        name:
+          type: string
+          description: >-
+            The name of the asset. Required for asset creation. Optional for
+            asset update.
+        description:
+          type: string
+          description: 'Optional. The description of the asset to create, update.'
+        assetLink:
+          type: string
+          description: The URL of the asset. Required when creating wsdl or http assets.
+        apiVersion:
+          type: string
+          description: >-
+            The product version of API assets. Required when creating raml, oas,
+            wsdl or http assets.
+        main:
+          type: string
+          description: >-
+            The main file of the asset. Required when creating raml,
+            raml-fragment, oas and wsdl assets.
+        dependencies:
+          type: string
+          description: >-
+            A stringified array of dependency json objects, where each object
+            consists of groupId, assetId and version. Required when creating
+            api-group assets.
+        originalFormatVersion:
+          type: string
+          description: The version of the API spec format. Required for asset creation.
+        metadata:
+          type: string
+          description: >-
+            Optional. Stringified value of a design center json object
+            describing asset projectId, branchId and commitId. Used for asset
+            creation.
+        keywords:
+          type: string
+          description: >-
+            Optional. Stringified array of string values to save as an asset's
+            attributes. Can be used to find assets by using keywords in the
+            search. Used for asset creation.
+        tags:
+          type: string
+          description: >-
+            Optional. Stringified array of string values to save as an asset's
+            tags. Used for asset creation.
+        projectPath:
+          type: string
+          description: >-
+            The asset project file or project root directory. Required for raml,
+            raml-fragment, oas, evented-api, wsdl, mule-plugin, mule-application
+            asset creation.
+        assetPropertiesFilePath:
+          type: string
+          description: >-
+            Optional. The path to the asset properties file. File should be
+            pom.xml or it should have .pom extension. Used for asset creation.
+        deleteType:
+          type: string
+          description: >-
+            Optional. Type of deletion to be performed. Valid values are
+            'soft-delete' and 'hard-delete'; which mean logical and physical
+            deletion of the asset, respectively. Default value is soft-delete.
+            Used for asset deletion.
+        contactName:
+          type: string
+          description: Optional. New contact name of the asset. Used for asset update.
+        contactEmail:
+          type: string
+          description: Optional. New contact email of the asset. Used for asset update.
+        iconFile:
+          type: string
+          description: >-
+            Optional. Path to the icon file that need to be added to Asset. File
+            can be png, jpg or other image formats. Used for asset update.
+      required:
+        - operation
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: search_asset
+    description: >-
+      Search for an asset in an organization and Anypoint Exchange. Returns the
+      first asset in the user's own organization that matches input criteria. If
+      no assets are found in the user's organization, then the tool returns
+      assets in Anypoint Exchange that exactly or partially match searchQuery.
+    inputSchema:
+      type: object
+      properties:
+        searchQuery:
+          type: string
+          description: >-
+            The query with criteria for the search. Do not send this parameter
+            if nothing is specified.
+        assetFilters:
+          type: array
+          items:
+            type: string
+            enum:
+              - a2a
+              - agent-domain
+              - agent-network
+              - agent
+              - api-extension
+              - api-group
+              - app
+              - broker-group
+              - crate
+              - custom
+              - data-weave-library
+              - evented-api
+              - example
+              - connector
+              - graphql
+              - grpc-api
+              - http-api
+              - llm
+              - mcp
+              - policy-implementation
+              - policy
+              - raml-fragment
+              - rest-api
+              - rpa-activity-template
+              - rpa-process-template
+              - ruleset
+              - soap-api
+              - template
+          description: Show results that match the asset type filters.
+        statuses:
+          type: array
+          items:
+            type: string
+            enum:
+              - deprecated
+              - development
+              - published
+          description: >-
+            Show results that match the status. Valid values are deprecated,
+            development, or published. The status stable is same as published.
+        organizationId:
+          type: string
+          description: >-
+            The ID of the organization you want to search. The default value is
+            the ID of the user's organization from the current session.
+        maxResults:
+          type: number
+          minimum: 1
+          maximum: 10
+          default: 5
+          description: >-
+            The maximum number of assets to return in the result set. Range is
+            between 1-10. Do not send this parameter if nothing is specified.
+        sharedWithMe:
+          type: boolean
+          description: Include the assets that were shared with you.
+        sortCriteria:
+          type: string
+          enum:
+            - relevance
+            - version_boosted_relevancy
+            - name
+            - last_modified_date
+          default: relevance
+          description: >-
+            Sort search results by name, last_modified_date,
+            version_boosted_relevancy, or relevance. If any other value is
+            passed, default it to relevance.
+        ascending:
+          type: boolean
+          description: Sort results in ascending order.
+        exchangeScope:
+          type: string
+          enum:
+            - public
+            - private
+          default: private
+          description: >-
+            Determines whether to search MuleSoft's public portal or your
+            organization's private Exchange. Default value is private.
+        minMuleVersion:
+          type: string
+          description: The minimum Mule Runtime version to filter the results by.
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: get_platform_insights
+    description: >-
+      See how your organization leverages the Anypoint Platform through usage
+      and operational insights. These include:
+
+      - Usage trends for apps, such as flow count, message counts, and data
+      throughput by business group and environment. Usage trends are for the
+      current month. If it's early in the month, you get usage for the last full
+      month.
+
+      - API and app call volume across consumers for last 7 days.
+
+      - API and app performance metrics such as errors and latency for last 7
+      days.
+    inputSchema:
+      type: object
+      properties:
+        includeFlows:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether app usage trends for flows are included. The
+            default is false.
+        includeMessages:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether app usage trends for messages are included. The
+            default is false.
+        includeDataThroughput:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether app usage trends for data throughput are included.
+            The default is false.
+        includeErrorCount:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether error counts from apps and APIs are included. The
+            default is false.
+        includeCallVolume:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether call volume from apps and APIs are included. The
+            default is false.
+        includeLatency:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether P99 latency is included in the response time. The
+            default is false.
+        latencyPercentile:
+          type: string
+          default: p99
+          description: >-
+            Optional. If includeLatency=true, this parameter contains the
+            percentile to measure latency. Valid values are P99, P95, P90, and
+            P75. The default value is P99. If an invalid value is provided, P99
+            is used instead.
+        entityName:
+          type: string
+          description: Optional. Name of the application or API.
+        entityType:
+          type: string
+          enum:
+            - application
+            - api
+          default: application
+          description: Optional. Type of entity. Valid values are application and api.
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: get_reuse_metrics
+    description: >-
+      Get visibility into how assets are reused across your organization. Drive
+      efficiency, consistency, and cost savings by reducing duplication.
+      Includes sandbox and production environments. Metrics are a year-to-date
+      snapshot.
+    inputSchema:
+      type: object
+      properties:
+        includeReuseMetrics:
+          type: boolean
+          default: false
+          description: >-
+            Optional. Whether the output includes reuse metrics for
+            applications. The default is false.
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: manage_api_instance_policy
+    description: >-
+      Apply a new policy to an API instance and update an existing policy
+      configuration.
+    inputSchema:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization where instances reside. The
+            default value is the ID of the user's organization from the current
+            session.
+        environmentName:
+          type: string
+          description: >-
+            Optional. The name of the environment where instances reside. The
+            default is the environment for the organization specified in
+            organizationId.
+        apiInstanceId:
+          type: string
+          description: Id of the API instance.
+        operation:
+          type: string
+          enum:
+            - apply
+            - update
+          description: >-
+            Operation to perform on the API instance. Valid values are apply and
+            update.
+        policyId:
+          type: string
+          description: >-
+            ID of the policy to configure. Required to update an existing policy
+            configuration.
+        policyConfiguration:
+          type: string
+          description: Configuration object for the policy. Required to apply a new policy.
+        pointcutData:
+          type: string
+          description: >-
+            Optional. JSON array of pointcut objects for conditional policy
+            application. Each item may include methodRegex, uriTemplateRegex,
+            headers (name to regex), and host (regex). Example:
+            [{"methodRegex":".*","uriTemplateRegex":".*","headers":{"Content-Type":"application/json"},"host":"api\\.example\\.com"}]
+        groupId:
+          type: string
+          description: >-
+            Group ID of the policy asset in Anypoint Exchange. Required to apply
+            a new policy.
+        assetId:
+          type: string
+          description: >-
+            Asset ID of the policy asset in Anypoint Exchange. Required to apply
+            a new policy. Use list_api_instances tool with
+            includeAvailablePolicies=true and the apiInstanceId to get available
+            policy assets.
+        assetVersion:
+          type: string
+          description: >-
+            Version of the policy asset in Anypoint Exchange. Required to apply
+            a new policy.
+      required:
+        - apiInstanceId
+        - operation
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: list_api_instances
+    description: >-
+      Get information for instances in an environment. You can also filter by an
+      instance ID or label. Instance list is paginated (To get all intances or
+      count of instances iterate with the page parameter). Optionally include
+      applied or available policies. Available policies require an apiInstanceId
+      parameter.
+    inputSchema:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization where instances reside. The
+            default is the ID of the default organization.
+        environmentName:
+          type: string
+          description: >-
+            Optional. The name of the environment where instances reside. The
+            default is the name of the default environment for the organization
+            specified in organizationId.
+        apiInstanceId:
+          type: string
+          description: Optional. Required if includeAvailablePolicies=true.
+        apiInstanceLabel:
+          type: string
+          description: Optional. Label or name of the API instance.
+        page:
+          type: number
+          description: >-
+            Page number of the results. Each page contains information for up to
+            10 instances.
+        includeAppliedPolicies:
+          type: boolean
+          default: false
+          description: Whether to include applied policies in results.
+        includeAvailablePolicies:
+          type: boolean
+          default: false
+          description: >-
+            Whether to include available policies in results. Requires
+            apiInstanceId.
+      required:
+        - page
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: create_and_manage_api_instances
+    description: Create and configure API instances in Anypoint API Manager.
+    inputSchema:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          description: >-
+            Optional. The ID of the organization where the instance resides. The
+            default value is the ID of the user's organization from the current
+            session.
+        environmentName:
+          type: string
+          description: >-
+            Optional. The name of the environment where the instance resides.
+            The default is the environment for the organization specified in
+            organizationId.
+        apiInstanceId:
+          type: string
+          description: ' Optional. Required if you''re configuring an API instance.'
+        operation:
+          type: string
+          enum:
+            - create
+            - configureBasicEndpointInMuleApplication
+          description: >-
+            {"description":"Operation to perform on the API instance. Valid
+            values are create and
+            configureBasicEndpointInMuleApplication.","options":{"create":"Create
+            a new API instance","configureBasicEndpointInMuleApplication":"It
+            requires an apiInstanceId. Configure a basic endpoint api instance
+            in a Mule application project (Also known as API Autodiscovery)"}}
+        groupId:
+          type: string
+          description: Optional. Group ID of the API asset in Anypoint Exchange.
+        assetId:
+          type: string
+          description: >-
+            Required to create an API instance. ID of the API asset in Anypoint
+            Exchange. It may be provided as the name of the API. To request it
+            ask for the API Asset ID.
+        assetVersion:
+          type: string
+          description: Optional. Version of the API asset in Anypoint Exchange.
+        apiInstanceLabel:
+          type: string
+          description: Optional. Label or name of the API instance.
+        runtimeEngine:
+          type: string
+          enum:
+            - mule4
+          description: Optional. Engine the API instance runs on. Valid value is mule4.
+        muleProxyType:
+          type: string
+          enum:
+            - basicEndpoint
+          description: Optional. Valid value is basicEndpoint.
+        endpointUri:
+          type: string
+          description: >-
+            Optional if muleProxyType=basicEndpoint. Endpoint URI of the API
+            instance, also known as upstream.
+        consumerEndpoint:
+          type: string
+          description: Optional. Consumer endpoint of the API instance.
+        providerId:
+          type: string
+          description: Optional. Provider ID of the API instance.
+      required:
+        - operation
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: manage_flex_gateway_policy_project
+    description: >-
+      Provides instructions to the LLM on how to manage a Flex Gateway custom
+      policy project. Operations include creating the project, setting up the
+      configuration, building the project, publishing a development version of
+      the project, and publishing a release version of the project.
+      Prerequisites:
+      https://docs.mulesoft.com/pdk/latest/policies-pdk-prerequisites
+    inputSchema:
+      type: object
+      properties: {}
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: get_flex_gateway_policy_example
+    description: >-
+      Get a Flex Gateway policy example to help you configure your Rust source
+      code. You can get example policies that manipulate a request's header and
+      body, make HTTP and gRPC calls to external services, share data between
+      requests and responses, reject requests, perform sleep operations, and the
+      use of PDK's libraries.
+    inputSchema:
+      type: object
+      properties:
+        feature:
+          type: string
+          description: >-
+            Valid values are authentication (propagate authentication
+            information to other policies), body_manipulation (read or update
+            request/response body), body_stream (read request/response body by
+            chunks), cache (use the cache library to share data across workers),
+            contracts (authenticate and authorize against the management plane),
+            control_flow (stop request flow and generate a custom response),
+            cors (use the Cross-Origin Resource Sharing library), data_storage
+            (store and retrieve data using the Data Storage Library), dataweave
+            (define and evaluate custom DataWeave expressions), grpc (gRPC call
+            to external service), header_manipulation (CRUD for request/response
+            headers), http_call (HTTP call to external service), ip_filter
+            (allow or block requests based on IP addresses and CIDR ranges), jwt
+            (JSON Web Token parsing and validation), jwt_generate (generate JSON
+            Web Tokens), lock (synchronize workers), logger (print custom
+            messages), metadata (access metadata of the policy, api, and
+            environment), oauth2_token_introspection (validate OAuth2 tokens),
+            policy_violation (mark requests as violations in monitoring
+            traffic), rate_limiting (allow or block requests based on rate
+            limits), request_data (share data between requests and responses),
+            timer (perform sleep operations), worker_variable (share data across
+            requests of a single worker).
+      required:
+        - feature
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: create_api_spec_project
+    description: >-
+      Create and scaffold an API spec or fragment project. You can specify the
+      project name, location, and spec language (RAML, OAS, etc.).
+    inputSchema:
+      type: object
+      properties:
+        projectName:
+          type: string
+          description: >-
+            Unique name of the project. This name is used as the API spec title
+            in Exchange, the name of the spec file, and the name of the
+            project’s root directory. For example, if the project name is OAS
+            Example, the spec filename is oas-example.
+        projectPath:
+          type: string
+          description: >-
+            Parent location of the project. The default is the parent folder of
+            the current workspace. The project will reside in a subfolder of
+            projectPath.
+        isApiEnabledForTopicsAndActions:
+          type: boolean
+          description: >-
+            Whether the project is enabled for topics and agent actions through
+            MuleSoft for Agentforce: Topic Center. Only OAS 3.0 is supported for
+            topics and actions. The default is false.
+        language:
+          type: string
+          enum:
+            - oas
+            - oas-components
+            - raml
+            - raml-fragment
+            - evented-api
+            - json-schema
+            - avro-schema
+            - protobuf
+            - protobuf-library
+          description: >-
+            Language of the API spec. Valid values are oas (OpenAPI specs),
+            oas-components (OpenAPI fragments), raml, raml-fragment (libraries
+            or datatypes), json-schema (JSON schema fragments), avro-schema
+            (Avro schema fragments for AsyncAPI), evented-api (AsyncAPI),
+            protobuf (gRPC API spec), protobuf-library (gRPC Fragments).
+        languageVersion:
+          type: string
+          enum:
+            - '2.0'
+            - '3.0'
+            - '1.0'
+            - '0.8'
+            - '2.6'
+            - proto3
+          description: ' If language=oas or oas-components, valid values are 2.0 and 3.0. If language=raml or raml-fragment, valid values are 1.0 and 0.8. If language=evented-api, valid value is 2.6. If language is protobuf or protobuf-library, valid value is proto3.'
+        fragmentType:
+          type: string
+          enum:
+            - trait
+            - resource-type
+            - library
+            - overlay
+            - extension
+            - type
+            - user-documentation
+            - example
+            - annotation-type
+            - security-scheme
+          description: >-
+            Required when language=raml-fragment. Valid values are trait,
+            resource-type, library, overlay, extension, type,
+            user-documentation, example, annotation-type, and security-scheme.
+        format:
+          type: string
+          enum:
+            - json
+            - yaml
+            - avsc
+            - proto
+          description: >-
+            Optional. Valid values are json, yaml, avsc (Avro schema) and proto
+            (Protobuf). If language=oas or oas-components, the default is yaml.
+      required:
+        - projectName
+        - projectPath
+        - language
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+  - name: generate_api_spec
+    description: 'Generate, modify, or enhance an API spec using AI.'
+    inputSchema:
+      type: object
+      properties:
+        naturalLanguagePrompt:
+          type: string
+          description: Input to the Large Language Model (LLM).
+        language:
+          type: string
+          description: >-
+            Language of the API spec. Valid values are OAS (OpenAPI specs), RAML
+            and RAML Fragments (for API_FRAGMENT project types) or protobuf (for
+            gRPC specs).
+        languageVersion:
+          type: string
+          description: >-
+            Language version to use. If projectType property received is
+            API_FRAGMENT you must use "" as languageVersion.
+        projectType:
+          type: string
+          enum:
+            - API_SPEC
+            - API_FRAGMENT
+          description: Valid values are API_SPEC or API_FRAGMENT.
+        specSyntax:
+          type: string
+          description: >-
+            Syntax of the generated API spec. Some examples are json, yaml,
+            proto, RAML. If it's a API FRAGMENT use RAML as specSyntax.
+      required:
+        - naturalLanguagePrompt
+        - language
+        - languageVersion
+        - projectType
+        - specSyntax
+      additionalProperties: false
+      $schema: 'http://json-schema.org/draft-07/schema#'
+prompts: []
+resources: []
+resourceTemplates: []

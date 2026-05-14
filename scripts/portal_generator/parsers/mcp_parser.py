@@ -370,9 +370,11 @@ def _collect_xorigin_refs(tools: List[Dict]) -> Tuple[Set[str], Set[str]]:
 def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     """Parse an MCP server directory into a normalized record.
 
-    Requires ``server.json`` (MCP registry descriptor) and ``mcp.yaml``
-    (tool/prompt/resource definitions). ``exchange.json`` is optional and
-    contributes the ``tags`` list used by the homepage tag search.
+    Requires ``mcp.yaml`` (tool/prompt/resource definitions).
+    ``server.json`` (MCP registry descriptor) is optional — when absent the
+    MCP is treated as a **local** (stdio) server and display fields fall back
+    to ``exchange.json`` and the directory slug.  ``exchange.json`` is also
+    optional and contributes the ``tags`` list used by the homepage tag search.
     """
     mcp_yaml_path = mcp_dir / 'mcp.yaml'
     if not mcp_yaml_path.exists():
@@ -382,14 +384,14 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         return None
 
     server_json_path = mcp_dir / 'server.json'
-    if not server_json_path.exists():
-        return None
-    try:
-        server_data = json.loads(server_json_path.read_text(encoding='utf-8')) or {}
-    except (json.JSONDecodeError, OSError):
-        return None
-    if not isinstance(server_data, dict):
-        return None
+    server_data: Dict = {}
+    if server_json_path.exists():
+        try:
+            server_data = json.loads(server_json_path.read_text(encoding='utf-8')) or {}
+        except (json.JSONDecodeError, OSError):
+            server_data = {}
+        if not isinstance(server_data, dict):
+            server_data = {}
 
     exchange_path = mcp_dir / 'exchange.json'
     exchange: Dict = {}
@@ -401,13 +403,18 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
 
     slug = mcp_dir.name
 
-    # Display fields come straight from server.json (registry schema).
+    # Display fields: server.json (highest priority) → exchange.json → slug.
     name = (
         server_data.get('title')
         or server_data.get('name')
+        or exchange.get('name')
         or slug.replace('-', ' ').title() + ' MCP'
     )
-    version = str(server_data.get('version') or '')
+    version = str(
+        server_data.get('version')
+        or exchange.get('version')
+        or ''
+    )
     description_full = str(server_data.get('description') or '')
     description_short = (
         description_full[:200] + '...'
@@ -415,7 +422,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     )
     website_url = str(server_data.get('websiteUrl') or '')
 
-    # Tags now come from exchange.json. Accept either the OpenAPI-style
+    # Tags come from exchange.json. Accept either the OpenAPI-style
     # [{name, description}] list or a flat [string, string] list.
     raw_tags = exchange.get('tags') if isinstance(exchange, dict) else []
     tags: List[Dict] = []
@@ -432,23 +439,45 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
                 tags.append({'name': entry.strip(), 'description': ''})
                 tag_names.append(entry.strip())
 
-    # Servers + transport derive from server.json remotes[]. Each remote's
-    # ``url`` is the full endpoint — the try-it console posts to it directly.
+    # Servers + transport derive from server.json remotes[] (if present).
     servers = _normalize_remotes(server_data.get('remotes'))
     primary_remote = next(
         (s for s in servers if s.get('_transport_kind') == 'streamableHttp'),
         servers[0] if servers else None,
     )
+
+    # Transport: prefer server.json remotes; fall back to mcp.yaml transport.
+    yaml_transport = mcp_data.get('transport') or {}
+    yaml_transport_kind = _TRANSPORT_ALIASES.get(
+        str(yaml_transport.get('kind', '')),
+        str(yaml_transport.get('kind', '')),
+    )
+    transport_kind = (
+        str(primary_remote.get('_transport_kind', ''))
+        if primary_remote
+        else yaml_transport_kind
+    )
     transport = {
-        'kind': str(primary_remote.get('_transport_kind', '')) if primary_remote else '',
-        # Kept for backwards compatibility with the overview template; the
-        # full URL already includes any path so these are unused by the
-        # try-it console but still useful in view-only displays.
-        'path': '',
+        'kind': transport_kind,
+        'path': str(yaml_transport.get('path', '')),
         'sse_path': '',
         'messages_path': '',
         'instructions': '',
+        'command': str(yaml_transport.get('command', '')),
     }
+
+    # mcp_type: "local" when transport is stdio (no HTTP remotes), else "remote".
+    is_local = transport_kind == 'stdio'
+    mcp_type = 'local' if is_local else 'remote'
+
+    # Install info from exchange.json (local MCPs typically have an npm/pip install command).
+    raw_install = exchange.get('install') if isinstance(exchange, dict) else None
+    install: Optional[Dict] = None
+    if isinstance(raw_install, dict) and raw_install.get('command'):
+        install = {
+            'command': str(raw_install['command']),
+            'docs_url': str(raw_install.get('docs_url', '')),
+        }
 
     # Resources first so we can link tools' _meta.ui/resourceUri hints to
     # the right section anchor on the detail page.
@@ -523,6 +552,8 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'description': description_short,
         'full_description': description_full,
         'website_url': website_url,
+        'mcp_type': mcp_type,
+        'install': install,
         'servers': servers,
         'transport': transport,
         'capabilities': capabilities if isinstance(capabilities, dict) else {},

@@ -8445,6 +8445,18 @@ code[class*="language-"][class*="language-"] {
     border-color: rgba(163, 113, 247, 0.3);
 }
 
+.badge-mcp-local {
+    color: var(--color-teal-700, #0d9488);
+    background: var(--color-teal-50, #f0fdfa);
+    border-color: var(--color-teal-200, #99f6e4);
+}
+
+[data-theme="dark"] .badge-mcp-local {
+    color: #5eead4;
+    background: rgba(20, 184, 166, 0.15);
+    border-color: rgba(20, 184, 166, 0.3);
+}
+
 .badge-terraform-type {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-semibold);
@@ -8549,6 +8561,58 @@ code[class*="language-"][class*="language-"] {
 .mcp-capability-enabled {
     color: var(--color-text-secondary);
     font-style: italic;
+}
+
+/* MCP install command block */
+.mcp-install-block {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    padding: var(--space-sm) var(--space-md);
+}
+
+.mcp-install-command {
+    flex: 1;
+    margin: 0;
+    font-family: var(--font-mono, 'SF Mono', 'Fira Code', monospace);
+    font-size: var(--font-size-3);
+    color: var(--color-text-primary);
+    background: transparent;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.btn-copy-install {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-medium);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-copy-install:hover {
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+}
+
+.mcp-install-docs {
+    margin: var(--space-sm) 0 0;
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+}
+
+.mcp-install-docs a {
+    color: var(--color-text-link);
 }
 
 /* MCP tool "UI Resource" section — points at the resource section on the page. */

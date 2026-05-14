@@ -16,7 +16,11 @@
             {% if mcp.version %}
             <span class="card-version-badge card-version-list">{{ mcp.version }}</span>
             {% endif %}
+            {% if mcp.mcp_type == 'local' %}
+            <span class="badge badge-mcp-type badge-mcp-local">Local MCP</span>
+            {% else %}
             <span class="badge badge-mcp-type">MCP</span>
+            {% endif %}
             {% if mcp.tool_count > 0 %}
             <span class="badge badge-count">{{ mcp.tool_count }} tool{{ 's' if mcp.tool_count != 1 else '' }}</span>
             {% endif %}

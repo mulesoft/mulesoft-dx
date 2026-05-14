@@ -381,6 +381,30 @@ MINIMAL_MCP_EXCHANGE_JSON = json.dumps({
 })
 
 
+MINIMAL_TERRAFORM_MD = textwrap.dedent("""\
+    ---
+    page_title: "anypoint_api_instance Resource - terraform-provider-anypoint"
+    subcategory: "API Management"
+    description: |-
+      Manages an API instance in Anypoint API Manager.
+    ---
+
+    # anypoint_api_instance (Resource)
+
+    Manages an API instance in Anypoint API Manager.
+
+    ## Example Usage
+
+    ```terraform
+    resource "anypoint_api_instance" "example" {
+      organization_id = var.organization_id
+      environment_id  = var.environment_id
+      asset_id        = "my-api"
+    }
+    ```
+""")
+
+
 def setup_schema_docs(repo_root: Path):
     """Create minimal schema doc files under a repo root for testing."""
     schemas_dir = repo_root / 'docs' / 'schemas'

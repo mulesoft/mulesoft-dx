@@ -1391,6 +1391,7 @@ function filterByTags() {
     let visibleApis = 0;
     let visibleMcps = 0;
     let visibleSkills = 0;
+    let visibleTerraform = 0;
 
     cardLinks.forEach(cardLink => {
         const name = (cardLink.dataset.name || '').toLowerCase();
@@ -1418,6 +1419,8 @@ function filterByTags() {
                 visibleMcps++;
             } else if (type === 'skill') {
                 visibleSkills++;
+            } else if (type === 'terraform') {
+                visibleTerraform++;
             }
         } else {
             cardLink.style.display = 'none';
@@ -1425,7 +1428,7 @@ function filterByTags() {
     });
 
     // Update results count and type
-    updateResultsCount(visibleApis + visibleMcps + visibleSkills, selectedType);
+    updateResultsCount(visibleApis + visibleMcps + visibleSkills + visibleTerraform, selectedType);
 
     // Update URL with current state
     updateURLState();
@@ -1492,6 +1495,8 @@ function updateResultsCount(count, filterType) {
             resultsType.textContent = 'MCP Servers';
         } else if (filterType === 'skill') {
             resultsType.textContent = 'Skills';
+        } else if (filterType === 'terraform') {
+            resultsType.textContent = 'Terraform Providers';
         } else {
             resultsType.textContent = 'All';
         }
@@ -1597,7 +1602,18 @@ function navigateToHash(hash, smooth) {
         });
     }
 
-    targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    // For terraform docs, scroll to the top of main-content (not the doc element)
+    // so the header sticky doesn't cover content. Other types scroll into the target.
+    if (targetId.startsWith('doc-')) {
+        var mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+        } else {
+            targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        }
+    } else {
+        targetElement.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    }
 
     // Update sidebar active state
     const navLinks = document.querySelectorAll('.nav-link');
@@ -8349,26 +8365,19 @@ function clearAllVariables(slug) {
 
 
 // Terraform sidebar navigation
-function toggleTerraformCategory(btn) {
-    var expanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', !expanded);
-    var list = btn.nextElementSibling;
-    if (list) list.style.display = expanded ? 'none' : '';
-    btn.querySelector('.chevron-icon').style.transform = expanded ? '' : 'rotate(90deg)';
-}
-
 function filterTerraformSidebar(query) {
     var lowerQuery = query.toLowerCase();
     var clearBtn = document.querySelector('.btn-clear-sidebar-search');
     if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
 
-    // Filter individual doc links
-    document.querySelectorAll('.nav-doc-list .nav-link').forEach(function(link) {
-        var titleEl = link.querySelector('.step-title-short');
+    // Filter individual doc links (deepest level, tree-level-1 group items)
+    document.querySelectorAll('.terraform-page .nav-group.tree-level-1 .nav-group-items > li').forEach(function(li) {
+        var link = li.querySelector('.nav-link');
+        if (!link) return;
+        var titleEl = link.querySelector('.op-name');
         var text = (titleEl || link).textContent.toLowerCase();
         var matches = !query || text.includes(lowerQuery);
-        var li = link.closest('li');
-        if (li) li.style.display = matches ? '' : 'none';
+        li.style.display = matches ? '' : 'none';
         if (titleEl) {
             if (!titleEl.hasAttribute('data-original-text')) {
                 titleEl.setAttribute('data-original-text', titleEl.textContent);
@@ -8378,9 +8387,9 @@ function filterTerraformSidebar(query) {
         }
     });
 
-    // Show/hide subcategories (inner .nav-category) based on visible doc items
-    document.querySelectorAll('.nav-subcategory-list > .nav-category').forEach(function(subcat) {
-        var docList = subcat.querySelector('.nav-doc-list');
+    // Show/hide subcategories (tree-level-1) based on visible doc items
+    document.querySelectorAll('.terraform-page .nav-group.tree-level-1').forEach(function(subcat) {
+        var docList = subcat.querySelector(':scope > .nav-group-items');
         var hasVisible = false;
         if (docList) {
             var items = docList.querySelectorAll(':scope > li');
@@ -8389,23 +8398,95 @@ function filterTerraformSidebar(query) {
             }
         }
         subcat.style.display = (!query || hasVisible) ? '' : 'none';
+
+        var header = subcat.querySelector(':scope > .nav-group-header');
+        if (header) _setTerraformGroupExpanded(header, query && hasVisible);
     });
 
-    // Show/hide top-level categories based on visible subcategories
-    document.querySelectorAll('.nav-list > .nav-category').forEach(function(cat) {
-        var subcatList = cat.querySelector('.nav-subcategory-list');
+    // Show/hide top-level categories (tree-level-0) based on visible subcategories
+    document.querySelectorAll('.terraform-page .nav-group.tree-level-0').forEach(function(cat) {
+        var subcatList = cat.querySelector(':scope > .nav-group-items');
         var hasVisible = false;
         if (subcatList) {
-            var subcats = subcatList.querySelectorAll(':scope > .nav-category');
+            var subcats = subcatList.querySelectorAll(':scope > .nav-group');
             for (var i = 0; i < subcats.length; i++) {
                 if (subcats[i].style.display !== 'none') { hasVisible = true; break; }
             }
         }
         cat.style.display = (!query || hasVisible) ? '' : 'none';
+
+        var header = cat.querySelector(':scope > .nav-group-header');
+        if (header) _setTerraformGroupExpanded(header, query && hasVisible);
     });
+}
+
+function _setTerraformGroupExpanded(header, expanded) {
+    header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    var controlsId = header.getAttribute('aria-controls');
+    var group = controlsId ? document.getElementById(controlsId) : header.nextElementSibling;
+    if (group) group.style.display = expanded ? 'block' : 'none';
+    var toggle = header.querySelector('.group-toggle');
+    if (toggle) toggle.classList.toggle('expanded', !!expanded);
 }
 
 function clearTerraformSidebarSearch() {
     var input = document.getElementById('sidebarSearch');
     if (input) { input.value = ''; filterTerraformSidebar(''); }
 }
+
+function wrapTerraformCodeBlocks() {
+    document.querySelectorAll('.terraform-view-markdown pre').forEach(function(pre) {
+        if (pre.parentElement.classList.contains('terraform-code-wrapper')) return;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'terraform-code-wrapper';
+        var header = document.createElement('div');
+        header.className = 'terraform-code-header';
+        var btn = document.createElement('button');
+        btn.className = 'terraform-btn-copy';
+        btn.onclick = function() { copyTerraformCode(btn); };
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        header.appendChild(btn);
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+    });
+}
+
+function copyTerraformCode(button) {
+    var wrapper = button.closest('.terraform-code-wrapper');
+    if (!wrapper) return;
+    var code = wrapper.querySelector('pre code') || wrapper.querySelector('pre');
+    var text = code.textContent || code.innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        var originalHTML = button.innerHTML;
+        button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        button.style.color = '#04844B';
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.style.color = '';
+        }, 1500);
+    });
+}
+
+function openTerraformProviderModal() {
+    var modal = document.getElementById('terraform-install-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeTerraformProviderModal() {
+    var modal = document.getElementById('terraform-install-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function copyTerraformInstallSnippetFromDropdown(buttonEl) {
+    var codeEl = document.getElementById('terraform-install-snippet-code');
+    if (!codeEl) return;
+    var text = codeEl.textContent || codeEl.innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        _showSkillCopiedFeedback(buttonEl);
+    }).catch(function(err) {
+        console.error('Failed to copy snippet:', err);
+    });
+    _closeAllSkillDropdowns();
+}
+

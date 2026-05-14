@@ -20,7 +20,7 @@ from portal_generator.parsers.skill_parser import (
     parse_skill,
 )
 from portal_generator.parsers.mcp_parser import _example_from_schema
-from portal_generator.discovery import calculate_stats, _extract_api_refs, discover_skills
+from portal_generator.discovery import calculate_stats, _extract_api_refs, discover_skills, discover_terraform
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'build'))
@@ -1537,3 +1537,96 @@ class TestExampleFromSchema:
 
     def test_empty_dict(self):
         assert _example_from_schema({}) is None
+
+
+# ============================================================================
+# discovery.discover_terraform
+# ============================================================================
+
+class TestDiscoverTerraform:
+    def test_returns_empty_when_terraform_dir_missing(self, tmp_path):
+        """No terraform/ directory yields an empty list."""
+        assert discover_terraform(tmp_path) == []
+
+    def test_skips_provider_without_docs(self, tmp_path):
+        """Provider directories with no parsed docs are excluded."""
+        provider_dir = tmp_path / 'terraform' / 'empty-provider'
+        provider_dir.mkdir(parents=True)
+        # Empty resources dir, no md files
+        (provider_dir / 'resources').mkdir()
+
+        assert discover_terraform(tmp_path) == []
+
+    def test_builds_nav_tree_subcategory_first(self, tmp_path):
+        """nav_tree groups docs by subcategory, then by doc_type."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        resources_dir = tmp_path / 'terraform' / 'anypoint-provider' / 'resources'
+        resources_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        providers = discover_terraform(tmp_path)
+        nav_tree = providers[0]['nav_tree']
+        assert 'API Management' in nav_tree
+        assert 'resources' in nav_tree['API Management']
+        assert len(nav_tree['API Management']['resources']) == 1
+
+    def test_builds_nav_tree_by_type_inverted(self, tmp_path):
+        """nav_tree_by_type groups docs by doc_type, then by subcategory."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        resources_dir = tmp_path / 'terraform' / 'anypoint-provider' / 'resources'
+        resources_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        providers = discover_terraform(tmp_path)
+        nav_tree_by_type = providers[0]['nav_tree_by_type']
+        assert 'resources' in nav_tree_by_type
+        assert 'API Management' in nav_tree_by_type['resources']
+        assert len(nav_tree_by_type['resources']['API Management']) == 1
+
+    def test_doc_count_matches_total(self, tmp_path):
+        """doc_count equals the total number of parsed docs."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        provider_dir = tmp_path / 'terraform' / 'anypoint-provider'
+        resources_dir = provider_dir / 'resources'
+        data_sources_dir = provider_dir / 'data-sources'
+        resources_dir.mkdir(parents=True)
+        data_sources_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+        (data_sources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        providers = discover_terraform(tmp_path)
+        assert providers[0]['doc_count'] == 2
+
+    def test_provider_name_titleized(self, tmp_path):
+        """Provider name is the titleized form of the directory slug."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        resources_dir = tmp_path / 'terraform' / 'anypoint-provider' / 'resources'
+        resources_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        providers = discover_terraform(tmp_path)
+        assert providers[0]['name'] == 'Anypoint Provider'
+        assert providers[0]['slug'] == 'anypoint-provider'
+
+    def test_skips_unknown_doc_type_dirs(self, tmp_path):
+        """Subdirectories outside resources/data-sources/guides are ignored."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        provider_dir = tmp_path / 'terraform' / 'anypoint-provider'
+        resources_dir = provider_dir / 'resources'
+        random_dir = provider_dir / 'random-stuff'
+        resources_dir.mkdir(parents=True)
+        random_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+        (random_dir / 'ignored.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        providers = discover_terraform(tmp_path)
+        assert providers[0]['doc_count'] == 1
+
+    def test_skips_hidden_dirs(self, tmp_path):
+        """Provider directories starting with '.' are skipped."""
+        from tests.conftest import MINIMAL_TERRAFORM_MD
+        hidden_dir = tmp_path / 'terraform' / '.git' / 'resources'
+        hidden_dir.mkdir(parents=True)
+        (hidden_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        assert discover_terraform(tmp_path) == []

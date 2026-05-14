@@ -293,6 +293,13 @@ def discover_terraform(repo_root: Path) -> List[Dict]:
             nav_tree_by_type.setdefault(dtype, {}).setdefault(subcat, []).append(doc)
 
         provider_name = provider_dir.name.replace('-', ' ').title()
+        install_info = None
+        provider_json = provider_dir / 'provider.json'
+        if provider_json.exists():
+            try:
+                install_info = json.loads(provider_json.read_text(encoding='utf-8'))
+            except (json.JSONDecodeError, OSError):
+                install_info = None
         provider = {
             'slug': provider_dir.name,
             'name': provider_name,
@@ -300,6 +307,7 @@ def discover_terraform(repo_root: Path) -> List[Dict]:
             'nav_tree': nav_tree,
             'nav_tree_by_type': nav_tree_by_type,
             'doc_count': len(docs),
+            'install_info': install_info,
         }
         providers.append(provider)
         print(f"  🏗️  Provider: {provider_name} ({len(docs)} docs)")

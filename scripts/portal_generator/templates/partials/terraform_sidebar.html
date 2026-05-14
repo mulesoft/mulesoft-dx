@@ -17,26 +17,40 @@
     </div>
     <nav class="sidebar-nav">
         <ul class="nav-list">
-            {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
-            <li class="nav-category">
-                <button class="nav-category-toggle" onclick="toggleTerraformCategory(this)" aria-expanded="true">
-                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 2l4 4-4 4"/></svg>
-                    <span class="category-name">{{ doc_type|replace('-', ' ')|title }}</span>
+            {% for subcategory in nav_tree|sort %}
+            {% set cat_id = 'tf-cat-' ~ loop.index0 %}
+            {% set cat_count = nav_tree[subcategory].values()|map('length')|sum %}
+            {% set cat_resources = nav_tree[subcategory].get('resources', [])|length %}
+            {% set cat_data_sources = nav_tree[subcategory].get('data-sources', [])|length %}
+            {% set cat_tooltip_parts = [] %}
+            {% if cat_resources %}{% set _ = cat_tooltip_parts.append(cat_resources ~ ' resource' ~ ('s' if cat_resources != 1 else '')) %}{% endif %}
+            {% if cat_data_sources %}{% set _ = cat_tooltip_parts.append(cat_data_sources ~ ' data source' ~ ('s' if cat_data_sources != 1 else '')) %}{% endif %}
+            <li class="nav-group tree-level-0">
+                <button class="nav-group-header tree-node" onclick="toggleGroup('{{ cat_id }}')" aria-expanded="false"
+                    aria-controls="group-{{ cat_id }}" title="{{ cat_tooltip_parts|join(' · ') }}">
+                    <img class="group-toggle" id="toggle-{{ cat_id }}" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                    <span class="group-name">{{ subcategory }}</span>
+                    <span class="group-count">({{ cat_count }})</span>
                 </button>
-                <ul class="nav-subcategory-list">
-                    {% for subcategory in nav_tree_by_type[doc_type]|sort %}
-                    <li class="nav-category">
-                        <button class="nav-category-toggle nav-category-toggle-sub" onclick="toggleTerraformCategory(this)" aria-expanded="true">
-                            <svg class="chevron-icon" width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 2l4 4-4 4"/></svg>
-                            <span class="category-name">{{ subcategory }}</span>
+                <ul class="nav-group-items" id="group-{{ cat_id }}" style="display:none">
+                    {% for doc_type in nav_tree[subcategory]|sort(reverse=true) %}
+                    {% set sub_id = cat_id ~ '-' ~ loop.index0 %}
+                    {% set sub_count = nav_tree[subcategory][doc_type]|length %}
+                    {% set sub_label = doc_type|replace('-', ' ') %}
+                    {% if sub_count == 1 and sub_label.endswith('s') %}{% set sub_label = sub_label[:-1] %}{% endif %}
+                    <li class="nav-group tree-level-1">
+                        <button class="nav-group-header tree-node" onclick="toggleGroup('{{ sub_id }}')" aria-expanded="false"
+                            aria-controls="group-{{ sub_id }}" title="{{ sub_count }} {{ sub_label }}">
+                            <img class="group-toggle" id="toggle-{{ sub_id }}" src="{{ icons_path }}/chevron-right.svg" alt="" aria-hidden="true">
+                            <span class="group-name">{{ doc_type|replace('-', ' ')|title }}</span>
+                            <span class="group-count">({{ sub_count }})</span>
                         </button>
-                        <ul class="nav-doc-list">
-                            {% for item in nav_tree_by_type[doc_type][subcategory] %}
+                        <ul class="nav-group-items" id="group-{{ sub_id }}" style="display:none">
+                            {% for item in nav_tree[subcategory][doc_type] %}
                             <li>
                                 <a href="#doc-{{ item.slug }}"
-                                   class="nav-link nav-terraform-step"
-                                   title="{{ item.description }}">
-                                    <span class="step-title-short">{{ item.name }}</span>
+                                   class="nav-link nav-operation nav-operation-flat">
+                                    <span class="op-name">{{ item.name }}</span>
                                 </a>
                             </li>
                             {% endfor %}

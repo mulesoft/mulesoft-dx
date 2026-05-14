@@ -12,6 +12,7 @@ from tests.conftest import (
     PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, NESTED_SKILL_MD,
     NON_API_STEPS_SKILL_MD, setup_schema_docs,
     MINIMAL_MCP_SERVER_JSON, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
+    MINIMAL_TERRAFORM_MD,
 )
 
 
@@ -763,3 +764,76 @@ class TestMcpXoriginPage:
         soup = BeautifulSoup(html, 'html.parser')
         xorigin_input = soup.find('input', attrs={'data-x-origins': True})
         assert xorigin_input is not None
+
+
+class TestTerraformPageGeneration:
+    """Verify the terraform provider page renders with the single-page architecture."""
+
+    @pytest.fixture
+    def portal_with_terraform(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+
+        provider_dir = repo / 'terraform' / 'anypoint-provider'
+        resources_dir = provider_dir / 'resources'
+        data_sources_dir = provider_dir / 'data-sources'
+        resources_dir.mkdir(parents=True)
+        data_sources_dir.mkdir(parents=True)
+        (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+        (data_sources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+        return output
+
+    @pytest.fixture
+    def terraform_soup(self, portal_with_terraform):
+        html = (portal_with_terraform / 'terraform' / 'anypoint-provider.html').read_text(encoding='utf-8')
+        return BeautifulSoup(html, 'html.parser')
+
+    def test_generates_one_html_per_provider(self, portal_with_terraform):
+        """A single .html is emitted under terraform/ for each provider."""
+        assert (portal_with_terraform / 'terraform' / 'anypoint-provider.html').exists()
+
+    def test_overview_div_has_id_overview(self, terraform_soup):
+        """The overview subsection uses id='overview'."""
+        overview = terraform_soup.find('div', id='overview')
+        assert overview is not None
+
+    def test_doc_subsections_have_doc_prefix_id(self, terraform_soup):
+        """Each parsed doc renders as a div with id='doc-<slug>'."""
+        section = terraform_soup.find('div', id='doc-anypoint_api_instance')
+        assert section is not None
+        assert 'terraform-subsection' in section.get('class', [])
+
+    def test_no_auth_panel_status_button(self, terraform_soup):
+        """prose_only mode hides the auth-panel-status button."""
+        btn = terraform_soup.find(class_='auth-panel-status')
+        assert btn is None
+
+    def test_sidebar_links_to_doc_anchors(self, terraform_soup):
+        """At least one sidebar link points to a #doc-<slug> anchor."""
+        link = terraform_soup.find('a', href=lambda h: h and h.startswith('#doc-'))
+        assert link is not None
+
+    def test_resources_appear_before_data_sources_in_nav(self, terraform_soup):
+        """Sidebar lists 'Resources' before 'Data Sources' within each category."""
+        group_names = [el.get_text(strip=True) for el in terraform_soup.select('.sidebar-nav .group-name')]
+        resources_idx = group_names.index('Resources')
+        data_sources_idx = group_names.index('Data Sources')
+        assert resources_idx < data_sources_idx
+
+    def test_prism_light_and_dark_themes_loaded(self, terraform_soup):
+        """Both Prism themes are linked in <head>."""
+        head = str(terraform_soup.find('head'))
+        assert 'prism.min.css' in head
+        assert 'prism-tomorrow.min.css' in head
+
+    def test_wrap_terraform_code_blocks_invoked(self, terraform_soup):
+        """The page calls wrapTerraformCodeBlocks() in a script block."""
+        scripts = terraform_soup.find_all('script')
+        text = ' '.join(s.string or '' for s in scripts)
+        assert 'wrapTerraformCodeBlocks()' in text

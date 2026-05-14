@@ -1,6 +1,6 @@
 <section class="content-section terraform-detail">
-    <div class="terraform-subsection">
-        <h3 id="overview">Overview</h3>
+    <div class="terraform-subsection" id="overview">
+        <h3>Overview</h3>
         <div class="terraform-view-markdown">
             <p>The <strong>{{ provider.name }}</strong> Terraform provider enables you to manage Anypoint Platform resources declaratively using Infrastructure as Code (IaC). Define, provision, and update your API management configuration through Terraform plans.</p>
 
@@ -14,15 +14,38 @@
             </ul>
 
             <h4>Getting started</h4>
+            {% if provider.install_info %}
+            <ol>
+                <li>Install <strong>Terraform CLI</strong> (v{{ provider.install_info.min_terraform_version }}+).</li>
+                <li>Add the provider to your Terraform configuration:
+                    <div class="terraform-view-markdown">
+                        <pre><code class="language-hcl">terraform {
+  required_providers {
+    {{ provider.install_info.local_name }} = {
+      source  = "{{ provider.install_info.source }}"
+      version = "{{ provider.install_info.version }}"
+    }
+  }
+}
+
+provider "{{ provider.install_info.local_name }}" {
+  # Configuration options
+}</code></pre>
+                    </div>
+                </li>
+                <li>Run <code>terraform init</code>, <code>terraform plan</code>, and <code>terraform apply</code>.</li>
+                {% if provider.install_info.registry_url %}
+                <li>For more details, visit the <a href="{{ provider.install_info.registry_url }}" target="_blank" rel="noopener">Terraform Registry</a>.</li>
+                {% endif %}
+            </ol>
+            {% else %}
             <ol>
                 <li>Install Terraform CLI (v1.0+)</li>
                 <li>Configure the provider block with your Anypoint Platform credentials</li>
                 <li>Define resources in <code>.tf</code> files</li>
                 <li>Run <code>terraform init</code>, <code>terraform plan</code>, and <code>terraform apply</code></li>
             </ol>
-
-            <h4>Authentication</h4>
-            <p>The provider supports authentication via Connected App credentials (client ID and secret) or bearer token. Configure your credentials in the provider block or via environment variables.</p>
+            {% endif %}
         </div>
     </div>
 
@@ -30,10 +53,6 @@
     {% for subcategory in nav_tree_by_type[doc_type]|sort %}
     {% for doc in nav_tree_by_type[doc_type][subcategory] %}
     <div class="terraform-subsection" id="doc-{{ doc.slug }}">
-        <h3>{{ doc.name }}</h3>
-        {% if doc.description %}
-        <p class="terraform-doc-desc">{{ doc.description }}</p>
-        {% endif %}
         <div class="terraform-view-markdown">
             {{ doc.body_html|safe }}
         </div>

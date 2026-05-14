@@ -1475,3 +1475,125 @@ describe('substituteVariables', () => {
         expect(substituteVariables('${x}', 'nope')).toBe('${x}');
     });
 });
+
+// ===========================================================================
+// wrapTerraformCodeBlocks
+// ===========================================================================
+describe('wrapTerraformCodeBlocks', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    function buildMarkdown(preCount) {
+        const container = document.createElement('div');
+        container.className = 'terraform-view-markdown';
+        for (let i = 0; i < preCount; i++) {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            code.textContent = 'resource "x" "y" {}';
+            pre.appendChild(code);
+            container.appendChild(pre);
+        }
+        document.body.appendChild(container);
+        return container;
+    }
+
+    test('wraps each pre with a terraform-code-wrapper containing a header and copy button', () => {
+        buildMarkdown(2);
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(2);
+        wrappers.forEach((w) => {
+            expect(w.querySelector('.terraform-code-header')).not.toBeNull();
+            expect(w.querySelector('pre')).not.toBeNull();
+        });
+    });
+
+    test('is idempotent when called twice', () => {
+        buildMarkdown(2);
+        wrapTerraformCodeBlocks();
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(2);
+    });
+
+    test('does nothing when no terraform-view-markdown pre exists', () => {
+        wrapTerraformCodeBlocks();
+        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        expect(wrappers.length).toBe(0);
+    });
+
+    test('inserted button has class terraform-btn-copy and contains an SVG', () => {
+        buildMarkdown(1);
+        wrapTerraformCodeBlocks();
+        const btn = document.querySelector('.terraform-btn-copy');
+        expect(btn).not.toBeNull();
+        expect(btn.querySelector('svg')).not.toBeNull();
+    });
+});
+
+// ===========================================================================
+// copyTerraformCode
+// ===========================================================================
+describe('copyTerraformCode', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        globalThis.navigator = globalThis.navigator || {};
+        globalThis.navigator.clipboard = { writeText: jest.fn().mockResolvedValue(undefined) };
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+        document.body.innerHTML = '';
+    });
+
+    function buildWrapper(text) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'terraform-code-wrapper';
+        const header = document.createElement('div');
+        header.className = 'terraform-code-header';
+        const btn = document.createElement('button');
+        btn.className = 'terraform-btn-copy';
+        btn.innerHTML = '<svg><rect></rect></svg>';
+        header.appendChild(btn);
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = text;
+        pre.appendChild(code);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+        document.body.appendChild(wrapper);
+        return { wrapper, btn };
+    }
+
+    test('calls clipboard.writeText with the pre code text content', () => {
+        const { btn } = buildWrapper('resource "anypoint_api" "x" {}');
+        copyTerraformCode(btn);
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith('resource "anypoint_api" "x" {}');
+    });
+
+    test('replaces button.innerHTML with checkmark SVG on success', async () => {
+        const { btn } = buildWrapper('foo');
+        copyTerraformCode(btn);
+        await Promise.resolve();
+        expect(btn.innerHTML).toContain('polyline');
+    });
+
+    test('restores original innerHTML after 1500ms', async () => {
+        const { btn } = buildWrapper('foo');
+        const original = btn.innerHTML;
+        copyTerraformCode(btn);
+        await Promise.resolve();
+        expect(btn.innerHTML).not.toBe(original);
+        jest.advanceTimersByTime(1500);
+        expect(btn.innerHTML).toBe(original);
+    });
+
+    test('does nothing when called with element not inside a wrapper', () => {
+        const orphan = document.createElement('button');
+        document.body.appendChild(orphan);
+        copyTerraformCode(orphan);
+        expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    });
+});
+

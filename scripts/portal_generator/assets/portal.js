@@ -2105,6 +2105,18 @@ function filterSidebar(query) {
             operationsCountEl.style.display = 'none';
         }
     }
+
+    // Toggle empty state when no operations / skills / steps match
+    var emptyState = document.getElementById('sidebarEmptyState');
+    if (emptyState) {
+        var totalVisible = visibleOperationsCount + visibleSkillsCount;
+        var anyGroupVisible = false;
+        document.querySelectorAll('.sidebar-nav .nav-group').forEach(function(g) {
+            if (g.style.display !== 'none') anyGroupVisible = true;
+        });
+        var showEmpty = !!query && totalVisible === 0 && !anyGroupVisible;
+        emptyState.style.display = showEmpty ? '' : 'none';
+    }
 }
 
 // ============================================================================
@@ -8393,6 +8405,7 @@ function filterTerraformSidebar(query) {
     });
 
     // Show/hide top-level categories (tree-level-0) based on visible subcategories
+    var anyCategoryVisible = false;
     document.querySelectorAll('.terraform-page .nav-group.tree-level-0').forEach(function(cat) {
         var subcatList = cat.querySelector(':scope > .nav-group-items');
         var hasVisible = false;
@@ -8403,10 +8416,20 @@ function filterTerraformSidebar(query) {
             }
         }
         cat.style.display = (!query || hasVisible) ? '' : 'none';
+        if (!query || hasVisible) anyCategoryVisible = true;
 
         var header = cat.querySelector(':scope > .nav-group-header');
         if (header) _setTerraformGroupExpanded(header, query && hasVisible);
     });
+
+    // Toggle empty state when nothing matches
+    var emptyState = document.getElementById('sidebarEmptyState');
+    var navList = document.querySelector('.terraform-page .sidebar-nav .nav-list');
+    if (emptyState) {
+        var showEmpty = !!query && !anyCategoryVisible;
+        emptyState.style.display = showEmpty ? '' : 'none';
+        if (navList) navList.style.display = showEmpty ? 'none' : '';
+    }
 }
 
 function _setTerraformGroupExpanded(header, expanded) {

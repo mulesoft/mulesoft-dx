@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 8 helper — read every connector pin in tmp/connector-versions/ and
 # emit a comma-joined GAV string on stdout, ready to pass as
@@ -37,7 +37,7 @@
 #   0  emitted at least one GAV
 #   1  no usable pins found (either the directory is missing, empty, or
 #      every file was filtered out)
-set -u
+set -euo pipefail
 
 DIR="${1:-tmp/connector-versions}"
 

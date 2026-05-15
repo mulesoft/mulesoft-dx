@@ -4,24 +4,30 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 1 helper — validates the toolchain and emits a machine-readable env
-# report to /tmp/mule-dev-env.json so later steps can consume it.
+# report so later steps can consume it.
+#
+# Output path: ${MULE_DEV_ENV_FILE} when set, otherwise the workspace-relative
+# file tmp/mule-dev-env.json. The default lives inside the current workspace
+# so each task gets its own env cache; parallel sessions in different
+# workspaces can't overwrite each other.
 #
 # This script only VALIDATES — it never downloads, installs, or modifies
 # anything. If something is missing, the agent decides how to fix it.
 #
-# On success, writes:
-#   /tmp/mule-dev-env.json  →  {"ok": true/false, "errors": [...], "warnings": [...],
-#                               "mule_version": "...", "runtime_path": "...",
-#                               "java_home": "...", "java_version": "..."}
+# Output JSON shape:
+#   {"ok": true/false, "errors": [...], "warnings": [...],
+#    "mule_version": "...", "runtime_path": "...",
+#    "java_home": "...", "java_version": "..."}
 # Exit code:
 #   0  all checks passed
 #   1  one or more fatal checks failed — agent should act on the errors array
-set -u
+set -euo pipefail
 
-OUT_FILE="${MULE_DEV_ENV_FILE:-/tmp/mule-dev-env.json}"
+OUT_FILE="${MULE_DEV_ENV_FILE:-tmp/mule-dev-env.json}"
+mkdir -p "$(dirname "$OUT_FILE")" 2>/dev/null || true
 
 ERRORS=()
 WARNINGS=()
@@ -30,6 +36,18 @@ RUNTIME_PATH=""
 JAVA_VERSION=""
 
 echo "Validating prerequisites..."
+
+# 0. jq (required by every skill script for JSON I/O; not bundled with Git Bash on Windows)
+if ! command -v jq >/dev/null 2>&1; then
+    echo "❌ jq not installed"
+    case "$(uname -s)" in
+        Darwin*)              ERRORS+=("jq not installed. Fix: brew install jq") ;;
+        MINGW*|MSYS*|CYGWIN*) ERRORS+=("jq not installed. Download https://jqlang.github.io/jq/download/ (Windows 64-bit), rename to jq.exe, place on PATH") ;;
+        *)                    ERRORS+=("jq not installed. Fix: sudo apt-get install jq (or distro equivalent)") ;;
+    esac
+else
+    echo "✅ jq found: $(jq --version)"
+fi
 
 # 1. anypoint-cli-v4
 if ! command -v anypoint-cli-v4 >/dev/null 2>&1; then
@@ -40,8 +58,9 @@ else
 fi
 
 # 2. DX plugin
+# NODE_NO_WARNINGS suppresses Node DEP0040 noise on stdout/stderr.
 if command -v anypoint-cli-v4 >/dev/null 2>&1; then
-    if ! anypoint-cli-v4 dx mule --help >/dev/null 2>&1; then
+    if ! NODE_NO_WARNINGS=1 anypoint-cli-v4 dx mule --help >/dev/null 2>&1; then
         echo "❌ DX plugin not installed"
         ERRORS+=("DX plugin not installed. Install: npm install -g @salesforce/anypoint-cli-dx-mule-plugin")
     else
@@ -55,7 +74,7 @@ if [ -z "${JAVA_HOME:-}" ]; then
     ERRORS+=("JAVA_HOME not set. Fix: export JAVA_HOME=\$(/usr/libexec/java_home -v 11)")
 else
     echo "✅ JAVA_HOME: $JAVA_HOME"
-    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}' | cut -d. -f1)
+    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}' | cut -d. -f1 || true)
     if [ -z "$JAVA_VERSION" ] || [ "$JAVA_VERSION" -lt 11 ]; then
         echo "❌ Java 11+ required (found: Java ${JAVA_VERSION:-unknown})"
         ERRORS+=("Java 11+ required, found: ${JAVA_VERSION:-unknown}")
@@ -76,7 +95,7 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 if [ -z "$RUNTIME_PATH" ]; then
-    RUNTIME_PATH=$(find ~/AnypointCodeBuilder/runtime -maxdepth 1 -name "mule-*" -type d 2>/dev/null | sort -V | tail -1)
+    RUNTIME_PATH=$(find ~/AnypointCodeBuilder/runtime -maxdepth 1 -name "mule-*" -type d 2>/dev/null | sort -V | tail -1 || true)
 fi
 
 if [ -n "$RUNTIME_PATH" ]; then

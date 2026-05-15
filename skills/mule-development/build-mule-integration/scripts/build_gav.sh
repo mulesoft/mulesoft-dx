@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Read a connector JSON file produced by get_latest_connector.sh and emit
 # its GAV (groupId:assetId:version) on stdout.
@@ -16,7 +16,7 @@
 #
 # which turns GAV construction from a mental exercise (prone to version
 # hallucination) into a mechanical `jq` extraction from a file on disk.
-set -u
+set -euo pipefail
 
 FILE="${1:-}"
 if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then

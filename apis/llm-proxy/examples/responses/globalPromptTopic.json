@@ -1,0 +1,20 @@
+{
+  "topicName": "Finance",
+  "utterances": {
+    "data": [
+      {"utterance": "* Calculate compound interest"},
+      {"utterance": "* Explain stock market fundamentals"},
+      {"utterance": "* How to file taxes"},
+      {"utterance": "* Investment portfolio strategies"},
+      {"utterance": "* Mortgage calculation formula"}
+    ]
+  },
+  "environmentId": "c51bf541-b006-430f-bd17-a043eadd1203",
+  "audit": {
+    "created": {"date": "2026-04-22T06:27:59.040Z"},
+    "updated": {"date": "2026-04-22T06:27:59.040Z"}
+  },
+  "id": "e258974c-9eab-456d-a267-2bcb329a8e34",
+  "masterOrganizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "organizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826"
+}

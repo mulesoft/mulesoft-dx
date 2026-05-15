@@ -1,0 +1,46 @@
+{
+  "audit": {
+    "created": { "date": "2026-01-14T08:49:17.000Z" },
+    "updated": {}
+  },
+  "id": 4589,
+  "groupId": "68ef9520-24e9-4cf2-b2f5-620025690913",
+  "assetId": "llm-token-rate-limit",
+  "version": "1.0.0",
+  "name": "LLM Token Based Rate Limit",
+  "description": "Controls API usage by enforcing token-based rate limits for LLM APIs.",
+  "type": "policy",
+  "category": "LLM",
+  "configuration": {
+    "title": "LLM Token Based Rate Limit",
+    "type": "object",
+    "$id": "llm-token-rate-limit",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "description": "Controls API usage by enforcing token-based rate limits for LLM APIs.",
+    "properties": {
+      "maximumTokens": {
+        "type": "integer",
+        "title": "Maximum Tokens",
+        "description": "Maximum number of tokens allowed in the time period",
+        "minimum": 1
+      },
+      "timePeriodInMilliseconds": {
+        "type": "integer",
+        "title": "Time Period (ms)",
+        "description": "Time period in milliseconds for the rate limit window",
+        "minimum": 1000
+      },
+      "keySelector": {
+        "type": "string",
+        "title": "Key Selector",
+        "description": "Expression to select the key for rate limiting. Use \"#[attributes.headers['ClientId']]\" as rate limiter per client, \"#[attributes.principal]\" as rate limiter per user, \"#[attributes.headers['X-Forwarded-For']]\" as rate limiter per IP address.",
+        "format": "dataweaveExpression"
+      }
+    },
+    "required": [
+      "maximumTokens",
+      "timePeriodInMilliseconds",
+      "keySelector"
+    ]
+  }
+}

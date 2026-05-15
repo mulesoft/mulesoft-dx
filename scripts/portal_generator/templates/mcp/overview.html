@@ -24,7 +24,7 @@
     <div class="api-full-description">{{ mcp.full_description|md }}</div>
     {% endif %}
 
-    {% if mcp.install %}
+    {% if mcp.install and mcp.install.command %}
     <div class="overview-section">
         <h3>Installation</h3>
         <div class="mcp-install-block">
@@ -42,11 +42,6 @@
         {% if mcp.ide_configs %}
         <p class="mcp-install-docs"><a href="#" onclick="openMcpIdeModal(); return false;">View IDE configuration snippets</a> for Claude Code, Cursor, and VS Code.</p>
         {% endif %}
-    </div>
-    {% elif mcp.ide_configs and mcp.mcp_type == 'remote' %}
-    <div class="overview-section">
-        <h3>IDE Configuration</h3>
-        <p class="mcp-install-docs">Configure this MCP server in your IDE. <a href="#" onclick="openMcpIdeModal(); return false;">View configuration snippets</a> for Claude Code, Cursor, and VS Code.</p>
     </div>
     {% endif %}
 

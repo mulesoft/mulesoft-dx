@@ -367,6 +367,82 @@ def _collect_xorigin_refs(tools: List[Dict]) -> Tuple[Set[str], Set[str]]:
     return api_refs, mcp_refs
 
 
+def _build_ide_configs(slug: str, mcp_type: str, transport: Dict, servers: List[Dict]) -> Dict:
+    """Build IDE configuration snippets for Claude Code, Cursor, and VS Code."""
+    configs = {}
+
+    if mcp_type == 'local':
+        raw_cmd = transport.get('command', '')
+        parts = raw_cmd.split() if raw_cmd else []
+        cmd = parts[0] if parts else 'npx'
+        args = parts[1:] if len(parts) > 1 else [slug, 'start']
+
+        local_base = {'command': cmd, 'args': ['-y'] + args}
+        configs['claude_code'] = {
+            'label': 'Claude Code',
+            'filename': 'claude_desktop_config.json',
+            'config': {'mcpServers': {slug: {**local_base}}},
+        }
+        configs['cursor'] = {
+            'label': 'Cursor',
+            'filename': '.cursor/mcp.json',
+            'config': {'mcpServers': {slug: {**local_base}}},
+        }
+        configs['vscode'] = {
+            'label': 'VS Code',
+            'filename': '.vscode/settings.json',
+            'config': {'mcp': {'servers': {slug: {'type': 'stdio', **local_base}}}},
+        }
+    else:
+        primary = next(
+            (s for s in servers if s.get('_transport_kind') == 'streamableHttp'),
+            servers[0] if servers else None,
+        )
+        url = primary.get('url', '') if primary else ''
+        kind = primary.get('_transport_kind', 'streamableHttp') if primary else 'streamableHttp'
+        ide_type = 'sse' if kind == 'sse' else 'streamable-http'
+
+        remote_base = {'type': ide_type, 'url': url}
+        configs['claude_code'] = {
+            'label': 'Claude Code',
+            'filename': 'claude_desktop_config.json',
+            'config': {'mcpServers': {slug: {**remote_base}}},
+        }
+        configs['cursor'] = {
+            'label': 'Cursor',
+            'filename': '.cursor/mcp.json',
+            'config': {'mcpServers': {slug: {**remote_base}}},
+        }
+        vscode_type = 'sse' if kind == 'sse' else 'http'
+        configs['vscode'] = {
+            'label': 'VS Code',
+            'filename': '.vscode/settings.json',
+            'config': {'mcp': {'servers': {slug: {'type': vscode_type, 'url': url}}}},
+        }
+
+    for key in configs:
+        configs[key]['config_json'] = json.dumps(configs[key]['config'], indent=2)
+
+    # For remote MCPs with multiple servers, attach server list for the
+    # modal's server selector.  Each entry carries the URL plus the IDE-type
+    # strings so JS can rebuild the config JSON on selection change.
+    remote_servers: List[Dict] = []
+    if mcp_type == 'remote' and len(servers) > 1:
+        for srv in servers:
+            srv_kind = srv.get('_transport_kind', 'streamableHttp')
+            srv_ide_type = 'sse' if srv_kind == 'sse' else 'streamable-http'
+            srv_vscode_type = 'sse' if srv_kind == 'sse' else 'http'
+            remote_servers.append({
+                'url': srv.get('url', ''),
+                'ide_type': srv_ide_type,
+                'vscode_type': srv_vscode_type,
+            })
+    configs['_remote_servers'] = remote_servers
+    configs['_slug'] = slug
+
+    return configs
+
+
 def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     """Parse an MCP server directory into a normalized record.
 
@@ -470,12 +546,12 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     is_local = transport_kind == 'stdio'
     mcp_type = 'local' if is_local else 'remote'
 
-    # Install info from exchange.json (local MCPs typically have an npm/pip install command).
+    # Install info from exchange.json.
     raw_install = exchange.get('install') if isinstance(exchange, dict) else None
     install: Optional[Dict] = None
-    if isinstance(raw_install, dict) and raw_install.get('command'):
+    if isinstance(raw_install, dict) and (raw_install.get('command') or raw_install.get('docs_url')):
         install = {
-            'command': str(raw_install['command']),
+            'command': str(raw_install.get('command', '')),
             'docs_url': str(raw_install.get('docs_url', '')),
         }
 
@@ -540,9 +616,15 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     security_schemes = mcp_data.get('securitySchemes') or {}
     provider = mcp_data.get('provider') or {}
 
+    if is_local and isinstance(exchange, dict):
+        asset_id = exchange.get('assetId', slug)
+        exchange['npm_url'] = f'https://www.npmjs.com/package/{asset_id}'
+
     xorigin_api_refs, xorigin_mcp_refs = _collect_xorigin_refs(
         [t for t in _ensure_list(mcp_data.get('tools'))]
     )
+
+    ide_configs = _build_ide_configs(slug, mcp_type, transport, servers)
 
     return {
         'id': slug,
@@ -571,6 +653,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'tags': tags,
         'tag_names': tag_names,
         'exchange': exchange,
+        'ide_configs': ide_configs,
         'xorigin_api_refs': xorigin_api_refs,
         'xorigin_mcp_refs': xorigin_mcp_refs,
     }

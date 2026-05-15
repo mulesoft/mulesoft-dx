@@ -39,6 +39,14 @@
         {% if mcp.install.docs_url %}
         <p class="mcp-install-docs">For setup and configuration details, see the <a href="{{ mcp.install.docs_url }}" target="_blank" rel="noopener">Getting Started guide</a>.</p>
         {% endif %}
+        {% if mcp.ide_configs %}
+        <p class="mcp-install-docs"><a href="#" onclick="openMcpIdeModal(); return false;">View IDE configuration snippets</a> for Claude Code, Cursor, and VS Code.</p>
+        {% endif %}
+    </div>
+    {% elif mcp.ide_configs and mcp.mcp_type == 'remote' %}
+    <div class="overview-section">
+        <h3>IDE Configuration</h3>
+        <p class="mcp-install-docs">Configure this MCP server in your IDE. <a href="#" onclick="openMcpIdeModal(); return false;">View configuration snippets</a> for Claude Code, Cursor, and VS Code.</p>
     </div>
     {% endif %}
 

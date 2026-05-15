@@ -8479,6 +8479,93 @@ function copyTerraformInstallSnippetFromDropdown(buttonEl) {
     _closeAllSkillDropdowns();
 }
 
+// MCP IDE Config Modal
+function openMcpIdeModal() {
+    var modal = document.getElementById('mcp-ide-modal');
+    if (modal) modal.style.display = 'flex';
+    _closeAllSkillDropdowns();
+}
+
+function closeMcpIdeModal() {
+    var modal = document.getElementById('mcp-ide-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function switchMcpIdeTab(tabKey) {
+    document.querySelectorAll('.mcp-ide-tab').forEach(function(tab) {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.mcp-ide-panel').forEach(function(panel) {
+        panel.classList.remove('active');
+        panel.style.display = 'none';
+    });
+    var tab = document.querySelector('.mcp-ide-tab[data-ide-tab="' + tabKey + '"]');
+    if (tab) {
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+    }
+    var panel = document.getElementById('mcp-ide-panel-' + tabKey);
+    if (panel) {
+        panel.classList.add('active');
+        panel.style.display = 'block';
+        if (window.Prism) {
+            panel.querySelectorAll('code').forEach(function(code) { Prism.highlightElement(code); });
+        }
+    }
+}
+
+function onMcpServerChange() {
+    var servers = window.__MCP_IDE_SERVERS__;
+    var slug = window.__MCP_IDE_SLUG__;
+    if (!servers || !slug) return;
+    var select = document.getElementById('mcp-server-select');
+    if (!select) return;
+    var srv = servers[parseInt(select.value, 10)];
+    if (!srv) return;
+
+    var configs = {
+        claude_code: { mcpServers: {} },
+        cursor: { mcpServers: {} },
+        vscode: { mcp: { servers: {} } }
+    };
+    configs.claude_code.mcpServers[slug] = { type: srv.ide_type, url: srv.url };
+    configs.cursor.mcpServers[slug] = { type: srv.ide_type, url: srv.url };
+    configs.vscode.mcp.servers[slug] = { type: srv.vscode_type, url: srv.url };
+
+    ['claude_code', 'cursor', 'vscode'].forEach(function(key) {
+        var codeEl = document.getElementById('mcp-config-' + key);
+        if (codeEl) {
+            codeEl.textContent = JSON.stringify(configs[key], null, 2);
+            if (window.Prism) Prism.highlightElement(codeEl);
+        }
+    });
+}
+
+function copyMcpIdeConfig(tabKey) {
+    var codeEl = document.getElementById('mcp-config-' + tabKey);
+    if (!codeEl) return;
+    var text = codeEl.textContent || codeEl.innerText;
+    var btn = codeEl.closest('.mcp-config-block').querySelector('.btn-copy-config');
+    navigator.clipboard.writeText(text).then(function() {
+        if (btn) {
+            var origHTML = btn.innerHTML;
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#04844B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            btn.style.color = '#04844B';
+            setTimeout(function() { btn.innerHTML = origHTML; btn.style.color = ''; }, 1500);
+        }
+    });
+}
+
+function copyMcpInstallCommand(buttonEl) {
+    var codeEl = document.getElementById('mcp-ide-install-cmd');
+    if (!codeEl) return;
+    navigator.clipboard.writeText(codeEl.textContent).then(function() {
+        _showSkillCopiedFeedback(buttonEl);
+    });
+    _closeAllSkillDropdowns();
+}
+
 function copyToClipboard(text, buttonEl) {
     navigator.clipboard.writeText(text).then(function() {
         var originalHTML = buttonEl.innerHTML;

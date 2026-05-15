@@ -21,10 +21,14 @@
 {% set api_name = mcp.name %}
 {% set api_version = mcp.version %}
 {% set is_local_mcp = (mcp.mcp_type == 'local') %}
+{% set is_mcp_page = true %}
+{% set mcp_install_info = mcp %}
 {% if is_local_mcp %}
 {% set prose_only = true %}
 {% endif %}
 {% include "partials/auth_panel.html" %}
+
+{% include "mcp/install_modal.html" %}
 
 <div class="detail-layout">
     {% include "partials/mcp_sidebar.html" %}

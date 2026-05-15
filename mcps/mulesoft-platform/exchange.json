@@ -9,5 +9,8 @@
   "classifier": "mcp-metadata",
   "dependencies": [],
   "tags": ["MuleSoft Platform"],
-  "originalFormatVersion": "3.0"
+  "originalFormatVersion": "3.0",
+  "install": {
+    "docs_url": "https://docs.mulesoft.com"
+  }
 }

@@ -9196,3 +9196,189 @@ code[class*="language-"][class*="language-"] {
 [data-theme="dark"] .terraform-install-intro code {
     background: var(--color-neutral-2);
 }
+
+/* ── MCP IDE Config Modal ── */
+.mcp-ide-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.mcp-ide-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.mcp-ide-modal-content {
+    position: relative;
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-xl);
+    width: 90%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.mcp-ide-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-neutral-4);
+}
+
+.mcp-ide-modal-header h3 {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.mcp-ide-modal-body {
+    padding: var(--space-lg);
+}
+
+.mcp-ide-install-section {
+    margin-bottom: var(--space-lg);
+}
+
+.mcp-ide-install-section h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.mcp-ide-modal-intro {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.mcp-server-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.mcp-server-selector label {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    white-space: nowrap;
+}
+
+.mcp-server-select {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-medium);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+}
+
+.mcp-ide-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--color-neutral-3);
+    margin-bottom: var(--space-md);
+}
+
+.mcp-ide-tab {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.mcp-ide-tab:hover {
+    color: var(--color-text-primary);
+}
+
+.mcp-ide-tab.active {
+    color: var(--color-text-link);
+    border-bottom-color: var(--color-text-link);
+}
+
+.mcp-config-block {
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+}
+
+.mcp-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-neutral-2);
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.mcp-config-filename {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+}
+
+.btn-copy-config {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-small);
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-copy-config:hover {
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+}
+
+.mcp-config-code {
+    margin: 0;
+    padding: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    background: var(--color-bg-primary);
+    overflow-x: auto;
+}
+
+.mcp-config-code code {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.mcp-ide-docs-link {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-3);
+    color: var(--color-text-secondary);
+    margin: var(--space-sm) 0 0 0;
+}

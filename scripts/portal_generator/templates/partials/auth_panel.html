@@ -44,8 +44,16 @@
         </div>
     </div>
     {% endif %}
+    {% if is_mcp_page and mcp_install_info and prose_only|default(false) %}
+    <div class="auth-panel-right">
+        {% include "partials/mcp_ide_config_btn.html" %}
+    </div>
+    {% endif %}
     {% if is_skill_page or not prose_only|default(false) %}
     <div class="auth-panel-right">
+        {% if is_mcp_page and mcp_install_info %}
+        {% include "partials/mcp_ide_config_btn.html" %}
+        {% endif %}
         {% if is_skill_page and not prose_only|default(false) %}
         <div class="skill-mode-toggle-container">
             <label class="toggle-switch-label">

@@ -18,7 +18,7 @@
           "urn:api:api-manager",
           "urn:api:exchange-experience",
           "urn:mcp:exchange",
-          "urn:mcp:omni"
+          "urn:mcp:mulesoft-platform"
         ]
       },
       "operation": {

@@ -1,0 +1,84 @@
+{% if mcp.ide_configs %}
+<div class="mcp-ide-modal" id="mcp-ide-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="mcp-ide-modal-title">
+    <div class="mcp-ide-modal-overlay" onclick="closeMcpIdeModal()"></div>
+    <div class="mcp-ide-modal-content">
+        <div class="mcp-ide-modal-header">
+            <h3 id="mcp-ide-modal-title">Use this MCP server</h3>
+            <button class="btn-close-modal" onclick="closeMcpIdeModal()" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="mcp-ide-modal-body">
+            {% if mcp.install and mcp.install.command %}
+            <div class="mcp-ide-install-section">
+                <h4>Install</h4>
+                <div class="mcp-install-block">
+                    <pre class="mcp-install-command"><code id="mcp-ide-install-cmd">{{ mcp.install.command }}</code></pre>
+                    <button class="btn-copy-install" onclick="copyToClipboard('{{ mcp.install.command }}', this)" aria-label="Copy install command">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <p class="mcp-ide-modal-intro">Copy this configuration into your IDE settings to connect to this MCP server.</p>
+
+            {% if mcp.ide_configs._remote_servers %}
+            <div class="mcp-server-selector">
+                <label for="mcp-server-select">Server</label>
+                <select id="mcp-server-select" class="mcp-server-select" onchange="onMcpServerChange()">
+                    {% for srv in mcp.ide_configs._remote_servers %}
+                    <option value="{{ loop.index0 }}">{{ srv.url }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="mcp-ide-tabs" role="tablist">
+                {% for key, ide in mcp.ide_configs.items() if not key.startswith('_') %}
+                <button class="mcp-ide-tab{% if loop.first %} active{% endif %}"
+                        role="tab"
+                        aria-selected="{{ 'true' if loop.first else 'false' }}"
+                        data-ide-tab="{{ key }}"
+                        onclick="switchMcpIdeTab('{{ key }}')">
+                    {{ ide.label }}
+                </button>
+                {% endfor %}
+            </div>
+
+            {% for key, ide in mcp.ide_configs.items() if not key.startswith('_') %}
+            <div class="mcp-ide-panel{% if loop.first %} active{% endif %}"
+                 id="mcp-ide-panel-{{ key }}"
+                 role="tabpanel"
+                 {% if not loop.first %}style="display:none"{% endif %}>
+                <div class="mcp-config-block">
+                    <div class="mcp-config-header">
+                        <span class="mcp-config-filename">{{ ide.filename }}</span>
+                        <button class="btn-copy-config" onclick="copyMcpIdeConfig('{{ key }}')" aria-label="Copy configuration">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <pre class="mcp-config-code"><code id="mcp-config-{{ key }}" class="language-json">{{ ide.config_json }}</code></pre>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if mcp.install and mcp.install.docs_url %}
+            <p class="mcp-ide-docs-link">For full setup details, see the <a href="{{ mcp.install.docs_url }}" target="_blank" rel="noopener">documentation</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if mcp.ide_configs._remote_servers %}
+<script>
+window.__MCP_IDE_SERVERS__ = {{ mcp.ide_configs._remote_servers|tojson_raw }};
+window.__MCP_IDE_SLUG__ = {{ mcp.ide_configs._slug|tojson }};
+</script>
+{% endif %}
+{% endif %}

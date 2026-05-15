@@ -1,0 +1,28 @@
+<div class="skill-actions-bar skill-actions-bar-header">
+    <div class="skill-split-btn" id="skill-actions-mcp-ide">
+        <button class="skill-split-main" onclick="openMcpIdeModal()">
+            <span>Use MCP</span>
+        </button>
+        <button class="skill-split-toggle" onclick="toggleSkillDropdown('mcp-ide')" aria-haspopup="true" aria-expanded="false">
+            <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="skill-dropdown-menu" id="skill-dropdown-menu-mcp-ide" style="display:none">
+            <button onclick="openMcpIdeModal(); _closeAllSkillDropdowns();">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l2-2-2-2M8 18l-2-2 2-2M14 4l-4 16"/></svg>
+                IDE Configuration
+            </button>
+            {% if mcp_install_info.install and mcp_install_info.install.docs_url %}
+            <a href="{{ mcp_install_info.install.docs_url }}" target="_blank" rel="noopener">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Documentation
+            </a>
+            {% endif %}
+            {% if mcp_install_info.exchange and mcp_install_info.exchange.npm_url %}
+            <a href="{{ mcp_install_info.exchange.npm_url }}" target="_blank" rel="noopener">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                npm Registry
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

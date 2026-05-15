@@ -50,8 +50,18 @@ def _render_markdown(value):
 
     html = re.sub(r'(?:^|\n)(- .+(?:\n- .+)*)', _replace_list, html)
 
+    # Headings (### h3, ## h2 — processed before newline→br conversion)
+    html = re.sub(r'(?:^|\n)###\s+(.+)', r'\n<h4>\1</h4>', html)
+    html = re.sub(r'(?:^|\n)##\s+(.+)', r'\n<h3>\1</h3>', html)
+
     # Line breaks (for remaining newlines)
     html = html.replace('\n', '<br>')
+
+    # Clean up <br> around block elements (headings, lists)
+    html = re.sub(r'(?:<br>)+(<h[34]>)', r'\1', html)
+    html = re.sub(r'(</h[34]>)(?:<br>)+', r'\1', html)
+    html = re.sub(r'(?:<br>)+(<ul>)', r'\1', html)
+    html = re.sub(r'(</ul>)(?:<br>)+', r'\1', html)
 
     return Markup(html)
 

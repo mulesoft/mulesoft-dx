@@ -1,5 +1,5 @@
 ---
-name: manage-flex-gateway-policy-project
+name: develop-pdk-policy
 description: Drive the full lifecycle of a custom Flex Gateway policy with the Policy Development Kit (PDK) — verify prerequisites, scaffold the project, edit the gcl.yaml schema, build the WebAssembly artifact, exercise it locally with the Docker playground, then publish a dev version and cut a release to Anypoint Exchange. Use this skill whenever the user mentions PDK, Flex Gateway custom policies, `anypoint-cli-v4 pdk`, `cargo anypoint`, `make build` / `make publish` / `make release`, the `wasm32-wasip1` target, or asks to "create a custom policy", "scaffold a PDK project", "build a Flex Gateway policy", "publish a policy to Exchange", "test my policy locally", "upgrade PDK", or troubleshoots a PDK build / publish / release failure — even if they don't use the word "PDK" explicitly.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `anypoint-pdk-plugin` (PDK 1.7.0+) installed, Rust toolchain (rustc + cargo), `cargo-anypoint` plugin, `make`, and Docker (for the local playground in Step 7). Assumes `wasm32-wasip1` target is installed.

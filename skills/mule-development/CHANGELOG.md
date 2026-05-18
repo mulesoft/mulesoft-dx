@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- **`manage-flex-gateway-policy-project`** — new skill that drives the full lifecycle of a custom Flex Gateway policy with the Policy Development Kit (PDK): prerequisite checks, `anypoint-cli-v4 pdk policy-project create`, `make setup` / `build-asset-files` / `build`, local execution via the scaffolded `playground/` (`make run` against a Dockerized Flex Gateway in local-disconnected mode), then `make publish` and `make release` to Anypoint Exchange. Includes an upgrade-PDK runbook and troubleshooting for the most common toolchain failure modes. Lets agents take a developer from "I want a custom policy" through to a released Exchange asset without leaving the IDE.
+- **`develop-pdk-policy`** — new skill that drives the full lifecycle of a custom Flex Gateway policy with the Policy Development Kit (PDK): prerequisite checks, `anypoint-cli-v4 pdk policy-project create`, `make setup` / `build-asset-files` / `build`, local execution via the scaffolded `playground/` (`make run` against a Dockerized Flex Gateway in local-disconnected mode), then `make publish` and `make release` to Anypoint Exchange. Includes an upgrade-PDK runbook and troubleshooting for the most common toolchain failure modes. Lets agents take a developer from "I want a custom policy" through to a released Exchange asset without leaving the IDE.
 
 ## [1.0.3] - 2026-05-14
 

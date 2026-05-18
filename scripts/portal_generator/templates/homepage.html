@@ -2,9 +2,90 @@
 
 {% block title %}MuleSoft Developer Portal{% endblock %}
 
+{% block extra_styles %}
+<link rel="stylesheet" href="https://www.mulesoft.com/themes/custom/mule_foundation/endpoints/css/header-footer.css">
+{% endblock %}
+
 {% block head_scripts %}
 <script src="assets/jsonpath-plus.min.js" defer></script>
 <script src="assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+<div class="ms-com-content ms-com-content-header br-nav updated-contact-pages closed new-nav no-helmet">
+    <header class="ms-com-header desktop-header">
+        <div class="header-overlay"></div>
+        <div class="header-wrapper">
+            <div class="header-inside">
+                <p class="logo" aria-label="MuleSoft logo"></p>
+                <div></div>
+                <section class="right-side">
+                    <div class="contact">
+                        <p class="contact-link">Contact Us</p>
+                        <span>1-800-596-4880</span>
+                    </div>
+                    <ul class="menu menu--simple-mega-menu" role="menu">
+                        <li class="no-children free-trial-btn" role="menuitem">
+                            <a href="https://anypoint.mulesoft.com/login/#/signup?apintent=generic" class="button blue-button">Free trial</a>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </header>
+
+    <header class="ms-com-header mobile-header">
+        <div class="mobile-header-top">
+            <p class="logo" aria-label="MuleSoft logo"></p>
+            <section class="right-side">
+                <div class="menu-ham" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </section>
+        </div>
+        <div class="mobile-header-bottom">
+            <nav class="mobile-nav">
+                <nav class="mobile-lang-selector notranslate">
+                    <ul class="menu" role="menu">
+                        <li class="menu-item" role="menuitem" aria-expanded="false" aria-haspopup="true">
+                            <span class="mobile-contact">Contact</span>
+                            <div class="mega-menu-wrapper">
+                                <div class="mega-menu-background"></div>
+                                <div class="simple-mega-menu mega-menu-item simple-mega-menu-type-megamenu view-mode-after">
+                                    <div class="field-wrapper field field-simple-mega-menu--field-header field-name-field-header field-type-text-long field-label-hidden">
+                                        <div class="field-items">
+                                            <div class="field-item">
+                                                <div class="mega-menu-item-header">
+                                                    <nav class="menu contact">
+                                                        <div>
+                                                            <span>By phone</span>
+                                                            <a href="tel:1-800-596-4880" class="phone-mobile">1-800-596-4880</a>
+                                                        </div>
+                                                    </nav>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+                <a href="https://anypoint.mulesoft.com/login/#/signup?apintent=generic" class="cta-link">Free trial</a>
+                <div class="mobile-social-icons">
+                    <a href="https://twitter.com/MuleSoft" class="nav-social-icon icon-muletheme-twitter" target="_blank" aria-label="Link to MuleSoft Twitter profile"><span>Link to MuleSoft Twitter profile</span></a>
+                    <a href="https://www.linkedin.com/company/mulesoft" class="nav-social-icon icon-muletheme-linkedin" target="_blank" aria-label="Link to Linkedin Twitter profile"><span>Link to MuleSoft Linkedin profile</span></a>
+                    <a href="https://www.facebook.com/MuleSoft" class="nav-social-icon icon-muletheme-facebook" target="_blank" aria-label="Link to MuleSoft Facebook profile"><span>Link to MuleSoft Facebook page</span></a>
+                    <a href="https://www.instagram.com/mulesoft/" class="nav-social-icon icon-muletheme-instagram" target="_blank" aria-label="Link to MuleSoft Instagram profile"><span>Link to MuleSoft Instagram profile</span></a>
+                    <a href="https://videos.mulesoft.com/" class="nav-social-icon icon-muletheme-videos" target="_blank" aria-label="Link to MuleSoft Videos platform"><span>Link to MuleSoft Videos platform</span></a>
+                    <a href="https://www.twitch.tv/mulesoft_community" class="nav-social-icon icon-muletheme-twitch" target="_blank" aria-label="Link to MuleSoft Twitch profile"><span>Link to MuleSoft Twitch profile</span></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -122,4 +203,5 @@
 <script>
 window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
 </script>
+<script src="https://www.mulesoft.com/themes/custom/mule_foundation/endpoints/js/header-footer.js"></script>
 {% endblock %}

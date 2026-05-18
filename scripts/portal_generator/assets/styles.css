@@ -341,7 +341,7 @@
 
     /* Primary colors - Slack blue (desaturated for dark mode) */
     --color-servers: #1D9BD1;
-    --hero-title: #9CA6AF;
+    --hero-title: #FFFFFF;
     --color-primary: #2D7A9E;
     --color-primary-hover: #3A8CB0;
     --color-primary-dark: #226380;
@@ -416,15 +416,16 @@ body {
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     line-height: 1.6;
-    padding-top: 80px;
-    /* Space for MuleSoft fixed header */
+    padding-top: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 /* MuleSoft header styling */
-.ms-com-content-header {
+.ms-com-content-header,
+.ms-com-content-header.lined {
     border-bottom: 2px solid var(--color-border-primary) !important;
+    border-bottom-color: var(--color-border-primary) !important;
 }
 
 /* On detail pages, make MuleSoft header non-sticky */
@@ -437,6 +438,35 @@ body.detail-page .ms-com-header {
     position: relative !important;
     z-index: 200;
 }
+
+/* MuleSoft chrome header — dark mode overrides.
+   Same pattern as the footer: the header HTML + CSS is fetched from mulesoft.com
+   and hardcodes a white background. Flip the background + text to dark tokens. */
+/* [data-theme="dark"] .ms-com-content-header, */
+[data-theme="dark"] .ms-com-header,
+[data-theme="dark"] .ms-com-header .header-wrapper {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-content-header {
+    border-bottom-color: var(--color-border-primary) !important;
+    box-shadow: 0px 1px 1px var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-content-header .logo {
+    background-position: -173px -179px !important;
+}
+
+/* [data-theme="dark"] .ms-com-header a, */
+[data-theme="dark"] .ms-com-header .menu-item>span {
+    color: var(--color-text-primary) !important;
+}
+
+/* [data-theme="dark"] .ms-com-header a:hover,
+[data-theme="dark"] .ms-com-header .menu-item>a:hover {
+    color: var(--color-text-link) !important;
+} */
 
 /* Dark mode toggle button */
 .dark-mode-toggle {
@@ -690,9 +720,13 @@ code {
    Hero
    ============================================================================ */
 
+.ms-com-content-header + main#main-content {
+    margin-top: 75px;
+}
+
 .hero {
     position: relative;
-    padding: 60px 0 20px 0;
+    padding: 20px 0 20px 0;
     overflow: visible;
 }
 
@@ -715,7 +749,7 @@ code {
 }
 
 [data-theme="dark"] .hero-title {
-    color: #ABABAD;
+    color: var(--hero-title);
 }
 
 .hero-subtitle {
@@ -2388,19 +2422,91 @@ code {
     font-size: var(--font-size-4);
 }
 
-/* Contribute footer — bottom-of-page CTA on detail pages.
-   Encourages users to edit the source spec/skill or open an issue on GitHub. */
-.contribute-footer {
+/* MuleSoft chrome footer — dark mode overrides. */
+[data-theme="dark"] .ms-com-content-footer,
+[data-theme="dark"] .ms-com-content-footer.custom-footer-white-bg,
+[data-theme="dark"] .ms-com-footer,
+[data-theme="dark"] .ms-com-footer .footer-top,
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-top {
+    border-top: 1px solid var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    border-top: 1px solid var(--color-border-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer nav ul li span {
+    color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a,
+[data-theme="dark"] .ms-com-footer nav ul li a,
+[data-theme="dark"] .ms-com-footer .footer-links a,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a,
+[data-theme="dark"] .ms-com-footer .footer-copyright a {
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a:hover,
+[data-theme="dark"] .ms-com-footer nav ul li a:hover,
+[data-theme="dark"] .ms-com-footer .footer-links a:hover,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a:hover,
+[data-theme="dark"] .ms-com-footer .footer-copyright a:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-copyright,
+[data-theme="dark"] .ms-com-footer .footer-copyright span {
+    color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-links-separator {
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings,
+[data-theme="dark"] .ms-com-footer button.ot-sdk-show-settings {
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .social-logos a {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9);
+}
+
+[data-theme="dark"] .ms-com-content-header header.ms-com-header.desktop-header .header-inside .right-side>.contact>* {
+    color: white !important;
+}
+
+/* Contribute footer — bottom-of-page CTA on detail pages. */
+aside.contribute-footer {
     margin-top: var(--space-2xl);
     padding: var(--space-lg) var(--space-xl);
     border-top: 1px solid var(--color-border-primary);
     background: var(--color-bg-surface);
     border-radius: var(--radius-large);
-    display: flex;
+    display: flex !important;
+    visibility: visible !important;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
+}
+
+.ms-com-content-footer {
+    margin-top: 0 !important;
+    position: relative !important;
+    top: 0 !important;
 }
 
 .contribute-footer-lead {
@@ -2451,7 +2557,6 @@ code {
     border-color: var(--color-border-focus);
     color: var(--color-text-link);
 }
-
 /* ============================================================================
    Detail Page Layout (Sidebar + Content)
    ============================================================================ */
@@ -3109,7 +3214,7 @@ button.nav-group-header {
     scroll-margin-top: 100px;
     display: none;
     /* Hidden by default, shown via JS */
-    
+
 }
 
 .operation-detail.active {
@@ -8418,6 +8523,7 @@ code[class*="language-"][class*="language-"] {
 .evaluation-result-container.evaluation-success .ace_editor {
     border-color: #86efac;
 }
+
 /* ============================================================================
    MCP surfaces
    ============================================================================

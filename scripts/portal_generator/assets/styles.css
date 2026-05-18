@@ -341,7 +341,7 @@
 
     /* Primary colors - Slack blue (desaturated for dark mode) */
     --color-servers: #1D9BD1;
-    --hero-title: #9CA6AF;
+    --hero-title: #FFFFFF;
     --color-primary: #2D7A9E;
     --color-primary-hover: #3A8CB0;
     --color-primary-dark: #226380;
@@ -422,8 +422,10 @@ body {
 }
 
 /* MuleSoft header styling */
-.ms-com-content-header {
+.ms-com-content-header,
+.ms-com-content-header.lined {
     border-bottom: 2px solid var(--color-border-primary) !important;
+    border-bottom-color: var(--color-border-primary) !important;
 }
 
 /* On detail pages, make MuleSoft header non-sticky */
@@ -449,6 +451,11 @@ body.detail-page .ms-com-header {
 
 [data-theme="dark"] .ms-com-content-header {
     border-bottom-color: var(--color-border-primary) !important;
+    box-shadow: 0px 1px 1px var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-content-header .logo {
+    background-position: -173px -179px !important;
 }
 
 /* [data-theme="dark"] .ms-com-header a, */
@@ -713,6 +720,10 @@ code {
    Hero
    ============================================================================ */
 
+.ms-com-content-header + main#main-content {
+    margin-top: 75px;
+}
+
 .hero {
     position: relative;
     padding: 20px 0 20px 0;
@@ -738,7 +749,7 @@ code {
 }
 
 [data-theme="dark"] .hero-title {
-    color: #ABABAD;
+    color: var(--hero-title);
 }
 
 .hero-subtitle {
@@ -2442,17 +2453,24 @@ code {
 }
 
 /* Contribute footer — bottom-of-page CTA on detail pages. */
-.contribute-footer {
+aside.contribute-footer {
     margin-top: var(--space-2xl);
     padding: var(--space-lg) var(--space-xl);
     border-top: 1px solid var(--color-border-primary);
     background: var(--color-bg-surface);
     border-radius: var(--radius-large);
-    display: flex;
+    display: flex !important;
+    visibility: visible !important;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
+}
+
+.ms-com-content-footer {
+    margin-top: 0 !important;
+    position: relative !important;
+    top: 0 !important;
 }
 
 .contribute-footer-lead {

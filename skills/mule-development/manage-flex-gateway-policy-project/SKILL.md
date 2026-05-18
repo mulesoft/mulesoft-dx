@@ -64,14 +64,7 @@ The developer must be logged in to the org/environment that will host the policy
 anypoint-cli-v4 conf
 ```
 
-If not logged in:
-
-```bash
-anypoint-cli-v4 conf user <username>
-anypoint-cli-v4 conf password <password>
-anypoint-cli-v4 conf organization <orgId>
-anypoint-cli-v4 conf environment <envId>
-```
+If credentials are not set, or `make publish` / `make release` later fails with 401/403, follow the prerequisites doc: https://docs.mulesoft.com/pdk/latest/policies-pdk-prerequisites — auth requires a Connected App with the **Exchange Contributor** scope on the target org. Do not propose workaround login flows.
 
 **Gate:** all four checks pass. Do not proceed otherwise.
 

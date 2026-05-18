@@ -918,7 +918,7 @@ function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVars
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
     html += '<button class="btn-send" onclick="executeMcpXOriginSource(' + idx + ', this)">';
     html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
-    html += '<button class="btn-copy-curl" onclick="copyMcpCurlCommand(\'' + xoriginOpId + '\', ' + idx + ', this)">';
+    html += '<button class="btn-copy-curl" onclick="copyXOriginMcpCurl(\'' + xoriginOpId + '\', ' + idx + ', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
     html += '</div></div>';
 
@@ -4098,7 +4098,7 @@ function copyCurlCommand(opId, buttonEl) {
     });
 }
 
-function copyMcpCurlCommand(xoriginOpId, sourceIdx, buttonEl) {
+function copyXOriginMcpCurl(xoriginOpId, sourceIdx, buttonEl) {
     var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
     if (!currentModal) return;
     var origin = currentModal.origins[sourceIdx];
@@ -8452,6 +8452,7 @@ function wrapTerraformCodeBlocks() {
 
 function wrapSkillCodeBlocks() {
     wrapCodeBlocksWithCopyHeader('.step-prose pre');
+    wrapCodeBlocksWithCopyHeader('.skill-view-markdown pre');
 }
 
 function wrapMcpCodeBlocks() {

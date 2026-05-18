@@ -9053,6 +9053,36 @@ code[class*="language-"][class*="language-"] {
     color: #168FFF;
 }
 
+.code-block-wrapper pre.language-json .token.boolean,
+.code-block-wrapper pre.language-json .token.keyword {
+    color: #014486;
+}
+
+/* Ace editors (API try-it & examples): match Postman JSON palette. */
+.ace-github .ace_variable {
+    color: var(--method-delete-text);
+}
+
+.ace-github .ace_string {
+    color: #168FFF;
+}
+
+.ace-github .ace_constant.ace_language {
+    color: #014486;
+}
+
+.ace-github .ace_gutter {
+    background: white;
+}
+
+.ace-github .ace_gutter-active-line {
+    background: transparent !important;
+}
+
+.ace-github .ace_active-line {
+    background: transparent !important;
+}
+
 /* Terraform install modal sits outside the wrapper, so re-apply the palette. */
 .terraform-install-modal .token.keyword,
 .terraform-install-modal .token.tag,

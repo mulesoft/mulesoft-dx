@@ -40,6 +40,24 @@ sequenceDiagram
     API Manager-->>Omni Gateway: Policy enforced
 ```
 
+## Prerequisites
+
+Before starting, ensure you have:
+
+1. **Authentication ready**
+   - Valid Bearer token for Anypoint Platform. If you only have username/password, call `createLogin` (`POST /accounts/login`) from the `urn:api:access-management` API with body `{"username":"...","password":"..."}` to obtain a Bearer token first.
+   - API Manager permissions: **View APIs Configuration** and **Manage Policies** scopes
+
+2. **Organization Id**
+   - Call `listMe` (`GET /accounts/api/me`) from `urn:api:access-management` to get your organization ID
+   - Extract `organizationId` from `$.user.organization.id` in the response
+   - This is used to list environments, browse the policy catalog, check Exchange, etc.
+
+3. **One of the following**
+   - An API instance already in API Manager for the MCP server (skip to Step 3, then Step 7)
+   - An MCP server asset already in Exchange (skip to Step 2)
+   - An MCP server specification that needs to be published first (start at Step 1)
+
 ### Choose Your Path
 
 ```mermaid
@@ -65,24 +83,6 @@ flowchart TD
     S8 --> S9[Step 9: Apply Policy]
     S9 --> Done[✓ MCP Server Protected]
 ```
-
-## Prerequisites
-
-Before starting, ensure you have:
-
-1. **Authentication ready**
-   - Valid Bearer token for Anypoint Platform. If you only have username/password, call `createLogin` (`POST /accounts/login`) from the `urn:api:access-management` API with body `{"username":"...","password":"..."}` to obtain a Bearer token first.
-   - API Manager permissions: **View APIs Configuration** and **Manage Policies** scopes
-
-2. **Organization Id**
-   - Call `listMe` (`GET /accounts/api/me`) from `urn:api:access-management` to get your organization ID
-   - Extract `organizationId` from `$.user.organization.id` in the response
-   - This is used to list environments, browse the policy catalog, check Exchange, etc.
-
-3. **One of the following**
-   - An API instance already in API Manager for the MCP server (skip to Step 3, then Step 7)
-   - An MCP server asset already in Exchange (skip to Step 2)
-   - An MCP server specification that needs to be published first (start at Step 1)
 
 ## Execution Paths
 

@@ -6,14 +6,8 @@
 {% block body_attrs %} class="detail-page skill-page"{% endblock %}
 
 {% block head_scripts %}
+{% include "partials/prism_head.html" %}
 {% if not prose_only %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
 <script src="../assets/jsonpath-plus.min.js" defer></script>
 {% endif %}
 <script src="../assets/portal.js" defer></script>
@@ -64,4 +58,9 @@ window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
 window.__API_LINK_PREFIX__ = '../apis/';
 </script>
 {% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof wrapSkillCodeBlocks === 'function') wrapSkillCodeBlocks();
+});
+</script>
 {% endblock %}

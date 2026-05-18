@@ -1498,13 +1498,13 @@ describe('wrapTerraformCodeBlocks', () => {
         return container;
     }
 
-    test('wraps each pre with a terraform-code-wrapper containing a header and copy button', () => {
+    test('wraps each pre with a code-block-wrapper containing a header and copy button', () => {
         buildMarkdown(2);
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(2);
         wrappers.forEach((w) => {
-            expect(w.querySelector('.terraform-code-header')).not.toBeNull();
+            expect(w.querySelector('.code-block-header')).not.toBeNull();
             expect(w.querySelector('pre')).not.toBeNull();
         });
     });
@@ -1513,20 +1513,20 @@ describe('wrapTerraformCodeBlocks', () => {
         buildMarkdown(2);
         wrapTerraformCodeBlocks();
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(2);
     });
 
     test('does nothing when no terraform-view-markdown pre exists', () => {
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(0);
     });
 
-    test('inserted button has class terraform-btn-copy and contains an SVG', () => {
+    test('inserted button has class code-block-copy-btn and contains an SVG', () => {
         buildMarkdown(1);
         wrapTerraformCodeBlocks();
-        const btn = document.querySelector('.terraform-btn-copy');
+        const btn = document.querySelector('.code-block-copy-btn');
         expect(btn).not.toBeNull();
         expect(btn.querySelector('svg')).not.toBeNull();
     });
@@ -1549,11 +1549,11 @@ describe('copyTerraformCode', () => {
 
     function buildWrapper(text) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'terraform-code-wrapper';
+        wrapper.className = 'code-block-wrapper';
         const header = document.createElement('div');
-        header.className = 'terraform-code-header';
+        header.className = 'code-block-header';
         const btn = document.createElement('button');
-        btn.className = 'terraform-btn-copy';
+        btn.className = 'code-block-copy-btn';
         btn.innerHTML = '<svg><rect></rect></svg>';
         header.appendChild(btn);
         const pre = document.createElement('pre');

@@ -27,15 +27,7 @@
     {% if mcp.install and mcp.install.command %}
     <div class="overview-section">
         <h3>Installation</h3>
-        <div class="mcp-install-block">
-            <pre class="mcp-install-command"><code>{{ mcp.install.command }}</code></pre>
-            <button class="btn-copy-install" onclick="copyToClipboard('{{ mcp.install.command }}', this)" aria-label="Copy install command">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-            </button>
-        </div>
+        <pre class="mcp-install-command"><code class="language-bash">{{ mcp.install.command }}</code></pre>
         {% if mcp.install.docs_url %}
         <p class="mcp-install-docs">For setup and configuration details, see the <a href="{{ mcp.install.docs_url }}" target="_blank" rel="noopener">Getting Started guide</a>.</p>
         {% endif %}

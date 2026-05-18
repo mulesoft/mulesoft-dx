@@ -15,8 +15,9 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${AKAMAI_PRIVATE_SSH_KEY}" > ~/.ssh/akamai_key
+          printf '%s\n' "${AKAMAI_PRIVATE_SSH_KEY}" > ~/.ssh/akamai_key
           chmod 600 ~/.ssh/akamai_key
+          ssh-keygen -lf ~/.ssh/akamai_key > /dev/null && echo "key parses OK"
         env:
           AKAMAI_PRIVATE_SSH_KEY: ${{ secrets.AKAMAI_PRIVATE_SSH_KEY }}
 

@@ -1,6 +1,6 @@
 ---
 name: manage-flex-gateway-policy-project
-description: Create, build, and publish a custom Flex Gateway policy with the Policy Development Kit (PDK). Use when the user asks to "create a new Flex Gateway policy", "scaffold a PDK policy project", "build a custom policy", "publish a PDK policy", "release a Flex Gateway policy", or mentions PDK, `anypoint-cli-v4 pdk`, `cargo anypoint`, or the Flex Gateway custom policy lifecycle. Covers prerequisites, project creation, configuration, build, dev publish, and release.
+description: Drive the full lifecycle of a custom Flex Gateway policy with the Policy Development Kit (PDK) — verify prerequisites, scaffold the project, edit the gcl.yaml schema, build the WebAssembly artifact, exercise it locally with the Docker playground, then publish a dev version and cut a release to Anypoint Exchange. Use this skill whenever the user mentions PDK, Flex Gateway custom policies, `anypoint-cli-v4 pdk`, `cargo anypoint`, `make build` / `make publish` / `make release`, the `wasm32-wasip1` target, or asks to "create a custom policy", "scaffold a PDK project", "build a Flex Gateway policy", "publish a policy to Exchange", "test my policy locally", "upgrade PDK", or troubleshoots a PDK build / publish / release failure — even if they don't use the word "PDK" explicitly.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `anypoint-pdk-plugin` (PDK 1.7.0+) installed, Rust toolchain (rustc + cargo), `cargo-anypoint` plugin, `make`, and Docker (for the local playground in Step 7). Assumes `wasm32-wasip1` target is installed.
 metadata:
@@ -15,8 +15,6 @@ You are a Flex Gateway policy specialist helping a developer scaffold, build, an
 ## Your Task
 
 Drive the full lifecycle of a custom Flex Gateway policy project: verify prerequisites, create the project, configure it, build it, publish a development version for in-cluster testing, and finally cut a release version. Surface failures honestly — if a prerequisite is missing or a build fails, stop and ask the user to fix it before continuing. Do not invent workarounds.
-
-## Step-by-Step Process
 
 ## Step 1: Verify Prerequisites
 
@@ -133,7 +131,7 @@ make build-asset-files
 
 This regenerates `src/generated/config.rs` so the policy's Rust code can reference the configuration as typed structs. **Do not hand-edit `src/generated/`** — it gets overwritten on every `build-asset-files` run.
 
-The user's policy logic lives in `src/lib.rs` (entry point) and any helper modules they add. Point them there; do not write the policy logic in this skill — that's the developer's design work. If they ask for examples of common patterns (header manipulation, JWT validation, HTTP calls, rate limiting), refer them to the `pdk-examples` repo: https://github.com/mulesoft/pdk-examples.
+The developer's actual policy logic lives in `src/lib.rs` (the entry point) and any helper modules they add — that's design work outside this skill's scope. If the developer asks for examples of common patterns (header manipulation, JWT validation, HTTP calls, rate limiting, etc.), point them at the public examples repo: https://github.com/mulesoft/pdk-examples.
 
 ## Step 6: Build the Policy
 
@@ -147,9 +145,8 @@ This runs `cargo build --target wasm32-wasip1 --release` under the hood and emit
 
 If the build fails, read the error carefully before reacting:
 
-- **Compilation errors in `src/`** — the developer's policy code has bugs. Show them the error, do not attempt to fix it without their input.
-- **`error: target wasm32-wasip1 not installed`** — back to Step 1, run `rustup target add wasm32-wasip1`.
-- **`error: failed to select a version for ...`** — the `Cargo.toml` has incompatible `pdk` / `pdk-test` versions. See the "Upgrade PDK" section below; do not bump versions without the user's say-so.
+- **Compilation errors in `src/`** — these belong to the developer's policy code. Show the error, do not silently attempt fixes.
+- **`error: failed to select a version for ...`** — the `Cargo.toml` has incompatible `pdk` / `pdk-test` versions. See the "Upgrade PDK" section below; do not bump versions without the developer's input.
 
 ## Step 7: Run the Policy Locally
 
@@ -207,7 +204,7 @@ After publishing, the asset is visible in Exchange under the configured org. The
 
 ## Step 9: Release a Production Version
 
-Once the developer is happy with the policy and has tested the dev version against a real gateway:
+Once the developer is satisfied with the policy after exercising it via the local playground (Step 7) or a deployed dev version (Step 8):
 
 ```bash
 make release
@@ -273,23 +270,6 @@ After completing the lifecycle, verify:
 - [ ] `README.md` documents the policy's purpose, configuration, and example usage.
 
 ## Troubleshooting
-
-### `anypoint-cli-v4: command not found`
-
-**Cause:** Anypoint CLI v4 not installed, or not on `PATH`.
-
-**Fix:** Install via npm: `npm install -g anypoint-cli-v4`. Confirm with `anypoint-cli-v4 --version`.
-
-### `Plugin 'anypoint-pdk-plugin' not found` after `make setup`
-
-**Cause:** The PDK plugin was not installed before scaffolding the project, or it was installed under the old pre-1.7.0 name.
-
-**Fix:**
-
-```bash
-anypoint-cli-v4 plugins:uninstall anypoint-cli-pdk-plugin
-anypoint-cli-v4 plugins:install anypoint-pdk-plugin
-```
 
 ### `cargo-anypoint` version mismatch on `make setup`
 

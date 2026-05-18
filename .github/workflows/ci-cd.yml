@@ -162,7 +162,7 @@ jobs:
           lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}
 
   deploy-to-poc:
     name: Deploy to POC
@@ -221,7 +221,7 @@ jobs:
           lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}
           POC_NAME: ${{ steps.poc.outputs.name }}
 
   deploy-to-production:
@@ -270,7 +270,7 @@ jobs:
           lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
+          AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}
 
   notify-on-failure:
     name: Notify on Failure

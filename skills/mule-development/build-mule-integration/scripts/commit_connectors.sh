@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 8 helper (Phase 2 bootstrap) — promote every connector draft in
 # tmp/connector-choices/ to the pinned tmp/connector-versions/ directory
@@ -22,7 +22,7 @@
 # Exit code:
 #   0  one or more drafts promoted
 #   1  no drafts found (tmp/connector-choices/ missing or empty)
-set -u
+set -euo pipefail
 
 CHOICES_DIR="${CONNECTOR_CHOICES_DIR:-tmp/connector-choices}"
 VERSIONS_DIR="${CONNECTOR_VERSIONS_DIR:-tmp/connector-versions}"

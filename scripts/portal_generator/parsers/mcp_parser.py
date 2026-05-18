@@ -367,12 +367,90 @@ def _collect_xorigin_refs(tools: List[Dict]) -> Tuple[Set[str], Set[str]]:
     return api_refs, mcp_refs
 
 
+def _build_ide_configs(slug: str, mcp_type: str, transport: Dict, servers: List[Dict]) -> Dict:
+    """Build IDE configuration snippets for Claude Code, Cursor, and VS Code."""
+    configs = {}
+
+    if mcp_type == 'local':
+        raw_cmd = transport.get('command', '')
+        parts = raw_cmd.split() if raw_cmd else []
+        cmd = parts[0] if parts else 'npx'
+        args = parts[1:] if len(parts) > 1 else [slug, 'start']
+
+        local_base = {'command': cmd, 'args': ['-y'] + args}
+        configs['claude_code'] = {
+            'label': 'Claude Code',
+            'filename': 'claude_desktop_config.json',
+            'config': {'mcpServers': {slug: {**local_base}}},
+        }
+        configs['cursor'] = {
+            'label': 'Cursor',
+            'filename': '.cursor/mcp.json',
+            'config': {'mcpServers': {slug: {**local_base}}},
+        }
+        configs['vscode'] = {
+            'label': 'VS Code',
+            'filename': '.vscode/settings.json',
+            'config': {'mcp': {'servers': {slug: {'type': 'stdio', **local_base}}}},
+        }
+    else:
+        primary = next(
+            (s for s in servers if s.get('_transport_kind') == 'streamableHttp'),
+            servers[0] if servers else None,
+        )
+        url = primary.get('url', '') if primary else ''
+        kind = primary.get('_transport_kind', 'streamableHttp') if primary else 'streamableHttp'
+        ide_type = 'sse' if kind == 'sse' else 'streamable-http'
+
+        remote_base = {'type': ide_type, 'url': url}
+        configs['claude_code'] = {
+            'label': 'Claude Code',
+            'filename': 'claude_desktop_config.json',
+            'config': {'mcpServers': {slug: {**remote_base}}},
+        }
+        configs['cursor'] = {
+            'label': 'Cursor',
+            'filename': '.cursor/mcp.json',
+            'config': {'mcpServers': {slug: {**remote_base}}},
+        }
+        vscode_type = 'sse' if kind == 'sse' else 'http'
+        configs['vscode'] = {
+            'label': 'VS Code',
+            'filename': '.vscode/settings.json',
+            'config': {'mcp': {'servers': {slug: {'type': vscode_type, 'url': url}}}},
+        }
+
+    for key in configs:
+        configs[key]['config_json'] = json.dumps(configs[key]['config'], indent=2)
+
+    # For remote MCPs with multiple servers, attach server list for the
+    # modal's server selector.  Each entry carries the URL plus the IDE-type
+    # strings so JS can rebuild the config JSON on selection change.
+    remote_servers: List[Dict] = []
+    if mcp_type == 'remote' and len(servers) > 1:
+        for srv in servers:
+            srv_kind = srv.get('_transport_kind', 'streamableHttp')
+            srv_ide_type = 'sse' if srv_kind == 'sse' else 'streamable-http'
+            srv_vscode_type = 'sse' if srv_kind == 'sse' else 'http'
+            remote_servers.append({
+                'url': srv.get('url', ''),
+                'ide_type': srv_ide_type,
+                'vscode_type': srv_vscode_type,
+            })
+    configs['_remote_servers'] = remote_servers
+    configs['_slug'] = slug
+
+    return configs
+
+
 def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     """Parse an MCP server directory into a normalized record.
 
-    Requires ``server.json`` (MCP registry descriptor) and ``mcp.yaml``
-    (tool/prompt/resource definitions). ``exchange.json`` is optional and
-    contributes the ``tags`` list used by the homepage tag search.
+    Requires ``mcp.yaml`` (tool/prompt/resource definitions).
+    ``server.json`` (MCP registry descriptor) is optional — when absent the
+    MCP is treated as a **local** (stdio) server and display fields fall back
+    to ``exchange.json`` and the directory slug.  ``exchange.json`` is also
+    optional and contributes the ``tags`` list used by the homepage tag search.
     """
     mcp_yaml_path = mcp_dir / 'mcp.yaml'
     if not mcp_yaml_path.exists():
@@ -382,14 +460,14 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         return None
 
     server_json_path = mcp_dir / 'server.json'
-    if not server_json_path.exists():
-        return None
-    try:
-        server_data = json.loads(server_json_path.read_text(encoding='utf-8')) or {}
-    except (json.JSONDecodeError, OSError):
-        return None
-    if not isinstance(server_data, dict):
-        return None
+    server_data: Dict = {}
+    if server_json_path.exists():
+        try:
+            server_data = json.loads(server_json_path.read_text(encoding='utf-8')) or {}
+        except (json.JSONDecodeError, OSError):
+            server_data = {}
+        if not isinstance(server_data, dict):
+            server_data = {}
 
     exchange_path = mcp_dir / 'exchange.json'
     exchange: Dict = {}
@@ -401,13 +479,18 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
 
     slug = mcp_dir.name
 
-    # Display fields come straight from server.json (registry schema).
+    # Display fields: server.json (highest priority) → exchange.json → slug.
     name = (
         server_data.get('title')
         or server_data.get('name')
+        or exchange.get('name')
         or slug.replace('-', ' ').title() + ' MCP'
     )
-    version = str(server_data.get('version') or '')
+    version = str(
+        server_data.get('version')
+        or exchange.get('version')
+        or ''
+    )
     description_full = str(server_data.get('description') or '')
     description_short = (
         description_full[:200] + '...'
@@ -415,7 +498,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     )
     website_url = str(server_data.get('websiteUrl') or '')
 
-    # Tags now come from exchange.json. Accept either the OpenAPI-style
+    # Tags come from exchange.json. Accept either the OpenAPI-style
     # [{name, description}] list or a flat [string, string] list.
     raw_tags = exchange.get('tags') if isinstance(exchange, dict) else []
     tags: List[Dict] = []
@@ -432,23 +515,45 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
                 tags.append({'name': entry.strip(), 'description': ''})
                 tag_names.append(entry.strip())
 
-    # Servers + transport derive from server.json remotes[]. Each remote's
-    # ``url`` is the full endpoint — the try-it console posts to it directly.
+    # Servers + transport derive from server.json remotes[] (if present).
     servers = _normalize_remotes(server_data.get('remotes'))
     primary_remote = next(
         (s for s in servers if s.get('_transport_kind') == 'streamableHttp'),
         servers[0] if servers else None,
     )
+
+    # Transport: prefer server.json remotes; fall back to mcp.yaml transport.
+    yaml_transport = mcp_data.get('transport') or {}
+    yaml_transport_kind = _TRANSPORT_ALIASES.get(
+        str(yaml_transport.get('kind', '')),
+        str(yaml_transport.get('kind', '')),
+    )
+    transport_kind = (
+        str(primary_remote.get('_transport_kind', ''))
+        if primary_remote
+        else yaml_transport_kind
+    )
     transport = {
-        'kind': str(primary_remote.get('_transport_kind', '')) if primary_remote else '',
-        # Kept for backwards compatibility with the overview template; the
-        # full URL already includes any path so these are unused by the
-        # try-it console but still useful in view-only displays.
-        'path': '',
+        'kind': transport_kind,
+        'path': str(yaml_transport.get('path', '')),
         'sse_path': '',
         'messages_path': '',
         'instructions': '',
+        'command': str(yaml_transport.get('command', '')),
     }
+
+    # mcp_type: "local" when transport is stdio (no HTTP remotes), else "remote".
+    is_local = transport_kind == 'stdio'
+    mcp_type = 'local' if is_local else 'remote'
+
+    # Install info from exchange.json.
+    raw_install = exchange.get('install') if isinstance(exchange, dict) else None
+    install: Optional[Dict] = None
+    if isinstance(raw_install, dict) and (raw_install.get('command') or raw_install.get('docs_url')):
+        install = {
+            'command': str(raw_install.get('command', '')),
+            'docs_url': str(raw_install.get('docs_url', '')),
+        }
 
     # Resources first so we can link tools' _meta.ui/resourceUri hints to
     # the right section anchor on the detail page.
@@ -511,9 +616,15 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
     security_schemes = mcp_data.get('securitySchemes') or {}
     provider = mcp_data.get('provider') or {}
 
+    if is_local and isinstance(exchange, dict):
+        asset_id = exchange.get('assetId', slug)
+        exchange['npm_url'] = f'https://www.npmjs.com/package/{asset_id}'
+
     xorigin_api_refs, xorigin_mcp_refs = _collect_xorigin_refs(
         [t for t in _ensure_list(mcp_data.get('tools'))]
     )
+
+    ide_configs = _build_ide_configs(slug, mcp_type, transport, servers)
 
     return {
         'id': slug,
@@ -523,6 +634,8 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'description': description_short,
         'full_description': description_full,
         'website_url': website_url,
+        'mcp_type': mcp_type,
+        'install': install,
         'servers': servers,
         'transport': transport,
         'capabilities': capabilities if isinstance(capabilities, dict) else {},
@@ -540,6 +653,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         'tags': tags,
         'tag_names': tag_names,
         'exchange': exchange,
+        'ide_configs': ide_configs,
         'xorigin_api_refs': xorigin_api_refs,
         'xorigin_mcp_refs': xorigin_mcp_refs,
     }

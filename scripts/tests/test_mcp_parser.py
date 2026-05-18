@@ -106,11 +106,15 @@ class TestParseMcp:
         assert data['version'] == '2.4.5'
         assert data['slug'] == 'exchange'
 
-    def test_returns_none_without_server_json(self, tmp_path):
+    def test_parses_without_server_json(self, tmp_path):
         d = tmp_path / 'no-server'
         d.mkdir()
         (d / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
-        assert parse_mcp(d) is None
+        data = parse_mcp(d)
+        assert data is not None
+        assert data['slug'] == 'no-server'
+        assert data['name'] == 'No Server MCP'
+        assert data['servers'] == []
 
     def test_falls_back_to_directory_name_when_no_title(self, tmp_path):
         d = tmp_path / 'custom-mcp'
@@ -125,6 +129,55 @@ class TestParseMcp:
         # title absent -> fall back to server.name
         assert data['name'] == 'com.example/custom'
         assert data['slug'] == 'custom-mcp'
+
+    def test_mcp_type_remote_with_http_remotes(self, mcp_dir):
+        data = parse_mcp(mcp_dir)
+        assert data['mcp_type'] == 'remote'
+
+    def test_mcp_type_local_with_stdio_transport(self, tmp_path):
+        d = tmp_path / 'local-mcp'
+        d.mkdir()
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            capabilities:
+              tools:
+                listChanged: true
+            transport:
+              kind: stdio
+              command: npx my-mcp start
+            tools:
+              - name: doStuff
+                description: Does stuff
+                inputSchema:
+                  type: object
+                  properties: {}
+        """))
+        data = parse_mcp(d)
+        assert data['mcp_type'] == 'local'
+        assert data['transport']['kind'] == 'stdio'
+        assert data['transport']['command'] == 'npx my-mcp start'
+        assert data['servers'] == []
+
+    def test_local_mcp_name_from_exchange_json(self, tmp_path):
+        d = tmp_path / 'my-local'
+        d.mkdir()
+        (d / 'mcp.yaml').write_text(textwrap.dedent("""\
+            capabilities:
+              tools: { listChanged: false }
+            transport:
+              kind: stdio
+              command: npx my-local start
+            tools: []
+        """))
+        (d / 'exchange.json').write_text(json.dumps({
+            'name': 'My Local MCP',
+            'version': '1.0.0',
+            'tags': ['Local', 'IDE'],
+        }))
+        data = parse_mcp(d)
+        assert data['name'] == 'My Local MCP'
+        assert data['version'] == '1.0.0'
+        assert data['mcp_type'] == 'local'
+        assert [t['name'] for t in data['tags']] == ['Local', 'IDE']
 
     def test_transport_derived_from_remotes(self, mcp_dir):
         data = parse_mcp(mcp_dir)

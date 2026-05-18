@@ -431,7 +431,7 @@
         "description": {
           "description": "Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.",
           "example": "MCP server providing weather data and forecasts via OpenWeatherMap API",
-          "maxLength": 100,
+          "maxLength": 2000,
           "minLength": 1,
           "type": "string"
         },

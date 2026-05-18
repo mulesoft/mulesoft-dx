@@ -4,7 +4,7 @@
 # All rights reserved.
 # For full license text, see the LICENSE.txt file
 #
-# Part of mule-dev skill
+# Part of build-mule-integration skill.
 #
 # Step 3 helper — record the agent's (or user's) connector choice as a draft.
 # Runs once the agent has decided which row from get_latest_connector.sh's
@@ -27,7 +27,7 @@
 # Exit code:
 #   0  draft written
 #   1  bad arguments / malformed GAV
-set -u
+set -euo pipefail
 
 NICKNAME="${1:-}"
 GAV="${2:-}"

@@ -163,7 +163,7 @@
 </div>
 {% endmacro %}
 
-{% macro render_tool(tool, icons_path='../assets/icons') %}
+{% macro render_tool(tool, icons_path='../assets/icons', interactive=true) %}
 {% set tool_id = 'tool-' ~ tool.name %}
 {% set extra = [] %}
 {% if tool.annotations %}
@@ -179,9 +179,11 @@
     {{ _invocable_header('TOOL', 'method-mcp-tool', tool._display_name|default(tool.name), tool.name, extra|join('')) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ tool_id }}">
+        {% if interactive %}
         {% call _try_panel(tool_id, icons_path) %}
             {{ _schema_form(tool.inputSchema|default({}), tool_id) }}
         {% endcall %}
+        {% endif %}
 
         <div class="operation-main-content">
             {% if tool.description %}
@@ -248,7 +250,7 @@
 </section>
 {% endmacro %}
 
-{% macro render_prompt(prompt, icons_path='../assets/icons') %}
+{% macro render_prompt(prompt, icons_path='../assets/icons', interactive=true) %}
 {% set prompt_id = 'prompt-' ~ prompt.name %}
 <section id="{{ prompt_id }}"
          class="content-section operation-detail mcp-invocable"
@@ -257,6 +259,7 @@
     {{ _invocable_header('PROMPT', 'method-mcp-prompt', prompt._display_name|default(prompt.name), prompt.name) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ prompt_id }}">
+        {% if interactive %}
         {% call _try_panel(prompt_id, icons_path) %}
             {% if prompt.arguments %}
             {% for arg in prompt.arguments %}
@@ -266,6 +269,7 @@
             <p class="security-desc">This prompt has no arguments.</p>
             {% endif %}
         {% endcall %}
+        {% endif %}
 
         <div class="operation-main-content">
             {% if prompt.description %}
@@ -299,7 +303,7 @@
 </section>
 {% endmacro %}
 
-{% macro render_resource(resource, idx, icons_path='../assets/icons') %}
+{% macro render_resource(resource, idx, icons_path='../assets/icons', interactive=true) %}
 {% set resource_id = 'resource-' ~ idx %}
 {% set extra = '' %}
 {% if resource.mimeType %}{% set extra = '<span class="content-type-badge">' ~ resource.mimeType ~ '</span>' %}{% endif %}
@@ -310,9 +314,11 @@
     {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, extra) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ resource_id }}">
+        {% if interactive %}
         {% call _try_panel(resource_id, icons_path) %}
             <p class="security-desc">Reads <code>{{ resource.uri|default('') }}</code> from the MCP server.</p>
         {% endcall %}
+        {% endif %}
 
         <div class="operation-main-content">
             {% if resource.description %}
@@ -343,7 +349,7 @@
 </section>
 {% endmacro %}
 
-{% macro render_resource_template(template, idx, icons_path='../assets/icons') %}
+{% macro render_resource_template(template, idx, icons_path='../assets/icons', interactive=true) %}
 {% set template_id = 'resource-template-' ~ idx %}
 {% set extra = '' %}
 {% if template.mimeType %}{% set extra = '<span class="content-type-badge">' ~ template.mimeType ~ '</span>' %}{% endif %}
@@ -354,6 +360,7 @@
     {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, extra) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ template_id }}">
+        {% if interactive %}
         {% call _try_panel(template_id, icons_path) %}
             <div class="try-param-row">
                 <label>
@@ -367,6 +374,7 @@
             </div>
             <p class="security-desc">Substitute the template variables into the URI before sending.</p>
         {% endcall %}
+        {% endif %}
 
         <div class="operation-main-content">
             {% if template.description %}

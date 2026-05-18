@@ -1,6 +1,6 @@
 ---
 name: configure-mule-connector
-description: Generate a connector configuration block (XML + config.yaml) for an existing Mule project. Call this skill when the user asks to "add Salesforce config", "configure a connector", "set up Slack connection", "add DB config", or any request to wire a connector's connection into a Mule app. Resolves the connector from Exchange using bash scripts (NOT MCP tools), describes its metadata via CLI, selects the connection provider, and emits correct XML + property placeholders — all driven by live metadata, never hardcoded. NEVER use MCP server tools (search_asset, get_asset, etc.) — use only the bash scripts provided.
+description: Create, get, edit, or delete connector configuration blocks (XML + config.yaml) for an existing Mule project. Call this skill when the user asks to "add Salesforce config", "configure a connector", "set up Slack connection", "add DB config", "list my connector configs", "show connector configurations", "edit my Salesforce config", "update connector settings", "delete connector config", "remove Slack config", or any request to manage a connector's connection in a Mule app. Resolves the connector from Exchange using bash scripts (NOT MCP tools), describes its metadata via CLI, selects the connection provider, and emits correct XML + property placeholders — all driven by live metadata, never hardcoded. NEVER use MCP server tools (search_asset, get_asset, etc.) — use only the bash scripts provided.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@mulesoft/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 metadata:
@@ -15,7 +15,7 @@ allowed-tools: Bash Read Write Edit AskUserQuestion
 
 > **⛔ CRITICAL: Do NOT use any MCP server tools in this skill.** Do NOT call `search_asset`, `get_asset`, or any tool from "MuleSoft MCP Server" or any other MCP server. ALL Exchange searches and connector operations MUST use ONLY the bash scripts (`get_latest_connector.sh`, `describe_connector.sh`, etc.) via the `Bash` tool. If you find yourself about to call an MCP tool, STOP and use the bash script instead.
 
-Generate a complete connector configuration block — global `<config>` XML element, connection provider, and `config.yaml` property placeholders — for an existing Mule project. All output is driven by live connector metadata from `dx mule describe-connector`; nothing is hardcoded.
+Create, view, edit, or delete connector configuration blocks — global `<config>` XML elements, connection providers, and `config.yaml` property placeholders — for an existing Mule project. All output is driven by live connector metadata from `dx mule describe-connector`; nothing is hardcoded.
 
 ## When to Use This Skill
 
@@ -27,12 +27,173 @@ Generate a complete connector configuration block — global `<config>` XML elem
 - "Add HTTP listener config"
 - "Wire up the ServiceNow connector"
 - "I need an S3 config block"
+- "List my connector configs"
+- "Show me all connector configurations"
+- "What connectors are configured?"
+- "Edit my Salesforce config"
+- "Update the database connection password"
+- "Change the HTTP listener port"
+- "Delete the Slack connector config"
+- "Remove the S3 configuration"
 
-**Trigger keywords:** configure, config, connection, set up, wire up, add connector · salesforce, slack, http, db, database, s3, servicenow, jira, netsuite · connection provider, auth, oauth, basic auth, credentials.
+**Trigger keywords:** configure, config, connection, set up, wire up, add connector, list configs, show configs, view configs, edit config, update config, modify config, delete config, remove config · salesforce, slack, http, db, database, s3, servicenow, jira, netsuite · connection provider, auth, oauth, basic auth, credentials.
 
 **Do NOT use this skill when:** the user wants to create a full integration from scratch (use `build-mule-integration` instead) or when the user wants to add an operation/source to a flow (this skill only handles the `<config>` block).
 
 ---
+
+## Operation Routing
+
+Determine the user's intent and route to the appropriate section:
+
+| Intent | Route to |
+|--------|----------|
+| Create / add / set up / configure / wire up (new) | → **CREATE** flow (Steps 1–10 below) |
+| Get / list / show / view / what configs exist | → **GET** flow |
+| Edit / update / modify / change | → **EDIT** flow |
+| Delete / remove / drop | → **DELETE** flow |
+
+If the intent is unclear, ask via `AskUserQuestion`:
+
+> What would you like to do — **create** a new connector config, **view** existing configs, **edit** a config, or **delete** one?
+
+---
+
+## GET Flow
+
+### GET Step 1: Locate the Mule Project
+
+Use Glob to search for `**/pom.xml`. If multiple projects found, ask the user which one.
+
+### GET Step 2: Scan for Connector Configurations
+
+Read all Mule XML files under `{project-root}/src/main/mule/` (especially `global-configs.xml`). Search for any element matching the pattern `<{prefix}:{config-element} name="..." ...>` that contains a connection provider child element. Common patterns:
+
+- `<salesforce:sfdc-config name="...">`
+- `<http:listener-config name="...">`
+- `<http:request-config name="...">`
+- `<db:config name="...">`
+- `<slack:config name="...">`
+- `<s3:config name="...">`
+- Any element with a `name` attribute and a child element ending in `-connection` or containing `connection`
+
+### GET Step 3: Display Full Details
+
+For each connector config found, display:
+
+> **{Connector Type}**: `{name attribute}`
+> - **File**: `{relative file path}`
+> - **Connection Provider**: `{provider element name}` (e.g., `basic-connection`, `oauth-user-pass`)
+> - **All attributes**: list every attribute and its value on the config and connection provider elements
+> - **Child elements**: summarize nested elements (e.g., reconnection, OAuth callback config, pooling profile)
+
+Group by connector type. If none found, inform the user that no connector configurations exist in the project.
+
+---
+
+## EDIT Flow
+
+### EDIT Step 1: Locate and List Configs
+
+Follow the GET flow (Steps 1–3) to locate and display all existing connector configs.
+
+### EDIT Step 2: Ask Which Config to Edit
+
+> **Which connector configuration would you like to edit?** (provide the name)
+
+Wait for user response.
+
+### EDIT Step 3: Show Current Values and Ask for Changes
+
+Display all current attributes of the selected config. The `name` attribute and the connection provider type **cannot** be changed. Present as a table:
+
+> Here are the current settings for `{config name}`. Which fields would you like to change?
+>
+> | Field | Current Value |
+> |-------|---------------|
+> | _{field1}_ | _{value1}_ |
+> | _{field2}_ | _{value2}_ |
+> | ... | ... |
+>
+> **Note:** The `name` and connection provider type cannot be changed. All other fields can be updated.
+
+Wait for user response.
+
+### EDIT Step 4: Apply Changes
+
+After the user specifies which fields to change and their new values:
+
+1. Read the XML file containing the config.
+2. Use Edit to update only the specified attributes/elements — do NOT touch other configs in the same file.
+3. If a field used a property placeholder (e.g., `${salesforce.password}`) and the user provides a new placeholder or value, update the corresponding `config.yaml` entry as appropriate.
+
+### EDIT Step 5: Validate
+
+Run `mvn clean package -DskipTests` to verify the edit didn't break the build. Fix if needed.
+
+### EDIT Step 6: Confirm
+
+Report: which config was updated, which fields changed, and the file path. Keep to 2-3 sentences.
+
+---
+
+## DELETE Flow
+
+### DELETE Step 1: Locate and Identify the Config
+
+Follow the GET flow (Steps 1–2) to locate all existing connector configs. If the user already specified which config to delete, skip to Step 2.
+
+Otherwise ask:
+
+> **Which connector configuration would you like to delete?** (provide the name)
+
+Wait for user response.
+
+### DELETE Step 2: Find All Usages
+
+Search ALL Mule XML files under `src/main/mule/` for references to the config's `name`. Look for:
+
+- `config-ref="{name}"` — any operation or source that references this config (e.g., `<salesforce:query config-ref="salesforceConfig">`)
+- `listenerConfig="{name}"` — OAuth callback references to HTTP listener configs
+- Any other attribute whose value matches the config name
+
+Present findings to the user:
+
+> The connector configuration `{name}` is referenced in the following locations:
+>
+> | File | Line | Usage |
+> |------|------|-------|
+> | `{file}` | `{line}` | `config-ref="{name}"` |
+> | ... | ... | ... |
+>
+> **Deleting this config will break these references.** Are you sure you want to proceed?
+
+If NO usages found:
+
+> The connector configuration `{name}` is not referenced anywhere in the project. Safe to delete. Proceed?
+
+**Wait for explicit user confirmation before deleting.**
+
+### DELETE Step 3: Delete the Config (only after user confirms)
+
+1. Read the XML file containing the config.
+2. Remove the entire config element (including all child elements like the connection provider).
+3. If removing this config leaves unused namespace declarations in the `<mule>` root element (i.e., no other element uses that namespace prefix), remove those namespace declarations and their corresponding `xsi:schemaLocation` entries.
+4. If the file becomes empty (only the `<mule>` skeleton remains with `<configuration-properties>` and no config elements), ask the user whether to delete the file entirely or keep the skeleton.
+5. If the connector dependency in `pom.xml` is no longer used by any other config or operation in the project, inform the user but do NOT auto-remove it — the user may have plans to re-add a config.
+6. If there are corresponding entries in `config.yaml` (property placeholders used only by the deleted config), inform the user but do NOT auto-delete them — the user may use those properties elsewhere.
+
+### DELETE Step 4: Validate
+
+Run `mvn clean package -DskipTests` to verify the deletion didn't break the build. If it fails (due to broken `config-ref` references the user chose to ignore), report the error and ask how to proceed.
+
+### DELETE Step 5: Confirm
+
+Report: which config was deleted, from which file, whether any namespace cleanup was performed, and remind the user about broken references if any were found in Step 2.
+
+---
+
+## CREATE Flow
 
 ## Prerequisites
 

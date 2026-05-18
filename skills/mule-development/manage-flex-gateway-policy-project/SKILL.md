@@ -2,7 +2,7 @@
 name: manage-flex-gateway-policy-project
 description: Create, build, and publish a custom Flex Gateway policy with the Policy Development Kit (PDK). Use when the user asks to "create a new Flex Gateway policy", "scaffold a PDK policy project", "build a custom policy", "publish a PDK policy", "release a Flex Gateway policy", or mentions PDK, `anypoint-cli-v4 pdk`, `cargo anypoint`, or the Flex Gateway custom policy lifecycle. Covers prerequisites, project creation, configuration, build, dev publish, and release.
 license: Apache-2.0
-compatibility: Requires Anypoint CLI v4 with the `anypoint-pdk-plugin` (PDK 1.7.0+) installed, Rust toolchain (rustc + cargo), `cargo-anypoint` plugin, and `make`. Assumes `wasm32-wasip1` target is installed.
+compatibility: Requires Anypoint CLI v4 with the `anypoint-pdk-plugin` (PDK 1.7.0+) installed, Rust toolchain (rustc + cargo), `cargo-anypoint` plugin, `make`, and Docker (for the local playground in Step 7). Assumes `wasm32-wasip1` target is installed.
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
@@ -94,7 +94,15 @@ From the chosen target directory, run:
 anypoint-cli-v4 pdk policy-project create --name <policy-name>
 ```
 
-This produces a directory named `<policy-name>/` with the project skeleton (`Cargo.toml`, `Makefile`, `definition/gcl.yaml`, `src/lib.rs`, `tests/`, etc.). `cd` into it before running any further command — every subsequent step assumes the project root is the working directory.
+This produces a directory named `<policy-name>/` with the project skeleton:
+
+- `Cargo.toml`, `Makefile`, `README.md` — project root
+- `definition/gcl.yaml` — policy schema (Step 5)
+- `src/lib.rs` + `src/generated/` — Rust source and generated config bindings
+- `tests/` — integration test scaffolding
+- `playground/` — Docker-based local Flex Gateway harness used by `make run` (Step 7)
+
+`cd` into the new directory before running any further command — every subsequent step assumes the project root is the working directory.
 
 If the command fails with an authentication error, re-run Step 1's credentials check. If it fails with `command not found: pdk`, the PDK plugin is not installed correctly — back to Step 1.
 
@@ -143,19 +151,61 @@ If the build fails, read the error carefully before reacting:
 - **`error: target wasm32-wasip1 not installed`** — back to Step 1, run `rustup target add wasm32-wasip1`.
 - **`error: failed to select a version for ...`** — the `Cargo.toml` has incompatible `pdk` / `pdk-test` versions. See the "Upgrade PDK" section below; do not bump versions without the user's say-so.
 
-## Step 7: Publish a Development Version
+## Step 7: Run the Policy Locally
 
-For testing the policy against a real Flex Gateway before cutting a release:
+Before publishing anything to Exchange, exercise the policy against a real Flex Gateway running locally. The scaffold ships a `playground/` directory with a `docker-compose.yaml` that spins up Flex Gateway plus an `httpbin` backend, and a `make run` target that copies the freshly built `.wasm` into the gateway and starts everything.
+
+**Prerequisite — registration.yaml.** `make run` requires a `registration.yaml` in `playground/config/`. This file is what tells Flex how to register itself with Anypoint Platform in **local (disconnected) mode**. If you already have a Flex instance registered in local mode, copy its `registration.yaml` into `playground/config/`. Otherwise, generate one:
+
+1. Open Anypoint Platform → Runtime Manager → Flex Gateway tab.
+2. Click **Add Gateway**.
+3. Select **Docker** as the OS.
+4. Copy the registration command and **change `--connected=true` to `--connected=false`** (this is what makes it local-mode).
+5. Run that command from inside `playground/config/`. It writes `registration.yaml` there.
+
+**Configure the test API.** Open `playground/config/api.yaml`. The scaffold pre-wires it to apply the policy to traffic at `http://0.0.0.0:8081` and proxy to the `httpbin` backend. Fill in `policies[0].config:` with values that match the schema you declared in `definition/gcl.yaml`. Example:
+
+```yaml
+config:
+  someProperty: desiredValue
+  anotherProperty: 42
+```
+
+If the policy takes no configuration, leave `config: {}`.
+
+**Run it.**
+
+```bash
+make run
+```
+
+Flex listens on `http://localhost:8081`. Send test requests with `curl` and confirm the policy behaves as designed:
+
+```bash
+curl -i http://localhost:8081/anything/echo/
+```
+
+Tail logs with `docker compose -f playground/docker-compose.yaml logs -f local-flex` (in a second terminal). When done, `Ctrl-C` to stop, or `docker compose -f playground/docker-compose.yaml down` to clean up.
+
+**Common issues:**
+
+- **`registration.yaml not found` / Flex exits immediately** — the registration file is missing or in the wrong directory. Confirm it lives at `playground/config/registration.yaml` and that step 4 above was done with `--connected=false`.
+- **Policy code changes not picked up** — `make run` rebuilds before running. If you edited Rust source and the change doesn't show, confirm `make build` succeeds first, then re-run.
+- **Port 8081 already in use** — another local service is bound. Stop it, or edit `playground/docker-compose.yaml` to map a different host port.
+
+## Step 8: Publish a Development Version
+
+Once the local playground confirms the policy behaves as expected, publish a development version so it can be applied to a real API instance in your Anypoint org:
 
 ```bash
 make publish
 ```
 
-This uploads a `-DEV` versioned asset to the user's Anypoint Exchange organization. Dev versions are mutable — every `make publish` overwrites the same dev asset, which is exactly what you want during the inner loop. They are **not** suitable for production traffic.
+This uploads the asset to the user's Anypoint Exchange organization with **`-dev` appended to the assetId** and a **timestamp appended to the version** (for example, `1.0.0-20260518135700`). Each `make publish` produces a new timestamped version — earlier dev versions remain in Exchange and are still applicable. Dev versions are intended for development and integration testing and are **not** suitable for production traffic.
 
-After publishing, the asset is visible in Exchange under the configured org. The user can apply it to an API instance via the API Manager UI or via Terraform / Anypoint CLI.
+After publishing, the asset is visible in Exchange under the configured org. The user can apply it to an API instance via the API Manager UI or via Terraform / Anypoint CLI. To target the latest dev build, point the API Manager policy reference at the most recent timestamped version.
 
-## Step 8: Release a Production Version
+## Step 9: Release a Production Version
 
 Once the developer is happy with the policy and has tested the dev version against a real gateway:
 
@@ -167,8 +217,8 @@ This publishes an immutable, semver-versioned asset to Exchange. The version com
 
 **Gate before releasing:**
 
-- The dev version was tested against a real Flex Gateway, not just `cargo test`.
-- `Cargo.toml` `version` was bumped if a prior release exists.
+- The policy was exercised end-to-end against a real Flex Gateway — either via Step 7's local playground or via a `make publish` dev version applied to an API instance.
+- `Cargo.toml` `version` was bumped if a prior release exists with the same value.
 - The policy's `gcl.yaml` description and `README.md` are accurate — these are what consumers see in Exchange.
 
 ## Upgrade PDK
@@ -216,7 +266,7 @@ Full upgrade reference: https://docs.mulesoft.com/pdk/latest/policies-pdk-upgrad
 After completing the lifecycle, verify:
 
 - [ ] `make build` succeeds on a clean clone (`make clean && make build`).
-- [ ] The dev version was applied to a real Flex Gateway and exercised against expected request/response shapes.
+- [ ] `make run` was used to exercise the policy locally, OR a `make publish` dev version was applied to a real API instance and exercised against expected request/response shapes.
 - [ ] `Cargo.toml` `version` is set correctly for the release (immutable in Exchange).
 - [ ] `definition/gcl.yaml` describes every configurable property with `title` + `description`.
 - [ ] Sensitive properties carry `@context.@characteristics: [security:sensitive]`.

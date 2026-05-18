@@ -16,6 +16,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
 <script src="../assets/jsonpath-plus.min.js" defer></script>
 {% endif %}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" defer></script>
 <script src="../assets/portal.js" defer></script>
 {% endblock %}
 
@@ -64,4 +65,19 @@ window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
 window.__API_LINK_PREFIX__ = '../apis/';
 </script>
 {% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof mermaid === 'undefined') return;
+    var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+    mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'loose' });
+    document.querySelectorAll('code.language-mermaid').forEach(function(block) {
+        var pre = block.parentElement;
+        var container = document.createElement('div');
+        container.className = 'mermaid';
+        container.textContent = block.textContent;
+        pre.parentNode.replaceChild(container, pre);
+    });
+    mermaid.run();
+});
+</script>
 {% endblock %}

@@ -17,6 +17,29 @@ Applies a security or traffic management policy to an MCP server and deploys it 
 
 **What you'll build:** A fully configured policy enforced on your MCP server instance, deployed to a Omni Gateway
 
+### Architecture
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Exchange
+    participant API Manager
+    participant Omni Gateway
+    participant Policy Catalog
+
+    User->>Exchange: Publish MCP Server spec
+    User->>Exchange: Find MCP Server asset
+    Exchange-->>User: groupId, assetId, version
+    User->>API Manager: Create Instance
+    API Manager-->>User: instanceId
+    User->>Omni Gateway: Deploy Instance
+    Omni Gateway-->>User: Deployment active
+    User->>Policy Catalog: Browse compatible policies
+    Policy Catalog-->>User: Policy template + config schema
+    User->>API Manager: Apply policy with config
+    API Manager-->>Omni Gateway: Policy enforced
+```
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -34,6 +57,32 @@ Before starting, ensure you have:
    - An API instance already in API Manager for the MCP server (skip to Step 3, then Step 7)
    - An MCP server asset already in Exchange (skip to Step 2)
    - An MCP server specification that needs to be published first (start at Step 1)
+
+### Choose Your Path
+
+```mermaid
+flowchart TD
+    Start{What do you have?} -->|MCP server spec only| Full[Full Setup]
+    Start -->|Asset in Exchange| FromExchange[From Exchange]
+    Start -->|API Manager instance| PolicyOnly[Apply Policy Only]
+
+    Full --> S1[Step 1: Publish to Exchange]
+    S1 --> S2[Step 2: Find in Exchange]
+    FromExchange --> S2
+    S2 --> S3[Step 3: Select Environment]
+    S3 --> S4[Step 4: Select Gateway Target]
+    S4 --> S5[Step 5: Create API Instance]
+    S5 --> S6[Step 6: Deploy to Gateway]
+
+    PolicyOnly --> S3b[Step 3: Select Environment]
+    S3b --> S7[Step 7: List MCP Instances]
+
+    S6 --> S8[Step 8: Browse Policies]
+    S7 --> S8
+
+    S8 --> S9[Step 9: Apply Policy]
+    S9 --> Done[✓ MCP Server Protected]
+```
 
 ## Execution Paths
 

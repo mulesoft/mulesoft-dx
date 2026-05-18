@@ -159,10 +159,18 @@ jobs:
 
       - name: Deploy to Akamai test
         run: |
+<<<<<<< HEAD
           echo "Deploying portal to TEST environment | Host=${AKAMAI_HOST}"
           lftp -u "sshacs,dummy" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.sftp.upload.akamai.com
+=======
+          echo "Deploying portal to TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
+          lftp -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+        env:
+          AKAMAI_HOST: 564243.sftp.upload.akamai.com
+          AKAMAI_USERNAME: sshacs
+>>>>>>> f71b076 (fix(deploy): use correct SFTP host and sshacs username for Akamai NetStorage)
 
   deploy-to-poc:
     name: Deploy to POC
@@ -218,10 +226,18 @@ jobs:
 
       - name: Deploy to Akamai POC
         run: |
+<<<<<<< HEAD
           echo "Deploying portal to POC environment | Host=${AKAMAI_HOST} POC=${POC_NAME}"
           lftp -u "sshacs,dummy" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.sftp.upload.akamai.com
+=======
+          echo "Deploying portal to POC environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
+          lftp -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+        env:
+          AKAMAI_HOST: 564243.sftp.upload.akamai.com
+          AKAMAI_USERNAME: sshacs
+>>>>>>> f71b076 (fix(deploy): use correct SFTP host and sshacs username for Akamai NetStorage)
           POC_NAME: ${{ steps.poc.outputs.name }}
 
   deploy-to-production:
@@ -267,10 +283,18 @@ jobs:
 
       - name: Deploy to Akamai production
         run: |
+<<<<<<< HEAD
           echo "Deploying portal to PRODUCTION environment | Host=${AKAMAI_HOST}"
           lftp -u "sshacs,dummy" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.sftp.upload.akamai.com
+=======
+          echo "Deploying portal to PRODUCTION environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
+          lftp -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+        env:
+          AKAMAI_HOST: 564243.sftp.upload.akamai.com
+          AKAMAI_USERNAME: sshacs
+>>>>>>> f71b076 (fix(deploy): use correct SFTP host and sshacs username for Akamai NetStorage)
 
   notify-on-failure:
     name: Notify on Failure

@@ -40,7 +40,7 @@ jobs:
       - name: Remove POC directory from Akamai
         run: |
           echo "Removing POC from TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
-          lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; rm -rf /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST} || true
+          lftp -u "${AKAMAI_USERNAME},dummy" -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; rm -rf /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_HOST} || true
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
           AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}

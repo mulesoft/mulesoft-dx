@@ -159,7 +159,7 @@ jobs:
       - name: Deploy to Akamai test
         run: |
           echo "Deploying portal to TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
-          lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+          lftp -u "${AKAMAI_USERNAME},dummy" -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
           AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}
@@ -218,7 +218,7 @@ jobs:
       - name: Deploy to Akamai POC
         run: |
           echo "Deploying portal to POC environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
-          lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+          lftp -u "${AKAMAI_USERNAME},dummy" -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
           AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}
@@ -267,7 +267,7 @@ jobs:
       - name: Deploy to Akamai production
         run: |
           echo "Deploying portal to PRODUCTION environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
-          lftp -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit" sftp://${AKAMAI_USERNAME}@${AKAMAI_HOST}
+          lftp -u "${AKAMAI_USERNAME},dummy" -e "set sftp:connect-program 'ssh -o StrictHostKeyChecking=no -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit" sftp://${AKAMAI_HOST}
         env:
           AKAMAI_HOST: 564243.ftp.upload.akamai.com
           AKAMAI_USERNAME: ${{ secrets.AKAMAI_USERNAME }}

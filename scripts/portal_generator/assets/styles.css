@@ -5159,7 +5159,6 @@ details[open] .examples-toggle-icon {
     color: var(--color-text-secondary);
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: var(--reading-max-width);
     font-size: var(--reading-font-size);
     letter-spacing: var(--reading-letter-spacing);
 }

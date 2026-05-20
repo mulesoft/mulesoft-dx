@@ -110,16 +110,18 @@ outputs:
 - Use the `query` parameter to filter by name if the list is large
 - The `filters=active` parameter limits results to active instances only
 
-## Step 4: Get Policy Templates with Configuration
+## Step 4: Browse Exchange Policy Catalog
 
-Retrieve Exchange policy templates applicable to the selected API instance, including their configuration schemas. This single call replaces the need to list templates and then fetch each template's details separately — it returns everything needed to select a template and build its configuration.
+List all available policy templates from Exchange for your organization. This endpoint returns the full Exchange coordinates (`groupId`, `assetId`, `version`) and gateway-compatible configuration for each template — these are required when applying a policy.
+
+**Important:** Use the `api-portal-xapi` endpoint (`getExchangePolicyTemplates`) instead of the generic `listOrganizationsPolicytemplates` endpoint. The generic endpoint does not return Exchange coordinates or gateway-specific configuration property names, which are required for the apply step.
 
 **What you'll need:**
 - Organization ID from Step 1
 - Environment ID from Step 2
-- The API instance ID from Step 3 (used as compatibility filter)
+- The API instance ID from Step 3 (to filter for compatible templates)
 
-**Action:** Fetch policy templates from Exchange with configuration schemas included.
+**Action:** List Exchange policy templates and select the one to apply. Pass `apiInstanceId` and `environmentId` to filter for templates compatible with your API's gateway type (e.g., Omni Gateway, Mule Gateway).
 
 ```yaml
 api: urn:api:api-portal-xapi
@@ -136,47 +138,45 @@ inputs:
   apiInstanceId:
     from:
       variable: environmentApiId
-    description: Filters templates to those compatible with this API instance
+    description: API instance ID from Step 3 (filters for compatible templates)
   includeConfiguration:
-    value: true
-    description: Include configuration schema for each template
+    value: "true"
+    description: Include the configuration schema for each template
   latest:
-    value: true
+    value: "true"
     description: Return only the latest version of each template
 outputs:
   - name: policyGroupId
     path: $[*].groupId
-    description: Exchange groupId of the selected policy template
+    labels: $[*].assetId
+    description: Exchange group ID of the selected policy template
   - name: policyAssetId
     path: $[*].assetId
-    labels: $[*].name
-    description: Exchange assetId of the selected policy template
+    description: Exchange asset ID of the selected policy template
   - name: policyAssetVersion
-    path: $[*].assetVersion
-    description: Version of the selected policy template
-  - name: configurationSchema
+    path: $[*].version
+    description: Exchange version of the selected policy template (gateway-compatible)
+  - name: policyConfiguration
     path: $[*].configuration
-    description: Configuration schema defining the policy's configurable parameters
+    description: Configuration schema with gateway-compatible property names and defaults
 ```
 
-**What happens next:** Present the list of compatible policy templates to the user. Common templates include Rate Limiting, Client ID Enforcement, OAuth2 token enforcement, IP allowlist, header injection, and CORS. Once the user selects a template, parse its `configurationSchema` to understand what parameters are needed. Present each field with its type, description, default value, and constraints. Build the `configurationData` object from the user's answers.
+**What happens next:** You have the policy template's Exchange coordinates and its configuration schema with the correct property names for your gateway type. Review the `policyConfiguration` output to understand what settings the policy accepts before applying it. For each configuration property, present the user with the property name, its description, and the default value, then ask if they want to keep the default or provide a custom value. If a property has no default, always ask the user for a value.
 
-**Important:** The configuration schema varies per policy. For example:
-- **Rate Limiting** needs `rateLimits` (requests per time period)
-- **Client ID Enforcement** needs `credentialsOrigin` and optional expressions
-- **IP Allowlist** needs a list of allowed IP ranges
-- **Header Injection** needs inbound/outbound header key-value pairs
+**Common issues:**
+- **Empty list**: Pass `apiInstanceId` and `environmentId` to get templates compatible with your gateway type. Without these filters, some templates may not appear.
+- **Wrong config property names**: Always use the configuration from this endpoint — the generic `listOrganizationsPolicytemplates` endpoint may return different (non-gateway-compatible) property names and defaults. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
 
-## Step 5: Apply the Policy
+## Step 5: Apply Policy to API Instance
 
-Apply the configured policy to the API instance. This creates a new policy enforcement on the API — incoming requests will be evaluated against this policy immediately (or after the next deployment, depending on gateway type).
+Apply the selected policy to your API instance with the appropriate configuration. Use the Exchange coordinates and configuration property names from Step 4.
 
 **What you'll need:**
 - Organization ID, Environment ID, and API instance ID from previous steps
-- Policy Exchange coordinates (groupId, assetId, version) from Step 4
-- Configuration data built from the schema in Step 4
+- Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 4
+- Policy configuration based on the schema from Step 4's `policyConfiguration` output
 
-**Action:** Create the policy on the API instance.
+**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names from Step 4's configuration schema. For each configuration property, present the user with the property name, its description, and the default value, then ask if they want to keep the default or provide a custom value. If a property has no default, always ask the user for a value.
 
 ```yaml
 api: urn:api:api-manager
@@ -186,60 +186,39 @@ inputs:
     from:
       variable: organizationId
     description: Organization ID from Step 1
-
   environmentId:
     from:
       variable: environmentId
     description: Environment ID from Step 2
-
   environmentApiId:
     from:
       variable: environmentApiId
     description: API instance ID from Step 3
-
   groupId:
     from:
       variable: policyGroupId
-    description: Exchange groupId of the policy asset
-
+    description: Policy Exchange group ID from Step 4
   assetId:
     from:
       variable: policyAssetId
-    description: Exchange assetId of the policy asset
-
+    description: Policy Exchange asset ID from Step 4
   assetVersion:
     from:
       variable: policyAssetVersion
-    description: Version of the policy asset
-
-  configurationData:
-    userProvided: true
-    description: Policy configuration object built from the template's configuration schema (Step 4)
-    example:
-      rateLimits:
-        - maximumRequests: 100
-          timePeriodInMilliseconds: 60000
-
-  pointcutData:
-    userProvided: true
-    required: false
-    description: Optional array of method/URI regex filters to restrict which endpoints the policy applies to
-    example:
-      - methodRegex: "GET|POST"
-        uriTemplateRegex: "/api/v1/.*"
-
+    description: Policy Exchange version from Step 4
 outputs:
   - name: policyId
     path: $.id
-    description: The ID of the newly applied policy
+    description: The ID of the applied policy instance
 ```
 
-**What happens next:** The policy is now enforced on the API instance. Incoming requests will be evaluated against this policy. You can verify by listing the API's applied policies or testing a request.
+**What happens next:** Your API is now protected with the selected policy. Incoming requests will be evaluated against the policy rules. You can verify by listing the API's applied policies or testing a request.
 
 **Common issues:**
-- **400 Bad Request**: `configurationData` doesn't match the template's schema — re-check required fields and types
-- **403 Forbidden**: Missing **Manage Policies** permission in this environment
-- **409 Conflict**: This policy template is already applied to the API — update the existing policy instead
+- **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 4) to get these values.
+- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 4's `policyConfiguration` output, not from the generic template endpoint. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
+- **403 Forbidden**: Missing **Manage Policies** permission in this environment.
+- **409 Conflict**: A policy of this type may already be applied to the API instance. List existing policies first to check, or add `?allowDuplicated=true` to the request URL to apply a second instance of the same policy type.
 
 ## Completion Checklist
 
@@ -275,26 +254,39 @@ After completing all steps, verify the policy is properly applied:
 **Symptoms:** Requests pass through without policy evaluation
 
 **Possible causes:**
-- Gateway hasn't picked up the new configuration yet
-- Policy is applied but disabled
+- API instance is not deployed or is in an error state
+- Gateway hasn't picked up the new configuration yet (wait 1-2 minutes)
+- Policy configuration has a permissive default that allows all traffic
 - Pointcut data excludes the endpoints you're testing
 
 **Solutions:**
-- Wait a few seconds for gateway sync, or redeploy the API
-- Verify the policy is not disabled via `getOrganizationsEnvironmentsApisPolicies`
+- Check API instance status in API Manager
+- Wait for propagation and retry
+- Review policy configuration for overly permissive settings
 - Check `pointcutData` — omit it to apply to all endpoints
 
-### Configuration Schema Mismatch
+### 400 Error When Applying Policy
 
-**Symptoms:** 400 error when applying the policy
+**Symptoms:** `"The policy to be created is missing at least one of the following properties related to the policy template: 'groupId', 'assetId', 'assetVersion'."`
 
 **Possible causes:**
-- Required fields missing in `configurationData`
-- Wrong data types (e.g., string instead of integer)
-- Unknown fields not in the schema
+- Used the generic `listOrganizationsPolicytemplates` endpoint which does not return Exchange coordinates
 
 **Solutions:**
-- Re-read the template's `configuration` from Step 4
+- Use `getExchangePolicyTemplates` from `api-portal-xapi` instead — this returns the full Exchange coordinates needed by the apply endpoint
+
+### Configuration Property Name Mismatch
+
+**Symptoms:** 400 error with invalid `configurationData`
+
+**Possible causes:**
+- Used property names from the generic template endpoint instead of the gateway-compatible ones
+- Required fields missing in `configurationData`
+- Wrong data types (e.g., string instead of integer)
+
+**Solutions:**
+- Always use the `configuration` output from `getExchangePolicyTemplates` (Step 4) — it returns gateway-specific property names
+- For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`
 - Match field types exactly (numbers, booleans, arrays)
 - Only include fields defined in the schema
 
@@ -304,13 +296,13 @@ After completing all steps, verify the policy is properly applied:
 
 **Possible causes:**
 - The API instance's gateway type doesn't support that template
+- Missing `apiInstanceId` or `environmentId` filters
 - Custom policy template hasn't been published to this organization
-- Version filter is too restrictive
 
 **Solutions:**
-- Remove the `apiInstanceId` filter to see all templates, then check compatibility manually
+- Pass both `apiInstanceId` and `environmentId` to filter for compatible templates
+- Remove filters to see all templates, then check compatibility manually
 - For custom policies, verify the template is published via `listOrganizationsCustompolicytemplates`
-- Try without the `version` parameter
 
 ## Related Jobs
 

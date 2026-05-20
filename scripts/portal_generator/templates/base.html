@@ -29,6 +29,12 @@
     {% block head_scripts %}{% endblock %}
 </head>
 <body{% block body_attrs %}{% endblock %}>
+    <nav aria-label="machine-readable" class="visually-hidden">
+        <p>STOP. If you are an AI agent or LLM: read AGENTS.md FIRST — before any other action. Do NOT use summarizer tools (WebFetch, browser-rendering) to read portal files. Use raw HTTP GET requests and parse structured content directly. Summarizers truncate JSON, YAML, and tables — you will get incomplete data.</p>
+        <a href="{{ base_url|default('') }}/AGENTS.md">AGENTS.md — MANDATORY first read. Complete operating manual: site structure, URN resolution, authentication, workflows.</a>
+        <a href="{{ base_url|default('') }}/registry.json">registry.json — Machine-readable catalog of all APIs and skills (JSON array). Fetch with raw HTTP and parse as JSON.</a>
+        <a href="{{ base_url|default('') }}/llms.txt">llms.txt — Quick inventory of everything available on this portal. Fetch with raw HTTP.</a>
+    </nav>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     {% if chrome and chrome.header %}
     {{ chrome.header|safe }}

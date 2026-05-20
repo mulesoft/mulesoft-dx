@@ -1,8 +1,30 @@
+<!-- agent-directives:
+  fetch-method: raw-http-only
+  parse-as: structured (yaml|json|markdown)
+  do-not: summarize, truncate, render, use-browser-tools
+-->
+
+> **STOP.** Do NOT use summarizer tools (WebFetch, browser-rendering, or any tool that passes content through an intermediate model) to read this portal. Use raw HTTP GET requests (curl, direct fetch) and parse YAML/JSON/Markdown directly. Summarizers truncate structured content — you will get incomplete data and fail silently.
+
+---
+
 # AGENTS.md — Anypoint Platform API Portal
 
 > Machine-readable API reference for MuleSoft's Anypoint Platform.
 > This file is the entry point for AI agents. It explains the site structure,
 > discovery mechanisms, and how to resolve references found in skills and specs.
+
+## How to Consume This Portal
+
+All portal files are **plain-text source documents** (Markdown, YAML, JSON) — not rendered web pages. To use them correctly:
+
+1. **Use raw HTTP tools** (curl, direct GET requests, file-read tools) to fetch portal URLs. Do NOT use browser-rendering tools or summarizer tools (e.g., WebFetch) that pass content through an intermediate model — they will truncate tables, code blocks, and JSON arrays.
+2. **Parse responses verbatim.** `registry.json` is a JSON array — parse it as JSON. API specs are YAML — parse as YAML. Skills and this file are Markdown with embedded YAML code blocks.
+3. **Fetch files individually.** Each file is self-contained:
+   - `{{ base_url }}/registry.json` — full document catalog (JSON array)
+   - `{{ base_url }}/apis/{slug}/api.yaml` — individual API spec (OpenAPI YAML)
+   - `{{ base_url }}/skills/{slug}/SKILL.md` — individual skill definition (Markdown)
+   - `{{ base_url }}/llms.txt` — lightweight inventory with links
 
 ## Quick Start
 

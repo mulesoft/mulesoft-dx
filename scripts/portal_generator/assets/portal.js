@@ -8467,6 +8467,7 @@ function wrapMcpCodeBlocks() {
 function wrapCodeBlocksWithCopyHeader(selector) {
     document.querySelectorAll(selector).forEach(function(pre) {
         if (pre.parentElement.classList.contains('code-block-wrapper')) return;
+        if (pre.querySelector('code.language-mermaid')) return;
         var wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
         var header = document.createElement('div');

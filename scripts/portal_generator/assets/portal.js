@@ -8456,6 +8456,7 @@ function wrapTerraformCodeBlocks() {
 function wrapSkillCodeBlocks() {
     wrapCodeBlocksWithCopyHeader('.step-prose pre');
     wrapCodeBlocksWithCopyHeader('.skill-view-markdown pre');
+    wrapCodeBlocksWithCopyHeader('.skill-prose-content pre');
 }
 
 function wrapMcpCodeBlocks() {

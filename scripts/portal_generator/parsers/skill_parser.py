@@ -71,6 +71,15 @@ def _inject_heading_ids(html: str) -> str:
     return re.compile(r'<(h[23])>(.*?)</\1>', re.DOTALL).sub(replacer, html)
 
 
+def _linkify_related_jobs(html: str) -> str:
+    """Convert **slug**: description patterns into clickable skill links."""
+    return re.sub(
+        r'<strong>([a-z0-9-]+)</strong>:\s*',
+        r'<a href="../skills/\1.html"><strong>\1</strong></a>: ',
+        html
+    )
+
+
 def _extract_yaml_blocks(content: str) -> List[Dict]:
     """Extract YAML code blocks from markdown content and parse them.
     Returns list of parsed YAML dicts (one per ```yaml block)."""
@@ -283,7 +292,7 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
             tag_names = [p.strip() for p in raw_tags.split(',') if p.strip()]
 
         prose_headings = _extract_prose_headings(post.content)
-        full_content_html = _inject_heading_ids(_md.render(post.content))
+        full_content_html = _linkify_related_jobs(_inject_heading_ids(_md.render(post.content)))
 
         return {
             'name': post.get('name', skill_path.parent.name),

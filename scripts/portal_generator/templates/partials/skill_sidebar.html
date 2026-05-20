@@ -68,11 +68,13 @@
             <div class="sidebar-panel active">
                 {% if skill.prose_headings %}
                 {% for heading in skill.prose_headings %}
+                {% if heading.id != 'overview' %}
                 <li>
                     <a href="#{{ heading.id }}" class="nav-link nav-skill-step" title="{{ heading.title }}">
                         <span class="step-title-short">{{ heading.title|truncate(40, True) }}</span>
                     </a>
                 </li>
+                {% endif %}
                 {% endfor %}
                 {% else %}
                 {% if skill.prerequisites_html %}

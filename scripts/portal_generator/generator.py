@@ -464,11 +464,15 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
-            has_api_steps = any(
-                s.get('yaml') and s['yaml'].get('api')
-                for s in skill.get('step_details', [])
-            )
-            prose_only = not has_api_steps
+            skill_type = skill.get('skill_type')
+            if skill_type:
+                prose_only = (skill_type == 'prose')
+            else:
+                has_api_steps = any(
+                    s.get('yaml') and s['yaml'].get('api')
+                    for s in skill.get('step_details', [])
+                )
+                prose_only = not has_api_steps
 
             # Build linked APIs list for sidebar
             linked_apis = []

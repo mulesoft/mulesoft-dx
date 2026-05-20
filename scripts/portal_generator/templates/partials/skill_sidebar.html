@@ -18,7 +18,7 @@
                 Overview
             </a>
         </div>
-        {% if step_details %}
+        {% if step_details and not prose_only %}
         <div class="sidebar-tabs" role="tablist">
             <button class="sidebar-tab active" role="tab" aria-selected="true" aria-controls="steps-panel"
                 data-tab="steps" onclick="switchSidebarTab('steps')">
@@ -40,7 +40,7 @@
             <p class="sidebar-empty-hint">Try rephrasing your search.</p>
         </div>
         <ul class="nav-list">
-            {% if step_details %}
+            {% if step_details and not prose_only %}
             <div id="steps-panel" class="sidebar-panel active" role="tabpanel" aria-labelledby="steps-tab">
                 {% for step in step_details %}
                 <li>
@@ -66,6 +66,15 @@
             {% endif %}
             {% else %}
             <div class="sidebar-panel active">
+                {% if skill.prose_headings %}
+                {% for heading in skill.prose_headings %}
+                <li>
+                    <a href="#{{ heading.id }}" class="nav-link nav-skill-step" title="{{ heading.title }}">
+                        <span class="step-title-short">{{ heading.title|truncate(40, True) }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+                {% else %}
                 {% if skill.prerequisites_html %}
                 <li>
                     <a href="#prerequisites-section" class="nav-link nav-skill-step" title="Prerequisites">
@@ -93,6 +102,7 @@
                         <span class="step-title-short">Related Jobs</span>
                     </a>
                 </li>
+                {% endif %}
                 {% endif %}
             </div>
             {% endif %}

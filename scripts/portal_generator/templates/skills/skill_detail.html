@@ -1,6 +1,6 @@
 {% from "skills/step_unified.html" import render_step_unified %}
 
-{% macro render_skill(skill, private_api_slugs=[], api_link_prefix='', op_lookup={}) %}
+{% macro render_skill(skill, private_api_slugs=[], api_link_prefix='', op_lookup={}, prose_only=false) %}
 {% set skill_name = skill.name|skill_title %}
 {% set slug = skill.slug %}
 {% set step_details = skill.step_details|default([]) %}
@@ -31,6 +31,11 @@
     <div id="playground-section" class="skill-playground-section">
     </div>
     <div id="skill-content-{{ slug }}" class="skill-content-unified">
+        {% if prose_only and skill.full_content_html %}
+        <div class="skill-main-content skill-view-markdown">
+            {{ skill.full_content_html|safe }}
+        </div>
+        {% else %}
         <div class="skill-main-content">
             {% if step_details %}
             {% set total_steps = step_details|length %}
@@ -39,7 +44,9 @@
             {% endfor %}
             {% endif %}
         </div>
+        {% endif %}
 
+        {% if not prose_only %}
         {# Execution Panel - Hidden by default, shown in playground mode #}
         <aside class="execution-panel" id="variables-sidebar-{{ slug }}" style="display: none;">
             {# Panel Tabs #}
@@ -105,8 +112,10 @@
                 </div>
             </div>
         </aside>
+        {% endif %}
     </div>
 
+    {% if not prose_only %}
     {# Completion Checklist - Always visible in both modes #}
     {% if skill.completion_checklist_html %}
     <div id="completion-section" class="skill-subsection">
@@ -154,6 +163,8 @@
             </ul>
         </div>
     </div>
+    {% endif %}
+
     {% endif %}
 
     {# Install Command Modal #}

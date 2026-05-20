@@ -16,8 +16,28 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from ruamel.yaml import YAML
+
 from .parsers import parse_oas, parse_skill, parse_mcp, parse_terraform_doc
 from .utils import get_category
+
+
+def _resolve_skill_type(skill_dir: Path) -> Optional[str]:
+    """Resolve skill type from skill.yaml metadata (hierarchical lookup).
+
+    Checks skill_dir first, then parent dir. Returns 'prose' or 'jtbd',
+    or None if no metadata found.
+    """
+    yaml = YAML(typ='safe')
+    for candidate in [skill_dir / 'skill.yaml', skill_dir.parent / 'skill.yaml']:
+        if candidate.exists():
+            try:
+                data = yaml.load(candidate)
+                if isinstance(data, dict) and 'type' in data:
+                    return data['type']
+            except Exception:
+                pass
+    return None
 
 _URN_API_RE = re.compile(r'urn:api:([a-z0-9-]+)')
 _URN_MCP_RE = re.compile(r'urn:mcp:([a-z0-9-]+)')
@@ -98,6 +118,7 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
         if not skill_data:
             continue
 
+        skill_data['skill_type'] = _resolve_skill_type(skill_dir)
         skill_data['skill_rel_path'] = str(skill_dir.relative_to(skills_dir))
         api_refs = _extract_api_refs(skill_data)
         mcp_refs = _extract_mcp_refs(skill_data)

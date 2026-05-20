@@ -6917,13 +6917,13 @@ details[open] .examples-toggle-icon {
 }
 
 .try-response-body.active.ace_editor {
-    border: none !important;
-    border-radius: 0px 5px;
+    border: 1px solid var(--color-neutral-5) !important;
+    border-radius: var(--radius-medium);
 }
 
 .try-response-headers.active.ace_editor {
-    border: none !important;
-    border-radius: 0px 5px;
+    border: 1px solid var(--color-neutral-5) !important;
+    border-radius: var(--radius-medium);
 }
 
 .try-tab-btn {
@@ -6959,9 +6959,9 @@ details[open] .examples-toggle-icon {
 .try-response-body,
 .try-response-headers {
     display: none;
-    background: var(--color-gray-50);
+    background: white;
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-medium);
     padding: 0 !important;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: var(--font-size-3);
@@ -8823,7 +8823,8 @@ code[class*="language-"][class*="language-"] {
     font-weight: var(--font-weight-regular);
     color: var(--color-text-primary);
     display: block;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-word;
     line-height: 1.55;
     text-shadow: none;
 }
@@ -9070,8 +9071,15 @@ code[class*="language-"][class*="language-"] {
     color: #014486;
 }
 
-.ace-github .ace_gutter {
-    background: white;
+.ace-github .ace_gutter,
+.ace-github .ace_scroller,
+.ace-github {
+    background: white !important;
+}
+
+.ace-github {
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
 }
 
 .ace-github .ace_gutter-active-line {

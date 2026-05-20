@@ -15,6 +15,31 @@ from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
 
+_SKILL_SKIP_DIRS = {'node_modules', '__pycache__', '.git', '.sdd'}
+_SKILL_SKIP_FILES = {'.DS_Store'}
+_SKILL_SKIP_EXTS = {'.pyc'}
+
+
+def _generate_skill_manifest(source_dir: Path, output_dir: Path) -> None:
+    """Generate manifest.json listing skill files and copy them to output."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+    for f in sorted(source_dir.rglob('*')):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(source_dir)
+        if any(part in _SKILL_SKIP_DIRS for part in rel.parts):
+            continue
+        if f.name in _SKILL_SKIP_FILES or f.suffix in _SKILL_SKIP_EXTS:
+            continue
+        files.append(str(rel))
+        dest = output_dir / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, dest)
+    manifest = {'files': files}
+    with open(output_dir / 'manifest.json', 'w', encoding='utf-8') as mf:
+        json.dump(manifest, mf)
+
 
 def _build_api_meta(api: Dict) -> Dict:
     """Build the metadata object for JavaScript access."""
@@ -509,6 +534,12 @@ class PortalGenerator:
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html)
+
+            # Generate manifest for on-demand ZIP download
+            skill_rel = skill.get('skill_rel_path', skill['slug'])
+            skill_source_dir = self.repo_root / 'skills' / skill_rel
+            if skill_source_dir.is_dir():
+                _generate_skill_manifest(skill_source_dir, self.output_dir / 'skills' / skill_rel)
 
     def _build_skill_preamble(self) -> str:
         """Build the agent-context directive injected after frontmatter in portal-output SKILL.md copies."""

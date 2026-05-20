@@ -8616,3 +8616,34 @@ function copyToClipboard(text, buttonEl) {
     });
 }
 
+
+function downloadSkillZip(skillRelPath, slug) {
+    var basePath = '../skills/' + skillRelPath + '/';
+    fetch(basePath + 'manifest.json')
+        .then(function(r) { return r.json(); })
+        .then(function(manifest) {
+            var zip = new JSZip();
+            var fetches = manifest.files.map(function(file) {
+                return fetch(basePath + file)
+                    .then(function(r) { return r.blob(); })
+                    .then(function(blob) { zip.file(file, blob); });
+            });
+            return Promise.all(fetches).then(function() { return zip; });
+        })
+        .then(function(zip) {
+            return zip.generateAsync({ type: 'blob' });
+        })
+        .then(function(blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = slug + '.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        })
+        .catch(function(err) {
+            console.error('Failed to download skill:', err);
+            alert('Download failed. Please try again.');
+        });
+}

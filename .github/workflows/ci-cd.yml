@@ -136,6 +136,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${AKAMAI_PRIVATE_SSH_KEY}" > ~/.ssh/akamai_key
+          chmod 600 ~/.ssh/akamai_key
+          ssh-keygen -lf ~/.ssh/akamai_key > /dev/null && echo "key parses OK"
+        env:
+          AKAMAI_PRIVATE_SSH_KEY: ${{ secrets.AKAMAI_PRIVATE_SSH_KEY }}
+
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
@@ -150,12 +159,13 @@ jobs:
 
       - name: Deploy to Akamai test
         run: |
-          echo "Deploying portal to TEST environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
-          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit"
+          echo "Deploying portal to TEST environment"
+          lftp -u "${AKAMAI_USER},${AKAMAI_PASS}" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ ${AKAMAI_BASE_PATH}/test; quit" "sftp://${AKAMAI_HOST}"
         env:
-          AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
-          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+          AKAMAI_HOST: ${{ secrets.AKAMAI_HOST }}
+          AKAMAI_USER: ${{ secrets.AKAMAI_USER }}
+          AKAMAI_PASS: ${{ secrets.AKAMAI_PASS }}
+          AKAMAI_BASE_PATH: ${{ secrets.AKAMAI_BASE_PATH }}
 
   deploy-to-poc:
     name: Deploy to POC
@@ -174,6 +184,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${AKAMAI_PRIVATE_SSH_KEY}" > ~/.ssh/akamai_key
+          chmod 600 ~/.ssh/akamai_key
+          ssh-keygen -lf ~/.ssh/akamai_key > /dev/null && echo "key parses OK"
+        env:
+          AKAMAI_PRIVATE_SSH_KEY: ${{ secrets.AKAMAI_PRIVATE_SSH_KEY }}
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
@@ -202,12 +221,13 @@ jobs:
 
       - name: Deploy to Akamai POC
         run: |
-          echo "Deploying portal to POC environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} POC=${POC_NAME}"
-          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test/pocs/${POC_NAME}; quit"
+          echo "Deploying portal to POC environment | POC=${POC_NAME}"
+          lftp -u "${AKAMAI_USER},${AKAMAI_PASS}" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ ${AKAMAI_BASE_PATH}/test/pocs/${POC_NAME}; quit" "sftp://${AKAMAI_HOST}"
         env:
-          AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
-          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+          AKAMAI_HOST: ${{ secrets.AKAMAI_HOST }}
+          AKAMAI_USER: ${{ secrets.AKAMAI_USER }}
+          AKAMAI_PASS: ${{ secrets.AKAMAI_PASS }}
+          AKAMAI_BASE_PATH: ${{ secrets.AKAMAI_BASE_PATH }}
           POC_NAME: ${{ steps.poc.outputs.name }}
 
   deploy-to-production:
@@ -230,6 +250,15 @@ jobs:
           python-version: '3.11'
         
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${AKAMAI_PRIVATE_SSH_KEY}" > ~/.ssh/akamai_key
+          chmod 600 ~/.ssh/akamai_key
+          ssh-keygen -lf ~/.ssh/akamai_key > /dev/null && echo "key parses OK"
+        env:
+          AKAMAI_PRIVATE_SSH_KEY: ${{ secrets.AKAMAI_PRIVATE_SSH_KEY }}
+
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
@@ -244,12 +273,13 @@ jobs:
 
       - name: Deploy to Akamai production
         run: |
-          echo "Deploying portal to PRODUCTION environment | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME}"
-          lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/prod; quit"
+          echo "Deploying portal to PRODUCTION environment"
+          lftp -u "${AKAMAI_USER},${AKAMAI_PASS}" -e "set sftp:connect-program 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/akamai_key'; mirror -R --overwrite --no-perms --verbose portal/ ${AKAMAI_BASE_PATH}/prod; quit" "sftp://${AKAMAI_HOST}"
         env:
-          AKAMAI_HOST: 564243.ftp.upload.akamai.com
-          AKAMAI_USERNAME: API_Portal_Team
-          AKAMAI_PASSWORD: ${{ secrets.AKAMAI_PASSWORD }}
+          AKAMAI_HOST: ${{ secrets.AKAMAI_HOST }}
+          AKAMAI_USER: ${{ secrets.AKAMAI_USER }}
+          AKAMAI_PASS: ${{ secrets.AKAMAI_PASS }}
+          AKAMAI_BASE_PATH: ${{ secrets.AKAMAI_BASE_PATH }}
 
   notify-on-failure:
     name: Notify on Failure

@@ -1656,6 +1656,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize playground steps in skills
     initializePlaygroundSteps();
 
+    // At <=1200px, mark try-response panels as empty so placeholder shows
+    if (window.innerWidth <= 1200) {
+        document.querySelectorAll('.try-response').forEach(function(el) {
+            if (!el.querySelector('.try-response-body.active')?.textContent.trim()) {
+                el.classList.add('empty');
+            }
+        });
+    }
+
     // Build available tags from catalog
     buildAvailableTags();
 
@@ -8283,10 +8292,6 @@ function clearAllVariables(slug) {
 // ============================================================================
 
 (function initDarkMode() {
-    // Only show toggle when ?darkmode=true is present (feature in development)
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('darkmode') !== 'true') return;
-
     // Restore saved theme immediately to prevent flash
     var savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -8294,8 +8299,6 @@ function clearAllVariables(slug) {
     } else if (savedTheme === 'light') {
         document.documentElement.removeAttribute('data-theme');
     }
-    // If no saved theme, respect system preference (handled by CSS)
-
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');
     toggleButton.id = 'dark-mode-toggle';

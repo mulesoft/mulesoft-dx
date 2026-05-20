@@ -162,7 +162,7 @@ class TestRenderMarkdown:
 
     def test_link(self):
         result = _render_markdown('[click](https://example.com)')
-        assert '<a href="https://example.com">click</a>' in str(result)
+        assert '<a href="https://example.com" rel="noopener">click</a>' in str(result)
 
     def test_xss_prevention(self):
         result = _render_markdown('<script>alert(1)</script>')
@@ -186,7 +186,7 @@ class TestRenderMarkdown:
     def test_link_and_bold_combined(self):
         result = str(_render_markdown('See **[docs](https://example.com)** here'))
         assert '<strong>' in result
-        assert '<a href="https://example.com">docs</a>' in result
+        assert '<a href="https://example.com" rel="noopener">docs</a>' in result
 
     def test_code_inside_list_items(self):
         result = str(_render_markdown('- use `foo()`\n- use `bar()`'))
@@ -243,7 +243,7 @@ class TestSkillTitle:
         assert _skill_title('apply-policy-to-api-instance') == 'Apply Policy To API Instance'
 
     def test_mcp_uppercase(self):
-        assert _skill_title('protect-mcp-server-with-policies') == 'Protect MCP Server With Policies'
+        assert _skill_title('secure-mcp-server') == 'Secure MCP Server'
 
     def test_multiple_acronyms(self):
         assert _skill_title('setup-api-with-oauth') == 'Setup API With Oauth'
@@ -258,7 +258,7 @@ class TestSkillTitle:
         assert _skill_title('api') == 'API'
 
     def test_already_spaced(self):
-        assert _skill_title('protect api with policies') == 'Protect API With Policies'
+        assert _skill_title('secure api') == 'Secure API'
 
 
 # ============================================================================

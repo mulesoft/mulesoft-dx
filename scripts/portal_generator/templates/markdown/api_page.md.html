@@ -1,0 +1,43 @@
+# {{ api.name }}
+
+{{ api.description }}
+
+- **Version:** {{ api.version }}
+- **Category:** {{ api.category|default('Uncategorized') }}
+- **OpenAPI Spec:** [api.yaml]({{ base_url }}/apis/{{ api.slug }}/api.yaml)
+
+{% if api.servers %}
+## Servers
+{% for server in api.servers %}
+- `{{ server.url }}`{% if server.description %} — {{ server.description }}{% endif %}
+
+{% endfor %}
+{% endif %}
+
+## Operations ({{ api.operations|length }})
+{% for op in api.operations %}
+### {{ op.method|upper }} {{ op.path }}
+
+**Operation ID:** `{{ op.operationId }}`
+{% if op.summary %}
+{{ op.summary }}
+{% endif %}
+{% if op.description %}
+{{ op.description }}
+{% endif %}
+{% if op.parameters %}
+
+**Parameters:**
+{% for param in op.parameters %}
+| `{{ param.name }}` | {{ param.location|default('query') }} | {{ param.description|default('') }} | {% if param.required %}required{% else %}optional{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% if api.skills %}
+## Related Skills
+{% for skill in api.skills %}
+- [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.md) — {{ skill.description }}
+{% endfor %}
+{% endif %}

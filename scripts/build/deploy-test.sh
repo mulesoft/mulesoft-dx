@@ -4,14 +4,17 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Load secrets
+# Load secrets (must define AKAMAI_HOST, AKAMAI_USER, AKAMAI_PASS, AKAMAI_BASE_PATH)
 source "$SCRIPT_DIR/secrets.txt"
 
 # Environment
 export BRANCH_NAME="${BRANCH_NAME:-$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)}"
 export GIT_COMMIT="${GIT_COMMIT:-$(git -C "$REPO_ROOT" rev-parse --short HEAD)}"
-export AKAMAI_HOST="564243.ftp.upload.akamai.com"
-export AKAMAI_USERNAME="API_Portal_Team"
+
+: "${AKAMAI_HOST:?AKAMAI_HOST is required}"
+: "${AKAMAI_USER:?AKAMAI_USER is required}"
+: "${AKAMAI_PASS:?AKAMAI_PASS is required}"
+: "${AKAMAI_BASE_PATH:?AKAMAI_BASE_PATH is required}"
 
 # Build
 echo "=== Generating portal (${BRANCH_NAME}: ${GIT_COMMIT}) ==="
@@ -20,8 +23,8 @@ make -C "$REPO_ROOT" generate-portal \
   BASE_URL=https://test-dev-portal.mulesoft.com
 
 # Deploy
-echo "=== Deploying to TEST | Host=${AKAMAI_HOST} User=${AKAMAI_USERNAME} ==="
-lftp -u "${AKAMAI_USERNAME},${AKAMAI_PASSWORD}" "ftp://${AKAMAI_HOST}" -e \
-  "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ /564243/api-portal.mulesoft.com/test; quit"
+echo "=== Deploying to TEST ==="
+lftp -u "${AKAMAI_USER},${AKAMAI_PASS}" "ftp://${AKAMAI_HOST}" -e \
+  "set ftp:ssl-allow no; mirror -R --overwrite --no-perms --verbose portal/ ${AKAMAI_BASE_PATH}/test; quit"
 
 echo "=== Done ==="

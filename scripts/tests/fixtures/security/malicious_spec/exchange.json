@@ -1,0 +1,9 @@
+{
+  "main": "api.yaml",
+  "name": "Malicious Test API",
+  "groupId": "test.anypoint-platform",
+  "assetId": "malicious-test",
+  "version": "1.0.0",
+  "apiVersion": "v1",
+  "organizationId": "00000000-0000-0000-0000-000000000000"
+}

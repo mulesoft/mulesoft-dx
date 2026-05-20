@@ -2,9 +2,17 @@
 
 {% block title %}MuleSoft Developer Portal{% endblock %}
 
+{% block markdown_alternate %}
+<link rel="alternate" type="text/markdown" href="{{ base_url }}/index.md">
+{% endblock %}
+
 {% block head_scripts %}
 <script src="assets/jsonpath-plus.min.js" defer></script>
 <script src="assets/portal.js" defer></script>
+{% endblock %}
+
+{% block header %}
+{% include "partials/homepage_header.html" %}
 {% endblock %}
 
 {% block content %}

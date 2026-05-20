@@ -2,6 +2,10 @@
 
 {% block title %}{{ api.name }} - Anypoint Platform APIs{% endblock %}
 
+{% block markdown_alternate %}
+<link rel="alternate" type="text/markdown" href="{{ base_url }}/apis/{{ api.slug }}.md">
+{% endblock %}
+
 {% block body_attrs %} class="detail-page"{% endblock %}
 
 {% block head_scripts %}

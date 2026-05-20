@@ -209,7 +209,7 @@ Template: `{portal-url}/schemas/jtbd-template.md`
 
 ## Related Jobs
 
-- **protect-api-with-policies**: Apply security and traffic management policies to an API instance
+- **secure-api**: Apply security and traffic management policies to an API instance
 - **apply-policy-to-api-instance**: Apply a specific policy to an existing API instance
 - **setup-agent-scanner**: Configure scanners to discover AI agents from cloud platforms
 - **run-agent-scan-and-view-results**: Execute a scanner and view discovered agents

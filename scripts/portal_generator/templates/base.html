@@ -4,36 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="build-label" content="{{ build_label|default('unknown') }}">
-    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust.min.css">
-    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust-mulesoft-custom.css">
-    
-    <script>  
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://www.mulesoft.com/oneTrust/scripttemplates/otSDKStub.js';   
-    script.setAttribute('data-domain-script', 'fc594183-7384-4f03-8c43-1f81571521b7');
-    document.getElementsByTagName('body')[0].appendChild(script);
-    
-    function OptanonWrapper() {
-        localStorage.setItem('otsettings', OptanonActiveGroups);
-    }
-    </script>
+    <link rel="llms-txt" href="{{ base_url|default('') }}/llms.txt">
     <link rel="alternate" type="application/json" href="{{ base_url|default('') }}/registry.json" title="Document Registry">
     <link rel="help" href="{{ base_url|default('') }}/AGENTS.md" title="Agent Guide">
-    <link rel="help" type="text/plain" href="{{ base_url|default('') }}/llms.txt" title="LLM Discovery (llmstxt.org)">
+    {% block markdown_alternate %}{% endblock %}
     <meta name="robots" content="index, follow">
     <link rel="icon" type="image/x-icon" href="https://www.mulesoft.com/c/public/exp/app/favicon.ico">
     <title>{% block title %}Anypoint Platform APIs{% endblock %}</title>
+    <link rel="stylesheet" href="{{ css_path }}">
     {% if chrome and chrome.dependencies %}
     {{ chrome.dependencies|safe }}
     {% endif %}
-    <link rel="stylesheet" href="{{ css_path }}">
     {% block extra_styles %}{% endblock %}
-
-    <!-- Dark Mode: Apply theme before render to prevent flash (only when ?darkmode=true) -->
     <script>
         (function() {
-            if (new URLSearchParams(window.location.search).get('darkmode') !== 'true') return;
             var savedTheme = localStorage.getItem('theme');
             var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             var initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
@@ -41,17 +25,6 @@
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
         })();
-    </script>
-
-    <!-- Ace Editor -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-json.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-yaml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/theme-textmate.min.js"></script>
-
-    <script>
-        window.aceEditors = {};
     </script>
     {% block head_scripts %}{% endblock %}
 </head>
@@ -66,6 +39,22 @@
     {{ chrome.footer|safe }}
     {% endif %}
     {% block footer %}{% endblock %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-json.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-yaml.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/mode-xml.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/theme-textmate.min.js" defer></script>
+    <script>window.aceEditors = {};</script>
+    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust.min.css">
+    <link rel="stylesheet" href="https://www.mulesoft.com/oneTrust/assets/onetrust-mulesoft-custom.css">
+    <script>
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://www.mulesoft.com/oneTrust/scripttemplates/otSDKStub.js';
+    script.setAttribute('data-domain-script', 'fc594183-7384-4f03-8c43-1f81571521b7');
+    document.getElementsByTagName('body')[0].appendChild(script);
+    function OptanonWrapper() { localStorage.setItem('otsettings', OptanonActiveGroups); }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

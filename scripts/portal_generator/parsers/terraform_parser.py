@@ -14,7 +14,7 @@ from markdown_it import MarkdownIt
 
 _FRONTMATTER_RE = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 
-_md = MarkdownIt('commonmark', {'html': True}).enable('table')
+_md = MarkdownIt('commonmark', {'html': False}).enable('table')
 
 
 def parse_terraform_doc(filepath: Path) -> Optional[Dict]:

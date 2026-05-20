@@ -1,0 +1,35 @@
+# MuleSoft Developer Portal
+
+> Discover, interact, and build with Anypoint Platform APIs, MCP Servers, and Skills.
+
+## APIs ({{ apis|length }})
+{% for api in apis %}
+- [{{ api.name }}]({{ base_url }}/apis/{{ api.slug }}.md) — {{ api.description }} (v{{ api.version }})
+{% endfor %}
+
+{% if mcp_servers %}
+## MCP Servers ({{ mcp_servers|length }})
+{% for mcp in mcp_servers %}
+- [{{ mcp.name }}]({{ base_url }}/mcps/{{ mcp.slug }}.md) — {{ mcp.description }}
+{% endfor %}
+{% endif %}
+
+{% if all_skills %}
+## Skills ({{ all_skills|length }})
+{% for skill in all_skills %}
+- [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.md) — {{ skill.description }}
+{% endfor %}
+{% endif %}
+
+{% if terraform_providers %}
+## Terraform Providers ({{ terraform_providers|length }})
+{% for provider in terraform_providers %}
+- [{{ provider.name }}]({{ base_url }}/terraform/{{ provider.slug }}.html) — {{ provider.description|default('Terraform provider') }}
+{% endfor %}
+{% endif %}
+
+## Machine-Readable Resources
+
+- [AGENTS.md]({{ base_url }}/AGENTS.md) — Complete guide for AI agents
+- [registry.json]({{ base_url }}/registry.json) — Document registry with URN-based IDs
+- [llms.txt]({{ base_url }}/llms.txt) — LLM discovery file

@@ -1,7 +1,7 @@
 ---
-name: protect-agent-with-policies
+name: secure-agent
 description: |
-  Protect an agent by applying a policy from the catalog. Handles multiple
+  Secure an agent by applying a policy from the catalog. Handles multiple
   starting points: from an existing API Manager instance, from an agent asset
   in Exchange, or from scratch by publishing the agent first. Use when the user
   wants to secure an agent, add rate limiting, apply OAuth2, enforce IP
@@ -9,13 +9,36 @@ description: |
   are in the setup process.
 ---
 
-# Protect an Agent with Policies
+# Secure Agent
 
 ## Overview
 
 Applies a security or traffic management policy to an agent and deploys it to a self-managed Omni Gateway, walking through the full process from identifying the target agent to selecting a policy, configuring it, and deploying. Supports multiple starting points depending on what the user already has set up — an API Manager instance, an Exchange asset, or just an agent specification.
 
 **What you'll build:** A fully configured policy enforced on your agent instance, deployed to a Omni Gateway
+
+### Architecture
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Exchange
+    participant API Manager
+    participant Omni Gateway
+    participant Policy Catalog
+
+    User->>Exchange: Publish Agent spec
+    User->>Exchange: Find Agent asset
+    Exchange-->>User: groupId, assetId, version
+    User->>API Manager: Create Instance
+    API Manager-->>User: instanceId
+    User->>Omni Gateway: Deploy Instance
+    Omni Gateway-->>User: Deployment active
+    User->>Policy Catalog: Browse compatible policies
+    Policy Catalog-->>User: Policy template + config schema
+    User->>API Manager: Apply policy with config
+    API Manager-->>Omni Gateway: Policy enforced
+```
 
 ## Prerequisites
 
@@ -34,6 +57,32 @@ Before starting, ensure you have:
    - An API instance already in API Manager for the agent (skip to Step 3, then Step 7)
    - An agent asset already in Exchange (skip to Step 2)
    - An agent specification that needs to be published first (start at Step 1)
+
+### Choose Your Path
+
+```mermaid
+flowchart TD
+    Start{What do you have?} -->|Agent spec only| Full[Full Setup]
+    Start -->|Asset in Exchange| FromExchange[From Exchange]
+    Start -->|API Manager instance| PolicyOnly[Apply Policy Only]
+
+    Full --> S1[Step 1: Publish to Exchange]
+    S1 --> S2[Step 2: Find in Exchange]
+    FromExchange --> S2
+    S2 --> S3[Step 3: Select Environment]
+    S3 --> S4[Step 4: Select Gateway Target]
+    S4 --> S5[Step 5: Create API Instance]
+    S5 --> S6[Step 6: Deploy to Gateway]
+
+    PolicyOnly --> S3b[Step 3: Select Environment]
+    S3b --> S7[Step 7: List Agent Instances]
+
+    S6 --> S8[Step 8: Browse Policies]
+    S7 --> S8
+
+    S8 --> S9[Step 9: Apply Policy]
+    S9 --> Done[✓ Agent Secured]
+```
 
 ## Execution Paths
 
@@ -592,6 +641,6 @@ Your agent is now protected with:
 
 ## Related Jobs
 
-- **protect-api-with-policies**: The equivalent skill for protecting standard APIs with policies
-- **protect-mcp-server-with-policies**: The equivalent skill for protecting MCP servers with policies
+- **secure-api**: The equivalent skill for securing standard APIs with policies
+- **secure-mcp-server**: The equivalent skill for securing MCP servers with policies
 - **apply-policy-to-api-instance**: Apply a policy when you already have an API instance (simpler flow)

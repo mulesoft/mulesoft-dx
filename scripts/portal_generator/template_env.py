@@ -39,8 +39,16 @@ def _render_markdown(value):
     html = re.sub(r'(?<!\w)\*(.+?)\*(?!\w)', r'<em>\1</em>', html)
     html = re.sub(r'(?<!\w)_(.+?)_(?!\w)', r'<em>\1</em>', html)
 
-    # Links
-    html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', html)
+    # Links — allowlist URL schemes to prevent javascript:/data:/vbscript: XSS.
+    _SAFE_LINK_RE = re.compile(r'^(https?:|mailto:|#|/|\./|\.\./)', re.I)
+
+    def _safe_link(match):
+        text, url = match.group(1), match.group(2)
+        if not _SAFE_LINK_RE.match(url):
+            url = '#'
+        return f'<a href="{url}" rel="noopener">{text}</a>'
+
+    html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', _safe_link, html)
 
     # Bullet lists: consecutive lines starting with "- "
     def _replace_list(m):
@@ -69,12 +77,24 @@ def _render_markdown(value):
 def _tojson_raw(value, indent=2):
     """Serialize to JSON with indentation for embedding in <script> tags.
 
-    Falls back to str() for types json.dumps doesn't know — notably datetime.date
-    and datetime.datetime, which ruamel.yaml produces from unquoted ISO dates in
-    spec examples. Without this, a date-typed example anywhere in an op's parsed
-    metadata crashes the whole detail page render.
+    Escapes HTML-significant characters (`<`, `>`, `&`) and Unicode line
+    separators (U+2028 / U+2029) as `\\uXXXX` sequences so spec content
+    like `</script>...` cannot break out of inline <script> blocks.
+
+    Falls back to str() for types json.dumps doesn't know — notably
+    datetime.date / datetime.datetime, which ruamel.yaml produces from
+    unquoted ISO dates in spec examples.
     """
-    return Markup(json.dumps(value, indent=indent, default=str))
+    encoded = json.dumps(value, indent=indent, default=str)
+    encoded = (
+        encoded
+        .replace('<', '\\u003c')
+        .replace('>', '\\u003e')
+        .replace('&', '\\u0026')
+        .replace(' ', '\\u2028')
+        .replace(' ', '\\u2029')
+    )
+    return Markup(encoded)
 
 
 def _titleize_operation(value):

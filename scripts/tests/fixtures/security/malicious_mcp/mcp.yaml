@@ -1,0 +1,19 @@
+capabilities:
+  tools:
+    "<img src=x onerror=alert(1)>": true
+  prompts:
+    listChanged: false
+  resources:
+    listChanged: false
+    subscribe: false
+tools:
+  - name: testTool
+    title: 'Title with </script><script>alert(1)</script>'
+    description: 'Description with [bad](javascript:alert(1))'
+    inputSchema:
+      type: object
+resources:
+  - name: r1
+    uri: 'file:///x'
+    description: 'r1'
+    mimeType: '"><script>alert(1)</script>'

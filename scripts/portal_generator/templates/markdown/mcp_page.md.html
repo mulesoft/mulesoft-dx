@@ -1,0 +1,63 @@
+# {{ mcp.name }}
+
+{{ mcp.description }}
+
+- **Version:** {{ mcp.version }}
+- **MCP Spec:** [mcp.yaml]({{ base_url }}/mcps/{{ mcp.slug }}/mcp.yaml)
+{% if mcp.servers %}
+- **Endpoints:**{% for server in mcp.servers %} `{{ server.url }}`{% endfor %}
+
+{% endif %}
+
+{% if mcp.tools %}
+## Tools ({{ mcp.tools|length }})
+{% for tool in mcp.tools %}
+### {{ tool.name }}
+{% if tool.title %}
+**{{ tool.title }}**
+{% endif %}
+
+{{ tool.description|default('') }}
+{% if tool.inputSchema and tool.inputSchema.properties %}
+
+**Input Parameters:**
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+{% for pname, pdef in tool.inputSchema.properties.items() %}| `{{ pname }}` | {{ pdef.type|default('string') }} | {{ pdef.description|default('') }} | {% if pname in (tool.inputSchema.required or []) %}yes{% else %}no{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if mcp.prompts %}
+## Prompts ({{ mcp.prompts|length }})
+{% for prompt in mcp.prompts %}
+### {{ prompt.name }}
+
+{{ prompt.description|default('') }}
+{% if prompt.arguments %}
+
+**Arguments:**
+{% for arg in prompt.arguments %}
+- `{{ arg.name }}`{% if arg.required %} (required){% endif %} — {{ arg.description|default('') }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if mcp.resources %}
+## Resources ({{ mcp.resources|length }})
+{% for resource in mcp.resources %}
+- `{{ resource.uri }}` — {{ resource.description|default(resource.name) }}
+{% endfor %}
+{% endif %}
+
+{% if mcp.resource_templates %}
+## Resource Templates ({{ mcp.resource_templates|length }})
+{% for tmpl in mcp.resource_templates %}
+- `{{ tmpl.uriTemplate }}` — {{ tmpl.description|default(tmpl.name) }}
+{% endfor %}
+{% endif %}

@@ -153,15 +153,4 @@ fi
 # to AskUserQuestion if the answer isn't obvious from the names alone.
 OUTPUT=$(printf '%s' "$RANKED" | jq -r '.[] | "\(.groupId):\(.assetId):\(.version)"')
 
-# ── BEGIN WORKAROUND: HTTP connector 1.11.2 broken POM on Exchange ──────
-# HTTP connector 1.11.2 was published to all Exchange environments with a
-# stripped POM (no <parent>, no <dependencies>). This means Maven cannot
-# resolve the transitive mule-sockets-connector dep that HTTP needs at
-# runtime (TcpClientSocketProperties). Adding sockets explicitly causes a
-# split-package conflict. Net result: 1.11.2 is unusable.
-# Pin to 1.11.1 (last known good) until MuleSoft publishes a fix.
-# Tracked: remove this block once 1.11.3+ is available with a correct POM.
-OUTPUT=$(printf '%s\n' "$OUTPUT" | sed 's|mule-http-connector:1\.11\.2$|mule-http-connector:1.11.1|')
-# ── END WORKAROUND: HTTP connector 1.11.2 broken POM on Exchange ────────
-
 printf '%s\n' "$OUTPUT"

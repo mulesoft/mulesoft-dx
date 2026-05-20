@@ -1,21 +1,41 @@
 ---
-name: protect-mcp-server-with-policies
+name: secure-api
 description: |
-  Protect an MCP server by applying a policy from the catalog. Handles multiple
-  starting points: from an existing API Manager instance, from an MCP server asset
-  in Exchange, or from scratch by publishing the MCP server first. Use when the user
-  wants to secure an MCP server, add rate limiting, apply OAuth2, enforce IP
-  allowlisting, or protect any MCP server with a policy — regardless of where they
-  are in the setup process.
+  Secure an API by applying a policy from the catalog. Handles multiple starting
+  points: from an existing API Manager instance, from an Exchange asset that needs
+  an instance, or from scratch. Use when the user wants to secure an API, add
+  rate limiting, apply OAuth2, enforce IP allowlisting, or protect any API with
+  a policy — regardless of where they are in the setup process.
 ---
 
-# Protect an MCP Server with Policies
+# Secure API
 
 ## Overview
 
-Applies a security or traffic management policy to an MCP server and deploys it to a self-managed Omni Gateway, walking through the full process from identifying the target MCP server to selecting a policy, configuring it, and deploying. Supports multiple starting points depending on what the user already has set up — an API Manager instance, an Exchange asset, or just an MCP server specification.
+Applies a security or traffic management policy to an API and deploys it to a self-managed Omni Gateway, walking through the full process from identifying the target API to selecting a policy, configuring it, and deploying. Supports multiple starting points depending on what the user already has set up — an API Manager instance, an Exchange asset, or just an API URL.
 
-**What you'll build:** A fully configured policy enforced on your MCP server instance, deployed to a Omni Gateway
+**What you'll build:** A fully configured policy enforced on your API instance, deployed to a Omni Gateway
+
+### Architecture
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Exchange
+    participant API Manager
+    participant Omni Gateway
+    participant Policy Catalog
+
+    User->>Exchange: Publish API spec
+    User->>API Manager: Create Instance
+    API Manager-->>User: instanceId
+    User->>Omni Gateway: Deploy Instance
+    Omni Gateway-->>User: Deployment active
+    User->>Policy Catalog: Browse compatible policies
+    Policy Catalog-->>User: Policy template + config schema
+    User->>API Manager: Apply policy with config
+    API Manager-->>Omni Gateway: Policy enforced
+```
 
 ## Prerequisites
 
@@ -31,37 +51,60 @@ Before starting, ensure you have:
    - This is used to list environments, browse the policy catalog, check Exchange, etc.
 
 3. **One of the following**
-   - An API instance already in API Manager for the MCP server (skip to Step 3, then Step 7)
-   - An MCP server asset already in Exchange (skip to Step 2)
-   - An MCP server specification that needs to be published first (start at Step 1)
+   - An API instance already in API Manager (skip to Step 6)
+   - An Exchange asset ready to be promoted to API Manager (skip to Step 2)
+   - An API specification or URL that needs to be published first (start at Step 1)
+
+### Choose Your Path
+
+```mermaid
+flowchart TD
+    Start{What do you have?} -->|API spec only| Full[Full Setup]
+    Start -->|Asset in Exchange| FromExchange[From Exchange]
+    Start -->|API Manager instance| PolicyOnly[Apply Policy Only]
+
+    Full --> S1[Step 1: Publish to Exchange]
+    S1 --> S2[Step 2: Select Environment]
+    FromExchange --> S2
+    S2 --> S3[Step 3: Select Gateway Target]
+    S3 --> S4[Step 4: Create API Instance]
+    S4 --> S5[Step 5: Deploy to Gateway]
+
+    PolicyOnly --> S2b[Step 2: Select Environment]
+    S2b --> S6[Step 6: Browse Policies]
+
+    S5 --> S6
+    S6 --> S7[Step 7: Apply Policy]
+    S7 --> Done[✓ API Secured]
+```
 
 ## Execution Paths
 
 This skill has multiple execution paths depending on what you already have:
 
-- **Full setup**: Steps 1, 2, 3, 4, 5, 6, 8, 9
-  - When: You have an MCP server specification and need to publish it to Exchange first
-  - You'll need: `organizationId`, MCP server specification file
+- **Full setup**: Steps 1, 2, 3, 4, 5, 6, 7
+  - When: You have an API specification file and need to publish it to Exchange first
+  - You'll need: `organizationId`, API specification file
 
-- **From Exchange asset**: Steps 2, 3, 4, 5, 6, 8, 9
-  - When: The MCP server is already published in Exchange and you need to find it and create an API Manager instance
-  - You'll need: `organizationId`
+- **From Exchange asset**: Steps 2, 3, 4, 5, 6, 7
+  - When: You already have an Exchange asset and need to create an API Manager instance
+  - You'll need: `organizationId`, `groupId`, `assetId`, `assetVersion`
 
-- **Apply policy only**: Steps 3, 7, 8, 9
-  - When: You already have an API Manager instance for the MCP server and want to apply a policy
-  - You'll need: `organizationId`
+- **Apply policy only**: Steps 2, 6, 7
+  - When: You already have an API Manager instance and want to apply a policy
+  - You'll need: `organizationId`, `environmentId`, `environmentApiId`
 
 
-## Step 1: Publish MCP Server to Exchange
+## Step 1: Publish API to Exchange
 
-Publishes your MCP server specification to Exchange as a reusable asset. This makes it available for API Manager to create managed instances from it.
+Publishes your API specification to Exchange as a reusable asset. This makes it available for API Manager to create managed instances from it.
 
 **What you'll need:**
 - Organization ID
-- MCP server specification file
+- API specification file (OAS or RAML)
 - Asset name, groupId, assetId, and version
 
-**Action:** Create a new asset in Exchange with your MCP server specification.
+**Action:** Create a new asset in Exchange with your API specification.
 
 ```yaml
 api: urn:api:exchange-experience
@@ -80,7 +123,7 @@ inputs:
   assetId:
     userProvided: true
     description: A unique identifier for the asset in kebab-case
-    example: "my-mcp-server"
+    example: "inventory-api"
   version:
     userProvided: true
     description: Semantic version for the asset
@@ -97,44 +140,12 @@ outputs:
     description: The version of the published asset
 ```
 
-**What happens next:** Your MCP server specification is now available in Exchange. Next, you can search for it to confirm and extract the coordinates needed for API Manager.
+**What happens next:** Your API specification is now available in Exchange. Next, you'll create an API Manager instance from this asset so you can apply policies to it.
 
 
-## Step 2: Find MCP Server in Exchange
+## Step 2: List Environments
 
-Search Exchange for MCP server assets. This search is not scoped to a specific organization — it returns all MCP server assets visible to the authenticated user across all organizations.
-
-**What you'll need:**
-- Valid Bearer token (from Prerequisites)
-
-**Action:** Search Exchange filtering by MCP asset type and select the target MCP server.
-
-```yaml
-api: urn:api:exchange-experience
-operationId: getAssetsSearch
-inputs:
-  types:
-    value: "mcp"
-    description: Filter for MCP server assets only
-outputs:
-  - name: groupId
-    path: $[*].groupId
-    labels: $[*].name
-    description: Group ID of the selected MCP server asset
-  - name: assetId
-    path: $[*].assetId
-    description: Asset ID of the selected MCP server asset
-  - name: assetVersion
-    path: $[*].version
-    description: Version of the selected MCP server asset
-```
-
-**What happens next:** You have the Exchange coordinates (groupId, assetId, version) for the MCP server. Next, select an environment where the API instance will be created.
-
-
-## Step 3: List Environments
-
-List all environments in the organization so you can confirm or select the one where your MCP server instance will live.
+List all environments in the organization so you can confirm or select the one where your API instance lives.
 
 **What you'll need:**
 - Organization ID
@@ -160,14 +171,14 @@ outputs:
 
 **What happens next:** With the environment selected, you can create an API instance or browse policies.
 
-## Step 4: Select Deployment Target
+## Step 3: Select Deployment Target
 
 List available gateway targets registered in the environment. You need the target ID and gateway version before creating the API instance, because the deployment configuration is set via a PATCH after creation.
 
 **What you'll need:**
 - Organization ID and Environment ID
 
-**Action:** List gateway targets and select the Omni Gateway where the MCP server will run. Prefer a target with `status: "RUNNING"`.
+**Action:** List gateway targets and select the Omni Gateway where the API will run. Prefer a target with `status: "RUNNING"`.
 
 ```yaml
 api: urn:api:api-portal-xapi
@@ -182,7 +193,7 @@ inputs:
   environmentId:
     from:
       variable: environmentId
-    description: Environment ID from Step 3
+    description: Environment ID from Step 2
 outputs:
   - name: targetId
     path: $.rows[*].id
@@ -198,9 +209,9 @@ outputs:
 
 **What happens next:** You have a deployment target and its gateway version. Next, create the API instance and then configure its deployment target.
 
-## Step 5: Create API Manager Instance
+## Step 4: Create API Manager Instance
 
-Creates a managed API instance in API Manager from your MCP server Exchange asset. This creates the API configuration; deployment to the Omni Gateway happens in Step 6.
+Creates a managed API instance in API Manager from your Exchange asset. This creates the API configuration; deployment to the Omni Gateway happens in Step 5.
 
 **Important:** For Omni Gateway instances, `isCloudHub` must be `null` (not `false`). Setting it to `false` causes a validation error.
 
@@ -223,23 +234,23 @@ inputs:
   environmentId:
     from:
       variable: environmentId
-    description: Target environment ID from Step 3
+    description: Target environment ID from Step 2
   groupId:
     from:
       variable: groupId
-    description: Exchange asset group ID from Step 2
+    description: Exchange asset group ID from Step 1
   assetId:
     from:
       variable: assetId
-    description: Exchange asset ID from Step 2
+    description: Exchange asset ID from Step 1
   assetVersion:
     from:
       variable: assetVersion
-    description: Exchange asset version from Step 2
+    description: Exchange asset version from Step 1
   instanceLabel:
     userProvided: true
-    description: A human-readable label for this API instance (e.g., "my-mcp-server-v1")
-    example: "my-mcp-server-v1"
+    description: A human-readable label for this API instance (e.g., "cars-api-v1")
+    example: "cars-api-v1"
   technology:
     value: "flexGateway"
     description: Gateway technology — this skill targets Omni Gateway deployments
@@ -253,23 +264,23 @@ inputs:
   endpoint.uri:
     userProvided: true
     optional: true
-    description: The upstream backend URL for the MCP server. Ask the user if they want to provide it now or configure it later.
-    example: "https://backend.example.com/mcp/v1"
+    description: The upstream backend URL for the API. Ask the user if they want to provide it now or configure it later.
+    example: "https://backend.example.com/api/v1"
 outputs:
   - name: environmentApiId
     path: $.id
     description: The API instance ID in API Manager
 ```
 
-**What happens next:** The API instance exists but is not yet deployed. Next, deploy it to the Omni Gateway target selected in Step 4.
+**What happens next:** The API instance exists but is not yet deployed. Next, deploy it to the Omni Gateway target selected in Step 3.
 
-## Step 6: Deploy to Omni Gateway
+## Step 5: Deploy to Omni Gateway
 
 Deploys the API instance to the selected Omni Gateway target. This uses the Proxies API deployment endpoint with flat top-level fields — do **not** use the nested `target` object, which requires additional fields that are not needed for self-managed Omni Gateway deployments.
 
 **What you'll need:**
-- Organization ID, Environment ID, and API instance ID from Step 5
-- Deployment target ID and gateway version from Step 4
+- Organization ID, Environment ID, and API instance ID from Step 4
+- Deployment target ID and gateway version from Step 3
 
 **Action:** Create a deployment for the API instance on the selected Omni Gateway.
 
@@ -286,22 +297,22 @@ inputs:
   environmentId:
     from:
       variable: environmentId
-    description: Environment ID from Step 3 (used in both the URL path and the request body for HY deployment type)
+    description: Environment ID from Step 2 (used in both the URL path and the request body for HY deployment type)
   environmentApiId:
     from:
       variable: environmentApiId
-    description: API instance ID from Step 5
+    description: API instance ID from Step 4
   type:
     value: "HY"
     description: "Deployment type for self-managed Omni Gateway (HY = Hybrid)"
   targetId:
     from:
       variable: targetId
-    description: Omni Gateway target ID from Step 4
+    description: Omni Gateway target ID from Step 3
   targetName:
     from:
       variable: targetName
-    description: Omni Gateway target name from Step 4
+    description: Omni Gateway target name from Step 3
   gatewayVersion:
     value: "1.0.0"
     description: "Gateway version for deployment. Use \"1.0.0\" as the default."
@@ -319,58 +330,23 @@ outputs:
 ```json
 {
   "type": "HY",
-  "targetId": "<from Step 4>",
-  "targetName": "<from Step 4>",
+  "targetId": "<from Step 3>",
+  "targetName": "<from Step 3>",
   "gatewayVersion": "1.0.0",
-  "environmentId": "<from Step 3>",
+  "environmentId": "<from Step 2>",
   "overwrite": false
 }
 ```
 
-**What happens next:** The MCP server instance is now deployed to the Omni Gateway. Next, browse the policy catalog to select which policy to apply.
+**What happens next:** The API instance is now deployed to the Omni Gateway. Next, browse the policy catalog to select which policy to apply.
 
 **Common issues:**
 - **`"Field environmentId is required for deployment type HY"`**: The `environmentId` must be in the request body, not just the URL path parameter.
-- **`"Field gatewayVersion is required for deployment type HY"`**: Use the version from the `getGatewayTargets` response (Step 4). Using an incorrect version causes policy implementation errors.
-- **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Omni Gateway version. Verify the version from the target's actual runtime version in Step 4.
-- **409 Conflict**: The MCP server may already be deployed to this target. List existing deployments with `GET .../deployments` first to check.
+- **`"Field gatewayVersion is required for deployment type HY"`**: Use the version from the `getGatewayTargets` response (Step 3). Using an incorrect version causes policy implementation errors.
+- **`"Policy implementations cannot be set because runtime version is unknown"`**: The `gatewayVersion` value doesn't match a known Omni Gateway version. Verify the version from the target's actual runtime version in Step 3.
+- **409 Conflict**: The API may already be deployed to this target. List existing deployments with `GET .../deployments` first to check.
 
-## Step 7: List MCP Server Instances
-
-Lists MCP server instances in the selected environment by filtering with `family=agentic`. Use this step when you already have an API Manager instance for the MCP server and need to find its ID to apply a policy.
-
-**What you'll need:**
-- Organization ID and Environment ID
-
-**Action:** List MCP server instances and select the target.
-
-```yaml
-api: urn:api:api-manager
-operationId: listOrganizationsEnvironmentsApis
-inputs:
-  organizationId:
-    from:
-      api: urn:api:access-management
-      operation: listMe
-      field: $.user.organization.id
-    description: Organization ID
-  environmentId:
-    from:
-      variable: environmentId
-    description: Environment ID from Step 3
-  family:
-    value: "agentic"
-    description: Filter for MCP server (agentic) instances only
-outputs:
-  - name: environmentApiId
-    path: $.assets[*].apis[*].id
-    labels: $.assets[*].apis[*].autodiscoveryInstanceName
-    description: The MCP server instance ID in API Manager
-```
-
-**What happens next:** You have the MCP server instance ID. Next, browse the policy catalog to select which policy to apply.
-
-## Step 8: Browse Exchange Policy Catalog
+## Step 6: Browse Exchange Policy Catalog
 
 List all available policy templates from Exchange for your organization. This endpoint returns the full Exchange coordinates (`groupId`, `assetId`, `assetVersion`) and gateway-compatible configuration for each template — these are required when applying a policy.
 
@@ -380,7 +356,7 @@ List all available policy templates from Exchange for your organization. This en
 - Organization ID
 - Environment ID and API instance ID (to filter for compatible templates)
 
-**Action:** List Exchange policy templates and select the one to apply. Pass `apiInstanceId` and `environmentId` to filter for templates compatible with your MCP server's gateway type (e.g., Omni Gateway, Mule Gateway).
+**Action:** List Exchange policy templates and select the one to apply. Pass `apiInstanceId` and `environmentId` to filter for templates compatible with your API's gateway type (e.g., Omni Gateway, Mule Gateway).
 
 ```yaml
 api: urn:api:api-portal-xapi
@@ -395,11 +371,11 @@ inputs:
   apiInstanceId:
     from:
       variable: environmentApiId
-    description: API instance ID from Step 5 or Step 7 (filters for compatible templates)
+    description: API instance ID from Step 4 (filters for compatible templates)
   environmentId:
     from:
       variable: environmentId
-    description: Environment ID from Step 3
+    description: Environment ID from Step 2
   latest:
     value: "true"
     description: Return only the latest version of each template
@@ -428,16 +404,16 @@ outputs:
 - **Empty list**: Pass `apiInstanceId` and `environmentId` to get templates compatible with your gateway type. Without these filters, some templates may not appear.
 - **Wrong config property names**: Always use the configuration from this endpoint — the generic `listOrganizationsPolicytemplates` endpoint may return different (non-gateway-compatible) property names and defaults.
 
-## Step 9: Apply Policy to API Instance
+## Step 7: Apply Policy to API Instance
 
-Apply the selected policy to your MCP server instance with the appropriate configuration. Use the Exchange coordinates and configuration property names from Step 8.
+Apply the selected policy to your API instance with the appropriate configuration. Use the Exchange coordinates and configuration property names from Step 6.
 
 **What you'll need:**
 - Organization ID, Environment ID, and API instance ID
-- Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 8
-- Policy configuration based on the schema from Step 8's `policyConfiguration` output
+- Policy Exchange coordinates (groupId, assetId, assetVersion) from Step 6
+- Policy configuration based on the schema from Step 6's `policyConfiguration` output
 
-**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names from Step 8's configuration schema. For each configuration property, present the user with the property name, its description, and the default value, then ask if they want to keep the default or provide a custom value. If a property has no default, always ask the user for a value.
+**Action:** Apply the policy to your API instance. Build the `configurationData` object using the property names from Step 6's configuration schema. For each configuration property, present the user with the property name, its description, and the default value, then ask if they want to keep the default or provide a custom value. If a property has no default, always ask the user for a value.
 
 ```yaml
 api: urn:api:api-manager
@@ -452,34 +428,34 @@ inputs:
   environmentId:
     from:
       variable: environmentId
-    description: Environment ID from Step 3
+    description: Environment ID from Step 2
   environmentApiId:
     from:
       variable: environmentApiId
-    description: API instance ID from Step 5 or Step 7 (or provided manually)
+    description: API instance ID from Step 4 (or provided manually)
   groupId:
     from:
       variable: policyGroupId
-    description: Policy Exchange group ID from Step 8
+    description: Policy Exchange group ID from Step 6
   assetId:
     from:
       variable: policyAssetId
-    description: Policy Exchange asset ID from Step 8
+    description: Policy Exchange asset ID from Step 6
   assetVersion:
     from:
       variable: policyAssetVersion
-    description: Policy Exchange version from Step 8
+    description: Policy Exchange version from Step 6
 outputs:
   - name: policyId
     path: $.id
     description: The ID of the applied policy instance
 ```
 
-**What happens next:** Your MCP server is now protected with the selected policy. Since the API instance was configured with deployment information in Step 6, the policy is active and enforcing on the Omni Gateway.
+**What happens next:** Your API is now protected with the selected policy. Since the API instance was configured with deployment information in Step 5, the policy is active and enforcing on the Omni Gateway.
 
 **Common issues:**
-- **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 8) to get these values.
-- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 8's `policyConfiguration` output, not from the generic template endpoint. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
+- **400 Bad Request — missing groupId/assetId/assetVersion**: The apply endpoint requires full Exchange coordinates, not just a template ID. Make sure you used `getExchangePolicyTemplates` (Step 6) to get these values.
+- **400 Bad Request — invalid configurationData**: The configuration property names differ between gateway types. Use the property names from Step 6's `policyConfiguration` output, not from the generic template endpoint. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
 - **409 Conflict**: A policy of this type may already be applied to the API instance. List existing policies first to check, or add `?allowDuplicated=true` to the request URL to apply a second instance of the same policy type.
 - **403 Forbidden**: You need **Manage Policies** permission in the target environment.
 
@@ -487,19 +463,27 @@ outputs:
 
 After completing all steps, verify:
 
-- [ ] MCP server instance is bound to the Omni Gateway target (deployment info visible in API Manager)
+- [ ] API instance is bound to the Omni Gateway target (deployment info visible in API Manager)
 - [ ] Policy appears in the API instance's policy list
 - [ ] Policy status shows as "Active"
-- [ ] MCP server requests are being evaluated against the policy rules
+- [ ] API requests are being evaluated against the policy rules
 - [ ] Policy configuration matches your requirements
 
 ## What You've Built
 
-Your MCP server is now protected with:
+Your API is now protected with:
 
-- **Policy enforcement** — Selected policy is active on your MCP server instance. All incoming traffic is evaluated against policy rules.
-- **Bound to Omni Gateway** — API instance is created with deployment configuration targeting a self-managed Omni Gateway. The Omni Gateway picks up the configuration automatically.
-- **Managed configuration** — Policy settings are version-controlled in API Manager. Configuration can be updated without redeploying the MCP server.
+✅ **Policy enforcement**
+- Selected policy is active on your API instance
+- All incoming traffic is evaluated against policy rules
+
+✅ **Bound to Omni Gateway**
+- API instance is created with deployment configuration targeting a self-managed Omni Gateway
+- The Omni Gateway picks up the configuration automatically
+
+✅ **Managed configuration**
+- Policy settings are version-controlled in API Manager
+- Configuration can be updated without redeploying the API
 
 ## Next Steps
 
@@ -532,11 +516,6 @@ Your MCP server is now protected with:
 - Always use `getExchangePolicyTemplates` with `apiInstanceId` to get gateway-compatible templates
 - Configuration property names and defaults vary by gateway type (Omni Gateway vs. Mule Gateway)
 - The Exchange template version may differ from the generic template version
-
-### MCP Server Discovery
-- The Exchange search in Step 2 is not org-scoped — it returns all MCP servers visible to the authenticated user
-- Use the asset `name` field to identify the correct MCP server when multiple results are returned
-- If you published the MCP server in Step 1, its coordinates are already available — Step 2 can be used to confirm
 
 ## Troubleshooting
 
@@ -578,19 +557,7 @@ Your MCP server is now protected with:
 **Solutions:**
 - Use `getExchangePolicyTemplates` from `api-portal-xapi` instead — this returns the full Exchange coordinates needed by the apply endpoint
 
-### MCP Server Not Found in Exchange
-
-**Symptoms:** Step 2 returns an empty list
-
-**Possible causes:**
-- The MCP server has not been published to Exchange yet
-- The asset type is not `mcp`
-
-**Solutions:**
-- Start from Step 1 to publish the MCP server to Exchange first
-- Verify the asset was published with the correct type
-
 ## Related Jobs
 
-- **protect-api-with-policies**: The equivalent skill for protecting standard APIs with policies
 - **apply-policy-to-api-instance**: Apply a policy when you already have an API instance (simpler flow)
+- **deploy-api-with-rate-limiting**: Deploy an API with pre-configured rate limiting tiers

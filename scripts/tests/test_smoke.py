@@ -416,7 +416,7 @@ class TestHomepageAgentLinks:
     def test_has_llms_txt_head_link(self):
         link = self.soup.find('link', attrs={'href': lambda v: v and 'llms.txt' in v})
         assert link is not None
-        assert link.get('type') == 'text/plain'
+        assert link.get('rel') == ['llms-txt']
 
     def test_has_registry_json_head_link(self):
         link = self.soup.find('link', attrs={'href': lambda v: v and 'registry.json' in v})
@@ -837,3 +837,126 @@ class TestTerraformPageGeneration:
         scripts = terraform_soup.find_all('script')
         text = ' '.join(s.string or '' for s in scripts)
         assert 'wrapTerraformCodeBlocks()' in text
+
+
+SECURITY_FIXTURES = Path(__file__).parent / 'fixtures' / 'security'
+
+
+def _copy_fixture_dir(src: Path, dst: Path):
+    """Copy each file from src into dst (which is created)."""
+    dst.mkdir(parents=True, exist_ok=True)
+    for entry in src.iterdir():
+        if entry.is_file():
+            (dst / entry.name).write_bytes(entry.read_bytes())
+
+
+class TestMaliciousSpecSmokeXSS:
+    """E2E: a malicious OpenAPI spec must not produce executable XSS in the rendered page."""
+
+    @pytest.fixture
+    def portal_with_malicious_spec(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        api_dir = repo / 'apis' / 'malicious-test'
+        _copy_fixture_dir(SECURITY_FIXTURES / 'malicious_spec', api_dir)
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        PortalGenerator(output).generate(repo)
+        return output
+
+    @pytest.fixture
+    def detail_html(self, portal_with_malicious_spec):
+        return (portal_with_malicious_spec / 'apis' / 'malicious-test.html').read_text(encoding='utf-8')
+
+    def test_no_javascript_href(self, detail_html):
+        soup = BeautifulSoup(detail_html, 'html.parser')
+        for a in soup.find_all('a'):
+            href = (a.get('href') or '').strip().lower()
+            assert not href.startswith('javascript:'), f'unsafe href: {href!r}'
+
+    def test_no_unescaped_script_breakout_in_inline_scripts(self, detail_html):
+        """Inline <script> bodies must not contain a literal </script> sequence
+        that would close the tag and let attacker-supplied content execute."""
+        soup = BeautifulSoup(detail_html, 'html.parser')
+        for s in soup.find_all('script'):
+            body = s.string or ''
+            assert '</script>' not in body
+
+    def test_no_onerror_image_payload(self, detail_html):
+        """No <img> tag with an onerror handler should be present in the DOM."""
+        soup = BeautifulSoup(detail_html, 'html.parser')
+        for img in soup.find_all('img'):
+            assert not img.has_attr('onerror'), 'img onerror attribute present'
+
+
+class TestMaliciousMcpSmokeXSS:
+    """E2E: a malicious MCP descriptor must not produce executable XSS in the rendered page."""
+
+    @pytest.fixture
+    def portal_with_malicious_mcp(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        # Discovery short-circuits if apis/ is missing, so create an empty one.
+        (repo / 'apis').mkdir()
+        mcp_dir = repo / 'mcps' / 'malicious-test'
+        _copy_fixture_dir(SECURITY_FIXTURES / 'malicious_mcp', mcp_dir)
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        PortalGenerator(output).generate(repo)
+        return output
+
+    @pytest.fixture
+    def mcp_html(self, portal_with_malicious_mcp):
+        return (portal_with_malicious_mcp / 'mcps' / 'malicious-test.html').read_text(encoding='utf-8')
+
+    def test_no_onerror_image_payload(self, mcp_html):
+        """The malicious onerror payload must not become a real img element."""
+        soup = BeautifulSoup(mcp_html, 'html.parser')
+        for img in soup.find_all('img'):
+            assert not img.has_attr('onerror')
+
+    def test_no_inline_script_breakout(self, mcp_html):
+        """Inline <script> bodies must not contain a literal </script>
+        sequence that would close the tag and let attacker-supplied content
+        execute (covers the JSON-encoded fixture payloads)."""
+        soup = BeautifulSoup(mcp_html, 'html.parser')
+        for s in soup.find_all('script'):
+            body = s.string or ''
+            assert '</script>' not in body
+
+
+class TestMaliciousTerraformSmokeRawHtml:
+    """E2E: terraform docs with raw HTML must have it stripped (html: False)."""
+
+    @pytest.fixture
+    def portal_with_malicious_terraform(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        (repo / 'apis').mkdir()
+        provider_dir = repo / 'terraform' / 'anypoint-provider'
+        resources_dir = provider_dir / 'resources'
+        resources_dir.mkdir(parents=True)
+        (resources_dir / 'dangerous.md').write_bytes(
+            (SECURITY_FIXTURES / 'malicious_terraform' / 'dangerous.md').read_bytes()
+        )
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        PortalGenerator(output).generate(repo)
+        return output
+
+    @pytest.fixture
+    def terraform_html(self, portal_with_malicious_terraform):
+        return (portal_with_malicious_terraform / 'terraform' / 'anypoint-provider.html').read_text(encoding='utf-8')
+
+    def test_no_iframe_tags(self, terraform_html):
+        soup = BeautifulSoup(terraform_html, 'html.parser')
+        assert soup.find('iframe') is None
+
+    def test_no_inline_script_with_evil_payload(self, terraform_html):
+        soup = BeautifulSoup(terraform_html, 'html.parser')
+        for s in soup.find_all('script'):
+            body = s.string or ''
+            assert 'evil.example' not in body

@@ -1,7 +1,7 @@
 # Anypoint Platform API Portal
 
 > Machine-readable API reference for MuleSoft's Anypoint Platform.
-> Contains OpenAPI 3.0 specs, agent skills (JTBD workflows), and dynamic enum schemas.
+> Contains OpenAPI 3.0 specs, agent skills (JTBD workflows), MCP servers, and dynamic enum schemas.
 
 ## Agent Guide
 
@@ -9,6 +9,7 @@
 
 ## Discovery
 
+- [Portal Homepage]({{ base_url }}/index.md): Full catalog of APIs, MCP servers, and skills
 - [registry.json]({{ base_url }}/registry.json): Document registry with URN-based IDs for all APIs, skills, and schemas
 
 ## Schemas
@@ -17,6 +18,21 @@
 - [JTBD Skill Schema]({{ base_url }}/schemas/jtbd-schema.md): Agent skill / Jobs-to-be-Done format definition
 - [Skill Template]({{ base_url }}/schemas/jtbd-template.md): Template for creating new SKILL.md files
 
-## Full Index
+## APIs
+{% for api in apis %}
+- [{{ api.name }}]({{ base_url }}/apis/{{ api.slug }}.md): {{ api.description }}
+{% endfor %}
 
-See [registry.json]({{ base_url }}/registry.json) for the complete machine-readable list of all APIs, MCP servers, and skills.
+{% if mcp_servers %}
+## MCP Servers
+{% for mcp in mcp_servers %}
+- [{{ mcp.name }}]({{ base_url }}/mcps/{{ mcp.slug }}.md): {{ mcp.description }}
+{% endfor %}
+{% endif %}
+
+{% if all_skills %}
+## Skills
+{% for skill in all_skills %}
+- [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.md): {{ skill.description }}
+{% endfor %}
+{% endif %}

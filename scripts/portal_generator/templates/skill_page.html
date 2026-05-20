@@ -3,6 +3,10 @@
 
 {% block title %}{{ skill_name }} - Anypoint Platform APIs{% endblock %}
 
+{% block markdown_alternate %}
+<link rel="alternate" type="text/markdown" href="{{ base_url }}/skills/{{ skill.slug }}.md">
+{% endblock %}
+
 {% block body_attrs %} class="detail-page skill-page"{% endblock %}
 
 {% block head_scripts %}
@@ -11,6 +15,7 @@
 {% if not prose_only %}
 <script src="../assets/jsonpath-plus.min.js" defer></script>
 {% endif %}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" defer></script>
 <script src="../assets/portal.js" defer></script>
 {% endblock %}
 
@@ -62,6 +67,18 @@ window.__API_LINK_PREFIX__ = '../apis/';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof wrapSkillCodeBlocks === 'function') wrapSkillCodeBlocks();
+    if (typeof mermaid !== 'undefined') {
+        var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+        mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'loose' });
+        document.querySelectorAll('code.language-mermaid').forEach(function(block) {
+            var pre = block.parentElement;
+            var container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = block.textContent;
+            pre.parentNode.replaceChild(container, pre);
+        });
+        mermaid.run();
+    }
 });
 </script>
 {% endblock %}

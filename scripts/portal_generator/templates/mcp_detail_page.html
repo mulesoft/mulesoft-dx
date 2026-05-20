@@ -2,6 +2,10 @@
 
 {% block title %}{{ mcp.name }} - Anypoint Platform MCP Servers{% endblock %}
 
+{% block markdown_alternate %}
+<link rel="alternate" type="text/markdown" href="{{ base_url }}/mcps/{{ mcp.slug }}.md">
+{% endblock %}
+
 {% block body_attrs %} class="detail-page mcp-detail-page"{% endblock %}
 
 {% block head_scripts %}

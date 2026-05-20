@@ -1,0 +1,25 @@
+openapi: 3.0.0
+info:
+  title: Malicious Test API
+  version: 1.0.0
+  description: |
+    XSS attempts in description: </script><img src=x onerror=alert(1)>.
+    Markdown link with javascript scheme: [click](javascript:alert(1)).
+paths:
+  /xss:
+    get:
+      operationId: getXss
+      summary: "</script><script>alert('summary')</script>"
+      description: "Description with </script> breakout and [bad link](javascript:alert(1))."
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                xss:
+                  summary: "Example with </script> in summary"
+                  value:
+                    note: "</script><script>alert('example')</script>"

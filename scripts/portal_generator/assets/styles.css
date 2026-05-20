@@ -341,7 +341,7 @@
 
     /* Primary colors - Slack blue (desaturated for dark mode) */
     --color-servers: #1D9BD1;
-    --hero-title: #9CA6AF;
+    --hero-title: #FFFFFF;
     --color-primary: #2D7A9E;
     --color-primary-hover: #3A8CB0;
     --color-primary-dark: #226380;
@@ -416,26 +416,13 @@ body {
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     line-height: 1.6;
-    padding-top: 80px;
-    /* Space for MuleSoft fixed header */
+    padding-top: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* MuleSoft header styling */
-.ms-com-content-header {
-    border-bottom: 2px solid var(--color-border-primary) !important;
-}
-
-/* On detail pages, make MuleSoft header non-sticky */
 body.detail-page {
     padding-top: 0;
-}
-
-body.detail-page .ms-com-content-header,
-body.detail-page .ms-com-header {
-    position: relative !important;
-    z-index: 200;
 }
 
 /* Dark mode toggle button */
@@ -690,9 +677,10 @@ code {
    Hero
    ============================================================================ */
 
+
 .hero {
     position: relative;
-    padding: 60px 0 20px 0;
+    padding: 20px 0 20px 0;
     overflow: visible;
 }
 
@@ -715,7 +703,7 @@ code {
 }
 
 [data-theme="dark"] .hero-title {
-    color: #ABABAD;
+    color: var(--hero-title);
 }
 
 .hero-subtitle {
@@ -1360,24 +1348,40 @@ code {
     }
 
     .catalog-results-header {
-        grid-template-columns: repeat(2, minmax(0, 389px));
-        gap: 32px;
-        justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        align-items: center;
     }
 
     .catalog-search-and-results {
-        grid-column: 1 / 2;
+        flex: 1 1 0;
+        min-width: 0;
+        grid-column: unset;
     }
 
     .catalog-controls-right {
-        grid-column: 2;
+        grid-column: unset;
+        flex-shrink: 0;
+    }
+
+    .results-count {
+        white-space: normal;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .tag-search-wrapper {
+        min-width: 0;
+        flex: 1 1 200px;
     }
 }
 
 @media (max-width: 768px) {
     .catalog-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 389px);
         gap: 36px 0;
+        justify-content: center;
     }
 
     .catalog-results-header {
@@ -2388,19 +2392,88 @@ code {
     font-size: var(--font-size-4);
 }
 
-/* Contribute footer — bottom-of-page CTA on detail pages.
-   Encourages users to edit the source spec/skill or open an issue on GitHub. */
-.contribute-footer {
+/* MuleSoft chrome footer — dark mode overrides. */
+[data-theme="dark"] .ms-com-content-footer,
+[data-theme="dark"] .ms-com-content-footer.custom-footer-white-bg,
+[data-theme="dark"] .ms-com-footer,
+[data-theme="dark"] .ms-com-footer .footer-top,
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-top {
+    border-top: 1px solid var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-bottom {
+    border-top: 1px solid var(--color-border-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer nav ul li span {
+    color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a,
+[data-theme="dark"] .ms-com-footer nav ul li a,
+[data-theme="dark"] .ms-com-footer .footer-links a,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a,
+[data-theme="dark"] .ms-com-footer .footer-copyright a {
+    color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer a:hover,
+[data-theme="dark"] .ms-com-footer nav ul li a:hover,
+[data-theme="dark"] .ms-com-footer .footer-links a:hover,
+[data-theme="dark"] .ms-com-footer .footer-legal-req a:hover,
+[data-theme="dark"] .ms-com-footer .footer-copyright a:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-copyright,
+[data-theme="dark"] .ms-com-footer .footer-copyright span {
+    color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .footer-links-separator {
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings,
+[data-theme="dark"] .ms-com-footer button.ot-sdk-show-settings {
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .ot-sdk-show-settings:hover {
+    color: var(--color-text-link) !important;
+}
+
+[data-theme="dark"] .ms-com-footer .social-logos a {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9);
+}
+
+
+/* Contribute footer — bottom-of-page CTA on detail pages. */
+aside.contribute-footer {
     margin-top: var(--space-2xl);
     padding: var(--space-lg) var(--space-xl);
     border-top: 1px solid var(--color-border-primary);
     background: var(--color-bg-surface);
     border-radius: var(--radius-large);
-    display: flex;
+    display: flex !important;
+    visibility: visible !important;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
+}
+
+.ms-com-content-footer {
+    margin-top: 0 !important;
+    position: relative !important;
+    top: 0 !important;
 }
 
 .contribute-footer-lead {
@@ -2451,7 +2524,6 @@ code {
     border-color: var(--color-border-focus);
     color: var(--color-text-link);
 }
-
 /* ============================================================================
    Detail Page Layout (Sidebar + Content)
    ============================================================================ */
@@ -3109,7 +3181,7 @@ button.nav-group-header {
     scroll-margin-top: 100px;
     display: none;
     /* Hidden by default, shown via JS */
-    
+
 }
 
 .operation-detail.active {
@@ -3277,6 +3349,121 @@ button.nav-group-header {
     color: var(--color-neutral-7);
     font-size: var(--font-size-4);
     text-align: center;
+}
+
+/* Try panel: always expanded below 1200px */
+@media (max-width: 1200px) {
+    .operation-content-wrapper {
+        flex-direction: column;
+    }
+
+    .operation-try-panel {
+        width: 100%;
+        max-width: none;
+        position: static;
+        height: auto;
+        order: 1;
+        margin-bottom: var(--space-lg);
+    }
+
+    .operation-main-content {
+        width: 100%;
+        order: 2;
+    }
+
+    .btn-expand-try {
+        display: none;
+    }
+
+    .operation-try-panel .try-it-out {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: var(--space-lg);
+        align-items: start;
+        flex-direction: unset;
+        height: auto;
+    }
+
+    .operation-try-panel .try-form-container {
+        grid-column: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .operation-try-panel .try-form-container input,
+    .operation-try-panel .try-form-container select,
+    .operation-try-panel .try-form-container textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .operation-try-panel .try-params,
+    .operation-try-panel .try-body,
+    .operation-try-panel .try-server-vars {
+        min-width: 0;
+    }
+
+    .operation-try-panel .try-body-content {
+        min-width: 0;
+    }
+
+    .operation-try-panel .request-editor-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .operation-try-panel .try-response {
+        grid-column: 2;
+        grid-row: 1;
+        margin-top: 0 !important;
+        min-height: 400px;
+        align-self: stretch;
+        border: 1px solid var(--color-neutral-5);
+        padding: var(--space-xs);
+        display: flex !important;
+        flex-direction: column;
+        border-radius: var(--radius-medium);
+        background: var(--color-neutral-2);
+    }
+
+    .operation-try-panel .try-response.empty {
+        background: var(--color-neutral-2);
+        border: 1px solid var(--color-neutral-5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .operation-try-panel .try-response.empty > * {
+        display: none !important;
+    }
+
+    .operation-try-panel .try-response.empty::before {
+        content: "Click Send to get a response";
+        padding: var(--space-lg);
+        color: var(--color-neutral-7);
+        font-size: var(--font-size-4);
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .operation-try-panel .try-it-out {
+        grid-template-columns: 1fr !important;
+    }
+
+    .operation-try-panel .try-response {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .operation-try-panel .try-form-container input,
+    .operation-try-panel .try-form-container select,
+    .operation-try-panel .try-form-container textarea {
+        width: 100%;
+    }
 }
 
 /* ============================================================================
@@ -5292,16 +5479,31 @@ details[open] .examples-toggle-icon {
 }
 
 /* ============================================================================
+   Mermaid Diagrams
+   ============================================================================ */
+
+.mermaid {
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-large);
+    text-align: center;
+    overflow-x: auto;
+}
+
+.mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ============================================================================
    Responsive
    ============================================================================ */
 
 @media (max-width: 768px) {
     .hero h2 {
         font-size: var(--font-size-9);
-    }
-
-    .catalog-grid {
-        grid-template-columns: 1fr;
     }
 
     .catalog-controls {
@@ -5424,6 +5626,85 @@ details[open] .examples-toggle-icon {
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: var(--space-large);
+}
+
+/* Homepage header variant */
+.homepage-header-bar {
+    grid-template-columns: auto 1fr;
+}
+
+.homepage-logo-link {
+    height: auto;
+}
+
+.homepage-sprite-logo {
+    display: block;
+    width: 150px;
+    height: 55px;
+    background-image: url('https://www.mulesoft.com/sites/default/files/cmm_files/new-graphics-WES_updated121423.svgz');
+    background-position: -2px -179px;
+    background-size: 406px;
+    background-repeat: no-repeat;
+}
+
+[data-theme="dark"] .homepage-sprite-logo {
+    background-position: -173px -179px;
+}
+
+.homepage-contact-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.homepage-contact-label {
+    color: #00A2DF;
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
+}
+
+.homepage-phone {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
+}
+
+.homepage-cta-btn {
+    display: inline-block;
+    padding: 8px 24px;
+    height: 44px;
+    background: #2E844A;
+    border: 2px solid #2E844A;
+    border-radius: 4px;
+    color: #fff;
+    line-height: 24px;
+    font-size: 16px;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+    margin-left: 10px;
+    transition: opacity 0.2s;
+}
+
+.homepage-cta-btn:hover {
+    opacity: 0.9;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .homepage-contact-group {
+        display: none;
+    }
+
+    .homepage-sprite-logo {
+        width: 120px;
+        height: 44px;
+        background-size: 325px;
+        background-position: -1.6px -143px;
+    }
+
+    [data-theme="dark"] .homepage-sprite-logo {
+        background-position: -138px -143px;
+    }
 }
 
 .auth-panel-center {
@@ -8130,6 +8411,51 @@ code[class*="language-"][class*="language-"] {
     min-height: 0;
 }
 
+/* Execution panel and step grid: responsive below 1200px */
+@media (max-width: 1200px) {
+    .detail-content {
+        overflow: hidden;
+    }
+
+    .skill-content-unified {
+        flex-direction: column;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .skill-main-content {
+        max-width: 100%;
+    }
+
+    .content-section {
+        overflow: hidden;
+    }
+
+    .skill-detail {
+        overflow: hidden !important;
+    }
+
+    .execution-panel {
+        width: 100% !important;
+        flex: none !important;
+        position: static !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        order: -1;
+        margin-bottom: var(--space-lg);
+    }
+
+    .operation-panel-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .operation-panel-response {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+
 /* Variables Toolbar */
 .variables-toolbar {
     display: flex;
@@ -8421,6 +8747,7 @@ code[class*="language-"][class*="language-"] {
 .evaluation-result-container.evaluation-success .ace_editor {
     border-color: #86efac;
 }
+
 /* ============================================================================
    MCP surfaces
    ============================================================================

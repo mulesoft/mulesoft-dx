@@ -1,0 +1,45 @@
+# {{ skill.name }}
+
+{{ skill.description }}
+
+{% if skill.api_refs %}- **APIs:** {% for ref in skill.api_refs %}[{{ ref }}]({{ base_url }}/apis/{{ ref }}.md){% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+{% if skill.mcp_refs %}- **MCP Servers:** {% for ref in skill.mcp_refs %}[{{ ref }}]({{ base_url }}/mcps/{{ ref }}.md){% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+- **Skill Source:** [SKILL.md]({{ base_url }}/skills/{{ skill.skill_rel_path|default(skill.slug) }}/SKILL.md)
+
+{% if skill.step_details %}
+## Steps
+{% for step in skill.step_details %}
+### Step {{ loop.index }}: {{ step.title }}
+{% if step.description %}
+{{ step.description }}
+{% endif %}
+{% if step.yaml %}
+{% if step.yaml.api %}**API:** `{{ step.yaml.api }}`{% endif %}
+{% if step.yaml.operationId %}
+**Operation:** `{{ step.yaml.operationId }}`{% endif %}
+{% if step.yaml.inputs %}
+
+**Inputs:**
+{% if step.yaml.inputs is mapping %}
+{% for iname, idef in step.yaml.inputs.items() %}
+- `{{ iname }}` — {{ idef.description|default('') }}
+{% endfor %}
+{% else %}
+{% for inp in step.yaml.inputs %}
+- `{{ inp.name }}` — {{ inp.description|default('') }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if step.yaml.outputs %}
+
+**Outputs:**
+{% for out in step.yaml.outputs %}
+- `{{ out.name }}` (`{{ out.path }}`) — {{ out.description|default('') }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% endfor %}
+{% endif %}

@@ -111,13 +111,13 @@
                     {% if cap_value is mapping %}
                         {% set flags = [] %}
                         {% for flag_key, flag_val in cap_value.items() %}
-                            {% if flag_val is sameas true %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ '</span>') %}
-                            {% elif flag_val is sameas false %}{% set _ = flags.append('<span class="badge badge-mcp-flag-off">' ~ flag_key ~ ': off</span>') %}
-                            {% elif flag_val is mapping %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ '</span>') %}
-                            {% else %}{% set _ = flags.append('<span class="badge badge-security">' ~ flag_key ~ ': ' ~ flag_val ~ '</span>') %}
+                            {% if flag_val is sameas true %}{% set _ = flags.append({'cls': 'badge badge-security', 'text': flag_key}) %}
+                            {% elif flag_val is sameas false %}{% set _ = flags.append({'cls': 'badge badge-mcp-flag-off', 'text': flag_key ~ ': off'}) %}
+                            {% elif flag_val is mapping %}{% set _ = flags.append({'cls': 'badge badge-security', 'text': flag_key}) %}
+                            {% else %}{% set _ = flags.append({'cls': 'badge badge-security', 'text': flag_key ~ ': ' ~ flag_val}) %}
                             {% endif %}
                         {% endfor %}
-                        {% if flags %}{{ flags|join(' ')|safe }}{% else %}<em class="mcp-capability-enabled">enabled</em>{% endif %}
+                        {% if flags %}{% for f in flags %}<span class="{{ f.cls }}">{{ f.text }}</span>{% if not loop.last %} {% endif %}{% endfor %}{% else %}<em class="mcp-capability-enabled">enabled</em>{% endif %}
                     {% elif cap_value is sameas true %}
                         <em class="mcp-capability-enabled">enabled</em>
                     {% else %}

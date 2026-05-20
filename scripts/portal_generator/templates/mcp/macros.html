@@ -91,12 +91,13 @@
 {% endif %}
 {% endmacro %}
 
-{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='') %}
+{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='', mime_type='') %}
 <div class="operation-title-header">
     <h3 class="operation-title">
         {{ display_name }}
         <span class="operation-id-inline">{{ invocable_name }}</span>
         {% if title_badges %}<span class="operation-title-badges">{{ title_badges|safe }}</span>{% endif %}
+        {% if mime_type %}<span class="operation-title-badges"><span class="content-type-badge">{{ mime_type }}</span></span>{% endif %}
     </h3>
 </div>
 
@@ -305,13 +306,11 @@
 
 {% macro render_resource(resource, idx, icons_path='../assets/icons', interactive=true) %}
 {% set resource_id = 'resource-' ~ idx %}
-{% set extra = '' %}
-{% if resource.mimeType %}{% set extra = '<span class="content-type-badge">' ~ resource.mimeType ~ '</span>' %}{% endif %}
 <section id="{{ resource_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="resource"
          data-mcp-uri="{{ resource.uri|default('') }}">
-    {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, extra) }}
+    {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, mime_type=resource.mimeType|default('')) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ resource_id }}">
         {% if interactive %}
@@ -351,13 +350,11 @@
 
 {% macro render_resource_template(template, idx, icons_path='../assets/icons', interactive=true) %}
 {% set template_id = 'resource-template-' ~ idx %}
-{% set extra = '' %}
-{% if template.mimeType %}{% set extra = '<span class="content-type-badge">' ~ template.mimeType ~ '</span>' %}{% endif %}
 <section id="{{ template_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="resource-template"
          data-mcp-uri-template="{{ template.uriTemplate|default('') }}">
-    {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, extra) }}
+    {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, mime_type=template.mimeType|default('')) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ template_id }}">
         {% if interactive %}

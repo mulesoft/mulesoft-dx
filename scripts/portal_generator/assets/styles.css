@@ -339,6 +339,11 @@
     --color-text-link: #1D9BD1;
     --color-text-link-hover: #1164A3;
 
+    /* Badge colors - neutral for dark mode */
+    --color-badge-text: #8b949e;
+    --color-badge-bg: rgba(110, 118, 129, 0.1);
+    --color-badge-border: #30363d;
+
     /* Primary colors - Slack blue (desaturated for dark mode) */
     --color-servers: #1D9BD1;
     --hero-title: #FFFFFF;
@@ -1654,21 +1659,21 @@ code {
 }
 
 [data-theme="dark"] .badge-api-type {
-    background: rgba(110, 118, 129, 0.1);
-    color: #8b949e;
-    border: 1px solid #30363d;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .badge-skills {
-    background: rgba(110, 118, 129, 0.1);
-    color: #8b949e;
-    border: 1px solid #30363d;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .badge-count {
-    color: #6e7681;
+    color: var(--color-badge-text);
     background: transparent;
-    border: 1px solid #30363d;
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .overview-stats-panel {
@@ -1677,8 +1682,8 @@ code {
 }
 
 [data-theme="dark"] .stats-badge {
-    background: #30363d;
-    color: #8b949e;
+    background: var(--color-badge-border);
+    color: var(--color-badge-text);
 }
 
 [data-theme="dark"] .stat-compact-value {
@@ -8941,21 +8946,21 @@ code[class*="language-"][class*="language-"] {
 }
 
 [data-theme="dark"] .badge-mcp-type {
-    color: #d4b8ff;
-    background: rgba(163, 113, 247, 0.15);
-    border-color: rgba(163, 113, 247, 0.3);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .badge-mcp-local {
-    color: var(--color-teal-700, #0d9488);
-    background: var(--color-teal-50, #f0fdfa);
-    border-color: var(--color-teal-200, #99f6e4);
+    color: var(--color-purple-700);
+    background: var(--color-purple-50);
+    border-color: var(--color-purple-200, #ddd6fe);
 }
 
 [data-theme="dark"] .badge-mcp-local {
-    color: #5eead4;
-    background: rgba(20, 184, 166, 0.15);
-    border-color: rgba(20, 184, 166, 0.3);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .badge-terraform-type {
@@ -8969,9 +8974,9 @@ code[class*="language-"][class*="language-"] {
 }
 
 [data-theme="dark"] .badge-terraform-type {
-    color: var(--color-violet-300-dark);
-    background: rgba(160, 103, 218, 0.15);
-    border-color: rgba(160, 103, 218, 0.35);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .card-icon-terraform {

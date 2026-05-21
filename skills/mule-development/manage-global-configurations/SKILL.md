@@ -1,6 +1,6 @@
 ---
 name: manage-global-configurations
-description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate placeholders", "consolidate configs", or any request to manage global-level configuration in a Mule app. NEVER use MCP server tools — use only the bash scripts provided.
+description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. NEVER use MCP server tools — use only the bash scripts provided.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@mulesoft/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 metadata:
@@ -69,11 +69,11 @@ Determine the user's intent using two levels:
 | error handler, global error, default error handler, on-error | → **ERROR HANDLER** |
 | autodiscovery, API gateway, API ID, API Manager | → **API AUTODISCOVERY** |
 | import project, reference project, shared library, JAR import | → **IMPORT** |
-| properties, config.yaml, .properties, placeholder, environment, dev/QA/prod, multi-env | → **PROPERTIES** |
+| properties, config.yaml, .properties, placeholder, environment, dev/QA/prod, multi-env, check placeholders, unresolved properties | → **PROPERTIES** |
 | global-property, inline property, name-value | → **GLOBAL PROPERTY** |
-| list all, what global elements, show all configs, inventory | → **LIST ALL** |
+| list all, what global elements, show all configs | → **LIST ALL** |
 | find usages, where is used, which flows reference | → **FIND USAGES** |
-| validate, check placeholders, unresolved properties | → **VALIDATE** |
+| validate, check config exists, dangling reference | → **VALIDATE** |
 | consolidate, centralize, move to global-config | → **CONSOLIDATE** |
 
 ### Level 2 — Operation

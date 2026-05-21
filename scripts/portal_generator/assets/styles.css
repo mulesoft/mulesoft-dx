@@ -5490,7 +5490,13 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-prose-content h1 {
-    display: none;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-9);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0 0 var(--space-large);
+    color: var(--color-text-primary);
 }
 
 .skill-prose-content h2 {

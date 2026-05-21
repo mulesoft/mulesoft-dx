@@ -23,13 +23,13 @@ from .utils import get_category
 
 
 def _resolve_skill_type(skill_dir: Path) -> Optional[str]:
-    """Resolve skill type from skill.yaml metadata (hierarchical lookup).
+    """Resolve skill type from skills-metadata.yaml (hierarchical lookup).
 
     Checks skill_dir first, then parent dir. Returns 'prose' or 'jtbd',
     or None if no metadata found.
     """
     yaml = YAML(typ='safe')
-    for candidate in [skill_dir / 'skill.yaml', skill_dir.parent / 'skill.yaml']:
+    for candidate in [skill_dir / 'skills-metadata.yaml', skill_dir.parent / 'skills-metadata.yaml']:
         if candidate.exists():
             try:
                 data = yaml.load(candidate)

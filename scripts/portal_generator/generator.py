@@ -416,7 +416,7 @@ class PortalGenerator:
             css_path='assets/styles.css',
             build_label=self.build_label,
             base_url=self.base_url,
-            chrome=self.chrome,
+            chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
         )
         output_path = self.output_dir / '404.html'
         with open(output_path, 'w', encoding='utf-8') as f:

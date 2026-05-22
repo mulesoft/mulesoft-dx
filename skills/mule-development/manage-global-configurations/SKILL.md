@@ -54,6 +54,14 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 
 ---
 
+## Resolve Target Project
+
+Run once per session — reuse the result for all subsequent operations in this conversation.
+
+If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking.
+
+---
+
 ## Operation Routing
 
 Determine the user's intent using two levels:

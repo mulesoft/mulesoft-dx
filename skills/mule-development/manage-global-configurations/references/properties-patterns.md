@@ -138,7 +138,7 @@ NOT have its placeholders resolved — the app will fail with
 The standard pattern for environment-specific configuration in Mule 4:
 
 ```xml
-<!-- In global-config.xml -->
+<!-- In global-configs.xml -->
 <configuration-properties file="config.yaml" doc:name="Common Configuration" />
 <global-property name="env" value="dev" doc:name="Global Property: env" />
 <configuration-properties file="${env}.yaml" doc:name="Environment Configuration" />
@@ -233,7 +233,7 @@ so they are not stored in plaintext in source control.
 ### Module Registration
 
 ```xml
-<!-- In global-config.xml -->
+<!-- In global-configs.xml -->
 <secure-properties:config name="Secure_Properties"
                           file="secure-${env}.yaml"
                           key="${secure.key}"
@@ -453,7 +453,7 @@ When validating that all `${...}` placeholders are resolvable:
 |-------|-------|-----|
 | `Could not resolve placeholder '${key}'` | Key not in any registered file | Add to config.yaml or appropriate env file |
 | File registered but doesn't exist | `<configuration-properties file="missing.yaml"/>` | Create the file or remove the registration |
-| Placeholder in unregistered file | File exists but no `<configuration-properties>` element | Add registration to `global-config.xml` |
+| Placeholder in unregistered file | File exists but no `<configuration-properties>` element | Add registration to `global-configs.xml` |
 | `${secure::key}` with no secure module | Secure prefix used but `secure-properties:config` not declared | Add secure properties module config and dependency |
 
 ### Cross-Environment Validation

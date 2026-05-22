@@ -23,7 +23,7 @@ Create, view, edit, delete, list, validate, and consolidate all global configura
 - **Never use TaskCreate.**
 - **Configuration structure from metadata only.** Never hardcode attributes, child elements, or provider names for connectors. The `describe-connector` metadata is the source of truth.
 - **Connector versions from Exchange only.** Never paste a version from memory. The only acceptable source is `get_latest_connector.sh` → `pick_connector.sh`.
-- **All configs go in `global-config.xml`.** See `references/global-config-conventions.md` for ordering and structure.
+- **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
 
 ---
 
@@ -49,7 +49,7 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 | File | Content | When to Read |
 | --- | --- | --- |
 | `references/global-elements-catalog.md` | XML templates, namespace URIs, XSD URLs, pom.xml dependencies, attribute tables, validation rules, and connector config generation rules for ALL element types. | Before generating ANY XML — verify structure, required attributes, namespace, and dependency. |
-| `references/global-config-conventions.md` | Element ordering, namespace management, centralization rules, default project structure, consolidation decision matrix. | When placing elements in `global-config.xml`, managing namespaces, or running consolidation. |
+| `references/global-config-conventions.md` | Element ordering, namespace management, centralization rules, default project structure, consolidation decision matrix. | When placing elements in `global-configs.xml`, managing namespaces, or running consolidation. |
 | `references/properties-patterns.md` | Property file formats, `${placeholder}` resolution, multi-env patterns, secure properties, built-in properties, naming conventions, validation rules. | When creating/editing properties files, setting up environments, or validating placeholders. |
 
 ---
@@ -162,7 +162,7 @@ Only for fields where user chose placeholders. Use `${namespace.attributeName}` 
 
 #### Step 9: Apply to Project
 
-1. Write config to `src/main/mule/global-config.xml` (create if missing — see `references/global-config-conventions.md`).
+1. Write config to `src/main/mule/global-configs.xml` (create if missing — see `references/global-config-conventions.md`).
 2. Add namespace + schemaLocation.
 3. Write/update `src/main/resources/config.yaml`.
 4. Add pom.xml dependency if missing (version from `tmp/connector-choices/`).
@@ -197,7 +197,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
 
 **Q2:** Store paths, passwords (use placeholders). Optional: protocols, cipher suites, revocation check, store type/algorithm.
 
-**STOP.** → Execute: write XML to `global-config.xml`, add `tls` namespace, update config.yaml.
+**STOP.** → Execute: write XML to `global-configs.xml`, add `tls` namespace, update config.yaml.
 
 ### OBJECT STORE — CREATE
 
@@ -247,7 +247,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
 
 **Q2:** What resources to use? Add `<import>` declaration?
 
-**STOP.** → Execute: add dependency to pom.xml, add `<import file="{artifactId}.xml"/>` to global-config.xml.
+**STOP.** → Execute: add dependency to pom.xml, add `<import file="{artifactId}.xml"/>` to global-configs.xml.
 
 ### GET / EDIT / DELETE (all element types)
 
@@ -273,7 +273,7 @@ Read `references/properties-patterns.md` before any properties operation.
 
 **Q2:** Initial key-value pairs (or "empty")? Register as `<configuration-properties>`?
 
-**STOP.** → Execute: create file in `src/main/resources/`, register in `global-config.xml` if requested.
+**STOP.** → Execute: create file in `src/main/resources/`, register in `global-configs.xml` if requested.
 
 ### EDIT FILE
 
@@ -293,7 +293,7 @@ Read `references/properties-patterns.md` before any properties operation.
 
 **Q2:** What properties differ per environment? Common properties in base `config.yaml`?
 
-**STOP.** → Execute: create per-env files, add `<global-property name="env" value="{default}"/>`, add `<configuration-properties file="${env}.yaml"/>` to global-config.xml.
+**STOP.** → Execute: create per-env files, add `<global-property name="env" value="{default}"/>`, add `<configuration-properties file="${env}.yaml"/>` to global-configs.xml.
 
 ### REGISTER / UNREGISTER
 
@@ -305,7 +305,7 @@ Read `references/properties-patterns.md` before any properties operation.
 
 **Create Q1:** What name-value pairs?
 
-**STOP.** → Execute: add `<global-property name="..." value="..." doc:name="..."/>` to global-config.xml.
+**STOP.** → Execute: add `<global-property name="..." value="..." doc:name="..."/>` to global-configs.xml.
 
 **Edit:** List → ask which → show → ask new value → **STOP** → apply.
 
@@ -326,7 +326,7 @@ List: registered files + unregistered files + global properties. Show key counts
 3. Categorize: Connector Configs, Configuration Properties, Global Properties, Global Error Handlers, API AutoDiscovery, TLS Context, Object Store, Caching Strategy, Import References, Application Configuration, Other.
 4. Count usages per named element (search `config-ref`, `tlsContext`, `objectStore`, `cachingStrategy-ref`, `defaultErrorHandler-ref`, `errorHandler-ref`, `listenerConfig`).
 5. Present grouped table with name, type, file, usage count.
-6. Highlight issues: unresolved placeholders, scattered configs (not in `global-config.xml`), unused elements (0 references).
+6. Highlight issues: unresolved placeholders, scattered configs (not in `global-configs.xml`), unused elements (0 references).
 
 ### FIND USAGES
 
@@ -355,7 +355,7 @@ Checks that every `config-ref`, `tlsContext`, `objectStore`, `cachingStrategy-re
 
 Read `references/global-config-conventions.md` → "Consolidation Decision Matrix" section.
 
-1. Scan all files for global elements outside `global-config.xml`.
+1. Scan all files for global elements outside `global-configs.xml`.
 2. Classify each as **movable** or **flow-coupled** (per decision matrix).
 3. Present report: what to move, what to keep, with reasons.
 4. **Wait for explicit confirmation** → **STOP.**

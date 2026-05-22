@@ -62,11 +62,11 @@ tools:
         globalConfigPath:
           type: string
           description: >-
-            FILE PATH (not file contents) to the existing global.xml or
+            FILE PATH (not file contents) to the existing global-configs.xml or
             connector config xml file. MUST provide the full path to the file if
-            it exists (e.g., /path/to/project/src/main/mule/global.xml). If the
+            it exists (e.g., /path/to/project/src/main/mule/global-configs.xml). If the
             file exists in the project, you MUST provide its path. If not
-            provided, will automatically look for src/main/mule/global.xml in
+            provided, will automatically look for src/main/mule/global-configs.xml in
             the project directory
         projectPomPath:
           type: string

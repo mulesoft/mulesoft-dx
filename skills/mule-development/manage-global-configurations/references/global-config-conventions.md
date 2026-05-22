@@ -1,6 +1,6 @@
 # Global Config Conventions
 
-> **Status: canonical reference for `global-config.xml` structure, element ordering,
+> **Status: canonical reference for `global-configs.xml` structure, element ordering,
 > namespace management, and project centralization patterns.**
 >
 > This file documents the best practices for organizing global elements in a
@@ -22,9 +22,9 @@
 
 ## File Structure
 
-### The `global-config.xml` Convention
+### The `global-configs.xml` Convention
 
-Every Mule 4 project SHOULD have a dedicated `global-config.xml` file in
+Every Mule 4 project SHOULD have a dedicated `global-configs.xml` file in
 `src/main/mule/` that contains ALL global elements (except flow-coupled
 elements like `apikit:config`). This separates configuration from flow logic.
 
@@ -32,7 +32,7 @@ elements like `apikit:config`). This separates configuration from flow logic.
 src/
 ├── main/
 │   ├── mule/
-│   │   ├── global-config.xml     ← All global elements
+│   │   ├── global-configs.xml     ← All global elements
 │   │   ├── {app-name}.xml        ← Flows only
 │   │   └── {feature-name}.xml    ← Additional flow files (optional)
 │   └── resources/
@@ -43,7 +43,7 @@ src/
 │       └── log4j2.xml            ← Logging configuration
 ```
 
-### Base `global-config.xml` Skeleton
+### Base `global-configs.xml` Skeleton
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -65,7 +65,7 @@ pre-declare namespaces that aren't used.
 
 ## Element Ordering
 
-Global elements in `global-config.xml` MUST follow this ordering. The
+Global elements in `global-configs.xml` MUST follow this ordering. The
 ordering is not just cosmetic — some elements reference others, and
 forward references can cause parsing failures.
 
@@ -113,7 +113,7 @@ elements that use them.
 
 ### Adding Namespaces
 
-When adding a new global element to `global-config.xml`, add BOTH:
+When adding a new global element to `global-configs.xml`, add BOTH:
 1. The `xmlns:{prefix}` declaration on the `<mule>` root element.
 2. The corresponding entry in `xsi:schemaLocation`.
 
@@ -160,7 +160,7 @@ When deleting the last element that uses a namespace, remove BOTH:
 
 ## Centralization Rules
 
-### What Goes in `global-config.xml`
+### What Goes in `global-configs.xml`
 
 | Element Type | Centralize? | Reason |
 |-------------|-------------|--------|
@@ -199,7 +199,7 @@ When scanning for elements to consolidate, classify as **movable** if:
 
 Every new project SHOULD be created with:
 
-**`src/main/mule/global-config.xml`:**
+**`src/main/mule/global-configs.xml`:**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -227,11 +227,11 @@ http:
   port: "8081"
 ```
 
-### Migration Pattern (existing projects without `global-config.xml`)
+### Migration Pattern (existing projects without `global-configs.xml`)
 
-When a project is opened that lacks `global-config.xml`:
+When a project is opened that lacks `global-configs.xml`:
 1. Prompt user: "This project doesn't have a centralized global config file. Would you like to create one?"
-2. If confirmed, create `global-config.xml` with the skeleton above.
+2. If confirmed, create `global-configs.xml` with the skeleton above.
 3. Offer to run consolidation (move scattered global elements into the new file).
 
 ---
@@ -247,15 +247,15 @@ When evaluating whether to move a global element:
 | Any flow XML | `<global-property>` | **Move** | Project-wide concern |
 | Any flow XML | Named `<error-handler>` | **Move** | Global error policy |
 | Any flow XML | `<tls:context>` | **Move** | Shared security config |
-| `error-handling.xml` | Named `<error-handler>` | **Move** | Consolidate into global-config.xml |
+| `error-handling.xml` | Named `<error-handler>` | **Move** | Consolidate into global-configs.xml |
 | Any flow XML | `<apikit:config>` | **Keep** | Flow-coupled — configures its specific router |
 | Any flow XML | `<sub-flow>` | **Keep** | Logic, not config |
-| `global-config.xml` | Anything | **Keep** | Already centralized |
+| `global-configs.xml` | Anything | **Keep** | Already centralized |
 
 ### Post-Consolidation Checklist
 
 After moving elements:
-- [ ] All required namespace declarations added to `global-config.xml`
+- [ ] All required namespace declarations added to `global-configs.xml`
 - [ ] Corresponding `xsi:schemaLocation` entries added
 - [ ] Unused namespace declarations removed from source files
 - [ ] Source file is not left as empty skeleton (ask user whether to delete)

@@ -2,6 +2,10 @@
 
 {% block title %}Page not found — Anypoint Platform APIs{% endblock %}
 
+{% block head_scripts %}
+<script src="assets/portal.js" defer></script>
+{% endblock %}
+
 {% block extra_styles %}
 <style>
     .error-page {
@@ -77,6 +81,21 @@
         width: 100%;
         max-width: 304px;
         height: auto;
+    }
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .error-page {
+        background: var(--color-bg-primary);
+    }
+
+    [data-theme="dark"] .error-illustration img {
+        filter: brightness(0.75) saturate(1.2);
+    }
+
+    [data-theme="dark"] .error-url {
+        background: var(--color-bg-surface);
+        border-color: var(--color-border-primary);
+        color: var(--color-text-tertiary);
     }
 </style>
 {% endblock %}

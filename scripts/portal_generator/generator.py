@@ -380,6 +380,7 @@ class PortalGenerator:
         print(f"\n📝 Generating portal files (workers={self.workers})...")
         self._css_filename = self._generate_css()
         self._js_filename, self._jsonpath_filename = self._generate_js()
+        self._generate_404()
         self._generate_homepage()
         self._generate_detail_pages_parallel()
         self._generate_registry()
@@ -406,6 +407,20 @@ class PortalGenerator:
             'portal_js_path': f"{prefix}assets/{self._js_filename}",
             'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
         }
+
+    def _generate_404(self):
+        """Generate 404.html error page."""
+        print("  ✓ Generating 404 page...")
+        template = self.env.get_template('404.html')
+        html = template.render(
+            css_path='assets/styles.css',
+            build_label=self.build_label,
+            base_url=self.base_url,
+            chrome=self.chrome,
+        )
+        output_path = self.output_dir / '404.html'
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html)
 
     def _generate_homepage(self):
         """Generate index.html"""

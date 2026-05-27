@@ -59,6 +59,15 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 
 - After any project generation, run `mvn clean compile` and only report success if it passes.
 
+### Add to Workspace
+
+- After successful project creation (directory exists, pom.xml validated), **always** add the project to the current VS Code workspace by running:
+  ```bash
+  code --add <projectPath>
+  ```
+- If VS Code is not open or the command fails, ignore the failure silently and proceed with the next step.
+- Run this step before prompting for flow generation.
+
 ### Confirmation Checkpoints
 
 - **Template selection:** Wait for explicit user choice before proceeding. Do not assume which template the user wants.

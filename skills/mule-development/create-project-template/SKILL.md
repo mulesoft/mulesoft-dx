@@ -68,6 +68,18 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 - If VS Code is not open or the command fails, ignore the failure silently and proceed with the next step.
 - Run this step before prompting for flow generation.
 
+### Runtime Version Resolution
+
+- Before calling `dx:mule:project:create`, resolve the latest supported Mule runtime and its compatible JDK by running:
+  ```bash
+  anypoint-cli-v4 dx:mule:runtime:list --output json --environment ""
+  ```
+- From the JSON response, pick the entry with `"latest": true` → use its `version` as the `--mule-version` value.
+- From that same entry's `compatibleJDKs` array, pick the JDK with `"latest": true` → use its `description` as the Java version for the project.
+- Pass the resolved `--mule-version` to `dx:mule:project:create` in all flows (Exchange, Scratch, Local).
+- If the API call fails or returns empty, fall back to `4.9.5` with JDK `17`.
+- If the user explicitly specifies a Mule version, use that instead — but still resolve the compatible JDK from the API response for that version.
+
 ### Confirmation Checkpoints
 
 - **Template selection:** Wait for explicit user choice before proceeding. Do not assume which template the user wants.

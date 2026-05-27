@@ -5794,18 +5794,10 @@ details[open] .examples-toggle-icon {
     height: auto;
 }
 
-.homepage-sprite-logo {
+.homepage-logo-icon {
     display: block;
-    width: 150px;
-    height: 55px;
-    background-image: url('https://www.mulesoft.com/sites/default/files/cmm_files/new-graphics-WES_updated121423.svgz');
-    background-position: -2px -179px;
-    background-size: 406px;
-    background-repeat: no-repeat;
-}
-
-[data-theme="dark"] .homepage-sprite-logo {
-    background-position: -173px -179px;
+    width: 48px;
+    height: 48px;
 }
 
 .homepage-contact-group {
@@ -5816,34 +5808,42 @@ details[open] .examples-toggle-icon {
 }
 
 .homepage-contact-label {
-    color: #00A2DF;
-    font-size: var(--font-size-3);
-    font-weight: var(--font-weight-medium);
+    color: #032D60;
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+.homepage-contact-label:hover {
+    color: #014486;
 }
 
 .homepage-phone {
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-3);
+    color: #032D60;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .homepage-cta-btn {
-    display: inline-block;
-    padding: 8px 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
     height: 44px;
-    background: #2E844A;
-    border: 2px solid #2E844A;
+    background: #0176D3;
+    border: 2px solid #0176D3;
     border-radius: 4px;
     color: #fff;
-    line-height: 24px;
-    font-size: 16px;
-    font-weight: var(--font-weight-bold);
+    font-size: 14px;
+    font-weight: 700;
     text-decoration: none;
-    margin-left: 10px;
-    transition: opacity 0.2s;
+    margin-left: 16px;
+    transition: background 0.2s;
 }
 
 .homepage-cta-btn:hover {
-    opacity: 0.9;
+    background: #014486;
+    border-color: #014486;
     color: #fff;
 }
 
@@ -5852,16 +5852,22 @@ details[open] .examples-toggle-icon {
         display: none;
     }
 
-    .homepage-sprite-logo {
-        width: 120px;
-        height: 44px;
-        background-size: 325px;
-        background-position: -1.6px -143px;
+    .homepage-logo-icon {
+        width: 32px;
+        height: 32px;
     }
+}
 
-    [data-theme="dark"] .homepage-sprite-logo {
-        background-position: -138px -143px;
-    }
+[data-theme="dark"] .homepage-contact-label {
+    color: #ECEBEA;
+}
+
+[data-theme="dark"] .homepage-contact-label:hover {
+    color: #fff;
+}
+
+[data-theme="dark"] .homepage-phone {
+    color: #B0ADAB;
 }
 
 .auth-panel-center {

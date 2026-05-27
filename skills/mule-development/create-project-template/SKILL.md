@@ -1,8 +1,8 @@
 ---
 name: create-project-template
-description: Workflow for generating MuleSoft projects from Anypoint Exchange templates, local .jar templates, or from scratch via the `mule-mcp-server`. Use when users ask to "create a project", "generate project", "build integration", "create API", "use template", or "from template". Performs template discovery and calls create_mule_project only after explicit user confirmation; delegates flow generation to the `build-mule-integration` skill.
+description: Workflow for generating MuleSoft projects from Anypoint Exchange templates, local .jar templates, or from scratch via the Anypoint CLI. Use when users ask to "create a project", "generate project", "build integration", "create API", "use template", or "from template". Performs template discovery and calls `dx:mule:project:create` only after explicit user confirmation; delegates flow generation to the `build-mule-integration` skill.
 license: Apache-2.0
-compatibility: Requires the mule-mcp-server (create_mule_project), Anypoint CLI v4 (`anypoint-cli-v4` on PATH), `jq`, and Maven 3.6+ for validation
+compatibility: Requires Anypoint CLI v4 (`anypoint-cli-v4` on PATH) with `dx:mule:project:create` and `dx:mule:runtime:list` commands, `jq`, and Maven 3.6+ for validation
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
@@ -13,7 +13,7 @@ allowed-tools: Bash Read AskUserQuestion
 
 # Mule Project Generation
 
-Guide the user through multi-step Mule project generation via the `create-project-template` skill . For **any** project creation request, the request **must go through this workflow**. Do not call `create_mule_project` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `create_mule_project` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `build-mule-integration` skill.
+Guide the user through multi-step Mule project generation via the `create-project-template` skill. For **any** project creation request, the request **must go through this workflow**. Do not call `dx:mule:project:create` directly. This workflow performs proper discovery of the template (or generation path) from the user — Exchange search and selection, local template path, or scratch — and obtains user confirmation before `dx:mule:project:create` may be invoked at the designated project-creation step in the chosen flow. After project creation, flow work is **entirely delegated** to the `build-mule-integration` skill.
 
 **Triggers:**
 
@@ -30,7 +30,7 @@ Guide the user through multi-step Mule project generation via the `create-projec
 - "from template"
 - any request indicating Mule project creation
 
-**Mandatory path:** Route every project-creation request through this workflow so that discovery and confirmation happen first; only then call `create_mule_project` at the designated project-creation step in the chosen flow (Exchange, Scratch, or Local).
+**Mandatory path:** Route every project-creation request through this workflow so that discovery and confirmation happen first; only then call `dx:mule:project:create` at the designated project-creation step in the chosen flow (Exchange, Scratch, or Local).
 
 ---
 
@@ -49,7 +49,7 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 ### Operational Requirements
 
 - **Mandatory workflow:** For any project creation request, the request MUST go through this workflow so that proper discovery from the user happens first. **Ask the template source question upfront** (Exchange / Local .jar / Scratch) as soon as the user enters a project-creation prompt — unless they have already explicitly stated their choice in that message. Then obtain the template or path from the user — e.g. present Exchange search results for user selection, get local template path, or confirm scratch — before any project creation.
-- **No direct `create_mule_project`:** Do not call `create_mule_project` until this workflow has completed discovery and the user has approved (Confirmation checkpoint 2). Never invoke it directly in response to a project-creation request. Call it only at the designated project-creation step in the chosen flow (Exchange, Scratch, or Local).
+- **No direct `dx:mule:project:create`:** Do not call `dx:mule:project:create` until this workflow has completed discovery and the user has approved (Confirmation checkpoint 2). Never invoke it directly in response to a project-creation request. Call it only at the designated project-creation step in the chosen flow (Exchange, Scratch, or Local).
 - MUST present the `scripts/search_templates.sh` output for user selection of template
 - MUST present results from both private and public groupIds per **Search Completeness Rule**
 - MUST follow **Confirmation Checkpoints** (below) for template selection, project creation, and flow generation
@@ -71,7 +71,7 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 ### Confirmation Checkpoints
 
 - **Template selection:** Wait for explicit user choice before proceeding. Do not assume which template the user wants.
-- **Project creation:** Do not call `create_mule_project` until the user explicitly approves (e.g. Template Integration Plan for Exchange, or equivalent confirmation for Local/Scratch). Calling `create_mule_project` without having completed the workflow and received this approval is prohibited.
+- **Project creation:** Do not call `dx:mule:project:create` until the user explicitly approves (e.g. Template Integration Plan for Exchange, or equivalent confirmation for Local/Scratch). Calling `dx:mule:project:create` without having completed the workflow and received this approval is prohibited.
 - **Flow generation:** Do not hand off to the `build-mule-integration` skill until the user explicitly approves flow customization.
 
 ### Flow Generation Workflow (delegated)
@@ -279,7 +279,7 @@ Then prompt via `AskUserQuestion`:
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (project creation): do not call `create_mule_project` until the user approves this plan.
+> **Important:** Per **Confirmation Checkpoints** (project creation): do not call `dx:mule:project:create` until the user approves this plan.
 
 **Output:** User approval to proceed.
 
@@ -287,7 +287,7 @@ Then prompt via `AskUserQuestion`:
 
 ### Step E4: Project Generation
 
-**Pre-flight checklist — before calling `create_mule_project`, verify ALL:**
+**Pre-flight checklist — before calling `dx:mule:project:create`, verify ALL:**
 
 - Step E2: user explicitly selected a template.
 - Step E3: Template Integration Plan approved.
@@ -296,16 +296,17 @@ If ANY item is missing, STOP and get confirmation.
 
 #### E4a. Execute Project Generation
 
-Only after ALL confirmations, call `create_mule_project` per **Reference → `create_mule_project` Schema**.
+Only after ALL confirmations, call `dx:mule:project:create` per **Reference → `dx:mule:project:create` Schema**.
 
-**Exchange (this path):** all of the following are required:
+**Exchange (this path):** run from the target parent directory:
 
-- `projectPath` — path where project will be created
-- `projectName` — name for the project
-- `assetId` — from selected template
-- `groupId` — from selected template
-- `version` — from selected template
-- `assetType` — set to `"template"`
+```bash
+anypoint-cli-v4 dx:mule:project:create <projectName> \
+  --template-asset "<groupId>:<assetId>:<version>" \
+  --mule-version <resolvedVersion> \
+  --output json \
+  --environment ""
+```
 
 #### E4b. Validate Generation Success
 
@@ -375,7 +376,7 @@ Should I proceed with scratch generation?</question>
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (project creation): get approval before calling `create_mule_project`.
+> **Important:** Per **Confirmation Checkpoints** (project creation): get approval before calling `dx:mule:project:create`.
 
 **Output:** User approval with `projectName` and `projectPath` (required; see Reference).
 
@@ -383,12 +384,16 @@ Should I proceed with scratch generation?</question>
 
 ### Step S2: Create Project
 
-Call `create_mule_project` per **Reference → `create_mule_project` Schema**.
+Call `dx:mule:project:create` per **Reference → `dx:mule:project:create` Schema**.
 
-**Scratch (this path):** required only:
+**Scratch (this path):** run from the target parent directory:
 
-- `projectPath` — path where project will be created
-- `projectName` — name for the project
+```bash
+anypoint-cli-v4 dx:mule:project:create <projectName> \
+  --mule-version <resolvedVersion> \
+  --output json \
+  --environment ""
+```
 
 No template parameters; creates minimal scaffold project.
 
@@ -504,7 +509,7 @@ Should I proceed?</question>
 </ask_followup_question>
 ```
 
-> **Important:** Per **Confirmation Checkpoints** (project creation): do not call `create_mule_project` until the user confirms.
+> **Important:** Per **Confirmation Checkpoints** (project creation): do not call `dx:mule:project:create` until the user confirms.
 
 **Output:** User approval, `templatePath`, `projectName` and `projectPath` (required; see Reference).
 
@@ -512,20 +517,24 @@ Should I proceed?</question>
 
 ### Step L4: Create Project from Local Template
 
-**Pre-flight checklist — before calling `create_mule_project`, verify:**
+**Pre-flight checklist — before calling `dx:mule:project:create`, verify:**
 
 - Step L2: template path validated.
 - Step L3: user confirmed project configuration.
 
 If ANY item is missing, STOP and get confirmation.
 
-Call `create_mule_project` per **Reference → `create_mule_project` Schema**.
+Call `dx:mule:project:create` per **Reference → `dx:mule:project:create` Schema**.
 
-**Local (this path):** all of the following are required:
+**Local (this path):** run from the target parent directory:
 
-- `projectPath` — path where project will be created
-- `projectName` — name for the project
-- `assetFilePath` — path to the local `.jar` template file
+```bash
+anypoint-cli-v4 dx:mule:project:create <projectName> \
+  --template-file "<templatePath>" \
+  --mule-version <resolvedVersion> \
+  --output json \
+  --environment ""
+```
 
 **Output:** Generated project path.
 
@@ -598,7 +607,7 @@ Users can switch between flows at specific checkpoints. Honor these requests:
 | Tool / Script | Purpose | Requires User Approval |
 | ------------- | ------- | ---------------------- |
 | `scripts/search_templates.sh <query>` | Step E2a — search Anypoint Exchange for templates (private and public) and return an enriched, ranked JSON array on stdout (max 10 rows). | No (read-only Bash call) |
-| `create_mule_project` (mule-mcp-server) | Create project from template or scratch. **Do not call directly** — only call from within this workflow at Step E4, S2, or L4 after the corresponding confirmation checkpoint has been satisfied. | **YES** (workflow + user approval required) |
+| `anypoint-cli-v4 dx:mule:project:create` | Create project from template or scratch via CLI. **Do not call directly** — only call from within this workflow at Step E4, S2, or L4 after the corresponding confirmation checkpoint has been satisfied. | **YES** (workflow + user approval required) |
 
 > **Note:** Flow generation (E5, S3, L5) is handled entirely by the `build-mule-integration` skill — this workflow does not invoke any flow-generation tool directly.
 
@@ -618,23 +627,28 @@ The script runs two `exchange asset list` calls in parallel — one unscoped (pu
 
 **Stdout:** JSON array sorted private-first (max 10 rows). Each row carries `name`, `groupId`, `assetId`, `version`, `minMuleVersion`, `description`, `sourceLocation`. Exit code `1` + stderr message means no templates matched.
 
-### `create_mule_project` Schema
+### `dx:mule:project:create` Schema
 
-| Parameter | Required | Description |
-| --------- | -------- | ----------- |
-| `projectPath` | **Yes** | Path where project will be created |
-| `projectName` | **Yes** | Name for the project |
-| `assetId` | For Exchange | Asset ID from selected template |
-| `groupId` | For Exchange | Group ID from selected template |
-| `version` | For Exchange | Version from selected template |
-| `assetType` | For Exchange | Set to `"template"` for Exchange templates |
-| `assetFilePath` | For Local | Path to local `.jar` template file |
+```
+anypoint-cli-v4 dx:mule:project:create <projectName> [flags]
+```
+
+| Flag | Required | Description |
+| ---- | -------- | ----------- |
+| `<projectName>` (arg) | **Yes** | Name for the project (positional argument) |
+| `--mule-version` | **Yes** | Mule runtime version (resolved from `dx:mule:runtime:list`) |
+| `--template-asset` | For Exchange | Exchange template in `groupId:assetId:version` format |
+| `--template-file` | For Local | Path to local `.jar` or `.zip` template file |
+| `--group-id` | No | Maven group ID (default: `com.mycompany`) |
+| `--dependencies` | No | Comma-separated GAV coordinates for connectors |
+| `--output` | No | Output format: `text` or `json` (default: `text`) |
+| `--environment ""` | **Yes** | Required to bypass environment selection |
 
 **Usage by flow:**
 
-- From Exchange: `projectPath`, `projectName`, `assetId`, `groupId`, `version`, `assetType: "template"` (all required)
-- From Local `.jar`: `projectPath`, `projectName`, `assetFilePath` (all required)
-- From Scratch: `projectPath`, `projectName` (both required, no template parameters)
+- From Exchange: `dx:mule:project:create <name> --template-asset "<groupId>:<assetId>:<version>" --mule-version <ver> --output json --environment ""`
+- From Local `.jar`: `dx:mule:project:create <name> --template-file "<path>" --mule-version <ver> --output json --environment ""`
+- From Scratch: `dx:mule:project:create <name> --mule-version <ver> --output json --environment ""`
 
 ### Success Report Format
 
@@ -687,9 +701,9 @@ Use this format when reporting project generation success. Set variant as **Exch
 - Show selected template details.
 - User approves.
 
-**Step E4:** Generate project using `create_mule_project`
+**Step E4:** Generate project using `dx:mule:project:create`
 
-- Call with `assetId`, `groupId`, `version`, `assetType: "template"`.
+- Call with `--template-asset "groupId:assetId:version" --mule-version <ver>`.
 - Validate project compiles.
 
 **Step E5:** Flow generation is **entirely delegated to the `build-mule-integration` skill**. Ask user for flow customization approval (E5b); when approved, switch to and follow the `build-mule-integration` skill. It runs in full (project investigation, trigger and connector discovery, technical summary, flow generation, validation, and success reporting). No further project-generation steps after handoff.

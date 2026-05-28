@@ -241,6 +241,12 @@ def _render_terraform_page(args: Dict) -> None:
         home_link='../index.html',
         build_label=args['build_label'],
         base_url=args['base_url'],
+        chrome=args.get('chrome'),
+        repo_url=args.get('repo_url', ''),
+        repo_branch=args.get('repo_branch', ''),
+        source_path=args.get('source_path', ''),
+        asset_type='terraform',
+        asset_name=provider['name'],
     )
     Path(args['output_path']).write_text(html, encoding='utf-8')
 
@@ -555,6 +561,10 @@ class PortalGenerator:
                     'build_label': self.build_label,
                     'base_url': self.base_url,
                     'output_path': str(self.output_dir / 'terraform' / f"{provider['slug']}.html"),
+                    'chrome': {'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                    'repo_url': self.REPO_URL,
+                    'repo_branch': self.REPO_BRANCH,
+                    'source_path': f"terraform/{provider['slug']}",
                 }))
 
         # Execute all tasks in parallel

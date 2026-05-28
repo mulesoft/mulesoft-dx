@@ -2994,6 +2994,7 @@ button.nav-group-header {
     flex: 1;
     min-width: 0;
     padding: 0;
+    padding-bottom: 200px;
     background: var(--color-bg-surface);
     margin: 0;
 }

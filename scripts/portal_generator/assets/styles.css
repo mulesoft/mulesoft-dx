@@ -2994,7 +2994,6 @@ button.nav-group-header {
     flex: 1;
     min-width: 0;
     padding: 0;
-    padding-bottom: 200px;
     background: var(--color-bg-surface);
     margin: 0;
 }
@@ -3015,7 +3014,7 @@ button.nav-group-header {
     border-radius: var(--radius-xxl);
     border-bottom: none;
     overflow: visible;
-    height: 100%;
+    height: calc(100% - 142px);
 }
 
 .content-section:last-child {

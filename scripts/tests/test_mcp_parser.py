@@ -6,7 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from portal_generator.parsers.mcp_parser import parse_mcp, _collect_xorigin_refs
+from portal_generator.parsers.mcp_parser import (
+    parse_mcp,
+    _collect_xorigin_refs,
+    _load_enrichment,
+    _apply_enrichment,
+)
 
 
 MINIMAL_SERVER_JSON = json.dumps({
@@ -427,3 +432,155 @@ class TestCollectXoriginRefs:
         api_refs, mcp_refs = _collect_xorigin_refs(tools)
         assert api_refs == set()
         assert mcp_refs == set()
+
+
+class TestLoadEnrichment:
+    def test_loads_inline_xorigin(self, tmp_path):
+        (tmp_path / 'enrichment.yaml').write_text(textwrap.dedent("""\
+            parameters:
+              organization_id:
+                x-origin:
+                  - api: urn:api:access-management
+                    operation: listMe
+                    values: $.user.organization.id
+        """))
+        result = _load_enrichment(tmp_path)
+        assert 'organization_id' in result
+        assert result['organization_id']['x-origin'][0]['api'] == 'urn:api:access-management'
+
+    def test_resolves_ref_in_xorigin(self, tmp_path):
+        # Create fragment
+        fragment_dir = tmp_path / 'fragments'
+        fragment_dir.mkdir()
+        (fragment_dir / 'shared.yaml').write_text(textwrap.dedent("""\
+            components:
+              parameters:
+                orgId:
+                  x-origin:
+                    - api: urn:api:access-management
+                      operation: listMe
+                      values: $.user.organization.id
+        """))
+        # Create enrichment with $ref
+        mcp_dir = tmp_path / 'mcps' / 'my-mcp'
+        mcp_dir.mkdir(parents=True)
+        (mcp_dir / 'enrichment.yaml').write_text(textwrap.dedent("""\
+            parameters:
+              organization_id:
+                x-origin:
+                  $ref: ../../fragments/shared.yaml#/components/parameters/orgId/x-origin
+        """))
+        result = _load_enrichment(mcp_dir)
+        assert 'organization_id' in result
+        xorigin = result['organization_id']['x-origin']
+        assert isinstance(xorigin, list)
+        assert xorigin[0]['api'] == 'urn:api:access-management'
+
+    def test_missing_file_returns_empty(self, tmp_path):
+        assert _load_enrichment(tmp_path) == {}
+
+    def test_missing_ref_target_keeps_ref(self, tmp_path):
+        (tmp_path / 'enrichment.yaml').write_text(textwrap.dedent("""\
+            parameters:
+              org_id:
+                x-origin:
+                  $ref: nonexistent.yaml#/foo
+        """))
+        result = _load_enrichment(tmp_path)
+        assert '$ref' in result['org_id']['x-origin']
+
+
+class TestApplyEnrichment:
+    def test_merges_xorigin_into_matching_properties(self):
+        tools = [{'inputSchema': {'properties': {
+            'organization_id': {'type': 'string', 'title': 'Org ID'},
+            'name': {'type': 'string'},
+        }}}]
+        enrichment = {
+            'organization_id': {
+                'x-origin': [{'api': 'urn:api:am', 'operation': 'listMe', 'values': '$.id'}]
+            }
+        }
+        _apply_enrichment(tools, enrichment)
+        assert 'x-origin' in tools[0]['inputSchema']['properties']['organization_id']
+        assert 'x-origin' not in tools[0]['inputSchema']['properties']['name']
+
+    def test_applies_to_multiple_tools(self):
+        tools = [
+            {'inputSchema': {'properties': {'org_id': {'type': 'string'}}}},
+            {'inputSchema': {'properties': {'org_id': {'type': 'string'}}}},
+        ]
+        enrichment = {'org_id': {'x-origin': [{'api': 'urn:api:am', 'operation': 'op'}]}}
+        _apply_enrichment(tools, enrichment)
+        assert 'x-origin' in tools[0]['inputSchema']['properties']['org_id']
+        assert 'x-origin' in tools[1]['inputSchema']['properties']['org_id']
+
+    def test_empty_enrichment_no_op(self):
+        tools = [{'inputSchema': {'properties': {'x': {'type': 'string'}}}}]
+        _apply_enrichment(tools, {})
+        assert 'x-origin' not in tools[0]['inputSchema']['properties']['x']
+
+    def test_skips_tools_without_matching_properties(self):
+        tools = [{'inputSchema': {'properties': {'name': {'type': 'string'}}}}]
+        enrichment = {'org_id': {'x-origin': [{'api': 'urn:api:am', 'operation': 'op'}]}}
+        _apply_enrichment(tools, enrichment)
+        assert 'x-origin' not in tools[0]['inputSchema']['properties']['name']
+
+
+class TestEnrichmentIntegration:
+    def test_parse_mcp_applies_enrichment(self, tmp_path):
+        """End-to-end: parse_mcp loads enrichment.yaml and merges x-origin."""
+        # Create fragment
+        fragment_dir = tmp_path / 'fragments'
+        fragment_dir.mkdir()
+        (fragment_dir / 'fragment.yaml').write_text(textwrap.dedent("""\
+            components:
+              parameters:
+                orgId:
+                  x-origin:
+                    - api: urn:api:access-management
+                      operation: listMe
+                      values: $.user.organization.id
+                      labels: $.user.organization.name
+        """))
+        # Create MCP dir
+        mcp_dir = tmp_path / 'my-mcp'
+        mcp_dir.mkdir()
+        (mcp_dir / 'server.json').write_text(json.dumps({
+            '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+            'name': 'com.example/test',
+            'title': 'Test MCP',
+            'version': '1.0.0',
+            'remotes': [{'type': 'streamable-http', 'url': 'https://example.com/mcp'}],
+        }))
+        (mcp_dir / 'mcp.yaml').write_text(textwrap.dedent("""\
+            capabilities:
+              tools:
+                listChanged: false
+            tools:
+              - name: listApps
+                description: List applications
+                inputSchema:
+                  type: object
+                  properties:
+                    organization_id:
+                      type: string
+                      title: Organization ID
+                    name:
+                      type: string
+                  required:
+                    - organization_id
+        """))
+        (mcp_dir / 'enrichment.yaml').write_text(textwrap.dedent("""\
+            parameters:
+              organization_id:
+                x-origin:
+                  $ref: ../fragments/fragment.yaml#/components/parameters/orgId/x-origin
+        """))
+        result = parse_mcp(mcp_dir)
+        assert result is not None
+        tool = result['tools'][0]
+        org_prop = tool['inputSchema']['properties']['organization_id']
+        assert 'x-origin' in org_prop
+        assert org_prop['x-origin'][0]['api'] == 'urn:api:access-management'
+        assert 'access-management' in result['xorigin_api_refs']

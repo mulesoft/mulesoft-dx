@@ -12,6 +12,6 @@
   "originalFormatVersion": "3.0",
   "install": {
     "command": "npm i mulesoft-mcp-server",
-    "docs_url": "https://docs.mulesoft.com/mulesoft-mcp-server/getting-started"
+    "docs_url": "https://docs.mulesoft.com/mulesoft-mcp-server/using-mulesoft-mcp-server"
   }
 }

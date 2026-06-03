@@ -1,0 +1,417 @@
+#This fragment contains reusable components for Anypoint Platform APIs, such as security schemes and parameters for organization and environment identifiers.
+#It is intended to be referenced by multiple API specifications to ensure consistency across the platform.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login"
+    clientAuth:
+      type: oauth2
+      description: "OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token"
+      flows:
+        clientCredentials:
+          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
+          scopes: {}
+  parameters:
+    organizationId_Path:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: "Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup."
+        values:
+        - $.id
+        - $.subOrganizationIds[*]
+        labels:
+        - $.name
+        - $.subOrganizationIds[*]
+      description: The organization ID to identify the target resource.
+    organizationId_Query:
+      name: organizationId
+      description: Provide an orgId to get all clients from other organization
+      in: query
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listMe
+        name: rootOrg
+        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
+        values: $.user.organization.id
+        labels: $.user.organization.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: currentOrganization
+        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: getOrganizations
+        name: subOrganizations
+        description: Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.
+        values:
+        - $.id
+        - $.subOrganizationIds[*]
+        labels:
+        - $.name
+        - $.subOrganizationIds[*]
+    environmentId_Path:
+      name: environmentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The environment ID to identify the target resource.
+    environmentId_Query:
+      name: environmentId
+      in: query
+      allowReserved: true
+      required: true
+      description: A string that will be checked for an exact match of the Environment ID
+      schema:
+        minLength: 1
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      examples: {}
+    X-ANYPNT-ENV-ID_Header:
+      name: X-ANYPNT-ENV-ID
+      in: header
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: Identifier of the environment where the api user is currently working.
+    applicationId_Path:
+      name: applicationId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApplications
+        description: GET `/organizations/{organizationId}/applications` in this API; use `id` values as `applicationId`.
+        values: $.id
+      - api: urn:api:arm-rest-services
+        operation: getApplications
+        description: GET `/applications` in this API; use `id` values as `applicationId`.
+        values: $.id
+        labels: $.name
+      description: Could be an API Manager application ID or a Core Services client ID.
+    clientId_Path:
+      name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listClients
+        description: GET `/clients` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: listConnectedApplications
+        description: GET `/connectedApplications` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: listClientProvidersClients
+        description: GET `/organizations/{organizationId}/clientProviders/{clientProviderId}/clients` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: listOrganizationClients
+        description: GET `/organizations/{organizationId}/clients` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:access-management
+        operation: listOrganizationConnectedApplications
+        description: GET `/organizations/{organizationId}/connectedApplications` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:anypoint-mq-admin
+        operation: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+        description: GET `/v1/organizations/{organizationId}/environments/{environmentId}/clients` in this API; use `id` values as `clientId`.
+        values: $.id
+        labels: $.name
+      description: The unique identifier of the client application.
+    componentId_Path:
+      name: componentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getTargetsByTargetidComponents
+        description: GET `/targets/{targetId}/components` in this API; use `id` values as `componentId`.
+        values: $.id
+      - api: urn:api:mule-agent-plugin
+        operation: getAgent
+        description: GET `/agent` in this API; use `id` values as `componentId`.
+        values: $.id
+        labels: $.name
+      description: The component ID to identify the target resource.
+    connectionId_Path:
+      name: connectionId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:agent-scanner-configuration-service
+        operation: getConnections
+        values: $[*].id
+        labels: $[*].name
+        description: "GET /connectivity/connections; use [*].id as the connection ID."
+      - api: urn:api:citizen-platform-experience
+        operation: getOrganizationsByOrganizationidConnections
+        description: GET `/organizations/{organizationId}/connections` in this API; use `id` values as `connectionId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:cloudhub-20
+        operation: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
+        description: GET `/organizations/{organizationId}/privatespaces/{privateSpaceId}/connections` in this API; use `id` values as `connectionId`.
+        values: $.id
+        labels: $.name
+      description: The connection ID to identify the target resource.
+    contractId_Path:
+      name: contractId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisContracts
+        description: API group contract paths may use string contractId—see param_contract_id_string.
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsGroupinstancesContracts
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsManagedserviceapisContracts
+        description: Alternate source for managed service API contract ids (string form on that surface).
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContracts
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts` in this API; use `id` values as `contractId`.
+        values: $.id
+      description: Contract id on API group instance or managed service API (string form).
+    customPolicyTemplateId_Path:
+      name: customPolicyTemplateId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsCustompolicytemplates
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidCustomPolicyTemplates
+        description: GET `/organizations/{organizationId}/custom-policy-templates` in this API; use `id` values as `customPolicyTemplateId`.
+        values: $.id
+      description: The customPolicyTemplate ID to identify the target resource.
+    deploymentId_Path:
+      name: deploymentId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:amc-application-manager
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/deployments` in this API; use `items[].id` values as `deploymentId`.
+        values: $.items[*].id
+        labels: $.items[*].name
+      - api: urn:api:partner-manager-v2-partners
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/deployments` in this API; use `id` values as `deploymentId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:tokenization-creation-and-mgmt
+        operation: getEnvironmentsByEnvidDeployments
+        description: GET `/environments/{envId}/deployments` in this API; use `id` values as `deploymentId`.
+        values: $.id
+        labels: $.name
+      description: The deployment ID to identify the target resource.
+    envId_Path:
+      name: envId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:access-management
+        operation: listEnvironments
+        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
+        values: $.data[*].id
+        labels: $.data[*].name
+      description: The ID of the environment in which the query will be executed
+    flowId_Path:
+      name: flowId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:arm-rest-services
+        operation: getApplicationsByApplicationidFlows
+        description: GET `/applications/{applicationId}/flows` in this API; use `id` values as `flowId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:citizen-platform-experience
+        operation: getOrganizationsByOrganizationidFlows
+        description: GET `/organizations/{organizationId}/flows` in this API; use `id` values as `flowId`.
+        values: $.id
+        labels: $.name
+      description: The flow ID to identify the target resource.
+    groupId_Path:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsGroups
+        values: $.id
+        labels: $.name
+      - api: urn:api:exchange-experience
+        operation: getAssetsSearch
+        description: GET `/assets/search`; use the asset search results from Exchange and extract `groupId` values.
+        values: $[*].groupId
+        labels: $[*].name
+      - api: urn:api:runtime-fabric
+        operation: getOrganizationsByOrganizationidGroups
+        description: GET `/organizations/{organizationId}/groups` in this API; use `[].id` values as `groupId`.
+        values: $[*].id
+        labels: $[*].name
+      description: API Manager API group id (integer; not Exchange Maven groupId).
+    policyId_Path:
+      name: policyId
+      in: path
+      required: true
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:anypoint-security-policies
+        operation: getByOrganizationidPolicies
+        description: GET `/{organizationId}/policies` in this API; use `[].id` values as `policyId`.
+        values: $[*].id
+        labels: $[*].name
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisPolicies
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies` in this API; use `id` values as `policyId`.
+        values: $.id
+      - api: urn:api:cloudhub
+        operation: getV2ApplicationsByDomainAutoscalepolicies
+        description: GET `/v2/applications/{domain}/autoscalepolicies` in this API; use `id` values as `policyId`.
+        values: $.id
+        labels: $.name
+      description: Applied policy instance id on this API instance.
+    regionId_Path:
+      name: regionId
+      in: path
+      required: true
+      schema:
+        type: string
+      x-origin:
+      - api: urn:api:anypoint-mq-admin
+        operation: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+        description: GET `/v1/organizations/{organizationId}/environments/{environmentId}/regions` in this API; use `id` values as `regionId`.
+        values: $.id
+        labels: $.name
+      - api: urn:api:object-store-v2-stats
+        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+        description: GET `/organizations/{organizationId}/environments/{environmentId}/regions` in this API; use `id` values as `regionId`.
+        values: $.id
+        labels: $.name
+      description: The region ID to identify the target resource.
+    tierId_Path:
+      name: tierId
+      in: path
+      required: true
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApisTiers
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsManagedserviceapisTiers
+        values: $.id
+        labels: $.name
+      - api: urn:api:api-platform
+        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers` in this API; use `id` values as `tierId`.
+        values: $.id
+      description: SLA tier id on this API instance or API group instance tier (integer).
+    environmentApiId_Path:
+      name: environmentApiId
+      in: path
+      required: true
+      description: Managed API instance id in this environment (API Manager deployment).
+      schema:
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+      x-origin:
+      - api: urn:api:api-manager
+        operation: listOrganizationsEnvironmentsApis
+        values: $.assets[*].apis[*].id
+        labels: $.assets[*].apis[*].instanceLabel    

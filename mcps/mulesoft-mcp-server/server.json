@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.mulesoft/mulesoft-mcp-server",
-  "title": "MuleSoft MCP Server",
-  "description": "The MuleSoft MCP Server is a Model Context Protocol (MCP) implementation that facilitates interaction between large language models (LLMs) and the Anypoint Platform. Create and deploy Mule applications, create API specs, search for assets in Anypoint Exchange, get platform insights, and more.\n\n## Available Tools\n\nThe MuleSoft MCP Server has tools for application development, application management, policy management, and usage and insights. For more information, see [MuleSoft MCP Server Overview](https://docs.mulesoft.com/mulesoft-mcp-server/).\n\n## Setup and Configuration\n\nSet up authentication by creating a connected app that acts on its own behalf. Then, you can install the server and configure it for your IDE. For more information, see [Getting Started](https://docs.mulesoft.com/mulesoft-mcp-server/getting-started).",
+  "title": "MuleSoft DX MCP Server",
+  "description": "The MuleSoft DX MCP Server is a Model Context Protocol (MCP) implementation that facilitates interaction between large language models (LLMs) and the Anypoint Platform. Create and deploy Mule applications, create API specs, search for assets in Anypoint Exchange, get platform insights, and more.\n\n## Available Tools\n\nThe MuleSoft DX MCP Server has tools for application development, application management, policy management, and usage and insights. For more information, see [MuleSoft MCP Server Overview](https://docs.mulesoft.com/mulesoft-mcp-server/).\n\n## Setup and Configuration\n\nSet up authentication by creating a connected app that acts on its own behalf. Then, you can install the server and configure it for your IDE. For more information, see [Getting Started](https://docs.mulesoft.com/mulesoft-mcp-server/getting-started).",
   "version": "1.3.1",
   "websiteUrl": "https://docs.mulesoft.com/mulesoft-mcp-server/"
 }

@@ -16,6 +16,7 @@ from .builders.tree_builder import build_operation_tree
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
+from .utils import hash_asset_filename
 
 _SKILL_SKIP_DIRS = {'node_modules', '__pycache__', '.git', '.sdd'}
 _SKILL_SKIP_FILES = {'.DS_Store'}
@@ -142,8 +143,7 @@ def _render_api_page(args: Dict) -> None:
     api = args['api']
     operation_tree = build_operation_tree(api['operations'])
     html = template.render(
-        css_path='../assets/styles.css',
-        icons_path='../assets/icons',
+        **args['asset_paths'],
         api=api,
         api_meta=_build_api_meta(api),
         op_lookup=args['op_lookup'],
@@ -169,8 +169,7 @@ def _render_mcp_page(args: Dict) -> None:
 
     mcp_meta = args['mcp_meta']
     html = template.render(
-        css_path='../assets/styles.css',
-        icons_path='../assets/icons',
+        **args['asset_paths'],
         mcp=mcp,
         mcp_meta=mcp_meta,
         op_lookup=args['op_lookup'],
@@ -196,8 +195,7 @@ def _render_skill_page(args: Dict) -> None:
     skill_name = _skill_title(skill.get('name', skill['slug']))
 
     html = template.render(
-        css_path='../assets/styles.css',
-        icons_path='../assets/icons',
+        **args['asset_paths'],
         skill=skill,
         skill_name=skill_name,
         api_meta=args['api_meta'],
@@ -233,14 +231,19 @@ def _render_terraform_page(args: Dict) -> None:
     provider = args['provider']
 
     html = template.render(
-        css_path='../assets/styles.css',
-        icons_path='../assets/icons',
+        **args['asset_paths'],
         provider=provider,
         nav_tree=provider['nav_tree'],
         nav_tree_by_type=provider['nav_tree_by_type'],
         home_link='../index.html',
         build_label=args['build_label'],
         base_url=args['base_url'],
+        chrome=args.get('chrome'),
+        repo_url=args.get('repo_url', ''),
+        repo_branch=args.get('repo_branch', ''),
+        source_path=args.get('source_path', ''),
+        asset_type='terraform',
+        asset_name=provider['name'],
     )
     Path(args['output_path']).write_text(html, encoding='utf-8')
 
@@ -329,6 +332,14 @@ class PortalGenerator:
                 shutil.rmtree(target)
             target.mkdir(parents=True, exist_ok=True)
 
+        # Copy fragments directory so that $ref links in api.yaml resolve correctly
+        source_fragments = self.repo_root / 'fragments'
+        if source_fragments.is_dir():
+            dest_fragments = self.output_dir / 'fragments'
+            if dest_fragments.exists():
+                shutil.rmtree(dest_fragments)
+            shutil.copytree(source_fragments, dest_fragments)
+
         # Fetch MuleSoft header and footer
         print(f"\n🌐 Fetching MuleSoft header and footer...")
         try:
@@ -344,6 +355,8 @@ class PortalGenerator:
 
         # Generate files
         print(f"\n📝 Generating portal files (workers={self.workers})...")
+        self._css_filename = self._generate_css()
+        self._js_filename, self._jsonpath_filename = self._generate_js()
         self._generate_homepage()
         self._generate_detail_pages_parallel()
         self._generate_registry()
@@ -352,8 +365,6 @@ class PortalGenerator:
         self._generate_llms_txt()
         self._generate_markdown_pages()
         self._generate_headers()
-        self._generate_css()
-        self._generate_js()
         self._copy_images()
 
         print("\n" + "=" * 60)
@@ -362,6 +373,16 @@ class PortalGenerator:
         print(f"🌐 Open: {self.output_dir}/index.html")
         print(f"📋 Registry: {self.output_dir}/registry.json")
         print(f"🤖 Agent guide: {self.output_dir}/AGENTS.md")
+
+    def _asset_paths(self, depth: int = 1) -> dict:
+        """Return template variables for hashed asset paths at the given directory depth."""
+        prefix = '../' * depth if depth > 0 else ''
+        return {
+            'css_path': f"{prefix}assets/{self._css_filename}",
+            'icons_path': f"{prefix}assets/icons",
+            'portal_js_path': f"{prefix}assets/{self._js_filename}",
+            'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
+        }
 
     def _generate_homepage(self):
         """Generate index.html"""
@@ -396,8 +417,7 @@ class PortalGenerator:
         all_items.sort(key=lambda x: x.get('name', '').lower())
 
         html = template.render(
-            css_path='assets/styles.css',
-            icons_path='assets/icons',
+            **self._asset_paths(0),
             apis=self.public_apis,
             mcp_servers=self.public_mcps,
             stats=self.stats,
@@ -467,6 +487,7 @@ class PortalGenerator:
                 'chrome': chrome,
                 'repo_url': self.REPO_URL,
                 'repo_branch': self.REPO_BRANCH,
+                'asset_paths': self._asset_paths(1),
                 'output_path': str(self.output_dir / 'apis' / f"{api['slug']}.html"),
             }))
 
@@ -490,6 +511,7 @@ class PortalGenerator:
                     'chrome': chrome,
                     'repo_url': self.REPO_URL,
                     'repo_branch': self.REPO_BRANCH,
+                    'asset_paths': self._asset_paths(1),
                     'output_path': str(self.output_dir / 'mcps' / f"{mcp['slug']}.html"),
                 }))
 
@@ -540,6 +562,7 @@ class PortalGenerator:
                 'chrome': chrome,
                 'repo_url': self.REPO_URL,
                 'repo_branch': self.REPO_BRANCH,
+                'asset_paths': self._asset_paths(1),
                 'output_path': str(self.output_dir / 'skills' / f"{skill['slug']}.html"),
                 'skill_source_dir': str(skill_source_dir) if skill_source_dir.is_dir() else None,
                 'manifest_output_dir': str(self.output_dir / 'skills' / skill_rel),
@@ -555,6 +578,11 @@ class PortalGenerator:
                     'build_label': self.build_label,
                     'base_url': self.base_url,
                     'output_path': str(self.output_dir / 'terraform' / f"{provider['slug']}.html"),
+                    'chrome': {'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                    'repo_url': self.REPO_URL,
+                    'repo_branch': self.REPO_BRANCH,
+                    'asset_paths': self._asset_paths(1),
+                    'source_path': f"terraform/{provider['slug']}",
                 }))
 
         # Execute all tasks in parallel
@@ -583,8 +611,7 @@ class PortalGenerator:
             api_meta = _build_api_meta(api)
             operation_tree = build_operation_tree(api['operations'])
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 api=api,
                 api_meta=api_meta,
                 op_lookup=op_lookup,
@@ -676,8 +703,7 @@ class PortalGenerator:
             mcp_lookup = {s: full_mcp_lookup[s] for s in mcp_refs if s in full_mcp_lookup}
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 mcp=mcp,
                 mcp_meta=mcp_meta,
                 op_lookup=op_lookup,
@@ -741,8 +767,7 @@ class PortalGenerator:
                     })
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 skill=skill,
                 skill_name=skill_name,
                 api_meta=api_meta,
@@ -801,8 +826,7 @@ class PortalGenerator:
             nav_tree_by_type = provider['nav_tree_by_type']
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 provider=provider,
                 nav_tree=nav_tree,
                 nav_tree_by_type=nav_tree_by_type,
@@ -1096,22 +1120,31 @@ class PortalGenerator:
 """
         (self.output_dir / '_headers').write_text(headers, encoding='utf-8')
 
-    def _generate_css(self):
-        """Generate styles.css"""
+    def _generate_css(self) -> str:
+        """Generate styles.css with content-hashed filename."""
         print("  ✓ Generating CSS...")
-        output_path = self.output_dir / 'assets' / 'styles.css'
+        content = get_css()
+        hashed_name = hash_asset_filename('styles.css', content)
+        output_path = self.output_dir / 'assets' / hashed_name
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(get_css())
+            f.write(content)
+        return hashed_name
 
-    def _generate_js(self):
-        """Generate portal.js and jsonpath-plus library"""
+    def _generate_js(self) -> tuple:
+        """Generate portal.js and jsonpath-plus library with content-hashed filenames."""
         print("  ✓ Generating JavaScript...")
-        output_path = self.output_dir / 'assets' / 'portal.js'
+        js_content = get_js()
+        js_name = hash_asset_filename('portal.js', js_content)
+        output_path = self.output_dir / 'assets' / js_name
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(get_js())
-        jsonpath_path = self.output_dir / 'assets' / 'jsonpath-plus.min.js'
+            f.write(js_content)
+
+        jsonpath_content = get_jsonpath_js()
+        jsonpath_name = hash_asset_filename('jsonpath-plus.min.js', jsonpath_content)
+        jsonpath_path = self.output_dir / 'assets' / jsonpath_name
         with open(jsonpath_path, 'w', encoding='utf-8') as f:
-            f.write(get_jsonpath_js())
+            f.write(jsonpath_content)
+        return (js_name, jsonpath_name)
 
     def _copy_images(self):
         

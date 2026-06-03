@@ -2,6 +2,7 @@
 Utility functions and constants for the portal generator.
 """
 
+import hashlib
 from typing import Dict
 
 # ============================================================================
@@ -46,3 +47,14 @@ CATEGORY_MAPPING = {
 def get_category(api_name: str) -> str:
     """Get category for an API"""
     return CATEGORY_MAPPING.get(api_name, 'Platform')
+
+
+def hash_asset_filename(filename: str, content: str) -> str:
+    """Return filename with 8-char content hash inserted before the final extension."""
+    dot_pos = filename.rfind('.')
+    digest = hashlib.md5(content.encode('utf-8')).hexdigest()[:8]  # noqa: S324
+    if dot_pos == -1:
+        return f"{filename}.{digest}"
+    base = filename[:dot_pos]
+    ext = filename[dot_pos:]
+    return f"{base}.{digest}{ext}"

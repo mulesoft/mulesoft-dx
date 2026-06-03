@@ -578,11 +578,17 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
 
         if (data.error) {
             if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
+            resetButton();
             return;
         }
 
         if (data.status < 200 || data.status >= 300) {
-            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
+            if (data.status === 401 || data.status === 403) {
+                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Authentication required. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to access this resource.</div>';
+            } else {
+                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
+            }
+            resetButton();
             return;
         }
 
@@ -595,6 +601,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
             body = JSON.parse(data.body || '{}');
         } catch (e) {
             console.warn('X-Origin: Response is not valid JSON, cannot extract values');
+            resetButton();
             return;
         }
 

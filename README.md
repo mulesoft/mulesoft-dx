@@ -396,4 +396,3 @@ For questions about:
 - **API spec standards**: See the [api-spec-validator skill documentation](https://git.soma.salesforce.com/mulesoft/claude-code-marketplace/tree/master/plugins/mulesoft-api-development/skills)
 - **Contribution process**: Open an issue in this repository
 - **CI/CD integration**: Contact the platform team
-

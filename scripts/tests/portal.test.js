@@ -1869,4 +1869,303 @@ describe('toggleSkillMode scroll behavior', () => {
     });
 });
 
+// ===========================================================================
+// executeXOriginSource — button reset and auth errors
+// ===========================================================================
+
+describe('executeXOriginSource — button reset and auth errors', () => {
+    let responseDiv, responseBodyDiv, sourceDiv, btn, textSpan;
+
+    function setupMinimalDom() {
+        // Minimal DOM structure for executeXOriginSource
+        responseDiv = document.createElement('div');
+        responseDiv.id = 'response-xorigin-0';
+        responseDiv.classList.add('empty');
+        document.body.appendChild(responseDiv);
+
+        responseBodyDiv = document.createElement('div');
+        responseBodyDiv.id = 'respbody-xorigin-0';
+        document.body.appendChild(responseBodyDiv);
+
+        sourceDiv = document.createElement('div');
+        sourceDiv.className = 'xorigin-source';
+        sourceDiv.setAttribute('data-source-idx', '0');
+        document.body.appendChild(sourceDiv);
+
+        // Button element with span
+        btn = document.createElement('button');
+        textSpan = document.createElement('span');
+        textSpan.textContent = 'Send';
+        btn.appendChild(textSpan);
+
+        // Mock window.__OP_LOOKUP__ for API/operation resolution
+        window.__OP_LOOKUP__ = {
+            'test-api': {
+                ops: {
+                    'listItems': {
+                        method: 'GET',
+                        path: '/api/v1/items'
+                    }
+                }
+            }
+        };
+
+        // Mock xOriginModalStack
+        xOriginModalStack.length = 0;
+        xOriginModalStack.push({
+            opId: 'test-op',
+            paramName: 'testParam',
+            origins: [{
+                api: 'urn:api:test-api',
+                operation: 'listItems',
+                values: '$.data[*].id'
+            }]
+        });
+    }
+
+    function cleanupDom() {
+        document.body.innerHTML = '';
+        sessionStorage.clear();
+        delete window.__OP_LOOKUP__;
+        xOriginModalStack.length = 0;
+        delete global.fetch;
+    }
+
+    beforeEach(() => {
+        setupMinimalDom();
+        // Minimal DOM for updateAuthSummary (called by markTokenExpired)
+        ['authStatusDot', 'authStatusText', 'authLockIcon'].forEach(id => {
+            if (!document.getElementById(id)) {
+                const el = document.createElement(id === 'authStatusText' ? 'span' : 'img');
+                el.id = id;
+                if (el.tagName === 'IMG') el.src = 'assets/icons/placeholder.svg';
+                document.body.appendChild(el);
+            }
+        });
+    });
+
+    afterEach(() => {
+        cleanupDom();
+    });
+
+    // --- 1. Button reset after auth error (no token) ---
+
+    test('resets button to original text after auth error (no token)', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+    });
+
+    test('re-enables button after auth error (no token)', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 2. Auth CTA link for no-token case ---
+
+    test('shows auth CTA link in error message when no token', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Authentication required');
+
+        const link = errorDiv.querySelector('.xorigin-error-link');
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain('Sign in');
+        expect(link.getAttribute('onclick')).toContain('openAuthModal');
+    });
+
+    // --- 3. Auth CTA link for expired-token case ---
+
+    test('shows auth CTA link in error message when token expired', async () => {
+        sessionStorage.setItem('anypoint_token', 'expired-token');
+        sessionStorage.setItem('anypoint_token_expires_at', '0');
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Token expired');
+
+        const link = errorDiv.querySelector('.xorigin-error-link');
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain('Sign in');
+        expect(link.getAttribute('onclick')).toContain('openAuthModal');
+    });
+
+    test('resets button to original text after expired token error', async () => {
+        sessionStorage.setItem('anypoint_token', 'expired-token');
+        sessionStorage.setItem('anypoint_token_expires_at', '0');
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 4. Button reset after non-2xx response (including 401/403) ---
+
+    test('resets button after 401 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 401, body: 'Unauthorized' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 403 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 403, body: 'Forbidden' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 404 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 404, body: 'Not Found' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 500 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 500, body: 'Internal Server Error' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 5. Auth CTA link for 401/403 responses ---
+
+    test('shows auth CTA link in error message for 401 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 401, body: 'Unauthorized' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Authentication required');
+
+        const link = errorDiv.querySelector('.xorigin-error-link');
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain('Sign in');
+        expect(link.getAttribute('onclick')).toContain('openAuthModal');
+    });
+
+    test('shows auth CTA link in error message for 403 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 403, body: 'Forbidden' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Authentication required');
+
+        const link = errorDiv.querySelector('.xorigin-error-link');
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain('Sign in');
+    });
+
+    // --- 6. No regression: button resets after generic error (data.error) ---
+
+    test('resets button after generic proxy error (data.error)', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ error: 'Connection timeout' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('shows error message for generic proxy error', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ error: 'Network error' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Network error');
+    });
+
+    // --- 7. Additional edge cases ---
+
+    test('button shows "Sending..." while request is pending', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        // Create a promise that we'll resolve manually
+        let resolvePromise;
+        const promise = new Promise(resolve => { resolvePromise = resolve; });
+
+        global.fetch = jest.fn(() => promise);
+
+        // Start the request (don't await)
+        const execution = executeXOriginSource(0, btn);
+
+        // Check button state immediately
+        expect(textSpan.textContent).toBe('Sending...');
+        expect(btn.disabled).toBe(true);
+
+        // Resolve the promise
+        resolvePromise({ json: () => Promise.resolve({ status: 200, body: '{"data":[]}' }) });
+
+        // Wait for execution to complete
+        await execution;
+    });
+
+    test('does not reset button when no button element provided', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, null);
+        // Should not throw, just handle gracefully
+    });
+
+    test('handles missing text span gracefully', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        const btnNoSpan = document.createElement('button');
+        await executeXOriginSource(0, btnNoSpan);
+        // Should not throw
+    });
+});
+
 

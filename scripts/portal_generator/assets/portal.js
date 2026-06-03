@@ -412,10 +412,20 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         buttonEl.disabled = true;
     }
 
+    // Helper to reset button state
+    function resetButton() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+    }
+
     // Get the origin configuration from current modal context
     var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
     if (!currentModal) {
         console.error('No current x-origin modal in stack');
+        resetButton();
         return;
     }
     var origins = currentModal.origins;
@@ -424,13 +434,15 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     // Check authentication
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) {
-        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Authentication required. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to fetch values.</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
     if (isTokenExpired()) {
-        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to refresh authentication.</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
 
@@ -445,6 +457,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!apiEntry) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
 
@@ -452,6 +465,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!opMeta) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
 
@@ -479,6 +493,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (missingParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
 
@@ -494,6 +509,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (unresolvedParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        resetButton();
         return;
     }
 

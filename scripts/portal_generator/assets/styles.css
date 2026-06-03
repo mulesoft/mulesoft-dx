@@ -7226,6 +7226,16 @@ details[open] .examples-toggle-icon {
     margin-top: var(--space-sm);
 }
 
+.xorigin-error-link {
+    color: var(--color-danger);
+    text-decoration: underline;
+    font-weight: var(--font-weight-semibold);
+}
+
+.xorigin-error-link:hover {
+    text-decoration: none;
+}
+
 /* X-Origin Panel Header (matches try-panel-header styling) */
 .xorigin-panel-header {
     display: flex;

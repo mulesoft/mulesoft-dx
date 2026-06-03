@@ -34,6 +34,79 @@ def _load_yaml(path: Path) -> Optional[Dict]:
         return None
 
 
+def _resolve_ref_value(ref: str, base_dir: Path):
+    """Resolve a $ref string to the value at the target path.
+    Supports fragment pointers (e.g., file.yaml#/a/b/c)."""
+    if not ref or ref.startswith('#'):
+        return None
+    if '#' in ref:
+        file_part, fragment = ref.split('#', 1)
+    else:
+        file_part, fragment = ref, ''
+
+    file_path = base_dir / file_part
+    if not file_path.exists():
+        return None
+
+    try:
+        with file_path.open('r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        if fragment:
+            for part in fragment.strip('/').split('/'):
+                if part and isinstance(data, dict):
+                    data = data.get(part)
+                    if data is None:
+                        return None
+        return data
+    except Exception:
+        return None
+
+
+def _load_enrichment(mcp_dir: Path) -> Dict:
+    """Load enrichment.yaml and resolve any $ref values within parameter entries.
+    Returns a dict mapping parameter name -> enrichment fields (e.g., x-origin)."""
+    enrichment_path = mcp_dir / 'enrichment.yaml'
+    if not enrichment_path.exists():
+        return {}
+    data = _load_yaml(enrichment_path)
+    if not data or not isinstance(data.get('parameters'), dict):
+        return {}
+
+    resolved = {}
+    for param_name, param_enrichment in data['parameters'].items():
+        if not isinstance(param_enrichment, dict):
+            continue
+        entry = {}
+        for field, value in param_enrichment.items():
+            if isinstance(value, dict) and '$ref' in value and len(value) == 1:
+                ref_resolved = _resolve_ref_value(value['$ref'], mcp_dir)
+                if ref_resolved is not None:
+                    entry[field] = ref_resolved
+                else:
+                    entry[field] = value
+            else:
+                entry[field] = value
+        resolved[param_name] = entry
+    return resolved
+
+
+def _apply_enrichment(tools: List[Dict], enrichment: Dict) -> None:
+    """Merge enrichment data into tool inputSchema properties in-place.
+    For each tool property whose name matches an enrichment key,
+    adds the enrichment fields (e.g., x-origin) to the property definition."""
+    if not enrichment:
+        return
+    for tool in tools:
+        schema = tool.get('inputSchema') or {}
+        properties = schema.get('properties')
+        if not isinstance(properties, dict):
+            continue
+        for prop_name, prop_def in properties.items():
+            if prop_name in enrichment and isinstance(prop_def, dict):
+                for field, value in enrichment[prop_name].items():
+                    prop_def[field] = value
+
+
 _TRANSPORT_ALIASES = {
     'streamable-http': 'streamableHttp',
     'streamable_http': 'streamableHttp',
@@ -616,8 +689,13 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
             resource_groups.append({'name': group_name, 'resources': []})
         resource_groups[groups_seen[group_name]]['resources'].append(resource)
 
+    # Load enrichment.yaml and merge x-origin (and other fields) into tool properties
+    enrichment = _load_enrichment(mcp_dir)
+    raw_tools = _ensure_list(mcp_data.get('tools'))
+    _apply_enrichment(raw_tools, enrichment)
+
     tools = []
-    for tool in _ensure_list(mcp_data.get('tools')):
+    for tool in raw_tools:
         tool_copy = dict(tool)
         tool_copy['_display_name'] = _tool_display_name(tool_copy)
         input_schema = tool_copy.get('inputSchema') or {}
@@ -656,9 +734,7 @@ def parse_mcp(mcp_dir: Path) -> Optional[Dict]:
         asset_id = exchange.get('assetId', slug)
         exchange['npm_url'] = f'https://www.npmjs.com/package/{asset_id}'
 
-    xorigin_api_refs, xorigin_mcp_refs = _collect_xorigin_refs(
-        [t for t in _ensure_list(mcp_data.get('tools'))]
-    )
+    xorigin_api_refs, xorigin_mcp_refs = _collect_xorigin_refs(raw_tools)
 
     ide_configs = _build_ide_configs(slug, mcp_type, transport, servers)
 

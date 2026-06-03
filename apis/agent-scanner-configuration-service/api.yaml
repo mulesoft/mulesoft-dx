@@ -618,20 +618,7 @@ paths:
 components:
   parameters:
     XOrigin_organizationId_Path:
-      name: organizationId
-      description: The organization ID (Business Group GUID).
-      required: true
-      in: path
-      schema:
-        type: string
-        format: uuid
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        values: $.user.organization.id
-        labels: $.user.organization.name
-        name: rootOrg
-        description: "GET /me; use user.organization.id as the caller's primary Business Group GUID."
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_scannerConfigurationId_Path:
       name: scannerConfigurationId
       description: The scanner configuration ID.
@@ -675,19 +662,7 @@ components:
         labels: $.content[*].id
         description: "GET /scanner/{scannerId}/runs; use content[*].id as the scan run ID."
     XOrigin_connectionId_Path:
-      name: connectionId
-      description: The connection identifier.
-      required: true
-      in: path
-      schema:
-        type: string
-        format: uuid
-      x-origin:
-      - api: urn:api:agent-scanner-configuration-service
-        operation: getConnections
-        values: $[*].id
-        labels: $[*].name
-        description: "GET /connectivity/connections; use [*].id as the connection ID."
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/connectionId_Path
     XOrigin_targetSystemType_Path:
       name: targetSystemType
       description: The target system type.
@@ -1513,15 +1488,7 @@ components:
             $ref: "#/components/schemas/AuthSchemeFormDescriptor"
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Bearer token authentication. Login endpoint https://anypoint.mulesoft.com/accounts/api/login
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: OAuth2 client credentials. Token endpoint https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   

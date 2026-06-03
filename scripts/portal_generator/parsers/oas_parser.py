@@ -279,6 +279,25 @@ def extract_schema_properties(schema: Dict, base_dir: Path, components: Dict = N
     return result
 
 
+def _resolve_component_refs(components: Dict, base_dir: Path) -> Dict:
+    """Pre-resolve external $ref entries within component definitions.
+    Iterates each component type (parameters, securitySchemes, schemas, etc.)
+    and replaces entries that are bare $ref objects with their resolved content."""
+    if not isinstance(components, dict):
+        return components
+    for comp_type, entries in components.items():
+        if not isinstance(entries, dict):
+            continue
+        for name, definition in list(entries.items()):
+            if isinstance(definition, dict) and '$ref' in definition and len(definition) == 1:
+                ref = definition['$ref']
+                if not ref.startswith('#'):
+                    resolved = resolve_external_ref(ref, base_dir)
+                    if resolved and isinstance(resolved, dict):
+                        entries[name] = resolved
+    return components
+
+
 def parse_oas(file_path: Path) -> Dict[str, Any]:
     """Parse OpenAPI specification efficiently"""
     try:
@@ -293,6 +312,8 @@ def parse_oas(file_path: Path) -> Dict[str, Any]:
         paths = spec.get('paths', {})
         components = spec.get('components', {})
         base_dir = file_path.parent
+
+        components = _resolve_component_refs(components, base_dir)
 
         return {
             'title': info.get('title', 'Untitled API'),

@@ -11,6 +11,6 @@
   "tags": ["MuleSoft Platform"],
   "originalFormatVersion": "3.0",
   "install": {
-    "docs_url": "https://docs.mulesoft.com"
+    "docs_url": "https://docs.mulesoft.com/mulesoft-mcp-server/using-mulesoft-platform-mcp-server"
   }
 }

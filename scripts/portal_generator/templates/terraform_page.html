@@ -6,7 +6,7 @@
 
 {% block head_scripts %}
 {% include "partials/prism_head.html" %}
-<script src="../../assets/portal.js" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -53,6 +53,7 @@ provider "{{ terraform_install_info.local_name }}" {
     {% include "partials/terraform_sidebar.html" %}
     <main class="detail-content" id="main-content">
         {% include "terraform/terraform_detail.html" %}
+        {% include "partials/contribute_footer.html" %}
     </main>
 </div>
 {% endblock %}

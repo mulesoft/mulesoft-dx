@@ -3441,54 +3441,12 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   parameters:
     OrganizationId:
-      in: path
-      name: organizationId
-      description: Id of the organization
-      required: true
-      schema:
-        type: string
-        example: 434b78c3-bcd9-412d-9428-dec2f8c72cb2
-        format: uuid
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     MasterOrganizationId:
       name: masterOrganizationId
       required: true
@@ -3507,19 +3465,7 @@ components:
         labels: $.user.organization.name
       description: The masterOrganization ID to identify the target resource.
     GroupId:
-      in: path
-      name: groupId
-      description: groupId of the asset
-      required: true
-      schema:
-        type: string
-        example: group-id
-      x-origin:
-      - api: urn:api:exchange-experience
-        operation: getAssetsSearch
-        description: GET `/assets/search`; use the asset search results from Exchange and extract `groupId` values.
-        values: $[*].groupId
-        labels: $[*].name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/groupId_Path
     AssetId:
       name: assetId
       required: true
@@ -3653,30 +3599,9 @@ components:
       schema:
         type: string
     ApplicationId:
-      name: applicationId
-      required: true
-      in: path
-      schema:
-        description: The Id of an application
-        example: '273463'
-        type: string
-      description: The application ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/applicationId_Path
     EnvironmentId:
-      name: environmentId
-      required: true
-      in: path
-      schema:
-        description: The id of the environment for this API Group instance
-        type: string
-        minLength: 36
-        maxLength: 36
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
-      description: The environment ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path
     APIGroupInstanceIdQuery:
       name: apiGroupInstanceId
       required: false
@@ -3968,36 +3893,7 @@ components:
       schema:
         $ref: '#/components/schemas/NullableBoolean'
     XOrigin_organizationId_Path:
-      name: organizationId
-      in: path
-      description: UUID
-      required: true
-      schema:
-        pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
   headers:
     PagesOrderRevision:
       description: Hash which represents the most recent pages order revision. This hash should be sent back to the server when attempting to store a new pages order.

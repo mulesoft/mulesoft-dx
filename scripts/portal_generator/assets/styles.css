@@ -3014,7 +3014,7 @@ button.nav-group-header {
     border-radius: var(--radius-xxl);
     border-bottom: none;
     overflow: visible;
-    height: 100%;
+    height: calc(100% - 142px);
 }
 
 .content-section:last-child {

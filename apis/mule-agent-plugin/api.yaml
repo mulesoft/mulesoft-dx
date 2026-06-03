@@ -4141,21 +4141,9 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   requestBodies:
     Generated:
       content:
@@ -6228,15 +6216,4 @@ components:
       type: string
   parameters:
     XOrigin_componentId_Path:
-      name: componentId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:mule-agent-plugin
-        operation: getAgent
-        description: GET `/agent` in this API; use `id` values as `componentId`.
-        values: $.id
-        labels: $.name
-      description: The component ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/componentId_Path

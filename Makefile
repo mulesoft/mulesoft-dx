@@ -26,6 +26,7 @@ ANYPOINT_CLI := anypoint-cli-v4
 RULESET := ./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 REPORT_DIR := ./validation-reports
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
+WORK_DIR := .validation-work
 
 # APIs to skip during governed validation (override via SKIP_GOVERNED="api1 api2")
 SKIP_GOVERNED := arm-monitoring-query
@@ -89,8 +90,12 @@ list-apis:
 $(REPORT_DIR):
 	@mkdir -p $(REPORT_DIR)
 
+# Prepare validation work area (inline fragment $ref for AMF compatibility)
+prepare-validation:
+	@python3 scripts/build/prepare_validation.py --work-dir $(WORK_DIR)
+
 # Validate all APIs without governance rules
-validate-all: $(REPORT_DIR)
+validate-all: $(REPORT_DIR) prepare-validation
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(CYAN)  Validating All APIs - Basic OAS Validation$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
@@ -100,7 +105,7 @@ validate-all: $(REPORT_DIR)
 		echo "$(BLUE)Validating:$(NC) $$api"; \
 		api_name=$$(basename $$api); \
 		report=$(REPORT_DIR)/$$api_name-basic-$(TIMESTAMP).txt; \
-		if $(ANYPOINT_CLI) api-project validate --location=./$$api > "$$report" 2>&1; then \
+		if $(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$$api_name > "$$report" 2>&1; then \
 			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
 			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
 			if [ "$$violations" -gt 0 ] 2>/dev/null; then \
@@ -122,10 +127,11 @@ validate-all: $(REPORT_DIR)
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	echo "$(GREEN)Results:$(NC) $$passed passed, $(RED)$$failed failed$(NC) ($(words $(API_DIRS)) total)"; \
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	rm -rf $(WORK_DIR); \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 # Validate all APIs with governance rules
-validate-all-governed: $(REPORT_DIR)
+validate-all-governed: $(REPORT_DIR) prepare-validation
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(CYAN)  Validating All APIs - With Governance Rules (parallel)$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
@@ -146,7 +152,7 @@ validate-all-governed: $(REPORT_DIR)
 		fi; \
 		( \
 			report=$(REPORT_DIR)/$$api_name-governed-$(TIMESTAMP).txt; \
-			if $(ANYPOINT_CLI) api-project validate --location=./$$api --local-ruleset=$(RULESET) > "$$report" 2>&1; then \
+			if $(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$$api_name --local-ruleset=$(RULESET) > "$$report" 2>&1; then \
 				violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
 				if [ "$$violations" -gt 0 ] 2>/dev/null; then \
 					echo "failed" > "$$results_dir/$$api_name.status"; \
@@ -180,6 +186,7 @@ validate-all-governed: $(REPORT_DIR)
 		fi; \
 	done; \
 	rm -rf "$$results_dir"; \
+	rm -rf $(WORK_DIR); \
 	echo ""; \
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	echo "$(GREEN)Results:$(NC) $$passed passed, $(RED)$$failed failed$(NC), $(YELLOW)$$skipped skipped$(NC) ($(words $(API_DIRS)) total)"; \
@@ -187,7 +194,7 @@ validate-all-governed: $(REPORT_DIR)
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 # Validate specific API
-validate-api:
+validate-api: prepare-validation
 	@if [ -z "$(API)" ]; then \
 		echo "$(RED)Error: API parameter required$(NC)"; \
 		echo "Usage: make validate-api API=<api-name>"; \
@@ -204,7 +211,7 @@ validate-api:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@echo "$(BLUE)Step 1: Basic OAS Validation$(NC)"
-	@$(ANYPOINT_CLI) api-project validate --location=./$(API) > $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>&1 || true
+	@$(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$(API_NAME) > $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>&1 || true
 	@violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 	warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 	echo "  Violations: $$violations"; \
@@ -212,7 +219,7 @@ validate-api:
 	echo ""
 	@echo "$(BLUE)Step 2: Governance Rules Validation$(NC)"
 	@if [ -f $(RULESET) ]; then \
-		$(ANYPOINT_CLI) api-project validate --location=./$(API) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>&1 || true; \
+		$(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$(API_NAME) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>&1 || true; \
 		violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 		warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 		echo "  Violations: $$violations"; \
@@ -225,6 +232,7 @@ validate-api:
 	else \
 		echo "  $(YELLOW)Skipped: Ruleset not found$(NC)"; \
 	fi
+	@rm -rf $(WORK_DIR)
 	@echo ""
 	@echo "$(GREEN)Reports saved to:$(NC)"
 	@echo "  $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt"

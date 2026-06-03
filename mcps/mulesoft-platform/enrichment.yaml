@@ -1,0 +1,20 @@
+parameters:
+  organization_id:
+    x-origin:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path/x-origin
+  environment_id:
+    x-origin:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path/x-origin
+  api_instance_id:
+    x-origin:
+        $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentApiId_Path/x-origin  
+  instance_id:
+      x-origin:
+        $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentApiId_Path/x-origin
+  group_id:
+    x-origin:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/groupId_Path/x-origin
+  policy_template_id:
+    x-origin:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/policyId_Path/x-origin
+

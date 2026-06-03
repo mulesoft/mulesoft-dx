@@ -551,12 +551,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         var data = await resp.json();
         await handleProxyResponse(data);
 
-        // Restore button
-        if (buttonEl) {
-            var textSpan = buttonEl.querySelector('span');
-            if (textSpan) textSpan.textContent = originalText;
-            buttonEl.disabled = false;
-        }
+        resetButton();
 
         if (responseDiv) responseDiv.classList.remove('empty');
 

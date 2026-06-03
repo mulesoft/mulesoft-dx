@@ -2166,6 +2166,36 @@ describe('executeXOriginSource — button reset and auth errors', () => {
         await executeXOriginSource(0, btnNoSpan);
         // Should not throw
     });
+
+    // --- 8. Button reset after successful 200 response ---
+
+    test('resets button after successful 200 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: '{"data":[{"id":"abc"}]}', headers: {} })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 9. Button reset after JSON parse failure ---
+
+    test('resets button after invalid JSON in response body', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: 'not-valid-json{{{', headers: {} })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
 });
 
 

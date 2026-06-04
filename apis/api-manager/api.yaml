@@ -2890,87 +2890,11 @@ components:
       schema:
         type: string
     param_organization_id:
-      name: organizationId
-      in: path
-      required: true
-      description: '**Business group** GUID. API Manager scopes resources by Anypoint Business Group, which may be:
-
-        - **`id`** — the organization returned by **getOrganizations** (GET `/organizations/{organizationId}`), or
-
-        - **any element of `subOrganizationIds`** — a **child Business Group** under that org.
-
-        The same UUID shape is used for root and sub-orgs. Resolve **environmentId** via **listEnvironments**
-
-        for the same Business Group (see **param_environment_id**).
-
-        '
-      schema:
-        pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: '**listMe** is `GET /me` in `access-management/api.yaml` (`operationId` listMe). Returns the caller profile;
-
-          **user.organization.id** is the primary Business Group GUID for this parameter. Other orgs (memberships, sub-orgs)
-
-          are covered by the **getOrganizations** sources below.
-
-          '
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     param_environment_id:
-      name: environmentId
-      in: path
-      required: true
-      description: 'Runtime environment GUID. **Source:** **listEnvironments** (GET `/organizations/{organizationId}/environments`)
-
-        using the **same** `organizationId` (Business Group) as in this API Manager path—use each **`data[].id`**
-
-        from the response. Optional query params (**name**, **isProduction**, **type**, **search**, pagination)
-
-        help pick the right environment. **getOrganizations** may also include an **environments** array, but
-
-        **listEnvironments** is the authoritative list for resolving **environmentId**.
-
-        '
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: 'GET `/organizations/{organizationId}/environments`; **organizationId** is the path parameter on **listEnvironments**
-
-          (same Business Group as in this API Manager path). Response includes `data` and `total`; use each **data[].id** as **environmentId**.
-
-          '
-        values: $.data[*].id
-        labels: $.data[*].name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path
     param_environment_api_id:
-      name: environmentApiId
-      in: path
-      required: true
-      description: Managed API instance id in this environment (API Manager deployment).
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApis
-        values: $.assets[*].apis[*].id
-        labels: $.assets[*].apis[*].instanceLabel
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentApiId_Path
     param_exchange_asset_id_query:
       name: assetId
       in: query
@@ -3023,77 +2947,15 @@ components:
         values: $.id
         labels: $.name
     param_policy_id:
-      name: policyId
-      in: path
-      required: true
-      description: Applied policy instance id on this API instance.
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApisPolicies
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/policyId_Path
     param_tier_id:
-      name: tierId
-      in: path
-      required: true
-      description: SLA tier id on this API instance or API group instance tier (integer).
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApisTiers
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/tierId_Path
     param_contract_id:
-      name: contractId
-      in: path
-      required: true
-      description: Client contract id for this API instance.
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApisContracts
-        description: API group contract paths may use string contractId—see param_contract_id_string.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/contractId_Path
     param_contract_id_string:
-      name: contractId
-      in: path
-      required: true
-      description: Contract id on API group instance or managed service API (string form).
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsGroupinstancesContracts
-        values: $.id
-        labels: $.name
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsManagedserviceapisContracts
-        description: Alternate source for managed service API contract ids (string form on that surface).
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/contractId_Path
     param_tier_id_managed_service:
-      name: tierId
-      in: path
-      required: true
-      description: Tier id on managed service API (string in this surface).
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsManagedserviceapisTiers
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/tierId_Path
     param_alert_id:
       name: alertId
       in: path
@@ -3135,19 +2997,7 @@ components:
         values: $.id
         labels: $.name
     param_custom_policy_template_id:
-      name: customPolicyTemplateId
-      in: path
-      required: true
-      description: Organization-scoped custom policy template id.
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsCustompolicytemplates
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/customPolicyTemplateId_Path
     param_policy_template_id:
       name: policyTemplateId
       in: path
@@ -3175,19 +3025,7 @@ components:
         values: $.id
         labels: $.name
     param_api_group_id:
-      name: groupId
-      in: path
-      required: true
-      description: API Manager API group id (integer; not Exchange Maven groupId).
-      schema:
-        minimum: 0
-        maximum: 2147483647
-        type: integer
-      x-origin:
-      - api: urn:api:api-manager
-        operation: listOrganizationsGroups
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/groupId_Path
     param_group_version_id:
       name: groupVersionId
       in: path
@@ -3203,35 +3041,14 @@ components:
         values: $.id
         labels: $.name
     XOrigin_environmentId_Query:
-      name: environmentId
-      in: query
-      allowReserved: true
-      required: true
-      description: A string that will be checked for an exact match of the Environment ID
-      schema:
-        minLength: 1
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Query
   examples: {}
   requestBodies: {}
   headers: {}
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Bearer token authentication. Login endpoint https://anypoint.mulesoft.com/accounts/api/login
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: OAuth2 client credentials. Token endpoint https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   links: {}
   callbacks: {}

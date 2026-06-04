@@ -1,5 +1,6 @@
 .vscode/
 validation-reports/
+.validation-work/
 portal/
 __pycache__
 .DS_Store

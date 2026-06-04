@@ -412,10 +412,20 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         buttonEl.disabled = true;
     }
 
+    // Helper to reset button state
+    function resetButton() {
+        if (buttonEl) {
+            var textSpan = buttonEl.querySelector('span');
+            if (textSpan) textSpan.textContent = originalText;
+            buttonEl.disabled = false;
+        }
+    }
+
     // Get the origin configuration from current modal context
     var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
     if (!currentModal) {
         console.error('No current x-origin modal in stack');
+        resetButton();
         return;
     }
     var origins = currentModal.origins;
@@ -426,11 +436,15 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!token) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
     if (isTokenExpired()) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
 
@@ -445,6 +459,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!apiEntry) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
 
@@ -452,6 +468,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!opMeta) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
 
@@ -479,6 +497,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (missingParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
 
@@ -494,6 +514,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (unresolvedParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
+        resetButton();
         return;
     }
 
@@ -535,12 +557,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         var data = await resp.json();
         await handleProxyResponse(data);
 
-        // Restore button
-        if (buttonEl) {
-            var textSpan = buttonEl.querySelector('span');
-            if (textSpan) textSpan.textContent = originalText;
-            buttonEl.disabled = false;
-        }
+        resetButton();
 
         if (responseDiv) responseDiv.classList.remove('empty');
 
@@ -562,11 +579,17 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
 
         if (data.error) {
             if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
+            if (responseDiv) responseDiv.classList.remove('empty');
+            switchResponseTab(xoriginOpId, 'body');
+            resetButton();
             return;
         }
 
         if (data.status < 200 || data.status >= 300) {
             if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
+            if (responseDiv) responseDiv.classList.remove('empty');
+            switchResponseTab(xoriginOpId, 'body');
+            resetButton();
             return;
         }
 
@@ -579,6 +602,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
             body = JSON.parse(data.body || '{}');
         } catch (e) {
             console.warn('X-Origin: Response is not valid JSON, cannot extract values');
+            resetButton();
             return;
         }
 
@@ -1031,11 +1055,7 @@ function getMcpEndpointForSlug(mcpSlug) {
     var servers = entry.servers || [];
     if (servers.length === 0) return null;
     var server = pickServerTemplate(servers);
-    var base = resolveServerUrl(server, null).replace(/\/$/, '');
-    var transport = entry.transport || {};
-    var path = transport.path || '/mcp';
-    if (path.charAt(0) !== '/') path = '/' + path;
-    return base + path;
+    return resolveServerUrl(server, null);
 }
 
 function unwrapMcpToolResponse(proxyData) {
@@ -1379,7 +1399,7 @@ function updatePlaceholder() {
     if (selectedTags.length > 0) {
         input.placeholder = '';
     } else {
-        input.placeholder = 'Search by keywords...';
+        input.placeholder = 'Search by keyword';
     }
 }
 
@@ -1430,8 +1450,44 @@ function filterByTags() {
     // Update results count and type
     updateResultsCount(visibleApis + visibleMcps + visibleSkills + visibleTerraform, selectedType);
 
+    // Highlight matched terms on visible cards
+    applyTagHighlights();
+
     // Update URL with current state
     updateURLState();
+}
+
+function applyTagHighlights() {
+    const cardLinks = document.querySelectorAll('.catalog-card-link');
+    cardLinks.forEach(cardLink => {
+        const targets = cardLink.querySelectorAll('.catalog-card-title, .catalog-card-description');
+        targets.forEach(target => {
+            // Restore original text from data-original or capture once
+            if (!target.dataset.originalText) {
+                target.dataset.originalText = target.textContent;
+            }
+            const original = target.dataset.originalText;
+            if (selectedTags.length === 0 || cardLink.style.display === 'none') {
+                target.textContent = original;
+                return;
+            }
+            target.innerHTML = highlightTerms(original, selectedTags);
+        });
+    });
+}
+
+function highlightTerms(text, terms) {
+    // Escape HTML once, then wrap matches in <mark>
+    let escaped = escapeHtml(text);
+    // Sort longest first to avoid partial matches eating multi-word tags
+    const sorted = terms.slice().sort((a, b) => b.length - a.length);
+    sorted.forEach(term => {
+        if (!term) return;
+        const escapedTerm = escapeHtml(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + escapedTerm + ')', 'gi');
+        escaped = escaped.replace(re, '<mark class="search-highlight">$1</mark>');
+    });
+    return escaped;
 }
 
 function updateURLState() {
@@ -2051,12 +2107,14 @@ function filterSidebar(query) {
     // Show/hide groups based on visible children
     var operationGroups = document.querySelectorAll('.nav-group');
     operationGroups.forEach(function(group) {
-        var groupItems = group.querySelectorAll('.nav-group-items li');
+        var groupItems = group.querySelectorAll(':scope > .nav-group-items > li');
         var hasVisible = false;
+        var visibleCount = 0;
 
         groupItems.forEach(function(item) {
             if (item.style.display !== 'none') {
                 hasVisible = true;
+                visibleCount++;
             }
         });
 
@@ -2074,6 +2132,16 @@ function filterSidebar(query) {
                     toggle.classList.add('expanded');
                 }
             }
+        }
+
+        // Update group count to reflect filtered results
+        var groupCountEl = group.querySelector(':scope > .nav-group-header .group-count');
+        if (groupCountEl) {
+            if (!groupCountEl.hasAttribute('data-total-count')) {
+                groupCountEl.setAttribute('data-total-count', groupCountEl.textContent);
+            }
+            var totalCount = groupCountEl.getAttribute('data-total-count');
+            groupCountEl.textContent = query ? '(' + visibleCount + ')' : totalCount;
         }
 
         // Apply highlighting to group names if searching
@@ -2219,10 +2287,89 @@ function openAuthModal() {
     var modal = document.getElementById('authModal');
     if (!modal) return;
     modal.style.display = 'flex';
-    // Focus trap: focus the first focusable element
+    applyAuthModalMode();
     modal._previousFocus = document.activeElement;
-    var firstFocusable = modal.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    var firstFocusable = modal.querySelector('button:not([style*="display:none"]):not([style*="display: none"]), input:not([readonly]), select:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])');
     if (firstFocusable) firstFocusable.focus();
+}
+
+function applyAuthModalMode() {
+    var token = sessionStorage.getItem('anypoint_token');
+    var authenticated = !!token && !isTokenExpired();
+    var authMethod = sessionStorage.getItem('anypoint_auth_method') || 'Bearer';
+    var identity = sessionStorage.getItem('anypoint_identity') || '';
+
+    var username = document.getElementById('authUsername');
+    var password = document.getElementById('authPassword');
+    var clientId = document.getElementById('authClientId');
+    var clientSecret = document.getElementById('authClientSecret');
+    var bearerLoginBtn = document.getElementById('authBearerLoginBtn');
+    var bearerLogoutBtn = document.getElementById('authBearerLogoutBtn');
+    var oauth2LoginBtn = document.getElementById('authOauth2LoginBtn');
+    var oauth2LogoutBtn = document.getElementById('authOauth2LogoutBtn');
+    var bearerLoggedAs = document.getElementById('authBearerLoggedAs');
+    var bearerLoggedAsValue = document.getElementById('authBearerLoggedAsValue');
+    var oauth2LoggedAs = document.getElementById('authOauth2LoggedAs');
+    var oauth2LoggedAsValue = document.getElementById('authOauth2LoggedAsValue');
+    var serverSelect = document.getElementById('serverSelect');
+    var regionPreset = document.getElementById('regionPreset');
+    var regionCustom = document.getElementById('regionCustomInput');
+    var bearerTab = document.querySelector('.auth-tab[data-tab="bearer"]');
+    var oauth2Tab = document.querySelector('.auth-tab[data-tab="oauth2"]');
+
+    var SERVER_LOCKED_TOOLTIP = 'Log out and log in again to switch server.';
+    var METHOD_LOCKED_TOOLTIP = 'Log out and log in again to switch authentication method.';
+
+    if (authenticated) {
+        var activeTab = (authMethod === 'OAuth2') ? 'oauth2' : 'bearer';
+        switchAuthTab(activeTab);
+
+        // Both tabs visible (active keeps blue pill), but neither is clickable.
+        if (bearerTab) { bearerTab.disabled = true; bearerTab.style.display = ''; bearerTab.title = METHOD_LOCKED_TOOLTIP; }
+        if (oauth2Tab) { oauth2Tab.disabled = true; oauth2Tab.style.display = ''; oauth2Tab.title = METHOD_LOCKED_TOOLTIP; }
+
+        // Show the "LOGGED IN AS <user>" block, hide the credential inputs.
+        if (activeTab === 'bearer') {
+            if (bearerLoggedAsValue) bearerLoggedAsValue.textContent = identity;
+            if (bearerLoggedAs) bearerLoggedAs.style.display = '';
+            if (username) username.style.display = 'none';
+            if (password) password.style.display = 'none';
+            if (bearerLoginBtn) bearerLoginBtn.style.display = 'none';
+            if (bearerLogoutBtn) bearerLogoutBtn.style.display = '';
+        } else {
+            if (oauth2LoggedAsValue) oauth2LoggedAsValue.textContent = identity;
+            if (oauth2LoggedAs) oauth2LoggedAs.style.display = '';
+            if (clientId) clientId.style.display = 'none';
+            if (clientSecret) clientSecret.style.display = 'none';
+            if (oauth2LoginBtn) oauth2LoginBtn.style.display = 'none';
+            if (oauth2LogoutBtn) oauth2LogoutBtn.style.display = '';
+        }
+
+        // Server combo + region inputs disabled (chevron stays, value visible).
+        if (serverSelect) { serverSelect.disabled = true; serverSelect.title = SERVER_LOCKED_TOOLTIP; }
+        if (regionPreset) { regionPreset.disabled = true; regionPreset.title = SERVER_LOCKED_TOOLTIP; }
+        if (regionCustom) { regionCustom.disabled = true; regionCustom.title = SERVER_LOCKED_TOOLTIP; }
+    } else {
+        if (bearerTab) { bearerTab.disabled = false; bearerTab.style.display = ''; bearerTab.removeAttribute('title'); }
+        if (oauth2Tab) { oauth2Tab.disabled = false; oauth2Tab.style.display = ''; oauth2Tab.removeAttribute('title'); }
+
+        if (bearerLoggedAs) bearerLoggedAs.style.display = 'none';
+        if (oauth2LoggedAs) oauth2LoggedAs.style.display = 'none';
+
+        if (username) { username.value = ''; username.style.display = ''; }
+        if (password) { password.value = ''; password.style.display = ''; }
+        if (clientId) { clientId.value = ''; clientId.style.display = ''; }
+        if (clientSecret) { clientSecret.value = ''; clientSecret.style.display = ''; }
+
+        if (bearerLoginBtn) bearerLoginBtn.style.display = '';
+        if (bearerLogoutBtn) bearerLogoutBtn.style.display = 'none';
+        if (oauth2LoginBtn) oauth2LoginBtn.style.display = '';
+        if (oauth2LogoutBtn) oauth2LogoutBtn.style.display = 'none';
+
+        if (serverSelect) { serverSelect.disabled = false; serverSelect.removeAttribute('title'); }
+        if (regionPreset) { regionPreset.disabled = false; regionPreset.removeAttribute('title'); }
+        if (regionCustom) { regionCustom.disabled = false; regionCustom.removeAttribute('title'); }
+    }
 }
 
 function closeAuthModal() {
@@ -2260,7 +2407,6 @@ function isTokenExpired() {
 
 function updateAuthSummary() {
     var token = sessionStorage.getItem('anypoint_token');
-    var authMethod = sessionStorage.getItem('anypoint_auth_method') || '';
     var identity = sessionStorage.getItem('anypoint_identity') || '';
     var expired = isTokenExpired();
 
@@ -2332,30 +2478,6 @@ function updateAuthSummary() {
         }
     }
 
-    // Auth method
-    var methodItem = document.getElementById('authSummaryMethod');
-    var methodText = document.getElementById('authMethodText');
-    if (methodItem && methodText) {
-        if (token && authMethod) {
-            methodText.textContent = authMethod;
-            methodItem.style.display = '';
-        } else {
-            methodItem.style.display = 'none';
-        }
-    }
-
-    // Identity (username or clientId)
-    var identityItem = document.getElementById('authSummaryIdentity');
-    var identityText = document.getElementById('authIdentityText');
-    if (identityItem && identityText) {
-        if (token && identity) {
-            identityText.textContent = identity;
-            identityItem.style.display = '';
-        } else {
-            identityItem.style.display = 'none';
-        }
-    }
-
     // Region
     var regionText = document.getElementById('authRegionText');
     if (regionText) {
@@ -2377,6 +2499,7 @@ function setAuthStatus(authenticated, message, authMethod) {
         sessionStorage.setItem('anypoint_auth_method', authMethod);
     }
     if (!authenticated) {
+        sessionStorage.removeItem('anypoint_token');
         sessionStorage.removeItem('anypoint_auth_method');
         sessionStorage.removeItem('anypoint_identity');
         sessionStorage.removeItem('anypoint_token_expires_at');
@@ -2384,6 +2507,23 @@ function setAuthStatus(authenticated, message, authMethod) {
     }
 
     updateAuthSummary();
+}
+
+function logout() {
+    sessionStorage.removeItem('anypoint_token');
+    sessionStorage.removeItem('anypoint_auth_method');
+    sessionStorage.removeItem('anypoint_identity');
+    sessionStorage.removeItem('anypoint_token_expires_at');
+    stopTtlTimer();
+    updateAuthSummary();
+    var modal = document.getElementById('authModal');
+    if (modal && modal.style.display !== 'none') {
+        applyAuthModalMode();
+    }
+}
+
+function onAuthButtonClick() {
+    openAuthModal();
 }
 
 function showAuthMessage(msg, isError) {
@@ -2402,6 +2542,8 @@ async function loginBearer() {
         showAuthMessage('Please enter username and password.', true);
         return;
     }
+    var loginBtn = document.querySelector('#authTabBearer .btn-auth-login');
+    if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add('loading'); }
     var serverBase = getSelectedBaseUrl();
     try {
         var resp = await fetch(PROXY_URL, {
@@ -2438,12 +2580,15 @@ async function loginBearer() {
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
+            applyAuthModalMode();
         } else {
             var errMsg = body.message || body.error || data.body || 'Unknown error';
             showAuthMessage('Login failed: ' + errMsg, true);
         }
     } catch (e) {
         showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
+    } finally {
+        if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove('loading'); }
     }
 }
 
@@ -2454,6 +2599,8 @@ async function loginOAuth2() {
         showAuthMessage('Please enter Client Id and Client Secret.', true);
         return;
     }
+    var loginBtn = document.querySelector('#authTabOauth2 .btn-auth-login');
+    if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add('loading'); }
     var serverBase = getSelectedBaseUrl();
     try {
         var resp = await fetch(PROXY_URL, {
@@ -2494,12 +2641,15 @@ async function loginOAuth2() {
             if (typeof updateAllPlaygroundPanelsFromEnvVars === 'function') {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
+            applyAuthModalMode();
         } else {
             var errMsg = body.error_description || body.error || data.body || 'Unknown error';
             showAuthMessage('Token request failed: ' + errMsg, true);
         }
     } catch (e) {
         showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
+    } finally {
+        if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove('loading'); }
     }
 }
 
@@ -2523,25 +2673,12 @@ function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
 
 function __mcpEndpointUrl() {
     // server.json remotes[] already expose fully-qualified endpoint URLs
-    // (including whatever path the server uses), so the selected server URL
-    // is used verbatim. We still filter out sse / stdio remotes because the
-    // try-it console only speaks JSON-RPC over HTTP POST.
+    // (only streamableHttp remotes are included), so the selected server URL
+    // is used verbatim.
     var meta = window.__MCP_META__;
     if (!meta) return null;
     var selected = getSelectedServer(null);
     if (!selected) return null;
-
-    var remotes = meta.servers || [];
-    var match = null;
-    var normalizedSelected = selected.replace(/\/$/, '');
-    for (var i = 0; i < remotes.length; i += 1) {
-        if ((remotes[i].url || '').replace(/\/$/, '') === normalizedSelected) {
-            match = remotes[i];
-            break;
-        }
-    }
-    var kind = (match && match.transport) || (meta.transport && meta.transport.kind) || '';
-    if (kind && kind !== 'streamableHttp') return null;
     return selected;
 }
 
@@ -3604,6 +3741,8 @@ function onServerChange() {
             if (customInput) customInput.style.display = 'none';
         }
     }
+    sessionStorage.setItem('anypoint_server_type', sel ? sel.value : 'us');
+    sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
     updateAllServerCombos();
 }
@@ -3615,6 +3754,7 @@ function onRegionPresetChange() {
         customInput.style.display = preset.value === 'custom' ? 'block' : 'none';
         if (preset.value === 'custom') customInput.focus();
     }
+    sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
     updateAllServerCombos();
 }
@@ -3660,7 +3800,7 @@ function initServerCombos() {
     var meta = window.__API_META__;
     if (!meta || !meta.servers || meta.servers.length === 0) return;
 
-    var bars = document.querySelectorAll('.operation-url-bar');
+    var bars = document.querySelectorAll('.operation-url-bar[data-path]');
     bars.forEach(function(bar) {
         var opId = bar.getAttribute('data-op-id');
         var path = bar.getAttribute('data-path');
@@ -3763,7 +3903,7 @@ function updateAllServerBars() {
     var meta = window.__API_META__;
     if (!meta || !meta.servers || meta.servers.length === 0) return;
 
-    var bars = document.querySelectorAll('.operation-url-bar');
+    var bars = document.querySelectorAll('.operation-url-bar[data-path]');
     bars.forEach(function(bar) {
         var opId = bar.getAttribute('data-op-id');
         var path = bar.getAttribute('data-path');
@@ -4257,6 +4397,59 @@ function toggleSkillDropdown(slug) {
     if (toggle) toggle.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
 }
 
+// ============================================================================
+// Terraform Version Dropdown
+// ============================================================================
+
+function toggleTfVersionDropdown(toggleEl) {
+    var root = toggleEl.closest('.tf-version-dropdown');
+    if (!root) return;
+    var menu = root.querySelector('.tf-version-dropdown-menu');
+    if (!menu) return;
+    var isOpen = !menu.hasAttribute('hidden');
+    document.querySelectorAll('.tf-version-dropdown-menu').forEach(function (m) {
+        if (m !== menu) {
+            m.setAttribute('hidden', '');
+            var t = m.parentElement.querySelector('.tf-version-dropdown-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+    if (isOpen) {
+        menu.setAttribute('hidden', '');
+        toggleEl.setAttribute('aria-expanded', 'false');
+    } else {
+        menu.removeAttribute('hidden');
+        toggleEl.setAttribute('aria-expanded', 'true');
+    }
+}
+
+function navigateTfVersion(itemEl) {
+    var root = itemEl.closest('.tf-version-dropdown');
+    if (!root) return;
+    var target = itemEl.dataset.version;
+    var current = root.dataset.currentVersion;
+    if (!target || target === current) return;
+    var anchorsEl = root.querySelector('#tf-version-anchors');
+    var anchors = {};
+    if (anchorsEl) {
+        try { anchors = JSON.parse(anchorsEl.textContent) || {}; } catch (e) { anchors = {}; }
+    }
+    var hash = window.location.hash;
+    var fragment = (hash.indexOf('#doc-') === 0) ? hash.slice('#doc-'.length) : '';
+    var slugs = anchors[target] || [];
+    var has = fragment && slugs.indexOf(fragment) !== -1;
+    window.location.href = target + '.html' + (has ? '#doc-' + fragment : '');
+}
+
+document.addEventListener('click', function (ev) {
+    if (ev.target.closest('.tf-version-dropdown')) return;
+    document.querySelectorAll('.tf-version-dropdown-menu').forEach(function (m) {
+        m.setAttribute('hidden', '');
+        var t = m.parentElement.querySelector('.tf-version-dropdown-toggle');
+        if (t) t.setAttribute('aria-expanded', 'false');
+    });
+});
+
 function openInstallModal(slug) {
     var modal = document.getElementById('install-modal-' + slug);
     if (modal) modal.style.display = 'flex';
@@ -4325,7 +4518,7 @@ function _closeAllSkillDropdowns() {
     });
 }
 
-// Close skill dropdown on outside click
+// Close dropdowns on outside click
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.skill-split-btn')) {
         _closeAllSkillDropdowns();
@@ -4477,11 +4670,13 @@ function switchResponseTab(opId, tabName) {
     var bodyContent = document.getElementById('respbody-' + opId);
     var headersContent = document.getElementById('respheaders-' + opId);
     var extractedContent = document.getElementById('respextracted-' + opId);
+    var dataContent = document.getElementById('respdata-' + opId);
 
     // Remove active class from all
     if (bodyContent) bodyContent.classList.remove('active');
     if (headersContent) headersContent.classList.remove('active');
     if (extractedContent) extractedContent.classList.remove('active');
+    if (dataContent) dataContent.classList.remove('active');
 
     // Add active class to the selected tab
     if (tabName === 'body' && bodyContent) {
@@ -4490,6 +4685,8 @@ function switchResponseTab(opId, tabName) {
         headersContent.classList.add('active');
     } else if (tabName === 'extracted' && extractedContent) {
         extractedContent.classList.add('active');
+    } else if (tabName === 'data' && dataContent) {
+        dataContent.classList.add('active');
     }
 }
 
@@ -4762,11 +4959,12 @@ function createReadOnlyAceEditor(container, content, language) {
         fontSize: '13px'
     });
 
-    // Let ACE scroll internally within the container bounds
+    // Use ace's internal scrolling within a fixed-height container
     editor.setOptions({
         minLines: 10,
-        maxLines: 50
+        maxLines: undefined
     });
+    container.style.height = '500px';
 
     // Set read-only background
     updateAceEditorBackground(editor);
@@ -4785,6 +4983,24 @@ function createReadOnlyCodeMirror(container, content, language) {
     return createReadOnlyAceEditor(container, content, language);
 }
 
+function _extractSseData(raw) {
+    // Extract and merge JSON objects from SSE data: lines
+    var lines = raw.split('\n');
+    var jsonObjects = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf('data:') === 0) {
+            var payload = line.substring(5).trim();
+            try {
+                jsonObjects.push(JSON.parse(payload));
+            } catch (e) { /* skip non-JSON data lines */ }
+        }
+    }
+    if (jsonObjects.length === 0) return null;
+    if (jsonObjects.length === 1) return JSON.stringify(jsonObjects[0], null, 2);
+    return JSON.stringify(jsonObjects, null, 2);
+}
+
 function displayResponseInAceEditors(responseBodyContainer, responseHeadersContainer, data) {
     if (!data) return;
 
@@ -4798,6 +5014,21 @@ function displayResponseInAceEditors(responseBodyContainer, responseHeadersConta
             bodyLang = 'text';
         }
         createReadOnlyAceEditor(responseBodyContainer, bodyText, bodyLang);
+
+        // If SSE response, populate the Data tab with parsed JSON
+        var isSse = data.body && (data.body.indexOf('event:') !== -1 || /^data:/m.test(data.body));
+        if (isSse) {
+            var opId = responseBodyContainer.id.replace('respbody-', '');
+            var dataContainer = document.getElementById('respdata-' + opId);
+            var dataTab = document.getElementById('datatab-' + opId);
+            var extracted = _extractSseData(data.body);
+            if (extracted && dataContainer && dataTab) {
+                createReadOnlyAceEditor(dataContainer, extracted, 'json');
+                dataTab.style.display = '';
+                // Auto-switch to Data tab
+                switchResponseTab(opId, 'data');
+            }
+        }
     }
 
     // Display headers
@@ -6577,9 +6808,43 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
         var customInput = document.getElementById('regionCustomInput');
         if (customInput) {
             customInput.addEventListener('input', function() {
+                sessionStorage.setItem('anypoint_region', customInput.value.trim());
                 updateAuthSummary();
                 updateAllServerCombos();
             });
+        }
+
+        // Restore server/region selection from sessionStorage
+        var storedServerType = sessionStorage.getItem('anypoint_server_type');
+        if (storedServerType) {
+            var serverSelect = document.getElementById('serverSelect');
+            if (serverSelect && serverSelect.value !== storedServerType) {
+                serverSelect.value = storedServerType;
+                var regionRow = document.getElementById('serverRegionRow');
+                var showRegion = storedServerType === 'eu' || storedServerType === 'platform';
+                if (regionRow) regionRow.style.display = showRegion ? 'flex' : 'none';
+                if (showRegion) {
+                    var defaultOpt = document.getElementById('regionDefaultOption');
+                    var preset = document.getElementById('regionPreset');
+                    if (defaultOpt && preset) {
+                        var isEu = storedServerType === 'eu';
+                        defaultOpt.value = isEu ? 'eu1' : 'ca1';
+                        defaultOpt.textContent = isEu ? 'Europe (eu1)' : 'Canada (ca1)';
+                    }
+                    var storedRegion = sessionStorage.getItem('anypoint_region');
+                    if (storedRegion && preset && defaultOpt) {
+                        if (storedRegion === defaultOpt.value) {
+                            preset.value = storedRegion;
+                        } else {
+                            preset.value = 'custom';
+                            if (customInput) {
+                                customInput.style.display = 'block';
+                                customInput.value = storedRegion;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Check for existing token
@@ -8451,16 +8716,25 @@ function filterTerraformSidebar(query) {
     document.querySelectorAll('.terraform-page .nav-group.tree-level-1').forEach(function(subcat) {
         var docList = subcat.querySelector(':scope > .nav-group-items');
         var hasVisible = false;
+        var visibleCount = 0;
         if (docList) {
             var items = docList.querySelectorAll(':scope > li');
             for (var i = 0; i < items.length; i++) {
-                if (items[i].style.display !== 'none') { hasVisible = true; break; }
+                if (items[i].style.display !== 'none') { hasVisible = true; visibleCount++; }
             }
         }
         subcat.style.display = (!query || hasVisible) ? '' : 'none';
 
         var header = subcat.querySelector(':scope > .nav-group-header');
         if (header) _setTerraformGroupExpanded(header, query && hasVisible);
+
+        var countEl = subcat.querySelector(':scope > .nav-group-header .group-count');
+        if (countEl) {
+            if (!countEl.hasAttribute('data-total-count')) {
+                countEl.setAttribute('data-total-count', countEl.textContent);
+            }
+            countEl.textContent = query ? '(' + visibleCount + ')' : countEl.getAttribute('data-total-count');
+        }
     });
 
     // Show/hide top-level categories (tree-level-0) based on visible subcategories
@@ -8468,10 +8742,16 @@ function filterTerraformSidebar(query) {
     document.querySelectorAll('.terraform-page .nav-group.tree-level-0').forEach(function(cat) {
         var subcatList = cat.querySelector(':scope > .nav-group-items');
         var hasVisible = false;
+        var visibleDocCount = 0;
         if (subcatList) {
             var subcats = subcatList.querySelectorAll(':scope > .nav-group');
             for (var i = 0; i < subcats.length; i++) {
-                if (subcats[i].style.display !== 'none') { hasVisible = true; break; }
+                if (subcats[i].style.display !== 'none') { hasVisible = true; }
+            }
+            // Count actual visible docs (leaf items) across all subcategories
+            var leafItems = subcatList.querySelectorAll('.nav-group.tree-level-1 .nav-group-items > li');
+            for (var j = 0; j < leafItems.length; j++) {
+                if (leafItems[j].style.display !== 'none') visibleDocCount++;
             }
         }
         cat.style.display = (!query || hasVisible) ? '' : 'none';
@@ -8479,6 +8759,14 @@ function filterTerraformSidebar(query) {
 
         var header = cat.querySelector(':scope > .nav-group-header');
         if (header) _setTerraformGroupExpanded(header, query && hasVisible);
+
+        var countEl = cat.querySelector(':scope > .nav-group-header .group-count');
+        if (countEl) {
+            if (!countEl.hasAttribute('data-total-count')) {
+                countEl.setAttribute('data-total-count', countEl.textContent);
+            }
+            countEl.textContent = query ? '(' + visibleDocCount + ')' : countEl.getAttribute('data-total-count');
+        }
     });
 
     // Toggle empty state when nothing matches

@@ -91,7 +91,7 @@
 {% endif %}
 {% endmacro %}
 
-{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='', mime_type='') %}
+{% macro _invocable_header(kind_label, method_class, display_name, invocable_name, title_badges='', mime_type='', server_url='') %}
 <div class="operation-title-header">
     <h3 class="operation-title">
         {{ display_name }}
@@ -104,7 +104,11 @@
 <div class="operation-header-detail">
     <div class="operation-title-row">
         <span class="method {{ method_class }}">{{ kind_label }}</span>
+        {% if server_url %}
+        <code class="operation-url-bar">{{ server_url }}</code>
+        {% else %}
         <code class="operation-url-bar">{{ invocable_name }}</code>
+        {% endif %}
     </div>
 </div>
 {% endmacro %}
@@ -154,17 +158,19 @@
             <div class="try-response-tabs">
                 <button class="try-tab-btn active" onclick="switchResponseTab('{{ invocable_id }}', 'body')">Body</button>
                 <button class="try-tab-btn" onclick="switchResponseTab('{{ invocable_id }}', 'headers')">Headers</button>
+                <button class="try-tab-btn" onclick="switchResponseTab('{{ invocable_id }}', 'data')" style="display:none" id="datatab-{{ invocable_id }}">Data</button>
             </div>
             <div class="try-response-content">
                 <div class="try-response-body active" id="respbody-{{ invocable_id }}"></div>
                 <div class="try-response-headers" id="respheaders-{{ invocable_id }}"></div>
+                <div class="try-response-body" id="respdata-{{ invocable_id }}"></div>
             </div>
         </div>
     </div>
 </div>
 {% endmacro %}
 
-{% macro render_tool(tool, icons_path='../assets/icons', interactive=true) %}
+{% macro render_tool(tool, icons_path='../assets/icons', interactive=true, server_url='') %}
 {% set tool_id = 'tool-' ~ tool.name %}
 {% set extra = [] %}
 {% if tool.annotations %}
@@ -177,7 +183,7 @@
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="tool"
          data-mcp-name="{{ tool.name }}">
-    {{ _invocable_header('TOOL', 'method-mcp-tool', tool._display_name|default(tool.name), tool.name, extra|join('')) }}
+    {{ _invocable_header('TOOL', 'method-mcp-tool', tool._display_name|default(tool.name), tool.name, extra|join(''), server_url=server_url) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ tool_id }}">
         {% if interactive %}
@@ -251,13 +257,13 @@
 </section>
 {% endmacro %}
 
-{% macro render_prompt(prompt, icons_path='../assets/icons', interactive=true) %}
+{% macro render_prompt(prompt, icons_path='../assets/icons', interactive=true, server_url='') %}
 {% set prompt_id = 'prompt-' ~ prompt.name %}
 <section id="{{ prompt_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="prompt"
          data-mcp-name="{{ prompt.name }}">
-    {{ _invocable_header('PROMPT', 'method-mcp-prompt', prompt._display_name|default(prompt.name), prompt.name) }}
+    {{ _invocable_header('PROMPT', 'method-mcp-prompt', prompt._display_name|default(prompt.name), prompt.name, server_url=server_url) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ prompt_id }}">
         {% if interactive %}
@@ -304,13 +310,13 @@
 </section>
 {% endmacro %}
 
-{% macro render_resource(resource, idx, icons_path='../assets/icons', interactive=true) %}
+{% macro render_resource(resource, idx, icons_path='../assets/icons', interactive=true, server_url='') %}
 {% set resource_id = 'resource-' ~ idx %}
 <section id="{{ resource_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="resource"
          data-mcp-uri="{{ resource.uri|default('') }}">
-    {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, mime_type=resource.mimeType|default('')) }}
+    {{ _invocable_header('RESOURCE', 'method-mcp-resource', resource._display_name|default(resource.name), resource.name, mime_type=resource.mimeType|default(''), server_url=server_url) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ resource_id }}">
         {% if interactive %}
@@ -348,13 +354,13 @@
 </section>
 {% endmacro %}
 
-{% macro render_resource_template(template, idx, icons_path='../assets/icons', interactive=true) %}
+{% macro render_resource_template(template, idx, icons_path='../assets/icons', interactive=true, server_url='') %}
 {% set template_id = 'resource-template-' ~ idx %}
 <section id="{{ template_id }}"
          class="content-section operation-detail mcp-invocable"
          data-mcp-kind="resource-template"
          data-mcp-uri-template="{{ template.uriTemplate|default('') }}">
-    {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, mime_type=template.mimeType|default('')) }}
+    {{ _invocable_header('TEMPLATE', 'method-mcp-resource', template._display_name|default(template.name), template.name, mime_type=template.mimeType|default(''), server_url=server_url) }}
 
     <div class="operation-content-wrapper" id="op-container-{{ template_id }}">
         {% if interactive %}

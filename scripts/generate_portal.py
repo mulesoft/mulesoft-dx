@@ -44,6 +44,8 @@ def main():
                         help='Base URL of the deployed portal (default: https://dev-portal.mulesoft.com)')
     parser.add_argument('--proxy-url', type=str, default=None,
                         help='Proxy URL override (default: <base-url>/proxy)')
+    parser.add_argument('--workers', '-w', type=int, default=0,
+                        help='Number of parallel workers for page rendering (default: CPU count)')
 
     args = parser.parse_args()
 
@@ -66,7 +68,8 @@ def main():
 
     base_url = args.base_url.rstrip('/')
     proxy_url = args.proxy_url if args.proxy_url else f"{base_url}/proxy"
-    generator = PortalGenerator(output_dir, proxy_url=proxy_url, build_label=build_label, base_url=base_url)
+    generator = PortalGenerator(output_dir, proxy_url=proxy_url, build_label=build_label,
+                                base_url=base_url, workers=args.workers)
     generator.generate(repo_root)
 
 

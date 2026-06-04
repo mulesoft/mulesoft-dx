@@ -13,6 +13,7 @@ import argparse
 import json
 import ssl
 import sys
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -21,12 +22,51 @@ from urllib.error import HTTPError, URLError
 # Only allow requests to known Anypoint domains
 ALLOWED_HOSTS = {
     'anypoint.mulesoft.com',
+    'omni.mulesoft.com',
 }
 
 # Any subdomain of these domains is also allowed (regional endpoints)
-ALLOWED_HOST_SUFFIXES = ['.anypoint.mulesoft.com', '.platform.mulesoft.com']
+ALLOWED_HOST_SUFFIXES = ['.anypoint.mulesoft.com', '.platform.mulesoft.com', '.mulesoft.com']
 
 REQUEST_TIMEOUT = 30  # seconds
+VERBOSE = False  # Set via --verbose flag; shows full untruncated bodies
+
+
+def _fmt_json(raw: str) -> str:
+    """Pretty-print a JSON string."""
+    try:
+        return json.dumps(json.loads(raw), indent=2)
+    except (json.JSONDecodeError, TypeError):
+        return raw
+
+
+def _fmt_sse(raw: str) -> str:
+    """Format an SSE event stream for readable debug output."""
+    lines = []
+    for block in raw.split('\n'):
+        stripped = block.strip()
+        if not stripped:
+            continue
+        if stripped.startswith('data:'):
+            payload = stripped[5:].strip()
+            lines.append('data:')
+            for jline in _fmt_json(payload).splitlines():
+                lines.append(f'  {jline}')
+        else:
+            lines.append(stripped)
+    return '\n'.join(lines)
+
+
+def _fmt_body(raw: str, max_len: int = 500) -> str:
+    """Pretty-print response bodies for readability; truncate unless VERBOSE."""
+    # Detect SSE event streams
+    if 'event:' in raw[:200] or raw.lstrip().startswith('data:'):
+        pretty = _fmt_sse(raw)
+    else:
+        pretty = _fmt_json(raw)
+    if VERBOSE or len(pretty) <= max_len:
+        return pretty
+    return pretty[:max_len] + f'\n       ... ({len(pretty)} bytes total, use --verbose to see full)'
 
 
 class ProxyHandler(BaseHTTPRequestHandler):
@@ -58,7 +98,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Proxy a request to the target API."""
-        if self.path != '/proxy':
+        if self.path not in ('/', '/proxy'):
             self.send_response(404)
             self._send_cors_headers()
             self.end_headers()
@@ -76,12 +116,15 @@ class ProxyHandler(BaseHTTPRequestHandler):
             body = payload.get('body')
 
             # Log request
+            t0 = time.time()
             sys.stderr.write(f"\n[proxy] ─── REQUEST ───────────────────────────\n")
             sys.stderr.write(f"[proxy] {method} {url}\n")
             for k, v in headers.items():
                 sys.stderr.write(f"[proxy]   {k}: {v}\n")
             if body:
-                sys.stderr.write(f"[proxy]   Body: {body[:500]}{'...' if len(body) > 500 else ''}\n")
+                sys.stderr.write(f"[proxy]   Body:\n")
+                for line in _fmt_body(body).splitlines():
+                    sys.stderr.write(f"[proxy]     {line}\n")
 
             # Validate the target URL
             if not self._is_allowed_url(url):
@@ -107,11 +150,14 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 with urlopen(req, timeout=REQUEST_TIMEOUT, context=ctx) as resp:
                     resp_body = resp.read().decode('utf-8', errors='replace')
                     resp_headers = {k: v for k, v in resp.getheaders()}
-                    sys.stderr.write(f"[proxy] ─── RESPONSE ──────────────────────────\n")
+                    elapsed = (time.time() - t0) * 1000
+                    sys.stderr.write(f"[proxy] ─── RESPONSE ({elapsed:.0f}ms) ─────────────────────\n")
                     sys.stderr.write(f"[proxy] Status: {resp.status}\n")
                     for k, v in resp_headers.items():
                         sys.stderr.write(f"[proxy]   {k}: {v}\n")
-                    sys.stderr.write(f"[proxy]   Body: {resp_body[:500]}{'...' if len(resp_body) > 500 else ''}\n")
+                    sys.stderr.write(f"[proxy]   Body:\n")
+                    for line in _fmt_body(resp_body).splitlines():
+                        sys.stderr.write(f"[proxy]     {line}\n")
                     self._send_json(200, {
                         'status': resp.status,
                         'headers': resp_headers,
@@ -120,11 +166,14 @@ class ProxyHandler(BaseHTTPRequestHandler):
             except HTTPError as e:
                 resp_body = e.read().decode('utf-8', errors='replace')
                 resp_headers = {k: v for k, v in e.headers.items()}
-                sys.stderr.write(f"[proxy] ─── RESPONSE (error) ──────────────────\n")
+                elapsed = (time.time() - t0) * 1000
+                sys.stderr.write(f"[proxy] ─── RESPONSE ERROR ({elapsed:.0f}ms) ────────────────\n")
                 sys.stderr.write(f"[proxy] Status: {e.code}\n")
                 for k, v in resp_headers.items():
                     sys.stderr.write(f"[proxy]   {k}: {v}\n")
-                sys.stderr.write(f"[proxy]   Body: {resp_body[:500]}{'...' if len(resp_body) > 500 else ''}\n")
+                sys.stderr.write(f"[proxy]   Body:\n")
+                for line in _fmt_body(resp_body).splitlines():
+                    sys.stderr.write(f"[proxy]     {line}\n")
                 self._send_json(200, {
                     'status': e.code,
                     'headers': resp_headers,
@@ -174,10 +223,13 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
 
 def main():
+    global VERBOSE
     parser = argparse.ArgumentParser(description='CORS proxy for Anypoint API Portal')
     parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to bind to (default: 127.0.0.1)')
     parser.add_argument('--port', type=int, default=8080, help='Port to listen on (default: 8080)')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Show full untruncated request/response bodies')
     args = parser.parse_args()
+    VERBOSE = args.verbose
 
     server = HTTPServer((args.host, args.port), ProxyHandler)
     print(f"🔀 Anypoint API Proxy running on http://{args.host}:{args.port}")

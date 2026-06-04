@@ -6,7 +6,7 @@
 
 {% block head_scripts %}
 {% include "partials/prism_head.html" %}
-<script src="../assets/portal.js" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -14,9 +14,9 @@
 
 {% block content %}
 {% set api_name = provider.name %}
-{% set api_version = '' %}
+{% set api_version = version.version %}
 {% set prose_only = true %}
-{% set terraform_install_info = provider.install_info %}
+{% set terraform_install_info = version.install_info %}
 {% include "partials/auth_panel.html" %}
 
 {% if terraform_install_info %}
@@ -53,6 +53,7 @@ provider "{{ terraform_install_info.local_name }}" {
     {% include "partials/terraform_sidebar.html" %}
     <main class="detail-content" id="main-content">
         {% include "terraform/terraform_detail.html" %}
+        {% include "partials/contribute_footer.html" %}
     </main>
 </div>
 {% endblock %}
@@ -67,14 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         el.className = el.className.replace('language-shell', 'language-bash');
     });
     wrapTerraformCodeBlocks();
-
-    function syncPrismTheme() {
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        document.getElementById('prism-theme-light').disabled = isDark;
-        document.getElementById('prism-theme-dark').disabled = !isDark;
-    }
-    syncPrismTheme();
-    new MutationObserver(syncPrismTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 });
 </script>
 {% endblock %}

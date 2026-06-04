@@ -50,30 +50,6 @@
                 <dt>Command</dt>
                 <dd><code>{{ mcp.transport.command }}</code></dd>
             </div>
-            {% elif mcp.transport.kind == 'streamableHttp' and mcp.transport.path %}
-            <div class="mcp-info-row">
-                <dt>Path</dt>
-                <dd><code>{{ mcp.transport.path }}</code></dd>
-            </div>
-            {% elif mcp.transport.kind == 'sse' %}
-                {% if mcp.transport.sse_path %}
-                <div class="mcp-info-row">
-                    <dt>SSE Path</dt>
-                    <dd><code>{{ mcp.transport.sse_path }}</code></dd>
-                </div>
-                {% endif %}
-                {% if mcp.transport.messages_path %}
-                <div class="mcp-info-row">
-                    <dt>Messages Path</dt>
-                    <dd><code>{{ mcp.transport.messages_path }}</code></dd>
-                </div>
-                {% endif %}
-            {% endif %}
-            {% if mcp.transport.instructions %}
-            <div class="mcp-info-row">
-                <dt>Instructions</dt>
-                <dd>{{ mcp.transport.instructions }}</dd>
-            </div>
             {% endif %}
         </dl>
         {% if mcp.mcp_type == 'local' %}

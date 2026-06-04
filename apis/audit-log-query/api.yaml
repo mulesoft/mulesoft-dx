@@ -745,21 +745,9 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: >
-        Bearer token authentication. Login endpoint:
-        https://anypoint.mulesoft.com/accounts/api/login
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: >
-        OAuth2 client credentials. Token endpoint:
-        https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   schemas:
     logQuery:
       title: Audit Log Query

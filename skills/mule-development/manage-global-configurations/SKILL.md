@@ -3,6 +3,11 @@ name: manage-global-configurations
 description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. NEVER use MCP server tools — use only the bash scripts provided.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@mulesoft/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Mule Runtime (for `dx mule describe-connector` metadata commands)
+tags:
+  - MuleSoft
+  - Configuration
+  - Connectors
+  - Properties
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
@@ -13,11 +18,79 @@ allowed-tools: Bash Read Write Edit AskUserQuestion
 
 # Manage Global Configurations
 
+## Overview
+
 Create, view, edit, delete, list, validate, and consolidate all global configurations in a Mule 4 project through an interactive, multi-turn workflow.
 
-## Rules
+**What you'll build:** Fully configured global elements in `global-configs.xml`, properties files, and validated pom.xml dependencies — all following MuleSoft best practices.
+
+### Architecture
+
+```mermaid
+flowchart TD
+    Start{User Intent} -->|connector, config, connection| CC[Connector Config]
+    Start -->|TLS, SSL, certificate| TLS[TLS Context]
+    Start -->|object store, key-value| OS[Object Store]
+    Start -->|caching, cache strategy| CS[Caching Strategy]
+    Start -->|error handler, on-error| EH[Error Handler]
+    Start -->|autodiscovery, API gateway| AD[API AutoDiscovery]
+    Start -->|import project, shared library| IMP[Import]
+    Start -->|properties, config.yaml, env| PROP[Properties]
+    Start -->|global-property, inline| GP[Global Property]
+    Start -->|list all, show all configs| LIST[List All]
+    Start -->|find usages, where is used| FIND[Find Usages]
+    Start -->|validate, dangling ref| VAL[Validate]
+    Start -->|consolidate, centralize| CON[Consolidate]
+
+    CC --> OP{Operation}
+    TLS --> OP
+    OS --> OP
+    CS --> OP
+    EH --> OP
+    AD --> OP
+    IMP --> OP
+    PROP --> OP
+    GP --> OP
+
+    OP -->|Create| CREATE[Generate XML + config.yaml + pom.xml]
+    OP -->|Get| GET[Scan & Display]
+    OP -->|Edit| EDIT[Modify & Validate]
+    OP -->|Delete| DELETE[Remove & Cleanup]
+```
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+1. **A Mule 4 project** in the workspace with standard structure (`src/main/mule/`, `src/main/resources/`, `pom.xml`)
+2. **Anypoint CLI v4** installed with the DX Mule plugin (`@mulesoft/anypoint-cli-dx-mule-plugin`)
+3. **Java 11+** and Maven available for build validation
+4. **Mule Runtime** available for `dx mule describe-connector` metadata commands
+
+## Execution Paths
+
+- **Create connector config**: Steps 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+  - When: User asks to add a new connector configuration (Salesforce, HTTP, DB, etc.)
+  - You'll need: `projectDir`, `connectorName`
+
+- **Create global element**: Steps 1, 2, 12
+  - When: User asks to add TLS Context, Object Store, Caching Strategy, Error Handler, AutoDiscovery, or Import
+  - You'll need: `projectDir`, `elementType`
+
+- **Manage properties**: Steps 1, 2, 13
+  - When: User asks to create/edit properties files, set up environments, or manage global-property elements
+  - You'll need: `projectDir`
+
+- **Management operations**: Steps 1, 2, 14
+  - When: User asks to list all, find usages, validate, or consolidate global elements
+  - You'll need: `projectDir`
+
+## Step 1: Rules and References
+
+**Rules:**
 
 - **Multi-turn interactive.** At every "STOP" marker: print only questions as plain text, end your response, and wait. No tools until all questions in that phase are answered.
+- **Pre-supplied value extraction (skip-if-provided).** Before the first STOP, parse the user's initial request and extract any values they already supplied (e.g., connector name, config name, provider name, field values, placeholder preference). Record these as "pre-supplied." At each subsequent STOP point, check whether the question is already answered by a pre-supplied value — if yes, use that value and skip the STOP entirely. Only ask questions for information NOT provided. If the user says "default placeholders" or "use placeholders for all fields," treat that as the answer to Step 8 and skip its STOP. If ambiguity remains (e.g., user says "basic provider" but metadata lists "basic-connection" and "basic-auth"), still ask.
 - **No MCP server tools.** ALL Exchange searches and connector operations MUST use ONLY the bash scripts. Never call `search_asset`, `get_asset`, or any MCP-based tool.
 - **Never output raw XML to chat** — always write to file.
 - **Never use TaskCreate.**
@@ -25,9 +98,7 @@ Create, view, edit, delete, list, validate, and consolidate all global configura
 - **Connector versions from Exchange only.** Never paste a version from memory. The only acceptable source is `get_latest_connector.sh` → `pick_connector.sh`.
 - **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
 
----
-
-## Scripts
+**Scripts:**
 
 This skill includes shell scripts in its own `scripts/` directory. Invoke them with the `Bash` tool at the absolute path you were given in the "skill is now active" message. Do **not** use relative paths.
 
@@ -40,9 +111,7 @@ This skill includes shell scripts in its own `scripts/` directory. Invoke them w
 
 Scripts path: `<skill-root>/scripts/` (where `<skill-root>` is the directory containing this SKILL.md).
 
----
-
-## References
+**References:**
 
 Read these files with the `Read` tool when instructed. Use the absolute path from the "skill is now active" message.
 
@@ -52,21 +121,15 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 | `references/global-config-conventions.md` | Element ordering, namespace management, centralization rules, default project structure, consolidation decision matrix. | When placing elements in `global-configs.xml`, managing namespaces, or running consolidation. |
 | `references/properties-patterns.md` | Property file formats, `${placeholder}` resolution, multi-env patterns, secure properties, built-in properties, naming conventions, validation rules. | When creating/editing properties files, setting up environments, or validating placeholders. |
 
----
+## Step 2: Resolve Target Project and Route Operation
 
-## Resolve Target Project
+**Resolve Target Project:**
 
 Run once per session — reuse the result for all subsequent operations in this conversation.
 
 If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking.
 
----
-
-## Operation Routing
-
-Determine the user's intent using two levels:
-
-### Level 1 — Domain
+**Operation Routing — Level 1 (Domain):**
 
 | Keywords | Domain |
 |----------|--------|
@@ -84,7 +147,7 @@ Determine the user's intent using two levels:
 | validate, check config exists, dangling reference | → **VALIDATE** |
 | consolidate, centralize, move to global-config | → **CONSOLIDATE** |
 
-### Level 2 — Operation
+**Operation Routing — Level 2 (Operation):**
 
 | Intent | Operation |
 |--------|-----------|
@@ -99,13 +162,7 @@ If unclear, ask:
 
 **STOP.**
 
----
-
-## CONNECTOR CONFIG
-
-### CREATE
-
-#### Step 1: Resolve Connector
+## Step 3: Resolve Connector (CONNECTOR CONFIG — CREATE)
 
 If not specified, ask which connector. Then search Exchange:
 
@@ -113,7 +170,9 @@ If not specified, ask which connector. Then search Exchange:
 bash scripts/get_latest_connector.sh salesforce sfdc
 ```
 
-If multiple variants, ask user via `AskUserQuestion`. Then pick:
+If multiple variants are returned and the user did NOT pre-supply a specific connector artifact, ask user via `AskUserQuestion` and **STOP**. If only one result matches (or the connector is already in `pom.xml`), proceed without asking.
+
+Then pick:
 
 ```bash
 bash scripts/pick_connector.sh sfdc com.mulesoft.connectors:mule-salesforce-connector:11.1.0
@@ -121,7 +180,7 @@ bash scripts/pick_connector.sh sfdc com.mulesoft.connectors:mule-salesforce-conn
 
 If connector is already in the project's `pom.xml`, extract GAV from there instead.
 
-#### Step 2: Describe Connector
+## Step 4: Describe Connector
 
 ```bash
 bash scripts/describe_connector.sh sfdc
@@ -129,19 +188,21 @@ bash scripts/describe_connector.sh sfdc
 
 Read the `configs[]` and `connectionProviders` from the digest.
 
-#### Step 3: Ask Config Name
+## Step 5: Ask Config Name
+
+If the user pre-supplied a config name, use it and skip this STOP. Otherwise ask:
 
 > What name for this connector configuration? (e.g., `salesforceConfig`)
 
-**STOP.**
+**STOP** (only if not pre-supplied).
 
-#### Step 4: Select Connection Provider
+## Step 6: Select Connection Provider
 
-If multiple providers exist, ask user. If only one, use it without prompting.
+If the user pre-supplied a provider name that unambiguously matches one provider from the metadata, use it and skip this STOP. If multiple providers exist and the user did NOT specify one (or the name is ambiguous), ask user.
 
 **STOP** (only if prompting).
 
-#### Step 5: Get Provider Detail
+## Step 7: Get Provider Detail
 
 ```bash
 anypoint-cli-v4 dx mule describe-connector \
@@ -154,28 +215,31 @@ anypoint-cli-v4 dx mule describe-connector \
 
 Check for `oauthCallbackConfig` child element.
 
-#### Step 6: Ask Field Values
+## Step 8: Ask Field Values
+
+If the user pre-supplied explicit field values or indicated "use placeholders" / "default placeholders" for all fields, use that preference and skip this STOP. When placeholders are chosen, generate `${connectorNamespace.fieldName}` for each required field automatically.
+
+Otherwise ask:
 
 > Provide values for required fields, or choose "placeholders" for `${property}` references.
 
-**STOP.**
+**STOP** (only if not pre-supplied).
 
-#### Step 7: Generate XML
+## Step 9: Generate XML
 
 Read `references/global-elements-catalog.md` → "Connector Config Generation Rules" section. Generate XML following Pattern 1 (attributes) or Pattern 2 (child elements) based on metadata.
 
-#### Step 8: Generate config.yaml
+## Step 10: Generate config.yaml
 
 Only for fields where user chose placeholders. Use `${namespace.attributeName}` pattern.
 
-#### Step 9: Apply to Project
+## Step 11: Apply to Project and Validate
 
 1. Write config to `src/main/mule/global-configs.xml` (create if missing — see `references/global-config-conventions.md`).
 2. Add namespace + schemaLocation.
 3. Write/update `src/main/resources/config.yaml`.
 4. Add pom.xml dependency if missing (version from `tmp/connector-choices/`).
-
-#### Step 10: Validate
+5. Validate:
 
 ```bash
 cd <project-dir> && mvn clean package -DskipTests
@@ -183,7 +247,7 @@ cd <project-dir> && mvn clean package -DskipTests
 
 Fix and re-run until `BUILD SUCCESS`.
 
-### GET / EDIT / DELETE
+**GET / EDIT / DELETE (Connector Config):**
 
 **GET:** Scan `src/main/mule/*.xml` for `<*:*-config>` elements with connection provider children. Display name, type, file, provider, attributes.
 
@@ -191,9 +255,7 @@ Fix and re-run until `BUILD SUCCESS`.
 
 **DELETE:** Identify → search all XML for `config-ref="{name}"` → show usages → confirm → **STOP** → remove element → clean namespaces → validate.
 
----
-
-## GLOBAL ELEMENTS (TLS | Object Store | Caching | Error Handler | AutoDiscovery | Import)
+## Step 12: Create Global Element (TLS, Object Store, Caching, Error Handler, AutoDiscovery, Import)
 
 For all element types below, read `references/global-elements-catalog.md` for the canonical XML structure, required attributes, and validation rules before generating XML.
 
@@ -267,9 +329,7 @@ Same shared pattern as Connector Config:
 
 **DELETE:** Identify → find usages (per-type reference patterns from `references/global-elements-catalog.md`) → present → confirm → **STOP** → remove → namespace cleanup → validate.
 
----
-
-## PROPERTIES
+## Step 13: Properties Management
 
 Read `references/properties-patterns.md` before any properties operation.
 
@@ -323,9 +383,7 @@ Read `references/properties-patterns.md` before any properties operation.
 
 List: registered files + unregistered files + global properties. Show key counts and registration locations.
 
----
-
-## MANAGEMENT
+## Step 14: Management Operations (List All, Find Usages, Validate, Consolidate)
 
 ### LIST ALL
 
@@ -370,3 +428,27 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 5. Execute: move elements, add namespace declarations, remove from source, clean unused namespaces.
 6. Validate build: `mvn clean package -DskipTests`.
 7. Report: moved count, namespace cleanup, build result.
+
+## Tips and Best Practices
+
+- **Configuration structure from metadata only.** Never hardcode attributes or child elements for connectors. The `describe-connector` metadata is the source of truth.
+- **Connector versions from Exchange only.** Never paste a version from memory — use `get_latest_connector.sh` → `pick_connector.sh`.
+- **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
+- **Multi-turn interactive.** At every decision point: print only questions as plain text, end the response, and wait for user input before proceeding.
+- **Skip-if-provided.** When the user's initial request includes details (config name, provider, placeholder preference, field values), skip the corresponding STOP points. Only ask for information that was NOT provided or is ambiguous.
+- **Never output raw XML to chat** — always write to file.
+- **No MCP server tools.** ALL Exchange searches and connector operations MUST use ONLY the bash scripts provided.
+
+## Troubleshooting
+
+- **Build fails after adding config:** Check namespace declarations match the connector's XSD URL. Verify the schemaLocation URL is correct.
+- **Connector not found in Exchange:** Ensure Anypoint CLI is authenticated. Try broader search terms with `get_latest_connector.sh`.
+- **Describe-connector fails:** Verify Java 11+ is available and the connector GAV is valid. Check `tmp/connector-choices/` for the saved JSON.
+- **Unresolved placeholders at runtime:** Ensure `<configuration-properties>` is registered in `global-configs.xml` and the properties file exists in `src/main/resources/`.
+- **Namespace conflicts:** Run consolidation to centralize all global elements and clean up duplicate namespace declarations.
+
+## Related Jobs
+
+- **build-mule-integration**: Build Mule flows that reference the global configurations created by this skill
+- **secure-mule-app**: Configure secure properties encryption for sensitive configuration values
+- **create-project-template**: Generate a new Mule project with proper structure before adding configurations

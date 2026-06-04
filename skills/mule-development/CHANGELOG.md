@@ -4,13 +4,26 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2026-06-04
+## [1.2.0] - 2026-06-04
 
 ### Changed
 - **`build-mule-integration`** — absorbed `create-project-template` as a conditional sub-file (`references/template-project-creation.md`). Template-based project creation (Exchange search, local .jar) is now a branch within Step 1b, loaded only when the user wants a template. `search_templates.sh` moved to `build-mule-integration/scripts/`.
 
 ### Removed
 - **`create-project-template`** — removed as standalone skill. Its workflow lives in `build-mule-integration/references/template-project-creation.md`.
+
+## [1.1.0] - 2026-05-18
+
+### Added
+
+- **`develop-pdk-policy`** — new skill that drives the full lifecycle of a custom Flex Gateway policy with the Policy Development Kit (PDK): prerequisite checks, `anypoint-cli-v4 pdk policy-project create`, `make setup` / `build-asset-files` / `build`, local execution via the scaffolded `playground/` (`make run` against a Dockerized Flex Gateway in local-disconnected mode), then `make publish` and `make release` to Anypoint Exchange. Includes an upgrade-PDK runbook and troubleshooting for the most common toolchain failure modes. Lets agents take a developer from "I want a custom policy" through to a released Exchange asset without leaving the IDE.
+- **`pdk-templates`** — companion prose-only reference skill bundling 30 vetted, compilable PDK feature templates locally under `templates/`. Pulled from the upstream `mulesoft-mcp-server` `mule-flex-pdk-service` snapshots so the skill works offline with no MCP dependency. Covers JWT (validate + generate), OAuth2 introspection, header/body manipulation, body streaming, rate limiting, spike control, caching, distributed locks, worker variables, control flow, contracts, CORS, IP filtering, JSON/XML validators, outbound HTTP calls, gRPC, DataWeave evaluation, data storage, timers, logging, metadata, policy violations, `stop_iteration`, outbound-policy marker, and PDK unit testing setup. Multi-file bundles (`grpc/`, `dataweave/`, `http_call/`, `stop_iteration/`) ship as subdirectories with explicit destination guidance for each companion file (`Cargo.toml.snippet`, `gcl.yaml`, `build.rs`, `proto/`). Pairs with `develop-pdk-policy`, which owns scaffold/build/publish lifecycle.
+- **`pdk-unit`** — new skill that drives the unit-testing workflow for custom Flex Gateway PDK policies: deciding unit vs integration coverage, wiring `src/tests/` (the scaffold ships `tests/` for integration tests but not `src/tests/` for unit tests), writing a first `UnitTestBuilder` test against `crate::configure`, factoring reusable `TestConfig` helpers, mocking HTTP upstreams via closures or `TraceBackend` capture, asserting on status / headers / `PolicyViolation`, and running `make test` / `cargo test`. Bundles six drop-in templates (hello test, config helper, upstream mock, trace-backend capture, violation assertion, `src/tests/` module wiring) under `templates/`. Cross-links to `pdk-templates/templates/unit_testing.md` for the full `pdk-unit` API reference (no duplication) and to `develop-pdk-policy` for scaffold / build / publish lifecycle. Closes the testing gap left by those two skills.
+- **`pdk-test`** — new skill that drives the integration-testing workflow for custom Flex Gateway PDK policies: scaffolding `tests/` with `common/` helpers, writing `RequestBuilder` + `assert_response!` tests against a real Flex Gateway instance via `make run`, handling multi-request flows, testing configuration variants, and debugging test failures with `RUST_LOG` and Docker log inspection. Bundles templates for test structure and common patterns.
+
+### Changed
+
+- `package.json` `files` array now includes `*/templates/**` (added alongside `*/references/**`) so the bundled PDK templates ship in the published tarball.
 
 ## [1.0.4] - 2026-05-18
 

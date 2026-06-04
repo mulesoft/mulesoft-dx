@@ -587,7 +587,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
 
         if (data.status < 200 || data.status >= 300) {
             if (data.status === 401 || data.status === 403) {
-                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Authentication required. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to access this resource.</div>';
+                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Access denied. Your token may have expired or lack permissions.</div>';
             } else {
                 if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
             }

@@ -2059,7 +2059,7 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
     // --- 5. Auth CTA link for 401/403 responses ---
 
-    test('shows auth CTA link in error message for 401 response', async () => {
+    test('shows access denied message for 401 response', async () => {
         sessionStorage.setItem('anypoint_token', 'valid-token');
         sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
 
@@ -2071,15 +2071,11 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
-        expect(errorDiv.textContent).toContain('Authentication required');
-
-        const link = errorDiv.querySelector('.xorigin-error-link');
-        expect(link).not.toBeNull();
-        expect(link.textContent).toContain('Sign in');
-        expect(link.getAttribute('onclick')).toContain('openAuthModal');
+        expect(errorDiv.textContent).toContain('Access denied');
+        expect(errorDiv.textContent).toContain('expired or lack permissions');
     });
 
-    test('shows auth CTA link in error message for 403 response', async () => {
+    test('shows access denied message for 403 response', async () => {
         sessionStorage.setItem('anypoint_token', 'valid-token');
         sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
 
@@ -2091,11 +2087,8 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
-        expect(errorDiv.textContent).toContain('Authentication required');
-
-        const link = errorDiv.querySelector('.xorigin-error-link');
-        expect(link).not.toBeNull();
-        expect(link.textContent).toContain('Sign in');
+        expect(errorDiv.textContent).toContain('Access denied');
+        expect(errorDiv.textContent).toContain('expired or lack permissions');
     });
 
     // --- 6. No regression: button resets after generic error (data.error) ---

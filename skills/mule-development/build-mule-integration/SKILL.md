@@ -617,7 +617,8 @@ MULE_VERSION=$(jq -r '.mule_version' tmp/mule-dev-env.json)
 NODE_NO_WARNINGS=1 anypoint-cli-v4 dx mule project create <project-name> \
   --group-id com.example \
   --mule-version "$MULE_VERSION" \
-  --dependencies "$(bash scripts/build_deps.sh)"
+  --dependencies "$(bash scripts/build_deps.sh)" \
+  --skip-environment
 ```
 
 `build_deps.sh` reads every `tmp/connector-versions/*.json` pin, filters out the Step 6b JDBC driver sidecar (`db-driver.json`), and prints a comma-joined GAV string. Any pin file in that directory is included automatically — including `http.json` if you added it via the rule below.
@@ -1219,7 +1220,8 @@ MULE_VERSION=$(jq -r '.mule_version' tmp/mule-dev-env.json)
 NODE_NO_WARNINGS=1 anypoint-cli-v4 dx mule project create <name> \
   --group-id com.example \
   --mule-version "$MULE_VERSION" \
-  --dependencies "$(bash <skill-dir>/scripts/build_deps.sh)"   # reads every tmp/connector-versions/*.json pin
+  --dependencies "$(bash <skill-dir>/scripts/build_deps.sh)" \   # reads every tmp/connector-versions/*.json pin
+  --skip-environment   # scratch projects don't need environment resolution
 
 # Step 10: OAuth → HTTP defensive check (only when Step 6 chose OAuth/JWT/auth-code
 # or the trigger is HTTP Listener)

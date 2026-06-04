@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@salesforce/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Maven 3.6+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 metadata:
   author: mule-dx-tooling
-  version: "1.1.0"
+  version: "1.2.0"
   cli: anypoint-cli-v4
   theme: professional
 allowed-tools: Bash Read Write Edit AskUserQuestion
@@ -67,6 +67,7 @@ This skill ships small bash scripts under `scripts/`. Invoke them with the `Bash
 | `scripts/describe_connector.sh <nickname> [--type operation\|source --name <name>]` | Step 4 (no flags) / Step 13 (with flags) — run `dx mule describe-connector` for the drafted GAV, save full JSON, echo digest to stdout, AND cache `.errorTypes` to `tmp/connector-errors/` for the Step 16 validator | `tmp/connector-metadata/<nick>[-<name>].json` + `tmp/connector-errors/<nick>[.<name>].json` + digest on stdout |
 | `scripts/validate_before_build.sh <project-dir>` | Step 16 pre-mvn — error-type whitelist (Cluster D), namespace↔dependency parity (Cluster A2–A5), canonical XSD URL shape | stderr + non-zero exit on first violation |
 | `scripts/maybe_add_http_connector.sh --project <dir> <providers...>` | Phase 2 — defensive check that HTTP connector is present when OAuth providers were chosen; edits `<dir>/pom.xml` | `<dir>/pom.xml` |
+| `scripts/search_templates.sh <search-term>` | Step 1b (template path) — search Anypoint Exchange for `type == "template"` assets via parallel calls (unscoped + org-scoped), dedup, rank by token overlap, enrich top 10 with `description`, `minMuleVersion`, and `sourceLocation`. | Single JSON array on stdout (max 10 rows, private-first). Exits 1 on no match. |
 
 Invoke scripts by the absolute path you were given in the "skill is now active" message (it is the directory containing this `SKILL.md`). Do **not** construct relative paths like `../scripts/...` — Cline's working directory shifts across turns and relative paths have produced "No such file or directory" errors in real runs. The inline step examples below write `scripts/...` as shorthand; substitute `<skill-dir>/scripts/...` when you actually execute them.
 
@@ -107,6 +108,27 @@ bash scripts/validate_prerequisites.sh
 If the script exits non-zero, STOP progressing any further in the skill and inform the user to act on the `errors` array in `tmp/mule-dev-env.json`. Do not invent a fallback Mule version — `mule_version` is empty when no runtime is detected.
 
 What `validate_prerequisites.sh` checks: Anypoint CLI v4 installed · DX plugin available · `JAVA_HOME` set · Java 11+ · Mule runtime detected at `~/.mule-dx/config.json:.runtimePath` or under `~/AnypointCodeBuilder/runtime/mule-*`. If runtime or other tools are missing, the script reports the error and informs the user to run the necessary commands for proper installation.
+
+---
+
+## Step 1b: Project Source Decision
+
+**Always ask this when creating a new project.** After prerequisites pass, determine how the user wants to create the project:
+
+```xml
+<ask_followup_question>
+<question>I can create this project in one of three ways. Which would you prefer?</question>
+<options>["I want to use organizational templates from Anypoint Exchange.", "I have a local template .jar file I want to use.", "I want to generate from scratch without a template."]</options>
+</ask_followup_question>
+```
+
+**Based on the answer:**
+
+1. **Exchange or Local template** → Read `references/template-project-creation.md` and follow the appropriate flow (Exchange E1–E4, or Local L1–L4). After project creation is complete and validated, return here and continue to Step 2.
+2. **Scratch** → Continue to Step 2. Project creation will happen at Step 8 (after connector discovery provides the `--dependencies`).
+
+**When to skip this step entirely:**
+- User is working on an existing project (modifying/updating flows, not creating a new one)
 
 ---
 

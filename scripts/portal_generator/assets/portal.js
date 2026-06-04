@@ -436,12 +436,14 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!token) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Authentication required. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to fetch values.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
     if (isTokenExpired()) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to refresh authentication.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
@@ -457,6 +459,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!apiEntry) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">API "' + escapeHtml(apiSlug) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
@@ -465,6 +468,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (!opMeta) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Operation "' + escapeHtml(operationId) + '" not found.</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
@@ -493,6 +497,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (missingParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing required parameters: ' + escapeHtml(missingParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
@@ -509,6 +514,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     if (unresolvedParams.length > 0) {
         if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Missing path parameters: ' + escapeHtml(unresolvedParams.join(', ')) + '</div>';
         responseDiv.classList.remove('empty');
+        switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
@@ -573,6 +579,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
 
         if (data.error) {
             if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Error: ' + escapeHtml(data.error) + '</div>';
+            if (responseDiv) responseDiv.classList.remove('empty');
+            switchResponseTab(xoriginOpId, 'body');
             resetButton();
             return;
         }
@@ -583,6 +591,8 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
             } else {
                 if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
             }
+            if (responseDiv) responseDiv.classList.remove('empty');
+            switchResponseTab(xoriginOpId, 'body');
             resetButton();
             return;
         }

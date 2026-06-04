@@ -1964,23 +1964,18 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
     // --- 2. Auth CTA link for no-token case ---
 
-    test('shows auth CTA link in error message when no token', async () => {
+    test('shows auth error message when no token', async () => {
         sessionStorage.removeItem('anypoint_token');
         await executeXOriginSource(0, btn);
 
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
-        expect(errorDiv.textContent).toContain('Authentication required');
-
-        const link = errorDiv.querySelector('.xorigin-error-link');
-        expect(link).not.toBeNull();
-        expect(link.textContent).toContain('Sign in');
-        expect(link.getAttribute('onclick')).toContain('openAuthModal');
+        expect(errorDiv.textContent).toContain('Please authenticate first');
     });
 
-    // --- 3. Auth CTA link for expired-token case ---
+    // --- 3. Error message for expired-token case ---
 
-    test('shows auth CTA link in error message when token expired', async () => {
+    test('shows expired token error message', async () => {
         sessionStorage.setItem('anypoint_token', 'expired-token');
         sessionStorage.setItem('anypoint_token_expires_at', '0');
         await executeXOriginSource(0, btn);
@@ -1988,11 +1983,6 @@ describe('executeXOriginSource — button reset and auth errors', () => {
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
         expect(errorDiv.textContent).toContain('Token expired');
-
-        const link = errorDiv.querySelector('.xorigin-error-link');
-        expect(link).not.toBeNull();
-        expect(link.textContent).toContain('Sign in');
-        expect(link.getAttribute('onclick')).toContain('openAuthModal');
     });
 
     test('resets button to original text after expired token error', async () => {
@@ -2059,7 +2049,7 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
     // --- 5. Auth CTA link for 401/403 responses ---
 
-    test('shows access denied message for 401 response', async () => {
+    test('shows status error for 401 response', async () => {
         sessionStorage.setItem('anypoint_token', 'valid-token');
         sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
 
@@ -2071,11 +2061,10 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
-        expect(errorDiv.textContent).toContain('Access denied');
-        expect(errorDiv.textContent).toContain('expired or lack permissions');
+        expect(errorDiv.textContent).toContain('Request returned status 401');
     });
 
-    test('shows access denied message for 403 response', async () => {
+    test('shows status error for 403 response', async () => {
         sessionStorage.setItem('anypoint_token', 'valid-token');
         sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
 
@@ -2087,8 +2076,7 @@ describe('executeXOriginSource — button reset and auth errors', () => {
 
         const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
         expect(errorDiv).not.toBeNull();
-        expect(errorDiv.textContent).toContain('Access denied');
-        expect(errorDiv.textContent).toContain('expired or lack permissions');
+        expect(errorDiv.textContent).toContain('Request returned status 403');
     });
 
     // --- 6. No regression: button resets after generic error (data.error) ---

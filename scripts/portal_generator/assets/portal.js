@@ -434,14 +434,14 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
     // Check authentication
     var token = sessionStorage.getItem('anypoint_token');
     if (!token) {
-        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Authentication required. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to fetch values.</div>';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Please authenticate first.</div>';
         responseDiv.classList.remove('empty');
         switchResponseTab(xoriginOpId, 'body');
         resetButton();
         return;
     }
     if (isTokenExpired()) {
-        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. <a href="#" onclick="openAuthModal(); return false;" class="xorigin-error-link">Sign in</a> to refresh authentication.</div>';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Token expired. Please re-authenticate.</div>';
         responseDiv.classList.remove('empty');
         switchResponseTab(xoriginOpId, 'body');
         resetButton();
@@ -586,11 +586,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         }
 
         if (data.status < 200 || data.status >= 300) {
-            if (data.status === 401 || data.status === 403) {
-                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Access denied. Your token may have expired or lack permissions.</div>';
-            } else {
-                if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
-            }
+            if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request returned status ' + data.status + '</div>';
             if (responseDiv) responseDiv.classList.remove('empty');
             switchResponseTab(xoriginOpId, 'body');
             resetButton();

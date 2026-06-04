@@ -1,0 +1,13 @@
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Extension
+metadata:
+  labels:
+    title: outbound
+    category: Custom
+    metadata/interfaceScope: api,resource
+    metadata/capabilities/injectionPoint: outbound
+spec:
+  extends:
+    - name: extension-definition
+      namespace: default

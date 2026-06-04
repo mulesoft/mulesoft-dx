@@ -1,12 +1,13 @@
 {
   "name": "@salesforce/mulesoft-vibes-skills",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "MuleSoft DX skills to enhance Mule developement",
   "license": "SEE LICENSE IN LICENSE.txt",
   "files": [
     "*/SKILL.md",
     "*/scripts/**",
     "*/references/**",
+    "*/templates/**",
     "LICENSE.txt"
   ],
   "publishConfig": {

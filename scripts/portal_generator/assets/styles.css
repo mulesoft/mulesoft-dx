@@ -684,6 +684,7 @@ code {
 }
 
 .mulesoft-dev-logo {
+    height: 43px;
     width: auto;
     vertical-align: middle;
     padding: 2px 0px;
@@ -5831,8 +5832,8 @@ details[open] .examples-toggle-icon {
 
 .homepage-logo-icon {
     display: block;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
 }
 
 .homepage-contact-group {
@@ -5888,8 +5889,8 @@ details[open] .examples-toggle-icon {
     }
 
     .homepage-logo-icon {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
     }
 }
 

@@ -4,6 +4,14 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-04
+
+### Changed
+- **`build-mule-integration`** — absorbed `create-project-template` as a conditional sub-file (`references/template-project-creation.md`). Template-based project creation (Exchange search, local .jar) is now a branch within Step 1b, loaded only when the user wants a template. `search_templates.sh` moved to `build-mule-integration/scripts/`.
+
+### Removed
+- **`create-project-template`** — removed as standalone skill. Its workflow lives in `build-mule-integration/references/template-project-creation.md`.
+
 ## [1.0.4] - 2026-05-18
 
 ### Removed

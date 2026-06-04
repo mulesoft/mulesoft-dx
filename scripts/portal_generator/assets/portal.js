@@ -533,7 +533,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data);
+        await handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -648,7 +648,7 @@ async function executeXOriginSource(sourceIdx, buttonEl) {
             statusBadge.className = 'response-status-badge status-error';
         }
         if (responseBodyDiv) {
-            responseBodyDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
+            responseBodyDiv.innerHTML = '<div class="xorigin-error">Request failed: ' + escapeHtml(e.message) + '</div>';
         }
     }
 }
@@ -918,7 +918,7 @@ function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVars
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
     html += '<button class="btn-send" onclick="executeMcpXOriginSource(' + idx + ', this)">';
     html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
-    html += '<button class="btn-copy-curl" onclick="copyMcpCurlCommand(\'' + xoriginOpId + '\', ' + idx + ', this)">';
+    html += '<button class="btn-copy-curl" onclick="copyXOriginMcpCurl(\'' + xoriginOpId + '\', ' + idx + ', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
     html += '</div></div>';
 
@@ -1031,11 +1031,7 @@ function getMcpEndpointForSlug(mcpSlug) {
     var servers = entry.servers || [];
     if (servers.length === 0) return null;
     var server = pickServerTemplate(servers);
-    var base = resolveServerUrl(server, null).replace(/\/$/, '');
-    var transport = entry.transport || {};
-    var path = transport.path || '/mcp';
-    if (path.charAt(0) !== '/') path = '/' + path;
-    return base + path;
+    return resolveServerUrl(server, null);
 }
 
 function unwrapMcpToolResponse(proxyData) {
@@ -1206,7 +1202,7 @@ async function executeMcpXOriginSource(sourceIdx, buttonEl) {
         _restoreButton(buttonEl, originalText);
         if (responseDiv) responseDiv.classList.remove('empty');
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-error'; }
-        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Cannot reach proxy: ' + escapeHtml(e.message) + '</div>';
+        if (responseBodyDiv) responseBodyDiv.innerHTML = '<div class="xorigin-error">Request failed: ' + escapeHtml(e.message) + '</div>';
     }
 }
 
@@ -2416,10 +2412,11 @@ async function loginBearer() {
         });
         var data = await resp.json();
         if (data.error) {
-            showAuthMessage('Proxy error: ' + data.error, true);
+            showAuthMessage('Server error: ' + data.error, true);
             return;
         }
-        var body = JSON.parse(data.body);
+        var body;
+        try { body = JSON.parse(data.body); } catch (_) { body = {}; }
         if (data.status === 200 && body.access_token) {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', username);
@@ -2438,10 +2435,11 @@ async function loginBearer() {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
         } else {
-            showAuthMessage('Login failed: ' + (body.message || body.error || 'Unknown error'), true);
+            var errMsg = body.message || body.error || data.body || 'Unknown error';
+            showAuthMessage('Login failed: ' + errMsg, true);
         }
     } catch (e) {
-        showAuthMessage('Cannot reach proxy at ' + PROXY_URL + '. Is the proxy server running?', true);
+        showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
     }
 }
 
@@ -2466,10 +2464,11 @@ async function loginOAuth2() {
         });
         var data = await resp.json();
         if (data.error) {
-            showAuthMessage('Proxy error: ' + data.error, true);
+            showAuthMessage('Server error: ' + data.error, true);
             return;
         }
-        var body = JSON.parse(data.body);
+        var body;
+        try { body = JSON.parse(data.body); } catch (_) { body = {}; }
         if (data.status === 200 && body.access_token) {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', clientId);
@@ -2492,10 +2491,11 @@ async function loginOAuth2() {
                 updateAllPlaygroundPanelsFromEnvVars();
             }
         } else {
-            showAuthMessage('Token request failed: ' + (body.error_description || body.error || 'Unknown error'), true);
+            var errMsg = body.error_description || body.error || data.body || 'Unknown error';
+            showAuthMessage('Token request failed: ' + errMsg, true);
         }
     } catch (e) {
-        showAuthMessage('Cannot reach proxy at ' + PROXY_URL + '. Is the proxy server running?', true);
+        showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
     }
 }
 
@@ -2519,25 +2519,12 @@ function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
 
 function __mcpEndpointUrl() {
     // server.json remotes[] already expose fully-qualified endpoint URLs
-    // (including whatever path the server uses), so the selected server URL
-    // is used verbatim. We still filter out sse / stdio remotes because the
-    // try-it console only speaks JSON-RPC over HTTP POST.
+    // (only streamableHttp remotes are included), so the selected server URL
+    // is used verbatim.
     var meta = window.__MCP_META__;
     if (!meta) return null;
     var selected = getSelectedServer(null);
     if (!selected) return null;
-
-    var remotes = meta.servers || [];
-    var match = null;
-    var normalizedSelected = selected.replace(/\/$/, '');
-    for (var i = 0; i < remotes.length; i += 1) {
-        if ((remotes[i].url || '').replace(/\/$/, '') === normalizedSelected) {
-            match = remotes[i];
-            break;
-        }
-    }
-    var kind = (match && match.transport) || (meta.transport && meta.transport.kind) || '';
-    if (kind && kind !== 'streamableHttp') return null;
     return selected;
 }
 
@@ -2771,7 +2758,7 @@ async function sendMcpRequest(invocableId, buttonEl) {
         if (responseBody) {
             createReadOnlyAceEditor(
                 responseBody,
-                'Cannot reach proxy at ' + PROXY_URL,
+                'Unable to connect to the server. Please check your network connection and try again.',
                 'text'
             );
         }
@@ -2875,9 +2862,14 @@ async function checkTtlExpiration() {
     }
 }
 
-function handleProxyResponse(data) {
+async function handleProxyResponse(data) {
     if (data.status === 401) {
-        markTokenExpired();
+        var result = await introspectToken();
+        if (result && result.active === true && result.exp) {
+            setTokenExpiration(parseInt(result.exp, 10));
+        } else {
+            markTokenExpired();
+        }
     }
 }
 
@@ -3109,7 +3101,7 @@ async function loadXOriginValues(opId, paramName) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data);
+        await handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -3187,7 +3179,7 @@ async function loadXOriginValues(opId, paramName) {
             btn.textContent = '↻';
             btn.classList.remove('loading');
         }
-        showAuthMessage('Cannot reach proxy: ' + e.message, true);
+        showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
     }
 }
 
@@ -3310,7 +3302,7 @@ async function loadXOriginValuesForEnv(paramName) {
         });
 
         var data = await resp.json();
-        handleProxyResponse(data);
+        await handleProxyResponse(data);
 
         if (btn) {
             btn.disabled = false;
@@ -3382,7 +3374,7 @@ async function loadXOriginValuesForEnv(paramName) {
             btn.textContent = '↻';
             btn.classList.remove('loading');
         }
-        showAuthMessage('Cannot reach proxy: ' + e.message, true);
+        showAuthMessage('Unable to connect to the server. Please check your network connection and try again.', true);
     }
 }
 
@@ -3651,7 +3643,7 @@ function initServerCombos() {
     var meta = window.__API_META__;
     if (!meta || !meta.servers || meta.servers.length === 0) return;
 
-    var bars = document.querySelectorAll('.operation-url-bar');
+    var bars = document.querySelectorAll('.operation-url-bar[data-path]');
     bars.forEach(function(bar) {
         var opId = bar.getAttribute('data-op-id');
         var path = bar.getAttribute('data-path');
@@ -3754,7 +3746,7 @@ function updateAllServerBars() {
     var meta = window.__API_META__;
     if (!meta || !meta.servers || meta.servers.length === 0) return;
 
-    var bars = document.querySelectorAll('.operation-url-bar');
+    var bars = document.querySelectorAll('.operation-url-bar[data-path]');
     bars.forEach(function(bar) {
         var opId = bar.getAttribute('data-op-id');
         var path = bar.getAttribute('data-path');
@@ -4107,7 +4099,7 @@ function copyCurlCommand(opId, buttonEl) {
     });
 }
 
-function copyMcpCurlCommand(xoriginOpId, sourceIdx, buttonEl) {
+function copyXOriginMcpCurl(xoriginOpId, sourceIdx, buttonEl) {
     var currentModal = xOriginModalStack[xOriginModalStack.length - 1];
     if (!currentModal) return;
     var origin = currentModal.origins[sourceIdx];
@@ -4468,11 +4460,13 @@ function switchResponseTab(opId, tabName) {
     var bodyContent = document.getElementById('respbody-' + opId);
     var headersContent = document.getElementById('respheaders-' + opId);
     var extractedContent = document.getElementById('respextracted-' + opId);
+    var dataContent = document.getElementById('respdata-' + opId);
 
     // Remove active class from all
     if (bodyContent) bodyContent.classList.remove('active');
     if (headersContent) headersContent.classList.remove('active');
     if (extractedContent) extractedContent.classList.remove('active');
+    if (dataContent) dataContent.classList.remove('active');
 
     // Add active class to the selected tab
     if (tabName === 'body' && bodyContent) {
@@ -4481,6 +4475,8 @@ function switchResponseTab(opId, tabName) {
         headersContent.classList.add('active');
     } else if (tabName === 'extracted' && extractedContent) {
         extractedContent.classList.add('active');
+    } else if (tabName === 'data' && dataContent) {
+        dataContent.classList.add('active');
     }
 }
 
@@ -4583,7 +4579,7 @@ async function sendRequest(opId, buttonEl) {
             })
         });
         var data = await resp.json();
-        handleProxyResponse(data);
+        await handleProxyResponse(data);
 
         // Restore button
         if (buttonEl) {
@@ -4633,7 +4629,7 @@ async function sendRequest(opId, buttonEl) {
         }
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
         if (responseBody) {
-            createReadOnlyAceEditor(responseBody, 'Cannot reach proxy at ' + PROXY_URL + '.\n\n  python3 scripts/proxy_server.py', 'text');
+            createReadOnlyAceEditor(responseBody, 'Unable to connect to the server. Please check your network connection and try again.', 'text');
         }
         if (responseDiv) responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -4753,14 +4749,21 @@ function createReadOnlyAceEditor(container, content, language) {
         fontSize: '13px'
     });
 
-    // Let ACE scroll internally within the container bounds
+    // Use ace's internal scrolling within a fixed-height container
     editor.setOptions({
         minLines: 10,
-        maxLines: 50
+        maxLines: undefined
     });
+    container.style.height = '500px';
 
     // Set read-only background
     updateAceEditorBackground(editor);
+
+    // Register editor so theme toggles can update it
+    if (!window.aceEditors) window.aceEditors = {};
+    if (container.id) {
+        window.aceEditors[container.id] = editor;
+    }
 
     return editor;
 }
@@ -4768,6 +4771,24 @@ function createReadOnlyAceEditor(container, content, language) {
 // Backward compatibility alias
 function createReadOnlyCodeMirror(container, content, language) {
     return createReadOnlyAceEditor(container, content, language);
+}
+
+function _extractSseData(raw) {
+    // Extract and merge JSON objects from SSE data: lines
+    var lines = raw.split('\n');
+    var jsonObjects = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf('data:') === 0) {
+            var payload = line.substring(5).trim();
+            try {
+                jsonObjects.push(JSON.parse(payload));
+            } catch (e) { /* skip non-JSON data lines */ }
+        }
+    }
+    if (jsonObjects.length === 0) return null;
+    if (jsonObjects.length === 1) return JSON.stringify(jsonObjects[0], null, 2);
+    return JSON.stringify(jsonObjects, null, 2);
 }
 
 function displayResponseInAceEditors(responseBodyContainer, responseHeadersContainer, data) {
@@ -4783,6 +4804,21 @@ function displayResponseInAceEditors(responseBodyContainer, responseHeadersConta
             bodyLang = 'text';
         }
         createReadOnlyAceEditor(responseBodyContainer, bodyText, bodyLang);
+
+        // If SSE response, populate the Data tab with parsed JSON
+        var isSse = data.body && (data.body.indexOf('event:') !== -1 || /^data:/m.test(data.body));
+        if (isSse) {
+            var opId = responseBodyContainer.id.replace('respbody-', '');
+            var dataContainer = document.getElementById('respdata-' + opId);
+            var dataTab = document.getElementById('datatab-' + opId);
+            var extracted = _extractSseData(data.body);
+            if (extracted && dataContainer && dataTab) {
+                createReadOnlyAceEditor(dataContainer, extracted, 'json');
+                dataTab.style.display = '';
+                // Auto-switch to Data tab
+                switchResponseTab(opId, 'data');
+            }
+        }
     }
 
     // Display headers
@@ -5240,6 +5276,12 @@ function toggleSkillMode(slug) {
 
         // Initialize playground steps if not already done
         initializePlaygroundSteps();
+
+        // Scroll to the first step
+        var firstStep = document.getElementById('step-' + slug + '-0');
+        if (firstStep) {
+            firstStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 }
 
@@ -6427,7 +6469,7 @@ async function executePlaygroundStep(sid, buttonEl) {
         });
 
         var result = await resp.json();
-        handleProxyResponse(result);
+        await handleProxyResponse(result);
 
         // Restore button
         if (buttonEl) {
@@ -7333,7 +7375,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
             })
         });
         var data = await resp.json();
-        handleProxyResponse(data);
+        await handleProxyResponse(data);
 
         if (spinner) spinner.style.display = 'none';
         if (rightPanel) rightPanel.setAttribute('open', '');
@@ -7439,7 +7481,7 @@ async function runWorkflowStep(skillSlug, stepIndex) {
         if (rightPanel) rightPanel.setAttribute('open', '');
         setWfStepStatus(skillSlug, stepIndex, 'error');
         if (statusBadge) { statusBadge.textContent = 'Error'; statusBadge.className = 'response-status-badge status-5xx'; }
-        if (responseBodyEl) responseBodyEl.textContent = 'Cannot reach proxy at ' + PROXY_URL + '.';
+        if (responseBodyEl) responseBodyEl.textContent = 'Unable to connect to the server. Please check your network connection and try again.';
     }
 }
 
@@ -8055,6 +8097,14 @@ function toggleParamDescription(button) {
 // Sort Modal Functionality
 // ============================================================================
 
+function getSortDisplayLabel(sortBy, filterType) {
+    if (sortBy === 'count') {
+        var countLabels = { api: 'Endpoints', mcp: 'Tools', skill: 'Steps', terraform: 'Docs' };
+        return countLabels[filterType] || 'Count';
+    }
+    return sortBy === 'name' ? 'Name' : 'Type';
+}
+
 (function() {
     const sortBtn = document.querySelector('.sort-btn');
     const sortModal = document.getElementById('sortModal');
@@ -8084,7 +8134,43 @@ function toggleParamDescription(button) {
         const direction = sortDirectionSelect.value;
 
         sortCatalog(sortBy, direction);
+        updateSortIndicator(sortBy);
         sortModal.style.display = 'none';
+    });
+
+    function getActiveFilterType() {
+        var activeTab = document.querySelector('.hero-tab.active');
+        return activeTab ? activeTab.dataset.filter : 'all';
+    }
+
+    function updateSortIndicator(sortBy) {
+        var indicator = document.getElementById('sortIndicator');
+        var label = document.getElementById('sortLabel');
+        if (!indicator || !label) return;
+
+        var filterType = getActiveFilterType();
+        label.textContent = getSortDisplayLabel(sortBy, filterType);
+        indicator.style.display = 'inline';
+    }
+
+    function resetSort() {
+        var indicator = document.getElementById('sortIndicator');
+        if (indicator) indicator.style.display = 'none';
+        sortBySelect.value = 'name';
+        sortDirectionSelect.value = 'asc';
+    }
+
+
+    // Listen for filter changes (hero tab clicks)
+    document.querySelectorAll('.hero-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            resetSort();
+            var filterType = tab.dataset.filter || 'all';
+            var typeOption = sortBySelect.querySelector('option[value="type"]');
+            if (typeOption) {
+                typeOption.disabled = filterType !== 'all';
+            }
+        });
     });
 
     function sortCatalog(sortBy, direction) {
@@ -8115,8 +8201,7 @@ function toggleParamDescription(button) {
                 const aName = a.getAttribute('data-name') || '';
                 const bName = b.getAttribute('data-name') || '';
                 return aName.localeCompare(bName);
-            } else if (sortBy === 'endpoints') {
-                // Extract count from the badge text (endpoints for APIs, steps for Skills)
+            } else if (sortBy === 'count') {
                 const aCard = a.querySelector('.badge-count');
                 const bCard = b.querySelector('.badge-count');
 
@@ -8297,7 +8382,7 @@ function clearAllVariables(slug) {
     if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
     } else if (savedTheme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', 'light');
     }
     // Create and inject dark mode toggle button
     var toggleButton = document.createElement('button');
@@ -8327,11 +8412,7 @@ function clearAllVariables(slug) {
         var currentTheme = document.documentElement.getAttribute('data-theme');
         var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-        if (newTheme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
+        document.documentElement.setAttribute('data-theme', newTheme);
 
         localStorage.setItem('theme', newTheme);
         updateToggleButton();
@@ -8355,11 +8436,7 @@ function clearAllVariables(slug) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
             // Only auto-switch if user hasn't manually set a preference
             if (!localStorage.getItem('theme')) {
-                if (e.matches) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                }
+                document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
                 updateToggleButton();
                 updateAllAceEditors();
             }
@@ -8450,14 +8527,31 @@ function clearTerraformSidebarSearch() {
 }
 
 function wrapTerraformCodeBlocks() {
-    document.querySelectorAll('.terraform-view-markdown pre').forEach(function(pre) {
-        if (pre.parentElement.classList.contains('terraform-code-wrapper')) return;
+    wrapCodeBlocksWithCopyHeader('.terraform-view-markdown pre');
+}
+
+function wrapSkillCodeBlocks() {
+    wrapCodeBlocksWithCopyHeader('.step-prose pre');
+    wrapCodeBlocksWithCopyHeader('.skill-view-markdown pre');
+    wrapCodeBlocksWithCopyHeader('.skill-prose-content pre');
+}
+
+function wrapMcpCodeBlocks() {
+    // MCP config blocks already have their own copy button inside `.mcp-config-block`,
+    // so only the install pre gets the unified wrapper.
+    wrapCodeBlocksWithCopyHeader('pre.mcp-install-command');
+}
+
+function wrapCodeBlocksWithCopyHeader(selector) {
+    document.querySelectorAll(selector).forEach(function(pre) {
+        if (pre.parentElement.classList.contains('code-block-wrapper')) return;
+        if (pre.querySelector('code.language-mermaid')) return;
         var wrapper = document.createElement('div');
-        wrapper.className = 'terraform-code-wrapper';
+        wrapper.className = 'code-block-wrapper';
         var header = document.createElement('div');
-        header.className = 'terraform-code-header';
+        header.className = 'code-block-header';
         var btn = document.createElement('button');
-        btn.className = 'terraform-btn-copy';
+        btn.className = 'code-block-copy-btn';
         btn.onclick = function() { copyTerraformCode(btn); };
         btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         header.appendChild(btn);
@@ -8468,7 +8562,7 @@ function wrapTerraformCodeBlocks() {
 }
 
 function copyTerraformCode(button) {
-    var wrapper = button.closest('.terraform-code-wrapper');
+    var wrapper = button.closest('.code-block-wrapper');
     if (!wrapper) return;
     var code = wrapper.querySelector('pre code') || wrapper.querySelector('pre');
     var text = code.textContent || code.innerText;
@@ -8604,3 +8698,34 @@ function copyToClipboard(text, buttonEl) {
     });
 }
 
+
+function downloadSkillZip(skillRelPath, slug) {
+    var basePath = '../skills/' + skillRelPath + '/';
+    fetch(basePath + 'manifest.json')
+        .then(function(r) { return r.json(); })
+        .then(function(manifest) {
+            var zip = new JSZip();
+            var fetches = manifest.files.map(function(file) {
+                return fetch(basePath + file)
+                    .then(function(r) { return r.blob(); })
+                    .then(function(blob) { zip.file(file, blob); });
+            });
+            return Promise.all(fetches).then(function() { return zip; });
+        })
+        .then(function(zip) {
+            return zip.generateAsync({ type: 'blob' });
+        })
+        .then(function(blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = slug + '.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        })
+        .catch(function(err) {
+            console.error('Failed to download skill:', err);
+            alert('Download failed. Please try again.');
+        });
+}

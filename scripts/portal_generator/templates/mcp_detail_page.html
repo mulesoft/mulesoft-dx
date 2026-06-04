@@ -9,12 +9,14 @@
 {% block body_attrs %} class="detail-page mcp-detail-page"{% endblock %}
 
 {% block head_scripts %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
-<script src="../assets/jsonpath-plus.min.js" defer></script>
-<script src="../assets/portal.js" defer></script>
+{% include "partials/prism_head.html" %}
+<script src="{{ jsonpath_js_path }}" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof wrapMcpCodeBlocks === 'function') wrapMcpCodeBlocks();
+});
+</script>
 {% endblock %}
 
 {% block header %}
@@ -41,10 +43,11 @@
         {% include "mcp/overview.html" %}
 
         {% set interactive = not is_local_mcp %}
+        {% set primary_url = mcp.servers[0].url if mcp.servers else '' %}
         {% if mcp.tools %}
         <div id="mcp-tools-section">
             {% for tool in mcp.tools %}
-                {{ render_tool(tool, icons_path, interactive=interactive) }}
+                {{ render_tool(tool, icons_path, interactive=interactive, server_url=primary_url) }}
             {% endfor %}
         </div>
         {% endif %}
@@ -52,7 +55,7 @@
         {% if mcp.prompts %}
         <div id="mcp-prompts-section">
             {% for prompt in mcp.prompts %}
-                {{ render_prompt(prompt, icons_path, interactive=interactive) }}
+                {{ render_prompt(prompt, icons_path, interactive=interactive, server_url=primary_url) }}
             {% endfor %}
         </div>
         {% endif %}
@@ -60,7 +63,7 @@
         {% if mcp.resources %}
         <div id="mcp-resources-section">
             {% for resource in mcp.resources %}
-                {{ render_resource(resource, resource._index, icons_path, interactive=interactive) }}
+                {{ render_resource(resource, resource._index, icons_path, interactive=interactive, server_url=primary_url) }}
             {% endfor %}
         </div>
         {% endif %}
@@ -68,7 +71,7 @@
         {% if mcp.resource_templates %}
         <div id="mcp-resource-templates-section">
             {% for template in mcp.resource_templates %}
-                {{ render_resource_template(template, loop.index0, icons_path, interactive=interactive) }}
+                {{ render_resource_template(template, loop.index0, icons_path, interactive=interactive, server_url=primary_url) }}
             {% endfor %}
         </div>
         {% endif %}

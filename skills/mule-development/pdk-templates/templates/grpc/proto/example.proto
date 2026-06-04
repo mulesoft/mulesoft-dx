@@ -1,0 +1,14 @@
+// Copyright 2023 Salesforce, Inc. All rights reserved.
+syntax = "proto3";
+
+service ExampleService {
+  rpc ExampleMethod (ExampleRequest) returns (ExampleResponse);
+}
+
+message ExampleRequest {
+  string request = 1;
+}
+
+message ExampleResponse {
+  string response = 1;
+}

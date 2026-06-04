@@ -15,6 +15,7 @@ from portal_generator.parsers.oas_parser import (
     parse_oas,
     load_example_content,
     _convert_to_plain,
+    _resolve_component_refs,
 )
 
 
@@ -825,6 +826,163 @@ class TestParseOas:
 
         result = parse_oas(spec_file)
         assert 'bearerAuth' in result['security_schemes']
+
+    def test_external_ref_in_security_schemes(self, tmp_path):
+        """securitySchemes using $ref to an external fragment file must resolve."""
+        import textwrap
+        fragment_dir = tmp_path / 'fragments'
+        fragment_dir.mkdir()
+        (fragment_dir / 'auth.yaml').write_text(textwrap.dedent("""\
+            components:
+              securitySchemes:
+                bearerAuth:
+                  type: http
+                  scheme: bearer
+                  bearerFormat: JWT
+                  description: Bearer auth
+        """))
+        spec_file = tmp_path / 'apis' / 'my-api' / 'api.yaml'
+        spec_file.parent.mkdir(parents=True)
+        spec_file.write_text(textwrap.dedent("""\
+            openapi: 3.0.3
+            info:
+              title: Fragment Test API
+              version: 1.0.0
+              description: Tests external $ref in securitySchemes.
+            paths:
+              /items:
+                get:
+                  operationId: listItems
+                  responses:
+                    '200':
+                      description: OK
+            components:
+              securitySchemes:
+                bearerAuth:
+                  $ref: ../../fragments/auth.yaml#/components/securitySchemes/bearerAuth
+            security:
+              - bearerAuth: []
+        """))
+        result = parse_oas(spec_file)
+        assert result is not None
+        assert 'bearerAuth' in result['security_schemes']
+        assert result['security_schemes']['bearerAuth']['type'] == 'http'
+        assert result['security_schemes']['bearerAuth']['scheme'] == 'bearer'
+
+    def test_external_ref_in_parameters(self, tmp_path):
+        """Parameters using $ref to an external fragment file must resolve
+        so that operations referencing them get the full parameter details."""
+        import textwrap
+        fragment_dir = tmp_path / 'fragments'
+        fragment_dir.mkdir()
+        (fragment_dir / 'shared.yaml').write_text(textwrap.dedent("""\
+            components:
+              parameters:
+                orgId:
+                  name: organizationId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                  x-origin:
+                    - api: urn:api:access-management
+                      operation: listMe
+                      values: $.user.organization.id
+                  description: The org ID.
+        """))
+        spec_file = tmp_path / 'apis' / 'my-api' / 'api.yaml'
+        spec_file.parent.mkdir(parents=True)
+        spec_file.write_text(textwrap.dedent("""\
+            openapi: 3.0.3
+            info:
+              title: Fragment Params API
+              version: 1.0.0
+              description: Tests external $ref in parameters.
+            paths:
+              /orgs/{organizationId}/items:
+                get:
+                  operationId: listItems
+                  parameters:
+                    - $ref: '#/components/parameters/orgId'
+                  responses:
+                    '200':
+                      description: OK
+            components:
+              parameters:
+                orgId:
+                  $ref: ../../fragments/shared.yaml#/components/parameters/orgId
+        """))
+        result = parse_oas(spec_file)
+        assert result is not None
+        ops = result['operations']
+        assert len(ops) == 1
+        param = ops[0]['parameters'][0]
+        assert param['name'] == 'organizationId'
+        assert param['in'] == 'path'
+        assert param['x-origin'] is not None
+        assert param['x-origin'][0]['api'] == 'urn:api:access-management'
+
+
+# ============================================================================
+# _resolve_component_refs
+# ============================================================================
+
+class TestResolveComponentRefs:
+    def test_resolves_external_ref_in_parameters(self, tmp_path):
+        (tmp_path / 'fragment.yaml').write_text(
+            'components:\n  parameters:\n    orgId:\n      name: orgId\n      in: path\n'
+        )
+        components = {
+            'parameters': {
+                'orgId': {'$ref': 'fragment.yaml#/components/parameters/orgId'},
+            }
+        }
+        result = _resolve_component_refs(components, tmp_path)
+        assert result['parameters']['orgId']['name'] == 'orgId'
+        assert result['parameters']['orgId']['in'] == 'path'
+
+    def test_resolves_external_ref_in_security_schemes(self, tmp_path):
+        (tmp_path / 'auth.yaml').write_text(
+            'components:\n  securitySchemes:\n    bearer:\n      type: http\n      scheme: bearer\n'
+        )
+        components = {
+            'securitySchemes': {
+                'bearer': {'$ref': 'auth.yaml#/components/securitySchemes/bearer'},
+            }
+        }
+        result = _resolve_component_refs(components, tmp_path)
+        assert result['securitySchemes']['bearer']['type'] == 'http'
+
+    def test_leaves_internal_refs_untouched(self, tmp_path):
+        components = {
+            'schemas': {
+                'Pet': {'$ref': '#/components/schemas/BasePet'},
+            }
+        }
+        result = _resolve_component_refs(components, tmp_path)
+        assert result['schemas']['Pet'] == {'$ref': '#/components/schemas/BasePet'}
+
+    def test_leaves_inline_definitions_untouched(self, tmp_path):
+        components = {
+            'parameters': {
+                'limit': {'name': 'limit', 'in': 'query', 'schema': {'type': 'integer'}},
+            }
+        }
+        result = _resolve_component_refs(components, tmp_path)
+        assert result['parameters']['limit']['name'] == 'limit'
+
+    def test_missing_file_leaves_ref_intact(self, tmp_path):
+        components = {
+            'parameters': {
+                'orgId': {'$ref': 'nonexistent.yaml#/components/parameters/orgId'},
+            }
+        }
+        result = _resolve_component_refs(components, tmp_path)
+        assert '$ref' in result['parameters']['orgId']
+
+    def test_non_dict_components_passthrough(self, tmp_path):
+        assert _resolve_component_refs(None, tmp_path) is None
+        assert _resolve_component_refs('not a dict', tmp_path) == 'not a dict'
 
 
 # ============================================================================

@@ -2,7 +2,7 @@
 
 {{ skill.description }}
 
-{% if skill.api_refs %}- **APIs:** {% for ref in skill.api_refs %}[{{ ref }}]({{ base_url }}/apis/{{ ref }}.md){% if not loop.last %}, {% endif %}{% endfor %}
+{% set public_refs = skill.api_refs|reject('in', private_api_slugs|default([]))|list %}{% if public_refs %}- **APIs:** {% for ref in public_refs %}[{{ ref }}]({{ base_url }}/apis/{{ ref }}.md){% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}
 {% if skill.mcp_refs %}- **MCP Servers:** {% for ref in skill.mcp_refs %}[{{ ref }}]({{ base_url }}/mcps/{{ ref }}.md){% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}

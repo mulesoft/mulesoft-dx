@@ -603,65 +603,14 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   parameters:
     XOrigin_organizationId_Path:
-      name: organizationId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
-      description: The organization ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_environmentId_Path:
-      name: environmentId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
-      description: The environment ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path
     XOrigin_storeId_Path:
       name: storeId
       required: true

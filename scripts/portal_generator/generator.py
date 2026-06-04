@@ -5,7 +5,9 @@ Coordinates discovery, rendering, and file output to produce the complete portal
 """
 
 import json
+import os
 import shutil
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List
 
@@ -14,6 +16,32 @@ from .builders.tree_builder import build_operation_tree
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
+from .utils import hash_asset_filename
+
+_SKILL_SKIP_DIRS = {'node_modules', '__pycache__', '.git', '.sdd'}
+_SKILL_SKIP_FILES = {'.DS_Store'}
+_SKILL_SKIP_EXTS = {'.pyc'}
+
+
+def _generate_skill_manifest(source_dir: Path, output_dir: Path) -> None:
+    """Generate manifest.json listing skill files and copy them to output."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+    for f in sorted(source_dir.rglob('*')):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(source_dir)
+        if any(part in _SKILL_SKIP_DIRS for part in rel.parts):
+            continue
+        if f.name in _SKILL_SKIP_FILES or f.suffix in _SKILL_SKIP_EXTS:
+            continue
+        files.append(str(rel))
+        dest = output_dir / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, dest)
+    manifest = {'files': files}
+    with open(output_dir / 'manifest.json', 'w', encoding='utf-8') as mf:
+        json.dump(manifest, mf)
 
 
 def _build_api_meta(api: Dict) -> Dict:
@@ -108,12 +136,125 @@ def _prepare_operations(apis: List[Dict]):
             op['_example_body'] = _get_example_body(op)
 
 
+def _render_api_page(args: Dict) -> None:
+    """Worker: render a single API detail page (runs in subprocess)."""
+    env = create_env()
+    template = env.get_template('detail_page.html')
+    api = args['api']
+    operation_tree = build_operation_tree(api['operations'])
+    html = template.render(
+        **args['asset_paths'],
+        api=api,
+        api_meta=_build_api_meta(api),
+        op_lookup=args['op_lookup'],
+        operation_tree=operation_tree,
+        proxy_url=args['proxy_url'],
+        build_label=args['build_label'],
+        base_url=args['base_url'],
+        chrome=args['chrome'],
+        repo_url=args['repo_url'],
+        repo_branch=args['repo_branch'],
+        source_path=f"apis/{api['slug']}/api.yaml",
+        asset_type='api',
+        asset_name=api.get('name', api['slug']),
+    )
+    Path(args['output_path']).write_text(html, encoding='utf-8')
+
+
+def _render_mcp_page(args: Dict) -> None:
+    """Worker: render a single MCP detail page (runs in subprocess)."""
+    env = create_env()
+    template = env.get_template('mcp_detail_page.html')
+    mcp = args['mcp']
+
+    mcp_meta = args['mcp_meta']
+    html = template.render(
+        **args['asset_paths'],
+        mcp=mcp,
+        mcp_meta=mcp_meta,
+        op_lookup=args['op_lookup'],
+        mcp_lookup=args['mcp_lookup'],
+        proxy_url=args['proxy_url'],
+        build_label=args['build_label'],
+        base_url=args['base_url'],
+        chrome=args['chrome'],
+        repo_url=args['repo_url'],
+        repo_branch=args['repo_branch'],
+        source_path=f"mcps/{mcp['slug']}/mcp.yaml",
+        asset_type='mcp',
+        asset_name=mcp.get('name', mcp['slug']),
+    )
+    Path(args['output_path']).write_text(html, encoding='utf-8')
+
+
+def _render_skill_page(args: Dict) -> None:
+    """Worker: render a single skill page (runs in subprocess)."""
+    env = create_env()
+    template = env.get_template('skill_page.html')
+    skill = args['skill']
+    skill_name = _skill_title(skill.get('name', skill['slug']))
+
+    html = template.render(
+        **args['asset_paths'],
+        skill=skill,
+        skill_name=skill_name,
+        api_meta=args['api_meta'],
+        op_lookup=args['op_lookup'],
+        api_link_prefix='../apis/',
+        private_api_slugs=args['private_api_slugs'],
+        linked_apis=args['linked_apis'],
+        proxy_url=args['proxy_url'],
+        build_label=args['build_label'],
+        base_url=args['base_url'],
+        prose_only=args['prose_only'],
+        chrome=args['chrome'],
+        repo_url=args['repo_url'],
+        repo_branch=args['repo_branch'],
+        source_path=f"skills/{skill.get('skill_rel_path', skill['slug'])}/SKILL.md",
+        asset_type='skill',
+        asset_name=skill_name,
+    )
+    Path(args['output_path']).write_text(html, encoding='utf-8')
+
+    # Generate manifest
+    if args.get('skill_source_dir'):
+        source_dir = Path(args['skill_source_dir'])
+        manifest_output_dir = Path(args['manifest_output_dir'])
+        if source_dir.is_dir():
+            _generate_skill_manifest(source_dir, manifest_output_dir)
+
+
+def _render_terraform_page(args: Dict) -> None:
+    """Worker: render a single Terraform provider page (runs in subprocess)."""
+    env = create_env()
+    template = env.get_template('terraform_page.html')
+    provider = args['provider']
+
+    html = template.render(
+        **args['asset_paths'],
+        provider=provider,
+        nav_tree=provider['nav_tree'],
+        nav_tree_by_type=provider['nav_tree_by_type'],
+        home_link='../index.html',
+        build_label=args['build_label'],
+        base_url=args['base_url'],
+        chrome=args.get('chrome'),
+        repo_url=args.get('repo_url', ''),
+        repo_branch=args.get('repo_branch', ''),
+        source_path=args.get('source_path', ''),
+        asset_type='terraform',
+        asset_name=provider['name'],
+    )
+    Path(args['output_path']).write_text(html, encoding='utf-8')
+
+
 class PortalGenerator:
     REPO_URL = 'https://github.com/mulesoft/anypoint-public-api-specs'
     REPO_BRANCH = 'master'
 
     def __init__(self, output_dir: Path, proxy_url: str = 'http://localhost:8080/proxy',
-                 build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com'):
+                 build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com',
+                 workers: int = 0):
         self.output_dir = output_dir
         self.proxy_url = proxy_url
         self.build_label = build_label
@@ -128,6 +269,7 @@ class PortalGenerator:
         self.terraform_providers = []
         self.repo_root = None
         self.chrome = None
+        self.workers = workers if workers > 0 else os.cpu_count() or 4
 
     def generate(self, repo_root: Path):
         """Generate the complete portal"""
@@ -190,6 +332,14 @@ class PortalGenerator:
                 shutil.rmtree(target)
             target.mkdir(parents=True, exist_ok=True)
 
+        # Copy fragments directory so that $ref links in api.yaml resolve correctly
+        source_fragments = self.repo_root / 'fragments'
+        if source_fragments.is_dir():
+            dest_fragments = self.output_dir / 'fragments'
+            if dest_fragments.exists():
+                shutil.rmtree(dest_fragments)
+            shutil.copytree(source_fragments, dest_fragments)
+
         # Fetch MuleSoft header and footer
         print(f"\n🌐 Fetching MuleSoft header and footer...")
         try:
@@ -204,20 +354,17 @@ class PortalGenerator:
             }
 
         # Generate files
-        print(f"\n📝 Generating portal files...")
+        print(f"\n📝 Generating portal files (workers={self.workers})...")
+        self._css_filename = self._generate_css()
+        self._js_filename, self._jsonpath_filename = self._generate_js()
         self._generate_homepage()
-        self._generate_detail_pages()
-        self._generate_mcp_detail_pages()
-        self._generate_skill_pages()
-        self._generate_terraform_pages()
+        self._generate_detail_pages_parallel()
         self._generate_registry()
         self._generate_schemas()
         self._generate_agents_md()
         self._generate_llms_txt()
         self._generate_markdown_pages()
         self._generate_headers()
-        self._generate_css()
-        self._generate_js()
         self._copy_images()
 
         print("\n" + "=" * 60)
@@ -226,6 +373,16 @@ class PortalGenerator:
         print(f"🌐 Open: {self.output_dir}/index.html")
         print(f"📋 Registry: {self.output_dir}/registry.json")
         print(f"🤖 Agent guide: {self.output_dir}/AGENTS.md")
+
+    def _asset_paths(self, depth: int = 1) -> dict:
+        """Return template variables for hashed asset paths at the given directory depth."""
+        prefix = '../' * depth if depth > 0 else ''
+        return {
+            'css_path': f"{prefix}assets/{self._css_filename}",
+            'icons_path': f"{prefix}assets/icons",
+            'portal_js_path': f"{prefix}assets/{self._js_filename}",
+            'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
+        }
 
     def _generate_homepage(self):
         """Generate index.html"""
@@ -260,8 +417,7 @@ class PortalGenerator:
         all_items.sort(key=lambda x: x.get('name', '').lower())
 
         html = template.render(
-            css_path='assets/styles.css',
-            icons_path='assets/icons',
+            **self._asset_paths(0),
             apis=self.public_apis,
             mcp_servers=self.public_mcps,
             stats=self.stats,
@@ -310,8 +466,142 @@ class PortalGenerator:
             lookup[api['slug']] = {'ops': ops, 'servers': servers}
         return lookup
 
+    def _generate_detail_pages_parallel(self):
+        """Generate all detail pages (APIs, MCPs, skills, terraform) in parallel."""
+        op_lookup = self._build_operation_lookup()
+        mcp_lookup = self._build_mcp_lookup()
+        chrome = ({'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')}
+                  if self.chrome else None)
+
+        tasks = []
+
+        # API detail pages
+        print(f"  ✓ Queuing {len(self.public_apis)} API detail pages...")
+        for api in self.public_apis:
+            tasks.append((_render_api_page, {
+                'api': api,
+                'op_lookup': op_lookup,
+                'proxy_url': self.proxy_url,
+                'build_label': self.build_label,
+                'base_url': self.base_url,
+                'chrome': chrome,
+                'repo_url': self.REPO_URL,
+                'repo_branch': self.REPO_BRANCH,
+                'asset_paths': self._asset_paths(1),
+                'output_path': str(self.output_dir / 'apis' / f"{api['slug']}.html"),
+            }))
+
+        # MCP detail pages
+        if self.public_mcps:
+            print(f"  ✓ Queuing {len(self.public_mcps)} MCP detail pages...")
+            for mcp in self.public_mcps:
+                api_refs = mcp.get('xorigin_api_refs', set())
+                mcp_refs = mcp.get('xorigin_mcp_refs', set())
+                scoped_op_lookup = {s: op_lookup[s] for s in api_refs if s in op_lookup}
+                scoped_mcp_lookup = {s: mcp_lookup[s] for s in mcp_refs if s in mcp_lookup}
+
+                tasks.append((_render_mcp_page, {
+                    'mcp': mcp,
+                    'mcp_meta': self._build_mcp_meta(mcp),
+                    'op_lookup': scoped_op_lookup,
+                    'mcp_lookup': scoped_mcp_lookup,
+                    'proxy_url': self.proxy_url,
+                    'build_label': self.build_label,
+                    'base_url': self.base_url,
+                    'chrome': chrome,
+                    'repo_url': self.REPO_URL,
+                    'repo_branch': self.REPO_BRANCH,
+                    'asset_paths': self._asset_paths(1),
+                    'output_path': str(self.output_dir / 'mcps' / f"{mcp['slug']}.html"),
+                }))
+
+        # Skill pages
+        print(f"  ✓ Queuing {len(self.all_skills)} skill pages...")
+        api_by_slug = {api['slug']: api for api in self.apis}
+        private_api_slugs = {api['slug'] for api in self.apis if api.get('private')}
+
+        for skill in self.all_skills:
+            api_refs = skill.get('api_refs', [])
+            scoped_op_lookup = {slug: op_lookup[slug] for slug in api_refs if slug in op_lookup}
+            first_api = api_by_slug.get(api_refs[0]) if api_refs else None
+            api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
+
+            skill_type = skill.get('skill_type')
+            if skill_type:
+                prose_only = (skill_type == 'prose')
+            else:
+                has_api_steps = any(
+                    s.get('yaml') and s['yaml'].get('api')
+                    for s in skill.get('step_details', [])
+                )
+                prose_only = not has_api_steps
+
+            linked_apis = []
+            for api_slug in api_refs:
+                if api_slug in api_by_slug:
+                    api_data = api_by_slug[api_slug]
+                    linked_apis.append({
+                        'name': api_data.get('name', ''),
+                        'slug': api_slug,
+                        'operation_count': len(api_data.get('operations', [])),
+                        'private': api_data.get('private', False)
+                    })
+
+            skill_rel = skill.get('skill_rel_path', skill['slug'])
+            skill_source_dir = self.repo_root / 'skills' / skill_rel
+            tasks.append((_render_skill_page, {
+                'skill': skill,
+                'api_meta': api_meta,
+                'op_lookup': scoped_op_lookup,
+                'private_api_slugs': private_api_slugs,
+                'linked_apis': linked_apis,
+                'proxy_url': self.proxy_url,
+                'build_label': self.build_label,
+                'base_url': self.base_url,
+                'prose_only': prose_only,
+                'chrome': chrome,
+                'repo_url': self.REPO_URL,
+                'repo_branch': self.REPO_BRANCH,
+                'asset_paths': self._asset_paths(1),
+                'output_path': str(self.output_dir / 'skills' / f"{skill['slug']}.html"),
+                'skill_source_dir': str(skill_source_dir) if skill_source_dir.is_dir() else None,
+                'manifest_output_dir': str(self.output_dir / 'skills' / skill_rel),
+            }))
+
+        # Terraform pages
+        if self.terraform_providers:
+            total_docs = sum(p['doc_count'] for p in self.terraform_providers)
+            print(f"  ✓ Queuing {len(self.terraform_providers)} Terraform provider page(s) ({total_docs} docs)...")
+            for provider in self.terraform_providers:
+                tasks.append((_render_terraform_page, {
+                    'provider': provider,
+                    'build_label': self.build_label,
+                    'base_url': self.base_url,
+                    'output_path': str(self.output_dir / 'terraform' / f"{provider['slug']}.html"),
+                    'chrome': {'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')} if self.chrome else None,
+                    'repo_url': self.REPO_URL,
+                    'repo_branch': self.REPO_BRANCH,
+                    'asset_paths': self._asset_paths(1),
+                    'source_path': f"terraform/{provider['slug']}",
+                }))
+
+        # Execute all tasks in parallel
+        total = len(tasks)
+        print(f"  ⚡ Rendering {total} pages across {self.workers} workers...")
+        with ProcessPoolExecutor(max_workers=self.workers) as executor:
+            futures = {executor.submit(fn, args): args.get('output_path', '') for fn, args in tasks}
+            done = 0
+            for future in as_completed(futures):
+                done += 1
+                exc = future.exception()
+                if exc:
+                    path = futures[future]
+                    print(f"    ❌ Error rendering {path}: {exc}")
+                    raise exc
+        print(f"  ✓ All {total} pages rendered.")
+
     def _generate_detail_pages(self):
-        """Generate individual API pages (public APIs only)"""
+        """Generate individual API pages (public APIs only) - sequential fallback."""
         print(f"  ✓ Generating {len(self.public_apis)} API detail pages...")
 
         op_lookup = self._build_operation_lookup()
@@ -321,8 +611,7 @@ class PortalGenerator:
             api_meta = _build_api_meta(api)
             operation_tree = build_operation_tree(api['operations'])
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 api=api,
                 api_meta=api_meta,
                 op_lookup=op_lookup,
@@ -362,16 +651,9 @@ class PortalGenerator:
                     'description': str(scheme.get('description', '')),
                 }
 
-        transport = mcp.get('transport') or {}
         return {
             'slug': mcp.get('slug', ''),
             'servers': servers,
-            'transport': {
-                'kind': str(transport.get('kind', '')),
-                'path': str(transport.get('path', '')),
-                'ssePath': str(transport.get('sse_path', '')),
-                'messagesPath': str(transport.get('messages_path', '')),
-            },
             'securitySchemes': security_schemes,
             'tools': mcp.get('tools', []),
             'prompts': mcp.get('prompts', []),
@@ -393,17 +675,12 @@ class PortalGenerator:
                         'inputSchema': tool.get('inputSchema', {}),
                         'description': tool.get('description', ''),
                     }
-            transport = mcp.get('transport') or {}
             lookup[mcp['slug']] = {
                 'tools': tools,
                 'servers': [
                     {'url': s.get('url', ''), 'variables': s.get('variables', {})}
                     for s in mcp.get('servers', []) if isinstance(s, dict)
                 ],
-                'transport': {
-                    'kind': str(transport.get('kind', '')),
-                    'path': str(transport.get('path', '')),
-                },
             }
         return lookup
 
@@ -426,8 +703,7 @@ class PortalGenerator:
             mcp_lookup = {s: full_mcp_lookup[s] for s in mcp_refs if s in full_mcp_lookup}
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 mcp=mcp,
                 mcp_meta=mcp_meta,
                 op_lookup=op_lookup,
@@ -468,11 +744,15 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
-            has_api_steps = any(
-                s.get('yaml') and s['yaml'].get('api')
-                for s in skill.get('step_details', [])
-            )
-            prose_only = not has_api_steps
+            skill_type = skill.get('skill_type')
+            if skill_type:
+                prose_only = (skill_type == 'prose')
+            else:
+                has_api_steps = any(
+                    s.get('yaml') and s['yaml'].get('api')
+                    for s in skill.get('step_details', [])
+                )
+                prose_only = not has_api_steps
 
             # Build linked APIs list for sidebar
             linked_apis = []
@@ -487,8 +767,7 @@ class PortalGenerator:
                     })
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 skill=skill,
                 skill_name=skill_name,
                 api_meta=api_meta,
@@ -510,6 +789,12 @@ class PortalGenerator:
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html)
+
+            # Generate manifest for on-demand ZIP download
+            skill_rel = skill.get('skill_rel_path', skill['slug'])
+            skill_source_dir = self.repo_root / 'skills' / skill_rel
+            if skill_source_dir.is_dir():
+                _generate_skill_manifest(skill_source_dir, self.output_dir / 'skills' / skill_rel)
 
     def _build_skill_preamble(self) -> str:
         """Build the agent-context directive injected after frontmatter in portal-output SKILL.md copies."""
@@ -541,8 +826,7 @@ class PortalGenerator:
             nav_tree_by_type = provider['nav_tree_by_type']
 
             html = template.render(
-                css_path='../assets/styles.css',
-                icons_path='../assets/icons',
+                **self._asset_paths(1),
                 provider=provider,
                 nav_tree=nav_tree,
                 nav_tree_by_type=nav_tree_by_type,
@@ -623,7 +907,7 @@ class PortalGenerator:
                 'name': mcp.get('name', ''),
                 'version': mcp.get('version', ''),
                 'description': mcp.get('description', ''),
-                'href': f"mcps/{slug}/mcp.yaml",
+                'href': f"mcps/{slug}/server.json",
                 'docs': f"mcps/{slug}.html",
                 'tool_count': mcp.get('tool_count', 0),
                 'resource_count': mcp.get('resource_count', 0),
@@ -780,8 +1064,9 @@ class PortalGenerator:
 
         # Skill pages
         skill_tmpl = self.env.get_template('markdown/skill_page.md.html')
+        private_slugs = {a['slug'] for a in self.apis if a.get('private')}
         for skill in self.all_skills:
-            md = skill_tmpl.render(base_url=self.base_url, skill=skill)
+            md = skill_tmpl.render(base_url=self.base_url, skill=skill, private_api_slugs=private_slugs)
             (self.output_dir / 'skills' / f"{skill['slug']}.md").write_text(md, encoding='utf-8')
             count += 1
 
@@ -835,22 +1120,31 @@ class PortalGenerator:
 """
         (self.output_dir / '_headers').write_text(headers, encoding='utf-8')
 
-    def _generate_css(self):
-        """Generate styles.css"""
+    def _generate_css(self) -> str:
+        """Generate styles.css with content-hashed filename."""
         print("  ✓ Generating CSS...")
-        output_path = self.output_dir / 'assets' / 'styles.css'
+        content = get_css()
+        hashed_name = hash_asset_filename('styles.css', content)
+        output_path = self.output_dir / 'assets' / hashed_name
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(get_css())
+            f.write(content)
+        return hashed_name
 
-    def _generate_js(self):
-        """Generate portal.js and jsonpath-plus library"""
+    def _generate_js(self) -> tuple:
+        """Generate portal.js and jsonpath-plus library with content-hashed filenames."""
         print("  ✓ Generating JavaScript...")
-        output_path = self.output_dir / 'assets' / 'portal.js'
+        js_content = get_js()
+        js_name = hash_asset_filename('portal.js', js_content)
+        output_path = self.output_dir / 'assets' / js_name
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(get_js())
-        jsonpath_path = self.output_dir / 'assets' / 'jsonpath-plus.min.js'
+            f.write(js_content)
+
+        jsonpath_content = get_jsonpath_js()
+        jsonpath_name = hash_asset_filename('jsonpath-plus.min.js', jsonpath_content)
+        jsonpath_path = self.output_dir / 'assets' / jsonpath_name
         with open(jsonpath_path, 'w', encoding='utf-8') as f:
-            f.write(get_jsonpath_js())
+            f.write(jsonpath_content)
+        return (js_name, jsonpath_name)
 
     def _copy_images(self):
         

@@ -2738,21 +2738,9 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   requestBodies:
     EgressRuleGroupPayload:
       content:
@@ -4664,35 +4652,7 @@ components:
           type: boolean
   parameters:
     XOrigin_organizationId_Path:
-      name: organizationId
-      description: The Organization id where the Private Space lives.
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_privateSpaceId_Path:
       name: privateSpaceId
       required: true
@@ -4707,18 +4667,7 @@ components:
         labels: $.name
       description: The privateSpace ID to identify the target resource.
     XOrigin_connectionId_Path:
-      name: connectionId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:cloudhub-20
-        operation: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
-        description: GET `/organizations/{organizationId}/privatespaces/{privateSpaceId}/connections` in this API; use `id` values as `connectionId`.
-        values: $.id
-        labels: $.name
-      description: The connection ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/connectionId_Path
     XOrigin_tgwId_Path:
       name: tgwId
       required: true
@@ -4733,35 +4682,7 @@ components:
         labels: $.name
       description: The tgw ID to identify the target resource.
     XOrigin_networkOrganizationId_Path:
-      name: organizationId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
-      description: The organization ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_attachmentTgwId_Path:
       name: tgwId
       required: true
@@ -4776,32 +4697,4 @@ components:
         labels: $.name
       description: The tgw ID to identify the target resource.
     XOrigin_vpnOrganizationId_Path:
-      name: organizationId
-      description: The Organization id where the Cloudhub VPC lives
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path

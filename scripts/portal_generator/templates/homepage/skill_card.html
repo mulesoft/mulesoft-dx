@@ -20,7 +20,7 @@
             <span class="list-endpoints-text">—</span>
         </div>
         <div class="catalog-card-meta">
-            {% if skill.step_count|default(0) > 0 %}
+            {% if skill.skill_type != 'prose' and skill.step_count|default(0) > 0 %}
             <span class="list-meta-text">{{ skill.step_count }}</span>
             {% else %}
             <span class="list-meta-text">—</span>
@@ -28,7 +28,7 @@
         </div>
         <div class="catalog-card-footer">
             <span class="badge badge-skills">Skill</span>
-            {% if skill.step_count|default(0) > 0 %}
+            {% if skill.skill_type != 'prose' and skill.step_count|default(0) > 0 %}
             <span class="badge badge-count">{{ skill.step_count }} step{{ 's' if skill.step_count != 1 else '' }}</span>
             {% endif %}
         </div>

@@ -4732,21 +4732,9 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   requestBodies:
     Generated:
       content:
@@ -4780,62 +4768,11 @@ components:
       description: Request payload for Generated4 operations.
   parameters:
     XOrigin_organizationId_Path:
-      name: organizationId
-      required: true
-      in: path
-      schema:
-        type: string
-        pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: 'Each element of **subOrganizationIds** in the same response is a child Business Group GUID; use as **organizationId** when APIs are scoped to that subgroup.'
-        values:
-          - $.id
-          - $.subOrganizationIds[*]
-        labels:
-          - $.name
-          - $.subOrganizationIds[*]  
-      description: The organization ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_environmentId_Query:
-      name: environmentId
-      required: true
-      in: query
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
-      description: The environment ID query parameter.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Query
     XOrigin_environmentId_Path:
-      name: environmentId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
-      description: The environment ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path
     XOrigin_apiId_Path:
       name: apiId
       required: true
@@ -4851,66 +4788,12 @@ components:
         values: $.id
       description: The api ID to identify the target resource.
     XOrigin_policyId_Path:
-      name: policyId
-      required: true
-      in: path
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 2147483647
-      x-origin:
-      - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
-        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies` in this API; use `id` values as `policyId`.
-        values: $.id
-      description: The policy ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/policyId_Path
     XOrigin_tierId_Path:
-      name: tierId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
-        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers` in this API; use `id` values as `tierId`.
-        values: $.id
-      description: The tier ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/tierId_Path
     XOrigin_contractId_Path:
-      name: contractId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContracts
-        description: GET `/organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts` in this API; use `id` values as `contractId`.
-        values: $.id
-      description: The contract ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/contractId_Path
     XOrigin_customPolicyTemplateId_Path:
-      name: customPolicyTemplateId
-      required: true
-      in: path
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 2147483647
-      x-origin:
-      - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidCustomPolicyTemplates
-        description: GET `/organizations/{organizationId}/custom-policy-templates` in this API; use `id` values as `customPolicyTemplateId`.
-        values: $.id
-      description: The customPolicyTemplate ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/customPolicyTemplateId_Path
     XOrigin_applicationId_Path:
-      name: applicationId
-      description: Could be an API Manager application ID or a Core Services client ID.
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidApplications
-        description: GET `/organizations/{organizationId}/applications` in this API; use `id` values as `applicationId`.
-        values: $.id
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/applicationId_Path

@@ -1253,7 +1253,7 @@ class TestBuildMcpLookup:
         assert 'searchAssets' in lookup['exchange']['tools']
         assert 'getAsset' in lookup['exchange']['tools']
         assert lookup['exchange']['tools']['searchAssets']['description'] == 'Search'
-        assert lookup['exchange']['transport'] == {'kind': 'streamableHttp', 'path': '/mcp'}
+        assert 'transport' not in lookup['exchange']
         assert len(lookup['exchange']['servers']) == 1
         assert lookup['exchange']['servers'][0]['url'] == 'https://anypoint.mulesoft.com/exchange'
 

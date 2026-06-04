@@ -284,6 +284,40 @@ PRIVATE_EXCHANGE_JSON = json.dumps({
 })
 
 
+PRIVATE_API_SKILL_MD = textwrap.dedent("""\
+    ---
+    name: mixed-api-skill
+    description: A skill referencing both public and private APIs.
+    ---
+    ## Overview
+    This skill uses both APIs.
+
+    ## Step 1: Public call
+    Call the public API.
+
+    ```yaml
+    api: urn:api:public-api
+    operation: listResources
+    inputs:
+      - name: limit
+        source: literal
+        value: "10"
+    ```
+
+    ## Step 2: Private call
+    Call the private API.
+
+    ```yaml
+    api: urn:api:private-api
+    operation: listResources
+    inputs:
+      - name: limit
+        source: literal
+        value: "5"
+    ```
+""")
+
+
 PROSE_ONLY_SKILL_MD = textwrap.dedent("""\
     ---
     name: platform-guide

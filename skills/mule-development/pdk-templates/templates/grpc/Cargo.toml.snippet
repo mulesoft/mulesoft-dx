@@ -1,0 +1,31 @@
+# Copyright 2023 Salesforce, Inc. All rights reserved.
+[package]
+name = "grpc"
+version = "1.0.0"
+rust-version = "1.87.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.anypoint]
+group_id = "43573332-0364-41f2-9486-d1248f3b4023"
+definition_asset_id = "grpc"
+implementation_asset_id = "grpc-flex"
+
+[dependencies]
+pdk = { version = "1.4.0", registry = "anypoint" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+anyhow = "1.0"
+protobuf = "3.5.0"
+
+[build-dependencies]
+protobuf-codegen = "3.5.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 'z'
+strip = "debuginfo"

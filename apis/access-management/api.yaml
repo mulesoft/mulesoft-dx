@@ -39308,18 +39308,7 @@ components:
           $ref: '#/components/schemas/uuid'
   parameters:
     XOrigin_clientId_Path:
-      name: clientId
-      required: true
-      in: path
-      schema:
-        type: string
-      description: The unique identifier of the client application.
-      x-origin:
-      - api: urn:api:access-management
-        operation: listClients
-        description: GET `/clients` in this API; use `id` values as `clientId`.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/clientId_Path
     XOrigin_roleId_Path:
       name: roleId
       required: true
@@ -39335,100 +39324,13 @@ components:
         values: $.id
         labels: $.name
     XOrigin_organizationId_Query:
-      name: organizationId
-      description: Provide an orgId to get all clients from other organization
-      in: query
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary
-          Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business
-          Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: Each element of **subOrganizationIds** in the same response is
-          a child Business Group GUID; use as **organizationId** when APIs are scoped
-          to that subgroup.
-        values:
-        - $.id
-        - $.subOrganizationIds[*]
-        labels:
-        - $.name
-        - $.subOrganizationIds[*]
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Query
     XOrigin_connectedApplicationClientId_Path:
-      name: clientId
-      required: true
-      in: path
-      schema:
-        type: string
-      description: The unique identifier of the client application.
-      x-origin:
-      - api: urn:api:access-management
-        operation: listConnectedApplications
-        description: GET `/connectedApplications` in this API; use `id` values as
-          `clientId`.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/clientId_Path
     XOrigin_environmentId_Path:
-      name: environmentId
-      description: The id of an environment
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each
-          `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/environmentId_Path
     XOrigin_organizationId_Path:
-      name: organizationId
-      description: The ID of the organization in GUID format
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary
-          Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business
-          Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: Each element of **subOrganizationIds** in the same response is
-          a child Business Group GUID; use as **organizationId** when APIs are scoped
-          to that subgroup.
-        values:
-        - $.id
-        - $.subOrganizationIds[*]
-        labels:
-        - $.name
-        - $.subOrganizationIds[*]
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
     XOrigin_clientProviderId_Path:
       name: clientProviderId
       required: true
@@ -39444,47 +39346,11 @@ components:
         values: $.data[*].providerId
         labels: $.data[*].name
     XOrigin_clientProviderClientId_Path:
-      name: clientId
-      required: true
-      in: path
-      schema:
-        type: string
-      description: The unique identifier of the client application.
-      x-origin:
-      - api: urn:api:access-management
-        operation: listClientProvidersClients
-        description: GET `/organizations/{organizationId}/clientProviders/{clientProviderId}/clients`
-          in this API; use `id` values as `clientId`.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/clientId_Path
     XOrigin_orgScopedClientId_Path:
-      name: clientId
-      required: true
-      in: path
-      schema:
-        type: string
-      description: The unique identifier of the client application.
-      x-origin:
-      - api: urn:api:access-management
-        operation: listOrganizationClients
-        description: GET `/organizations/{organizationId}/clients` in this API; use
-          `id` values as `clientId`.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/clientId_Path
     XOrigin_orgScopedConnectedApplicationClientId_Path:
-      name: clientId
-      required: true
-      in: path
-      schema:
-        type: string
-      description: The unique identifier of the client application.
-      x-origin:
-      - api: urn:api:access-management
-        operation: listOrganizationConnectedApplications
-        description: GET `/organizations/{organizationId}/connectedApplications` in
-          this API; use `id` values as `clientId`.
-        values: $.id
-        labels: $.name
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/clientId_Path
     XOrigin_identityProviderId_Path:
       name: identityProviderId
       required: true
@@ -39655,36 +39521,4 @@ components:
         values: $.id
         labels: $.name
     XOrigin_v2OrganizationId_Path:
-      name: organizationId
-      description: The id of the organization
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listMe
-        name: rootOrg
-        description: GET `/me`; use `user.organization.id` as the caller's primary
-          Business Group GUID.
-        values: $.user.organization.id
-        labels: $.user.organization.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: currentOrganization
-        description: GET `/organizations/{organizationId}`; use `id` as the Business
-          Group GUID for the current organization.
-        values: $.id
-        labels: $.name
-      - api: urn:api:access-management
-        operation: getOrganizations
-        name: subOrganizations
-        description: Each element of **subOrganizationIds** in the same response is
-          a child Business Group GUID; use as **organizationId** when APIs are scoped
-          to that subgroup.
-        values:
-        - $.id
-        - $.subOrganizationIds[*]
-        labels:
-        - $.name
-        - $.subOrganizationIds[*]
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path

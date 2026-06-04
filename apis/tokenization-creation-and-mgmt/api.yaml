@@ -1958,21 +1958,9 @@ paths:
 components:
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: 'Bearer token authentication. Login endpoint: https://anypoint.mulesoft.com/accounts/api/login
-
-        '
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
-      type: oauth2
-      description: 'OAuth2 client credentials. Token endpoint: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-
-        '
-      flows:
-        clientCredentials:
-          tokenUrl: https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token
-          scopes: {}
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
   schemas:
     formatRequest:
       x-amf-examples:
@@ -4452,28 +4440,6 @@ components:
           - type: 'null'
   parameters:
     XOrigin_envId_Path:
-      name: envId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:access-management
-        operation: listEnvironments
-        description: GET `/organizations/{organizationId}/environments`; use each `data[].id` value as an environment identifier.
-        values: $.data[*].id
-        labels: $.data[*].name
-      description: The env ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/envId_Path
     XOrigin_deploymentId_Path:
-      name: deploymentId
-      required: true
-      in: path
-      schema:
-        type: string
-      x-origin:
-      - api: urn:api:tokenization-creation-and-mgmt
-        operation: getEnvironmentsByEnvidDeployments
-        description: GET `/environments/{envId}/deployments` in this API; use `id` values as `deploymentId`.
-        values: $.id
-        labels: $.name
-      description: The deployment ID to identify the target resource.
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/deploymentId_Path

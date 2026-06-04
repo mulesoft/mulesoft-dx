@@ -339,6 +339,11 @@
     --color-text-link: #1D9BD1;
     --color-text-link-hover: #1164A3;
 
+    /* Badge colors - neutral for dark mode */
+    --color-badge-text: #8b949e;
+    --color-badge-bg: rgba(110, 118, 129, 0.1);
+    --color-badge-border: #30363d;
+
     /* Primary colors - Slack blue (desaturated for dark mode) */
     --color-servers: #1D9BD1;
     --hero-title: #FFFFFF;
@@ -504,6 +509,18 @@ body.detail-page {
     text-decoration: none;
 }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* Global focus-visible outline */
 :focus-visible {
     outline: 2px solid var(--color-primary);
@@ -566,7 +583,6 @@ a {
 }
 
 a:hover {
-    color: var(--color-text-link-hover);
     text-decoration: underline;
 }
 
@@ -898,6 +914,12 @@ code {
     margin: 0;
     white-space: nowrap;
     flex-shrink: 0;
+    color: var(--color-text-secondary);
+}
+
+.sort-indicator {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-normal);
     color: var(--color-text-secondary);
 }
 
@@ -1654,21 +1676,21 @@ code {
 }
 
 [data-theme="dark"] .badge-api-type {
-    background: rgba(110, 118, 129, 0.1);
-    color: #8b949e;
-    border: 1px solid #30363d;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .badge-skills {
-    background: rgba(110, 118, 129, 0.1);
-    color: #8b949e;
-    border: 1px solid #30363d;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .badge-count {
-    color: #6e7681;
+    color: var(--color-badge-text);
     background: transparent;
-    border: 1px solid #30363d;
+    border: 1px solid var(--color-badge-border);
 }
 
 [data-theme="dark"] .overview-stats-panel {
@@ -1677,8 +1699,8 @@ code {
 }
 
 [data-theme="dark"] .stats-badge {
-    background: #30363d;
-    color: #8b949e;
+    background: var(--color-badge-border);
+    color: var(--color-badge-text);
 }
 
 [data-theme="dark"] .stat-compact-value {
@@ -2992,7 +3014,7 @@ button.nav-group-header {
     border-radius: var(--radius-xxl);
     border-bottom: none;
     overflow: visible;
-    height: 100%;
+    height: calc(100% - 142px);
 }
 
 .content-section:last-child {
@@ -5346,7 +5368,6 @@ details[open] .examples-toggle-icon {
     color: var(--color-text-secondary);
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: var(--reading-max-width);
     font-size: var(--reading-font-size);
     letter-spacing: var(--reading-letter-spacing);
 }
@@ -5474,6 +5495,141 @@ details[open] .examples-toggle-icon {
 }
 
 .skill-view-markdown hr {
+    border: none;
+    border-top: 1px solid var(--color-border-primary);
+    margin: var(--space-lg) 0;
+}
+
+/* Prose skill full-content rendering — matches skill-subsection visual style */
+.skill-prose-content {
+    line-height: var(--reading-line-height);
+    font-family: var(--font-sans);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: var(--reading-font-size);
+    letter-spacing: var(--reading-letter-spacing);
+}
+
+.skill-prose-content h1 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-9);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0 0 var(--space-large);
+    color: var(--color-text-primary);
+}
+
+.skill-prose-content h2 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-8);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    margin: var(--space-large) 0 var(--space-md);
+    scroll-margin-top: 100px;
+}
+
+.skill-prose-content h3 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.skill-prose-content h4 {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-semibold);
+    margin: var(--space-medium) 0 var(--space-small);
+    color: var(--color-neutral-10);
+}
+
+.skill-prose-content p {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-medium);
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.skill-prose-content ul,
+.skill-prose-content ol {
+    margin-left: var(--space-lg);
+    padding-left: var(--space-xl);
+    margin-bottom: var(--space-medium);
+}
+
+.skill-prose-content li {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-4);
+    margin-bottom: var(--space-x-small);
+}
+
+.skill-prose-content pre {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
+    padding: var(--space-medium);
+    overflow-x: auto;
+    margin-bottom: var(--space-medium);
+}
+
+.skill-prose-content pre code {
+    background: transparent;
+    padding: 0;
+    font-size: var(--font-size-3);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+    display: block;
+    white-space: pre;
+    line-height: 1.55;
+}
+
+.skill-prose-content code:not(pre code) {
+    background: var(--color-bg-primary);
+    padding: var(--space-xxx-small) var(--space-xx-small);
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-neutral-5);
+    font-size: var(--font-size-2);
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+}
+
+.skill-prose-content blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: var(--space-medium);
+    color: var(--color-neutral-8);
+    margin: 0 0 var(--space-medium) 0;
+}
+
+.skill-prose-content strong {
+    font-weight: var(--font-weight-semibold);
+}
+
+.skill-prose-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-4);
+}
+
+.skill-prose-content th,
+.skill-prose-content td {
+    border: 1px solid var(--color-border-primary);
+    padding: var(--space-xs) var(--space-sm);
+    text-align: left;
+}
+
+.skill-prose-content th {
+    background: var(--color-bg-surface);
+    font-weight: var(--font-weight-semibold);
+}
+
+.skill-prose-content hr {
     border: none;
     border-top: 1px solid var(--color-border-primary);
     margin: var(--space-lg) 0;
@@ -7030,6 +7186,7 @@ details[open] .examples-toggle-icon {
 /* CodeMirror request editor container */
 .try-request-editor-cm {
     width: 100%;
+    border-radius: var(--radius-medium);
 }
 
 /* Ace Editor response containers */
@@ -7199,13 +7356,15 @@ details[open] .examples-toggle-icon {
 }
 
 .try-response-body.active.ace_editor {
-    border: none !important;
-    border-radius: 0px 5px;
+    border: 1px solid var(--color-neutral-5) !important;
+    border-radius: var(--radius-medium);
+    margin-top: 0.2rem;
 }
 
 .try-response-headers.active.ace_editor {
-    border: none !important;
-    border-radius: 0px 5px;
+    border: 1px solid var(--color-neutral-5) !important;
+    border-radius: var(--radius-medium);
+    margin-top: 0.2rem;
 }
 
 .try-tab-btn {
@@ -7241,9 +7400,8 @@ details[open] .examples-toggle-icon {
 .try-response-body,
 .try-response-headers {
     display: none;
-    background: var(--color-gray-50);
     border: 1px solid var(--color-neutral-5);
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-medium);
     padding: 0 !important;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: var(--font-size-3);
@@ -7259,6 +7417,11 @@ details[open] .examples-toggle-icon {
 .try-response-body.active,
 .try-response-headers.active {
     display: block;
+}
+
+[data-theme="dark"] .try-response-body,
+[data-theme="dark"] .try-response-headers {
+    background: #282c34;
 }
 
 /* Extracted values tab content */
@@ -7900,6 +8063,10 @@ input.has-variable-ref:focus {
     color: var(--color-primary);
 
     font-weight: var(--font-weight-medium);
+}
+
+.step-prose .code-block-wrapper {
+    margin: 1rem 0;
 }
 
 
@@ -8803,21 +8970,21 @@ code[class*="language-"][class*="language-"] {
 }
 
 [data-theme="dark"] .badge-mcp-type {
-    color: #d4b8ff;
-    background: rgba(163, 113, 247, 0.15);
-    border-color: rgba(163, 113, 247, 0.3);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .badge-mcp-local {
-    color: var(--color-teal-700, #0d9488);
-    background: var(--color-teal-50, #f0fdfa);
-    border-color: var(--color-teal-200, #99f6e4);
+    color: var(--color-purple-700);
+    background: var(--color-purple-50);
+    border-color: var(--color-purple-200, #ddd6fe);
 }
 
 [data-theme="dark"] .badge-mcp-local {
-    color: #5eead4;
-    background: rgba(20, 184, 166, 0.15);
-    border-color: rgba(20, 184, 166, 0.3);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .badge-terraform-type {
@@ -8831,9 +8998,9 @@ code[class*="language-"][class*="language-"] {
 }
 
 [data-theme="dark"] .badge-terraform-type {
-    color: var(--color-violet-300-dark);
-    background: rgba(160, 103, 218, 0.15);
-    border-color: rgba(160, 103, 218, 0.35);
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-border);
 }
 
 .card-icon-terraform {
@@ -8927,44 +9094,10 @@ code[class*="language-"][class*="language-"] {
 }
 
 /* MCP install command block */
-.mcp-install-block {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-large);
-    padding: var(--space-sm) var(--space-md);
-}
-
 .mcp-install-command {
-    flex: 1;
     margin: 0;
     font-family: var(--font-mono, 'SF Mono', 'Fira Code', monospace);
     font-size: var(--font-size-3);
-    color: var(--color-text-primary);
-    background: transparent;
-    white-space: pre-wrap;
-    word-break: break-all;
-}
-
-.btn-copy-install {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: var(--radius-medium);
-    background: transparent;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-}
-
-.btn-copy-install:hover {
-    background: var(--color-bg-surface);
     color: var(--color-text-primary);
 }
 
@@ -9151,7 +9284,7 @@ code[class*="language-"][class*="language-"] {
     margin-bottom: var(--space-x-small);
 }
 
-.terraform-code-wrapper {
+.code-block-wrapper {
     background: var(--color-white);
     border: 1px solid var(--color-neutral-5);
     border-radius: var(--radius-medium);
@@ -9159,7 +9292,35 @@ code[class*="language-"][class*="language-"] {
     overflow: hidden;
 }
 
-.terraform-code-header {
+.code-block-wrapper pre,
+.code-block-wrapper pre[class*="language-"] {
+    background: white;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: var(--space-medium);
+    overflow-x: auto;
+    margin: 0;
+}
+
+.code-block-wrapper pre code,
+.code-block-wrapper pre code[class*="language-"] {
+    background: transparent;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+    text-shadow: none;
+}
+
+.code-block-header {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -9168,7 +9329,7 @@ code[class*="language-"][class*="language-"] {
     border-bottom: 1px solid var(--color-neutral-5);
 }
 
-.terraform-btn-copy {
+.code-block-copy-btn {
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -9185,29 +9346,9 @@ code[class*="language-"][class*="language-"] {
     transition: all 0.15s;
 }
 
-.terraform-btn-copy:hover {
+.code-block-copy-btn:hover {
     background: var(--color-neutral-2);
     border-color: var(--color-neutral-7);
-}
-
-.terraform-view-markdown pre {
-    background: white !important;
-    border: none;
-    border-radius: 0;
-    padding: var(--space-medium);
-    overflow-x: auto;
-    margin: 0;
-}
-
-.terraform-view-markdown pre code {
-    background: transparent;
-    padding: 0;
-    font-size: var(--font-size-3);
-    font-family: var(--font-mono);
-    color: var(--color-text-primary);
-    display: block;
-    white-space: pre;
-    line-height: 1.55;
 }
 
 .terraform-view-markdown code:not(pre code) {
@@ -9309,106 +9450,160 @@ code[class*="language-"][class*="language-"] {
 }
 
 /* Terraform dark mode */
-[data-theme="dark"] .terraform-code-wrapper {
+[data-theme="dark"] .code-block-wrapper {
     background: var(--color-neutral-1);
     border-color: var(--color-neutral-7);
 }
 
-[data-theme="dark"] .terraform-code-header {
+[data-theme="dark"] .code-block-header {
     background: var(--color-neutral-2);
     border-bottom-color: var(--color-neutral-4);
 }
 
-[data-theme="dark"] .terraform-btn-copy {
+[data-theme="dark"] .code-block-copy-btn {
     background: transparent;
     border-color: var(--color-neutral-4);
     color: var(--color-neutral-7);
 }
 
-[data-theme="dark"] .terraform-btn-copy:hover {
+[data-theme="dark"] .code-block-copy-btn:hover {
     background: var(--color-neutral-4);
     border-color: var(--color-neutral-7);
 }
 
-[data-theme="dark"] .terraform-view-markdown pre {
+[data-theme="dark"] .code-block-wrapper pre {
     background: var(--color-neutral-1) !important;
 }
 
-/* Terraform Prism token color overrides — pastel palette (no red), inspired by skills */
-.terraform-page .token.keyword,
-.terraform-page .token.tag,
-.terraform-page .token.builtin,
+/* ──────────────────────────────────────────────────────────────────────
+   Mulesoft code-block palette — applies to every wrapped code block
+   (APIs, MCP, Skills, Terraform). JSON gets a Postman-style override.
+   ────────────────────────────────────────────────────────────────────── */
+.code-block-wrapper pre:not(.language-json) .token.keyword,
+.code-block-wrapper pre:not(.language-json) .token.tag,
+.code-block-wrapper pre:not(.language-json) .token.builtin {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.code-block-wrapper pre:not(.language-json) .token.property,
+.code-block-wrapper pre:not(.language-json) .token.attr-name {
+    color: #2E7D9B;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.string,
+.code-block-wrapper pre:not(.language-json) .token.attr-value {
+    color: var(--color-text-primary);
+}
+
+.code-block-wrapper pre:not(.language-json) .token.variable,
+.code-block-wrapper pre:not(.language-json) .token.interpolation {
+    color: #014486;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.function,
+.code-block-wrapper pre:not(.language-json) .token.class-name {
+    color: #2E7D9B;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.number {
+    color: #C77B30;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.boolean,
+.code-block-wrapper pre:not(.language-json) .token.constant {
+    color: #8E5DB8;
+    font-weight: var(--font-weight-semibold);
+}
+
+.code-block-wrapper pre:not(.language-json) .token.operator,
+.code-block-wrapper pre:not(.language-json) .token.assign {
+    color: #6BAFEA;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.punctuation {
+    color: #5A7CA0;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.namespace {
+    color: #5A7CA0;
+    opacity: 0.85;
+}
+
+.code-block-wrapper pre:not(.language-json) .token.comment {
+    color: #6E8B73;
+    font-style: italic;
+}
+
+/* JSON: Postman-style — red keys, blue values. Booleans/null keep Prism defaults. */
+.code-block-wrapper pre.language-json .token.property {
+    color: var(--method-delete-text);
+}
+
+.code-block-wrapper pre.language-json .token.string {
+    color: #168FFF;
+}
+
+.code-block-wrapper pre.language-json .token.boolean,
+.code-block-wrapper pre.language-json .token.keyword {
+    color: #014486;
+}
+
+/* Ace editors (API try-it & examples): match Postman JSON palette. */
+.ace-github .ace_variable {
+    color: var(--method-delete-text);
+}
+
+.ace-github .ace_string {
+    color: #168FFF;
+}
+
+.ace-github .ace_constant.ace_language {
+    color: #014486;
+}
+
+.ace-github .ace_gutter,
+.ace-github .ace_scroller,
+.ace-github {
+    background: white !important;
+}
+
+.ace-github {
+    border: 1px solid var(--color-neutral-5);
+    border-radius: var(--radius-medium);
+}
+
+.ace-github .ace_gutter-active-line {
+    background: transparent !important;
+}
+
+.ace-github .ace_active-line {
+    background: transparent !important;
+}
+
+/* Terraform install modal sits outside the wrapper, so re-apply the palette. */
 .terraform-install-modal .token.keyword,
 .terraform-install-modal .token.tag,
 .terraform-install-modal .token.builtin {
     color: var(--color-text-primary);
     font-weight: var(--font-weight-semibold);
 }
-
-.terraform-page .token.property,
-.terraform-page .token.attr-name,
 .terraform-install-modal .token.property,
-.terraform-install-modal .token.attr-name {
-    color: #2E7D9B;
-}
-
-.terraform-page .token.string,
-.terraform-page .token.attr-value,
+.terraform-install-modal .token.attr-name { color: #2E7D9B; }
 .terraform-install-modal .token.string,
-.terraform-install-modal .token.attr-value {
-    color: var(--color-text-primary);
-}
-
-.terraform-page .token.variable,
-.terraform-page .token.interpolation,
+.terraform-install-modal .token.attr-value { color: var(--color-text-primary); }
 .terraform-install-modal .token.variable,
-.terraform-install-modal .token.interpolation {
-    color: #014486;
-}
-
-.terraform-page .token.function,
-.terraform-page .token.class-name,
+.terraform-install-modal .token.interpolation { color: #014486; }
 .terraform-install-modal .token.function,
-.terraform-install-modal .token.class-name {
-    color: #2E7D9B;
-}
-
-.terraform-page .token.number,
-.terraform-install-modal .token.number {
-    color: #C77B30;
-}
-
-.terraform-page .token.boolean,
-.terraform-page .token.constant,
+.terraform-install-modal .token.class-name { color: #2E7D9B; }
+.terraform-install-modal .token.number { color: #C77B30; }
 .terraform-install-modal .token.boolean,
-.terraform-install-modal .token.constant {
-    color: #8E5DB8;
-    font-weight: var(--font-weight-semibold);
-}
-
-.terraform-page .token.operator,
-.terraform-page .token.assign,
+.terraform-install-modal .token.constant { color: #8E5DB8; font-weight: var(--font-weight-semibold); }
 .terraform-install-modal .token.operator,
-.terraform-install-modal .token.assign {
-    color: #6BAFEA;
-}
-
-.terraform-page .token.punctuation,
-.terraform-install-modal .token.punctuation {
-    color: #5A7CA0;
-}
-
-.terraform-page .token.namespace,
-.terraform-install-modal .token.namespace {
-    color: #5A7CA0;
-    opacity: 0.85;
-}
-
-.terraform-page .token.comment,
-.terraform-install-modal .token.comment {
-    color: #6E8B73;
-    font-style: italic;
-}
+.terraform-install-modal .token.assign { color: #6BAFEA; }
+.terraform-install-modal .token.punctuation { color: #5A7CA0; }
+.terraform-install-modal .token.namespace { color: #5A7CA0; opacity: 0.85; }
+.terraform-install-modal .token.comment { color: #6E8B73; font-style: italic; }
 
 [data-theme="dark"] .terraform-page .token.keyword,
 [data-theme="dark"] .terraform-page .token.tag,

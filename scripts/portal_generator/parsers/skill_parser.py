@@ -26,6 +26,60 @@ except ImportError:
     _yaml = None
 
 
+def _slugify(text: str) -> str:
+    """Convert heading text to URL-safe slug."""
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'`[^`]*`', lambda m: m.group(0)[1:-1], text)
+    text = text.strip().lower()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'\s+', '-', text)
+    return text
+
+
+def _extract_prose_headings(content: str) -> List[Dict[str, str]]:
+    """Extract ## headings from raw markdown for sidebar navigation."""
+    headings = []
+    seen = {}
+    for match in re.finditer(r'^## (.+)$', content, re.MULTILINE):
+        title = match.group(1).strip()
+        slug = _slugify(title)
+        if slug in seen:
+            seen[slug] += 1
+            slug = f'{slug}-{seen[slug]}'
+        else:
+            seen[slug] = 1
+        headings.append({'title': title, 'id': slug})
+    return headings
+
+
+def _inject_heading_ids(html: str) -> str:
+    """Add id attributes to <h2> and <h3> tags for anchor navigation."""
+    seen = {}
+
+    def replacer(match):
+        tag = match.group(1)
+        content = match.group(2)
+        plain = re.sub(r'<[^>]+>', '', content)
+        slug = _slugify(plain)
+        if slug in seen:
+            seen[slug] += 1
+            slug = f'{slug}-{seen[slug]}'
+        else:
+            seen[slug] = 1
+        return f'<{tag} id="{slug}">{content}</{tag}>'
+
+    return re.compile(r'<(h[23])>(.*?)</\1>', re.DOTALL).sub(replacer, html)
+
+
+def _linkify_related_jobs(html: str) -> str:
+    """Convert **slug**: description patterns into clickable skill links."""
+    return re.sub(
+        r'<strong>([a-z0-9-]+)</strong>:\s*',
+        r'<a href="../skills/\1.html"><strong>\1</strong></a>: ',
+        html
+    )
+
+
 def _extract_yaml_blocks(content: str) -> List[Dict]:
     """Extract YAML code blocks from markdown content and parse them.
     Returns list of parsed YAML dicts (one per ```yaml block)."""
@@ -237,6 +291,9 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
         elif isinstance(raw_tags, str):
             tag_names = [p.strip() for p in raw_tags.split(',') if p.strip()]
 
+        prose_headings = _extract_prose_headings(post.content)
+        full_content_html = _linkify_related_jobs(_inject_heading_ids(_md.render(post.content)))
+
         return {
             'name': post.get('name', skill_path.parent.name),
             'description': post.get('description', '').strip(),
@@ -244,6 +301,8 @@ def parse_skill(skill_path: Path) -> Dict[str, Any]:
             'tag_names': tag_names,
             'content': post.content,
             'content_html': _md.render(display_md),
+            'full_content_html': full_content_html,
+            'prose_headings': prose_headings,
             'raw_content': raw_content,
             'source_path': str(skill_path),
             'overview_html': _md.render(overview) if overview else '',

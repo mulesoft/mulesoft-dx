@@ -1034,8 +1034,7 @@ describe('getMcpEndpointForSlug', () => {
     test('resolves endpoint URL from lookup', () => {
         globalThis.__MCP_LOOKUP__ = {
             exchange: {
-                servers: [{ url: 'https://anypoint.mulesoft.com/exchange', variables: {} }],
-                transport: { kind: 'streamableHttp', path: '/mcp' },
+                servers: [{ url: 'https://anypoint.mulesoft.com/exchange/mcp', variables: {} }],
             },
         };
         withServerType('us', null, () => {
@@ -1052,16 +1051,15 @@ describe('getMcpEndpointForSlug', () => {
 
     test('returns null when no servers available', () => {
         globalThis.__MCP_LOOKUP__ = {
-            empty: { servers: [], transport: { kind: 'streamableHttp', path: '/mcp' } },
+            empty: { servers: [] },
         };
         expect(getMcpEndpointForSlug('empty')).toBeNull();
     });
 
-    test('appends transport path to server URL', () => {
+    test('returns full server URL directly', () => {
         globalThis.__MCP_LOOKUP__ = {
             test: {
-                servers: [{ url: 'https://api.example.com', variables: {} }],
-                transport: { kind: 'streamableHttp', path: '/v1/mcp' },
+                servers: [{ url: 'https://api.example.com/v1/mcp', variables: {} }],
             },
         };
         withServerType('us', null, () => {
@@ -1071,43 +1069,14 @@ describe('getMcpEndpointForSlug', () => {
         });
     });
 
-    test('handles transport path without leading slash', () => {
-        globalThis.__MCP_LOOKUP__ = {
-            test: {
-                servers: [{ url: 'https://api.example.com', variables: {} }],
-                transport: { kind: 'streamableHttp', path: 'mcp' },
-            },
-        };
-        withServerType('us', null, () => {
-            expect(getMcpEndpointForSlug('test')).toBe(
-                'https://api.example.com/mcp',
-            );
-        });
-    });
-
-    test('defaults path to /mcp when transport path is empty', () => {
-        globalThis.__MCP_LOOKUP__ = {
-            test: {
-                servers: [{ url: 'https://api.example.com', variables: {} }],
-                transport: { kind: 'streamableHttp', path: '' },
-            },
-        };
-        withServerType('us', null, () => {
-            expect(getMcpEndpointForSlug('test')).toBe(
-                'https://api.example.com/mcp',
-            );
-        });
-    });
-
     test('resolves server with region variable', () => {
         globalThis.__MCP_LOOKUP__ = {
             regional: {
                 servers: [
-                    { url: 'https://anypoint.mulesoft.com/exchange', variables: {} },
-                    { url: 'https://eu1.anypoint.mulesoft.com/exchange', variables: {} },
-                    { url: 'https://{region}.platform.mulesoft.com/exchange', variables: { region: { default: 'ca1' } } },
+                    { url: 'https://anypoint.mulesoft.com/exchange/mcp', variables: {} },
+                    { url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp', variables: {} },
+                    { url: 'https://{region}.platform.mulesoft.com/exchange/mcp', variables: { region: { default: 'ca1' } } },
                 ],
-                transport: { kind: 'streamableHttp', path: '/mcp' },
             },
         };
         withServerType('eu', null, () => {
@@ -1174,22 +1143,55 @@ describe('handleProxyResponse', () => {
             }
         });
     });
+    afterEach(() => {
+        delete global.fetch;
+    });
 
-    test('marks token expired on 401', () => {
-        handleProxyResponse({ status: 401 });
+    test('marks token expired on 401 when introspection confirms inactive', async () => {
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: JSON.stringify({ active: false }) }),
+        }));
+        await handleProxyResponse({ status: 401 });
         expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('0');
     });
 
-    test('does nothing on non-401 responses', () => {
-        var original = sessionStorage.getItem('anypoint_token_expires_at');
-        handleProxyResponse({ status: 200 });
-        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(original);
+    test('does not mark expired on 401 when introspection confirms active', async () => {
+        const futureExp = Date.now() + 300000;
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: JSON.stringify({ active: true, exp: futureExp }) }),
+        }));
+        await handleProxyResponse({ status: 401 });
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(String(futureExp));
     });
 
-    test('does nothing on server error responses', () => {
+    test('does nothing on non-401 responses', async () => {
+        global.fetch = jest.fn();
         var original = sessionStorage.getItem('anypoint_token_expires_at');
-        handleProxyResponse({ status: 500 });
+        await handleProxyResponse({ status: 200 });
         expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(original);
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('does nothing on server error responses', async () => {
+        global.fetch = jest.fn();
+        var original = sessionStorage.getItem('anypoint_token_expires_at');
+        await handleProxyResponse({ status: 500 });
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe(original);
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('marks expired on 401 when introspection network fails', async () => {
+        global.fetch = jest.fn(() => Promise.reject(new Error('Network error')));
+        await handleProxyResponse({ status: 401 });
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('0');
+    });
+
+    test('marks expired on 401 when introspection returns error', async () => {
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ error: 'invalid_token' }),
+        }));
+        await handleProxyResponse({ status: 401 });
+        expect(sessionStorage.getItem('anypoint_token_expires_at')).toBe('0');
     });
 });
 
@@ -1498,13 +1500,13 @@ describe('wrapTerraformCodeBlocks', () => {
         return container;
     }
 
-    test('wraps each pre with a terraform-code-wrapper containing a header and copy button', () => {
+    test('wraps each pre with a code-block-wrapper containing a header and copy button', () => {
         buildMarkdown(2);
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(2);
         wrappers.forEach((w) => {
-            expect(w.querySelector('.terraform-code-header')).not.toBeNull();
+            expect(w.querySelector('.code-block-header')).not.toBeNull();
             expect(w.querySelector('pre')).not.toBeNull();
         });
     });
@@ -1513,20 +1515,20 @@ describe('wrapTerraformCodeBlocks', () => {
         buildMarkdown(2);
         wrapTerraformCodeBlocks();
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(2);
     });
 
     test('does nothing when no terraform-view-markdown pre exists', () => {
         wrapTerraformCodeBlocks();
-        const wrappers = document.querySelectorAll('.terraform-code-wrapper');
+        const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(0);
     });
 
-    test('inserted button has class terraform-btn-copy and contains an SVG', () => {
+    test('inserted button has class code-block-copy-btn and contains an SVG', () => {
         buildMarkdown(1);
         wrapTerraformCodeBlocks();
-        const btn = document.querySelector('.terraform-btn-copy');
+        const btn = document.querySelector('.code-block-copy-btn');
         expect(btn).not.toBeNull();
         expect(btn.querySelector('svg')).not.toBeNull();
     });
@@ -1549,11 +1551,11 @@ describe('copyTerraformCode', () => {
 
     function buildWrapper(text) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'terraform-code-wrapper';
+        wrapper.className = 'code-block-wrapper';
         const header = document.createElement('div');
-        header.className = 'terraform-code-header';
+        header.className = 'code-block-header';
         const btn = document.createElement('button');
-        btn.className = 'terraform-btn-copy';
+        btn.className = 'code-block-copy-btn';
         btn.innerHTML = '<svg><rect></rect></svg>';
         header.appendChild(btn);
         const pre = document.createElement('pre');
@@ -1596,4 +1598,275 @@ describe('copyTerraformCode', () => {
         expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
     });
 });
+
+// ===========================================================================
+// getSortDisplayLabel
+// ===========================================================================
+describe('getSortDisplayLabel', () => {
+    test('returns "Name" for name sort regardless of filter', () => {
+        expect(getSortDisplayLabel('name', 'all')).toBe('Name');
+        expect(getSortDisplayLabel('name', 'api')).toBe('Name');
+        expect(getSortDisplayLabel('name', 'mcp')).toBe('Name');
+    });
+
+    test('returns "Type" for type sort regardless of filter', () => {
+        expect(getSortDisplayLabel('type', 'all')).toBe('Type');
+        expect(getSortDisplayLabel('type', 'api')).toBe('Type');
+    });
+
+    test('returns "Endpoints" for count sort when filtered to api', () => {
+        expect(getSortDisplayLabel('count', 'api')).toBe('Endpoints');
+    });
+
+    test('returns "Tools" for count sort when filtered to mcp', () => {
+        expect(getSortDisplayLabel('count', 'mcp')).toBe('Tools');
+    });
+
+    test('returns "Steps" for count sort when filtered to skill', () => {
+        expect(getSortDisplayLabel('count', 'skill')).toBe('Steps');
+    });
+
+    test('returns "Docs" for count sort when filtered to terraform', () => {
+        expect(getSortDisplayLabel('count', 'terraform')).toBe('Docs');
+    });
+
+    test('returns "Count" for count sort when showing all', () => {
+        expect(getSortDisplayLabel('count', 'all')).toBe('Count');
+    });
+
+    test('returns "Count" for count sort with unknown filter', () => {
+        expect(getSortDisplayLabel('count', 'unknown')).toBe('Count');
+    });
+});
+
+// ===========================================================================
+// loginBearer / loginOAuth2 — error handling
+// ===========================================================================
+
+function setupAuthDom() {
+    document.body.innerHTML = `
+        <div id="authMessage"></div>
+        <input id="authUsername" value="user@test.com" />
+        <input id="authPassword" value="wrongpass" />
+        <input id="authClientId" value="my-client" />
+        <input id="authClientSecret" value="my-secret" />
+    `;
+}
+
+function mockFetchResponse(data) {
+    global.fetch = jest.fn(() => Promise.resolve({
+        json: () => Promise.resolve(data),
+    }));
+}
+
+function mockFetchNetworkError() {
+    global.fetch = jest.fn(() => Promise.reject(new Error('Failed to fetch')));
+}
+
+function getAuthMessage() {
+    const el = document.getElementById('authMessage');
+    return { text: el.textContent, isError: el.className.includes('auth-error') };
+}
+
+describe('loginBearer error handling', () => {
+    beforeEach(() => {
+        setupAuthDom();
+        jest.useFakeTimers();
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        delete global.fetch;
+    });
+
+    test('401 with non-JSON body shows "Login failed: Unauthorized"', async () => {
+        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: Unauthorized');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('400 with JSON error body shows the error message', async () => {
+        mockFetchResponse({ status: 400, headers: {}, body: JSON.stringify({ message: 'Invalid request format' }) });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: Invalid request format');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('404 with plain text body shows the body content', async () => {
+        mockFetchResponse({ status: 404, headers: {}, body: 'Not Found' });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: Not Found');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('500 with JSON error body shows the error field', async () => {
+        mockFetchResponse({ status: 500, headers: {}, body: JSON.stringify({ error: 'Internal Server Error' }) });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: Internal Server Error');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('502 with empty body shows "Unknown error"', async () => {
+        mockFetchResponse({ status: 502, headers: {}, body: '' });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: Unknown error');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('504 with HTML body shows raw body as fallback', async () => {
+        mockFetchResponse({ status: 504, headers: {}, body: '<html>Gateway Timeout</html>' });
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Login failed: <html>Gateway Timeout</html>');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('network failure shows generic connection error', async () => {
+        mockFetchNetworkError();
+        await loginBearer();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Unable to connect to the server. Please check your network connection and try again.');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('no error message mentions proxy', async () => {
+        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        await loginBearer();
+        expect(getAuthMessage().text.toLowerCase()).not.toContain('proxy');
+    });
+});
+
+describe('loginOAuth2 error handling', () => {
+    beforeEach(() => {
+        setupAuthDom();
+        jest.useFakeTimers();
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        delete global.fetch;
+    });
+
+    test('401 with non-JSON body shows "Token request failed: Unauthorized"', async () => {
+        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: Unauthorized');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('400 with oauth error body shows error_description', async () => {
+        mockFetchResponse({ status: 400, headers: {}, body: JSON.stringify({ error: 'invalid_client', error_description: 'Client authentication failed' }) });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: Client authentication failed');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('404 with plain text body shows the body content', async () => {
+        mockFetchResponse({ status: 404, headers: {}, body: 'Not Found' });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: Not Found');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('500 with JSON error body shows the error field', async () => {
+        mockFetchResponse({ status: 500, headers: {}, body: JSON.stringify({ error: 'Internal Server Error' }) });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: Internal Server Error');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('502 with empty body shows "Unknown error"', async () => {
+        mockFetchResponse({ status: 502, headers: {}, body: '' });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: Unknown error');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('504 with HTML body shows raw body as fallback', async () => {
+        mockFetchResponse({ status: 504, headers: {}, body: '<html>Gateway Timeout</html>' });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Token request failed: <html>Gateway Timeout</html>');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('network failure shows generic connection error', async () => {
+        mockFetchNetworkError();
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Unable to connect to the server. Please check your network connection and try again.');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('server-side error field shows "Server error:" prefix', async () => {
+        mockFetchResponse({ error: 'connection reset' });
+        await loginOAuth2();
+        const msg = getAuthMessage();
+        expect(msg.text).toBe('Server error: connection reset');
+        expect(msg.isError).toBe(true);
+    });
+
+    test('no error message mentions proxy', async () => {
+        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        await loginOAuth2();
+        expect(getAuthMessage().text.toLowerCase()).not.toContain('proxy');
+    });
+});
+
+// ===========================================================================
+// toggleSkillMode — scroll to first step on activation
+// ===========================================================================
+
+describe('toggleSkillMode scroll behavior', () => {
+    const slug = 'test-skill';
+
+    function setupSkillDom() {
+        document.body.innerHTML = `
+            <div id="toggle-${slug}" aria-checked="false"></div>
+            <div id="variables-sidebar-${slug}" style="display:none"></div>
+            <div class="step-documentation-view"></div>
+            <div class="step-interactive-view" style="display:none"></div>
+            <div id="step-${slug}-0"></div>
+            <div id="step-${slug}-1"></div>
+        `;
+        document.getElementById('step-' + slug + '-0').scrollIntoView = jest.fn();
+        document.getElementById('step-' + slug + '-1').scrollIntoView = jest.fn();
+    }
+
+    beforeEach(() => {
+        setupSkillDom();
+    });
+
+    test('scrolls to first step when activating interactive mode', () => {
+        toggleSkillMode(slug);
+        const firstStep = document.getElementById('step-' + slug + '-0');
+        expect(firstStep.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    });
+
+    test('does not scroll to second step', () => {
+        toggleSkillMode(slug);
+        const secondStep = document.getElementById('step-' + slug + '-1');
+        expect(secondStep.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    test('does not scroll when deactivating interactive mode', () => {
+        // Activate first
+        toggleSkillMode(slug);
+        const firstStep = document.getElementById('step-' + slug + '-0');
+        firstStep.scrollIntoView.mockClear();
+        // Deactivate
+        toggleSkillMode(slug);
+        expect(firstStep.scrollIntoView).not.toHaveBeenCalled();
+    });
+});
+
 

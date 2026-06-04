@@ -26,6 +26,7 @@ ANYPOINT_CLI := anypoint-cli-v4
 RULESET := ./.claude/skills/api-spec-validator/scripts/ruleset.yaml
 REPORT_DIR := ./validation-reports
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
+WORK_DIR := .validation-work
 
 # APIs to skip during governed validation (override via SKIP_GOVERNED="api1 api2")
 SKIP_GOVERNED := arm-monitoring-query
@@ -89,8 +90,12 @@ list-apis:
 $(REPORT_DIR):
 	@mkdir -p $(REPORT_DIR)
 
+# Prepare validation work area (inline fragment $ref for AMF compatibility)
+prepare-validation:
+	@python3 scripts/build/prepare_validation.py --work-dir $(WORK_DIR)
+
 # Validate all APIs without governance rules
-validate-all: $(REPORT_DIR)
+validate-all: $(REPORT_DIR) prepare-validation
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo "$(CYAN)  Validating All APIs - Basic OAS Validation$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
@@ -100,7 +105,7 @@ validate-all: $(REPORT_DIR)
 		echo "$(BLUE)Validating:$(NC) $$api"; \
 		api_name=$$(basename $$api); \
 		report=$(REPORT_DIR)/$$api_name-basic-$(TIMESTAMP).txt; \
-		if $(ANYPOINT_CLI) api-project validate --location=./$$api > "$$report" 2>&1; then \
+		if $(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$$api_name > "$$report" 2>&1; then \
 			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
 			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
 			if [ "$$violations" -gt 0 ] 2>/dev/null; then \
@@ -122,57 +127,74 @@ validate-all: $(REPORT_DIR)
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	echo "$(GREEN)Results:$(NC) $$passed passed, $(RED)$$failed failed$(NC) ($(words $(API_DIRS)) total)"; \
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
+	rm -rf $(WORK_DIR); \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 # Validate all APIs with governance rules
-validate-all-governed: $(REPORT_DIR)
+validate-all-governed: $(REPORT_DIR) prepare-validation
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
-	@echo "$(CYAN)  Validating All APIs - With Governance Rules$(NC)"
+	@echo "$(CYAN)  Validating All APIs - With Governance Rules (parallel)$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@if [ ! -f $(RULESET) ]; then \
 		echo "$(RED)Error: Ruleset not found at $(RULESET)$(NC)"; \
 		exit 1; \
 	fi; \
-	passed=0; failed=0; skipped=0; \
+	results_dir=$$(mktemp -d); \
+	pids=""; \
 	for api in $(API_DIRS); do \
 		api_name=$$(basename $$api); \
 		skip=false; \
 		for s in $(SKIP_GOVERNED); do [ "$$api_name" = "$$s" ] && skip=true; done; \
 		if $$skip; then \
-			echo "$(YELLOW)Skipping:$(NC) $$api (in SKIP_GOVERNED list)"; \
-			skipped=$$((skipped + 1)); \
-			echo ""; \
+			echo "skipped" > "$$results_dir/$$api_name.status"; \
 			continue; \
 		fi; \
-		echo "$(BLUE)Validating:$(NC) $$api"; \
-		report=$(REPORT_DIR)/$$api_name-governed-$(TIMESTAMP).txt; \
-		if $(ANYPOINT_CLI) api-project validate --location=./$$api --local-ruleset=$(RULESET) > "$$report" 2>&1; then \
-			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
-			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
-			if [ "$$violations" -gt 0 ] 2>/dev/null; then \
-				echo "  $(RED)✗ FAILED$(NC) - Violations: $$violations, Warnings: $$warnings"; \
-				failed=$$((failed + 1)); \
+		( \
+			report=$(REPORT_DIR)/$$api_name-governed-$(TIMESTAMP).txt; \
+			if $(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$$api_name --local-ruleset=$(RULESET) > "$$report" 2>&1; then \
+				violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
+				if [ "$$violations" -gt 0 ] 2>/dev/null; then \
+					echo "failed" > "$$results_dir/$$api_name.status"; \
+				else \
+					echo "passed" > "$$results_dir/$$api_name.status"; \
+				fi; \
 			else \
-				echo "  $(GREEN)✓ PASSED$(NC) - Violations: 0, Warnings: $$warnings"; \
-				passed=$$((passed + 1)); \
+				echo "failed" > "$$results_dir/$$api_name.status"; \
 			fi; \
+			cp "$$report" "$$results_dir/$$api_name.report" 2>/dev/null || true; \
+		) & \
+		pids="$$pids $$!"; \
+	done; \
+	for pid in $$pids; do wait $$pid; done; \
+	passed=0; failed=0; skipped=0; \
+	for api in $(API_DIRS); do \
+		api_name=$$(basename $$api); \
+		status=$$(cat "$$results_dir/$$api_name.status" 2>/dev/null || echo "failed"); \
+		report="$$results_dir/$$api_name.report"; \
+		violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
+		warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
+		if [ "$$status" = "skipped" ]; then \
+			echo "$(YELLOW)Skipping:$(NC) $$api (in SKIP_GOVERNED list)"; \
+			skipped=$$((skipped + 1)); \
+		elif [ "$$status" = "passed" ]; then \
+			echo "$(GREEN)✓ PASSED$(NC) $$api - Violations: 0, Warnings: $$warnings"; \
+			passed=$$((passed + 1)); \
 		else \
-			violations=$$(grep -c "Severity:.*Violation" "$$report" 2>/dev/null || true); \
-			warnings=$$(grep -c "Severity:.*Warning" "$$report" 2>/dev/null || true); \
-			echo "  $(RED)✗ FAILED$(NC) - Violations: $$violations, Warnings: $$warnings"; \
-			head -1 "$$report" 2>/dev/null | grep -v "^$$" | while read line; do echo "    $$line"; done; \
+			echo "$(RED)✗ FAILED$(NC) $$api - Violations: $$violations, Warnings: $$warnings"; \
 			failed=$$((failed + 1)); \
 		fi; \
-		echo ""; \
 	done; \
+	rm -rf "$$results_dir"; \
+	rm -rf $(WORK_DIR); \
+	echo ""; \
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	echo "$(GREEN)Results:$(NC) $$passed passed, $(RED)$$failed failed$(NC), $(YELLOW)$$skipped skipped$(NC) ($(words $(API_DIRS)) total)"; \
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 # Validate specific API
-validate-api:
+validate-api: prepare-validation
 	@if [ -z "$(API)" ]; then \
 		echo "$(RED)Error: API parameter required$(NC)"; \
 		echo "Usage: make validate-api API=<api-name>"; \
@@ -189,7 +211,7 @@ validate-api:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@echo "$(BLUE)Step 1: Basic OAS Validation$(NC)"
-	@$(ANYPOINT_CLI) api-project validate --location=./$(API) > $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>&1 || true
+	@$(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$(API_NAME) > $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>&1 || true
 	@violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 	warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 	echo "  Violations: $$violations"; \
@@ -197,7 +219,7 @@ validate-api:
 	echo ""
 	@echo "$(BLUE)Step 2: Governance Rules Validation$(NC)"
 	@if [ -f $(RULESET) ]; then \
-		$(ANYPOINT_CLI) api-project validate --location=./$(API) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>&1 || true; \
+		$(ANYPOINT_CLI) api-project validate --location=$(WORK_DIR)/$(API_NAME) --local-ruleset=$(RULESET) > $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>&1 || true; \
 		violations=$$(grep -c "Severity:.*Violation" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 		warnings=$$(grep -c "Severity:.*Warning" $(REPORT_DIR)/$(API_NAME)-governed-$(TIMESTAMP).txt 2>/dev/null || echo 0); \
 		echo "  Violations: $$violations"; \
@@ -210,6 +232,7 @@ validate-api:
 	else \
 		echo "  $(YELLOW)Skipped: Ruleset not found$(NC)"; \
 	fi
+	@rm -rf $(WORK_DIR)
 	@echo ""
 	@echo "$(GREEN)Reports saved to:$(NC)"
 	@echo "  $(REPORT_DIR)/$(API_NAME)-basic-$(TIMESTAMP).txt"
@@ -305,7 +328,7 @@ serve-portal:
 	echo "$(GREEN)✓ Portal is being served at http://localhost:$$PORT_VAL$(NC)"; \
 	echo "$(BLUE)Press Ctrl+C to stop the server$(NC)"; \
 	echo ""; \
-	python3 -m http.server $$PORT_VAL --directory portal
+	python3 -m http.server $$PORT_VAL  --directory portal
 
 # Start CORS proxy server
 # Usage: make serve-proxy [PROXY_PORT=8080]

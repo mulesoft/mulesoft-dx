@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 from portal_generator import PortalGenerator
 from tests.conftest import (
     MINIMAL_OAS_YAML, MINIMAL_EXCHANGE_JSON, MINIMAL_SKILL_MD,
-    PRIVATE_EXCHANGE_JSON, PROSE_ONLY_SKILL_MD, NESTED_SKILL_MD,
-    NON_API_STEPS_SKILL_MD, setup_schema_docs,
+    PRIVATE_EXCHANGE_JSON, PRIVATE_API_SKILL_MD, PROSE_ONLY_SKILL_MD,
+    NESTED_SKILL_MD, NON_API_STEPS_SKILL_MD, setup_schema_docs,
     MINIMAL_MCP_SERVER_JSON, MINIMAL_MCP_YAML, MINIMAL_MCP_EXCHANGE_JSON,
     MINIMAL_TERRAFORM_MD,
 )
@@ -69,17 +69,18 @@ class TestGeneratedFiles:
         assert (generated_portal / 'apis' / 'test-api.html').exists()
 
     def test_css_exists(self, generated_portal):
-        css = generated_portal / 'assets' / 'styles.css'
-        assert css.exists()
-        assert css.stat().st_size > 0
+        css_files = list((generated_portal / 'assets').glob('styles.*.css'))
+        assert len(css_files) == 1
+        assert css_files[0].stat().st_size > 0
 
     def test_portal_js_exists(self, generated_portal):
-        js = generated_portal / 'assets' / 'portal.js'
-        assert js.exists()
-        assert js.stat().st_size > 0
+        js_files = list((generated_portal / 'assets').glob('portal.*.js'))
+        assert len(js_files) == 1
+        assert js_files[0].stat().st_size > 0
 
     def test_jsonpath_js_exists(self, generated_portal):
-        assert (generated_portal / 'assets' / 'jsonpath-plus.min.js').exists()
+        jp_files = list((generated_portal / 'assets').glob('jsonpath-plus.min.*.js'))
+        assert len(jp_files) == 1
 
 
 class TestHomepageStructure:
@@ -103,6 +104,20 @@ class TestHomepageStructure:
     def test_links_to_detail_page(self):
         link = self.soup.find('a', href=lambda h: h and 'test-api' in h)
         assert link is not None
+
+    def test_has_sort_indicator(self):
+        indicator = self.soup.find(id='sortIndicator')
+        assert indicator is not None
+        assert indicator.get('style') == 'display: none;'
+        label = indicator.find(id='sortLabel')
+        assert label is not None
+
+    def test_sort_options_use_count_not_endpoints(self):
+        sort_select = self.soup.find(id='sortBy')
+        assert sort_select is not None
+        options = [opt.get('value') for opt in sort_select.find_all('option')]
+        assert 'count' in options
+        assert 'endpoints' not in options
 
 
 class TestDetailPageStructure:
@@ -550,6 +565,56 @@ class TestPrivateApiExclusion:
         assert (portal_with_private_api / 'apis' / 'private-api' / 'api.yaml').exists()
 
 
+class TestPrivateApiNotInRelatedApis:
+    """Verify private APIs do not appear in skill Related APIs sidebar."""
+
+    @pytest.fixture
+    def portal_with_skill_referencing_private(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        # Public API
+        public_dir = apis_dir / 'public-api'
+        public_dir.mkdir()
+        (public_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (public_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        # Private API
+        private_dir = apis_dir / 'private-api'
+        private_dir.mkdir()
+        (private_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (private_dir / 'exchange.json').write_text(PRIVATE_EXCHANGE_JSON)
+
+        # Skill referencing both
+        skills_dir = repo / 'skills' / 'mixed-api-skill'
+        skills_dir.mkdir(parents=True)
+        (skills_dir / 'SKILL.md').write_text(PRIVATE_API_SKILL_MD)
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+        return output
+
+    def test_private_api_not_in_skill_sidebar(self, portal_with_skill_referencing_private):
+        html = (portal_with_skill_referencing_private / 'skills' / 'mixed-api-skill.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        apis_panel = soup.find(id='apis-panel')
+        assert apis_panel is not None
+        links = apis_panel.find_all('a')
+        link_hrefs = [a.get('href', '') for a in links]
+        assert any('public-api' in h for h in link_hrefs)
+        assert not any('private-api' in h for h in link_hrefs)
+
+    def test_private_api_not_in_skill_markdown_apis_section(self, portal_with_skill_referencing_private):
+        md = (portal_with_skill_referencing_private / 'skills' / 'mixed-api-skill.md').read_text(encoding='utf-8')
+        assert '[public-api]' in md
+        assert '[private-api]' not in md
+
+
 class TestRefSubdirectoriesCopied:
     """Verify that subdirectories (schemas, examples, requests) next to api.yaml
     are copied to the portal output so that $ref links resolve correctly."""
@@ -637,7 +702,7 @@ class TestMcpDetailPage:
         assert len(mcp_entries) == 1
         entry = mcp_entries[0]
         assert entry['$id'] == 'urn:mcp:test-mcp'
-        assert entry['href'] == 'mcps/test-mcp/mcp.yaml'
+        assert entry['href'] == 'mcps/test-mcp/server.json'
         assert entry['docs'] == 'mcps/test-mcp.html'
         assert entry['tool_count'] == 1
 
@@ -960,3 +1025,42 @@ class TestMaliciousTerraformSmokeRawHtml:
         for s in soup.find_all('script'):
             body = s.string or ''
             assert 'evil.example' not in body
+
+
+class TestCacheBustingIntegration:
+    """Verify generated HTML pages reference the correct hashed asset filenames."""
+
+    def test_homepage_references_hashed_css(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        css_files = list((generated_portal / 'assets').glob('styles.*.css'))
+        assert len(css_files) == 1
+        css_name = css_files[0].name
+        assert f'assets/{css_name}' in html
+
+    def test_homepage_references_hashed_js(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        js_files = list((generated_portal / 'assets').glob('portal.*.js'))
+        assert len(js_files) == 1
+        assert js_files[0].name in html
+
+    def test_detail_page_references_hashed_css(self, generated_portal):
+        detail_pages = list((generated_portal / 'apis').glob('*.html'))
+        assert len(detail_pages) > 0
+        html = detail_pages[0].read_text(encoding='utf-8')
+        css_files = list((generated_portal / 'assets').glob('styles.*.css'))
+        css_name = css_files[0].name
+        assert f'assets/{css_name}' in html
+
+    def test_detail_page_references_hashed_js(self, generated_portal):
+        detail_pages = list((generated_portal / 'apis').glob('*.html'))
+        assert len(detail_pages) > 0
+        html = detail_pages[0].read_text(encoding='utf-8')
+        js_files = list((generated_portal / 'assets').glob('portal.*.js'))
+        assert js_files[0].name in html
+
+    def test_no_unhashed_asset_references(self, generated_portal):
+        for html_file in generated_portal.rglob('*.html'):
+            content = html_file.read_text(encoding='utf-8')
+            assert 'assets/styles.css' not in content, f"{html_file} still references unhashed styles.css"
+            assert 'assets/portal.js' not in content, f"{html_file} still references unhashed portal.js"
+            assert 'assets/jsonpath-plus.min.js' not in content, f"{html_file} still references unhashed jsonpath-plus.min.js"

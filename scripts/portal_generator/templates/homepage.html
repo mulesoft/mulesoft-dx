@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}MuleSoft Developer Portal{% endblock %}
+{% block title %}MuleSoft Developer Hub{% endblock %}
 
 {% block markdown_alternate %}
 <link rel="alternate" type="text/markdown" href="{{ base_url }}/index.md">
 {% endblock %}
 
 {% block head_scripts %}
-<script src="assets/jsonpath-plus.min.js" defer></script>
-<script src="assets/portal.js" defer></script>
+<script src="{{ jsonpath_js_path }}" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -19,7 +19,7 @@
 <main id="main-content">
     <section class="hero">
         <div class="hero-content">
-            <h1 class="hero-title">MuleSoft Developer Portal</h1>
+            <h1 class="hero-title">MuleSoft Developer Hub</h1>
             <p class="hero-subtitle">For developers and AI agents to discover, interact, and build together</p>
 
             <div class="hero-tabs">
@@ -63,7 +63,7 @@
                         </div>
                         <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                     </div>
-                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)</h2>
+                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)<span id="sortIndicator" class="sort-indicator" style="display: none;"> · Sort by <span id="sortLabel">Name</span></span></h2>
                 </div>
                 <div class="catalog-controls-right">
                     <button class="sort-btn" aria-label="Sort options">
@@ -82,7 +82,7 @@
                                 <select id="sortBy" class="sort-modal-select">
                                     <option value="name">Name</option>
                                     <option value="type">Type</option>
-                                    <option value="endpoints">Endpoints</option>
+                                    <option value="count">Count</option>
                                 </select>
                             </div>
 

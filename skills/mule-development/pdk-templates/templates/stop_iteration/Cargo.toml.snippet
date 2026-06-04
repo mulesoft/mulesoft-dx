@@ -1,0 +1,27 @@
+# Copyright 2023 Salesforce, Inc. All rights reserved.
+[package]
+name = "stop_iteration"
+version = "1.0.0"
+rust-version = "1.87.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.anypoint]
+group_id = "007e256a-fd7e-4fe2-bb1d-78c22cd0d3ca"
+definition_asset_id = "stop-iteration"
+implementation_asset_id = "stop-iteration-flex"
+
+[dependencies]
+pdk = { version = "1.8.0", features = ["enable_stop_iteration"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+anyhow = "1.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 'z'
+strip = "debuginfo"

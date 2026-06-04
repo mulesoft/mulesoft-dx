@@ -65,7 +65,7 @@ def fetch_mulesoft_chrome() -> Dict[str, str]:
         'footer'
     )
     if footer_json:
-        result['footer'] = _strip_footer_bottom(_parse_html_response(footer_json))
+        result['footer'] = _parse_html_response(footer_json)
 
     return result
 
@@ -108,17 +108,6 @@ def _parse_html_response(json_str: str) -> str:
     except (json.JSONDecodeError, KeyError) as e:
         print(f"    ⚠️  Failed to parse HTML response: {e}")
         return ''
-
-
-def _strip_footer_bottom(html: str) -> str:
-    """Remove the footer-bottom section from the chrome footer HTML."""
-    import re
-    return re.sub(
-        r'<section class="footer-bottom">.*?</section>',
-        '',
-        html,
-        flags=re.DOTALL
-    )
 
 
 def _fetch_url(url: str, name: str) -> str:

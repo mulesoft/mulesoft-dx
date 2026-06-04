@@ -10,18 +10,13 @@
 {% block body_attrs %} class="detail-page skill-page"{% endblock %}
 
 {% block head_scripts %}
+{% include "partials/prism_head.html" %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 {% if not prose_only %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
-<script src="../assets/jsonpath-plus.min.js" defer></script>
+<script src="{{ jsonpath_js_path }}" defer></script>
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" defer></script>
-<script src="../assets/portal.js" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -38,7 +33,7 @@
 <div class="detail-layout">
     {% include "partials/skill_sidebar.html" %}
     <main class="detail-content" id="main-content">
-        {{ render_skill(skill, private_api_slugs, api_link_prefix, op_lookup) }}
+        {{ render_skill(skill, private_api_slugs, api_link_prefix, op_lookup, prose_only) }}
         {% include "partials/contribute_footer.html" %}
     </main>
 </div>
@@ -71,17 +66,19 @@ window.__API_LINK_PREFIX__ = '../apis/';
 {% endif %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof mermaid === 'undefined') return;
-    var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
-    mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'loose' });
-    document.querySelectorAll('code.language-mermaid').forEach(function(block) {
-        var pre = block.parentElement;
-        var container = document.createElement('div');
-        container.className = 'mermaid';
-        container.textContent = block.textContent;
-        pre.parentNode.replaceChild(container, pre);
-    });
-    mermaid.run();
+    if (typeof wrapSkillCodeBlocks === 'function') wrapSkillCodeBlocks();
+    if (typeof mermaid !== 'undefined') {
+        var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+        mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'loose' });
+        document.querySelectorAll('code.language-mermaid').forEach(function(block) {
+            var pre = block.parentElement;
+            var container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = block.textContent;
+            pre.parentNode.replaceChild(container, pre);
+        });
+        mermaid.run();
+    }
 });
 </script>
 {% endblock %}

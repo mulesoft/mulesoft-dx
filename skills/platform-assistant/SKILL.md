@@ -1,5 +1,5 @@
 ---
-name: anypoint-platform-operations
+name: platform-assistant
 description: |
   Discover and navigate the Anypoint Platform API developer portal to find APIs,
   agent skills, and schemas. Use when bootstrapping knowledge of the Anypoint
@@ -15,6 +15,8 @@ description: |
 Navigate the Anypoint Platform developer portal to discover available APIs, agent skills, and extension schemas. The portal is the single source of truth for all public Anypoint Platform API specifications and agent-executable workflows. The portal URL is provided in the agent context preamble injected at the top of this file.
 
 The portal exposes three machine-readable discovery files designed for AI agent consumption. Start with `llms.txt` for a quick inventory, read `AGENTS.md` for the full operating manual, and query `registry.json` for programmatic access to every document.
+
+**Important:** All portal files are plain-text source documents (YAML, JSON, Markdown). Always retrieve them with raw HTTP tools (curl, direct GET requests) — never pass portal URLs through summarizer or browser-rendering tools, which will truncate structured content.
 
 ### llms.txt -- Quick Inventory
 
@@ -119,11 +121,23 @@ Some skills define **Execution Paths** -- alternative routes through the steps d
 Full schema: `{portal-url}/schemas/jtbd-schema.md`
 Template: `{portal-url}/schemas/jtbd-template.md`
 
+## Fetching Strategy
+
+Portal files (`*.md`, `*.yaml`, `*.json`) are plain-text source documents, NOT rendered web pages. When retrieving them:
+
+1. **Use raw HTTP tools** (curl, direct GET, file-read tools) — NOT browser-rendering or summarizer tools (e.g., WebFetch). Summarizers truncate structured content like JSON arrays, YAML code blocks, and tables.
+2. **Parse responses verbatim** — `registry.json` must be parsed as JSON, API specs as YAML, and skills as Markdown. Do not summarize or abbreviate.
+3. **Fetch files individually** when you need their content:
+   - Registry: `GET {portal-url}/registry.json`
+   - API spec: `GET {portal-url}/apis/{slug}/api.yaml`
+   - Skill definition: `GET {portal-url}/skills/{slug}/SKILL.md`
+   - Agent guide: `GET {portal-url}/AGENTS.md`
+
 ## Prerequisites
 
 1. **Network access** -- ability to make HTTP requests to the portal URL (see agent context preamble for the base URL)
 2. **Anypoint Platform credentials** (for executing skills) -- Bearer token or OAuth2 client credentials for API calls
-3. **HTTP fetch capability** -- ability to fetch and parse YAML, JSON, and Markdown responses
+3. **HTTP fetch capability** -- ability to fetch and parse YAML, JSON, and Markdown responses directly (raw HTTP, not via summarizer)
 
 ## Tips and Best Practices
 
@@ -132,6 +146,7 @@ Template: `{portal-url}/schemas/jtbd-template.md`
 - **Start with `registry.json`** for programmatic discovery -- it is structured, filterable, and machine-parseable
 - **Read `AGENTS.md`** when you need to understand conventions, resolve ambiguity, or learn how the portal works
 - **Use `llms.txt`** for a quick, lightweight overview before committing to a deeper exploration
+- **Always use raw HTTP tools** (curl, direct GET) for portal files -- never use summarizer tools that pass content through an intermediate model
 
 ### Working with x-origin
 

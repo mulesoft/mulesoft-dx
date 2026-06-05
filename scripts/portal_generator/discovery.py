@@ -78,6 +78,33 @@ def _extract_mcp_refs(skill_data: Dict) -> List[str]:
     return _extract_urn_refs(skill_data, _URN_MCP_RE)
 
 
+def iter_skill_files(skills_dir: Path) -> List[Path]:
+    """Return all ``SKILL.md`` files under ``skills_dir``.
+
+    Discovers ``skills/<slug>/SKILL.md`` and one level of nesting
+    ``skills/<category>/<slug>/SKILL.md``. This is the single source of truth
+    for "which files count as skills", shared by the portal generator and the
+    submission-time validator so they can never diverge.
+    """
+    skill_files: List[Path] = []
+    if not skills_dir.exists():
+        return skill_files
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        direct = entry / 'SKILL.md'
+        if direct.exists():
+            skill_files.append(direct)
+            continue
+        for nested in sorted(entry.iterdir()):
+            if not nested.is_dir():
+                continue
+            nested_skill = nested / 'SKILL.md'
+            if nested_skill.exists():
+                skill_files.append(nested_skill)
+    return skill_files
+
+
 def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, List[Dict]], List[Dict]]:
     """Discover all skills in the top-level skills/ directory.
 
@@ -99,20 +126,7 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
 
     # Collect SKILL.md files at skills/<slug>/SKILL.md and
     # skills/<category>/<slug>/SKILL.md (one level of nesting).
-    skill_files: List[Path] = []
-    for entry in sorted(skills_dir.iterdir()):
-        if not entry.is_dir():
-            continue
-        direct = entry / 'SKILL.md'
-        if direct.exists():
-            skill_files.append(direct)
-            continue
-        for nested in sorted(entry.iterdir()):
-            if not nested.is_dir():
-                continue
-            nested_skill = nested / 'SKILL.md'
-            if nested_skill.exists():
-                skill_files.append(nested_skill)
+    skill_files = iter_skill_files(skills_dir)
 
     for skill_file in skill_files:
         skill_dir = skill_file.parent

@@ -46,6 +46,23 @@ def _generate_skill_manifest(source_dir: Path, output_dir: Path) -> None:
         json.dump(manifest, mf)
 
 
+def _resolve_prose_only(skill: Dict) -> bool:
+    """Return True for prose skills, False for jtbd. Fail loud on an unresolved type.
+
+    Skill type is the single source of truth (resolved by discovery via
+    _resolve_skill_type + skills-metadata.yaml; enforced by validate_skills.py
+    R6). The generator must not assume a default for an unresolved type — that
+    is the silent mis-render this WI removed — so raise instead.
+    """
+    skill_type = skill.get('skill_type')
+    if skill_type not in ('prose', 'jtbd'):
+        raise ValueError(
+            f"Skill '{skill.get('slug', skill.get('name', '?'))}' has unresolved skill_type "
+            f"{skill_type!r}; declare type in skills-metadata.yaml (enforced by validate_skills.py R6)."
+        )
+    return skill_type == 'prose'
+
+
 def _build_api_meta(api: Dict) -> Dict:
     """Build the metadata object for JavaScript access."""
     servers = []
@@ -532,15 +549,7 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
-            skill_type = skill.get('skill_type')
-            if skill_type:
-                prose_only = (skill_type == 'prose')
-            else:
-                has_api_steps = any(
-                    s.get('yaml') and s['yaml'].get('api')
-                    for s in skill.get('step_details', [])
-                )
-                prose_only = not has_api_steps
+            prose_only = _resolve_prose_only(skill)
 
             linked_apis = []
             for api_slug in api_refs:
@@ -777,15 +786,7 @@ class PortalGenerator:
             first_api = api_by_slug.get(api_refs[0]) if api_refs else None
             api_meta = _build_api_meta(first_api) if first_api else {'servers': [], 'securitySchemes': {}, 'security': []}
 
-            skill_type = skill.get('skill_type')
-            if skill_type:
-                prose_only = (skill_type == 'prose')
-            else:
-                has_api_steps = any(
-                    s.get('yaml') and s['yaml'].get('api')
-                    for s in skill.get('step_details', [])
-                )
-                prose_only = not has_api_steps
+            prose_only = _resolve_prose_only(skill)
 
             # Build linked APIs list for sidebar
             linked_apis = []

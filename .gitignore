@@ -10,3 +10,8 @@ node_modules/
 
 .idea
 .idea/**
+
+# scripts/build/ holds versioned source validators, not build artifacts.
+# Negate any global-gitignore "build" rule that would otherwise exclude it.
+!scripts/build/
+!scripts/build/**

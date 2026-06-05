@@ -31,6 +31,13 @@ def generated_portal(tmp_path):
     (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
     (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
 
+    # Skill type is now resolved from skills-metadata.yaml (single source of
+    # truth) — the generator no longer infers it from api: step presence.
+    # Mirror the real repo: a top-level jtbd default with nearest-wins prose
+    # overrides on the two prose skills.
+    (repo / 'skills').mkdir(parents=True, exist_ok=True)
+    (repo / 'skills' / 'skills-metadata.yaml').write_text('type: jtbd\n')
+
     skill_dir = repo / 'skills' / 'deploy-app'
     skill_dir.mkdir(parents=True)
     (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
@@ -38,14 +45,20 @@ def generated_portal(tmp_path):
     prose_skill_dir = repo / 'skills' / 'platform-guide'
     prose_skill_dir.mkdir(parents=True)
     (prose_skill_dir / 'SKILL.md').write_text(PROSE_ONLY_SKILL_MD)
+    (prose_skill_dir / 'skills-metadata.yaml').write_text('type: prose\n')
 
     nested_skill_dir = repo / 'skills' / 'ops-category' / 'run-diagnostics'
     nested_skill_dir.mkdir(parents=True)
     (nested_skill_dir / 'SKILL.md').write_text(NESTED_SKILL_MD)
+    # Nested skills resolve type from own/parent dir only (the top-level default
+    # does not reach two levels deep), so the category dir must declare it —
+    # mirrors mule-development/skills-metadata.yaml in the real repo.
+    (nested_skill_dir.parent / 'skills-metadata.yaml').write_text('type: jtbd\n')
 
     non_api_skill_dir = repo / 'skills' / 'build-mule-app'
     non_api_skill_dir.mkdir(parents=True)
     (non_api_skill_dir / 'SKILL.md').write_text(NON_API_STEPS_SKILL_MD)
+    (non_api_skill_dir / 'skills-metadata.yaml').write_text('type: prose\n')
 
     mcp_dir = repo / 'mcps' / 'test-mcp'
     mcp_dir.mkdir(parents=True)
@@ -594,10 +607,12 @@ class TestPrivateApiNotInRelatedApis:
         (private_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
         (private_dir / 'exchange.json').write_text(PRIVATE_EXCHANGE_JSON)
 
-        # Skill referencing both
+        # Skill referencing both. Skill type is resolved from skills-metadata.yaml
+        # (the generator fails loud on an unresolved type), so declare the default.
         skills_dir = repo / 'skills' / 'mixed-api-skill'
         skills_dir.mkdir(parents=True)
         (skills_dir / 'SKILL.md').write_text(PRIVATE_API_SKILL_MD)
+        (repo / 'skills' / 'skills-metadata.yaml').write_text('type: jtbd\n')
 
         setup_schema_docs(repo)
 

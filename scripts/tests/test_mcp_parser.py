@@ -429,9 +429,37 @@ class TestLocalCatalogStdioTransport:
         assert claude['command'] == 'npx'
         assert claude['args'] == ['-y', 'local-cat', 'start']
 
+    def test_catalog_without_transport_key(self, tmp_path):
+        d = tmp_path / 'no-transport'
+        d.mkdir()
+        (d / 'server.json').write_text(json.dumps({
+            '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+            'name': 'com.mulesoft/no-transport',
+            'title': 'No Transport MCP',
+            'description': 'Catalog with tools but no transport key.',
+            'version': '1.0.0',
+            '_meta': {
+                'com.mulesoft.omni/catalog': {
+                    'capabilities': {'tools': {'listChanged': False}},
+                    'tools': [
+                        {'name': 'ping', 'description': 'Ping', 'inputSchema': {'type': 'object', 'properties': {}}},
+                    ],
+                }
+            },
+        }))
+        data = parse_mcp(d)
+        assert data is not None
+        assert data['tool_count'] == 1
+        # no transport key — parser must not crash; mcp_type falls back gracefully
+        assert data['mcp_type'] in ('local', 'remote', 'unknown')
+
 
 # Repo root resolved from this test file: scripts/tests/<file> -> parents[2] == worktree root.
+# If this file is ever moved, update the index accordingly.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+assert (_REPO_ROOT / 'mcps').is_dir(), (
+    f"_REPO_ROOT ({_REPO_ROOT}) does not look like the repo root — update parents[N] if this file moved"
+)
 _LOCAL_MCP_DIR = _REPO_ROOT / 'mcps' / 'mulesoft-mcp-server'
 
 # Expected, migration-invariant facts about the real local MCP.
@@ -541,6 +569,20 @@ class TestRealLocalMcpMigration:
         tool_names = {t['name'] for t in data['tools']}
         assert tool_names == _EXPECTED_TOOL_NAMES
 
+    def test_tools_have_non_empty_input_schemas(self, tmp_path):
+        # Spot-check: a silently corrupted/dropped inputSchema would still pass
+        # a name-set check — verify at least a few known tools have valid schemas.
+        dest = self._server_only_copy(tmp_path)
+        data = parse_mcp(dest)
+        assert data is not None
+        tools_by_name = {t['name']: t for t in data['tools']}
+        # create_mule_project has known string properties
+        schema = tools_by_name['create_mule_project']['inputSchema']
+        assert schema.get('type') == 'object'
+        assert 'projectPath' in schema.get('properties', {})
+        # search_asset must also carry a schema
+        assert tools_by_name['search_asset']['inputSchema'].get('type') == 'object'
+
     def test_ide_command_uses_server_json_transport(self, tmp_path):
         # RED today: server.json alone has no catalog -> None. GREEN after
         # migration: IDE command derives from the catalog transport.
@@ -552,6 +594,12 @@ class TestRealLocalMcpMigration:
         assert claude['command'] == 'npx'
         assert claude['args'] == ['-y', 'mulesoft-mcp-server', 'start']
 
+    def test_exchange_json_main_points_to_server_json(self):
+        exchange = json.loads((_LOCAL_MCP_DIR / 'exchange.json').read_text(encoding='utf-8'))
+        assert exchange.get('main') == 'server.json', (
+            'exchange.json "main" must point to server.json (single source of truth)'
+        )
+
     def test_live_dir_still_parses_as_local_no_regression(self):
         # No-regression guard against the LIVE dir (mcp.yaml present today,
         # catalog after migration). Output must be migration-invariant: local
@@ -561,6 +609,7 @@ class TestRealLocalMcpMigration:
         assert data is not None
         assert data['mcp_type'] == 'local'
         assert data['tool_count'] == _EXPECTED_TOOL_COUNT
+        assert {t['name'] for t in data['tools']} == _EXPECTED_TOOL_NAMES
         assert data['transport']['command'] == _EXPECTED_STDIO_COMMAND
 
 

@@ -381,6 +381,8 @@ class PortalGenerator:
         self._css_filename = self._generate_css()
         self._js_filename, self._jsonpath_filename = self._generate_js()
         self._generate_404()
+        self._generate_500()
+        self._generate_error_page()
         self._generate_homepage()
         self._generate_detail_pages_parallel()
         self._generate_registry()
@@ -408,19 +410,31 @@ class PortalGenerator:
             'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
         }
 
-    def _generate_404(self):
-        """Generate 404.html error page."""
-        print("  ✓ Generating 404 page...")
-        template = self.env.get_template('404.html')
+    def _generate_static_error_page(self, template_name: str, output_name: str) -> None:
+        """Render a static error page template to output_dir/output_name."""
+        template = self.env.get_template(template_name)
         html = template.render(
             **self._asset_paths(0),
             build_label=self.build_label,
             base_url=self.base_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
         )
-        output_path = self.output_dir / '404.html'
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html)
+        (self.output_dir / output_name).write_text(html, encoding='utf-8')
+
+    def _generate_404(self):
+        """Generate 404.html error page."""
+        print("  ✓ Generating 404 page...")
+        self._generate_static_error_page('404.html', '404.html')
+
+    def _generate_500(self):
+        """Generate 500.html error page."""
+        print("  ✓ Generating 500 page...")
+        self._generate_static_error_page('500.html', '500.html')
+
+    def _generate_error_page(self):
+        """Generate error.html generic fallback error page."""
+        print("  ✓ Generating generic error page...")
+        self._generate_static_error_page('error.html', 'error.html')
 
     def _generate_homepage(self):
         """Generate index.html"""

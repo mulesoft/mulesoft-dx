@@ -1184,6 +1184,44 @@ class TestErrorPages:
     def test_404_has_main_element(self):
         assert self.soup.find('main') is not None
 
+    def test_500_exists(self, generated_portal):
+        assert (generated_portal / '500.html').exists()
+
+    def test_error_exists(self, generated_portal):
+        assert (generated_portal / 'error.html').exists()
+
+    def test_500_has_main_element(self, generated_portal):
+        html = (generated_portal / '500.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        assert soup.find('main') is not None
+
+    def test_error_has_main_element(self, generated_portal):
+        html = (generated_portal / 'error.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        assert soup.find('main') is not None
+
+    def test_500_uses_hashed_css(self, generated_portal):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        html = (generated_portal / '500.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        link = soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"500.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+    def test_error_uses_hashed_css(self, generated_portal):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        html = (generated_portal / 'error.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        link = soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"error.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
 
 def test_multi_version_anchor_map_marks_unique_resources(tmp_path):
     """The version_anchors emitted in the page lists each version's docs.

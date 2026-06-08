@@ -97,6 +97,7 @@ Before starting, ensure you have:
 - **Configuration structure from metadata only.** Never hardcode attributes, child elements, or provider names for connectors. The `describe-connector` metadata is the source of truth.
 - **Connector versions from Exchange only.** Never paste a version from memory. The only acceptable source is `get_latest_connector.sh` → `pick_connector.sh`.
 - **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
+- **pom.xml dependency is MANDATORY.** Every global element that requires a dependency (connectors, Object Store, API AutoDiscovery, imports) MUST have its dependency added to `pom.xml`. Read `pom.xml`, add the `<dependency>` block inside `<dependencies>`, and write the file. The build will fail without this. Never skip this step.
 
 **Scripts:**
 
@@ -238,7 +239,20 @@ Only for fields where user chose placeholders. Use `${namespace.attributeName}` 
 1. Write config to `src/main/mule/global-configs.xml` (create if missing — see `references/global-config-conventions.md`).
 2. Add namespace + schemaLocation.
 3. Write/update `src/main/resources/config.yaml`.
-4. Add pom.xml dependency if missing (version from `tmp/connector-choices/`).
+4. **Add connector dependency to pom.xml** (MANDATORY — do not skip):
+   - Read the project's `pom.xml`.
+   - Check if the connector's `<artifactId>` already exists in `<dependencies>`.
+   - If NOT present, add this dependency block inside `<dependencies>`:
+     ```xml
+     <dependency>
+         <groupId>{groupId}</groupId>
+         <artifactId>{artifactId}</artifactId>
+         <version>{version}</version>
+         <classifier>mule-plugin</classifier>
+     </dependency>
+     ```
+   - The `groupId`, `artifactId`, and `version` come from the GAV saved by `pick_connector.sh` in `tmp/connector-choices/`.
+   - Write the updated `pom.xml` with the new dependency added.
 5. Validate:
 
 ```bash
@@ -277,7 +291,22 @@ For all element types below, read `references/global-elements-catalog.md` for th
 
 **Q2:** Object Store name, config-ref, persistent?, maxEntries, entryTtl, TTL unit.
 
-**STOP.** → Execute: write XML (config BEFORE object-store), add `os` namespace, ensure `mule-objectstore-connector` in pom.xml.
+**STOP.** → Execute:
+1. Write XML (config BEFORE object-store) to `global-configs.xml`.
+2. Add `os` namespace: `xmlns:os="http://www.mulesoft.org/schema/mule/os"` and its schemaLocation entry.
+3. **Add `mule-objectstore-connector` dependency to pom.xml** (MANDATORY — do not skip):
+   - Read `pom.xml` and check if `mule-objectstore-connector` already exists in `<dependencies>`.
+   - If NOT present, add this dependency block inside `<dependencies>`:
+     ```xml
+     <dependency>
+         <groupId>org.mule.connectors</groupId>
+         <artifactId>mule-objectstore-connector</artifactId>
+         <version>1.2.5</version>
+         <classifier>mule-plugin</classifier>
+     </dependency>
+     ```
+   - Write the updated `pom.xml`.
+4. Validate build: `cd <project-dir> && mvn clean package -DskipTests`.
 
 ### CACHING STRATEGY — CREATE
 
@@ -307,7 +336,30 @@ For all element types below, read `references/global-elements-catalog.md` for th
 
 **Q2:** Optional settings (ignoreBasePath, etc.).
 
-**STOP.** → Execute: write XML, add `api-gateway` namespace, add `mule-api-gateway` dependency (scope: provided), add `api.id` to config.yaml.
+**STOP.** → Execute:
+1. Write XML to `global-configs.xml`:
+   ```xml
+   <api-gateway:autodiscovery apiId="${api.id}" flowRef="{flow-name}" doc:name="API AutoDiscovery" />
+   ```
+2. Add `api-gateway` namespace: `xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"` and its schemaLocation entry.
+3. **Add `mule-api-gateway` dependency to pom.xml** (MANDATORY — do not skip):
+   - Read `pom.xml` and check if `mule-api-gateway` already exists in `<dependencies>`.
+   - If NOT present, add this dependency block inside `<dependencies>`:
+     ```xml
+     <dependency>
+         <groupId>org.mule.modules</groupId>
+         <artifactId>mule-api-gateway</artifactId>
+         <version>${app.runtime}</version>
+         <classifier>mule-plugin</classifier>
+         <scope>provided</scope>
+     </dependency>
+     ```
+   - Write the updated `pom.xml`.
+4. **Add `api.id` to config.yaml** (MANDATORY — do not skip):
+   - Read `src/main/resources/config.yaml`.
+   - Add `api.id: "YOUR_API_ID"` (or user-specified value) under an appropriate section.
+   - Write the updated config.yaml.
+5. Validate build: `cd <project-dir> && mvn clean package -DskipTests`.
 
 ### IMPORT — CREATE
 
@@ -438,6 +490,8 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 - **Skip-if-provided.** When the user's initial request includes details (config name, provider, placeholder preference, field values), skip the corresponding STOP points. Only ask for information that was NOT provided or is ambiguous.
 - **Never output raw XML to chat** — always write to file.
 - **No MCP server tools.** ALL Exchange searches and connector operations MUST use ONLY the bash scripts provided.
+- **Always update pom.xml.** Every connector/module that needs a dependency MUST be added to `pom.xml`. This is the #1 cause of build failures. The dependency XML patterns are documented in `references/global-elements-catalog.md`. Read pom.xml → add dependency → write pom.xml. Do this BEFORE running `mvn clean package`.
+- **Always update config.yaml for placeholders.** When using `${property.name}` placeholders in XML, the corresponding property MUST be added to `src/main/resources/config.yaml`. For AutoDiscovery, always add `api.id` to config.yaml.
 
 ## Troubleshooting
 

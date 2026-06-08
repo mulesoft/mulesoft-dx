@@ -3,7 +3,7 @@
 {% block title %}Page not found — Anypoint Platform APIs{% endblock %}
 
 {% block head_scripts %}
-<script src="assets/portal.js" defer></script>
+<script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -107,7 +107,7 @@
 {% block content %}
 <main class="error-page" id="main-content">
     <div class="error-illustration">
-        <img src="assets/icons/astronaut-404.svg" alt="" aria-hidden="true"/>
+        <img src="{{ icons_path }}/astronaut-404.svg" alt="" aria-hidden="true"/>
     </div>
 
     <p class="error-code">404</p>

@@ -1148,6 +1148,43 @@ def test_homepage_terraform_card_links_to_index(generated_portal):
     assert soup.select_one(".tf-card-version") is None
 
 
+class TestErrorPages:
+    @pytest.fixture(autouse=True)
+    def _parse_404(self, generated_portal):
+        html = (generated_portal / '404.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+        self.css_files = list((generated_portal / 'assets').glob('styles.*.css'))
+
+    def test_404_exists(self, generated_portal):
+        assert (generated_portal / '404.html').exists()
+
+    def test_404_uses_hashed_css(self):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        link = self.soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"404.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+    def test_404_uses_hashed_js(self, generated_portal):
+        js_files = list((generated_portal / 'assets').glob('portal.*.js'))
+        assert js_files, "No hashed JS file found"
+        hashed_js = js_files[0].name
+        scripts = self.soup.find_all('script', src=True)
+        js_srcs = [s['src'] for s in scripts]
+        assert any(hashed_js in src for src in js_srcs), (
+            f"404.html references unhashed JS; expected {hashed_js} in one of {js_srcs}"
+        )
+
+    def test_404_has_go_home_link(self):
+        links = self.soup.find_all('a')
+        assert any('index.html' in (l.get('href', '')) for l in links)
+
+    def test_404_has_main_element(self):
+        assert self.soup.find('main') is not None
+
+
 def test_multi_version_anchor_map_marks_unique_resources(tmp_path):
     """The version_anchors emitted in the page lists each version's docs.
 

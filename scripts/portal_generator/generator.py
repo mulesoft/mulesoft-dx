@@ -413,7 +413,7 @@ class PortalGenerator:
         print("  ✓ Generating 404 page...")
         template = self.env.get_template('404.html')
         html = template.render(
-            css_path='assets/styles.css',
+            **self._asset_paths(0),
             build_label=self.build_label,
             base_url=self.base_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,

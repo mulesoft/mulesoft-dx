@@ -337,16 +337,18 @@ def rule_cross_references(ctx: SkillContext) -> List[Violation]:
     if idx is None:
         return []
 
+    violations: List[Violation] = []
+
     # Scan frontmatter (raw) + body-with-fences-stripped.
     fm_text = ''
     if isinstance(ctx.frontmatter, dict):
         try:
             fm_text = yaml.safe_dump(ctx.frontmatter)
-        except Exception:
+        except yaml.YAMLError:
+            violations.append(Violation('R5', ctx.rel_path,
+                                        'could not serialize frontmatter for cross-ref scan'))
             fm_text = ''
     scan = fm_text + '\n' + _strip_code_fences(ctx.body)
-
-    violations: List[Violation] = []
     own_slug = ctx.skill_dir.name
 
     for slug in sorted(set(_URN_API_RE.findall(scan))):

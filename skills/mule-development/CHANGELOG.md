@@ -4,6 +4,17 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-06-09
+
+### Changed
+
+- **`build-mule-integration`** — synced with the upstream agent-evaluation lab (v12.0.0 of the skill). Surfaces broader connector-search guidance, hardens the static `scripts/validate_before_build.sh` pre-`mvn` validator, and keeps Step 16 fast-fail diagnostics in line with the latest connector error-type cache layout.
+
+### Added
+
+- **`build-mule-integration`** — `scripts/_suggest_nearest.py`, a fuzzy nearest-match helper invoked by `validate_before_build.sh` to suggest the closest allowed error-type when the user's namespace:id miss has no exact match. Reduces time-to-fix on Cluster D validation failures.
+- `scripts/.gitattributes` to keep shell script line endings stable across contributor platforms.
+
 ## [1.1.0] - 2026-05-18
 
 ### Added

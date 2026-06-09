@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# Copyright (c) 2026, Salesforce, Inc.
+# All rights reserved.
+# For full license text, see the LICENSE.txt file
+#
 """Fuzzy nearest-match suggester for validate_before_build.sh.
 
 Reads the error-type allowlist (one ``NS:ID`` per line) from stdin and accepts

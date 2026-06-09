@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Copyright (c) 2026, Salesforce, Inc.
+# All rights reserved.
+# For full license text, see the LICENSE.txt file
+#
 # Part of build-mule-integration skill.
 #
 # Step 16 helper — pre-mvn static validator. Catches the three top

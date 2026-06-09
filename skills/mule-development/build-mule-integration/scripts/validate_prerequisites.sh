@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Copyright (c) 2026, Salesforce, Inc.
+# All rights reserved.
+# For full license text, see the LICENSE.txt file
+#
 # Part of build-mule-integration skill.
 #
 # Step 1 helper — validates the toolchain and emits a machine-readable env

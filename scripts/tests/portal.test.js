@@ -2179,4 +2179,94 @@ describe('executeXOriginSource — button reset and auth errors', () => {
     });
 });
 
+// ===========================================================================
+// applyAuthModalMode — logged-in state hides credential inputs
+// ===========================================================================
+describe('applyAuthModalMode (logged-in state)', () => {
+    function buildAuthModalDom() {
+        document.body.innerHTML = `
+            <select id="serverSelect"><option value="us">US</option></select>
+            <select id="regionPreset"><option value="eu1">eu1</option></select>
+            <input id="regionCustomInput" type="text">
+            <button class="auth-tab" data-tab="bearer"></button>
+            <button class="auth-tab" data-tab="oauth2"></button>
+            <input id="authUsername" type="text">
+            <input id="authPassword" type="password">
+            <input id="authClientId" type="text">
+            <input id="authClientSecret" type="password">
+            <button id="authBearerLoginBtn"></button>
+            <button id="authBearerLogoutBtn" class="btn-auth-logout"></button>
+            <button id="authOauth2LoginBtn"></button>
+            <button id="authOauth2LogoutBtn" class="btn-auth-logout"></button>
+            <div id="authBearerLoggedAs" class="auth-logged-as"><strong id="authBearerLoggedAsValue"></strong></div>
+            <div id="authOauth2LoggedAs" class="auth-logged-as"><strong id="authOauth2LoggedAsValue"></strong></div>
+        `;
+    }
+
+    afterEach(() => {
+        sessionStorage.clear();
+        document.body.innerHTML = '';
+    });
+
+    test('hides bearer credential inputs and shows logout button when authenticated as Bearer', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'Bearer');
+        sessionStorage.setItem('anypoint_identity', 'Roberto Cantalapiedra');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authUsername').style.display).toBe('none');
+        expect(document.getElementById('authPassword').style.display).toBe('none');
+        expect(document.getElementById('authBearerLoginBtn').style.display).toBe('none');
+        expect(document.getElementById('authBearerLogoutBtn').style.display).toBe('');
+        expect(document.getElementById('authBearerLoggedAs').style.display).toBe('');
+        expect(document.getElementById('authBearerLoggedAsValue').textContent).toBe('Roberto Cantalapiedra');
+    });
+
+    test('hides oauth2 credential inputs and shows logout button when authenticated as OAuth2', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'OAuth2');
+        sessionStorage.setItem('anypoint_identity', 'svc-account');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authClientId').style.display).toBe('none');
+        expect(document.getElementById('authClientSecret').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LoginBtn').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LogoutBtn').style.display).toBe('');
+        expect(document.getElementById('authOauth2LoggedAs').style.display).toBe('');
+    });
+
+    test('restores credential inputs when not authenticated', () => {
+        buildAuthModalDom();
+        sessionStorage.clear();
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authUsername').style.display).toBe('');
+        expect(document.getElementById('authPassword').style.display).toBe('');
+        expect(document.getElementById('authClientId').style.display).toBe('');
+        expect(document.getElementById('authClientSecret').style.display).toBe('');
+        expect(document.getElementById('authBearerLogoutBtn').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LogoutBtn').style.display).toBe('none');
+        expect(document.getElementById('authBearerLoggedAs').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LoggedAs').style.display).toBe('none');
+    });
+
+    test('falls back to em-dash when identity is missing', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'Bearer');
+        sessionStorage.setItem('anypoint_identity', '');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authBearerLoggedAsValue').textContent).toBe('—');
+    });
+});
 

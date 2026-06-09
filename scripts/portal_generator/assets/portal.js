@@ -1399,7 +1399,7 @@ function updatePlaceholder() {
     if (selectedTags.length > 0) {
         input.placeholder = '';
     } else {
-        input.placeholder = 'Search by keyword';
+        input.placeholder = 'Search by tags';
     }
 }
 
@@ -2297,7 +2297,7 @@ function applyAuthModalMode() {
     var token = sessionStorage.getItem('anypoint_token');
     var authenticated = !!token && !isTokenExpired();
     var authMethod = sessionStorage.getItem('anypoint_auth_method') || 'Bearer';
-    var identity = sessionStorage.getItem('anypoint_identity') || '';
+    var identity = sessionStorage.getItem('anypoint_identity') || '—';
 
     var username = document.getElementById('authUsername');
     var password = document.getElementById('authPassword');

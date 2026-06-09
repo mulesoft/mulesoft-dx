@@ -684,7 +684,6 @@ code {
 }
 
 .mulesoft-dev-logo {
-    height: 43px;
     width: auto;
     vertical-align: middle;
     padding: 2px 0px;
@@ -5830,10 +5829,18 @@ details[open] .examples-toggle-icon {
     height: auto;
 }
 
-.homepage-logo-icon {
+.homepage-sprite-logo {
     display: block;
-    width: 56px;
-    height: 56px;
+    width: 150px;
+    height: 55px;
+    background-image: url('https://www.mulesoft.com/sites/default/files/cmm_files/new-graphics-WES_updated121423.svgz');
+    background-position: -2px -179px;
+    background-size: 406px;
+    background-repeat: no-repeat;
+}
+
+[data-theme="dark"] .homepage-sprite-logo {
+    background-position: -173px -179px;
 }
 
 .homepage-contact-group {
@@ -5844,42 +5851,34 @@ details[open] .examples-toggle-icon {
 }
 
 .homepage-contact-label {
-    color: #032D60;
-    font-size: 14px;
-    font-weight: 400;
-    text-decoration: underline;
-}
-
-.homepage-contact-label:hover {
-    color: #014486;
+    color: #00A2DF;
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-medium);
 }
 
 .homepage-phone {
-    color: #032D60;
-    font-size: 14px;
-    font-weight: 400;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
 }
 
 .homepage-cta-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 24px;
+    display: inline-block;
+    padding: 8px 24px;
     height: 44px;
-    background: #0176D3;
-    border: 2px solid #0176D3;
+    background: #2E844A;
+    border: 2px solid #2E844A;
     border-radius: 4px;
     color: #fff;
-    font-size: 14px;
-    font-weight: 700;
+    line-height: 24px;
+    font-size: 16px;
+    font-weight: var(--font-weight-bold);
     text-decoration: none;
-    margin-left: 16px;
-    transition: background 0.2s;
+    margin-left: 10px;
+    transition: opacity 0.2s;
 }
 
 .homepage-cta-btn:hover {
-    background: #014486;
-    border-color: #014486;
+    opacity: 0.9;
     color: #fff;
 }
 
@@ -5888,22 +5887,16 @@ details[open] .examples-toggle-icon {
         display: none;
     }
 
-    .homepage-logo-icon {
-        width: 40px;
-        height: 40px;
+    .homepage-sprite-logo {
+        width: 120px;
+        height: 44px;
+        background-size: 325px;
+        background-position: -1.6px -143px;
     }
-}
 
-[data-theme="dark"] .homepage-contact-label {
-    color: #ECEBEA;
-}
-
-[data-theme="dark"] .homepage-contact-label:hover {
-    color: #fff;
-}
-
-[data-theme="dark"] .homepage-phone {
-    color: #B0ADAB;
+    [data-theme="dark"] .homepage-sprite-logo {
+        background-position: -138px -143px;
+    }
 }
 
 .auth-panel-center {
@@ -6430,62 +6423,44 @@ details[open] .examples-toggle-icon {
     to { transform: rotate(360deg); }
 }
 
+.auth-logged-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-medium);
+    padding: var(--space-medium) 0;
+}
+
 .btn-auth-logout {
-    margin-top: auto;
-    height: 32px;
-    padding: 6px 16px;
-    background: #E7F1FF;
-    color: #0052CC;
-    border: 1px solid #B3D4FF;
-    border-radius: 9999px;
+    padding: var(--space-x-small) var(--space-large);
+    background: var(--method-post-bg);
+    color: var(--method-post-text);
+    border: none;
+    border-radius: var(--radius-pill, 9999px);
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-medium);
     cursor: pointer;
-    transition: all 0.15s;
-    align-self: center;
+    transition: background var(--transition-fast, 0.15s);
     white-space: nowrap;
 }
 
 .btn-auth-logout:hover {
-    background: #D1E5FF;
-    border-color: #80BFFF;
-}
-
-[data-theme="dark"] .btn-auth-logout {
-    background: #2D7A9E;
-    color: #FFFFFF;
-    border-color: #2D7A9E;
-}
-
-[data-theme="dark"] .btn-auth-logout:hover {
-    background: #3A8CB0;
-    border-color: #3A8CB0;
+    background: var(--method-post-bg-hover);
 }
 
 .auth-logged-as {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-xx-small);
-    padding: var(--space-medium) 0 0;
+    display: inline;
     text-align: center;
-}
-
-/* Tighten the gap between the LOGGED IN AS block and the Logout button.
-   Negative margin offsets the parent .auth-form `gap`. */
-.auth-logged-as + .btn-auth-logout {
-    margin-top: calc(var(--space-x-small) - var(--space-medium));
+    color: var(--color-text-primary);
+    font-size: var(--font-size-6);
 }
 
 .auth-logged-as-label {
-    font-size: var(--font-size-2);
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-regular);
 }
 
 .auth-logged-as-value {
-    font-size: var(--font-size-6);
     color: var(--color-text-primary);
     font-weight: var(--font-weight-semibold);
     word-break: break-all;

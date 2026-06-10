@@ -372,6 +372,114 @@ describe('getPreferredServerIndex', () => {
 });
 
 // ===========================================================================
+// Region × domain matrix (W-22861359)
+// ===========================================================================
+describe('isServerValidForRegion', () => {
+    const anypointGlobal = { url: 'https://anypoint.mulesoft.com/api' };
+    const anypointRegional = {
+        url: 'https://{region}.anypoint.mulesoft.com/api',
+        variables: { region: { default: 'eu1' } },
+    };
+    const platformRegional = {
+        url: 'https://{region}.platform.mulesoft.com/api',
+        variables: { region: { default: 'ca1' } },
+    };
+    const anypointLegacyEu = { url: 'https://eu1.anypoint.mulesoft.com/api' };
+
+    test('us global: only anypoint global is valid (region=null)', () => {
+        expect(isServerValidForRegion(anypointGlobal, null)).toBe(true);
+        expect(isServerValidForRegion(anypointRegional, null)).toBe(true);
+        expect(isServerValidForRegion(platformRegional, null)).toBe(true);
+    });
+
+    test('eu1: only anypoint regional, NOT platform', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'eu1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'eu1')).toBe(true);
+        expect(isServerValidForRegion(platformRegional, 'eu1')).toBe(false);
+    });
+
+    test('ca1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'ca1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'ca1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'ca1')).toBe(true);
+    });
+
+    test('jp1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'jp1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'jp1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'jp1')).toBe(true);
+    });
+
+    test('legacy hardcoded eu1 server is valid for eu1', () => {
+        expect(isServerValidForRegion(anypointLegacyEu, 'eu1')).toBe(true);
+        expect(isServerValidForRegion(anypointLegacyEu, 'ca1')).toBe(false);
+    });
+
+    test('unknown region does not filter (returns true to avoid hiding valid endpoints)', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'sg1')).toBe(true);
+        expect(isServerValidForRegion(anypointRegional, 'sg1')).toBe(true);
+        expect(isServerValidForRegion(platformRegional, 'sg1')).toBe(true);
+    });
+
+    test('null/undefined server returns false', () => {
+        expect(isServerValidForRegion(null, 'eu1')).toBe(false);
+        expect(isServerValidForRegion(undefined, 'eu1')).toBe(false);
+    });
+});
+
+describe('filterServersForRegion', () => {
+    const anypointGlobal = { url: 'https://anypoint.mulesoft.com/api' };
+    const anypointRegional = {
+        url: 'https://{region}.anypoint.mulesoft.com/api',
+        variables: { region: { default: 'eu1' } },
+    };
+    const platformRegional = {
+        url: 'https://{region}.platform.mulesoft.com/api',
+        variables: { region: { default: 'ca1' } },
+    };
+    const all = [anypointGlobal, anypointRegional, platformRegional];
+
+    test('eu1 keeps only anypoint regional', () => {
+        expect(filterServersForRegion(all, 'eu1')).toEqual([anypointRegional]);
+    });
+
+    test('ca1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'ca1')).toEqual([platformRegional]);
+    });
+
+    test('jp1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'jp1')).toEqual([platformRegional]);
+    });
+
+    test('null region (us) returns all', () => {
+        expect(filterServersForRegion(all, null)).toEqual(all);
+    });
+
+    test('unknown region returns all (no filter)', () => {
+        expect(filterServersForRegion(all, 'sg1')).toEqual(all);
+    });
+
+    test('empty/null input returns []', () => {
+        expect(filterServersForRegion(null, 'eu1')).toEqual([]);
+        expect(filterServersForRegion([], 'eu1')).toEqual([]);
+    });
+});
+
+describe('getValidRegionsForServerType', () => {
+    test('eu type → anypoint regional regions', () => {
+        expect(getValidRegionsForServerType('eu')).toEqual(['eu1']);
+    });
+
+    test('platform type → platform regions including jp1', () => {
+        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1']);
+    });
+
+    test('us type → empty (no region needed)', () => {
+        expect(getValidRegionsForServerType('us')).toEqual([]);
+    });
+});
+
+// ===========================================================================
 // buildUrlBarHtml
 // ===========================================================================
 describe('buildUrlBarHtml', () => {

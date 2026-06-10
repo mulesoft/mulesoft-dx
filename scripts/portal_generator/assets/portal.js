@@ -3603,6 +3603,71 @@ function toggleTryItOutExpand(opId) {
 // Server URL resolution
 // ============================================================================
 
+// Region × domain matrix. Each domain key maps to the regions that exist on
+// that domain. Used to filter out region/domain combinations that have no
+// deployed endpoint (e.g. ca1.anypoint.mulesoft.com does not exist).
+//
+// 'us' is the global anypoint endpoint (no subdomain) — listed under anypoint
+// so the matrix stays self-describing.
+var DOMAIN_REGIONS = {
+    anypoint: ['us', 'eu1'],
+    platform: ['ca1', 'jp1']
+};
+
+function _getDomainKeyFromUrl(url) {
+    if (!url) return null;
+    if (url.indexOf('.platform.mulesoft.com') !== -1) return 'platform';
+    if (url.indexOf('.anypoint.mulesoft.com') !== -1) return 'anypoint';
+    if (url.indexOf('://anypoint.mulesoft.com') !== -1) return 'anypoint';
+    return null;
+}
+
+function isServerValidForRegion(server, region) {
+    if (!server || !server.url) return false;
+    // No region selected = US/global — keep all servers.
+    if (region == null || region === '') return true;
+    var domain = _getDomainKeyFromUrl(server.url);
+    if (!domain) return true; // unknown domain — don't filter
+    // If region is not known in any domain, skip filtering (custom/unknown region).
+    var allKnown = Object.keys(DOMAIN_REGIONS).reduce(function(acc, k) {
+        return acc.concat(DOMAIN_REGIONS[k]);
+    }, []);
+    if (allKnown.indexOf(region) === -1) return true;
+    var hasTemplate = server.url.indexOf('{region}') !== -1 ||
+                      server.url.indexOf('{REGION_ID}') !== -1;
+    if (hasTemplate) {
+        // Template server: valid only for regions served by this domain.
+        var domainRegions = DOMAIN_REGIONS[domain] || [];
+        return domainRegions.indexOf(region) !== -1;
+    }
+    // Fixed-URL server: valid only if its URL contains the exact region code.
+    return server.url.indexOf(region + '.') !== -1 ||
+           server.url.indexOf('/' + region + '.') !== -1;
+}
+
+function filterServersForRegion(servers, region) {
+    if (!servers || servers.length === 0) return [];
+    if (region == null || region === '') return servers.slice();
+    var filtered = servers.filter(function(s) { return isServerValidForRegion(s, region); });
+    // If region is unknown to the matrix, no server will pass the strict check
+    // for either domain — fall back to the unfiltered list to avoid hiding
+    // valid endpoints for custom regions the matrix doesn't know about.
+    var anypointKnown = (DOMAIN_REGIONS.anypoint || []).indexOf(region) !== -1;
+    var platformKnown = (DOMAIN_REGIONS.platform || []).indexOf(region) !== -1;
+    if (!anypointKnown && !platformKnown) return servers.slice();
+    return filtered;
+}
+
+function getValidRegionsForServerType(type) {
+    if (type === 'eu') {
+        return (DOMAIN_REGIONS.anypoint || []).filter(function(r) { return r !== 'us'; });
+    }
+    if (type === 'platform') {
+        return (DOMAIN_REGIONS.platform || []).slice();
+    }
+    return [];
+}
+
 function getSelectedServerType() {
     var sel = document.getElementById('serverSelect');
     if (!sel) return 'us';
@@ -3724,6 +3789,16 @@ function getServerForApi(apiSlug) {
     return getSelectedServer(null);
 }
 
+var _REGION_LABELS = {
+    eu1: 'Europe (eu1)',
+    ca1: 'Canada (ca1)',
+    jp1: 'Japan (jp1)'
+};
+
+function _regionLabel(r) {
+    return _REGION_LABELS[r] || r;
+}
+
 function onServerChange() {
     var sel = document.getElementById('serverSelect');
     var regionRow = document.getElementById('serverRegionRow');
@@ -3734,10 +3809,21 @@ function onServerChange() {
         var showRegion = sel.value === 'eu' || sel.value === 'platform';
         regionRow.style.display = showRegion ? 'flex' : 'none';
         if (showRegion && preset && defaultOpt) {
-            var isEu = sel.value === 'eu';
-            defaultOpt.value = isEu ? 'eu1' : 'ca1';
-            defaultOpt.textContent = isEu ? 'Europe (eu1)' : 'Canada (ca1)';
-            preset.value = defaultOpt.value;
+            var regions = getValidRegionsForServerType(sel.value);
+            // Rebuild preset options: dynamic region entries + custom
+            while (preset.options.length > 0) preset.remove(0);
+            regions.forEach(function(r, i) {
+                var opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = _regionLabel(r);
+                if (i === 0) opt.id = 'regionDefaultOption';
+                preset.appendChild(opt);
+            });
+            var customOpt = document.createElement('option');
+            customOpt.value = 'custom';
+            customOpt.textContent = 'Custom';
+            preset.appendChild(customOpt);
+            preset.value = regions[0] || 'custom';
             if (customInput) customInput.style.display = 'none';
         }
     }
@@ -3874,8 +3960,11 @@ function toggleServerDropdown(bar, opId, servers) {
     dropdown.style.left = rect.left + 'px';
 
     var activeIdx = getActiveServerIndex(opId, servers);
+    var visibleServers = filterServersForRegion(servers, getSelectedRegion());
 
-    servers.forEach(function(server, idx) {
+    visibleServers.forEach(function(server) {
+        // Preserve original index so _serverSelections maps to the full servers array.
+        var idx = servers.indexOf(server);
         var btn = document.createElement('button');
         btn.className = 'server-dropdown-option' + (idx === activeIdx ? ' selected' : '');
         btn.textContent = resolveServerUrl(server, opId);
@@ -6824,23 +6913,36 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
                 var showRegion = storedServerType === 'eu' || storedServerType === 'platform';
                 if (regionRow) regionRow.style.display = showRegion ? 'flex' : 'none';
                 if (showRegion) {
-                    var defaultOpt = document.getElementById('regionDefaultOption');
                     var preset = document.getElementById('regionPreset');
-                    if (defaultOpt && preset) {
-                        var isEu = storedServerType === 'eu';
-                        defaultOpt.value = isEu ? 'eu1' : 'ca1';
-                        defaultOpt.textContent = isEu ? 'Europe (eu1)' : 'Canada (ca1)';
-                    }
-                    var storedRegion = sessionStorage.getItem('anypoint_region');
-                    if (storedRegion && preset && defaultOpt) {
-                        if (storedRegion === defaultOpt.value) {
-                            preset.value = storedRegion;
-                        } else {
-                            preset.value = 'custom';
-                            if (customInput) {
-                                customInput.style.display = 'block';
-                                customInput.value = storedRegion;
+                    if (preset) {
+                        // Rebuild options dynamically for this server type
+                        var regions = getValidRegionsForServerType(storedServerType);
+                        while (preset.options.length > 0) preset.remove(0);
+                        regions.forEach(function(r, i) {
+                            var opt = document.createElement('option');
+                            opt.value = r;
+                            opt.textContent = _regionLabel(r);
+                            if (i === 0) opt.id = 'regionDefaultOption';
+                            preset.appendChild(opt);
+                        });
+                        var customOpt = document.createElement('option');
+                        customOpt.value = 'custom';
+                        customOpt.textContent = 'Custom';
+                        preset.appendChild(customOpt);
+
+                        var storedRegion = sessionStorage.getItem('anypoint_region');
+                        if (storedRegion) {
+                            if (regions.indexOf(storedRegion) !== -1) {
+                                preset.value = storedRegion;
+                            } else {
+                                preset.value = 'custom';
+                                if (customInput) {
+                                    customInput.style.display = 'block';
+                                    customInput.value = storedRegion;
+                                }
                             }
+                        } else {
+                            preset.value = regions[0] || 'custom';
                         }
                     }
                 }

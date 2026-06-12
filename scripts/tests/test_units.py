@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from markupsafe import Markup
 
-from portal_generator.utils import get_category, CATEGORY_MAPPING
+from portal_generator.utils import get_category, CATEGORY_MAPPING, parse_semver, sort_versions_desc, is_valid_version_dirname
 from portal_generator.builders.tree_builder import build_operation_tree, count_tree_operations
 from portal_generator.template_env import _nl2br, _render_markdown, _tojson_raw, _skill_title, _titleize_operation, _slugify, _resolve_skill_inputs
 from portal_generator.generator import _build_api_meta, _get_example_body, PortalGenerator
@@ -1630,3 +1630,102 @@ class TestDiscoverTerraform:
         (hidden_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
 
         assert discover_terraform(tmp_path) == []
+
+
+class TestSemver:
+    def test_parse_semver_strips_v_prefix(self):
+        assert parse_semver("v1.2.3") == (1, 2, 3, "")
+
+    def test_parse_semver_no_prefix(self):
+        assert parse_semver("0.0.6") == (0, 0, 6, "")
+
+    def test_parse_semver_with_prerelease(self):
+        assert parse_semver("1.0.0-beta.1") == (1, 0, 0, "beta.1")
+
+    def test_parse_semver_invalid_raises(self):
+        with pytest.raises(ValueError):
+            parse_semver("resources")
+
+    def test_parse_semver_partial_raises(self):
+        with pytest.raises(ValueError):
+            parse_semver("1.2")
+
+    def test_sort_versions_desc_basic(self):
+        assert sort_versions_desc(["0.0.6", "1.10.0", "1.9.0", "0.1.0"]) == [
+            "1.10.0", "1.9.0", "0.1.0", "0.0.6",
+        ]
+
+    def test_sort_versions_desc_with_v_prefix(self):
+        assert sort_versions_desc(["v1.0.0", "v0.9.0", "v2.0.0"]) == [
+            "v2.0.0", "v1.0.0", "v0.9.0",
+        ]
+
+    def test_sort_versions_desc_release_beats_prerelease(self):
+        assert sort_versions_desc(["1.0.0-beta.1", "1.0.0"]) == ["1.0.0", "1.0.0-beta.1"]
+
+    def test_is_valid_version_dirname_true(self):
+        assert is_valid_version_dirname("1.2.3") is True
+        assert is_valid_version_dirname("v1.2.3") is True
+        assert is_valid_version_dirname("1.0.0-rc.1") is True
+
+    def test_is_valid_version_dirname_false(self):
+        assert is_valid_version_dirname("resources") is False
+        assert is_valid_version_dirname("1.2") is False
+        assert is_valid_version_dirname("data-sources") is False
+
+
+class TestDiscoverTerraform:
+    def test_discovers_versions_sorted_desc(self, make_tf_repo):
+        repo = make_tf_repo({
+            "anypoint-provider": {
+                "1.10.0": {"provider.json": {"local_name": "anypoint", "version": "1.10.0"}, "resources": ["a.md"]},
+                "1.9.0":  {"provider.json": {"local_name": "anypoint", "version": "1.9.0"},  "resources": ["a.md"]},
+                "0.0.6":  {"provider.json": {"local_name": "anypoint", "version": "0.0.6"},  "resources": ["a.md"]},
+            },
+        })
+        providers = discover_terraform(repo)
+        assert len(providers) == 1
+        prov = providers[0]
+        assert prov["slug"] == "anypoint-provider"
+        assert [v["version"] for v in prov["versions"]] == ["1.10.0", "1.9.0", "0.0.6"]
+        assert prov["latest_version"] == "1.10.0"
+        assert prov["versions"][0]["is_latest"] is True
+        assert prov["versions"][1]["is_latest"] is False
+
+    def test_top_level_keys_alias_latest(self, make_tf_repo):
+        repo = make_tf_repo({
+            "anypoint-provider": {
+                "1.0.0": {"provider.json": {"local_name": "anypoint", "version": "1.0.0"}, "resources": ["latest.md"]},
+                "0.9.0": {"provider.json": {"local_name": "anypoint", "version": "0.9.0"}, "resources": ["old.md"]},
+            },
+        })
+        prov = discover_terraform(repo)[0]
+        latest_docs_names = [d["page_title"] for d in prov["docs"]]
+        assert "latest.md" in latest_docs_names
+        assert "old.md" not in latest_docs_names
+        latest = prov["versions"][0]
+        assert prov["docs"] is latest["docs"]
+        assert prov["nav_tree"] is latest["nav_tree"]
+        assert prov["nav_tree_by_type"] is latest["nav_tree_by_type"]
+        assert prov["doc_count"] == latest["doc_count"]
+        assert prov["install_info"] is latest["install_info"]
+
+    def test_rejects_invalid_version_dirname(self, make_tf_repo, capsys):
+        repo = make_tf_repo({
+            "anypoint-provider": {
+                "1.0.0":      {"provider.json": {"local_name": "anypoint", "version": "1.0.0"}, "resources": ["a.md"]},
+                "not-a-ver":  {"provider.json": {"local_name": "anypoint", "version": "x"},     "resources": ["a.md"]},
+            },
+        })
+        prov = discover_terraform(repo)[0]
+        assert [v["version"] for v in prov["versions"]] == ["1.0.0"]
+        captured = capsys.readouterr().out
+        assert "not-a-ver" in captured
+
+    def test_provider_with_no_valid_versions_is_dropped(self, make_tf_repo):
+        repo = make_tf_repo({
+            "broken-provider": {
+                "garbage": {"provider.json": {}, "resources": ["a.md"]},
+            },
+        })
+        assert discover_terraform(repo) == []

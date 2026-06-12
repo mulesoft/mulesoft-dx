@@ -104,3 +104,29 @@ class TestParseTerraformDoc:
 
         result = parse_terraform_doc(md_file)
         assert result['slug'] == 'anypoint_api_instance'
+
+    def test_display_name_replaces_underscores_with_spaces(self, tmp_path):
+        """display_name humanizes snake_case names to Title Case."""
+        md_file = tmp_path / 'resources' / 'anypoint_api_instance.md'
+        md_file.parent.mkdir()
+        md_file.write_text(MINIMAL_TERRAFORM_MD)
+
+        result = parse_terraform_doc(md_file)
+        assert result['display_name'] == 'Anypoint Api Instance'
+
+    def test_display_name_for_complex_name(self, tmp_path):
+        """display_name handles multi-word resource names."""
+        md = textwrap.dedent("""\
+            ---
+            page_title: "anypoint_api_policy_model_based_routing Resource - terraform-provider-anypoint"
+            subcategory: "API Policies"
+            description: "x"
+            ---
+            # body
+        """)
+        md_file = tmp_path / 'resources' / 'anypoint_api_policy_model_based_routing.md'
+        md_file.parent.mkdir()
+        md_file.write_text(md)
+
+        result = parse_terraform_doc(md_file)
+        assert result['display_name'] == 'Anypoint Api Policy Model Based Routing'

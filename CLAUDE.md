@@ -103,6 +103,24 @@ mcps/
 
 The Makefile auto-discovers APIs by finding `exchange.json` files in the `apis/` directory, and MCP servers by finding `mcp.yaml` files under `mcps/`.
 
+Terraform provider docs live under a top-level `terraform/` directory, **versioned per provider**:
+```
+terraform/
+└── <provider-name>/
+    └── <version>/                # semver directory name (e.g. 1.0.0, v0.9.0)
+        ├── provider.json         # install snippet metadata for this version
+        ├── resources/
+        │   └── *.md
+        ├── data-sources/
+        │   └── *.md
+        └── guides/               # optional
+            └── *.md
+```
+
+Each `(provider, version)` is rendered as a standalone HTML page at `terraform/<provider>/<version>.html`. The portal serves the latest version by default via `terraform/<provider>/index.html` (a static meta-refresh stub) and preserves backward-compatible deep links from the legacy unversioned URL `terraform/<provider>.html`.
+
+Version directories must match `^v?\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$`; anything else is skipped at discovery with a warning.
+
 ### Special Extensions
 
 #### x-origin Annotations

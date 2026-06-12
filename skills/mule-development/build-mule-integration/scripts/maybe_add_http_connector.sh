@@ -11,8 +11,8 @@
 # OAuth callbacks need an http:listener, which requires the HTTP connector
 # dependency.
 #
-# In v8 get_latest_connector.sh prints a ranked GAV list to stdout and
-# writes nothing to disk. HTTP is an unambiguous search (mule-http-connector
+# get_latest_connector.sh prints a ranked GAV list to stdout and writes
+# nothing to disk. HTTP is an unambiguous search (mule-http-connector
 # dominates any results), so this helper safely takes the top row without
 # prompting — it is not a variant-selection choice.
 #
@@ -23,12 +23,11 @@
 #   - `pom.xml` is edited inside that directory
 #   - `tmp/connector-versions/http.json` is written inside that directory
 #
-# Anchoring to --project removes the cwd-dependent "../scripts/..." pattern
-# that has caused "No such file or directory" turns in real runs: the agent
-# can invoke this script from anywhere (repo root, workspace root, anywhere)
-# as long as --project points at the Mule project. The HTTP draft lands in
-# <project>/tmp/connector-choices/http.json to keep it consistent with
-# Step 3's layout, though Phase-2 pom edits use the GAV directly here.
+# Anchoring to --project lets the agent invoke this script from anywhere
+# (repo root, workspace root, anywhere) as long as --project points at the
+# Mule project. The HTTP draft lands in <project>/tmp/connector-choices/http.json
+# to keep it consistent with Step 3's layout, though Phase-2 pom edits use
+# the GAV directly here.
 #
 # Each provider argument is a connection-provider name (as chosen in Step 6).
 # The script is idempotent: if no provider looks like OAuth, or if the HTTP
@@ -115,7 +114,7 @@ if grep -q "mule-http-connector" pom.xml; then
 fi
 
 echo "🔍 Resolving latest HTTP connector from Exchange..."
-# v8: get_latest_connector.sh emits a ranked GAV list on stdout and writes
+# get_latest_connector.sh emits a ranked GAV list on stdout and writes
 # nothing. HTTP is unambiguous — take the top row. If a draft already
 # exists (e.g., the agent pre-picked http in Step 3), prefer that to keep
 # the Step-2 decision authoritative.

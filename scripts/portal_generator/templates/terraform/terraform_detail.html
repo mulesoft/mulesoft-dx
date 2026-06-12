@@ -5,7 +5,7 @@
             <p>The <strong>{{ provider.name }}</strong> Terraform provider enables you to manage Anypoint Platform resources declaratively using Infrastructure as Code (IaC). Define, provision, and update your API management configuration through Terraform plans.</p>
 
             <h4>What's included</h4>
-            <p>This provider covers <strong>{{ provider.doc_count }}</strong> documentation pages organized in {{ nav_tree_by_type|length }} categories:</p>
+            <p>This provider covers <strong>{{ version.doc_count }}</strong> documentation pages organized in {{ nav_tree_by_type|length }} categories:</p>
             <ul>
             {% for doc_type in nav_tree_by_type|sort(reverse=true) %}
                 {% set doc_count = nav_tree_by_type[doc_type].values()|map('length')|sum %}
@@ -14,28 +14,28 @@
             </ul>
 
             <h4>Getting started</h4>
-            {% if provider.install_info %}
+            {% if version.install_info %}
             <ol>
-                <li>Install <strong>Terraform CLI</strong> (v{{ provider.install_info.min_terraform_version }}+).</li>
+                <li>Install <strong>Terraform CLI</strong> (v{{ version.install_info.min_terraform_version }}+).</li>
                 <li>Add the provider to your Terraform configuration:
                     <div class="terraform-view-markdown">
                         <pre><code class="language-hcl">terraform {
   required_providers {
-    {{ provider.install_info.local_name }} = {
-      source  = "{{ provider.install_info.source }}"
-      version = "{{ provider.install_info.version }}"
+    {{ version.install_info.local_name }} = {
+      source  = "{{ version.install_info.source }}"
+      version = "{{ version.install_info.version }}"
     }
   }
 }
 
-provider "{{ provider.install_info.local_name }}" {
+provider "{{ version.install_info.local_name }}" {
   # Configuration options
 }</code></pre>
                     </div>
                 </li>
                 <li>Run <code>terraform init</code>, <code>terraform plan</code>, and <code>terraform apply</code>.</li>
-                {% if provider.install_info.registry_url %}
-                <li>For more details, visit the <a href="{{ provider.install_info.registry_url }}" target="_blank" rel="noopener">Terraform Registry</a>.</li>
+                {% if version.install_info.registry_url %}
+                <li>For more details, visit the <a href="{{ version.install_info.registry_url }}" target="_blank" rel="noopener">Terraform Registry</a>.</li>
                 {% endif %}
             </ol>
             {% else %}

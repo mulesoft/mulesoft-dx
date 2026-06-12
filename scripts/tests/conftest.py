@@ -450,6 +450,53 @@ def setup_schema_docs(repo_root: Path):
 
 
 @pytest.fixture
+def make_tf_repo(tmp_path):
+    """Build a synthetic terraform/ tree under ``tmp_path``.
+
+    Usage:
+        make_tf_repo({
+            "anypoint-provider": {
+                "1.0.0": {
+                    "provider.json": {"local_name": "anypoint", "version": "1.0.0"},
+                    "resources": ["foo.md"],
+                    "data-sources": [],
+                },
+                "0.9.0": {
+                    "provider.json": {"local_name": "anypoint", "version": "0.9.0"},
+                    "resources": ["bar.md"],
+                    "data-sources": [],
+                },
+            },
+        })
+    """
+    def builder(spec):
+        tf = tmp_path / "terraform"
+        tf.mkdir()
+        for provider_name, versions in spec.items():
+            pdir = tf / provider_name
+            pdir.mkdir()
+            for version, contents in versions.items():
+                vdir = pdir / version
+                vdir.mkdir()
+                if "provider.json" in contents:
+                    (vdir / "provider.json").write_text(
+                        json.dumps(contents["provider.json"])
+                    )
+                for doc_type in ("resources", "data-sources", "guides"):
+                    files = contents.get(doc_type, [])
+                    if not files:
+                        continue
+                    dt_dir = vdir / doc_type
+                    dt_dir.mkdir()
+                    for fname in files:
+                        (dt_dir / fname).write_text(
+                            f"---\nsubcategory: \"Test\"\npage_title: \"{fname}\"\n---\n# {fname}\n"
+                        )
+        return tmp_path
+    return builder
+
+
+@pytest.fixture
 def api_fixture_dir(tmp_path):
     """Create a minimal API directory on disk with api.yaml, exchange.json, and a skill."""
     api_dir = tmp_path / 'test-api'

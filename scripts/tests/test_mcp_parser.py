@@ -1,6 +1,7 @@
 """Tests for the MCP spec parser."""
 
 import json
+import shutil
 import textwrap
 from pathlib import Path
 
@@ -346,6 +347,270 @@ class TestParseMcp:
         data = parse_mcp(mcp_dir)
         assert data['xorigin_api_refs'] == set()
         assert data['xorigin_mcp_refs'] == set()
+
+
+class TestLocalCatalogStdioTransport:
+    """Unit-level guard for the central design decision (#1/#2): a local MCP
+    whose server.json carries a ``_meta`` catalog with tools + stdio transport
+    + capabilities (and NO mcp.yaml) must parse as ``local`` with the command
+    resolved from inside the catalog and all tools surfaced.
+
+    This documents the contract the migration relies on. It exercises the
+    parser against a synthetic tmp_path fixture, so it goes green as soon as
+    the parser supports catalogs (which it already does)."""
+
+    def _catalog_server_json(self):
+        return json.dumps({
+            '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+            'name': 'com.mulesoft/local-cat',
+            'title': 'Local Catalog MCP',
+            'description': 'A local MCP whose tools live in the server.json catalog.',
+            'version': '9.9.9',
+            'websiteUrl': 'https://example.com/local',
+            '_meta': {
+                'com.mulesoft.omni/catalog': {
+                    'capabilities': {'tools': {'listChanged': False}},
+                    'transport': {'kind': 'stdio', 'command': 'npx local-cat start'},
+                    'tools': [
+                        {
+                            'name': 'alpha',
+                            'description': 'Alpha tool',
+                            'inputSchema': {'type': 'object', 'properties': {}},
+                        },
+                        {
+                            'name': 'beta',
+                            'title': 'Beta Tool',
+                            'description': 'Beta tool',
+                            'inputSchema': {'type': 'object', 'properties': {}},
+                        },
+                    ],
+                }
+            },
+        })
+
+    def test_classified_as_local(self, tmp_path):
+        d = tmp_path / 'local-cat'
+        d.mkdir()
+        (d / 'server.json').write_text(self._catalog_server_json())
+        data = parse_mcp(d)
+        assert data is not None
+        assert data['mcp_type'] == 'local'
+        assert data['servers'] == []
+
+    def test_command_resolved_from_catalog_transport(self, tmp_path):
+        d = tmp_path / 'local-cat'
+        d.mkdir()
+        (d / 'server.json').write_text(self._catalog_server_json())
+        data = parse_mcp(d)
+        assert data['transport']['kind'] == 'stdio'
+        assert data['transport']['command'] == 'npx local-cat start'
+
+    def test_tools_surfaced_from_catalog(self, tmp_path):
+        d = tmp_path / 'local-cat'
+        d.mkdir()
+        (d / 'server.json').write_text(self._catalog_server_json())
+        data = parse_mcp(d)
+        assert data['tool_count'] == 2
+        assert {t['name'] for t in data['tools']} == {'alpha', 'beta'}
+
+    def test_capabilities_resolved_from_catalog(self, tmp_path):
+        d = tmp_path / 'local-cat'
+        d.mkdir()
+        (d / 'server.json').write_text(self._catalog_server_json())
+        data = parse_mcp(d)
+        assert data['capabilities'] == {'tools': {'listChanged': False}}
+
+    def test_ide_command_uses_catalog_transport(self, tmp_path):
+        d = tmp_path / 'local-cat'
+        d.mkdir()
+        (d / 'server.json').write_text(self._catalog_server_json())
+        data = parse_mcp(d)
+        claude = data['ide_configs']['claude_code']['config']['mcpServers']['local-cat']
+        assert claude['command'] == 'npx'
+        assert claude['args'] == ['-y', 'local-cat', 'start']
+
+    def test_catalog_without_transport_key(self, tmp_path):
+        d = tmp_path / 'no-transport'
+        d.mkdir()
+        (d / 'server.json').write_text(json.dumps({
+            '$schema': 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+            'name': 'com.mulesoft/no-transport',
+            'title': 'No Transport MCP',
+            'description': 'Catalog with tools but no transport key.',
+            'version': '1.0.0',
+            '_meta': {
+                'com.mulesoft.omni/catalog': {
+                    'capabilities': {'tools': {'listChanged': False}},
+                    'tools': [
+                        {'name': 'ping', 'description': 'Ping', 'inputSchema': {'type': 'object', 'properties': {}}},
+                    ],
+                }
+            },
+        }))
+        data = parse_mcp(d)
+        assert data is not None
+        assert data['tool_count'] == 1
+        # no transport key — parser must not crash; mcp_type falls back gracefully
+        assert data['mcp_type'] in ('local', 'remote', 'unknown')
+
+
+# Repo root resolved from this test file: scripts/tests/<file> -> parents[2] == worktree root.
+# If this file is ever moved, update the index accordingly.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+assert (_REPO_ROOT / 'mcps').is_dir(), (
+    f"_REPO_ROOT ({_REPO_ROOT}) does not look like the repo root — update parents[N] if this file moved"
+)
+_LOCAL_MCP_DIR = _REPO_ROOT / 'mcps' / 'mulesoft-mcp-server'
+
+# Expected, migration-invariant facts about the real local MCP.
+_EXPECTED_TOOL_COUNT = 21
+_EXPECTED_STDIO_COMMAND = 'npx mulesoft-mcp-server start'
+
+# Source-of-truth tool-name set, extracted from the PRE-migration
+# mcps/mulesoft-mcp-server/mcp.yaml (grep -E '^  - name:'). The migration
+# folds mcp.yaml into server.json's catalog; the post-migration
+# server.json-only parse must yield EXACTLY this set — no tool lost OR renamed.
+# Asserting the set (==) is stricter than a count: a rename keeps the count
+# at 21 but breaks the set, which a count check would miss.
+_EXPECTED_TOOL_NAMES = frozenset({
+    'create_mule_project',
+    'generate_mule_flow',
+    'create_mcp_server',
+    'deploy_mule_application',
+    'list_applications',
+    'update_mule_application',
+    'run_local_mule_application',
+    'create_install_runtime_fabric',
+    'delete_runtime_fabric',
+    'upgrade_runtime_fabric',
+    'create_and_manage_assets',
+    'search_asset',
+    'get_platform_insights',
+    'get_reuse_metrics',
+    'manage_api_instance_policy',
+    'list_api_instances',
+    'create_and_manage_api_instances',
+    'manage_flex_gateway_policy_project',
+    'get_flex_gateway_policy_example',
+    'create_api_spec_project',
+    'generate_api_spec',
+})
+
+
+class TestRealLocalMcpMigration:
+    """Tests against the REAL ``mcps/mulesoft-mcp-server/`` directory.
+
+    These are the genuine RED tests for this change. They assert the
+    post-migration state (mcp.yaml gone, tools+transport sourced from the
+    server.json catalog) and therefore FAIL on today's pre-migration data.
+    They guard no-regression: the migrated local MCP must stay ``local`` with
+    all 21 tools and its stdio command intact."""
+
+    def test_local_mcp_dir_resolves(self):
+        # Guard against a wrong repo-root computation: if this fails the other
+        # tests would fail for the wrong reason (path, not assertion).
+        assert _LOCAL_MCP_DIR.is_dir()
+        assert (_LOCAL_MCP_DIR / 'server.json').exists()
+
+    def test_mcp_yaml_removed(self):
+        # RED today: mcp.yaml still exists pre-migration. GREEN after Task 5.
+        assert not (_LOCAL_MCP_DIR / 'mcp.yaml').exists()
+
+    def test_server_json_carries_catalog_with_transport(self):
+        # RED today: server.json has only display fields, no _meta catalog.
+        # GREEN after Task 3 ports tools+transport into the catalog.
+        server_data = json.loads((_LOCAL_MCP_DIR / 'server.json').read_text(encoding='utf-8'))
+        meta = server_data.get('_meta')
+        assert isinstance(meta, dict), 'server.json must carry a _meta block'
+        catalog = next(
+            (v for k, v in meta.items() if isinstance(k, str) and k.endswith('/catalog')),
+            None,
+        )
+        assert isinstance(catalog, dict), 'server.json _meta must hold a /catalog object'
+        transport = catalog.get('transport') or {}
+        assert transport.get('command') == _EXPECTED_STDIO_COMMAND
+
+    def _server_only_copy(self, tmp_path):
+        """Copy ONLY the real server.json + exchange.json (NOT mcp.yaml) into a
+        tmp dir keeping the same slug. This isolates the single-source path:
+        whatever the parser produces here came exclusively from server.json.
+
+        Pre-migration server.json has no catalog -> parser returns None (no
+        mcp.yaml fallback present). Post-migration the catalog supplies tools
+        and transport. This is what makes these tests genuinely RED today even
+        though the live dir (with mcp.yaml) would parse identically."""
+        dest = tmp_path / _LOCAL_MCP_DIR.name
+        dest.mkdir()
+        shutil.copy(_LOCAL_MCP_DIR / 'server.json', dest / 'server.json')
+        exch = _LOCAL_MCP_DIR / 'exchange.json'
+        if exch.exists():
+            shutil.copy(exch, dest / 'exchange.json')
+        return dest
+
+    def test_command_resolved_from_server_json_only(self, tmp_path):
+        # RED today: server.json alone has no catalog -> parse_mcp returns None
+        # (no mcp.yaml in the isolated copy). GREEN after migration: command
+        # resolves from the catalog transport block.
+        dest = self._server_only_copy(tmp_path)
+        data = parse_mcp(dest)
+        assert data is not None, 'server.json alone must parse once it carries the catalog'
+        assert data['mcp_type'] == 'local'
+        assert data['transport']['kind'] == 'stdio'
+        assert data['transport']['command'] == _EXPECTED_STDIO_COMMAND
+
+    def test_all_tools_present_from_server_json_only(self, tmp_path):
+        # RED today: server.json alone has no catalog -> None. GREEN after
+        # migration: the catalog surfaces EXACTLY the pre-migration tool set.
+        # Asserts the SET of names (==), not a count, so a renamed or dropped
+        # tool fails even when the count still happens to be 21.
+        dest = self._server_only_copy(tmp_path)
+        data = parse_mcp(dest)
+        assert data is not None
+        tool_names = {t['name'] for t in data['tools']}
+        assert tool_names == _EXPECTED_TOOL_NAMES
+
+    def test_tools_have_non_empty_input_schemas(self, tmp_path):
+        # Spot-check: a silently corrupted/dropped inputSchema would still pass
+        # a name-set check — verify at least a few known tools have valid schemas.
+        dest = self._server_only_copy(tmp_path)
+        data = parse_mcp(dest)
+        assert data is not None
+        tools_by_name = {t['name']: t for t in data['tools']}
+        # create_mule_project has known string properties
+        schema = tools_by_name['create_mule_project']['inputSchema']
+        assert schema.get('type') == 'object'
+        assert 'projectPath' in schema.get('properties', {})
+        # search_asset must also carry a schema
+        assert tools_by_name['search_asset']['inputSchema'].get('type') == 'object'
+
+    def test_ide_command_uses_server_json_transport(self, tmp_path):
+        # RED today: server.json alone has no catalog -> None. GREEN after
+        # migration: IDE command derives from the catalog transport.
+        dest = self._server_only_copy(tmp_path)
+        data = parse_mcp(dest)
+        assert data is not None
+        slug = _LOCAL_MCP_DIR.name
+        claude = data['ide_configs']['claude_code']['config']['mcpServers'][slug]
+        assert claude['command'] == 'npx'
+        assert claude['args'] == ['-y', 'mulesoft-mcp-server', 'start']
+
+    def test_exchange_json_main_points_to_server_json(self):
+        exchange = json.loads((_LOCAL_MCP_DIR / 'exchange.json').read_text(encoding='utf-8'))
+        assert exchange.get('main') == 'server.json', (
+            'exchange.json "main" must point to server.json (single source of truth)'
+        )
+
+    def test_live_dir_still_parses_as_local_no_regression(self):
+        # No-regression guard against the LIVE dir (mcp.yaml present today,
+        # catalog after migration). Output must be migration-invariant: local
+        # type, 21 tools, stdio command. PASSES today AND after migration —
+        # this is the equivalence oracle, not a red test.
+        data = parse_mcp(_LOCAL_MCP_DIR)
+        assert data is not None
+        assert data['mcp_type'] == 'local'
+        assert data['tool_count'] == _EXPECTED_TOOL_COUNT
+        assert {t['name'] for t in data['tools']} == _EXPECTED_TOOL_NAMES
+        assert data['transport']['command'] == _EXPECTED_STDIO_COMMAND
 
 
 class TestCollectXoriginRefs:

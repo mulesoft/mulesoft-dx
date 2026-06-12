@@ -2,13 +2,13 @@
 
 ## When to read this file
 
-Read this file **only when** Step 5b of SKILL.md lands on one of these branches:
+Read this file **only when** Step 6b of SKILL.md lands on one of these branches:
 
 - Provider = `generic` (any database wired through `<db:generic-connection>` — PostgreSQL, H2, Snowflake, SAP HANA, Vertica, etc.)
 - Provider = `data-source` (driver is supplied by the container, or you need to override with an explicit `<sharedLibrary>`)
 - Provider = `derby` (embedded vs network client, multi-artifact)
 
-For `my-sql`, `oracle`, and `mssql`, the four-row canonical table in SKILL.md Step 8 is authoritative — **do not load this file**; it adds noise without adding information.
+For `my-sql`, `oracle`, and `mssql`, the four-row canonical table in SKILL.md Step 6b is authoritative — **do not load this file**; it adds noise without adding information.
 
 ## Table of contents
 
@@ -24,7 +24,7 @@ For `my-sql`, `oracle`, and `mssql`, the four-row canonical table in SKILL.md St
   - [SAP HANA](#sap-hana)
   - [Vertica](#vertica)
 - [How to declare multiple sharedLibrary entries](#how-to-declare-multiple-sharedlibrary-entries)
-- [How this content feeds Step 5b](#how-this-content-feeds-step-5b)
+- [How this content feeds Step 6b](#how-this-content-feeds-step-6b)
 
 ---
 
@@ -93,7 +93,7 @@ The Step-5 XML shape for both modes is `<db:generic-connection>` with `driverCla
 
 ## Generic-connection drivers
 
-When Step 5 picks `generic`, the XML shape is always `<db:generic-connection url="..." driverClassName="..."/>` — the actual database is identified by the URL and driver class, not by a Mule-level provider. Step 5b's prompt surfaces the databases below as canonical options.
+When Step 6 picks `generic`, the XML shape is always `<db:generic-connection url="..." driverClassName="..."/>` — the actual database is identified by the URL and driver class, not by a Mule-level provider. Step 6b's prompt surfaces the databases below as canonical options.
 
 ### PostgreSQL
 
@@ -184,9 +184,9 @@ A single missing entry on either side surfaces at build time as `The mule applic
 
 ---
 
-## How this content feeds Step 5b
+## How this content feeds Step 6b
 
-When Step 5b branches into `generic`, `data-source`, or `derby`, it prompts the user with the canonical options from this file. The outcome is one or more `{groupId, artifactId, version}` tuples written to `tmp/connector-choices/db-driver.json`, plus the driver class. The sidecar schema is:
+When Step 6b branches into `generic`, `data-source`, or `derby`, it prompts the user with the canonical options from this file. The outcome is one or more `{groupId, artifactId, version}` tuples written to `tmp/connector-choices/db-driver.json`, plus the driver class. The sidecar schema is:
 
 ```json
 {
@@ -199,4 +199,4 @@ When Step 5b branches into `generic`, `data-source`, or `derby`, it prompts the 
 }
 ```
 
-Step 6's design summary renders every entry in that array under "Build-time additions". Step 8 applies every entry mechanically to `pom.xml`. Neither step prompts — the design decision is fully resolved here.
+Step 7's TDD renders every entry in that array under "Build-time additions". Step 9 applies every entry mechanically to `pom.xml`. Neither step prompts — the design decision is fully resolved here.

@@ -74,10 +74,12 @@ if [ -z "${JAVA_HOME:-}" ]; then
     ERRORS+=("JAVA_HOME not set. Fix: export JAVA_HOME=\$(/usr/libexec/java_home -v 11)")
 else
     echo "✅ JAVA_HOME: $JAVA_HOME"
-    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}' | cut -d. -f1 || true)
-    if [ -z "$JAVA_VERSION" ] || [ "$JAVA_VERSION" -lt 11 ]; then
-        echo "❌ Java 11+ required (found: Java ${JAVA_VERSION:-unknown})"
-        ERRORS+=("Java 11+ required, found: ${JAVA_VERSION:-unknown}")
+    # Parse Java version. Handles legacy "1.8.0_321" (→ 8) and modern "11.0.21" / "17.0.x" (→ 11 / 17).
+    JAVA_VERSION_STRING=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}' || true)
+    JAVA_VERSION=$(printf '%s\n' "$JAVA_VERSION_STRING" | awk -F. '{ if ($1 == "1") print $2; else print $1 }')
+    if [ -z "$JAVA_VERSION" ] || ! [[ "$JAVA_VERSION" =~ ^[0-9]+$ ]] || [ "$JAVA_VERSION" -lt 11 ]; then
+        echo "❌ Java 11+ required (found: Java ${JAVA_VERSION_STRING:-unknown})"
+        ERRORS+=("Java 11+ required, found: ${JAVA_VERSION_STRING:-unknown}")
     else
         echo "✅ Java version: $JAVA_VERSION"
     fi

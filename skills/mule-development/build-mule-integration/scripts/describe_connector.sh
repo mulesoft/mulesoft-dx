@@ -38,14 +38,12 @@
 #     OR tmp/connector-versions/<nickname>.json exists (post-commit / Phase 2).
 #
 # Rationale: Step 4's output is what Step 5 (trigger selection)
-# actually branches on. If the agent writes describe output to disk
-# but never reads it back, it falls back to prompt-text intuition
-# about triggers — an observed failure mode in earlier iterations.
-# Echoing sources[] and configs[] to stdout puts those fields in the
-# tool-output stream where the agent re-reads them naturally. The
-# tmp/connector-errors/ cache is consumed by the Step 16 pre-mvn
-# validator (validate_before_build.sh) to gate `mvn clean package`
-# on a real error-type whitelist instead of training-time intuition.
+# actually branches on. Echoing sources[] and configs[] to stdout puts
+# those fields in the tool-output stream where the agent re-reads them
+# naturally instead of falling back to prompt-text intuition about
+# triggers. The tmp/connector-errors/ cache is consumed by the Step 16
+# pre-mvn validator (validate_before_build.sh) to gate `mvn clean package`
+# on a real error-type whitelist.
 #
 # Exit code:
 #   0  describe succeeded; JSON saved; digest echoed
@@ -163,32 +161,29 @@ mkdir -p "$ERRORS_DIR"
 # with a no-op PrintStream — confirmed via -Xlog:exceptions trace).
 mkdir -p tmp
 ERR_TMP="$(mktemp tmp/mule-dev-describe-err.XXXXXX)"
+# Cleanup on any exit path.
+trap 'rm -f "$ERR_TMP"' EXIT
+
+# Build the CLI argv into an array so summary-mode and per-op/source-mode
+# share one invocation. The two branches differ only by the optional
+# --type/--name pair.
+CMD_ARGS=( --connector "$GAV" --output json )
 if [ -n "$TYPE" ]; then
-    if ! NODE_NO_WARNINGS=1 \
-            _JAVA_OPTIONS="${_JAVA_OPTIONS:-} -Dmule.jvm.version.extension.enforcement=LOOSE" \
-            anypoint-cli-v4 dx mule describe-connector \
-            --connector "$GAV" \
-            --type "$TYPE" \
-            --name "$NAME" \
-            --output json > "$METADATA_JSON" 2>"$ERR_TMP"; then
-        cat "$ERR_TMP" >&2
-        rm -f "$ERR_TMP"
-        echo "❌ describe-connector failed for $GAV (--type $TYPE --name $NAME)" >&2
-        exit 1
-    fi
-else
-    if ! NODE_NO_WARNINGS=1 \
-            _JAVA_OPTIONS="${_JAVA_OPTIONS:-} -Dmule.jvm.version.extension.enforcement=LOOSE" \
-            anypoint-cli-v4 dx mule describe-connector \
-            --connector "$GAV" \
-            --output json > "$METADATA_JSON" 2>"$ERR_TMP"; then
-        cat "$ERR_TMP" >&2
-        rm -f "$ERR_TMP"
-        echo "❌ describe-connector failed for $GAV" >&2
-        exit 1
-    fi
+    CMD_ARGS+=( --type "$TYPE" --name "$NAME" )
 fi
-rm -f "$ERR_TMP"
+
+if ! NODE_NO_WARNINGS=1 \
+        _JAVA_OPTIONS="${_JAVA_OPTIONS:-} -Dmule.jvm.version.extension.enforcement=LOOSE" \
+        anypoint-cli-v4 dx mule describe-connector \
+        "${CMD_ARGS[@]}" > "$METADATA_JSON" 2>"$ERR_TMP"; then
+    cat "$ERR_TMP" >&2
+    if [ -n "$TYPE" ]; then
+        echo "❌ describe-connector failed for $GAV (--type $TYPE --name $NAME)" >&2
+    else
+        echo "❌ describe-connector failed for $GAV" >&2
+    fi
+    exit 1
+fi
 
 # Persist the error-type whitelist (top-level .errorTypes) so the
 # Step 16 validator (validate_before_build.sh) has a connector-wide

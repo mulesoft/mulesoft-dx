@@ -31,6 +31,13 @@ def generated_portal(tmp_path):
     (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
     (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
 
+    # Skill type is now resolved from skills-metadata.yaml (single source of
+    # truth) — the generator no longer infers it from api: step presence.
+    # Mirror the real repo: a top-level jtbd default with nearest-wins prose
+    # overrides on the two prose skills.
+    (repo / 'skills').mkdir(parents=True, exist_ok=True)
+    (repo / 'skills' / 'skills-metadata.yaml').write_text('type: jtbd\n')
+
     skill_dir = repo / 'skills' / 'deploy-app'
     skill_dir.mkdir(parents=True)
     (skill_dir / 'SKILL.md').write_text(MINIMAL_SKILL_MD)
@@ -38,20 +45,33 @@ def generated_portal(tmp_path):
     prose_skill_dir = repo / 'skills' / 'platform-guide'
     prose_skill_dir.mkdir(parents=True)
     (prose_skill_dir / 'SKILL.md').write_text(PROSE_ONLY_SKILL_MD)
+    (prose_skill_dir / 'skills-metadata.yaml').write_text('type: prose\n')
 
     nested_skill_dir = repo / 'skills' / 'ops-category' / 'run-diagnostics'
     nested_skill_dir.mkdir(parents=True)
     (nested_skill_dir / 'SKILL.md').write_text(NESTED_SKILL_MD)
+    # Nested skills resolve type from own/parent dir only (the top-level default
+    # does not reach two levels deep), so the category dir must declare it —
+    # mirrors mule-development/skills-metadata.yaml in the real repo.
+    (nested_skill_dir.parent / 'skills-metadata.yaml').write_text('type: jtbd\n')
 
     non_api_skill_dir = repo / 'skills' / 'build-mule-app'
     non_api_skill_dir.mkdir(parents=True)
     (non_api_skill_dir / 'SKILL.md').write_text(NON_API_STEPS_SKILL_MD)
+    (non_api_skill_dir / 'skills-metadata.yaml').write_text('type: prose\n')
 
     mcp_dir = repo / 'mcps' / 'test-mcp'
     mcp_dir.mkdir(parents=True)
     (mcp_dir / 'server.json').write_text(MINIMAL_MCP_SERVER_JSON)
     (mcp_dir / 'mcp.yaml').write_text(MINIMAL_MCP_YAML)
     (mcp_dir / 'exchange.json').write_text(MINIMAL_MCP_EXCHANGE_JSON)
+
+    # Versioned terraform provider
+    tf_version_dir = repo / 'terraform' / 'anypoint-provider' / '0.0.6'
+    (tf_version_dir / 'resources').mkdir(parents=True)
+    (tf_version_dir / 'data-sources').mkdir(parents=True)
+    (tf_version_dir / 'resources' / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
+    (tf_version_dir / 'data-sources' / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
 
     setup_schema_docs(repo)
 
@@ -587,10 +607,12 @@ class TestPrivateApiNotInRelatedApis:
         (private_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
         (private_dir / 'exchange.json').write_text(PRIVATE_EXCHANGE_JSON)
 
-        # Skill referencing both
+        # Skill referencing both. Skill type is resolved from skills-metadata.yaml
+        # (the generator fails loud on an unresolved type), so declare the default.
         skills_dir = repo / 'skills' / 'mixed-api-skill'
         skills_dir.mkdir(parents=True)
         (skills_dir / 'SKILL.md').write_text(PRIVATE_API_SKILL_MD)
+        (repo / 'skills' / 'skills-metadata.yaml').write_text('type: jtbd\n')
 
         setup_schema_docs(repo)
 
@@ -839,9 +861,9 @@ class TestTerraformPageGeneration:
         repo = tmp_path / 'repo'
         repo.mkdir()
 
-        provider_dir = repo / 'terraform' / 'anypoint-provider'
-        resources_dir = provider_dir / 'resources'
-        data_sources_dir = provider_dir / 'data-sources'
+        version_dir = repo / 'terraform' / 'anypoint-provider' / '0.0.6'
+        resources_dir = version_dir / 'resources'
+        data_sources_dir = version_dir / 'data-sources'
         resources_dir.mkdir(parents=True)
         data_sources_dir.mkdir(parents=True)
         (resources_dir / 'anypoint_api_instance.md').write_text(MINIMAL_TERRAFORM_MD)
@@ -856,12 +878,12 @@ class TestTerraformPageGeneration:
 
     @pytest.fixture
     def terraform_soup(self, portal_with_terraform):
-        html = (portal_with_terraform / 'terraform' / 'anypoint-provider.html').read_text(encoding='utf-8')
+        html = (portal_with_terraform / 'terraform' / 'anypoint-provider' / '0.0.6.html').read_text(encoding='utf-8')
         return BeautifulSoup(html, 'html.parser')
 
     def test_generates_one_html_per_provider(self, portal_with_terraform):
-        """A single .html is emitted under terraform/ for each provider."""
-        assert (portal_with_terraform / 'terraform' / 'anypoint-provider.html').exists()
+        """A per-version .html is emitted under terraform/<provider>/ for each provider."""
+        assert (portal_with_terraform / 'terraform' / 'anypoint-provider' / '0.0.6.html').exists()
 
     def test_overview_div_has_id_overview(self, terraform_soup):
         """The overview subsection uses id='overview'."""
@@ -1000,8 +1022,8 @@ class TestMaliciousTerraformSmokeRawHtml:
         repo = tmp_path / 'repo'
         repo.mkdir()
         (repo / 'apis').mkdir()
-        provider_dir = repo / 'terraform' / 'anypoint-provider'
-        resources_dir = provider_dir / 'resources'
+        version_dir = repo / 'terraform' / 'anypoint-provider' / '0.0.6'
+        resources_dir = version_dir / 'resources'
         resources_dir.mkdir(parents=True)
         (resources_dir / 'dangerous.md').write_bytes(
             (SECURITY_FIXTURES / 'malicious_terraform' / 'dangerous.md').read_bytes()
@@ -1014,7 +1036,7 @@ class TestMaliciousTerraformSmokeRawHtml:
 
     @pytest.fixture
     def terraform_html(self, portal_with_malicious_terraform):
-        return (portal_with_malicious_terraform / 'terraform' / 'anypoint-provider.html').read_text(encoding='utf-8')
+        return (portal_with_malicious_terraform / 'terraform' / 'anypoint-provider' / '0.0.6.html').read_text(encoding='utf-8')
 
     def test_no_iframe_tags(self, terraform_html):
         soup = BeautifulSoup(terraform_html, 'html.parser')
@@ -1064,3 +1086,164 @@ class TestCacheBustingIntegration:
             assert 'assets/styles.css' not in content, f"{html_file} still references unhashed styles.css"
             assert 'assets/portal.js' not in content, f"{html_file} still references unhashed portal.js"
             assert 'assets/jsonpath-plus.min.js' not in content, f"{html_file} still references unhashed jsonpath-plus.min.js"
+
+
+def test_terraform_per_version_pages_generated(generated_portal):
+    """Each (provider, version) gets its own HTML; index.html redirects to latest;
+    legacy <slug>.html stub redirects to <slug>/index.html."""
+    out = generated_portal
+    # Per-version page exists
+    assert (out / "terraform" / "anypoint-provider" / "0.0.6.html").is_file()
+    # Latest-redirect index
+    index = out / "terraform" / "anypoint-provider" / "index.html"
+    assert index.is_file()
+    assert 'http-equiv="refresh"' in index.read_text()
+    assert "0.0.6.html" in index.read_text()
+    # Latest-redirect index also forwards location.hash via inline JS
+    index_text = index.read_text()
+    assert "location.replace" in index_text
+    assert "location.hash" in index_text
+    # Legacy URL stub still resolves
+    legacy = out / "terraform" / "anypoint-provider.html"
+    assert legacy.is_file()
+    legacy_text = legacy.read_text()
+    assert 'http-equiv="refresh"' in legacy_text
+    assert "anypoint-provider/index.html" in legacy_text
+    # Legacy stub also preserves location.hash via inline JS
+    assert "location.replace" in legacy_text
+    assert "location.hash" in legacy_text
+
+
+def test_terraform_single_version_renders_disabled_dropdown(generated_portal):
+    """When a provider has only one version, the header shows the version
+    dropdown component with the toggle disabled (same shape as multi-version,
+    but non-interactive). No native <select> is rendered."""
+    page = (generated_portal / "terraform" / "anypoint-provider" / "0.0.6.html").read_text()
+    soup = BeautifulSoup(page, "html.parser")
+    # Generic badge-version is suppressed on terraform pages
+    assert soup.select_one(".auth-panel-center .badge.badge-version") is None
+    # Dropdown component rendered with is-single modifier
+    dropdown = soup.select_one(".tf-version-dropdown.is-single")
+    assert dropdown is not None
+    toggle = dropdown.select_one(".tf-version-dropdown-toggle")
+    assert toggle is not None
+    assert toggle.has_attr("disabled")
+    assert toggle.get_text(strip=True) == "0.0.6"
+    # No menu rendered
+    assert dropdown.select_one(".tf-version-dropdown-menu") is None
+    # Legacy native <select> must not appear
+    assert soup.select_one("#tf-version-select") is None
+    assert soup.select_one(".tf-version-selector-inline") is None
+
+
+def test_homepage_terraform_card_links_to_index(generated_portal):
+    from bs4 import BeautifulSoup
+    home = (generated_portal / "index.html").read_text()
+    soup = BeautifulSoup(home, "html.parser")
+    card = soup.select_one('a[href*="terraform/anypoint-provider"]')
+    assert card is not None
+    href = card["href"]
+    assert href.endswith("anypoint-provider/index.html") or href.endswith("anypoint-provider/")
+    # Version chip removed from card per AC1 of terraform-ux-improvements
+    assert soup.select_one(".tf-card-version") is None
+
+
+class TestErrorPages:
+    @pytest.fixture(autouse=True)
+    def _parse_404(self, generated_portal):
+        html = (generated_portal / '404.html').read_text(encoding='utf-8')
+        self.soup = BeautifulSoup(html, 'html.parser')
+        self.css_files = list((generated_portal / 'assets').glob('styles.*.css'))
+
+    def test_404_exists(self, generated_portal):
+        assert (generated_portal / '404.html').exists()
+
+    def test_404_uses_hashed_css(self):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        link = self.soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"404.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+    def test_404_uses_hashed_js(self, generated_portal):
+        js_files = list((generated_portal / 'assets').glob('portal.*.js'))
+        assert js_files, "No hashed JS file found"
+        hashed_js = js_files[0].name
+        scripts = self.soup.find_all('script', src=True)
+        js_srcs = [s['src'] for s in scripts]
+        assert any(hashed_js in src for src in js_srcs), (
+            f"404.html references unhashed JS; expected {hashed_js} in one of {js_srcs}"
+        )
+
+    def test_404_has_go_home_link(self):
+        links = self.soup.find_all('a')
+        assert any('index.html' in (l.get('href', '')) for l in links)
+
+    def test_404_has_main_element(self):
+        assert self.soup.find('main') is not None
+
+    def test_500_exists(self, generated_portal):
+        assert (generated_portal / '500.html').exists()
+
+    def test_error_exists(self, generated_portal):
+        assert (generated_portal / 'error.html').exists()
+
+    def test_500_has_main_element(self, generated_portal):
+        html = (generated_portal / '500.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        assert soup.find('main') is not None
+
+    def test_error_has_main_element(self, generated_portal):
+        html = (generated_portal / 'error.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        assert soup.find('main') is not None
+
+    def test_500_uses_hashed_css(self, generated_portal):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        html = (generated_portal / '500.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        link = soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"500.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+    def test_error_uses_hashed_css(self, generated_portal):
+        assert self.css_files, "No hashed CSS file found"
+        hashed_name = self.css_files[0].name
+        html = (generated_portal / 'error.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        link = soup.find('link', rel='stylesheet')
+        assert link is not None
+        assert hashed_name in link['href'], (
+            f"error.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+
+def test_multi_version_anchor_map_marks_unique_resources(tmp_path):
+    """The version_anchors emitted in the page lists each version's docs.
+
+    Resources unique to newer versions are absent from older versions' lists.
+    """
+    import shutil
+
+    fixture = Path(__file__).parent / "fixtures" / "terraform_multi_version"
+    repo = tmp_path / "repo"
+    shutil.copytree(fixture, repo / "terraform")
+    setup_schema_docs(repo)
+
+    out = tmp_path / "out"
+    PortalGenerator(out).generate(repo)
+
+    page = (out / "terraform" / "sample-provider" / "1.0.0.html").read_text()
+    soup = BeautifulSoup(page, "html.parser")
+    anchors_json = soup.select_one('script#tf-version-anchors').string.strip()
+    anchors = json.loads(anchors_json)
+    assert "1.0.0" in anchors and "0.9.0" in anchors
+    assert "sample_new_resource" in anchors["1.0.0"]
+    assert "sample_new_resource" not in anchors["0.9.0"]
+    assert "sample_legacy_resource" in anchors["1.0.0"]
+    assert "sample_legacy_resource" in anchors["0.9.0"]

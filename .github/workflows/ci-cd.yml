@@ -113,6 +113,7 @@ jobs:
           make validate-all-governed SKIP_GOVERNED="arm-monitoring-query"
           make validate-xorigin
           make validate-jtbd
+          make validate-skills
         env:
           ANYPOINT_USERNAME: ${{ secrets.ANYPOINT_USERNAME }}
           ANYPOINT_PASSWORD: ${{ secrets.ANYPOINT_PASSWORD }}

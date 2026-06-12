@@ -2563,6 +2563,4 @@ components:
           example: rest-api
   securitySchemes:
     bearerAuth:
-      type: http
-      description: Anypoint Platform bearer token obtained from Access Management
-      scheme: bearer
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth

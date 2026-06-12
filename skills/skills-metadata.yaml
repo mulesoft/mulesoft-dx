@@ -1,0 +1,6 @@
+# Category default for top-level skills/ tree.
+# Skills without a nearer skills-metadata.yaml inherit this type via the
+# hierarchical (own dir -> parent dir) lookup in discovery.py:_resolve_skill_type.
+# Nearest-wins: platform-assistant/ and mule-development/ declare `type: prose`
+# in their own dirs and keep that override.
+type: jtbd

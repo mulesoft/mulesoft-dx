@@ -1,0 +1,42 @@
+{#
+  Error page macro — shared layout for 404, 500, and generic error pages.
+
+  Parameters:
+    error_code      — numeric string, e.g. "404", "500" (or empty for generic)
+    title           — H1 text, e.g. "Page not found"
+    description     — paragraph text
+    show_url        — bool, whether to show the attempted URL (404 only)
+    icon_src        — path to illustration SVG
+    icon_alt        — alt text (use "" since illustrations are decorative)
+    extra_actions   — optional HTML injected after the Go back / Browse buttons
+#}
+{% macro error_page(error_code, title, description, show_url=False, icon_src='', icon_alt='', extra_actions='') %}
+<main class="error-page" id="main-content">
+    <div class="error-illustration">
+        <img src="{{ icon_src if icon_src else 'assets/icons/astronaut-404.svg' }}" alt="{{ icon_alt }}" {% if not icon_alt %}aria-hidden="true"{% endif %}/>
+    </div>
+
+    {% if error_code %}
+    <p class="error-code">{{ error_code }}</p>
+    {% endif %}
+    <h1 class="error-title">{{ title }}</h1>
+    <p class="error-description">{{ description }}</p>
+
+    {% if show_url %}
+    <p class="error-url" id="attempted-url"></p>
+    {% endif %}
+
+    <div class="error-actions">
+        <button class="btn-copy-curl" onclick="history.back()">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 12L6 8l4-4"/>
+            </svg>
+            Go back
+        </button>
+        <a href="{{ base_url|default('.') }}/index.html" class="btn-send" style="text-decoration: none;">
+            Browse all services
+        </a>
+        {{ extra_actions|safe }}
+    </div>
+</main>
+{% endmacro %}

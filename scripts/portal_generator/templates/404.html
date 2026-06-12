@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "partials/error_page.html" import error_page %}
+
+{% block title %}Page not found — Anypoint Platform APIs{% endblock %}
+
+{% block head_scripts %}
+<script src="{{ portal_js_path }}" defer></script>
+{% endblock %}
+
+{% block header %}
+{% include "partials/homepage_header.html" %}
+{% endblock %}
+
+{% block extra_styles %}
+{% include "partials/error_styles.html" %}
+{% endblock %}
+
+{% block content %}
+{{ error_page(
+    error_code="404",
+    title="Page not found",
+    description="This page doesn't exist. It may have been moved, the URL might contain a typo, or the link you followed is no longer valid.",
+    show_url=True,
+    icon_src=icons_path + "/astronaut-404.svg"
+) }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function() {
+        var urlEl = document.getElementById('attempted-url');
+        var path = window.location.pathname + window.location.search;
+        if (path && path !== '/' && path !== '/404.html') {
+            urlEl.textContent = window.location.origin + path;
+            urlEl.style.display = 'inline-block';
+        } else {
+            urlEl.style.display = 'none';
+        }
+    })();
+</script>
+{% endblock %}

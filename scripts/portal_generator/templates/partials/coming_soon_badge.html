@@ -1,0 +1,13 @@
+{#
+  Coming Soon Badge — Reusable component
+
+  Usage: {% include "partials/coming_soon_badge.html" %}
+
+  Place inside a position:relative parent (e.g., a button or card).
+  The parent needs class "coming-soon-parent" for hover effects.
+
+  Parameters (set before include):
+    - badge_text: (optional) defaults to "Coming Soon"
+    - tooltip_text: (optional) defaults to "In final testing - launching this month"
+#}
+<span class="coming-soon-badge">{{ badge_text | default("Coming Soon") }}</span>

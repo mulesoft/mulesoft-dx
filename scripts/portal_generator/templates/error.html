@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "partials/error_page.html" import error_page %}
+
+{% block title %}Error — Anypoint Platform APIs{% endblock %}
+
+{% block head_scripts %}
+<script src="{{ portal_js_path }}" defer></script>
+{% endblock %}
+
+{% block header %}
+{% include "partials/homepage_header.html" %}
+{% endblock %}
+
+{% block extra_styles %}
+{% include "partials/error_styles.html" %}
+{% endblock %}
+
+{% block content %}
+{{ error_page(
+    error_code="",
+    title="Something went wrong",
+    description="We encountered an unexpected issue. Please go back or return to the homepage.",
+    show_url=False,
+    icon_src=icons_path + "/astronaut-404.svg"
+) }}
+{% endblock %}

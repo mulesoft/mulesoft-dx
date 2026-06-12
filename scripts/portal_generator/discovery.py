@@ -21,7 +21,7 @@ from typing import Dict, List, Optional, Tuple
 from ruamel.yaml import YAML
 
 from .parsers import parse_oas, parse_skill, parse_mcp, parse_terraform_doc
-from .utils import get_category
+from .utils import get_category, is_valid_version_dirname, sort_versions_desc
 
 
 def _resolve_skill_type(skill_dir: Path) -> Optional[str]:
@@ -78,6 +78,33 @@ def _extract_mcp_refs(skill_data: Dict) -> List[str]:
     return _extract_urn_refs(skill_data, _URN_MCP_RE)
 
 
+def iter_skill_files(skills_dir: Path) -> List[Path]:
+    """Return all ``SKILL.md`` files under ``skills_dir``.
+
+    Discovers ``skills/<slug>/SKILL.md`` and one level of nesting
+    ``skills/<category>/<slug>/SKILL.md``. This is the single source of truth
+    for "which files count as skills", shared by the portal generator and the
+    submission-time validator so they can never diverge.
+    """
+    skill_files: List[Path] = []
+    if not skills_dir.exists():
+        return skill_files
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        direct = entry / 'SKILL.md'
+        if direct.exists():
+            skill_files.append(direct)
+            continue
+        for nested in sorted(entry.iterdir()):
+            if not nested.is_dir():
+                continue
+            nested_skill = nested / 'SKILL.md'
+            if nested_skill.exists():
+                skill_files.append(nested_skill)
+    return skill_files
+
+
 def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, List[Dict]], List[Dict]]:
     """Discover all skills in the top-level skills/ directory.
 
@@ -99,20 +126,7 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
 
     # Collect SKILL.md files at skills/<slug>/SKILL.md and
     # skills/<category>/<slug>/SKILL.md (one level of nesting).
-    skill_files: List[Path] = []
-    for entry in sorted(skills_dir.iterdir()):
-        if not entry.is_dir():
-            continue
-        direct = entry / 'SKILL.md'
-        if direct.exists():
-            skill_files.append(direct)
-            continue
-        for nested in sorted(entry.iterdir()):
-            if not nested.is_dir():
-                continue
-            nested_skill = nested / 'SKILL.md'
-            if nested_skill.exists():
-                skill_files.append(nested_skill)
+    skill_files = iter_skill_files(skills_dir)
 
     for skill_file in skill_files:
         skill_dir = skill_file.parent
@@ -288,14 +302,18 @@ def calculate_stats(apis: List[Dict], mcp_servers: Optional[List[Dict]] = None) 
 
 
 def discover_terraform(repo_root: Path) -> List[Dict]:
-    """Discover Terraform provider documentation.
+    """Discover Terraform provider documentation grouped by version.
 
-    Scans ``terraform/<provider>/{resources,data-sources}/*.md`` and returns
-    a list of provider dicts, each containing:
-    - ``slug``: provider directory name
-    - ``name``: human-friendly provider name
-    - ``docs``: list of parsed doc dicts (from parse_terraform_doc)
-    - ``nav_tree``: nested dict {subcategory: {doc_type: [doc, ...]}} for sidebar
+    Layout: ``terraform/<provider>/<version>/{provider.json, resources/, data-sources/, guides/}``.
+
+    Each provider dict includes:
+    - ``slug``, ``name``: provider identity
+    - ``versions``: list of version dicts sorted descending by semver, each with
+      ``version``, ``is_latest``, ``docs``, ``nav_tree``, ``nav_tree_by_type``,
+      ``doc_count``, ``install_info``
+    - ``latest_version``: the version string of ``versions[0]``
+    - ``docs``, ``nav_tree``, ``nav_tree_by_type``, ``doc_count``, ``install_info``:
+      aliases of the latest version's fields (preserved for homepage card compat)
     """
     terraform_dir = repo_root / 'terraform'
     if not terraform_dir.exists():
@@ -308,50 +326,92 @@ def discover_terraform(repo_root: Path) -> List[Dict]:
         if not provider_dir.is_dir() or provider_dir.name.startswith('.'):
             continue
 
-        docs: List[Dict] = []
-        for doc_type_dir in sorted(provider_dir.iterdir()):
-            if not doc_type_dir.is_dir():
+        # Enumerate version subdirs
+        candidates: List[Path] = []
+        for child in sorted(provider_dir.iterdir()):
+            if not child.is_dir():
                 continue
-            if doc_type_dir.name not in ('resources', 'data-sources', 'guides'):
+            if not is_valid_version_dirname(child.name):
+                print(f"  ⚠  Skipping non-semver directory: {provider_dir.name}/{child.name}")
                 continue
-            for md_file in sorted(doc_type_dir.glob('*.md')):
-                doc = parse_terraform_doc(md_file)
-                if doc:
-                    docs.append(doc)
+            candidates.append(child)
 
-        if not docs:
+        if not candidates:
             continue
 
-        # Build navigation tree: subcategory -> doc_type -> [docs]
-        nav_tree: Dict[str, Dict[str, List[Dict]]] = {}
-        # Build inverted tree: doc_type -> subcategory -> [docs]
-        nav_tree_by_type: Dict[str, Dict[str, List[Dict]]] = {}
-        for doc in docs:
-            subcat = doc['subcategory']
-            dtype = doc['doc_type']
-            nav_tree.setdefault(subcat, {}).setdefault(dtype, []).append(doc)
-            nav_tree_by_type.setdefault(dtype, {}).setdefault(subcat, []).append(doc)
+        sorted_versions = sort_versions_desc([c.name for c in candidates])
+        by_name = {c.name: c for c in candidates}
+        version_entries: List[Dict] = []
+        for idx, version in enumerate(sorted_versions):
+            entry = _parse_version_dir(by_name[version], version, is_latest=(idx == 0))
+            if entry is not None:
+                version_entries.append(entry)
+            else:
+                print(f"  ⚠  Skipping empty version directory: {provider_dir.name}/{version}")
+
+        if not version_entries:
+            continue
 
         provider_name = provider_dir.name.replace('-', ' ').title()
-        install_info = None
-        provider_json = provider_dir / 'provider.json'
-        if provider_json.exists():
-            try:
-                install_info = json.loads(provider_json.read_text(encoding='utf-8'))
-            except (json.JSONDecodeError, OSError):
-                install_info = None
+        latest = version_entries[0]
         provider = {
             'slug': provider_dir.name,
             'name': provider_name,
-            'docs': docs,
-            'nav_tree': nav_tree,
-            'nav_tree_by_type': nav_tree_by_type,
-            'doc_count': len(docs),
-            'install_info': install_info,
+            'versions': version_entries,
+            'latest_version': latest['version'],
+            # Aliases of the latest version (homepage card compat)
+            'docs': latest['docs'],
+            'nav_tree': latest['nav_tree'],
+            'nav_tree_by_type': latest['nav_tree_by_type'],
+            'doc_count': latest['doc_count'],
+            'install_info': latest['install_info'],
         }
         providers.append(provider)
-        print(f"  🏗️  Provider: {provider_name} ({len(docs)} docs)")
+        print(f"  🏗️  Provider: {provider_name} ({len(version_entries)} version(s), latest={latest['version']})")
 
     if providers:
         print(f"✅ Discovered {len(providers)} Terraform provider(s)")
     return providers
+
+
+def _parse_version_dir(version_dir: Path, version: str, is_latest: bool) -> Optional[Dict]:
+    """Parse a single ``terraform/<provider>/<version>/`` directory."""
+    docs: List[Dict] = []
+    for doc_type_dir in sorted(version_dir.iterdir()):
+        if not doc_type_dir.is_dir():
+            continue
+        if doc_type_dir.name not in ('resources', 'data-sources', 'guides'):
+            continue
+        for md_file in sorted(doc_type_dir.glob('*.md')):
+            doc = parse_terraform_doc(md_file)
+            if doc:
+                docs.append(doc)
+
+    if not docs:
+        return None
+
+    nav_tree: Dict[str, Dict[str, List[Dict]]] = {}
+    nav_tree_by_type: Dict[str, Dict[str, List[Dict]]] = {}
+    for doc in docs:
+        subcat = doc['subcategory']
+        dtype = doc['doc_type']
+        nav_tree.setdefault(subcat, {}).setdefault(dtype, []).append(doc)
+        nav_tree_by_type.setdefault(dtype, {}).setdefault(subcat, []).append(doc)
+
+    install_info = None
+    provider_json = version_dir / 'provider.json'
+    if provider_json.exists():
+        try:
+            install_info = json.loads(provider_json.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            install_info = None
+
+    return {
+        'version': version,
+        'is_latest': is_latest,
+        'docs': docs,
+        'nav_tree': nav_tree,
+        'nav_tree_by_type': nav_tree_by_type,
+        'doc_count': len(docs),
+        'install_info': install_info,
+    }

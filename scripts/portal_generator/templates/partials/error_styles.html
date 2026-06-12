@@ -1,0 +1,85 @@
+<style>
+    .error-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 80px);
+        padding: var(--space-xl) var(--space-md);
+        text-align: center;
+        background: var(--color-bg-primary);
+    }
+
+    .error-illustration {
+        margin-bottom: var(--space-xl);
+    }
+
+    .error-illustration img {
+        width: 100%;
+        max-width: 304px;
+        height: auto;
+    }
+
+    .error-code {
+        font-family: var(--font-mono);
+        font-size: 5rem;
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-primary);
+        line-height: 1;
+        margin: 0 0 var(--space-sm) 0;
+        letter-spacing: -0.02em;
+    }
+
+    .error-title {
+        font-size: var(--font-size-8);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        margin: 0 0 var(--space-md) 0;
+    }
+
+    .error-description {
+        font-size: var(--font-size-5);
+        color: var(--color-text-secondary);
+        max-width: 460px;
+        margin: 0 auto var(--space-lg) auto;
+        line-height: var(--reading-line-height);
+    }
+
+    .error-url {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-3);
+        color: var(--color-text-tertiary);
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border-primary);
+        border-radius: var(--radius-medium);
+        padding: var(--space-xs) var(--space-sm);
+        margin-bottom: var(--space-xl);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        word-break: break-all;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: var(--space-md);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    [data-theme="dark"] .error-page {
+        background: var(--color-bg-primary);
+    }
+
+    [data-theme="dark"] .error-illustration img {
+        filter: brightness(0.75) saturate(1.2);
+    }
+
+    [data-theme="dark"] .error-url {
+        background: var(--color-bg-surface);
+        border-color: var(--color-border-primary);
+        color: var(--color-text-tertiary);
+    }
+</style>

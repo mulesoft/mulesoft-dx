@@ -14,9 +14,9 @@
 
 {% block content %}
 {% set api_name = provider.name %}
-{% set api_version = '' %}
+{% set api_version = version.version %}
 {% set prose_only = true %}
-{% set terraform_install_info = provider.install_info %}
+{% set terraform_install_info = version.install_info %}
 {% include "partials/auth_panel.html" %}
 
 {% if terraform_install_info %}
@@ -68,14 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         el.className = el.className.replace('language-shell', 'language-bash');
     });
     wrapTerraformCodeBlocks();
-
-    function syncPrismTheme() {
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        document.getElementById('prism-theme-light').disabled = isDark;
-        document.getElementById('prism-theme-dark').disabled = !isDark;
-    }
-    syncPrismTheme();
-    new MutationObserver(syncPrismTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 });
 </script>
 {% endblock %}

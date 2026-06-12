@@ -192,6 +192,54 @@ pipeline {
 }
 ```
 
+## Deployed Portal Validation
+
+Validates a live deployed portal's agentic endpoints — runs against any URL (test, prod, or localhost).
+
+### What it checks
+
+| Check | Description |
+|-------|-------------|
+| C1 | Core endpoints return 200: `/`, `/AGENTS.md`, `/registry.json`, `/llms.txt` |
+| C2 | `registry.json` is valid JSON with required fields and expected kinds |
+| C3 | Every `href` in `registry.json` returns 200 (critical: catches broken SKILL.md paths) |
+| C4 | All OAS specs are parseable as valid YAML |
+| C5 | All `SKILL.md` files are non-empty and contain frontmatter |
+
+### Usage
+
+```bash
+# Against test (requires X-MS-Developer header)
+python3 scripts/build/validate_portal.py \
+  --url https://test-dev-portal.mulesoft.com \
+  --header "X-MS-Developer: true"
+
+# Against prod
+python3 scripts/build/validate_portal.py \
+  --url https://dev-portal.mulesoft.com \
+  --header "X-MS-Developer: true"
+
+# Against local (no header needed)
+python3 scripts/build/validate_portal.py --url http://localhost:8081
+
+# Via Makefile
+make validate-portal URL=https://test-dev-portal.mulesoft.com PORTAL_HEADER="X-MS-Developer: true"
+
+# HTTP-only (skip YAML/frontmatter checks, faster)
+python3 scripts/build/validate_portal.py --url https://test-dev-portal.mulesoft.com \
+  --header "X-MS-Developer: true" --skip-content
+```
+
+### When to run
+
+- Before promoting from test to production
+- After any deploy to verify the portal is healthy
+- When `SKILL.md` paths or registry structure changes
+
+### Why C3 matters
+
+The most critical check. Bugs like skills living in nested subdirectories (`skills/mule-development/build-mule-integration/`) can cause their `SKILL.md` to be unreachable at the URL agents expect. C3 catches this by following every `href` in the registry rather than constructing URLs by hand.
+
 ## Makefile Targets Reference
 
 | Target | Description |
@@ -203,6 +251,7 @@ pipeline {
 | `validate-api API=<name>` | Validate specific API |
 | `report` | Generate comprehensive report |
 | `clean` | Remove validation reports |
+| `validate-portal URL=<url>` | Validate deployed portal agentic endpoints |
 | `install-hooks` | Set up pre-commit and pre-push git hooks |
 | `uninstall-hooks` | Remove git hooks configuration |
 | `check-hooks` | Show git hooks status |

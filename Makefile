@@ -7,7 +7,7 @@
 #   make report                - Generate summary report
 #   make help                  - Show this help message
 
-.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
+.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server validate-portal install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
 
 # Colors for output
 RED := \033[0;31m
@@ -311,6 +311,17 @@ generate-portal:
 	@echo "$(BLUE)📂 Output: portal/$(NC)"
 	@echo "$(BLUE)🌐 Open: portal/index.html$(NC)"
 	@echo ""
+
+# Validate a deployed portal's agentic endpoints
+# Usage: make validate-portal URL=https://test-dev-portal.mulesoft.com [PORTAL_HEADER="X-MS-Developer: true"]
+validate-portal:
+	@if [ -z "$(URL)" ]; then \
+		echo "$(RED)Error: URL is required. Usage: make validate-portal URL=https://...$(NC)"; \
+		exit 1; \
+	fi
+	@HEADER_ARG=""; \
+	if [ -n "$(PORTAL_HEADER)" ]; then HEADER_ARG="--header \"$(PORTAL_HEADER)\""; fi; \
+	python3 scripts/build/validate_portal.py --url "$(URL)" $$HEADER_ARG
 
 # Serve the documentation portal
 # Usage: make serve-portal [PORT=8083]

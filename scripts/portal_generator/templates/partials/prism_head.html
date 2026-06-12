@@ -8,3 +8,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-hcl.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" defer></script>
+<script>
+(function() {
+    function syncPrismTheme() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var light = document.getElementById('prism-theme-light');
+        var dark = document.getElementById('prism-theme-dark');
+        if (light) light.disabled = isDark;
+        if (dark) dark.disabled = !isDark;
+    }
+    syncPrismTheme();
+    new MutationObserver(syncPrismTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>

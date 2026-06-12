@@ -4,13 +4,28 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2026-06-04
+## [1.2.1] - 2026-06-12
 
 ### Changed
 - **`build-mule-integration`** — absorbed `create-project-template` as a conditional sub-file (`references/template-project-creation.md`). Template-based project creation (Exchange search, local .jar) is now a branch within Step 1b, loaded only when the user wants a template. `search_templates.sh` moved to `build-mule-integration/scripts/`.
+- **`build-mule-integration`** — Step 8 `dx mule project create` example now passes `--skip-environment` for scratch projects to avoid an unnecessary environment-resolution API call.
 
 ### Removed
 - **`create-project-template`** — removed as standalone skill. Its workflow lives in `build-mule-integration/references/template-project-creation.md`.
+
+## [1.1.1] - 2026-06-09
+
+### Changed
+
+- **`build-mule-integration`** — broader connector-search guidance so private (UUID-groupId) connectors published to a customer's Exchange tenant surface alongside public ones, and the prose now tells the agent to escalate via `AskUserQuestion` when both a public and a private connector match the same system family. Step 3's "Common search terms" table uses broader system names (`salesforce`, `database`, `http`, `netsuite`, `servicenow`, `jms`, `slack`) so private assets whose `assetId` does not share tokens with the public connector still surface.
+- **`build-mule-integration`** — Step 16 gains a pre-`mvn` static validator (`scripts/validate_before_build.sh`) that checks the connector error-type allowlist (Cluster D), namespace ↔ `pom.xml` dependency parity (Cluster A2-A5), and canonical XSD URL shape — fast line-numbered diagnostics instead of a 30 s+ Maven failure.
+- **`build-mule-integration`** — `scripts/describe_connector.sh` now caches per-connector and per-operation `errorTypes` to `tmp/connector-errors/`, which the new validator reads.
+- **`build-mule-integration`** — `scripts/get_latest_connector.sh` ranking/scoring tweaks to keep the broader-term searches stable.
+
+### Added
+
+- **`build-mule-integration`** — `scripts/_suggest_nearest.py`, a fuzzy nearest-match helper invoked by `validate_before_build.sh` to suggest the closest allowed error-type when the user's `namespace:id` miss has no exact match. Reduces time-to-fix on Cluster D validation failures.
+- **`build-mule-integration`** — `scripts/.gitattributes` to keep shell script line endings stable across contributor platforms.
 
 ## [1.1.0] - 2026-05-18
 

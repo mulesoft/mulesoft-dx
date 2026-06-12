@@ -372,6 +372,114 @@ describe('getPreferredServerIndex', () => {
 });
 
 // ===========================================================================
+// Region × domain matrix (W-22861359)
+// ===========================================================================
+describe('isServerValidForRegion', () => {
+    const anypointGlobal = { url: 'https://anypoint.mulesoft.com/api' };
+    const anypointRegional = {
+        url: 'https://{region}.anypoint.mulesoft.com/api',
+        variables: { region: { default: 'eu1' } },
+    };
+    const platformRegional = {
+        url: 'https://{region}.platform.mulesoft.com/api',
+        variables: { region: { default: 'ca1' } },
+    };
+    const anypointLegacyEu = { url: 'https://eu1.anypoint.mulesoft.com/api' };
+
+    test('us global: only anypoint global is valid (region=null)', () => {
+        expect(isServerValidForRegion(anypointGlobal, null)).toBe(true);
+        expect(isServerValidForRegion(anypointRegional, null)).toBe(true);
+        expect(isServerValidForRegion(platformRegional, null)).toBe(true);
+    });
+
+    test('eu1: only anypoint regional, NOT platform', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'eu1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'eu1')).toBe(true);
+        expect(isServerValidForRegion(platformRegional, 'eu1')).toBe(false);
+    });
+
+    test('ca1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'ca1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'ca1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'ca1')).toBe(true);
+    });
+
+    test('jp1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'jp1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'jp1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'jp1')).toBe(true);
+    });
+
+    test('legacy hardcoded eu1 server is valid for eu1', () => {
+        expect(isServerValidForRegion(anypointLegacyEu, 'eu1')).toBe(true);
+        expect(isServerValidForRegion(anypointLegacyEu, 'ca1')).toBe(false);
+    });
+
+    test('unknown region does not filter (returns true to avoid hiding valid endpoints)', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'sg1')).toBe(true);
+        expect(isServerValidForRegion(anypointRegional, 'sg1')).toBe(true);
+        expect(isServerValidForRegion(platformRegional, 'sg1')).toBe(true);
+    });
+
+    test('null/undefined server returns false', () => {
+        expect(isServerValidForRegion(null, 'eu1')).toBe(false);
+        expect(isServerValidForRegion(undefined, 'eu1')).toBe(false);
+    });
+});
+
+describe('filterServersForRegion', () => {
+    const anypointGlobal = { url: 'https://anypoint.mulesoft.com/api' };
+    const anypointRegional = {
+        url: 'https://{region}.anypoint.mulesoft.com/api',
+        variables: { region: { default: 'eu1' } },
+    };
+    const platformRegional = {
+        url: 'https://{region}.platform.mulesoft.com/api',
+        variables: { region: { default: 'ca1' } },
+    };
+    const all = [anypointGlobal, anypointRegional, platformRegional];
+
+    test('eu1 keeps only anypoint regional', () => {
+        expect(filterServersForRegion(all, 'eu1')).toEqual([anypointRegional]);
+    });
+
+    test('ca1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'ca1')).toEqual([platformRegional]);
+    });
+
+    test('jp1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'jp1')).toEqual([platformRegional]);
+    });
+
+    test('null region (us) returns all', () => {
+        expect(filterServersForRegion(all, null)).toEqual(all);
+    });
+
+    test('unknown region returns all (no filter)', () => {
+        expect(filterServersForRegion(all, 'sg1')).toEqual(all);
+    });
+
+    test('empty/null input returns []', () => {
+        expect(filterServersForRegion(null, 'eu1')).toEqual([]);
+        expect(filterServersForRegion([], 'eu1')).toEqual([]);
+    });
+});
+
+describe('getValidRegionsForServerType', () => {
+    test('eu type → anypoint regional regions', () => {
+        expect(getValidRegionsForServerType('eu')).toEqual(['eu1']);
+    });
+
+    test('platform type → platform regions including jp1', () => {
+        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1']);
+    });
+
+    test('us type → empty (no region needed)', () => {
+        expect(getValidRegionsForServerType('us')).toEqual([]);
+    });
+});
+
+// ===========================================================================
 // buildUrlBarHtml
 // ===========================================================================
 describe('buildUrlBarHtml', () => {
@@ -1869,4 +1977,404 @@ describe('toggleSkillMode scroll behavior', () => {
     });
 });
 
+// ===========================================================================
+// executeXOriginSource — button reset and auth errors
+// ===========================================================================
+
+describe('executeXOriginSource — button reset and auth errors', () => {
+    let responseDiv, responseBodyDiv, sourceDiv, btn, textSpan;
+
+    function setupMinimalDom() {
+        // Minimal DOM structure for executeXOriginSource
+        responseDiv = document.createElement('div');
+        responseDiv.id = 'response-xorigin-0';
+        responseDiv.classList.add('empty');
+        document.body.appendChild(responseDiv);
+
+        responseBodyDiv = document.createElement('div');
+        responseBodyDiv.id = 'respbody-xorigin-0';
+        document.body.appendChild(responseBodyDiv);
+
+        sourceDiv = document.createElement('div');
+        sourceDiv.className = 'xorigin-source';
+        sourceDiv.setAttribute('data-source-idx', '0');
+        document.body.appendChild(sourceDiv);
+
+        // Button element with span
+        btn = document.createElement('button');
+        textSpan = document.createElement('span');
+        textSpan.textContent = 'Send';
+        btn.appendChild(textSpan);
+
+        // Mock window.__OP_LOOKUP__ for API/operation resolution
+        window.__OP_LOOKUP__ = {
+            'test-api': {
+                ops: {
+                    'listItems': {
+                        method: 'GET',
+                        path: '/api/v1/items'
+                    }
+                }
+            }
+        };
+
+        // Mock xOriginModalStack
+        xOriginModalStack.length = 0;
+        xOriginModalStack.push({
+            opId: 'test-op',
+            paramName: 'testParam',
+            origins: [{
+                api: 'urn:api:test-api',
+                operation: 'listItems',
+                values: '$.data[*].id'
+            }]
+        });
+    }
+
+    function cleanupDom() {
+        document.body.innerHTML = '';
+        sessionStorage.clear();
+        delete window.__OP_LOOKUP__;
+        xOriginModalStack.length = 0;
+        delete global.fetch;
+    }
+
+    beforeEach(() => {
+        setupMinimalDom();
+        // Minimal DOM for updateAuthSummary (called by markTokenExpired)
+        ['authStatusDot', 'authStatusText', 'authLockIcon'].forEach(id => {
+            if (!document.getElementById(id)) {
+                const el = document.createElement(id === 'authStatusText' ? 'span' : 'img');
+                el.id = id;
+                if (el.tagName === 'IMG') el.src = 'assets/icons/placeholder.svg';
+                document.body.appendChild(el);
+            }
+        });
+    });
+
+    afterEach(() => {
+        cleanupDom();
+    });
+
+    // --- 1. Button reset after auth error (no token) ---
+
+    test('resets button to original text after auth error (no token)', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+    });
+
+    test('re-enables button after auth error (no token)', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 2. Auth CTA link for no-token case ---
+
+    test('shows auth error message when no token', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Please authenticate first');
+    });
+
+    // --- 3. Error message for expired-token case ---
+
+    test('shows expired token error message', async () => {
+        sessionStorage.setItem('anypoint_token', 'expired-token');
+        sessionStorage.setItem('anypoint_token_expires_at', '0');
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Token expired');
+    });
+
+    test('resets button to original text after expired token error', async () => {
+        sessionStorage.setItem('anypoint_token', 'expired-token');
+        sessionStorage.setItem('anypoint_token_expires_at', '0');
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 4. Button reset after non-2xx response (including 401/403) ---
+
+    test('resets button after 401 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 401, body: 'Unauthorized' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 403 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 403, body: 'Forbidden' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 404 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 404, body: 'Not Found' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('resets button after 500 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 500, body: 'Internal Server Error' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 5. Auth CTA link for 401/403 responses ---
+
+    test('shows status error for 401 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 401, body: 'Unauthorized' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Request returned status 401');
+    });
+
+    test('shows status error for 403 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 403, body: 'Forbidden' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Request returned status 403');
+    });
+
+    // --- 6. No regression: button resets after generic error (data.error) ---
+
+    test('resets button after generic proxy error (data.error)', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ error: 'Connection timeout' })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('shows error message for generic proxy error', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ error: 'Network error' })
+        }));
+
+        await executeXOriginSource(0, btn);
+
+        const errorDiv = responseBodyDiv.querySelector('.xorigin-error');
+        expect(errorDiv).not.toBeNull();
+        expect(errorDiv.textContent).toContain('Network error');
+    });
+
+    // --- 7. Additional edge cases ---
+
+    test('button shows "Sending..." while request is pending', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        // Create a promise that we'll resolve manually
+        let resolvePromise;
+        const promise = new Promise(resolve => { resolvePromise = resolve; });
+
+        global.fetch = jest.fn(() => promise);
+
+        // Start the request (don't await)
+        const execution = executeXOriginSource(0, btn);
+
+        // Check button state immediately
+        expect(textSpan.textContent).toBe('Sending...');
+        expect(btn.disabled).toBe(true);
+
+        // Resolve the promise
+        resolvePromise({ json: () => Promise.resolve({ status: 200, body: '{"data":[]}' }) });
+
+        // Wait for execution to complete
+        await execution;
+    });
+
+    test('does not reset button when no button element provided', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        await executeXOriginSource(0, null);
+        // Should not throw, just handle gracefully
+    });
+
+    test('handles missing text span gracefully', async () => {
+        sessionStorage.removeItem('anypoint_token');
+        const btnNoSpan = document.createElement('button');
+        await executeXOriginSource(0, btnNoSpan);
+        // Should not throw
+    });
+
+    // --- 8. Button reset after successful 200 response ---
+
+    test('resets button after successful 200 response', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: '{"data":[{"id":"abc"}]}', headers: {} })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+
+    // --- 9. Button reset after JSON parse failure ---
+
+    test('resets button after invalid JSON in response body', async () => {
+        sessionStorage.setItem('anypoint_token', 'valid-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+
+        global.fetch = jest.fn(() => Promise.resolve({
+            json: () => Promise.resolve({ status: 200, body: 'not-valid-json{{{', headers: {} })
+        }));
+
+        await executeXOriginSource(0, btn);
+        expect(textSpan.textContent).toBe('Send');
+        expect(btn.disabled).toBe(false);
+    });
+});
+
+// ===========================================================================
+// applyAuthModalMode — logged-in state hides credential inputs
+// ===========================================================================
+describe('applyAuthModalMode (logged-in state)', () => {
+    function buildAuthModalDom() {
+        document.body.innerHTML = `
+            <select id="serverSelect"><option value="us">US</option></select>
+            <select id="regionPreset"><option value="eu1">eu1</option></select>
+            <input id="regionCustomInput" type="text">
+            <button class="auth-tab" data-tab="bearer"></button>
+            <button class="auth-tab" data-tab="oauth2"></button>
+            <input id="authUsername" type="text">
+            <input id="authPassword" type="password">
+            <input id="authClientId" type="text">
+            <input id="authClientSecret" type="password">
+            <button id="authBearerLoginBtn"></button>
+            <button id="authBearerLogoutBtn" class="btn-auth-logout"></button>
+            <button id="authOauth2LoginBtn"></button>
+            <button id="authOauth2LogoutBtn" class="btn-auth-logout"></button>
+            <div id="authBearerLoggedAs" class="auth-logged-as"><strong id="authBearerLoggedAsValue"></strong></div>
+            <div id="authOauth2LoggedAs" class="auth-logged-as"><strong id="authOauth2LoggedAsValue"></strong></div>
+        `;
+    }
+
+    afterEach(() => {
+        sessionStorage.clear();
+        document.body.innerHTML = '';
+    });
+
+    test('hides bearer credential inputs and shows logout button when authenticated as Bearer', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'Bearer');
+        sessionStorage.setItem('anypoint_identity', 'Roberto Cantalapiedra');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authUsername').style.display).toBe('none');
+        expect(document.getElementById('authPassword').style.display).toBe('none');
+        expect(document.getElementById('authBearerLoginBtn').style.display).toBe('none');
+        expect(document.getElementById('authBearerLogoutBtn').style.display).toBe('');
+        expect(document.getElementById('authBearerLoggedAs').style.display).toBe('');
+        expect(document.getElementById('authBearerLoggedAsValue').textContent).toBe('Roberto Cantalapiedra');
+    });
+
+    test('hides oauth2 credential inputs and shows logout button when authenticated as OAuth2', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'OAuth2');
+        sessionStorage.setItem('anypoint_identity', 'svc-account');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authClientId').style.display).toBe('none');
+        expect(document.getElementById('authClientSecret').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LoginBtn').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LogoutBtn').style.display).toBe('');
+        expect(document.getElementById('authOauth2LoggedAs').style.display).toBe('');
+    });
+
+    test('restores credential inputs when not authenticated', () => {
+        buildAuthModalDom();
+        sessionStorage.clear();
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authUsername').style.display).toBe('');
+        expect(document.getElementById('authPassword').style.display).toBe('');
+        expect(document.getElementById('authClientId').style.display).toBe('');
+        expect(document.getElementById('authClientSecret').style.display).toBe('');
+        expect(document.getElementById('authBearerLogoutBtn').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LogoutBtn').style.display).toBe('none');
+        expect(document.getElementById('authBearerLoggedAs').style.display).toBe('none');
+        expect(document.getElementById('authOauth2LoggedAs').style.display).toBe('none');
+    });
+
+    test('falls back to em-dash when identity is missing', () => {
+        buildAuthModalDom();
+        sessionStorage.setItem('anypoint_token', 'tok');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method', 'Bearer');
+        sessionStorage.setItem('anypoint_identity', '');
+
+        applyAuthModalMode();
+
+        expect(document.getElementById('authBearerLoggedAsValue').textContent).toBe('—');
+    });
+});
 

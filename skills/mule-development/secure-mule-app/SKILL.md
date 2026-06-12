@@ -108,7 +108,7 @@ If no sensitive data is found, inform the user and exit.
 ## Step 6: Get User Confirmation
 Before making ANY changes, show the user:
 - What files will be modified
-- What actions will be taken (update pom.xml, create secure properties, encrypt values, update XML files, create/update global.xml)
+- What actions will be taken (update pom.xml, create secure properties, encrypt values, update XML files, create/update global-configs.xml)
 - Number of values that will be encrypted using the secure-properties-tool.jar
 
 If user says no, stop immediately.
@@ -217,8 +217,8 @@ Example:
 
 Write the updated XML back to disk after making all changes.
 
-## Step 11: Create/Update global.xml
-Check if `src/main/mule/global.xml` exists:
+## Step 11: Create/Update global-configs.xml
+Check if `src/main/mule/global-configs.xml` exists:
 
 **If it exists**:
 - Read the file and check if secure-properties configuration already exists
@@ -234,7 +234,7 @@ Check if `src/main/mule/global.xml` exists:
 ```
 
 **If it doesn't exist**:
-- Create a new `global.xml` file with the proper Mule XML structure
+- Create a new `global-configs.xml` file with the proper Mule XML structure
 - Include the secure-properties namespace and configuration
 - Add the secure properties config element
 
@@ -309,7 +309,7 @@ Provide a completion summary:
 - ✅ XML files updated:
   - Hardcoded values replaced with `${secure::}` placeholders
   - Existing property references updated from `${property}` to `${secure::property}`
-- ✅ global.xml configured with secure properties
+- ✅ global-configs.xml configured with secure properties
 - ✅ pom.xml updated with secure properties dependency
 - ✅ launch.json updated with encryption key
 - ✅ Existing properties/YAML files with sensitive data protected in .gitignore

@@ -55,6 +55,8 @@ def parse_terraform_doc(filepath: Path) -> Optional[Dict]:
             name = name[: -len(suffix)].rstrip()
             break
 
+    display_name = ' '.join(word.capitalize() for word in name.split('_') if word)
+
     body = content[m.end():]
     body_html = _md.render(body)
 
@@ -64,6 +66,7 @@ def parse_terraform_doc(filepath: Path) -> Optional[Dict]:
     return {
         'page_title': page_title,
         'name': name,
+        'display_name': display_name,
         'subcategory': subcategory,
         'description': description,
         'doc_type': doc_type,

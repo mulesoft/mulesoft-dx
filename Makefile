@@ -448,6 +448,15 @@ validate-jtbd:
 	echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
+# Validate all skills (R1-R7: naming, uniqueness, metadata, cross-refs, type)
+validate-skills:
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  Validating Skills$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@python3 scripts/build/validate_skills.py --repo-root .
+	@echo ""
+
 # Validate API descriptions use imperative format
 validate-descriptions:
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
@@ -466,7 +475,7 @@ install-hooks:
 	@git config core.hooksPath .githooks
 	@echo "$(GREEN)Done. Git hooks are now active.$(NC)"
 	@echo ""
-	@echo "  pre-commit: validate-descriptions, validate-mcp-server, validate-xorigin, validate-jtbd"
+	@echo "  pre-commit: validate-descriptions, validate-mcp-server, validate-xorigin, validate-jtbd, validate-skills"
 	@echo "  pre-push:   test-portal, validate-all-governed"
 	@echo ""
 	@echo "$(YELLOW)Skip hooks when needed:$(NC)"
@@ -536,6 +545,12 @@ pre-commit-hook:
 		done; \
 	fi; \
 	if $$jtbd_ok; then \
+		echo "$(GREEN)PASS$(NC)"; \
+	else \
+		echo "$(RED)FAIL$(NC)"; failed=1; \
+	fi; \
+	printf "  validate-skills       ... "; \
+	if python3 scripts/build/validate_skills.py --repo-root . > /dev/null 2>&1; then \
 		echo "$(GREEN)PASS$(NC)"; \
 	else \
 		echo "$(RED)FAIL$(NC)"; failed=1; \

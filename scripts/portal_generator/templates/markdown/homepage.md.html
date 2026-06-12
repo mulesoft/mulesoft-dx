@@ -24,7 +24,7 @@
 {% if terraform_providers %}
 ## Terraform Providers ({{ terraform_providers|length }})
 {% for provider in terraform_providers %}
-- [{{ provider.name }}]({{ base_url }}/terraform/{{ provider.slug }}.html) — {{ provider.description|default('Terraform provider') }}
+- [{{ provider.name }}]({{ base_url }}/terraform/{{ provider.slug }}/index.html) — {{ provider.description|default('Terraform provider') }}
 {% endfor %}
 {% endif %}
 

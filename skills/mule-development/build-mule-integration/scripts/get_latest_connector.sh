@@ -25,17 +25,16 @@
 #   0  ≥1 candidate found — ranked list printed on stdout
 #   1  no candidates / CLI error — error surfaced on stderr
 #
-# Why no auto-pin: v7 wrote the top-1 GAV to disk before the agent had
-# a chance to compare candidates. In ambiguous variant families the agent
-# accepted the pin silently 86% of the time (based on 535 lookups across
-# the pt1/pt2/pt3 eval runs). Removing the winner signal — pin file, ✅
-# banner, "score" number — forces the agent to actually read the list.
-# When the list has >1 row the shape of the output is itself the ambiguity
-# signal. The pick is committed later via pick_connector.sh, and all picks
-# are promoted to tmp/connector-versions/ by commit_connectors.sh after
-# the user approves the Technical Design Summary.
+# Why no auto-pin: writing the top-1 GAV to disk before the agent has had
+# a chance to compare candidates lets the agent silently accept it in
+# ambiguous variant families. Removing the winner signal — pin file, banner,
+# score number — forces the agent to actually read the list. When the list
+# has >1 row, the shape of the output is itself the ambiguity signal. The
+# pick is committed later via pick_connector.sh, and all picks are promoted
+# to tmp/connector-versions/ by commit_connectors.sh after the user
+# approves the Technical Design Summary.
 #
-# Selection rules (unchanged from v7; used only for internal ranking):
+# Selection rules (used only for internal ranking):
 #   - Only Mule 4 SDK extensions (type=="extension"). Mule 3 type=="connector"
 #     assets, templates, examples, and rest-apis are excluded — they can't be
 #     used as dependencies in a Mule 4 `dx project create` project.

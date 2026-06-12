@@ -10,10 +10,10 @@ Quick reference for frequently used Mule 4 connectors.
 > file into `dx project create --dependencies` or a `pom.xml` dependency
 > block directly.
 >
-> At build time the version **must** come from `get_latest_connector`
-> (defined in SKILL.md Step 2), which queries Anypoint Exchange live. If
+> At build time the version **must** come from `get_latest_connector.sh`
+> (defined in SKILL.md Step 3), which queries Anypoint Exchange live. If
 > the helper returns a different version than what is listed here, the
-> helper wins. See the enforcement rule in SKILL.md Step 2 and Step 3.
+> helper wins. See the enforcement rule in SKILL.md Step 3.
 >
 > Versions below last verified against live Exchange on **2026-04-24**.
 
@@ -377,12 +377,12 @@ Use `http:request` for RESTful API calls
 
 ## Finding Connectors at Build Time
 
-Use the `get_latest_connector` helper defined in SKILL.md Step 2. It calls
+Use the `get_latest_connector.sh` helper defined in SKILL.md Step 3. It calls
 Anypoint Exchange live and returns the authoritative groupId, assetId, and
 version for the supplied search term:
 
 ```bash
-get_latest_connector "mule-amazon-s3-connector"
+get_latest_connector.sh "mule-amazon-s3-connector"
 # -> com.mulesoft.connectors:mule-amazon-s3-connector:8.0.2  (as of query time)
 ```
 
@@ -422,6 +422,6 @@ snapshot versions in this file are discovery hints, not authoritative.
 2. **Include Scheduler** (built-in) for periodic jobs
 3. **Check database-specific requirements** (JDBC drivers)
 4. **Verify connector compatibility** with the target Mule runtime version (Mule 4.4.x / 4.5.x / 4.8.x differ in required connector ranges)
-5. **Always take versions from `get_latest_connector`** — do not paste versions from this catalog or from training-time memory
+5. **Always take versions from `get_latest_connector.sh`** — do not paste versions from this catalog or from training-time memory
 6. **Read connector documentation** for authentication setup
 7. **Test connectors individually** before complex integrations

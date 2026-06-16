@@ -1,0 +1,15 @@
+# Reference bat.yaml — BAT 2.0.22 suite manifest.
+# No top-level `config:` key (not in the schema); config is selected at run
+# time via `bat --config=local`. `reporters[].type` is case-sensitive.
+suite:
+  name: "fixture-orders BAT (generated from source)"
+files:
+  - file: tests/post-orders-happy-path.dwl
+  - file: tests/post-orders-missing-auth-returns-401.dwl
+  - file: tests/patch-cancel-pending-order-succeeds.dwl
+  - file: tests/get-order-by-id-not-found.dwl
+reporters:
+  - type: HTML
+    outFile: /tmp/bat-orders.html
+  - type: JSON
+    outFile: /tmp/bat-orders.json

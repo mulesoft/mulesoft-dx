@@ -67,7 +67,7 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 
 ### Local Template Format
 
-- Local templates are ALWAYS `.jar` files only; directory-based templates are NOT supported.
+- Local templates must be a packaged `.jar` or `.zip` file; directory-based (unpacked) templates are NOT supported.
 
 ---
 
@@ -151,7 +151,7 @@ If `description` is empty for a row, omit that bullet rather than printing `Desc
 ```xml
 <ask_followup_question>
 <question>No templates found matching your requirements. Would you like to:</question>
-<options>["I want to search with different terms.", "I want to generate the project from scratch.", "I will provide a local template .jar file."]</options>
+<options>["I want to search with different terms.", "I want to generate the project from scratch.", "I will provide a local template file (.jar or .zip)."]</options>
 </ask_followup_question>
 ```
 
@@ -271,68 +271,86 @@ After generation, verify:
 
 **Output:** Generated project path, validation status.
 
-**Project creation complete.** Return to Step 2 of the main workflow to continue with connector discovery and flow generation.
+---
+
+### Step E5: Continue or Stop
+
+**Always ask** after the project has been created and validated, regardless of how the original request was phrased:
+
+```xml
+<ask_followup_question>
+<question>The project has been created from the template. Would you like me to continue with connector discovery and flow generation (build-mule-integration Step 2 onwards), or stop here?</question>
+<options>["Yes, continue with connector discovery and flow generation.", "No, stop here — I'll continue from this point myself."]</options>
+</ask_followup_question>
+```
+
+**Based on the answer:**
+
+1. **Continue** → Return to Step 2 of the main workflow to proceed with connector discovery and flow generation.
+2. **Stop** → Declare completion via `<attempt_completion>`. Do **not** proceed to Step 2; do **not** add additional connectors or flows beyond what the template already provides.
+
+> **Important:** Do not infer the user's intent from prompt phrasing. Always ask explicitly. The user gets the final say on whether template setup is the end goal or just the starting point.
 
 ---
 
 ## Local Template Flow
 
-**Flow objective:** Generate Mule Integration Projects using `.jar` template files stored on the user's local file system.
+**Flow objective:** Generate Mule Integration Projects using `.jar` or `.zip` template files stored on the user's local file system.
 
-**Triggers for this branch:** user specifies they have a local template `.jar` file; user provides a file path ending with `.jar`; "use my local template"; "generate from [path].jar"; "use template at /path/to/template.jar".
+**Triggers for this branch:** user specifies they have a local template file (`.jar` or `.zip`); user provides a file path ending with `.jar` or `.zip`; "use my local template"; "generate from [path].jar" or "generate from [path].zip"; "use template at /path/to/template.jar".
 
-> **Important:** Per **Core Rules** (local template format) — directory-based templates are NOT supported.
+> **Important:** Per **Core Rules** (local template format) — only packaged `.jar` or `.zip` files are accepted; directory-based templates are NOT supported.
 
 ### Step L1: Analyze User Request & Extract Path
 
 Parse the request for:
 
 - Integration intent from the prompt
-- Local template `.jar` file path
+- Local template file path (`.jar` or `.zip`)
 - Customization requirements
 
 **Examples of trigger prompts:**
 
 - "Use my local template at /path/to/template.jar to create a notification service"
-- "Generate an API using the template I downloaded at ~/downloads/api-template.jar"
+- "Generate an API using the template I downloaded at ~/downloads/api-template.zip"
 - "Create project from /templates/my-org-template.jar"
 
-**If `.jar` path provided in request:**
+**If a path ending in `.jar` or `.zip` is provided in the request:**
 
 - Extract and validate the path immediately.
 - Proceed to Step L2 for validation.
 
-**If path NOT provided or not a `.jar` file,** prompt via `AskUserQuestion`:
+**If path NOT provided or not a `.jar`/`.zip` file,** prompt via `AskUserQuestion`:
 
 ```xml
 <ask_followup_question>
-<question>Please provide the path to your local template `.jar` file:</question>
-<options>["I will enter the .jar file path.", "No, search Exchange for templates instead.", "No, I want to generate from scratch instead."]</options>
+<question>Please provide the path to your local template file (`.jar` or `.zip`):</question>
+<options>["I will enter the local template file path.", "No, search Exchange for templates instead.", "No, I want to generate from scratch instead."]</options>
 </ask_followup_question>
 ```
 
-**Output:** `templatePath` (must end with `.jar`), integration intent.
+**Output:** `templatePath` (must end with `.jar` or `.zip`), integration intent.
 
 ---
 
-### Step L2: Validate Template `.jar` File
+### Step L2: Validate Local Template File
 
-Validate the provided `.jar` path:
+Validate the provided template path:
 
 1. **Check file exists** at the specified path.
-2. **Verify `.jar` extension** — file must end with `.jar`.
-3. **Verify valid Mule template JAR** — valid archive containing Mule project structure.
+2. **Verify extension** — file must end with `.jar` or `.zip`.
+3. **Verify valid Mule template archive** — valid `.jar` or `.zip` containing Mule project structure.
 
 **If validation fails,** prompt via `AskUserQuestion`:
 
 ```xml
 <ask_followup_question>
-<question>The path [path] is not a valid Mule template `.jar` file. [specific error]. Would you like to:</question>
-<options>["I will provide a different .jar file path.", "No, search Exchange for templates instead.", "No, I want to generate from scratch instead."]</options>
+<question>The path [path] is not a valid Mule template (.jar or .zip). [specific error]. Would you like to:</question>
+<options>["I will provide a different local template file path.", "No, search Exchange for templates instead.", "No, I want to generate from scratch instead."]</options>
 </ask_followup_question>
 ```
 
-**Output:** Validated `templatePath` (`.jar` file), template name extracted from filename.
+**Output:** Validated `templatePath` (`.jar` or `.zip` file), template name extracted from filename.
 
 ---
 
@@ -392,7 +410,25 @@ After generation, verify:
 
 **Output:** Generated project path.
 
-**Project creation complete.** Return to Step 2 of the main workflow to continue with connector discovery and flow generation.
+---
+
+### Step L5: Continue or Stop
+
+**Always ask** after the project has been created and validated, regardless of how the original request was phrased:
+
+```xml
+<ask_followup_question>
+<question>The project has been created from the template. Would you like me to continue with connector discovery and flow generation (build-mule-integration Step 2 onwards), or stop here?</question>
+<options>["Yes, continue with connector discovery and flow generation.", "No, stop here — I'll continue from this point myself."]</options>
+</ask_followup_question>
+```
+
+**Based on the answer:**
+
+1. **Continue** → Return to Step 2 of the main workflow to proceed with connector discovery and flow generation.
+2. **Stop** → Declare completion via `<attempt_completion>`. Do **not** proceed to Step 2; do **not** add additional connectors or flows beyond what the template already provides.
+
+> **Important:** Do not infer the user's intent from prompt phrasing. Always ask explicitly. The user gets the final say on whether template setup is the end goal or just the starting point.
 
 ---
 
@@ -403,9 +439,9 @@ After generation, verify:
 | User Request | Flow | Steps |
 | ------------ | ---- | ----- |
 | "Use Exchange template", "search Exchange" | **Exchange Template** | E1 → E2 → E3 → E4 |
-| "Use local template at /path/template.jar" | **Local Template** | L1 → L2 → L3 → L4 |
+| "Use local template at /path/template.jar" or "/path/template.zip" | **Local Template** | L1 → L2 → L3 → L4 |
 | Template search returns no results | Offer **Scratch** (return to main workflow Step 2, scratch at Step 8) | — |
-| Local `.jar` validation fails | Offer **Exchange** or **Scratch** | Re-entry |
+| Local `.jar`/`.zip` validation fails | Offer **Exchange** or **Scratch** | Re-entry |
 
 ### Flow Switching Rules
 
@@ -431,7 +467,7 @@ anypoint-cli-v4 dx:mule:project:create <projectName> [flags]
 | `<projectName>` (arg) | **Yes** | Name for the project (positional argument) |
 | `--mule-version` | **Yes** | Mule runtime version (from `tmp/mule-dev-env.json`) |
 | `--template-asset` | For Exchange | Exchange template in `groupId:assetId:version` format |
-| `--template-file` | For Local | Path to local `.jar` template file |
+| `--template-file` | For Local | Path to local `.jar` or `.zip` template file |
 | `--group-id` | No | Maven group ID (default: `com.mycompany`) |
 | `--output` | No | Output format: `text` or `json` (default: `text`) |
 | `--environment ""` | **Yes** | Required to bypass environment selection |
@@ -439,7 +475,7 @@ anypoint-cli-v4 dx:mule:project:create <projectName> [flags]
 **Usage by flow:**
 
 - From Exchange: `dx:mule:project:create <name> --template-asset "<groupId>:<assetId>:<version>" --mule-version <ver> --output json --environment ""`
-- From Local `.jar`: `dx:mule:project:create <name> --template-file "<path>" --mule-version <ver> --output json --environment ""`
+- From Local file: `dx:mule:project:create <name> --template-file "<path-to-jar-or-zip>" --mule-version <ver> --output json --environment ""`
 
 ### `scripts/search_templates.sh` Reference
 
@@ -465,7 +501,7 @@ Use this format when reporting project generation success:
 **Project Generation Complete**
 
 **Location:** [project path]
-**Template Used:** [template name] v[version] (Exchange) | **Source Template:** [local .jar path] (Local)
+**Template Used:** [template name] v[version] (Exchange) | **Source Template:** [local .jar or .zip path] (Local)
 
 **Created Files:**
 - pom.xml (Maven configuration)
@@ -480,6 +516,7 @@ Use this format when reporting project generation success:
 | No templates found in Exchange | Offer scratch generation or different search terms |
 | Template download fails | Retry once, then offer alternative templates |
 | Project compilation fails | Check dependencies, validate XML, report specific error |
-| Local `.jar` file not found | Ask user to verify path and provide correct `.jar` file location |
-| Local file is not a `.jar` | Inform user per **Core Rules** (local template format); ask for correct path |
+| Local `.jar` or `.zip` file not found | Ask user to verify path and provide correct file location |
+| Local file is not a `.jar` or `.zip` | Inform user per **Core Rules** (local template format); ask for correct path |
+| Local archive is corrupt or unreadable | Inform user the archive failed validation; offer to provide a different file, search Exchange, or scratch |
 | Multiple versions of same template | Always present ONLY the latest version |

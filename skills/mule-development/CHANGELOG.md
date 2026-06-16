@@ -4,6 +4,13 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-16
+
+### Changed
+- **`build-mule-integration`** — synced from the agent-evaluation lab to skill v12.2.0 internal tag. Reorders Step 1b options so "I want to generate from scratch without a template." is the first option (default-safe). Adds explicit Steps E5 / L5 continue-or-stop checkpoints at the end of the Exchange and Local sub-flows so the agent always asks the user whether to proceed to connector discovery + flow generation or stop after template setup. Local template format relaxed from `.jar`-only to `.jar` or `.zip` (the underlying `dx:mule:project:create --template-file` CLI accepts both).
+- **`build-mule-integration`** — adds an absolute-path / "no relative `../scripts/...`" rule for invoking bundled scripts, plus a "why scripts instead of inline bash" rationale (loss of resolved GAVs across `Bash` tool calls), based on production-run failure analysis.
+- **`build-mule-integration`** — Phase 2 step ranges renumbered (Steps 8–17 from 8–18); flow XML generation cross-references corrected (Steps 10/12 instead of 11/13); pre-mvn validation script reference added to the troubleshooting cheatsheet.
+
 ## [1.2.1] - 2026-06-12
 
 ### Changed

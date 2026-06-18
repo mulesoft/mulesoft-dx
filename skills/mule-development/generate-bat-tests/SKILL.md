@@ -332,6 +332,8 @@ For each entry in the inventory whose provenance is not `dropped`, write
 - `auth-401.dwl` — negative/error-code test.
 - `multi-step-stateful.dwl` — seed call + `context` + dependent call (for
   `stateful: true` inventory entries).
+- `json-body-and-headers.dwl` — asserting a parsed JSON body field and a
+  `Content-Type` header that carries a charset (see rules 7b/7c).
 
 Then write `bat.yaml` (schema in the authoring rules / `references/examples/bat.yaml`):
 `suite.name`, a `files:` entry per `.dwl`, and `reporters:` (HTML + JSON). **No
@@ -433,4 +435,4 @@ cd <suite-dir> && ./run-bat.sh
 - `references/quality-dimensions.md` — the Accuracy / Robustness / Security /
   Coverage taxonomy used to tag and size the inventory.
 - `references/examples/` — canonical `.dwl` files (single-call, auth-error,
-  multi-step stateful) and a reference `bat.yaml`.
+  multi-step stateful, JSON body/headers) and a reference `bat.yaml`.

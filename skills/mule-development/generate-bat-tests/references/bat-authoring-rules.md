@@ -97,6 +97,21 @@ describe("POST /orders — happy path") in [
      assert per element with `mustEqual`, or assert the count with
      `sizeOf($.response.body.items) mustEqual N`.
 
+7b. **Assert on the parsed body, not the raw body string.** Always assert on a
+    field of the parsed body (`$.response.body.foo mustEqual "x"`), never on the
+    whole body compared as a string. A Mule `<ee:transform>` with
+    `output application/json` **pretty-prints** the payload, so the bytes on the
+    wire are `{\n  "foo": "x"\n}` (with newlines and indentation), not the
+    compact `{"foo":"x"}`. An assertion like
+    `$.response.body mustEqual "{\"foo\":\"x\"}"` therefore fails on whitespace
+    even when the value is exactly right. Asserting the parsed field is immune to
+    formatting and is the correct black-box assertion for a JSON endpoint.
+
+7c. **Match `Content-Type` with a regex, not an exact string.** The header almost
+    always carries a charset suffix — `application/json; charset=UTF-8` — so an
+    exact `$.response.headers."Content-Type" mustEqual "application/json"` fails.
+    Use `$.response.headers."Content-Type" mustMatch /application\/json.*/`.
+
 8. **Status codes are Number literals** — `200`, not `"200"`.
 
 9. **Do not fabricate endpoints.** Every path + verb must exist in the app's

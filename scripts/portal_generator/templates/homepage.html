@@ -119,6 +119,11 @@
                     {% endif %}
                 {% endfor %}
             </div>
+            <div class="catalog-empty-state" id="catalogEmptyState" style="display:none">
+                <img src="{{ icons_path }}/empty-state.svg" alt="" aria-hidden="true">
+                <p class="catalog-empty-title">We didn't find any results</p>
+                <p class="catalog-empty-hint">Try rephrasing your search.</p>
+            </div>
         </section>
     </div>
 

@@ -1260,6 +1260,7 @@ var GLOBAL_PARAM_X_ORIGIN = {};
 var selectedTags = [];
 var availableTags = [];
 var currentSuggestionIndex = -1;
+var lastNonEmptySuggestions = [];
 
 function buildAvailableTags() {
     const tagSet = new Set();
@@ -1318,14 +1319,20 @@ function showTagSuggestions(query) {
         tag.includes(lowerQuery) && !selectedTags.includes(tag)
     ).slice(0, 10);
 
-    if (matches.length === 0) {
+    const displayList = matches.length > 0 ? matches : lastNonEmptySuggestions;
+
+    if (matches.length > 0) {
+        lastNonEmptySuggestions = matches;
+    }
+
+    if (displayList.length === 0) {
         suggestionsDiv.style.display = 'none';
         currentSuggestionIndex = -1;
         return;
     }
 
     let html = '';
-    matches.forEach((tag, index) => {
+    displayList.forEach((tag, index) => {
         const activeClass = index === currentSuggestionIndex ? 'active' : '';
         html += '<div class="tag-suggestion-item ' + activeClass + '" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + '</div>';
     });
@@ -1448,7 +1455,16 @@ function filterByTags() {
     });
 
     // Update results count and type
-    updateResultsCount(visibleApis + visibleMcps + visibleSkills + visibleTerraform, selectedType);
+    const totalVisible = visibleApis + visibleMcps + visibleSkills + visibleTerraform;
+    updateResultsCount(totalVisible, selectedType);
+
+    // Toggle empty state when no cards match
+    const catalogGrid = document.getElementById('catalogGrid');
+    const catalogEmptyState = document.getElementById('catalogEmptyState');
+    if (catalogGrid && catalogEmptyState) {
+        catalogGrid.style.display = totalVisible === 0 ? 'none' : '';
+        catalogEmptyState.style.display = totalVisible === 0 ? '' : 'none';
+    }
 
     // Highlight matched terms on visible cards
     applyTagHighlights();

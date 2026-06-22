@@ -410,6 +410,12 @@ describe('isServerValidForRegion', () => {
         expect(isServerValidForRegion(platformRegional, 'jp1')).toBe(true);
     });
 
+    test('in1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'in1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'in1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'in1')).toBe(true);
+    });
+
     test('legacy hardcoded eu1 server is valid for eu1', () => {
         expect(isServerValidForRegion(anypointLegacyEu, 'eu1')).toBe(true);
         expect(isServerValidForRegion(anypointLegacyEu, 'ca1')).toBe(false);
@@ -451,6 +457,10 @@ describe('filterServersForRegion', () => {
         expect(filterServersForRegion(all, 'jp1')).toEqual([platformRegional]);
     });
 
+    test('in1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'in1')).toEqual([platformRegional]);
+    });
+
     test('null region (us) returns all', () => {
         expect(filterServersForRegion(all, null)).toEqual(all);
     });
@@ -470,8 +480,8 @@ describe('getValidRegionsForServerType', () => {
         expect(getValidRegionsForServerType('eu')).toEqual(['eu1']);
     });
 
-    test('platform type → platform regions including jp1', () => {
-        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1']);
+    test('platform type → platform regions including jp1 and in1', () => {
+        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1', 'in1']);
     });
 
     test('us type → empty (no region needed)', () => {

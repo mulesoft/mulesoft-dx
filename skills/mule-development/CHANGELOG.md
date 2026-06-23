@@ -4,6 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-06-23
+
+### Added
+
+- **`generate-connectivity-knowledge`** — new 14-step skill that produces connectivity knowledge for a SaaS API when no dedicated Mule connector exists. Researches the API from user-defined use cases and documentation, generates an OpenAPI 3.0 spec, validates every operation against the live service with auto-fix, and writes a self-contained `connectivity-schema/<apiName>/` folder (`api-reference.md` + `<apiName>.yaml` + `config.properties`). Output feeds the HTTP-fallback branch of `build-mule-integration` so HTTP-Connector flows inherit the same auth, pagination, and entity awareness a dedicated connector would carry.
+
 ## [1.3.0] - 2026-06-20
 
 ### Added

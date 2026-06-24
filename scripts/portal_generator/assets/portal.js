@@ -3684,22 +3684,43 @@ function getValidRegionsForServerType(type) {
     return [];
 }
 
+function _safeSessionGet(key) {
+    try {
+        var v = sessionStorage.getItem(key);
+        return (v && v.length > 0) ? v : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 function getSelectedServerType() {
     var sel = document.getElementById('serverSelect');
-    if (!sel) return 'us';
-    return sel.value; // 'us', 'eu', or 'platform'
+    var domValue = sel ? sel.value : null;
+    // DOM-first when the user has actually picked a non-default value.
+    if (domValue && domValue !== 'us') return domValue;
+    // Race window during DOMContentLoaded: serverSelect still shows the
+    // default 'us' (or is missing) because the auth restore handler hasn't
+    // run yet. Fall back to the persisted value so callers like
+    // initStepUrlBars() render the correct region. See W-22945464.
+    var stored = _safeSessionGet('anypoint_server_type');
+    if (stored === 'eu' || stored === 'platform' || stored === 'us') return stored;
+    return domValue || 'us';
 }
 
 function getSelectedRegion() {
     var sel = document.getElementById('serverSelect');
     if (!sel || sel.value === 'us') return null;
     var preset = document.getElementById('regionPreset');
-    if (!preset) return null;
-    if (preset.value === 'custom') {
-        var customInput = document.getElementById('regionCustomInput');
-        return (customInput && customInput.value.trim()) ? customInput.value.trim() : null;
+    if (preset) {
+        if (preset.value === 'custom') {
+            var customInput = document.getElementById('regionCustomInput');
+            if (customInput && customInput.value.trim()) return customInput.value.trim();
+        } else if (preset.value) {
+            return preset.value;
+        }
     }
-    return preset.value;
+    // regionPreset missing or empty — same DOMContentLoaded race as above.
+    return _safeSessionGet('anypoint_region');
 }
 
 function getSelectedBaseUrl() {

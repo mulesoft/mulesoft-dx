@@ -159,6 +159,113 @@ describe('getSelectedServerType', () => {
 });
 
 // ===========================================================================
+// getSelectedRegion
+// ===========================================================================
+describe('getSelectedRegion', () => {
+    test('returns null when server type is us', () => {
+        withServerType('us', null, () => {
+            expect(getSelectedRegion()).toBeNull();
+        });
+    });
+
+    test('returns null when server type is us even with sessionStorage region', () => {
+        withServerType('us', null, () => {
+            withSessionStorage('us', 'eu1', () => {
+                expect(getSelectedRegion()).toBeNull();
+            });
+        });
+    });
+
+    test('returns region from DOM when regionPreset is set', () => {
+        withServerType('eu', 'eu2', () => {
+            expect(getSelectedRegion()).toBe('eu2');
+        });
+    });
+
+    test('returns region from DOM when platform regionPreset is set', () => {
+        withServerType('platform', 'ca1', () => {
+            expect(getSelectedRegion()).toBe('ca1');
+        });
+    });
+
+    // --- W-22945464: sessionStorage fallback when DOM regionPreset is missing ---
+    test('returns sessionStorage region when DOM has eu but no regionPreset (bug repro)', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'eu');
+        withSessionStorage('eu', 'eu1', () => {
+            expect(getSelectedRegion()).toBe('eu1');
+        });
+        cleanupServerElements();
+    });
+
+    test('returns sessionStorage region when DOM has platform but no regionPreset for ca1', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        withSessionStorage('platform', 'ca1', () => {
+            expect(getSelectedRegion()).toBe('ca1');
+        });
+        cleanupServerElements();
+    });
+
+    test('returns sessionStorage region when DOM has platform but no regionPreset for jp1', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        withSessionStorage('platform', 'jp1', () => {
+            expect(getSelectedRegion()).toBe('jp1');
+        });
+        cleanupServerElements();
+    });
+
+    test('prefers DOM region over sessionStorage when both are set', () => {
+        withServerType('eu', 'eu2', () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedRegion()).toBe('eu2');
+            });
+        });
+    });
+
+    test('returns null when neither DOM nor sessionStorage has a region', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'eu');
+        withSessionStorage(null, null, () => {
+            expect(getSelectedRegion()).toBeNull();
+        });
+        cleanupServerElements();
+    });
+
+    test('returns custom region from DOM when regionPreset is custom', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        const regionPreset = makeSelect('regionPreset', 'custom');
+        const customInput = document.createElement('input');
+        customInput.id = 'regionCustomInput';
+        customInput.value = 'custom-region-1';
+        document.body.appendChild(customInput);
+        expect(getSelectedRegion()).toBe('custom-region-1');
+        customInput.remove();
+        cleanupServerElements();
+    });
+
+    test('returns null when regionPreset is custom but customInput is empty', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        const regionPreset = makeSelect('regionPreset', 'custom');
+        const customInput = document.createElement('input');
+        customInput.id = 'regionCustomInput';
+        customInput.value = '';
+        document.body.appendChild(customInput);
+        expect(getSelectedRegion()).toBeNull();
+        customInput.remove();
+        cleanupServerElements();
+    });
+
+    test('returns null when serverSelect is missing', () => {
+        cleanupServerElements();
+        expect(getSelectedRegion()).toBeNull();
+    });
+});
+
+// ===========================================================================
 // getSelectedBaseUrl
 // ===========================================================================
 describe('getSelectedBaseUrl', () => {

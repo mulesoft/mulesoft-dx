@@ -83,6 +83,23 @@ function withRegion(region, fn) {
     }
 }
 
+function withSessionStorage(storedType, storedRegion, fn) {
+    var prevType = sessionStorage.getItem('anypoint_server_type');
+    var prevRegion = sessionStorage.getItem('anypoint_region');
+    if (storedType === null) sessionStorage.removeItem('anypoint_server_type');
+    else sessionStorage.setItem('anypoint_server_type', storedType);
+    if (storedRegion === null) sessionStorage.removeItem('anypoint_region');
+    else sessionStorage.setItem('anypoint_region', storedRegion);
+    try {
+        fn();
+    } finally {
+        if (prevType === null) sessionStorage.removeItem('anypoint_server_type');
+        else sessionStorage.setItem('anypoint_server_type', prevType);
+        if (prevRegion === null) sessionStorage.removeItem('anypoint_region');
+        else sessionStorage.setItem('anypoint_region', prevRegion);
+    }
+}
+
 // ===========================================================================
 // getSelectedServerType
 // ===========================================================================
@@ -106,6 +123,37 @@ describe('getSelectedServerType', () => {
     test('returns platform when select is set to platform', () => {
         withServerType('platform', 'ca1', () => {
             expect(getSelectedServerType()).toBe('platform');
+        });
+    });
+
+    // --- W-22945464: sessionStorage fallback when DOM is at default ---
+    test('returns sessionStorage value when DOM is at default us and storage has eu (bug repro)', () => {
+        withServerType('us', null, () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedServerType()).toBe('eu');
+            });
+        });
+    });
+
+    test('returns sessionStorage value when DOM element is missing and storage has platform', () => {
+        cleanupServerElements();
+        withSessionStorage('platform', 'ca1', () => {
+            expect(getSelectedServerType()).toBe('platform');
+        });
+    });
+
+    test('prefers DOM value when DOM is non-default, even if storage says otherwise', () => {
+        withServerType('platform', 'ca1', () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedServerType()).toBe('platform');
+            });
+        });
+    });
+
+    test('returns us when both DOM and sessionStorage are empty', () => {
+        cleanupServerElements();
+        withSessionStorage(null, null, () => {
+            expect(getSelectedServerType()).toBe('us');
         });
     });
 });

@@ -9,3 +9,7 @@ node_modules/
 
 .idea
 .idea/**
+
+# Local working documents
+playground-*.html
+playground-*.md

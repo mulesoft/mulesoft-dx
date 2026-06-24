@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground — UX Review Presentation</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  line-height: 2;
+  padding: 3rem 2rem;
+  max-width: 780px;
+  margin: 0 auto;
+  font-size: 1.05rem;
+}
+h1 {
+  font-size: 1.6rem;
+  color: #e6edf3;
+  margin-bottom: 0.25rem;
+}
+.date { color: #8b949e; font-size: 0.85rem; margin-bottom: 3rem; }
+p { margin-bottom: 1.25rem; }
+strong { color: #e6edf3; }
+em { color: #58a6ff; font-style: normal; }
+hr {
+  border: none;
+  border-top: 1px solid #30363d;
+  margin: 2.5rem 0;
+}
+</style>
+</head>
+<body>
+
+<h1>Playground — UX Review</h1>
+<p class="date">Thursday June 26, 2026</p>
+
+<hr>
+
+<p>I found an API that looks right. I want to <strong>consume</strong> it. But first I need to <strong>validate</strong> it does what I need. And to validate it — I identify an operation, I create a request, I send it, I examine the response. That's all. Everything you're about to see serves that.</p>
+
+<p>But today, to do this, I leave V2. I open Postman, I copy-paste URLs, tokens, IDs. I build my mental model somewhere else. I <strong>lose context</strong>. That's the problem we're solving.</p>
+
+<p>So — I'm a developer. I arrive at V2, I search for an API, click, I find it, click, I'm inside the <strong>API detail</strong>. I go straight to the <strong>Playground tab</strong>. I don't know much yet. And — you remember our current console? Complex, crowded, full of navigation patterns and formats and layers. You'll notice this is simple. I think it's simple because we achieved a simple experience. No complications.</p>
+
+<p>Everything is ready. Something I understand immediately. A <strong>list of operations</strong> — exactly what I need to identify which one I want to try. And like a <strong>comic strip</strong>, I find the right order on a single screen, <strong>left to right</strong>: I <strong>identify</strong> the operation, I <strong>create</strong> my request, I <strong>send</strong> it, I <strong>examine</strong> the response. Four steps, one screen, no navigation.</p>
+
+<p>I zoom in. I look at the operations. If there are many, I have <strong>search and filters</strong>. If I don't want to read URLs I can search by name. If I know I want to start with a GET or a POST, I can filter and shrink the list. I clear everything and stay with the first GET.</p>
+
+<p>I want to send a request. And wait — <strong>I didn't configure auth</strong>. It's already done. The platform knows who I am, my session is active, and the playground uses it. In Postman I'd be pasting tokens, setting up environments, fighting with OAuth flows. Here? Nothing. And if I need a different method — bearer, API key, OAuth2 — I set it once and it <strong>persists across all operations</strong>. I don't re-authenticate every time I switch.</p>
+
+<p><strong>I don't fill in anything. I just hit Send.</strong> Here's my response. I examine it. I know what this operation returns. It gives me what I need — I can validate this API does what I expected. Good. But I don't know this API well. What operation should I try next?</p>
+
+<p>Here, below the response: <strong>Next Steps</strong>. This is unique. Nobody offers this. Why? Because <strong>V2 has context</strong> — context that Postman doesn't have. We know the API, the operations, the relationships between them. And we take advantage of it.</p>
+
+<p>I click a Next Step. I want to <strong>validate the next operation</strong> — and the fields appear <strong>pre-filled</strong>. Some values come from my previous response. Some come from my session. And some that V2 knows exist somewhere but I haven't tried yet — <strong>Discover</strong>. So I have three ways to collect data: <strong>session values</strong>, <strong>inferred from responses</strong>, and <strong>discoverable</strong> from related endpoints. I identify, I create, I send, I examine — again and again, fast, almost nothing to type. Each operation validates something new about this API. It all just works.</p>
+
+<p>Now I want to review my <strong>history</strong>. But wait — I'm focusing here. I want more space to examine responses. I <strong>collapse the V2 navbar</strong> — more space. I <strong>collapse the operation list</strong> — even more space. And the panels? I <strong>drag the dividers</strong>. I want more space for the response because I'm reading a large payload — I drag. I want more space for the request because I'm editing a complex body — I drag. The interface adapts to me. I can concentrate. <strong>No scrolling, nothing hidden</strong>, everything important stays visible. Easy. Very easy.</p>
+
+<p>But — I don't want to feel like a prisoner of this. I've validated the API, I want to <strong>consume</strong> it in my project. I press <strong>Copy as Code</strong> — one click — and I leave with my requests ready to paste into my codebase or into any other tool.</p>
+
+<p>That's the workflow. Identify, create, send, examine. Everything else supports that.</p>
+
+</body>
+</html>

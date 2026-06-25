@@ -4,6 +4,19 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-06-23
+
+### Added
+
+- **`generate-connectivity-knowledge`** — new 14-step skill that produces connectivity knowledge for a SaaS API when no dedicated Mule connector exists. Researches the API from user-defined use cases and documentation, generates an OpenAPI 3.0 spec, validates every operation against the live service with auto-fix, and writes a self-contained `connectivity-schema/<apiName>/` folder (`api-reference.md` + `<apiName>.yaml` + `config.properties`). Output feeds the HTTP-fallback branch of `build-mule-integration` so HTTP-Connector flows inherit the same auth, pagination, and entity awareness a dedicated connector would carry.
+
+## [1.3.0] - 2026-06-20
+
+### Added
+
+- **`mulesoft-agent-broker-builder`** — new skill that drives an end-to-end Agent Network V2 (GA, A2A v1.0) build experience: 6-phase guided requirements → asset registration → Agent Script authoring → instruction refinement → topology review, plus optional publish and deploy. CLI-first via the Anypoint CLI Agent Fabric plugin (`agent-network project create/build/publish/deploy/setup-gateways`) with the MuleSoft MCP server as fallback and a graceful no-tool degradation path. Step 0 invokes `agent-network project create` to produce a starter project with the correct `groupId`/`organizationId`, then the skill edits files in place. Bundles a canonical IT Help Investigation example (sourced from the working `stgx-it-investigation-GA-ver` reference) and a gotchas reference covering A2A v1.0 vs v0.3 (`a2a_v03`) backward-compatible card branches, GA echo update events (`a2a:status_update_event` / `a2a:artifact_update_event` with `TASK_STATE_*` enum), compile-error rules for action invocation (A2A bare reference vs `with message =` in executors; MCP `inputs:`/`with`/slot-fill rules), connection authentication (required on `kind: llm`), policies as `{inbound, outbound}` object, subagent-vs-orchestrator decision, CR-18 least-privilege binding, RULE-ASSET-MODE (inline vs Exchange registration), and the full CLI / MCP capability matrix with env-var auth.
+- **`mulesoft-agent-broker-v1-to-v2-converter`** — new skill that converts an Agent Network V1 project (`schemaVersion: 1.0.0`) into a V2 project (`agentNetwork: 2.0.0`). Each V1 broker becomes a V2 broker backed by an Agent Script `.agent` file with one orchestrator node — preserves the user's prompt verbatim, does not split into routers/executors/generators. V1 agents land in the `metadata.interfaces.a2a_v03` (back-compat) branch; the broker emits A2A v1.0. Bundles a canonical V1 input (`customer-onboarding-v1`) and matching V2 output, plus a `v2-template.agent` skeleton. For richer multi-node graphs, the skill points users at `mulesoft-agent-broker-builder` as the natural next step.
+
 ## [1.1.1] - 2026-06-09
 
 ### Changed

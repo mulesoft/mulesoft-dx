@@ -135,7 +135,7 @@ def discover_skills(repo_root: Path) -> Tuple[Dict[str, List[Dict]], Dict[str, L
             continue
 
         skill_data['skill_type'] = _resolve_skill_type(skill_dir)
-        skill_data['skill_rel_path'] = str(skill_dir.relative_to(skills_dir))
+        skill_data['skill_rel_path'] = skill_dir.relative_to(skills_dir).as_posix()
         api_refs = _extract_api_refs(skill_data)
         mcp_refs = _extract_mcp_refs(skill_data)
         skill_data['api_refs'] = api_refs

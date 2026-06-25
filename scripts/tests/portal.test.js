@@ -83,6 +83,23 @@ function withRegion(region, fn) {
     }
 }
 
+function withSessionStorage(storedType, storedRegion, fn) {
+    var prevType = sessionStorage.getItem('anypoint_server_type');
+    var prevRegion = sessionStorage.getItem('anypoint_region');
+    if (storedType === null) sessionStorage.removeItem('anypoint_server_type');
+    else sessionStorage.setItem('anypoint_server_type', storedType);
+    if (storedRegion === null) sessionStorage.removeItem('anypoint_region');
+    else sessionStorage.setItem('anypoint_region', storedRegion);
+    try {
+        fn();
+    } finally {
+        if (prevType === null) sessionStorage.removeItem('anypoint_server_type');
+        else sessionStorage.setItem('anypoint_server_type', prevType);
+        if (prevRegion === null) sessionStorage.removeItem('anypoint_region');
+        else sessionStorage.setItem('anypoint_region', prevRegion);
+    }
+}
+
 // ===========================================================================
 // getSelectedServerType
 // ===========================================================================
@@ -107,6 +124,144 @@ describe('getSelectedServerType', () => {
         withServerType('platform', 'ca1', () => {
             expect(getSelectedServerType()).toBe('platform');
         });
+    });
+
+    // --- W-22945464: sessionStorage fallback when DOM is at default ---
+    test('returns sessionStorage value when DOM is at default us and storage has eu (bug repro)', () => {
+        withServerType('us', null, () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedServerType()).toBe('eu');
+            });
+        });
+    });
+
+    test('returns sessionStorage value when DOM element is missing and storage has platform', () => {
+        cleanupServerElements();
+        withSessionStorage('platform', 'ca1', () => {
+            expect(getSelectedServerType()).toBe('platform');
+        });
+    });
+
+    test('prefers DOM value when DOM is non-default, even if storage says otherwise', () => {
+        withServerType('platform', 'ca1', () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedServerType()).toBe('platform');
+            });
+        });
+    });
+
+    test('returns us when both DOM and sessionStorage are empty', () => {
+        cleanupServerElements();
+        withSessionStorage(null, null, () => {
+            expect(getSelectedServerType()).toBe('us');
+        });
+    });
+});
+
+// ===========================================================================
+// getSelectedRegion
+// ===========================================================================
+describe('getSelectedRegion', () => {
+    test('returns null when server type is us', () => {
+        withServerType('us', null, () => {
+            expect(getSelectedRegion()).toBeNull();
+        });
+    });
+
+    test('returns null when server type is us even with sessionStorage region', () => {
+        withServerType('us', null, () => {
+            withSessionStorage('us', 'eu1', () => {
+                expect(getSelectedRegion()).toBeNull();
+            });
+        });
+    });
+
+    test('returns region from DOM when regionPreset is set', () => {
+        withServerType('eu', 'eu2', () => {
+            expect(getSelectedRegion()).toBe('eu2');
+        });
+    });
+
+    test('returns region from DOM when platform regionPreset is set', () => {
+        withServerType('platform', 'ca1', () => {
+            expect(getSelectedRegion()).toBe('ca1');
+        });
+    });
+
+    // --- W-22945464: sessionStorage fallback when DOM regionPreset is missing ---
+    test('returns sessionStorage region when DOM has eu but no regionPreset (bug repro)', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'eu');
+        withSessionStorage('eu', 'eu1', () => {
+            expect(getSelectedRegion()).toBe('eu1');
+        });
+        cleanupServerElements();
+    });
+
+    test('returns sessionStorage region when DOM has platform but no regionPreset for ca1', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        withSessionStorage('platform', 'ca1', () => {
+            expect(getSelectedRegion()).toBe('ca1');
+        });
+        cleanupServerElements();
+    });
+
+    test('returns sessionStorage region when DOM has platform but no regionPreset for jp1', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        withSessionStorage('platform', 'jp1', () => {
+            expect(getSelectedRegion()).toBe('jp1');
+        });
+        cleanupServerElements();
+    });
+
+    test('prefers DOM region over sessionStorage when both are set', () => {
+        withServerType('eu', 'eu2', () => {
+            withSessionStorage('eu', 'eu1', () => {
+                expect(getSelectedRegion()).toBe('eu2');
+            });
+        });
+    });
+
+    test('returns null when neither DOM nor sessionStorage has a region', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'eu');
+        withSessionStorage(null, null, () => {
+            expect(getSelectedRegion()).toBeNull();
+        });
+        cleanupServerElements();
+    });
+
+    test('returns custom region from DOM when regionPreset is custom', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        const regionPreset = makeSelect('regionPreset', 'custom');
+        const customInput = document.createElement('input');
+        customInput.id = 'regionCustomInput';
+        customInput.value = 'custom-region-1';
+        document.body.appendChild(customInput);
+        expect(getSelectedRegion()).toBe('custom-region-1');
+        customInput.remove();
+        cleanupServerElements();
+    });
+
+    test('returns null when regionPreset is custom but customInput is empty', () => {
+        cleanupServerElements();
+        makeSelect('serverSelect', 'platform');
+        const regionPreset = makeSelect('regionPreset', 'custom');
+        const customInput = document.createElement('input');
+        customInput.id = 'regionCustomInput';
+        customInput.value = '';
+        document.body.appendChild(customInput);
+        expect(getSelectedRegion()).toBeNull();
+        customInput.remove();
+        cleanupServerElements();
+    });
+
+    test('returns null when serverSelect is missing', () => {
+        cleanupServerElements();
+        expect(getSelectedRegion()).toBeNull();
     });
 });
 
@@ -410,6 +565,12 @@ describe('isServerValidForRegion', () => {
         expect(isServerValidForRegion(platformRegional, 'jp1')).toBe(true);
     });
 
+    test('in1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'in1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'in1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'in1')).toBe(true);
+    });
+
     test('legacy hardcoded eu1 server is valid for eu1', () => {
         expect(isServerValidForRegion(anypointLegacyEu, 'eu1')).toBe(true);
         expect(isServerValidForRegion(anypointLegacyEu, 'ca1')).toBe(false);
@@ -451,6 +612,10 @@ describe('filterServersForRegion', () => {
         expect(filterServersForRegion(all, 'jp1')).toEqual([platformRegional]);
     });
 
+    test('in1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'in1')).toEqual([platformRegional]);
+    });
+
     test('null region (us) returns all', () => {
         expect(filterServersForRegion(all, null)).toEqual(all);
     });
@@ -470,8 +635,8 @@ describe('getValidRegionsForServerType', () => {
         expect(getValidRegionsForServerType('eu')).toEqual(['eu1']);
     });
 
-    test('platform type → platform regions including jp1', () => {
-        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1']);
+    test('platform type → platform regions including jp1 and in1', () => {
+        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1', 'in1']);
     });
 
     test('us type → empty (no region needed)', () => {

@@ -249,7 +249,7 @@ class TestSkillTitle:
         assert _skill_title('setup-api-with-oauth') == 'Setup API With Oauth'
 
     def test_no_acronyms(self):
-        assert _skill_title('run-agent-scan-and-view-results') == 'Run Agent Scan And View Results'
+        assert _skill_title('run-service-scan-and-view-results') == 'Run Service Scan And View Results'
 
     def test_empty_string(self):
         assert _skill_title('') == ''

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Agent Scanner Configuration Service API
-  description: REST API for Agent Scanner Configuration Service
+  title: Scanners Configuration Service API
+  description: REST API for Scanners Configuration Service
   version: 0.0.1
 servers:
 - url: https://anypoint.mulesoft.com/agent-scanner
@@ -125,70 +125,6 @@ paths:
             '*/*':
               schema:
                 type: object
-  /api/v1/organizations/{organizationId}/connectivity/connections/{connectionId}:
-    put:
-      tags:
-      - Connectivity
-      summary: Updates a connection
-      description: Updates a connection
-      operationId: updateConnection
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
-      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
-      requestBody:
-        description: Connection object with updated field values.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ConnectionDTO"
-        required: true
-      responses:
-        "202":
-          description: Connection updated
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/Connection"
-              example:
-                id: 550e8400-e29b-41d4-a716-446655440000
-                name: My AWS Connection
-                orgId: 123e4567-e89b-12d3-a456-426614174000
-                environment: production
-                authScheme: OAuth2
-                status: SUCCESSFUL
-                statusMessage: Connection established successfully
-        "400":
-          description: Bad request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/Connection"
-        "404":
-          description: Organization or TargetSystem not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/Connection"
-        "500":
-          description: Internal server error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/Connection"
-    delete:
-      tags:
-      - Connectivity
-      summary: Deletes a connection
-      description: Deletes a connection
-      operationId: deleteConnection
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
-      - $ref: '#/components/parameters/XOrigin_connectionId_Path'
-      responses:
-        "200":
-          description: Connection deleted
-        "500":
-          description: Internal server error
   /api/v1/organizations/{organizationId}/scanner-configurations:
     get:
       tags:
@@ -329,6 +265,51 @@ paths:
           description: Scan workflows not enabled
         "500":
           description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/runs/{scanRunId}/publish:
+    post:
+      tags:
+      - Scanner Configuration
+      summary: Publish services after manual review
+      description: Updates ignored status for staged services and signals the workflow to proceed with publication.
+      operationId: publishAssetsAfterReview
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scanRunId_Path'
+      requestBody:
+        description: List of staged services and ignored flags captured during manual review.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      ignored:
+                        type: boolean
+                    required:
+                    - id
+                    - ignored
+              required:
+              - content
+      responses:
+        "200":
+          description: Successfully updated services and triggered publication
+        "400":
+          description: Bad request - invalid request body or parameters
+        "404":
+          description: Scan run not found
+        "409":
+          description: Conflict - scan run is outdated or already in a final state
+        "500":
+          description: Internal server error
   /api/v1/organizations/{organizationId}/connectivity/{targetSystemType}/test:
     post:
       tags:
@@ -353,82 +334,12 @@ paths:
           description: Connection successful
         "401":
           description: Unauthorized - Invalid credentials
-        "503":
-          description: Service unavailable - Connection failed
+        "424":
+          description: Target dependency failure (including converted target 5xx errors)
         "400":
           description: Bad request
         "500":
           description: Internal server error
-  /api/v1/organizations/{organizationId}/connectivity/connections:
-    get:
-      tags:
-      - Connectivity
-      summary: Get Connections of a specific organization
-      description: Returns a list of connections for a specific organization
-      operationId: getConnections
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
-      responses:
-        "200":
-          description: Successfully retrieved Connections
-          content:
-            application/json:
-              schema:
-                type: string
-              example: '[{"id":"550e8400-e29b-41d4-a716-446655440000","name":"My Connection","status":"SUCCESSFUL"}]'
-        "500":
-          description: Internal server error
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Connection"
-    post:
-      tags:
-      - Connectivity
-      summary: Adds a connection
-      description: Adds a connection
-      operationId: createConnection
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
-      requestBody:
-        description: Connection object to create.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ConnectionDTO"
-        required: true
-      responses:
-        "201":
-          description: Connection created
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: uuid
-              example: 550e8400-e29b-41d4-a716-446655440000
-        "400":
-          description: Bad request
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: uuid
-        "404":
-          description: Organization or TargetSystem not found
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: uuid
-        "500":
-          description: Internal server error
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: uuid
   /api/v1/organizations/{organizationId}/scanner/{scannerId}/runs:
     get:
       tags:
@@ -849,7 +760,7 @@ components:
       - $ref: "#/components/schemas/FormField"
     ScannerConfiguration:
       type: object
-      description: Represents a scanner configuration for agent scanning operations
+      description: Represents a scanner configuration for scanning operations
       properties:
         id:
           type: string

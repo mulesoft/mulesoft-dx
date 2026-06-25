@@ -44,6 +44,9 @@ python3 scripts/build/validate_jtbd.py <path-to-job-file> .
 
 # Validate all mcps/<name>/server.json files against the MCP registry schema
 python3 scripts/build/validate_mcp_server.py
+
+# Validate a deployed portal's agentic endpoints (C1-C5: core URLs, registry, hrefs, OAS, SKILL.md)
+python3 scripts/build/validate_portal.py --url <URL> [--header "X-MS-Developer: true"]
 ```
 
 ### Portal Generator Tests

@@ -4,6 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-06-30
+
+### Added
+
+- **`manage-api-version`** — new skill for reading, checking, and updating API spec dependency versions in a Mule project. Reads `<{artifactId}.version>` properties from `pom.xml`, queries Anypoint Exchange for available versions via `anypoint-cli-v4 exchange asset describe`, and applies version changes followed by an automatic `mvn clean package -DskipTests` rescaffold. Supports four paths: display all versions, display specific versions, check all APIs for newer versions, and a full interactive change flow with semver-sorted version selection, pom.xml backup/restore on failure, and batched multi-API updates in a single Maven pass.
+
 ## [1.5.0] - 2026-06-25
 
 ### Changed

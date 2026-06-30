@@ -30,6 +30,26 @@ This skill reads and updates `<{artifactId}.version>` properties in `pom.xml`. A
 
 ---
 
+## Prerequisites
+
+Before starting, verify these tools are available:
+
+```bash
+anypoint-cli-v4 --version   # must be v4; needs exchange asset describe
+mvn --version               # Maven 3.6+ for rescaffold (CHANGE path only)
+```
+
+If `anypoint-cli-v4` is missing:
+```bash
+npm install -g @mulesoft/anypoint-cli-v4
+anypoint-cli-v4 conf username <username>
+anypoint-cli-v4 conf password <password>
+```
+
+The CHECK and CHANGE paths query Exchange. If the CLI is not authenticated or network is unavailable, display-only operations (DISPLAY ALL, DISPLAY SPECIFIC) still work — they read from `pom.xml` only.
+
+---
+
 ## Execution Paths
 
 | User intent | Path |
@@ -82,9 +102,9 @@ If intent is ambiguous, ask:
 ## Step 3 (DISPLAY ALL): Show All API Versions
 
 1. Read `pom.xml`. Find all properties inside `<properties>` whose name ends in `.version` and corresponds to an API spec dependency. To identify API spec dependencies, check the matching `<dependency>` block:
-   - **Classifier check (preferred):** API spec deps use a classifier like `raml`, `oas`, or `zip`. Connectors use `mule-plugin`. If a classifier is present, use it to decide.
+   - **Classifier check (preferred):** API spec deps use one of these classifiers: `raml`, `oas`, `graphql`, `protobuf`, `fat-protobuf`, `evented-api`. Connectors use `mule-plugin`. If a classifier is present and matches this list, it is an API spec.
    - **artifactId fallback:** If no classifier is set, check whether the `artifactId` contains the word `api` — this is the common naming convention for API spec artifacts.
-   Skip any dependency that matches neither signal.
+   Skip any dependency whose classifier is `mule-plugin` or that matches neither signal.
 2. Print all matching ones:
 
 ```
@@ -124,7 +144,7 @@ End the skill here for the DISPLAY SPECIFIC path.
    ```bash
    anypoint-cli-v4 exchange asset describe <groupId>/<artifactId>/<currentVersion> --output json
    ```
-   Parse `otherVersions` to determine if any version is newer than the current one.
+   Parse the `otherVersions` array from the JSON response — each element has a `version` string field. Extract all version strings, sort them using semantic versioning (highest first), and compare against the current version to determine if any are newer.
 3. Report results:
 
    **If newer versions exist for any API:**
@@ -164,7 +184,7 @@ End the skill here if the user does not want to make any changes.
    ```bash
    anypoint-cli-v4 exchange asset describe <groupId>/<artifactId>/<currentVersion> --output json
    ```
-   Parse `otherVersions` to determine if a newer version exists.
+   Parse the `otherVersions` array (each element has a `version` string), sort versions by semantic versioning (highest first), and compare against the current version to determine if a newer one exists.
 3. Go through each named API one at a time in the order the user asked:
 
    **If a newer version exists:**
@@ -209,7 +229,11 @@ For each target API, read its `groupId` and `artifactId` from the `<dependency>`
 anypoint-cli-v4 exchange asset describe <groupId>/<artifactId>/<currentVersion> --output json
 ```
 
-Parse the `otherVersions` array from the JSON response to get all available versions. Include the current version in the full list.
+Parse the `otherVersions` array from the JSON response — each element has a `version` string field. Extract all version strings, add the current version if it is not already present, then sort the full list by semantic versioning (highest first) using:
+
+```bash
+jq -r '[.otherVersions[].version] | sort_by(split(".") | map(tonumber)) | reverse | .[]'
+```
 
 If the command fails (non-zero exit, auth error, network issue):
 - If no pom.xml changes have been made yet, stop and tell the user:
@@ -329,6 +353,7 @@ cd <projectDir> && mvn clean package -DskipTests
 - **Rescaffold is mandatory after every CHANGE.** Never declare the version updated without running `mvn clean package -DskipTests` and confirming `BUILD SUCCESS`. A version change without rescaffolding leaves the project inconsistent.
 - **One `mvn` invocation per response.** Do not bundle it with file edits or other commands.
 - **No Anypoint CLI needed** for pom.xml edits — use bash + Read/Edit tools only.
+- **`jq` is required** for parsing Exchange JSON responses. If `jq` is not available, fall back to Python: `python3 -c "import json,sys; d=json.load(sys.stdin); [print(v['version']) for v in d.get('otherVersions',[])]"`.
 - **Multi-API version selection is one at a time.** Show one API's version list, STOP, get the selection, then proceed to the next. Never show all lists simultaneously.
 - **Multi-turn interactive.** At every **STOP** marker: print only the question as plain text, end your response, and wait. Do not run any tools until all required values are in hand.
 - **Skip-if-provided.** Before the first STOP, extract any values the user already gave (project path, operation, target API, new version). At each STOP, skip it if the question is already answered.
@@ -340,6 +365,8 @@ cd <projectDir> && mvn clean package -DskipTests
 - **No `.version` properties found:** The APIs may not be added to the project yet. Use Anypoint Studio's Project Properties → API Specs tab to add the API dependency first, which will create the property in `pom.xml`.
 - **`mvn` fails after version change:** pom.xml is automatically restored. Check the Maven error for the root cause — the selected version may have an incompatible dependency or the Exchange asset may not be fully published.
 - **Multiple properties for the same API:** If the same artifactId appears more than once under `<properties>`, update all occurrences to keep the project consistent.
+- **`anypoint-cli-v4 exchange asset describe` returns auth error:** Run `anypoint-cli-v4 conf` to verify credentials, or re-authenticate with `anypoint-cli-v4 conf username <user>` / `anypoint-cli-v4 conf password <pass>`. If `ANYPOINT_BEARER` is set in the environment alongside `ANYPOINT_CLIENT_ID`/`ANYPOINT_CLIENT_SECRET`, unset the client-credential vars — the CLI rejects calls when multiple auth methods are simultaneously active.
+- **`otherVersions` is empty in the Exchange response:** The asset may only have one published version. The current version is still shown as the only available option.
 
 ---
 

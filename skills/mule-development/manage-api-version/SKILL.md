@@ -54,11 +54,11 @@ The CHECK and CHANGE paths query Exchange. If the CLI is not authenticated or ne
 
 | User intent | Path |
 |---|---|
-| display/check current version — all APIs or no specific one named | → **DISPLAY ALL** (Steps 1 → 2 → 3-Display All) |
-| display/check current version — one or more specific APIs named | → **DISPLAY SPECIFIC** (Steps 1 → 2 → 3-Display Specific) |
-| any new/updated versions available — no specific API named | → **CHECK ALL** (Steps 1 → 2 → 3-Check All) |
-| any new/updated versions available — one or more specific APIs named | → **CHECK SPECIFIC** (Steps 1 → 2 → 3-Check Specific) |
-| set, change, adjust, update, bump, switch version | → **CHANGE** (Steps 1 → 2 → 3-Change → 4 → 5) |
+| display/check current version — all APIs or no specific one named | → **DISPLAY ALL** (Steps 1 → 2 → 3) |
+| display/check current version — one or more specific APIs named | → **DISPLAY SPECIFIC** (Steps 1 → 2 → 4) |
+| any new/updated versions available — no specific API named | → **CHECK ALL** (Steps 1 → 2 → 5) |
+| any new/updated versions available — one or more specific APIs named | → **CHECK SPECIFIC** (Steps 1 → 2 → 6) |
+| set, change, adjust, update, bump, switch version | → **CHANGE** (Steps 1 → 2 → 7 → 8 → 9) |
 
 ---
 
@@ -99,7 +99,7 @@ If intent is ambiguous, ask:
 
 ---
 
-## Step 3 (DISPLAY ALL): Show All API Versions
+## Step 3: Show All API Versions (Display All)
 
 1. Read `pom.xml`. Find all properties inside `<properties>` whose name ends in `.version` and corresponds to an API spec dependency. To identify API spec dependencies, check the matching `<dependency>` block:
    - **Classifier check (preferred):** API spec deps use one of these classifiers: `raml`, `oas`, `graphql`, `protobuf`, `fat-protobuf`, `evented-api`. Connectors use `mule-plugin`. If a classifier is present and matches this list, it is an API spec.
@@ -120,7 +120,7 @@ End the skill here for the DISPLAY ALL path.
 
 ---
 
-## Step 3 (DISPLAY SPECIFIC): Show Versions for Named APIs
+## Step 4: Show Versions for Named APIs (Display Specific)
 
 1. Extract all API names the user specified. If none were named, fall back to DISPLAY ALL.
 2. Read `pom.xml`. For each named API, find its `<{artifactId}.version>` property.
@@ -137,7 +137,7 @@ End the skill here for the DISPLAY SPECIFIC path.
 
 ---
 
-## Step 3 (CHECK ALL): Check All APIs for Newer Versions
+## Step 5: Check All APIs for Newer Versions (Check All)
 
 1. Read `pom.xml` and identify all API spec dependencies (same classifier/artifactId logic as DISPLAY ALL).
 2. For each API, run:
@@ -159,7 +159,7 @@ End the skill here for the DISPLAY SPECIFIC path.
 
    Would you like to update any of these?
    ```
-   **STOP** — if the user wants to update, transition to the CHANGE path starting at Step 3 (CHANGE) for the APIs they name.
+   **STOP** — if the user wants to update, transition to the CHANGE path starting at Step 7 for the APIs they name.
 
    **If no newer versions exist for any API:**
    ```
@@ -171,13 +171,13 @@ End the skill here for the DISPLAY SPECIFIC path.
 
    Would you like to change any version anyway?
    ```
-   **STOP** — if yes, transition to CHANGE path at Step 3 (CHANGE).
+   **STOP** — if yes, transition to CHANGE path at Step 7.
 
 End the skill here if the user does not want to make any changes.
 
 ---
 
-## Step 3 (CHECK SPECIFIC): Check Named APIs for Newer Versions
+## Step 6: Check Named APIs for Newer Versions (Check Specific)
 
 1. Extract the API name(s) the user specified.
 2. For each named API, run:
@@ -194,7 +194,7 @@ End the skill here if the user does not want to make any changes.
 
    Would you like to update it?
    ```
-   **STOP** — if yes, proceed with the CHANGE flow for this API (Step 3c onwards). If no, move to the next named API.
+   **STOP** — if yes, proceed with the CHANGE flow for this API (Step 7c onwards). If no, move to the next named API.
 
    **If already on the latest version:**
    ```
@@ -202,15 +202,15 @@ End the skill here if the user does not want to make any changes.
 
    Would you like to change it to a different version anyway?
    ```
-   **STOP** — if yes, proceed with the CHANGE flow for this API (Step 3c onwards). If no, move to the next named API.
+   **STOP** — if yes, proceed with the CHANGE flow for this API (Step 7c onwards). If no, move to the next named API.
 
-4. After all named APIs have been addressed, if any were queued for change, proceed to Step 4.
+4. After all named APIs have been addressed, if any were queued for change, proceed to Step 8.
 
 ---
 
-## Step 3 (CHANGE): Identify Target APIs and Fetch Available Versions
+## Step 7: Identify Target APIs and Fetch Available Versions (Change)
 
-### 3a — Identify which APIs to change
+### 7a — Identify which APIs to change
 
 If the user named the API(s) to update, use those. Otherwise:
 
@@ -219,7 +219,7 @@ If the user named the API(s) to update, use those. Otherwise:
 
 **STOP** (only if target API(s) not pre-supplied).
 
-### 3b — Fetch available versions from Exchange
+### 7b — Fetch available versions from Exchange
 
 Before querying, back up the current pom.xml content in memory so it can be restored if anything fails later.
 
@@ -240,7 +240,7 @@ If the command fails (non-zero exit, auth error, network issue):
   > Failed to fetch versions from Exchange. Check that `anypoint-cli-v4` is authenticated and you have network access, then try again.
 - If pom.xml was already partially modified in a prior step, restore it to the backed-up state before stopping with the same message.
 
-### 3c — Present available versions and handle selection
+### 7c — Present available versions and handle selection
 
 For each target API, display the available versions. If a newer version than the current one exists, surface it first:
 
@@ -274,7 +274,7 @@ When changing multiple APIs, handle them one at a time: show the version list fo
 
 **STOP** — wait for the user to select a version for the current API before presenting the next.
 
-### 3d — Handle same-version selection
+### 7d — Handle same-version selection
 
 If the user selects the version already applied for a given API, respond:
 
@@ -284,9 +284,9 @@ Remove that API from the change set. If all APIs in the request were no-ops, end
 
 ---
 
-## Step 4 (CHANGE): Apply the New Version
+## Step 8: Apply the New Version (Change)
 
-### 4a — Update `pom.xml`
+### 8a — Update `pom.xml`
 
 For each API in the change set, determine which case applies:
 
@@ -310,7 +310,7 @@ This means the project is not yet using the placeholder pattern. Do both:
 
 Repeat for each API in the change set, applying all edits before writing the file.
 
-### 4b — Confirm
+### 8b — Confirm
 
 Print a summary of all changes made:
 
@@ -322,7 +322,7 @@ Updated in pom.xml:
 
 ---
 
-## Step 5 (CHANGE): Rescaffold the Project
+## Step 9: Rescaffold the Project (Change)
 
 After all version properties are updated, trigger APIkit to regenerate flows from the new API spec versions — the same operation Anypoint Studio runs when you save changes in the Project Properties → API Specs tab. If multiple APIs were changed in the same operation, flows for all of them are regenerated in this single pass.
 

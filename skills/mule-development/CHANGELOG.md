@@ -4,6 +4,24 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-26
+
+### Changed
+
+- **`build-mule-integration`** — **BREAKING: the bundled helper scripts are now Node (`*.mjs`, ESM, zero npm deps) instead of bash.** All eleven scripts move from `scripts/*.sh` to `scripts/*.mjs` and are invoked as `node scripts/<name>.mjs ...` rather than `bash scripts/<name>.sh ...` — any automation or muscle-memory that called the `.sh` files directly must update. The port is OS-agnostic (no bash/`jq`/coreutils dependency) and behavior-preserving: each Node script produces byte-identical output to the bash original it replaces, verified by a `.sh`↔`.mjs` parity suite in the agent-evaluation lab. Shared logic extracted into a new `lib/*.mjs` (Exchange ranking, template ranking, POM editing, nearest-match, platform/anypoint helpers, fs utilities).
+- **`build-mule-integration`** — the template-search path is ported to Node along with everything else: `scripts/search_templates.sh` → `scripts/search_templates.mjs`, and `references/template-project-creation.md` now documents `node scripts/search_templates.mjs ...` (its Step 1b / Exchange / Local template flows are otherwise unchanged). Template functionality is preserved end-to-end — only the implementation language changed.
+- **`build-mule-integration`** — SKILL.md body refreshed to the current lab version: all script invocations use the `node scripts/<name>.mjs` form, and the update-mode + Step-8 `mule-artifact.json` alignment guidance (`write_mule_artifact_env`) is included.
+
+### Added
+
+- **`build-mule-integration`** — `lib/template-rank.mjs` (Node port of the `search_templates` jq ranking pipeline: `type==template` filter, highest-version dedup, private-first ordering, token-overlap scoring) and `scripts/write_mule_artifact_env.mjs` (writes the validated `minMuleVersion` / `javaSpecificationVersions` into the generated project's `mule-artifact.json` right after `dx mule project create`).
+- `package.json` `files` array now includes `*/lib/**` so the shared `lib/*.mjs` modules ship in the published tarball (the Node scripts `import` from `../lib/*.mjs`).
+
+### Removed
+
+- **`build-mule-integration`** — all `scripts/*.sh` bash helpers (`build_deps`, `build_gav`, `commit_connectors`, `describe_connector`, `get_latest_connector`, `maybe_add_http_connector`, `pick_connector`, `search_templates`, `validate_before_build`, `validate_prerequisites`) and `scripts/write_mule_artifact_env.sh`, superseded by the `.mjs` equivalents.
+- **`build-mule-integration`** — `scripts/_suggest_nearest.py`, the Python fuzzy nearest-match helper. Its only consumer (`validate_before_build`) now uses `lib/nearest.mjs`, so the Python dependency is gone.
+
 ## [1.5.0] - 2026-06-25
 
 ### Changed

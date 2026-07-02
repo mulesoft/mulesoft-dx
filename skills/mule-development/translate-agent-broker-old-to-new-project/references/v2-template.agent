@@ -1,0 +1,73 @@
+# @dialect: AGENTFABRIC=0.1
+
+system:
+  instructions: "<one-line summary of the broker's role, derived from V1 broker description>"
+
+config:
+  agent_name: "<broker-id>"
+  label: "<human-readable broker label>"
+  description: "<one-line description>"
+  default_llm: @llm.<llm-id>
+
+# -- LLM ----------------------------------------------------------------------
+llm:
+  <llm-id>:
+    target: "llm://<llmConnectionName>"
+    kind: "<Gemini|OpenAI>"
+    model: "<model from V1 spec.llm.configuration.model>"
+
+# -- ACTION DEFINITIONS -------------------------------------------------------
+actions:
+  <agent_action_id>:
+    target: "a2a://<agentConnectionName>"
+    kind: "a2a:send_message"
+  # ... one per V1 linked agent
+
+  <mcp_tool_action_id>:
+    target: "mcp://<mcpConnectionName>"
+    kind: "mcp:tool"
+    tool_name: "<exact V1 tool name from brokers.tools[*].mcp.allowed>"
+    # Do NOT add `inputs:` here. V1 has no input schemas, and the V2 runtime
+    # auto-discovers tool arguments from the MCP server.
+
+# -- TRIGGER ------------------------------------------------------------------
+trigger <broker-id-camelCase>Trigger:
+  kind: "a2a"
+  target: "brokers://<broker-id>/a2a"
+  on_message: ->
+    transition to @orchestrator.<orchestratorId>
+
+# -- ORCHESTRATOR -------------------------------------------------------------
+orchestrator <orchestratorId>:
+  description: "<broker description from V1>"
+  label: "<broker label from V1>"
+  system:
+    instructions: |
+      <V1 spec.instructions, copied verbatim. Mechanical edits only:>
+      <wherever V1 referenced a tool by full dotted name (e.g. "SlackMcpServer.send_status_update"),>
+      <prefer the V2 action alias (e.g. "send_slack_status_update"). Do not paraphrase.>
+  reasoning:
+    instructions: ->
+      | {!@request.payload.message.parts[0].text}
+    actions:
+      <readable_alias>: @actions.<agent_action_id>
+      # ... one per action, using short readable aliases (workday, salesforce, slack_update)
+    outputs:
+      properties:
+        summary:
+          type: "string"
+          description: "Plain-text summary of all actions taken."
+    max_number_of_loops: 25
+  on_exit: ->
+    transition to @echo.<responseEchoId>
+
+# -- RESPONSE -----------------------------------------------------------------
+echo <responseEchoId>:
+  kind: "a2a:status_update_event"
+  state: "TASK_STATE_COMPLETED"
+  message: a2a.message({
+    messageId: uuid(),
+    parts: [
+      a2a.textPart(@orchestrator.<orchestratorId>.output.summary)
+    ]
+  })

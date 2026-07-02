@@ -1,7 +1,6 @@
 #ECCN:Open Source
 #GUSINFO: MS API Manager
-* @mulesoft/team-api-manager
-* @mulesoft/team-acm 
+* @mulesoft/team-api-manager @mulesoft/team-acm
 
 # Mule DX team owns the mule-development skills bundle.
 # CODEOWNERS uses last-match-wins, so this overrides the default above.

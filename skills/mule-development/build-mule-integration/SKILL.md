@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@salesforce/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Maven 3.6+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 metadata:
   author: mule-dx-tooling
-  version: "1.1.1"
+  version: "1.3.0"
   cli: anypoint-cli-v4
   theme: professional
 allowed-tools: Bash Read Write Edit AskUserQuestion
@@ -65,8 +65,13 @@ This skill ships small bash scripts under `scripts/`. Invoke them with the `Bash
 | `scripts/build_gav.sh <json>` | Turn a saved connector JSON into its `groupId:assetId:version` string | stdout |
 | `scripts/build_deps.sh [versions-dir]` | Step 8 — read every connector pin in `tmp/connector-versions/` and emit a comma-joined GAV string, ready for `dx mule project create --dependencies`. Skips `db-driver.json` and any non-pin file. | stdout |
 | `scripts/describe_connector.sh <nickname> [--type operation\|source --name <name>]` | Step 4 (no flags) / Step 13 (with flags) — run `dx mule describe-connector` for the drafted GAV, save full JSON, echo digest to stdout, AND cache `.errorTypes` to `tmp/connector-errors/` for the Step 16 validator | `tmp/connector-metadata/<nick>[-<name>].json` + `tmp/connector-errors/<nick>[.<name>].json` + digest on stdout |
-| `scripts/validate_before_build.sh <project-dir>` | Step 16 pre-mvn — error-type whitelist, namespace↔dependency parity, canonical XSD URL shape | stderr + non-zero exit on first violation |
+| `scripts/validate_before_build.sh <project-dir>` | Step 16 pre-mvn — error-type whitelist (Cluster D), namespace↔dependency parity (Cluster A2–A5), canonical XSD URL shape | stderr + non-zero exit on first violation |
 | `scripts/maybe_add_http_connector.sh --project <dir> <providers...>` | Phase 2 — defensive check that HTTP connector is present when OAuth providers were chosen; edits `<dir>/pom.xml` | `<dir>/pom.xml` |
+| `scripts/search_templates.sh <search-term>` | Step 1b (template path) — search Anypoint Exchange for `type == "template"` assets via parallel calls (unscoped + org-scoped), dedup, rank by token overlap, enrich top 10 with `description`, `minMuleVersion`, and `sourceLocation`. | Single JSON array on stdout (max 10 rows, private-first). Exits 1 on no match. |
+
+Invoke scripts by the absolute path you were given in the "skill is now active" message (it is the directory containing this `SKILL.md`). Do **not** construct relative paths like `../scripts/...` — Cline's working directory shifts across turns and relative paths have produced "No such file or directory" errors in real runs. The inline step examples below write `scripts/...` as shorthand; substitute `<skill-dir>/scripts/...` when you actually execute them.
+
+**Why scripts instead of inline bash:** in earlier iterations connector search was a shell *function* defined inside a single `Bash` tool call. When the call returned the subshell died and the resolved GAV went with it. By the time a later step assembled `dx mule project create`, the only trace of the version was in scrolled-past tool output — and the agent frequently pasted a fictional version from training-time memory instead. Persisting to a file on disk makes the version something we can `jq` at the command site, which removes that failure mode entirely.
 
 ---
 
@@ -75,7 +80,7 @@ This skill ships small bash scripts under `scripts/`. Invoke them with the `Bash
 This workflow has two phases separated by a hard user-approval gate.
 
 - **Phase 1: Technical Design (Steps 1–7).** Identify systems, search Exchange, describe connectors, pick trigger and providers, present a Technical Design Summary, wait for the user to approve. Phase 1 writes **nothing** to the user's project directory — all artifacts live under workspace-relative paths: `tmp/mule-dev-env.json` (env cache owned by `validate_prerequisites.sh`), `tmp/connector-choices/*.json` (draft connector picks), and `tmp/connector-metadata/*.json`. The pinned `tmp/connector-versions/*.json` directory that Phase 2 reads is only populated after Step 7's approval, by `commit_connectors.sh`.
-- **Phase 2: Build (Steps 8–18).** Create the real project, generate config and flow XML, run the build, declare completion. Phase 2 is the only phase that touches the user's project directory.
+- **Phase 2: Build (Steps 8–17).** Create the real project, generate config and flow XML, run the build, declare completion. Phase 2 is the only phase that touches the user's project directory.
 
 Phase 2 MUST NOT start until Step 7's approval gate has been passed explicitly. Skipping Phase 1 — or collapsing it into a single "I'll just use HTTP" decision — is the single highest-impact failure mode of this skill and is what the two-phase structure exists to prevent.
 
@@ -103,6 +108,27 @@ bash scripts/validate_prerequisites.sh
 If the script exits non-zero, STOP progressing any further in the skill and inform the user to act on the `errors` array in `tmp/mule-dev-env.json`. Do not invent a fallback Mule version — `mule_version` is empty when no runtime is detected.
 
 What `validate_prerequisites.sh` checks: Anypoint CLI v4 installed · DX plugin available · `JAVA_HOME` set · Java 11+ · Mule runtime detected at `~/.mule-dx/config.json:.runtimePath` or under `~/AnypointCodeBuilder/runtime/mule-*`. If runtime or other tools are missing, the script reports the error and informs the user to run the necessary commands for proper installation.
+
+---
+
+## Step 1b: Project Source Decision
+
+**Always ask this when creating a new project.** After prerequisites pass, determine how the user wants to create the project:
+
+```xml
+<ask_followup_question>
+<question>I can create this project in one of three ways. Which would you prefer?</question>
+<options>["I want to generate from scratch without a template.", "I want to use organizational templates from Anypoint Exchange.", "I have a local template file (.jar or .zip) I want to use."]</options>
+</ask_followup_question>
+```
+
+**Based on the answer:**
+
+1. **Exchange or Local template** → Read `references/template-project-creation.md` and follow the appropriate flow (Exchange E1–E4, or Local L1–L4). The sub-skill ends with an explicit **continue-or-stop** prompt (Steps E5 / L5) — if the user picks "stop", declare completion via `<attempt_completion>`; if they pick "continue", return here and proceed to Step 2.
+2. **Scratch** → Continue to Step 2. Project creation will happen at Step 8 (after connector discovery provides the `--dependencies`).
+
+**When to skip this step entirely:**
+- User is working on an existing project (modifying/updating flows, not creating a new one)
 
 ---
 
@@ -591,7 +617,8 @@ MULE_VERSION=$(jq -r '.mule_version' tmp/mule-dev-env.json)
 NODE_NO_WARNINGS=1 anypoint-cli-v4 dx mule project create <project-name> \
   --group-id com.example \
   --mule-version "$MULE_VERSION" \
-  --dependencies "$(bash scripts/build_deps.sh)"
+  --dependencies "$(bash scripts/build_deps.sh)" \
+  --skip-environment
 ```
 
 `build_deps.sh` reads every `tmp/connector-versions/*.json` pin, filters out the Step 6b JDBC driver sidecar (`db-driver.json`), and prints a comma-joined GAV string. Any pin file in that directory is included automatically — including `http.json` if you added it via the rule below.
@@ -654,7 +681,7 @@ If `tmp/connector-choices/db-driver.json` is missing but `mule-db-connector` is 
 
 ## Step 10: Verify HTTP Connector (OAuth/HTTP-Listener defensive check)
 
-Step 8's `--dependencies` already includes `mule-http-connector` when Step 5 chose HTTP Listener or Step 6 chose an OAuth-family provider — because Phase 1's approved TDD made that visible. This step is a **defensive no-op check** in the common case: run the helper in case the TDD missed the HTTP addition for some reason.
+In v7, Step 8's `--dependencies` already includes `mule-http-connector` when Step 5 chose HTTP Listener or Step 6 chose an OAuth-family provider — because Phase 1's approved TDD made that visible. This step is a **defensive no-op check** in the common case: run the helper in case the TDD missed the HTTP addition for some reason.
 
 **Skip this step entirely** when none of the selected providers match `oauth|jwt|auth-code|authorization-code` AND the trigger is not HTTP Listener. Running it as a "just to be safe" consumes a turn.
 
@@ -861,7 +888,7 @@ The script also writes `tmp/connector-errors/<nick>.<op>.json` (per-op error sub
 
 ## Step 14: Generate Complete Flow
 
-Generate the complete flow in `src/main/mule/<project-name>.xml` using metadata from Steps 11, 13. Do NOT use hardcoded structures.
+Generate the complete flow in `src/main/mule/<project-name>.xml` using metadata from Steps 10, 12. Do NOT use hardcoded structures.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1057,7 +1084,7 @@ Success: `target/<project-name>-1.0.0-SNAPSHOT-mule-application.jar`.
 
 1. Emit `mvn clean package` as the **only** tool call in this response. Do not include a completion signal, a follow-up `ls`, or any other tool call alongside it. Stop and wait for the build output.
 2. You MUST wait until the mvn clean package succeeds. Do NOT make any assumptions about build completion. The terminal output is the ONLY source of truth.
-3. Read the output:
+2. Read the output:
     - If the last line block contains `BUILD SUCCESS`, proceed to Step 17 (cleanup) **in a new response**.
     - If the last line block contains `BUILD FAILURE`, find the `[ERROR]` line beginning `Failed to execute goal ...`, diagnose the root cause, edit the offending file (revisiting the relevant earlier Step — e.g. Step 14 for XML structure, Step 15 for documentation attributes and namespaces), and return to step 1 of this protocol. MUST follow the "Best Practices" section for diagnosing the issue and applying the correct fix. Never assume a solution. ALWAYS reference the connector metadata sources and operations under tmp/ folder as your source of truth.
 
@@ -1193,7 +1220,8 @@ MULE_VERSION=$(jq -r '.mule_version' tmp/mule-dev-env.json)
 NODE_NO_WARNINGS=1 anypoint-cli-v4 dx mule project create <name> \
   --group-id com.example \
   --mule-version "$MULE_VERSION" \
-  --dependencies "$(bash <skill-dir>/scripts/build_deps.sh)"   # reads every tmp/connector-versions/*.json pin
+  --dependencies "$(bash <skill-dir>/scripts/build_deps.sh)" \   # reads every tmp/connector-versions/*.json pin
+  --skip-environment   # scratch projects don't need environment resolution
 
 # Step 10: OAuth → HTTP defensive check (only when Step 6 chose OAuth/JWT/auth-code
 # or the trigger is HTTP Listener)
@@ -1206,5 +1234,7 @@ bash <skill-dir>/scripts/describe_connector.sh <nickname> --type source    --nam
 # Step 16: pre-mvn validation — error-type whitelist + namespace↔dep parity + XSD shape
 bash <skill-dir>/scripts/validate_before_build.sh ./<project>
 ```
+
+| Pre-mvn validation | `bash <skill-dir>/scripts/validate_before_build.sh ./<project>` |
 
 ---

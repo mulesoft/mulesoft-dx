@@ -1031,7 +1031,9 @@ class TestMaliciousTerraformSmokeRawHtml:
         setup_schema_docs(repo)
 
         output = tmp_path / 'output'
-        PortalGenerator(output).generate(repo)
+        # Disable GTM so its legitimate <noscript><iframe> does not fool the
+        # "no iframes from malicious markdown" assertion below.
+        PortalGenerator(output, gtm_container_id='').generate(repo)
         return output
 
     @pytest.fixture

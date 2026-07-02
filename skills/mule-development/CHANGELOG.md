@@ -4,6 +4,13 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-06-25
+
+### Changed
+- **`build-mule-integration`** — synced from the agent-evaluation lab to skill v12.2.0 internal tag. Reorders Step 1b options so "I want to generate from scratch without a template." is the first option (default-safe). Adds explicit Steps E5 / L5 continue-or-stop checkpoints at the end of the Exchange and Local sub-flows so the agent always asks the user whether to proceed to connector discovery + flow generation or stop after template setup. Local template format relaxed from `.jar`-only to `.jar` or `.zip` (the underlying `dx:mule:project:create --template-file` CLI accepts both).
+- **`build-mule-integration`** — adds an absolute-path / "no relative `../scripts/...`" rule for invoking bundled scripts, plus a "why scripts instead of inline bash" rationale (loss of resolved GAVs across `Bash` tool calls), based on production-run failure analysis.
+- **`build-mule-integration`** — Phase 2 step ranges renumbered (Steps 8–17 from 8–18); flow XML generation cross-references corrected (Steps 10/12 instead of 11/13); pre-mvn validation script reference added to the troubleshooting cheatsheet.
+
 ## [1.4.0] - 2026-06-23
 
 ### Added
@@ -16,6 +23,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`mulesoft-agent-broker-builder`** — new skill that drives an end-to-end Agent Network V2 (GA, A2A v1.0) build experience: 6-phase guided requirements → asset registration → Agent Script authoring → instruction refinement → topology review, plus optional publish and deploy. CLI-first via the Anypoint CLI Agent Fabric plugin (`agent-network project create/build/publish/deploy/setup-gateways`) with the MuleSoft MCP server as fallback and a graceful no-tool degradation path. Step 0 invokes `agent-network project create` to produce a starter project with the correct `groupId`/`organizationId`, then the skill edits files in place. Bundles a canonical IT Help Investigation example (sourced from the working `stgx-it-investigation-GA-ver` reference) and a gotchas reference covering A2A v1.0 vs v0.3 (`a2a_v03`) backward-compatible card branches, GA echo update events (`a2a:status_update_event` / `a2a:artifact_update_event` with `TASK_STATE_*` enum), compile-error rules for action invocation (A2A bare reference vs `with message =` in executors; MCP `inputs:`/`with`/slot-fill rules), connection authentication (required on `kind: llm`), policies as `{inbound, outbound}` object, subagent-vs-orchestrator decision, CR-18 least-privilege binding, RULE-ASSET-MODE (inline vs Exchange registration), and the full CLI / MCP capability matrix with env-var auth.
 - **`mulesoft-agent-broker-v1-to-v2-converter`** — new skill that converts an Agent Network V1 project (`schemaVersion: 1.0.0`) into a V2 project (`agentNetwork: 2.0.0`). Each V1 broker becomes a V2 broker backed by an Agent Script `.agent` file with one orchestrator node — preserves the user's prompt verbatim, does not split into routers/executors/generators. V1 agents land in the `metadata.interfaces.a2a_v03` (back-compat) branch; the broker emits A2A v1.0. Bundles a canonical V1 input (`customer-onboarding-v1`) and matching V2 output, plus a `v2-template.agent` skeleton. For richer multi-node graphs, the skill points users at `mulesoft-agent-broker-builder` as the natural next step.
+
+## [1.2.1] - 2026-06-12
+
+### Changed
+- **`build-mule-integration`** — absorbed `create-project-template` as a conditional sub-file (`references/template-project-creation.md`). Template-based project creation (Exchange search, local .jar) is now a branch within Step 1b, loaded only when the user wants a template. `search_templates.sh` moved to `build-mule-integration/scripts/`.
+- **`build-mule-integration`** — Step 8 `dx mule project create` example now passes `--skip-environment` for scratch projects to avoid an unnecessary environment-resolution API call.
+
+### Removed
+- **`create-project-template`** — removed as standalone skill. Its workflow lives in `build-mule-integration/references/template-project-creation.md`.
 
 ## [1.1.1] - 2026-06-09
 

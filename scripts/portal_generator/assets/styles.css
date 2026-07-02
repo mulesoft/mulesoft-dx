@@ -10252,3 +10252,23 @@ pre.mcp-install-command,
   padding: 4px 10px;
   border-radius: var(--radius-medium);
 }
+
+.portal-cookie-settings {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+}
+
+.portal-cookie-settings .ot-sdk-show-settings {
+  background: transparent;
+  border: none;
+  color: var(--color-text-link);
+  font-size: var(--font-size-2);
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.portal-cookie-settings .ot-sdk-show-settings:hover {
+  text-decoration: underline;
+}

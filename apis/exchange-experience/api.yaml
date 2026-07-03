@@ -2489,6 +2489,21 @@ paths:
             application/json:
               schema:
                 $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationSuccessResponse'
+              example:
+                userId: 8f7bba08-43fd-4036-8108-84d34d71d531
+                requestId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                conversationId: null
+                type: EXCHANGE_DOC_GENERATION
+                generations:
+                  - id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                    content: "# API Overview\n\nThis API provides..."
+                    explanation: Generated documentation based on the API specification
+                    isGenerated: true
+                    isLiked: null
+                    createdOn: "2026-07-03T10:00:00.000Z"
+                    updatedOn: null
+                    parameters: {}
+                parameters: {}
         '400':
           description: |
             Bad request - invalid asset type or request format.

@@ -2469,6 +2469,89 @@ paths:
                 type: object
               example: *id023
       operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatusByRunid
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/documentation/generate:
+    summary: Generate Documentation
+    description: AI-powered documentation generation for an asset
+    post:
+      operationId: postOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionDocumentationGenerate
+      description: |
+        Generates AI-powered documentation for an asset version.
+        Requires Einstein to be enabled for the organization.
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Documentation generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationSuccessResponse'
+        '400':
+          description: |
+            Bad request - invalid asset type or request format.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '401':
+          description: |
+            Unauthorized - user does not have permission to generate documentation.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '403':
+          description: |
+            Forbidden - access denied due to organization access, subscription, or permissions.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '404':
+          description: |
+            Not found - asset not found or asset type not supported.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '409':
+          description: |
+            Conflict - Einstein not enabled for the organization.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationEinsteinErrorResponse'
+        '429':
+          description: |
+            Too many requests - rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '500':
+          description: |
+            Internal server error - failed to generate documentation.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '502':
+          description: |
+            Bad gateway - error communicating with AI service.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '503':
+          description: |
+            Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
   /organizations/{organizationId}/fields:
     summary: Custom Fields
     description: Tags of type "custom field"

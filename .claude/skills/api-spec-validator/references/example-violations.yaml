@@ -145,6 +145,71 @@ paths:
                   message:
                     type: string
 
+  /gateways/{gatewayId}/runtime-configuration:
+    get:
+      operationId: getGatewaysByGatewayidRuntimeConfigurationDetailedInfo
+      description: Retrieves detailed runtime configuration for a gateway
+      parameters:
+        - name: gatewayId
+          in: path
+          required: true
+          description: Gateway identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Runtime configuration payload
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    description: Runtime status of the gateway
+                    enum: [running, stopped, degraded]
+              examples:
+                default:
+                  value:
+                    status: running
+
+  /users/{userId}/sessions/{sessionId}:
+    get:
+      operationId: getUsersByUseridSessionsBySessionid
+      description: Retrieves a session for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          description: Session identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session payload
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - active
+                properties:
+                  active:
+                    type: boolean
+                    description: Whether the session is active
+              examples:
+                default:
+                  value:
+                    active: true
+
 # SUMMARY OF VIOLATIONS IN THIS SPEC:
 #
 # Rule 2: Operation ID violations

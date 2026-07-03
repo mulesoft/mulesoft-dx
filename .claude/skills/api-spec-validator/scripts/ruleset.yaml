@@ -22,6 +22,8 @@ violation:
   #- schema-required-block
 warning:
   - uri-parameter-x-origin
+  - operation-id-max-length
+  - operation-id-no-path-repetition
 validations:
   path-environment-identifier:
     message: |
@@ -289,3 +291,70 @@ validations:
       - propertyConstraints:
           apiExt.origin:
             minCount: 1
+  operation-id-max-length:
+    message: >
+      Operation '{{apiContract.method}}' has an overly long operationId.
+      Keep operationIds at 40 characters or fewer for readability
+      (verb + primary noun; e.g. getGatewayRuntimeConfig).
+    documentation: >
+      Long operationIds — especially those that mirror deep path structures —
+      hurt developer autocomplete and AI-agent tool discovery. Prefer short,
+      action-oriented names that describe what the operation does, not where
+      it lives in the URI tree. Keep them at 40 characters or fewer.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      apiContract.operationId:
+        minCount: 1
+        pattern: "^.{1,40}$"
+    examples:
+      valid: |
+        paths:
+          /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-config:
+            get:
+              operationId: getGatewayRuntimeConfig
+              responses:
+                '200':
+                  description: OK
+      invalid: |
+        paths:
+          /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-config:
+            get:
+              operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
+              responses:
+                '200':
+                  description: OK
+  operation-id-no-path-repetition:
+    message: >
+      Operation '{{apiContract.method}}' has an operationId that mirrors
+      the URI path with two or more 'By<Segment>id' suffixes. Prefer a
+      short, action-oriented name that describes intent, not path structure.
+    documentation: >
+      Path-derived operationIds like
+      getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      duplicate structure that already lives in the path template and are
+      unreadable in tool listings. Use a name that describes what the
+      operation does (verb + primary noun). A single 'ById' suffix
+      (e.g. getUserById) is fine — this rule only fires when two or more
+      such suffixes stack.
+    targetClass: apiContract.Operation
+    not:
+      propertyConstraints:
+        apiContract.operationId:
+          pattern: "By[A-Z][a-zA-Z0-9]*[Ii]d.*By[A-Z][a-zA-Z0-9]*[Ii]d"
+    examples:
+      valid: |
+        paths:
+          /users/{userId}:
+            get:
+              operationId: getUserById
+              responses:
+                '200':
+                  description: OK
+      invalid: |
+        paths:
+          /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}:
+            get:
+              operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+              responses:
+                '200':
+                  description: OK

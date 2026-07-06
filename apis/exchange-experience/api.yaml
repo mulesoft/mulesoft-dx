@@ -2473,7 +2473,7 @@ paths:
     summary: Generate Documentation
     description: AI-powered documentation generation for an asset
     post:
-      operationId: postOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionDocumentationGenerate
+      operationId: generateAssetDocumentation
       description: |
         Generates AI-powered documentation for an asset version.
         Requires Einstein to be enabled for the organization.

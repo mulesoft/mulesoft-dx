@@ -3689,12 +3689,21 @@ function filterServersForRegion(servers, region) {
  */
 function _rewriteRegionInHost(url, region, type) {
     if (!url || !region || type === 'us') return url;
+    var result;
     if (type === 'platform') {
-        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?platform\.mulesoft\.com/,
+        result = url.replace(/:\/\/(?:[a-z0-9-]+\.)?platform\.mulesoft\.com/,
+            '://' + region + '.platform.mulesoft.com');
+        if (result !== url) return result;
+        // Cross-domain: API only declares anypoint servers but platform region selected.
+        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?anypoint\.mulesoft\.com/,
             '://' + region + '.platform.mulesoft.com');
     }
     if (type === 'eu') {
-        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?anypoint\.mulesoft\.com/,
+        result = url.replace(/:\/\/(?:[a-z0-9-]+\.)?anypoint\.mulesoft\.com/,
+            '://' + region + '.anypoint.mulesoft.com');
+        if (result !== url) return result;
+        // Cross-domain: API only declares platform servers but anypoint region selected.
+        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?platform\.mulesoft\.com/,
             '://' + region + '.anypoint.mulesoft.com');
     }
     return url;

@@ -2564,6 +2564,33 @@ describe('getEffectiveServer', () => {
         });
     });
 
+    test('cross-domain: platform region selected but API only declares anypoint servers', () => {
+        withServerType('platform', 'in1', () => {
+            // API like AEH Consumer API that only has anypoint.mulesoft.com servers.
+            // Selected region in1 (platform domain) — URL must be rewritten to
+            // in1.platform.mulesoft.com even though the server host is anypoint.
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/api-experience-hub/xapi/v1', variables: {} },
+            ];
+            const result = getEffectiveServer(servers, null);
+            expect(result.supported).toBe(false);
+            expect(result.server).toBeNull();
+            expect(result.url).toBe('https://in1.platform.mulesoft.com/api-experience-hub/xapi/v1');
+        });
+    });
+
+    test('cross-domain: eu region selected but API only declares platform servers', () => {
+        withServerType('eu', 'eu1', () => {
+            const servers = [
+                { url: 'https://ca1.platform.mulesoft.com/some/api/v1', variables: {} },
+            ];
+            const result = getEffectiveServer(servers, null);
+            expect(result.supported).toBe(false);
+            expect(result.server).toBeNull();
+            expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/some/api/v1');
+        });
+    });
+
     test('empty servers array returns empty URL, supported=true, no throw', () => {
         withServerType('us', null, () => {
             const result = getEffectiveServer([], null);
@@ -2593,8 +2620,10 @@ describe('getEffectiveMcpRemote', () => {
         });
     });
 
-    test('returns supported=false and remotes[0] when no host matches the region', () => {
+    test('returns supported=false and cross-domain rewritten URL when no host matches the region', () => {
         withServerType('platform', 'in1', () => {
+            // No remote declares in1; ca1 is a different platform region.
+            // Fallback rewrites remotes[0] (anypoint host) cross-domain to in1.platform.mulesoft.com.
             const remotes = [
                 { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
                 { type: 'streamable-http', url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp' },
@@ -2603,7 +2632,7 @@ describe('getEffectiveMcpRemote', () => {
             const result = getEffectiveMcpRemote(remotes);
             expect(result.supported).toBe(false);
             expect(result.remote).toBeNull();
-            expect(result.url).toBe('https://anypoint.mulesoft.com/exchange/mcp');
+            expect(result.url).toBe('https://in1.platform.mulesoft.com/exchange/mcp');
         });
     });
 

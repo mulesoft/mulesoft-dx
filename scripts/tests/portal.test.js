@@ -482,51 +482,6 @@ describe('resolveServerUrl', () => {
 });
 
 // ===========================================================================
-// getPreferredServerIndex
-// ===========================================================================
-describe('getPreferredServerIndex', () => {
-    const usServer = { url: 'https://anypoint.mulesoft.com/api' };
-    const euServer = {
-        url: 'https://{region}.anypoint.mulesoft.com/api',
-        variables: { region: { default: 'eu1' } },
-    };
-    const platformServer = {
-        url: 'https://{region}.platform.mulesoft.com/api',
-        variables: { region: { default: 'ca1' } },
-    };
-
-    test('returns 0 when US selected', () => {
-        withServerType('us', null, () => {
-            expect(getPreferredServerIndex([usServer, euServer, platformServer])).toBe(0);
-        });
-    });
-
-    test('returns index of EU server when EU selected', () => {
-        withServerType('eu', null, () => {
-            expect(getPreferredServerIndex([usServer, euServer, platformServer])).toBe(1);
-        });
-    });
-
-    test('returns index of platform server when platform selected', () => {
-        withServerType('platform', 'ca1', () => {
-            expect(getPreferredServerIndex([usServer, euServer, platformServer])).toBe(2);
-        });
-    });
-
-    test('returns 0 when EU selected but no EU server exists', () => {
-        withServerType('eu', null, () => {
-            expect(getPreferredServerIndex([usServer, platformServer])).toBe(0);
-        });
-    });
-
-    test('returns 0 when platform selected but no platform server exists', () => {
-        withServerType('platform', 'ca1', () => {
-            expect(getPreferredServerIndex([usServer, euServer])).toBe(0);
-        });
-    });
-});
-
-// ===========================================================================
 // Region × domain matrix (W-22861359)
 // ===========================================================================
 describe('isServerValidForRegion', () => {
@@ -2540,6 +2495,257 @@ describe('applyAuthModalMode (logged-in state)', () => {
         applyAuthModalMode();
 
         expect(document.getElementById('authBearerLoggedAsValue').textContent).toBe('—');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// getEffectiveServer — region-aware server picker (W-23196976).
+// ---------------------------------------------------------------------------
+describe('getEffectiveServer', () => {
+    afterEach(() => {
+        cleanupServerElements();
+    });
+
+    test('picks the first matching server for the selected region', () => {
+        withServerType('eu', 'eu1', () => {
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://{region}.anypoint.mulesoft.com/v1',
+                  variables: { region: { default: 'eu1' } } },
+            ];
+            const result = getEffectiveServer(servers, null);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/v1');
+        });
+    });
+
+    test('forces region substitution when no server matches (supported=false)', () => {
+        withServerType('eu', 'eu1', () => {
+            // Only a US-fixed server declared; eu1 has no match.
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+            ];
+            const result = getEffectiveServer(servers, null);
+            expect(result.supported).toBe(false);
+            expect(result.server).toBeNull();
+            // Host rewrite injects the selected region as subdomain even when the
+            // server URL is fixed (no {region} template). This mirrors the auth
+            // modal's live URL preview so "Try it" hits the selected region.
+            expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/v1');
+        });
+    });
+
+    test('multi-server list: first matching wins deterministically', () => {
+        withServerType('platform', 'ca1', () => {
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://ca1.platform.mulesoft.com/v1', variables: {} },
+                { url: 'https://jp1.platform.mulesoft.com/v1', variables: {} },
+            ];
+            const result = getEffectiveServer(servers, null);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://ca1.platform.mulesoft.com/v1');
+        });
+    });
+
+    test('unknown region marks supported=false and rewrites host', () => {
+        withServerType('platform', 'xyz1', () => {
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://{region}.platform.mulesoft.com/v1',
+                  variables: { region: { default: 'ca1' } } },
+            ];
+            const result = getEffectiveServer(servers, null);
+            // Custom / unsupported: an API cannot declare a server for a region
+            // outside DOMAIN_REGIONS, so we surface the notice AND rewrite the
+            // URL so "Try it" still hits the selected region.
+            expect(result.supported).toBe(false);
+            expect(result.url).toBe('https://xyz1.platform.mulesoft.com/v1');
+        });
+    });
+
+    test('empty servers array returns empty URL, supported=true, no throw', () => {
+        withServerType('us', null, () => {
+            const result = getEffectiveServer([], null);
+            expect(result).toEqual({ server: null, url: '', supported: true });
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// getEffectiveMcpRemote — region-aware MCP remote picker (W-23196976).
+// ---------------------------------------------------------------------------
+describe('getEffectiveMcpRemote', () => {
+    afterEach(() => {
+        cleanupServerElements();
+    });
+
+    test('picks the remote whose host matches the selected region', () => {
+        withServerType('eu', 'eu1', () => {
+            const remotes = [
+                { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://ca1.platform.mulesoft.com/exchange/mcp' },
+            ];
+            const result = getEffectiveMcpRemote(remotes);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/exchange/mcp');
+        });
+    });
+
+    test('returns supported=false and remotes[0] when no host matches the region', () => {
+        withServerType('platform', 'in1', () => {
+            const remotes = [
+                { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://ca1.platform.mulesoft.com/exchange/mcp' },
+            ];
+            const result = getEffectiveMcpRemote(remotes);
+            expect(result.supported).toBe(false);
+            expect(result.remote).toBeNull();
+            expect(result.url).toBe('https://anypoint.mulesoft.com/exchange/mcp');
+        });
+    });
+
+    test('unknown region rewrites host and marks supported=false', () => {
+        withServerType('platform', 'xyz1', () => {
+            const remotes = [
+                { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://ca1.platform.mulesoft.com/exchange/mcp' },
+            ];
+            const result = getEffectiveMcpRemote(remotes);
+            // Custom / unsupported: rewrites the platform remote to the custom
+            // subdomain AND surfaces the notice via supported=false.
+            expect(result.supported).toBe(false);
+            expect(result.url).toBe('https://xyz1.platform.mulesoft.com/exchange/mcp');
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// buildUrlBar — DOM behavior + region reactivity (W-23196976).
+// ---------------------------------------------------------------------------
+describe('buildUrlBar', () => {
+    let wrapper, bar;
+
+    beforeEach(() => {
+        wrapper = document.createElement('div');
+        bar = document.createElement('code');
+        bar.className = 'operation-url-bar';
+        bar.setAttribute('data-op-id', 'getFoo');
+        bar.setAttribute('data-path', '/foo');
+        wrapper.appendChild(bar);
+        document.body.appendChild(wrapper);
+    });
+
+    afterEach(() => {
+        wrapper.remove();
+        cleanupServerElements();
+        delete window.__API_META__;
+    });
+
+    test('single-server API renders url-text-plain, no notice', () => {
+        withServerType('us', null, () => {
+            const servers = [{ url: 'https://api.example.com/v1', variables: {} }];
+            buildUrlBar(bar, 'getFoo', '/foo', servers);
+
+            const plain = bar.querySelector('.url-text-plain');
+            expect(plain).not.toBeNull();
+            expect(plain.textContent).toBe('https://api.example.com/v1/foo');
+            expect(wrapper.querySelector('.operation-region-notice')).toBeNull();
+        });
+    });
+
+    test('multi-server, region-matching server renders as plain URL, no notice', () => {
+        withServerType('platform', 'ca1', () => {
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://ca1.platform.mulesoft.com/v1', variables: {} },
+            ];
+            buildUrlBar(bar, 'getFoo', '/foo', servers);
+
+            const plain = bar.querySelector('.url-text-plain');
+            expect(plain).not.toBeNull();
+            expect(plain.textContent).toBe('https://ca1.platform.mulesoft.com/v1/foo');
+            expect(wrapper.querySelector('.operation-region-notice')).toBeNull();
+        });
+    });
+
+    test('region not supported: renders plain URL AND a region-notice sibling', () => {
+        withServerType('eu', 'eu1', () => {
+            // Only a US-fixed server declared; eu1 has no match.
+            const servers = [{ url: 'https://anypoint.mulesoft.com/v1', variables: {} }];
+            buildUrlBar(bar, 'getFoo', '/foo', servers);
+
+            expect(bar.querySelector('.url-text-plain')).not.toBeNull();
+            const notice = wrapper.querySelector('.operation-region-notice');
+            expect(notice).not.toBeNull();
+            expect(notice.getAttribute('role')).toBe('status');
+            expect(notice.getAttribute('aria-live')).toBe('polite');
+            expect(notice.textContent.toLowerCase()).toContain('not available');
+        });
+    });
+
+    test('updateAllServerBars re-renders after a region change', () => {
+        window.__API_META__ = {
+            servers: [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://ca1.platform.mulesoft.com/v1', variables: {} },
+                { url: 'https://eu1.anypoint.mulesoft.com/v1', variables: {} },
+            ],
+        };
+        withServerType('platform', 'ca1', () => {
+            buildUrlBar(bar, 'getFoo', '/foo', window.__API_META__.servers);
+            expect(bar.querySelector('.url-text-plain').textContent)
+                .toBe('https://ca1.platform.mulesoft.com/v1/foo');
+        });
+        withServerType('eu', 'eu1', () => {
+            updateAllServerBars();
+            expect(bar.querySelector('.url-text-plain').textContent)
+                .toBe('https://eu1.anypoint.mulesoft.com/v1/foo');
+        });
+    });
+
+    test('region-change re-render clears old notice (never accumulates duplicate notices)', () => {
+        window.__API_META__ = {
+            servers: [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+            ],
+        };
+        // First render in unsupported region → notice appears
+        withServerType('eu', 'eu1', () => {
+            buildUrlBar(bar, 'getFoo', '/foo', window.__API_META__.servers);
+            expect(wrapper.querySelectorAll('.operation-region-notice').length).toBe(1);
+        });
+        // Re-render in same unsupported region → still only 1 notice
+        withServerType('eu', 'eu1', () => {
+            updateAllServerBars();
+            expect(wrapper.querySelectorAll('.operation-region-notice').length).toBe(1);
+        });
+        // Switch to supported region → notice removed
+        withServerType('us', null, () => {
+            updateAllServerBars();
+            expect(wrapper.querySelectorAll('.operation-region-notice').length).toBe(0);
+        });
+    });
+
+    // Regression: the combobox with chevron + click-to-open dropdown must not
+    // exist. It was removed in W-23196976 because the auth modal region is
+    // the single source of truth.
+    test('regression: buildUrlBar NEVER renders .url-combobox or .server-dropdown', () => {
+        withServerType('platform', 'ca1', () => {
+            const servers = [
+                { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+                { url: 'https://ca1.platform.mulesoft.com/v1', variables: {} },
+                { url: 'https://jp1.platform.mulesoft.com/v1', variables: {} },
+            ];
+            buildUrlBar(bar, 'getFoo', '/foo', servers);
+
+            expect(bar.querySelector('.url-combobox')).toBeNull();
+            expect(bar.querySelector('.url-combobox-text')).toBeNull();
+            expect(bar.querySelector('.url-combobox-chevron')).toBeNull();
+            expect(document.querySelector('.server-dropdown')).toBeNull();
+        });
     });
 });
 

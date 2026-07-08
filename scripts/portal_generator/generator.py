@@ -408,8 +408,15 @@ class PortalGenerator:
         print(f"📋 Registry: {self.output_dir}/registry.json")
         print(f"🤖 Agent guide: {self.output_dir}/AGENTS.md")
 
-    def _asset_paths(self, depth: int = 1) -> dict:
+    def _asset_paths(self, depth: int = 1, absolute: bool = False) -> dict:
         """Return template variables for hashed asset paths at the given directory depth."""
+        if absolute:
+            return {
+                'css_path': f"/assets/{self._css_filename}",
+                'icons_path': '/assets/icons',
+                'portal_js_path': f"/assets/{self._js_filename}",
+                'jsonpath_js_path': f"/assets/{self._jsonpath_filename}",
+            }
         prefix = '../' * depth if depth > 0 else ''
         return {
             'css_path': f"{prefix}assets/{self._css_filename}",
@@ -422,7 +429,7 @@ class PortalGenerator:
         """Render a static error page template to output_dir/output_name."""
         template = self.env.get_template(template_name)
         html = template.render(
-            **self._asset_paths(0),
+            **self._asset_paths(absolute=True),
             build_label=self.build_label,
             base_url=self.base_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,

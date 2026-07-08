@@ -4,6 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-07-02
+
+### Added
+
+- **`generate-bat-tests`** — new skill that generates a runnable BAT (Blackbox API Testing) BDD suite — DataWeave `.dwl` files plus a `bat.yaml` manifest — from a Mule app's source (OpenAPI contract + Mule flow XML), organized by quality dimensions (Accuracy / Robustness / Security / Coverage) and validated by running it against the live HTTP endpoint. BAT is black-box and out-of-process (it hits the deployed API, never imports flows) and has no XSD, so the workflow's gate is "the suite parses AND passes against the running app" rather than a build-time compile. Two-phase workflow with a hard approval gate: Phase 1 reads the source, anchors an endpoint/raise-error allowlist, and drafts a dimension-tagged test inventory for the user to approve; Phase 2 scaffolds the suite, writes the `.dwl` files, statically validates the BAT DSL, and runs `./run-bat.sh` against the endpoint. Bundles four scripts (`validate_prerequisites.sh`, `extract_endpoints.sh`, `scaffold_suite.sh`, `validate_bat_suite.sh`) and reference material (BAT authoring rules, the quality-dimension taxonomy, and canonical `.dwl` + `bat.yaml` examples). Can also extend an existing hand-written BAT baseline as a strict superset. Complements MUnit generation (build-time, in-process, XML) by covering deployed-endpoint functional testing.
+
 ## [1.5.0] - 2026-06-25
 
 ### Changed

@@ -166,6 +166,33 @@ class TestDetailPageStructure:
         link = self.soup.find('a', href=lambda h: h and 'skills/deploy-app.html' in h)
         assert link is not None
 
+    def test_api_page_has_no_combobox_or_dropdown_classes(self, generated_portal):
+        """W-23196976: the per-op server combobox was removed. The generated
+        HTML must not contain .url-combobox* or .server-dropdown* markup — those
+        classes only lived inside the removed JS branch, and their absence is
+        a strong signal that the refactor is complete."""
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+
+        for cls in ['url-combobox', 'url-combobox-text', 'url-combobox-chevron',
+                    'server-dropdown', 'server-dropdown-option']:
+            elements = soup.find_all(class_=cls)
+            assert not elements, (
+                f'W-23196976 regression: found <{elements[0].name} class="{cls}"> '
+                f'in generated HTML for apis/test-api.html')
+
+    def test_region_notice_absent_pre_hydration(self, generated_portal):
+        """W-23196976: the region-mismatch notice is a JS-injected runtime
+        element. It must NOT appear in the server-generated HTML, because at
+        generate-time we don't know the user's region."""
+        api_html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        mcp_html = (generated_portal / 'mcps' / 'test-mcp.html').read_text(encoding='utf-8')
+        for label, html in [('API', api_html), ('MCP', mcp_html)]:
+            soup = BeautifulSoup(html, 'html.parser')
+            assert not soup.find_all(class_='operation-region-notice'), (
+                f'W-23196976: .operation-region-notice must not be present in '
+                f'server-side HTML for {label} pages — JS injects it at load')
+
 
 class TestSkillPageStructure:
     @pytest.fixture(autouse=True)
@@ -702,6 +729,25 @@ class TestMcpDetailPage:
         section = self.soup.find('section', id='tool-searchAssets')
         assert section is not None
         assert section.get('data-mcp-kind') == 'tool'
+
+    def test_mcp_url_bars_use_data_mcp_marker(self):
+        """W-23196976: MCP URL bars are populated by JS at page load so they
+        react to region changes. The generated HTML must emit
+        <code class="operation-url-bar" data-mcp="1"></code> — an empty element
+        with the marker attribute — not the pre-refactor
+        <code class="operation-url-bar">https://...</code>."""
+        url_bars = self.soup.select('code.operation-url-bar')
+        assert len(url_bars) >= 1, 'MCP page should render at least one URL bar'
+
+        # Every URL bar that used to inline server_url must now be marker-only.
+        marker_bars = [b for b in url_bars if b.get('data-mcp') == '1']
+        assert marker_bars, (
+            'W-23196976: expected at least one <code class="operation-url-bar" '
+            'data-mcp="1"> element on the MCP detail page')
+        for bar in marker_bars:
+            assert bar.get_text(strip=True) == '', (
+                f'MCP URL bar with data-mcp="1" must be empty at generate time '
+                f'(JS populates it at page load); got: {bar!r}')
 
     def test_mcp_page_has_auth_panel(self):
         header = self.soup.find('div', class_='auth-panel-header-bar')

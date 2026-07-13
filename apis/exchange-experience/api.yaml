@@ -2469,6 +2469,104 @@ paths:
                 type: object
               example: *id023
       operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatusByRunid
+  /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/documentation/generate:
+    summary: Generate Documentation
+    description: AI-powered documentation generation for an asset
+    post:
+      operationId: generateAssetDocumentation
+      description: |
+        Generates AI-powered documentation for an asset version.
+        Requires Einstein to be enabled for the organization.
+      parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/AssetId'
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: Documentation generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationSuccessResponse'
+              example:
+                userId: 8f7bba08-43fd-4036-8108-84d34d71d531
+                requestId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                conversationId: null
+                type: EXCHANGE_DOC_GENERATION
+                generations:
+                  - id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                    content: "# API Overview\n\nThis API provides..."
+                    explanation: Generated documentation based on the API specification
+                    isGenerated: true
+                    isLiked: null
+                    createdOn: "2026-07-03T10:00:00.000Z"
+                    updatedOn: null
+                    parameters: {}
+                parameters: {}
+        '400':
+          description: |
+            Bad request - invalid asset type or request format.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '401':
+          description: |
+            Unauthorized - user does not have permission to generate documentation.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '403':
+          description: |
+            Forbidden - access denied due to organization access, subscription, or permissions.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '404':
+          description: |
+            Not found - asset not found or asset type not supported.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '409':
+          description: |
+            Conflict - Einstein not enabled for the organization.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationEinsteinErrorResponse'
+        '429':
+          description: |
+            Too many requests - rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '500':
+          description: |
+            Internal server error - failed to generate documentation.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '502':
+          description: |
+            Bad gateway - error communicating with AI service.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
+        '503':
+          description: |
+            Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas/generate-documentation.yaml#/GenerateDocumentationErrorResponse'
   /organizations/{organizationId}/fields:
     summary: Custom Fields
     description: Tags of type "custom field"

@@ -25,9 +25,7 @@ _SKILL_SKIP_FILES = {'.DS_Store'}
 _SKILL_SKIP_EXTS = {'.pyc'}
 
 # Google Tag Manager container ID for the MuleSoft marketing surface.
-# Intentionally empty — GTM is disabled until the container ID is confirmed.
-# When confirmed, set to: 'GTM-NH8DNZL'
-GTM_CONTAINER_ID = ''
+GTM_CONTAINER_ID = 'GTM-NH8DNZL'
 
 
 def _generate_skill_manifest(source_dir: Path, output_dir: Path) -> None:

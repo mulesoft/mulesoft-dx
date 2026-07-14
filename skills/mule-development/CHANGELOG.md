@@ -4,6 +4,32 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — Step 9's rescaffold (`mvn clean package -DskipTests`) required a manual approval click in the VS Code Vibes/Agentforce UI even when the exact command was allowlisted, because the model was emitting it as `cd <projectDir> && mvn clean package -DskipTests 2>&1`. The `2>&1` stream redirection is flagged as an unsafe operator by the extension's command-approval layer (`A4dSafeCommandsController.containsUnsafeOperators()`), which forces manual approval unconditionally, before any allowlist pattern is even consulted. Step 9 now explicitly instructs the agent never to append `2>&1` or any other redirection/pipe to the `mvn` invocation — the tool call already captures full stdout/stderr, so the redirection was redundant as well as harmful. Also made explicit that this rescaffold step must run immediately with no user confirmation prompt, matching the real Anypoint Studio behavior where rescaffolding fires automatically on a `pom.xml` change or a Project Properties → API Specs tab edit and is never a user-facing decision.
+
+### Changed
+
+- Added `cd ...` and an exact-match `mvn clean package -DskipTests` line to the local `a4d_safe_commands` allowlist (developer machine config, not part of this repo) so the two sub-commands produced by Step 9 — split independently by the extension's `parseMultiCommand()` — both auto-approve once the `2>&1` redirection is removed.
+
+## [1.6.2] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — Step 7c ("present available versions and handle selection") told the agent to display the version list and prompt as plain narrated chat text, then separately invoke the `AskUserQuestion` tool for the actual interactive selection — producing two renderings of the same question in the VS Code Vibes/Agentforce UI (one plain-text, one interactive). Step 7c is rewritten so the version list and prompt are presented *only* via a single `AskUserQuestion` tool call per API, with the version list as the tool's `options`; the skill no longer narrates the same content as chat text before or after the tool call.
+
+## [1.6.1] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — fixed a false-negative bug in version discovery (Steps 5, 6, 7b). The skill previously relied solely on `anypoint-cli-v4 exchange asset describe <groupId>/<artifactId>/<currentVersion>` and its `otherVersions` field to enumerate an asset's available versions. That field is anchored to the queried version and has been observed to return empty when the queried version is not the latest published version on Exchange — exactly the case CHECK ALL/CHECK SPECIFIC/CHANGE hit every time, since they query from whatever version is currently pinned in `pom.xml`. This caused the skill to report "no updates available" or "only one version published" even when newer versions genuinely existed. Version discovery now uses `anypoint-cli-v4 exchange asset list <artifactId> --output json` filtered to the target `groupId`/`assetId` as the primary lookup — an asset-identity-scoped query with no version-anchoring failure mode, matching the pattern already used by `build-mule-integration/scripts/search_templates.sh` and `manage-global-configurations/scripts/get_latest_connector.sh`. The old `describe`-based lookup is retained only as a degraded fallback when `list` itself fails, with an explicit caveat surfaced to the user that the resulting list may be incomplete.
+
+### Changed
+
+- **`manage-api-version`** — added a bundled `scripts/fetch_versions.sh` helper and rewired the Version Discovery procedure (Steps 5, 6, 7b) to call it once per operation instead of looping and invoking `anypoint-cli-v4` once per API dependency. Each direct CLI invocation pays a full Node cold start plus a network round trip; the new script fires the Exchange lookup for every target API **in parallel** and returns a single JSON array, cutting wall-clock time roughly N-fold on projects with multiple API dependencies. Same pattern already used by `build-mule-integration/scripts/search_templates.sh` and `manage-global-configurations/scripts/get_latest_connector.sh`.
+
 ## [1.6.0] - 2026-06-30
 
 ### Added

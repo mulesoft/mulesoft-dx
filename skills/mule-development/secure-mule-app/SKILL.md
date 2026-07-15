@@ -1,6 +1,9 @@
 ---
 name: secure-mule-app
-description: Configure and implement Mule secure properties for encrypting sensitive data in Mule applications. Use this when the user wants to use/implement/add/configure Mule secure properties, secure configuration, or encrypt credentials in their Mule project.
+description: Configure and implement Mule secure properties for encrypting sensitive data in Mule applications. Use this when the user wants to use/implement/add/configure Mule secure properties, secure configuration, or encrypt credentials in their Mule project. DO NOT use for securing an API or MCP server with a platform policy (use skill secure-api or skill secure-mcp-server) — this skill only encrypts values inside a local Mule project.
+license: Apache-2.0
+compatibility: Requires Java 8+ (runs the MuleSoft secure-properties-tool JAR) and curl or wget to download the JAR if not already bundled. Operates on a local Mule 4 project (src/main/mule, src/main/resources, pom.xml).
+allowed-tools: Bash Read Write Edit AskUserQuestion
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
@@ -8,11 +11,43 @@ metadata:
 
 You are a MuleSoft security specialist helping to secure a Mule application by encrypting sensitive data.
 
+## When to Use This Skill
+
+**Use this skill when the user asks to:**
+
+- "Encrypt credentials / secrets in my Mule app"
+- "Set up / add / configure Mule secure properties"
+- "Secure my configuration" or "protect passwords in my Mule project"
+
+**Trigger keywords:** secure properties · encrypt credentials · secure configuration · `${secure::}` · secure-properties-tool.
+
+**Do NOT use this skill when:** the user wants to protect an API or MCP server with a
+platform policy (rate limiting, OAuth2, IP allowlist) — use skill secure-api or
+skill secure-mcp-server. This skill only encrypts values *inside* a local Mule project.
+
+## Prerequisites
+
+Before starting, ensure:
+
+```bash
+java -version    # Java 8+ required — the secure-properties-tool JAR runs on the JVM
+```
+
+- **A Mule 4 project** in the current working directory (must contain `src/main/mule`).
+- **The secure-properties-tool JAR** — bundled at `assets/secure-properties-tool.jar`.
+  If absent, Step 3 downloads it automatically via `curl`/`wget` from the MuleSoft docs site.
+
+## Bundled assets
+
+| Asset | Purpose | Source |
+| --- | --- | --- |
+| `assets/secure-properties-tool.jar` | CLI tool that encrypts each sensitive value (`java -cp … SecurePropertiesTool string encrypt …`). | Reused if present; else downloaded in Step 3 from `https://docs.mulesoft.com/mule-runtime/4.4/_attachments/secure-properties-tool.jar`. |
+
 ## Your Task
 
 Scan the Mule application for sensitive data (usernames, passwords, URLs, API keys, secrets, tokens) in both XML files (`src/main/mule`) and properties files (`src/main/resources`), then encrypt them using MuleSoft's secure properties configuration.
 
-## Step-by-Step Process
+## Workflow
 
 ## Step 1: Verify Project Structure
 - Check that `src/main/mule` directory exists in the current working directory
@@ -106,6 +141,10 @@ Show a summary of all sensitive data found:
 If no sensitive data is found, inform the user and exit.
 
 ## Step 6: Get User Confirmation
+
+**[GATE] WAIT for explicit user confirmation before modifying any files. Do not
+proceed to Step 7 until the user approves. If the user says no, stop immediately.**
+
 Before making ANY changes, show the user:
 - What files will be modified
 - What actions will be taken (update pom.xml, create secure properties, encrypt values, update XML files, create/update global-configs.xml)
@@ -322,20 +361,30 @@ Provide a completion summary:
 - Test the application with the encryption key before committing changes
 - Review all XML file changes to ensure `${secure::}` prefix was added correctly
 
-## Error Handling
-
-- If Java is not installed, inform user and exit
-- If JAR download fails, provide manual download instructions
-- If encryption fails, show error and skip that value
-- If XML parsing fails, show warning and continue with other files
-- If file writes fail, show error and list what was completed
-
-## Security Best Practices
+## Best Practices
 
 - Never log or display sensitive values in plain text
 - Always ask for confirmation before making changes
 - Remind user not to commit secure properties file
 - Suggest adding `.gitignore` entry
+
+## Troubleshooting
+
+**Java is not installed:** `java -version` fails. Encryption cannot run — inform the user and exit; direct them to install a JRE/JDK 8+.
+
+**JAR download fails:** `curl`/`wget` cannot reach the docs site. Provide the manual download URL (`https://docs.mulesoft.com/mule-runtime/4.4/_attachments/secure-properties-tool.jar`) and ask the user to place it at `assets/secure-properties-tool.jar`.
+
+**Encryption fails for a value:** show the error and skip that value; continue with the rest, then report which values were skipped.
+
+**XML parsing fails:** show a warning and continue with the other files — do not abort the whole run for one malformed file.
+
+**File writes fail:** show the error and list what was already completed, so the user knows the partial state.
+
+## Related Skills
+
+- **skill secure-api**: Protect an API instance with a platform policy (rate limiting, OAuth2, IP allowlist). Use instead when securing at the API layer, not the project files.
+- **skill secure-mcp-server**: Apply a policy to an MCP server. Use instead when securing an MCP server rather than encrypting local Mule config.
+- **skill build-mule-integration**: Build a Mule integration project from scratch; run this skill afterward to encrypt any credentials it introduced.
 
 ## Reference Documentation
 

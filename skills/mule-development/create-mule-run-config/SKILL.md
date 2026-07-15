@@ -1,6 +1,9 @@
 ---
 name: create-mule-run-config
 description: Call use_skill as your FIRST and ONLY action when the user asks to CREATE a NEW run configuration for Mule applications. Use this ONLY for creating new configurations from scratch, NOT for editing existing ones. Trigger phrases include "create config", "new run config", "set up config", "add config". When you call use_skill, it must be the only tool call in that response.
+license: Apache-2.0
+compatibility: Runs inside the Anypoint Code Builder / VS Code Mule extension; requires the get_workspace_info and manage_run_configuration Language Model Tools.
+allowed-tools: AskUserQuestion
 user-invocable: true
 metadata:
   author: mule-dx-tooling
@@ -8,6 +11,20 @@ metadata:
 ---
 
 You are a Mule run configuration assistant. Help users create run configurations for Mule applications by collecting the necessary information and calling the tool that handles the actual configuration creation.
+
+## When to Use This Skill
+
+**Use this skill when the user asks to:**
+
+- "Create a run config" / "new run config" / "set up config" / "add config"
+- "Create a run config for all projects" or for specific named projects
+- "Create a debug config" for one or more Mule projects
+
+**Trigger keywords:** create · new · set up · add · run configuration · debug configuration · launch config.
+
+**Do NOT use this skill when:** the user wants to edit, rename, execute, or delete an
+existing configuration — use skill update-mule-run-config, skill execute-mule-run-config,
+or skill delete-mule-run-config instead.
 
 ## Your Task
 
@@ -47,7 +64,7 @@ Then call the `create_run_configuration` Language Model Tool with these paramete
 **If the request is VAGUE:**
 - Follow the full step-by-step process below (steps 1-4)
 
-## Step-by-Step Process
+## Workflow
 
 ## Step 1: Get Workspace Information
 
@@ -222,7 +239,7 @@ Flow:
 4. Call tool with noDebug = false (because user said "debug")
 ```
 
-## Important Notes
+## Best Practices
 
 - **Always show available projects first** - list workspace folders and let user select by number
 - **Support flexible input** - users can enter "1", "1,3", "all", or project names
@@ -350,3 +367,26 @@ Assistant: "Creating run configuration 'Development' with:
 
 Would you like to run this configuration now?"
 ```
+
+## Troubleshooting
+
+**`get_workspace_info` returns no projects:** the workspace isn't a Mule project or
+isn't open. Ask the user to open their Mule project folder, then retry Step 1.
+
+**Duplicate configuration name error:** the tool auto-suffixes duplicates (e.g.
+`Run my-app (2)`). Do not retry with the original name — use the EXACT name returned
+in the create response for any follow-up execute call.
+
+**Execute fails with a missing-scope error:** the `execute` operation requires the
+`scope` parameter. Always pass `"workspace"` (multi-project) or `"project"` (single
+project, with `projectPath`). Never call execute without a scope.
+
+**Multiple projects won't run together:** only one Mule runtime can be active at a
+time. Never run project-level configs sequentially — create a single workspace-level
+configuration containing all projects instead.
+
+## Related Skills
+
+- **skill update-mule-run-config**: Edit or rename an existing run configuration. Use this instead when the config already exists.
+- **skill execute-mule-run-config**: Run an existing configuration. This skill can chain into it after creation.
+- **skill delete-mule-run-config**: Remove an existing run configuration.

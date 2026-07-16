@@ -82,6 +82,45 @@ Also check:
 - No first-person tone ("I'll", "I will") or second-person instructions ("you should")
 - Cross-references (other skills, APIs, MCPs) resolve
 
+#### Prose skills specifically — template conformance
+
+For every added or modified `skills/*/SKILL.md` whose type is `prose`, check that
+it conforms to the canonical template. `make validate-skills` covers naming,
+metadata length, and cross-references (R1–R7) — it does **not** check narrative
+structure, tone, or trigger phrasing. This step covers that gap.
+
+Read the template from the working tree (it is checked out by Step 1):
+
+```bash
+cat docs/prose-template.md
+```
+
+Compare the PR's prose SKILL.md against the template and flag any of these as
+deviations:
+
+- **Missing required sections** — the skill must have `# <Title>` + one-sentence
+  purpose, `## When to Use This Skill`, `## Workflow` (with numbered steps and a
+  final verify/completion step), `## Best Practices`, `## Troubleshooting`, and
+  `## Related Skills`.
+- **`description` not trigger-shaped** — must contain a `TRIGGER when:` clause
+  with concrete conditions/phrasings and a `DO NOT TRIGGER when:` clause naming
+  the neighboring skill it defers to.
+- **Missing frontmatter keys the template requires** — `license`,
+  `compatibility`, `allowed-tools`, `metadata.author`, `metadata.version`.
+- **Tone** — imperative voice, no first/second person (already flagged above;
+  restate here only if it appears in a prose skill).
+
+Severity:
+- Absent `## When to Use This Skill`, absent `## Workflow`, or a `description`
+  with neither `TRIGGER when:` nor `DO NOT TRIGGER when:` → **[BLOCKER]** (the
+  skill will not discover or execute reliably).
+- Any other missing section or frontmatter key → **[SUGGESTION]**.
+
+When there are deviations, the verdict's `Issues:` block must include a short
+summary of what is off **and** point the author at the template, e.g.:
+
+> `[BLOCKER] Prose skill skills/deploy-app/SKILL.md is missing "## When to Use This Skill" and its description has no TRIGGER clause. Use docs/prose-template.md to fix the structure.`
+
 #### MCP servers changed
 ```bash
 make validate-mcp-server
@@ -130,9 +169,13 @@ Validators run:
 - validate-all-governed: PASS / FAIL / SKIPPED
 - validate-jtbd: PASS / FAIL / SKIPPED
 - validate-skills: PASS / FAIL / SKIPPED
+- prose-template-conformance: PASS / FAIL / SKIPPED
 - validate-mcp-server: PASS / FAIL / SKIPPED
 - test-portal: PASS / FAIL / SKIPPED
 ```
+
+`prose-template-conformance` is SKIPPED when the PR touches no prose skill; it is
+a manual check against `docs/prose-template.md`, not a `make` target.
 
 **Verdict rules:**
 - `APPROVE` if: all relevant validators pass AND no BLOCKERs found

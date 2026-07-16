@@ -585,20 +585,6 @@ describe('filterServersForRegion', () => {
     });
 });
 
-describe('getValidRegionsForServerType', () => {
-    test('eu type → anypoint regional regions', () => {
-        expect(getValidRegionsForServerType('eu')).toEqual(['eu1']);
-    });
-
-    test('platform type → platform regions including jp1 and in1', () => {
-        expect(getValidRegionsForServerType('platform')).toEqual(['ca1', 'jp1', 'in1']);
-    });
-
-    test('us type → empty (no region needed)', () => {
-        expect(getValidRegionsForServerType('us')).toEqual([]);
-    });
-});
-
 // ===========================================================================
 // buildUrlBarHtml
 // ===========================================================================
@@ -2775,6 +2761,760 @@ describe('buildUrlBar', () => {
             expect(bar.querySelector('.url-combobox-chevron')).toBeNull();
             expect(document.querySelector('.server-dropdown')).toBeNull();
         });
+    });
+});
+
+describe('refreshAuthUiFor — region-led lock state', () => {
+    function setupMinimalDom() {
+        // Only the elements refreshAuthUiFor reads that we care about here.
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        document.body.appendChild(region);
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        document.body.appendChild(server);
+        const custom = document.createElement('input');
+        custom.id = 'regionCustomInput';
+        document.body.appendChild(custom);
+        // Placeholders for other fields refreshAuthUiFor prods but which don't
+        // affect the assertions here.
+        ['authUsername','authPassword','authClientId','authClientSecret',
+         'authBearerLoginBtn','authBearerLogoutBtn','authOauth2LoginBtn',
+         'authOauth2LogoutBtn','authBearerLoggedAs','authBearerLoggedAsValue',
+         'authOauth2LoggedAs','authOauth2LoggedAsValue'].forEach((id) => {
+            const el = document.createElement('div');
+            el.id = id;
+            document.body.appendChild(el);
+        });
+        // Auth tabs
+        const btab = document.createElement('button');
+        btab.className = 'auth-tab';
+        btab.setAttribute('data-tab', 'bearer');
+        document.body.appendChild(btab);
+        const otab = document.createElement('button');
+        otab.className = 'auth-tab';
+        otab.setAttribute('data-tab', 'oauth2');
+        document.body.appendChild(otab);
+    }
+    function cleanupAll() {
+        while (document.body.firstChild) {
+            document.body.removeChild(document.body.firstChild);
+        }
+        sessionStorage.clear();
+    }
+    afterEach(() => cleanupAll());
+
+    test('authenticated=true disables regionSelect, serverSelect, regionCustomInput', () => {
+        setupMinimalDom();
+        refreshAuthUiFor(true, 'me@example.com', 'Bearer Token');
+        expect(document.getElementById('regionSelect').disabled).toBe(true);
+        expect(document.getElementById('serverSelect').disabled).toBe(true);
+        expect(document.getElementById('regionCustomInput').disabled).toBe(true);
+    });
+
+    test('authenticated=false re-enables all three', () => {
+        setupMinimalDom();
+        refreshAuthUiFor(false, null, null);
+        expect(document.getElementById('regionSelect').disabled).toBe(false);
+        expect(document.getElementById('serverSelect').disabled).toBe(false);
+        expect(document.getElementById('regionCustomInput').disabled).toBe(false);
+    });
+});
+
+describe('restoreServerSelection (legacy migration)', () => {
+    function setupDom() {
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'custom'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; region.appendChild(o);
+        });
+        document.body.appendChild(region);
+        const row = document.createElement('div');
+        row.id = 'customServerRow';
+        row.style.display = 'none';
+        document.body.appendChild(row);
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        ['eu', 'platform'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; server.appendChild(o);
+        });
+        document.body.appendChild(server);
+        const input = document.createElement('input');
+        input.id = 'regionCustomInput';
+        document.body.appendChild(input);
+    }
+    function cleanup() {
+        ['regionSelect', 'customServerRow', 'serverSelect', 'regionCustomInput']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+        sessionStorage.removeItem('anypoint_server_type');
+        sessionStorage.removeItem('anypoint_region');
+    }
+    afterEach(() => cleanup());
+
+    test('legacy (eu, eu1) restores regionSelect=eu1', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'eu');
+        sessionStorage.setItem('anypoint_region', 'eu1');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('eu1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('legacy (platform, ca1) restores regionSelect=ca1', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'platform');
+        sessionStorage.setItem('anypoint_region', 'ca1');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('ca1');
+    });
+
+    test('legacy (us, "") restores regionSelect=us', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'us');
+        sessionStorage.setItem('anypoint_region', '');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('us');
+    });
+
+    test('legacy (platform, apac2 = unknown) restores custom row', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'platform');
+        sessionStorage.setItem('anypoint_region', 'apac2');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('custom');
+        expect(document.getElementById('customServerRow').style.display).toBe('flex');
+        expect(document.getElementById('serverSelect').value).toBe('platform');
+        expect(document.getElementById('regionCustomInput').value).toBe('apac2');
+    });
+
+    test('legacy (eu, mytest = unknown) restores custom row with serverSelect=eu', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'eu');
+        sessionStorage.setItem('anypoint_region', 'mytest');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('custom');
+        expect(document.getElementById('serverSelect').value).toBe('eu');
+        expect(document.getElementById('regionCustomInput').value).toBe('mytest');
+    });
+
+    test('no legacy data restores regionSelect=us (default)', () => {
+        setupDom();
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('us');
+    });
+});
+
+describe('onRegionSelectChange', () => {
+    function setupDom(regionValue, serverValue) {
+        // Region select
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'custom'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; region.appendChild(o);
+        });
+        region.value = regionValue;
+        document.body.appendChild(region);
+        // Custom row wrapper
+        const row = document.createElement('div');
+        row.id = 'customServerRow';
+        row.style.display = 'none';
+        document.body.appendChild(row);
+        // Server select (inside custom row conceptually — DOM presence is what matters)
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        ['eu', 'platform'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; server.appendChild(o);
+        });
+        server.value = serverValue || 'eu';
+        document.body.appendChild(server);
+        // Custom input
+        const input = document.createElement('input');
+        input.id = 'regionCustomInput';
+        document.body.appendChild(input);
+    }
+    function cleanup() {
+        ['regionSelect', 'customServerRow', 'serverSelect', 'regionCustomInput']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+        sessionStorage.removeItem('anypoint_server_type');
+        sessionStorage.removeItem('anypoint_region');
+    }
+    afterEach(() => cleanup());
+
+    test('picking us stores type=us and region=""', () => {
+        setupDom('us');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('us');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('picking eu1 stores type=eu and region=eu1', () => {
+        setupDom('eu1');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('eu');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('eu1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('picking ca1 stores type=platform and region=ca1', () => {
+        setupDom('ca1');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('ca1');
+    });
+
+    test('picking custom shows customServerRow and defaults type to eu', () => {
+        setupDom('custom');
+        onRegionSelectChange();
+        expect(document.getElementById('customServerRow').style.display).toBe('flex');
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('eu');
+    });
+
+    test('picking custom preserves server=platform if already selected', () => {
+        setupDom('custom', 'platform');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(document.getElementById('customServerRow').style.display).toBe('flex');
+    });
+});
+
+describe('getSelectedServerType / getSelectedRegion — region-led DOM', () => {
+    function makeRegionSelect(value) {
+        const sel = document.createElement('select');
+        sel.id = 'regionSelect';
+        const opt = document.createElement('option');
+        opt.value = value;
+        sel.appendChild(opt);
+        sel.value = value;
+        document.body.appendChild(sel);
+        return sel;
+    }
+    function makeServerSelect(value) {
+        const sel = document.createElement('select');
+        sel.id = 'serverSelect';
+        const opt = document.createElement('option');
+        opt.value = value;
+        sel.appendChild(opt);
+        sel.value = value;
+        document.body.appendChild(sel);
+        return sel;
+    }
+    function makeCustomInput(value) {
+        const inp = document.createElement('input');
+        inp.id = 'regionCustomInput';
+        inp.value = value;
+        document.body.appendChild(inp);
+        return inp;
+    }
+    function cleanup() {
+        ['regionSelect', 'serverSelect', 'regionCustomInput', 'regionPreset']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+    }
+    afterEach(() => cleanup());
+
+    test('us region → type us, region null', () => {
+        makeRegionSelect('us');
+        expect(getSelectedServerType()).toBe('us');
+        expect(getSelectedRegion()).toBeNull();
+    });
+
+    test('eu1 → type eu, region eu1', () => {
+        makeRegionSelect('eu1');
+        expect(getSelectedServerType()).toBe('eu');
+        expect(getSelectedRegion()).toBe('eu1');
+    });
+
+    test('ca1 → type platform, region ca1', () => {
+        makeRegionSelect('ca1');
+        expect(getSelectedServerType()).toBe('platform');
+        expect(getSelectedRegion()).toBe('ca1');
+    });
+
+    test('custom with server=platform and input=apac2 → type platform, region apac2', () => {
+        makeRegionSelect('custom');
+        makeServerSelect('platform');
+        makeCustomInput('apac2');
+        expect(getSelectedServerType()).toBe('platform');
+        expect(getSelectedRegion()).toBe('apac2');
+    });
+
+    test('custom with empty input → falls back to sessionStorage region', () => {
+        makeRegionSelect('custom');
+        makeServerSelect('eu');
+        makeCustomInput('');
+        sessionStorage.setItem('anypoint_server_type', 'eu');
+        sessionStorage.setItem('anypoint_region', 'legacy-custom');
+        try {
+            expect(getSelectedServerType()).toBe('eu');
+            expect(getSelectedRegion()).toBe('legacy-custom');
+        } finally {
+            sessionStorage.removeItem('anypoint_server_type');
+            sessionStorage.removeItem('anypoint_region');
+        }
+    });
+});
+
+describe('getServerTypeForRegion', () => {
+    test('returns "us" for us / null / empty', () => {
+        expect(getServerTypeForRegion('us')).toBe('us');
+        expect(getServerTypeForRegion(null)).toBe('us');
+        expect(getServerTypeForRegion('')).toBe('us');
+    });
+
+    test('returns "eu" for anypoint-domain regions', () => {
+        expect(getServerTypeForRegion('eu1')).toBe('eu');
+    });
+
+    test('returns "platform" for platform-domain regions', () => {
+        expect(getServerTypeForRegion('ca1')).toBe('platform');
+        expect(getServerTypeForRegion('jp1')).toBe('platform');
+        expect(getServerTypeForRegion('in1')).toBe('platform');
+    });
+
+    test('returns null for unknown / custom regions', () => {
+        expect(getServerTypeForRegion('mytest')).toBeNull();
+        expect(getServerTypeForRegion('apac2')).toBeNull();
+    });
+});
+
+// ===========================================================================
+// W-23425814 — additional coverage for acceptance criteria not covered by
+// the plan's baseline tests.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// AC 1: Template contract — the auth modal shows a single Region dropdown
+// with options US, EU1, CA1, JP1, IN1, Custom; server picker is scoped to
+// the Custom sub-row and no longer offers `us`; legacy #regionPreset and
+// #regionDefaultOption are gone.
+// ---------------------------------------------------------------------------
+describe('auth_panel.html template — region-led layout', () => {
+    const authPanelHtml = fs.readFileSync(
+        path.resolve(__dirname, '../portal_generator/templates/partials/auth_panel.html'),
+        'utf-8',
+    );
+
+    // Isolate the `.server-section` block so subsequent assertions don't
+    // false-match elsewhere in the template.
+    function sliceServerSection(src) {
+        const startIdx = src.indexOf('server-section');
+        expect(startIdx).toBeGreaterThan(-1);
+        // Take a wide slice; assertions below are string-contains so extra
+        // trailing HTML is harmless.
+        return src.slice(Math.max(0, startIdx - 40), startIdx + 1500);
+    }
+
+    test('exposes a single #regionSelect with the six expected options', () => {
+        const section = sliceServerSection(authPanelHtml);
+        expect(section).toMatch(/id\s*=\s*["']regionSelect["']/);
+        expect(section).toMatch(/onchange\s*=\s*["']onRegionSelectChange\(\)["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']us["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']eu1["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']ca1["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']jp1["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']in1["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']custom["']/);
+    });
+
+    test('#serverSelect lives inside #customServerRow and offers only eu/platform', () => {
+        const section = sliceServerSection(authPanelHtml);
+        expect(section).toMatch(/id\s*=\s*["']customServerRow["']/);
+        // Custom sub-row is hidden by default.
+        expect(section).toMatch(/id\s*=\s*["']customServerRow["'][^>]*style\s*=\s*["']display\s*:\s*none/);
+        // serverSelect keeps its id but drops the "us" option.
+        expect(section).toMatch(/id\s*=\s*["']serverSelect["']/);
+        // No <option value="us"> inside serverSelect. We approximate by
+        // ensuring the serverSelect block does not contain a `us` option:
+        // slice from `serverSelect` to the next closing </select>.
+        const serverSelectStart = section.indexOf('id="serverSelect"');
+        expect(serverSelectStart).toBeGreaterThan(-1);
+        const serverSelectEnd = section.indexOf('</select>', serverSelectStart);
+        const serverSelectBlock = section.slice(serverSelectStart, serverSelectEnd);
+        expect(serverSelectBlock).not.toMatch(/<option[^>]*value\s*=\s*["']us["']/);
+        expect(serverSelectBlock).toMatch(/<option[^>]*value\s*=\s*["']eu["']/);
+        expect(serverSelectBlock).toMatch(/<option[^>]*value\s*=\s*["']platform["']/);
+    });
+
+    test('#regionCustomInput lives inside customServerRow with no inline display:none', () => {
+        const section = sliceServerSection(authPanelHtml);
+        const customRowStart = section.indexOf('id="customServerRow"');
+        expect(customRowStart).toBeGreaterThan(-1);
+        // Slice the customServerRow container; find a reasonable closing bound.
+        const customRowSlice = section.slice(customRowStart, customRowStart + 800);
+        expect(customRowSlice).toMatch(/id\s*=\s*["']regionCustomInput["']/);
+        // The parent hides the row, so the input itself must NOT be inline-hidden.
+        const inputStart = customRowSlice.indexOf('id="regionCustomInput"');
+        // Isolate just the <input ...> opening tag (up to the next `>`).
+        const inputTagEnd = customRowSlice.indexOf('>', inputStart);
+        const inputTag = customRowSlice.slice(inputStart, inputTagEnd);
+        expect(inputTag).not.toMatch(/style\s*=\s*["'][^"']*display\s*:\s*none/);
+    });
+
+    test('legacy #regionPreset and #regionDefaultOption are removed', () => {
+        expect(authPanelHtml).not.toMatch(/id\s*=\s*["']regionPreset["']/);
+        expect(authPanelHtml).not.toMatch(/id\s*=\s*["']regionDefaultOption["']/);
+        expect(authPanelHtml).not.toMatch(/onRegionPresetChange/);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// AC 2 completeness — the plan tests onRegionSelectChange for us / eu1 / ca1
+// / custom, but not the other two platform-domain presets. Cover jp1 and in1
+// so every option in the flat list is exercised.
+// ---------------------------------------------------------------------------
+describe('onRegionSelectChange — remaining preset regions (jp1, in1)', () => {
+    function setupDom(regionValue) {
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'custom'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; region.appendChild(o);
+        });
+        region.value = regionValue;
+        document.body.appendChild(region);
+        const row = document.createElement('div');
+        row.id = 'customServerRow';
+        row.style.display = 'none';
+        document.body.appendChild(row);
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        ['eu', 'platform'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; server.appendChild(o);
+        });
+        server.value = 'eu';
+        document.body.appendChild(server);
+        const input = document.createElement('input');
+        input.id = 'regionCustomInput';
+        document.body.appendChild(input);
+    }
+    function cleanup() {
+        ['regionSelect', 'customServerRow', 'serverSelect', 'regionCustomInput']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+        sessionStorage.removeItem('anypoint_server_type');
+        sessionStorage.removeItem('anypoint_region');
+    }
+    afterEach(() => cleanup());
+
+    test('picking jp1 stores type=platform, region=jp1, and hides custom row', () => {
+        setupDom('jp1');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('jp1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('picking in1 stores type=platform, region=in1, and hides custom row', () => {
+        setupDom('in1');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('in1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// AC 3: Picking Custom exposes both the server-domain picker and the custom
+// region input, and both are required to produce a working URL. The plan
+// tests the (type, region) accessors in isolation, but not that the URL
+// composition through getSelectedBaseUrl works end-to-end with a region-led
+// DOM in Custom mode.
+// ---------------------------------------------------------------------------
+describe('Custom row — both selectors required for a working URL', () => {
+    function makeRegionSelect(value) {
+        const sel = document.createElement('select');
+        sel.id = 'regionSelect';
+        const opt = document.createElement('option');
+        opt.value = value;
+        sel.appendChild(opt);
+        sel.value = value;
+        document.body.appendChild(sel);
+        return sel;
+    }
+    function makeServerSelect(value) {
+        const sel = document.createElement('select');
+        sel.id = 'serverSelect';
+        ['eu', 'platform'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; sel.appendChild(o);
+        });
+        sel.value = value;
+        document.body.appendChild(sel);
+        return sel;
+    }
+    function makeCustomInput(value) {
+        const inp = document.createElement('input');
+        inp.id = 'regionCustomInput';
+        inp.value = value;
+        document.body.appendChild(inp);
+        return inp;
+    }
+    function cleanup() {
+        ['regionSelect', 'serverSelect', 'regionCustomInput'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+        sessionStorage.removeItem('anypoint_server_type');
+        sessionStorage.removeItem('anypoint_region');
+    }
+    afterEach(() => cleanup());
+
+    test('custom + server=platform + input=apac2 composes a platform URL', () => {
+        makeRegionSelect('custom');
+        makeServerSelect('platform');
+        makeCustomInput('apac2');
+        expect(getSelectedBaseUrl()).toBe('https://apac2.platform.mulesoft.com');
+    });
+
+    test('custom + server=eu + input=eu2 composes an anypoint URL', () => {
+        makeRegionSelect('custom');
+        makeServerSelect('eu');
+        makeCustomInput('eu2');
+        expect(getSelectedBaseUrl()).toBe('https://eu2.anypoint.mulesoft.com');
+    });
+
+    test('custom with empty input still yields a defaulted, non-throwing URL', () => {
+        // AC 3 requires both fields to produce a *working* URL — but the
+        // helper must never throw when the user has selected Custom without
+        // typing anything yet. It should fall back to a defaulted URL
+        // (empty region string or a default region), not crash.
+        makeRegionSelect('custom');
+        makeServerSelect('platform');
+        makeCustomInput('');
+        expect(() => getSelectedBaseUrl()).not.toThrow();
+        // Behavioral floor: the URL must at least be a well-formed https URL
+        // for the selected server domain.
+        const url = getSelectedBaseUrl();
+        expect(url).toMatch(/^https:\/\/[^/]*platform\.mulesoft\.com$/);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// AC 4: getEffectiveServer / getEffectiveMcpRemote must produce the same
+// URLs they do today for a given (server_type, region) pair — including
+// when the region originates from the new #regionSelect DOM path (not the
+// legacy #serverSelect + #regionPreset combo).
+// ---------------------------------------------------------------------------
+describe('AC 4 — downstream URL resolvers still work with region-led DOM', () => {
+    function makeRegionSelect(value) {
+        const sel = document.createElement('select');
+        sel.id = 'regionSelect';
+        const opt = document.createElement('option');
+        opt.value = value;
+        sel.appendChild(opt);
+        sel.value = value;
+        document.body.appendChild(sel);
+        return sel;
+    }
+    function cleanup() {
+        ['regionSelect', 'serverSelect', 'regionCustomInput'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+    }
+    afterEach(() => cleanup());
+
+    test('getEffectiveServer picks the eu1 server when regionSelect=eu1', () => {
+        makeRegionSelect('eu1');
+        const servers = [
+            { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+            { url: 'https://eu1.anypoint.mulesoft.com/v1', variables: {} },
+        ];
+        const result = getEffectiveServer(servers, null);
+        expect(result.supported).toBe(true);
+        expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/v1');
+    });
+
+    test('getEffectiveServer picks the ca1 platform server when regionSelect=ca1', () => {
+        makeRegionSelect('ca1');
+        const servers = [
+            { url: 'https://anypoint.mulesoft.com/v1', variables: {} },
+            { url: 'https://ca1.platform.mulesoft.com/v1', variables: {} },
+            { url: 'https://jp1.platform.mulesoft.com/v1', variables: {} },
+        ];
+        const result = getEffectiveServer(servers, null);
+        expect(result.supported).toBe(true);
+        expect(result.url).toBe('https://ca1.platform.mulesoft.com/v1');
+    });
+
+    test('getEffectiveServer returns US-fixed URL when regionSelect=us', () => {
+        makeRegionSelect('us');
+        const servers = [{ url: 'https://anypoint.mulesoft.com/v1', variables: {} }];
+        const result = getEffectiveServer(servers, null);
+        expect(result.supported).toBe(true);
+        expect(result.url).toBe('https://anypoint.mulesoft.com/v1');
+    });
+
+    test('getEffectiveMcpRemote picks the eu1 remote when regionSelect=eu1', () => {
+        makeRegionSelect('eu1');
+        const remotes = [
+            { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+            { type: 'streamable-http', url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp' },
+            { type: 'streamable-http', url: 'https://ca1.platform.mulesoft.com/exchange/mcp' },
+        ];
+        const result = getEffectiveMcpRemote(remotes);
+        expect(result.supported).toBe(true);
+        expect(result.url).toBe('https://eu1.anypoint.mulesoft.com/exchange/mcp');
+    });
+
+    test('getEffectiveMcpRemote picks the in1 remote when regionSelect=in1', () => {
+        makeRegionSelect('in1');
+        const remotes = [
+            { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+            { type: 'streamable-http', url: 'https://in1.platform.mulesoft.com/exchange/mcp' },
+        ];
+        const result = getEffectiveMcpRemote(remotes);
+        expect(result.supported).toBe(true);
+        expect(result.url).toBe('https://in1.platform.mulesoft.com/exchange/mcp');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// AC 5 completeness — the plan tests legacy migration for eu1, ca1, us,
+// custom (platform+apac2, eu+mytest). Cover the remaining platform presets
+// jp1 and in1 so every preset region is exercised through the restore path.
+// ---------------------------------------------------------------------------
+describe('restoreServerSelection — remaining preset regions (jp1, in1)', () => {
+    function setupDom() {
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'custom'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; region.appendChild(o);
+        });
+        document.body.appendChild(region);
+        const row = document.createElement('div');
+        row.id = 'customServerRow';
+        row.style.display = 'none';
+        document.body.appendChild(row);
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        ['eu', 'platform'].forEach((v) => {
+            const o = document.createElement('option'); o.value = v; server.appendChild(o);
+        });
+        document.body.appendChild(server);
+        const input = document.createElement('input');
+        input.id = 'regionCustomInput';
+        document.body.appendChild(input);
+    }
+    function cleanup() {
+        ['regionSelect', 'customServerRow', 'serverSelect', 'regionCustomInput']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+        sessionStorage.removeItem('anypoint_server_type');
+        sessionStorage.removeItem('anypoint_region');
+    }
+    afterEach(() => cleanup());
+
+    test('legacy (platform, jp1) restores regionSelect=jp1 with custom row hidden', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'platform');
+        sessionStorage.setItem('anypoint_region', 'jp1');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('jp1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('legacy (platform, in1) restores regionSelect=in1 with custom row hidden', () => {
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'platform');
+        sessionStorage.setItem('anypoint_region', 'in1');
+        restoreServerSelection();
+        expect(document.getElementById('regionSelect').value).toBe('in1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('legacy (eu, "") restores regionSelect=eu1 (eu1 is the sole eu preset)', () => {
+        // A stored server_type=eu with an empty region is ambiguous. The
+        // migration table treats it as "unknown region for eu" → custom,
+        // OR (defensible alternative) as a plain eu1 restoration. Either
+        // way, the resulting regionSelect must not stay at the default 'us',
+        // and the customServerRow visibility must be coherent with the
+        // chosen mapping.
+        setupDom();
+        sessionStorage.setItem('anypoint_server_type', 'eu');
+        sessionStorage.setItem('anypoint_region', '');
+        restoreServerSelection();
+        const rv = document.getElementById('regionSelect').value;
+        const rowDisplay = document.getElementById('customServerRow').style.display;
+        // Accept either: (a) region='eu1', row hidden; or (b) region='custom', row visible.
+        expect(['eu1', 'custom']).toContain(rv);
+        if (rv === 'custom') {
+            expect(rowDisplay).toBe('flex');
+        } else {
+            expect(rowDisplay).toBe('none');
+        }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// AC 6: While logged in, all three inputs are disabled with the
+// SERVER_LOCKED_TOOLTIP tooltip. The plan tests only check `.disabled` but
+// AC 6 explicitly requires the tooltip contents; also verifies the reverse
+// (unauthenticated removes the title attribute).
+// ---------------------------------------------------------------------------
+describe('refreshAuthUiFor — locked-state tooltip contents (SERVER_LOCKED_TOOLTIP)', () => {
+    function setupMinimalDom() {
+        const region = document.createElement('select');
+        region.id = 'regionSelect';
+        document.body.appendChild(region);
+        const server = document.createElement('select');
+        server.id = 'serverSelect';
+        document.body.appendChild(server);
+        const custom = document.createElement('input');
+        custom.id = 'regionCustomInput';
+        document.body.appendChild(custom);
+        ['authUsername','authPassword','authClientId','authClientSecret',
+         'authBearerLoginBtn','authBearerLogoutBtn','authOauth2LoginBtn',
+         'authOauth2LogoutBtn','authBearerLoggedAs','authBearerLoggedAsValue',
+         'authOauth2LoggedAs','authOauth2LoggedAsValue'].forEach((id) => {
+            const el = document.createElement('div');
+            el.id = id;
+            document.body.appendChild(el);
+        });
+        const btab = document.createElement('button');
+        btab.className = 'auth-tab';
+        btab.setAttribute('data-tab', 'bearer');
+        document.body.appendChild(btab);
+        const otab = document.createElement('button');
+        otab.className = 'auth-tab';
+        otab.setAttribute('data-tab', 'oauth2');
+        document.body.appendChild(otab);
+    }
+    function cleanupAll() {
+        document.body.innerHTML = '';
+    }
+    afterEach(() => cleanupAll());
+
+    test('authenticated=true sets the SERVER_LOCKED_TOOLTIP title on all three inputs', () => {
+        setupMinimalDom();
+        refreshAuthUiFor(true, 'me@example.com', 'Bearer Token');
+        const EXPECTED = 'Log out and log in again to switch server.';
+        expect(document.getElementById('regionSelect').getAttribute('title')).toBe(EXPECTED);
+        expect(document.getElementById('serverSelect').getAttribute('title')).toBe(EXPECTED);
+        expect(document.getElementById('regionCustomInput').getAttribute('title')).toBe(EXPECTED);
+    });
+
+    test('authenticated=false removes the title attribute from all three inputs', () => {
+        setupMinimalDom();
+        // Pre-populate a title to prove it gets cleared.
+        document.getElementById('regionSelect').setAttribute('title', 'stale');
+        document.getElementById('serverSelect').setAttribute('title', 'stale');
+        document.getElementById('regionCustomInput').setAttribute('title', 'stale');
+        refreshAuthUiFor(false, null, null);
+        expect(document.getElementById('regionSelect').hasAttribute('title')).toBe(false);
+        expect(document.getElementById('serverSelect').hasAttribute('title')).toBe(false);
+        expect(document.getElementById('regionCustomInput').hasAttribute('title')).toBe(false);
     });
 });
 

@@ -6009,21 +6009,21 @@ details[open] .examples-toggle-icon {
     font-weight: var(--font-weight-medium);
 }
 
-/* Server region row */
-.server-region-row {
+/* Custom server row (visible only when region == 'custom') */
+.custom-server-row {
     display: flex;
     align-items: center;
     gap: var(--space-small);
     margin-top: var(--space-small);
 }
 
-.server-region-row .region-preset-select {
+.custom-server-row .server-select {
     width: auto;
     flex: 0 0 auto;
     min-width: 140px;
 }
 
-.server-region-row .server-var-input {
+.custom-server-row .server-var-input {
     flex: 1;
     min-width: 0;
     max-width: 200px;

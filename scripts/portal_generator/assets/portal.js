@@ -2309,6 +2309,26 @@ function openAuthModal() {
     if (firstFocusable) firstFocusable.focus();
 }
 
+// Testing shim: expose a name-and-argument variant of applyAuthModalMode
+// used by unit tests to drive the locked / unlocked auth UI without having
+// to seed sessionStorage. Production code should keep calling
+// applyAuthModalMode() directly.
+function refreshAuthUiFor(authenticated, identity, authMethod) {
+    if (authenticated) {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method',
+            (authMethod && authMethod.toLowerCase().indexOf('oauth') !== -1) ? 'OAuth2' : 'Bearer');
+        if (identity) sessionStorage.setItem('anypoint_identity', identity);
+    } else {
+        sessionStorage.removeItem('anypoint_token');
+        sessionStorage.removeItem('anypoint_token_expires_at');
+        sessionStorage.removeItem('anypoint_auth_method');
+        sessionStorage.removeItem('anypoint_identity');
+    }
+    applyAuthModalMode();
+}
+
 function applyAuthModalMode() {
     var token = sessionStorage.getItem('anypoint_token');
     var authenticated = !!token && !isTokenExpired();
@@ -2328,7 +2348,7 @@ function applyAuthModalMode() {
     var oauth2LoggedAs = document.getElementById('authOauth2LoggedAs');
     var oauth2LoggedAsValue = document.getElementById('authOauth2LoggedAsValue');
     var serverSelect = document.getElementById('serverSelect');
-    var regionPreset = document.getElementById('regionPreset');
+    var regionSelectEl = document.getElementById('regionSelect');
     var regionCustom = document.getElementById('regionCustomInput');
     var bearerTab = document.querySelector('.auth-tab[data-tab="bearer"]');
     var oauth2Tab = document.querySelector('.auth-tab[data-tab="oauth2"]');
@@ -2362,8 +2382,8 @@ function applyAuthModalMode() {
         }
 
         // Server combo + region inputs disabled (chevron stays, value visible).
+        if (regionSelectEl) { regionSelectEl.disabled = true; regionSelectEl.title = SERVER_LOCKED_TOOLTIP; }
         if (serverSelect) { serverSelect.disabled = true; serverSelect.title = SERVER_LOCKED_TOOLTIP; }
-        if (regionPreset) { regionPreset.disabled = true; regionPreset.title = SERVER_LOCKED_TOOLTIP; }
         if (regionCustom) { regionCustom.disabled = true; regionCustom.title = SERVER_LOCKED_TOOLTIP; }
     } else {
         if (bearerTab) { bearerTab.disabled = false; bearerTab.style.display = ''; bearerTab.removeAttribute('title'); }
@@ -2382,8 +2402,8 @@ function applyAuthModalMode() {
         if (oauth2LoginBtn) oauth2LoginBtn.style.display = '';
         if (oauth2LogoutBtn) oauth2LogoutBtn.style.display = 'none';
 
+        if (regionSelectEl) { regionSelectEl.disabled = false; regionSelectEl.removeAttribute('title'); }
         if (serverSelect) { serverSelect.disabled = false; serverSelect.removeAttribute('title'); }
-        if (regionPreset) { regionPreset.disabled = false; regionPreset.removeAttribute('title'); }
         if (regionCustom) { regionCustom.disabled = false; regionCustom.removeAttribute('title'); }
     }
 }
@@ -3709,14 +3729,11 @@ function _rewriteRegionInHost(url, region, type) {
     return url;
 }
 
-function getValidRegionsForServerType(type) {
-    if (type === 'eu') {
-        return (DOMAIN_REGIONS.anypoint || []).filter(function(r) { return r !== 'us'; });
-    }
-    if (type === 'platform') {
-        return (DOMAIN_REGIONS.platform || []).slice();
-    }
-    return [];
+function getServerTypeForRegion(region) {
+    if (!region || region === 'us') return 'us';
+    if ((DOMAIN_REGIONS.anypoint || []).indexOf(region) !== -1) return 'eu';
+    if ((DOMAIN_REGIONS.platform || []).indexOf(region) !== -1) return 'platform';
+    return null;
 }
 
 function _safeSessionGet(key) {
@@ -3729,32 +3746,52 @@ function _safeSessionGet(key) {
 }
 
 function getSelectedServerType() {
+    var region = document.getElementById('regionSelect');
+    if (region) {
+        if (region.value === 'us') return 'us';
+        if (region.value === 'custom') {
+            var srv = document.getElementById('serverSelect');
+            if (srv && (srv.value === 'eu' || srv.value === 'platform')) return srv.value;
+        } else if (region.value) {
+            var derived = getServerTypeForRegion(region.value);
+            if (derived) return derived;
+        }
+    }
+    // Backward-compat: pre-existing DOM fixtures (tests, legacy sessions before
+    // the DOMContentLoaded restore path has run) still use #serverSelect. Only
+    // prefer the DOM value when it's a real (non-default) pick — otherwise fall
+    // through to sessionStorage so the persisted selection survives the
+    // DOMContentLoaded race. See W-22945464.
     var sel = document.getElementById('serverSelect');
     var domValue = sel ? sel.value : null;
-    // DOM-first when the user has actually picked a non-default value.
-    if (domValue && domValue !== 'us') return domValue;
-    // Race window during DOMContentLoaded: serverSelect still shows the
-    // default 'us' (or is missing) because the auth restore handler hasn't
-    // run yet. Fall back to the persisted value so callers like
-    // initStepUrlBars() render the correct region. See W-22945464.
+    if (domValue && (domValue === 'eu' || domValue === 'platform')) {
+        return domValue;
+    }
     var stored = _safeSessionGet('anypoint_server_type');
     if (stored === 'eu' || stored === 'platform' || stored === 'us') return stored;
-    return domValue || 'us';
+    return 'us';
 }
 
 function getSelectedRegion() {
     var type = getSelectedServerType();
     if (type === 'us') return null;
+    var region = document.getElementById('regionSelect');
+    if (region) {
+        if (region.value === 'custom') {
+            var customInput = document.getElementById('regionCustomInput');
+            if (customInput && customInput.value.trim()) return customInput.value.trim();
+            return _safeSessionGet('anypoint_region');
+        }
+        if (region.value && region.value !== 'us') return region.value;
+    }
+    // Backward-compat: legacy DOM path (#regionPreset) or persisted value.
     var sel = document.getElementById('serverSelect');
-    // DOM-first only when the user has actually picked a non-default value.
-    // Otherwise fall through to the persisted region so callers see the
-    // restored selection during the DOMContentLoaded race.
     if (sel && sel.value !== 'us') {
         var preset = document.getElementById('regionPreset');
         if (preset) {
             if (preset.value === 'custom') {
-                var customInput = document.getElementById('regionCustomInput');
-                if (customInput && customInput.value.trim()) return customInput.value.trim();
+                var customInputLegacy = document.getElementById('regionCustomInput');
+                if (customInputLegacy && customInputLegacy.value.trim()) return customInputLegacy.value.trim();
             } else if (preset.value) {
                 return preset.value;
             }
@@ -4036,34 +4073,11 @@ function _regionLabel(r) {
 }
 
 function onServerChange() {
+    // Called from the Custom sub-row: user picked a different server domain
+    // while regionSelect === 'custom'. Region select and preset are no longer
+    // touched here.
     var sel = document.getElementById('serverSelect');
-    var regionRow = document.getElementById('serverRegionRow');
-    var preset = document.getElementById('regionPreset');
-    var defaultOpt = document.getElementById('regionDefaultOption');
-    var customInput = document.getElementById('regionCustomInput');
-    if (sel && regionRow) {
-        var showRegion = sel.value === 'eu' || sel.value === 'platform';
-        regionRow.style.display = showRegion ? 'flex' : 'none';
-        if (showRegion && preset && defaultOpt) {
-            var regions = getValidRegionsForServerType(sel.value);
-            // Rebuild preset options: dynamic region entries + custom
-            while (preset.options.length > 0) preset.remove(0);
-            regions.forEach(function(r, i) {
-                var opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = _regionLabel(r);
-                if (i === 0) opt.id = 'regionDefaultOption';
-                preset.appendChild(opt);
-            });
-            var customOpt = document.createElement('option');
-            customOpt.value = 'custom';
-            customOpt.textContent = 'Custom';
-            preset.appendChild(customOpt);
-            preset.value = regions[0] || 'custom';
-            if (customInput) customInput.style.display = 'none';
-        }
-    }
-    sessionStorage.setItem('anypoint_server_type', sel ? sel.value : 'us');
+    if (sel) sessionStorage.setItem('anypoint_server_type', sel.value);
     sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
     updateAllServerBars();
@@ -4072,14 +4086,29 @@ function onServerChange() {
     updateAllPlaygroundUrls();
 }
 
-function onRegionPresetChange() {
-    var preset = document.getElementById('regionPreset');
-    var customInput = document.getElementById('regionCustomInput');
-    if (preset && customInput) {
-        customInput.style.display = preset.value === 'custom' ? 'block' : 'none';
-        if (preset.value === 'custom') customInput.focus();
+function onRegionSelectChange() {
+    var regionSelect = document.getElementById('regionSelect');
+    var customRow    = document.getElementById('customServerRow');
+    var serverSelect = document.getElementById('serverSelect');
+    var customInput  = document.getElementById('regionCustomInput');
+    if (!regionSelect) return;
+    var val = regionSelect.value;
+    if (val === 'custom') {
+        if (customRow) customRow.style.display = 'flex';
+        var type = (serverSelect && serverSelect.value) || 'eu';
+        sessionStorage.setItem('anypoint_server_type', type);
+        sessionStorage.setItem(
+            'anypoint_region',
+            (customInput && customInput.value.trim()) || ''
+        );
+        if (customInput) customInput.focus();
+    } else {
+        if (customRow) customRow.style.display = 'none';
+        var derived = getServerTypeForRegion(val);
+        sessionStorage.setItem('anypoint_server_type', derived);
+        sessionStorage.setItem('anypoint_region', val === 'us' ? '' : val);
+        if (serverSelect && derived !== 'us') serverSelect.value = derived;
     }
-    sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
     updateAllServerBars();
     updateAllMcpUrls();
@@ -7155,9 +7184,56 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
 // Initialize server selector
 // ============================================================================
 
+function restoreServerSelection() {
+    var regionSelect = document.getElementById('regionSelect');
+    var customRow    = document.getElementById('customServerRow');
+    var serverSelect = document.getElementById('serverSelect');
+    var customInput  = document.getElementById('regionCustomInput');
+    if (!regionSelect) return;
+
+    var storedType   = sessionStorage.getItem('anypoint_server_type');
+    var storedRegion = sessionStorage.getItem('anypoint_region');
+
+    // Nothing stored → default US, custom row hidden.
+    if (!storedType) {
+        regionSelect.value = 'us';
+        if (customRow) customRow.style.display = 'none';
+        return;
+    }
+
+    // US → region select = 'us', custom hidden.
+    if (storedType === 'us') {
+        regionSelect.value = 'us';
+        if (customRow) customRow.style.display = 'none';
+        return;
+    }
+
+    // Non-US: known region matches a preset option?
+    if (storedType === 'eu' || storedType === 'platform') {
+        var domainRegions = (storedType === 'eu')
+            ? (DOMAIN_REGIONS.anypoint || [])
+            : (DOMAIN_REGIONS.platform || []);
+        var isKnown = storedRegion && domainRegions.indexOf(storedRegion) !== -1 && storedRegion !== 'us';
+        if (isKnown) {
+            regionSelect.value = storedRegion;
+            if (customRow) customRow.style.display = 'none';
+            return;
+        }
+        // Custom: unknown region for this server type.
+        regionSelect.value = 'custom';
+        if (customRow) customRow.style.display = 'flex';
+        if (serverSelect) serverSelect.value = storedType;
+        if (customInput) customInput.value = storedRegion || '';
+        return;
+    }
+
+    // Unknown stored type → default US.
+    regionSelect.value = 'us';
+    if (customRow) customRow.style.display = 'none';
+}
+
 (function initServerSelect() {
     document.addEventListener('DOMContentLoaded', function() {
-        // Add listener for custom region input
         var customInput = document.getElementById('regionCustomInput');
         if (customInput) {
             customInput.addEventListener('input', function() {
@@ -7169,52 +7245,7 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
                 updateAllPlaygroundUrls();
             });
         }
-
-        // Restore server/region selection from sessionStorage
-        var storedServerType = sessionStorage.getItem('anypoint_server_type');
-        if (storedServerType) {
-            var serverSelect = document.getElementById('serverSelect');
-            if (serverSelect && serverSelect.value !== storedServerType) {
-                serverSelect.value = storedServerType;
-                var regionRow = document.getElementById('serverRegionRow');
-                var showRegion = storedServerType === 'eu' || storedServerType === 'platform';
-                if (regionRow) regionRow.style.display = showRegion ? 'flex' : 'none';
-                if (showRegion) {
-                    var preset = document.getElementById('regionPreset');
-                    if (preset) {
-                        // Rebuild options dynamically for this server type
-                        var regions = getValidRegionsForServerType(storedServerType);
-                        while (preset.options.length > 0) preset.remove(0);
-                        regions.forEach(function(r, i) {
-                            var opt = document.createElement('option');
-                            opt.value = r;
-                            opt.textContent = _regionLabel(r);
-                            if (i === 0) opt.id = 'regionDefaultOption';
-                            preset.appendChild(opt);
-                        });
-                        var customOpt = document.createElement('option');
-                        customOpt.value = 'custom';
-                        customOpt.textContent = 'Custom';
-                        preset.appendChild(customOpt);
-
-                        var storedRegion = sessionStorage.getItem('anypoint_region');
-                        if (storedRegion) {
-                            if (regions.indexOf(storedRegion) !== -1) {
-                                preset.value = storedRegion;
-                            } else {
-                                preset.value = 'custom';
-                                if (customInput) {
-                                    customInput.style.display = 'block';
-                                    customInput.value = storedRegion;
-                                }
-                            }
-                        } else {
-                            preset.value = regions[0] || 'custom';
-                        }
-                    }
-                }
-            }
-        }
+        restoreServerSelection();
 
         // Check for existing token
         var token = sessionStorage.getItem('anypoint_token');

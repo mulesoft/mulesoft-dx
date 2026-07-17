@@ -33,6 +33,13 @@ paths:
         '200':
           description: Successful operation.
       operationId: getStatus
+  /health:
+    get:
+      description: to check if service is up
+      responses:
+        '200':
+          description: Successful operation.
+      operationId: getHealth
   /ready:
     get:
       description: Readiness check, reports status of dependent services (e.g. redis)
@@ -1098,7 +1105,7 @@ paths:
           description: Authorization failed
       operationId: createProjectsByProjectidBranchesByBranchClean
   /projects/{projectId}/branches/{branch}/status:
-    get:
+    post:
       description: list WorkingDir status
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
@@ -1858,6 +1865,11 @@ paths:
         in: header
         schema:
           type: string
+      - name: removeInvalidDependencies
+        description: When true, removes invalid dependencies found while updating exchange.json
+        in: query
+        schema:
+          type: boolean
       requestBody:
         content:
           application/json:
@@ -1892,6 +1904,106 @@ paths:
         '401':
           description: Authorization failed
       operationId: createProjectsByProjectidBranchesByBranchExchangeDependencies
+    patch:
+      description: Reload and update the dependencies listed in exchange.json
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                add:
+                - groupId: gid
+                  assetId: aid
+                  version: 1.0.1
+                remove:
+                - groupId: gid
+                  assetId: aid
+                  version: 1.0.0
+              type: object
+              required:
+              - add
+              - remove
+              properties:
+                add:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExchangeAssetGAV'
+                remove:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExchangeAssetGAV'
+        x-amf-mediaType: application/json
+        description: The dependencies data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      operationId: patchProjectsByProjectidBranchesByBranchExchangeDependencies
+    get:
+      description: Retrieve the dependencies listed in exchange.json, along with their asset metadata
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      operationId: getProjectsByProjectidBranchesByBranchExchangeDependencies
     delete:
       description: Removes dependencies in exchange.json
       parameters:
@@ -2124,6 +2236,41 @@ paths:
           description: Authorization failed
       operationId: getProjectsByProjectidAccessPermissions
   /projects/{projectId}/access/permissions/share:
+    get:
+      description: Get the identities (users and teams) with access to the project, along with their granted permission role
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedWithIdentities'
+        '401':
+          description: Authorization failed
+      operationId: getProjectsByProjectidAccessPermissionsShare
     post:
       description: Grants or Revokes permissions on a [user | role] matrix for a project.
       parameters:
@@ -2876,6 +3023,34 @@ components:
               id:
                 type: string
               result:
+                type: string
+    SharedWithIdentities:
+      type: object
+      required:
+      - sharedWith
+      properties:
+        sharedWith:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - username
+            - role
+            - type
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              email:
+                type: string
+              username:
+                type: string
+              role:
+                type: string
+              type:
                 type: string
     EventPayload:
       type: object

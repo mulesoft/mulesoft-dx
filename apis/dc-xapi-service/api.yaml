@@ -27,27 +27,31 @@ paths:
       responses:
         '200':
           description: Successful operation.
+  /status/apis:
+    get:
+      description: List the downstream APIs the xAPI depends on, including whether each is mocked.
+      operationId: getStatusApis
+      security: []
+      responses:
+        '200':
+          description: Successful operation.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  apis:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        url:
-                          type: string
-                        isMock:
-                          type: boolean
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    url:
+                      type: string
+                    isMock:
+                      type: boolean
               example:
-                apis:
-                - name: project-manager
-                  url: https://project-manager.msap.svc.mesh.sfdc.net
-                  isMock: false
+              - name: project-manager
+                url: https://project-manager.msap.svc.mesh.sfdc.net
+                isMock: false
   /features:
     post:
       description: Get the enabled/disabled status for a list of feature flag names.
@@ -94,7 +98,7 @@ paths:
                   externalVcs: false
   /oauth-callback:
     get:
-      description: OAuth2 redirect callback invoked by Core Services after a successful login. Exchanges the authorization code and redirects the browser back to the originating URL.
+      description: Exchange an OAuth2 authorization code and redirect the browser back to the originating URL.
       operationId: getOauthCallback
       security: []
       parameters:
@@ -117,13 +121,6 @@ paths:
     get:
       description: Get the authenticated Core Services user's profile.
       operationId: getAuthProfile
-      parameters:
-      - name: Authorization
-        in: header
-        description: "Core Services bearer token, formatted as `Authorization Bearer ACCESS_TOKEN`."
-        required: true
-        schema:
-          type: string
       responses:
         '200':
           description: Successful operation.
@@ -141,13 +138,6 @@ paths:
     get:
       description: Get the authenticated Core Services user's identity, including organization membership.
       operationId: getAuthMe
-      parameters:
-      - name: Authorization
-        in: header
-        description: "Core Services bearer token, formatted as `Authorization Bearer ACCESS_TOKEN`."
-        required: true
-        schema:
-          type: string
       responses:
         '200':
           description: Successful operation.

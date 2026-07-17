@@ -1,4 +1,4 @@
-  {
+{
   "main": "api.yaml",
   "name": "Design Center Experience API",
   "classifier": "oas",
@@ -7,7 +7,7 @@
   "assetId": "api-designer-dc-xapi-service",
   "version": "1.0.0",
   "apiVersion": "v2",
-  "originalFormatVersion": "1.0",
+  "originalFormatVersion": "3.0",
   "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
   "visibility": "private",
   "dependencies": []

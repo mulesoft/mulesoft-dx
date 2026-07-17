@@ -1008,7 +1008,7 @@ paths:
           description: Successful operation.
       operationId: createProjectsByProjectidBranchesByBranchEvents
   /projects/{projectId}/branches/{branch}/open:
-    post:
+    get:
       description: List project files. If user's workingDir does not exists, it creates one.
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
@@ -1059,7 +1059,7 @@ paths:
                 type: FILE
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchOpen
+      operationId: getProjectsByProjectidBranchesByBranchOpen
   /projects/{projectId}/branches/{branch}/clean:
     post:
       description: cleans uncommited files from users workingDir
@@ -2187,11 +2187,13 @@ paths:
           type: string
       - name: token
         description: Token used to authenticate against github
+        required: true
         in: query
         schema:
           type: string
       - name: origin
         description: Origin of the request being made in order to build the redirect URL
+        required: true
         in: query
         schema:
           type: string
@@ -2877,6 +2879,9 @@ components:
                 type: string
     EventPayload:
       type: object
+      required:
+      - id
+      - payload
       properties:
         id:
           type: string

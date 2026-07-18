@@ -47,25 +47,6 @@ paths:
         '200':
           description: Successful operation.
       operationId: getReady
-  /configuration:
-    get:
-      description: Returns the unauthenticated implicit-to-PKCE migration flags (pkceClientReady, apidUiPkceReady) consumed by the UI before login. Distinct from the authenticated /config endpoint.
-      responses:
-        '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pkceClientReady:
-                    type: boolean
-                  apidUiPkceReady:
-                    type: boolean
-              example:
-                pkceClientReady: true
-                apidUiPkceReady: false
-      operationId: getConfiguration
   /config:
     get:
       description: Returns client configuration such as currentDate, expirationTime, muleOrganizationId, retryTimes, retryTimeout and feature flags
@@ -1580,46 +1561,6 @@ paths:
         '401':
           description: Authorization failed
       operationId: createProjectsByProjectidBranchesByBranchReleaselock
-  /projects/{projectId}/branches/{branch}/publish/platform:
-    post:
-      description: Publish project to Api Platform (Deprecated)
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_projectId_Path'
-      - name: branch
-        description: Branch name to which apply a given operation
-        required: true
-        in: path
-        schema:
-          type: string
-      - name: x-owner-id
-        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
-        required: true
-        in: header
-        schema:
-          type: string
-          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
-      - name: x-organization-id
-        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
-        required: true
-        in: header
-        schema:
-          type: string
-          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
-      - name: authorization
-        description: Bearer Access Token
-        required: true
-        in: header
-        schema:
-          type: string
-      requestBody:
-        $ref: '#/components/requestBodies/Generated'
-        description: The platform data to create.
-      responses:
-        '200':
-          description: Successful operation.
-        '401':
-          description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchPublishPlatform
   /projects/{projectId}/branches/{branch}/publish/exchange:
     post:
       description: Publish project to Exchange. As a result, an Exchange asset is created.
@@ -2133,42 +2074,6 @@ paths:
         '404':
           description: No dependency resolver job found
       operationId: getProjectsByProjectidBranchesByBranchExchangeDependenciesJob
-  /projects/{projectId}/api/{name}:
-    get:
-      description: Get api data, from Api Platform, for given {name} (Deprecated)
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_projectId_Path'
-      - name: name
-        required: true
-        in: path
-        schema:
-          type: string
-        description: The name to identify the target resource.
-      responses:
-        '200':
-          description: Successful operation.
-      operationId: getProjectsByProjectidApiByName
-  /projects/{projectId}/api/{name}/{version}:
-    post:
-      description: Publish project to Api Platform (Deprecated)
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_projectId_Path'
-      - name: name
-        required: true
-        in: path
-        schema:
-          type: string
-        description: The name to identify the target resource.
-      - name: version
-        required: true
-        in: path
-        schema:
-          type: string
-        description: The version to identify the target resource.
-      responses:
-        '200':
-          description: Successful operation.
-      operationId: createProjectsByProjectidApiByNameByVersion
   /projects/{projectId}/sync/github:
     description: Endpoint to manage project's Github sync
     post:
@@ -2423,20 +2328,6 @@ paths:
               schema:
                 type: string
       operationId: getGithubOauthCallback
-  /github/session:
-    post:
-      description: "(Deprecated) Returns an auth session valid for 5 seconds to start github oauth. Use GET /github to start the authorization workflow"
-      parameters:
-      - name: authorization
-        description: Bearer Access Token
-        required: true
-        in: header
-        schema:
-          type: string
-      responses:
-        '410':
-          description: Gone. Deprecated endpoint
-      operationId: createGithubSession
   /exchange/assets:
     get:
       description: Searches Exchange assets (RAML fragments, REST APIs, evented APIs) visible to the current user

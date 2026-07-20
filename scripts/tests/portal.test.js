@@ -2635,6 +2635,174 @@ describe('getEffectiveMcpRemote', () => {
             expect(result.url).toBe('https://xyz1.platform.mulesoft.com/exchange/mcp');
         });
     });
+
+    // --- omni.mulesoft.com: product-specific host, region prefixed as
+    // subdomain regardless of server type, supported always true (no notice).
+    const OMNI_REMOTES = [
+        { type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' },
+        { type: 'sse', url: 'https://omni.mulesoft.com/mcp-sse/sse' },
+    ];
+
+    test('omni: no region keeps the bare host', () => {
+        withServerType('us', null, () => {
+            const result = getEffectiveMcpRemote(OMNI_REMOTES);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('omni: eu1 region prefixes the subdomain', () => {
+        withServerType('eu', 'eu1', () => {
+            const result = getEffectiveMcpRemote(OMNI_REMOTES);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://eu1.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('omni: prefix is applied regardless of server type (platform)', () => {
+        // Same region string, server type = platform: URL must be identical to
+        // the eu case above — omni ignores server type entirely.
+        withServerType('platform', 'jp1', () => {
+            const result = getEffectiveMcpRemote(OMNI_REMOTES);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://jp1.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('omni: custom region prefixes without a notice (supported stays true)', () => {
+        withServerType('eu', 'aaa', () => {
+            const result = getEffectiveMcpRemote(OMNI_REMOTES);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://aaa.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('omni: rewrite targets the host only, preserving the path', () => {
+        // Only the SSE remote declared → path /mcp-sse/sse must survive.
+        withServerType('platform', 'ca1', () => {
+            const result = getEffectiveMcpRemote([
+                { type: 'sse', url: 'https://omni.mulesoft.com/mcp-sse/sse' },
+            ]);
+            expect(result.supported).toBe(true);
+            expect(result.url).toBe('https://ca1.omni.mulesoft.com/mcp-sse/sse');
+        });
+    });
+
+    test('omni: never double-prefixes a host that already has a subdomain', () => {
+        withServerType('eu', 'eu1', () => {
+            const result = getEffectiveMcpRemote([
+                { type: 'streamable-http', url: 'https://ca1.omni.mulesoft.com/mcp/' },
+            ]);
+            expect(result.url).toBe('https://eu1.omni.mulesoft.com/mcp/');
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// _renderMcpUrlBar — MCP URL bar never surfaces a region notice (product
+// decision). Also proves the omni prefix reaches the rendered DOM.
+// ---------------------------------------------------------------------------
+describe('_renderMcpUrlBar', () => {
+    let bar;
+
+    beforeEach(() => {
+        bar = document.createElement('code');
+        bar.className = 'operation-url-bar';
+        bar.setAttribute('data-mcp', '1');
+        document.body.appendChild(bar);
+    });
+
+    afterEach(() => {
+        bar.remove();
+        cleanupServerElements();
+    });
+
+    test('renders the region-prefixed omni URL as plain text', () => {
+        withServerType('eu', 'eu1', () => {
+            _renderMcpUrlBar(bar, [
+                { type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' },
+            ]);
+            const plain = bar.querySelector('.url-text-plain');
+            expect(plain).not.toBeNull();
+            expect(plain.textContent).toBe('https://eu1.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('never renders a region notice for omni, even for a custom region', () => {
+        withServerType('eu', 'aaa', () => {
+            _renderMcpUrlBar(bar, [
+                { type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' },
+            ]);
+            expect(bar.parentElement.querySelector('.operation-region-notice')).toBeNull();
+        });
+    });
+
+    test('never renders a region notice for an anypoint MCP in an unsupported region', () => {
+        // anypoint host + unknown region → getEffectiveMcpRemote returns
+        // supported=false, but MCP must NOT surface a notice.
+        withServerType('platform', 'xyz1', () => {
+            _renderMcpUrlBar(bar, [
+                { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+            ]);
+            expect(bar.parentElement.querySelector('.operation-region-notice')).toBeNull();
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// __mcpEndpointUrl — the Try It / Copy cURL endpoint must match the rendered
+// URL bar. Both go through getEffectiveMcpRemote, NOT the API-operations path,
+// so the omni region prefix reaches the actual request payload.
+// ---------------------------------------------------------------------------
+describe('__mcpEndpointUrl', () => {
+    afterEach(() => {
+        cleanupServerElements();
+        delete window.__MCP_META__;
+    });
+
+    test('returns null when __MCP_META__ is absent', () => {
+        delete window.__MCP_META__;
+        expect(__mcpEndpointUrl()).toBeNull();
+    });
+
+    test('applies the omni region prefix (matches the URL bar)', () => {
+        window.__MCP_META__ = {
+            servers: [{ type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' }],
+        };
+        withServerType('eu', 'eu1', () => {
+            expect(__mcpEndpointUrl()).toBe('https://eu1.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('omni prefix is server-type independent for the request endpoint', () => {
+        window.__MCP_META__ = {
+            servers: [{ type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' }],
+        };
+        withServerType('platform', 'jp1', () => {
+            expect(__mcpEndpointUrl()).toBe('https://jp1.omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('keeps the bare omni host when no region is selected', () => {
+        window.__MCP_META__ = {
+            servers: [{ type: 'streamable-http', url: 'https://omni.mulesoft.com/mcp/' }],
+        };
+        withServerType('us', null, () => {
+            expect(__mcpEndpointUrl()).toBe('https://omni.mulesoft.com/mcp/');
+        });
+    });
+
+    test('anypoint MCP still picks the region-matching remote', () => {
+        window.__MCP_META__ = {
+            servers: [
+                { type: 'streamable-http', url: 'https://anypoint.mulesoft.com/exchange/mcp' },
+                { type: 'streamable-http', url: 'https://eu1.anypoint.mulesoft.com/exchange/mcp' },
+            ],
+        };
+        withServerType('eu', 'eu1', () => {
+            expect(__mcpEndpointUrl()).toBe('https://eu1.anypoint.mulesoft.com/exchange/mcp');
+        });
+    });
 });
 
 // ---------------------------------------------------------------------------

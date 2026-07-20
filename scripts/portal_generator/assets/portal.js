@@ -2709,14 +2709,15 @@ var __mcpJsonRpcId = 0;
 function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
 
 function __mcpEndpointUrl() {
-    // server.json remotes[] already expose fully-qualified endpoint URLs
-    // (only streamableHttp remotes are included), so the selected server URL
-    // is used verbatim.
+    // Resolve through getEffectiveMcpRemote — the SAME MCP-specific region
+    // logic the URL bar renders — so the request/cURL endpoint matches what
+    // the user sees (including the omni region-subdomain rewrite). Using
+    // getSelectedServer() here would run the API-operations path instead and
+    // miss the omni prefix, sending the wrong URL in the payload.
     var meta = window.__MCP_META__;
-    if (!meta) return null;
-    var selected = getSelectedServer(null);
-    if (!selected) return null;
-    return selected;
+    if (!meta || !meta.servers) return null;
+    var effective = getEffectiveMcpRemote(meta.servers);
+    return effective.url || null;
 }
 
 function __mcpCoerceValue(value, type) {
@@ -3889,6 +3890,31 @@ function getEffectiveServer(servers, opId) {
 }
 
 /**
+ * Detect an omni host (omni.mulesoft.com), with or without an existing
+ * subdomain. omni is a product-specific host — neither anypoint nor platform —
+ * so it's invisible to _getDomainKeyFromUrl / DOMAIN_REGIONS. MCP-only.
+ */
+function _isOmniHost(url) {
+    return !!url && /:\/\/(?:[a-z0-9-]+\.)?omni\.mulesoft\.com/.test(url);
+}
+
+/**
+ * Rewrite the host of an omni URL so it uses `region` as subdomain. Strips any
+ * existing subdomain first to avoid double-prefixing, and leaves the path
+ * (e.g. /mcp/ or /mcp-sse/sse) untouched. Ignores server type — omni is a
+ * single undifferentiated domain, unlike anypoint/platform. MCP-only.
+ *
+ *   https://omni.mulesoft.com/mcp/         + region=eu1 -> https://eu1.omni.mulesoft.com/mcp/
+ *   https://omni.mulesoft.com/mcp-sse/sse  + region=jp1 -> https://jp1.omni.mulesoft.com/mcp-sse/sse
+ *   https://eu1.omni.mulesoft.com/mcp/     + region=aaa -> https://aaa.omni.mulesoft.com/mcp/
+ */
+function _rewriteOmniRegionInHost(url, region) {
+    if (!url || !region) return url;
+    return url.replace(/:\/\/(?:[a-z0-9-]+\.)?omni\.mulesoft\.com/,
+        '://' + region + '.omni.mulesoft.com');
+}
+
+/**
  * Resolve the effective MCP remote for the current region.
  *
  * remotes[].url is always fully qualified (MCP registry schema — no templates).
@@ -3903,6 +3929,21 @@ function getEffectiveMcpRemote(remotes) {
     }
     var region = getSelectedRegion();
     var type = getSelectedServerType();
+    // Omni (omni.mulesoft.com) is a product-specific host that DOES deploy
+    // per-region but is invisible to the anypoint/platform domain logic below.
+    // Prefix the selected region as a subdomain regardless of server type;
+    // no region (== us) keeps the bare host. supported stays true — MCP never
+    // surfaces a region notice.
+    if (_isOmniHost(remotes[0].url)) {
+        if (region == null || region === '') {
+            return { remote: remotes[0], url: remotes[0].url, supported: true };
+        }
+        return {
+            remote: remotes[0],
+            url: _rewriteOmniRegionInHost(remotes[0].url, region),
+            supported: true
+        };
+    }
     // No region selected == 'us' == pass-through: first remote wins.
     if (region == null || region === '') {
         return { remote: remotes[0], url: remotes[0].url, supported: true };
@@ -4277,9 +4318,9 @@ function _renderMcpUrlBar(bar, remotes) {
     urlText.textContent = effective.url;
     bar.appendChild(urlText);
 
-    if (!effective.supported) {
-        _placeRegionNotice(bar, _regionNoticeText('mcp', getSelectedRegion()));
-    }
+    // MCP never surfaces a region-availability notice (product decision):
+    // the URL always reflects the selected region and "Try it" fires against
+    // it, so no "not available in this region" warning is shown for MCP.
 }
 
 /**

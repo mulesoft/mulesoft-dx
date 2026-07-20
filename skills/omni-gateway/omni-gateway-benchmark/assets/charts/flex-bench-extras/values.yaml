@@ -1,0 +1,18 @@
+# Defaults assume the kube-prometheus-stack release was named "kps" in the
+# monitoring namespace. Override at install time if either differs.
+prometheusReleaseLabel: kps
+
+flex:
+  namespace: flex
+  serviceLabel: flex-gateway   # matches app.kubernetes.io/name on the Flex svc
+  promStatsPort: prom-stats
+  scrapeInterval: 5s
+  scrapePath: /stats/prometheus
+
+# k6 metrics flow via Prometheus remote-write (testrun-template.yaml sets
+# K6_PROMETHEUS_RW_SERVER_URL); no PodMonitor / scrape config needed.
+
+dashboards:
+  configMapName: flex-bench-dashboards
+  label: grafana_dashboard
+  labelValue: "1"

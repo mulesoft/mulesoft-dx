@@ -69,20 +69,20 @@ The Beta combination of `metadata.protocol: a2a` + flat `metadata.card.<branch>`
 ### Dialect line
 
 ```text
-# @dialect: AGENTFABRIC=0.1
+# @dialect: AGENTFABRIC=1.0
 ```
 
-`AGENTFABRIC=0.1` pins to dialect 0.1 or later within the major. Major-only (`AGENTFABRIC=0`) references the latest within that major. Patch fixes (`AGENTFABRIC=0.1.2`) are invalid; major-or-major.minor only.
+`AGENTFABRIC=1.0` pins to dialect 1.0 or later within the major. Major-only (`AGENTFABRIC=1`) references the latest within that major. Patch fixes (`AGENTFABRIC=1.0.2`) are invalid; major-or-major.minor only.
 
 ### `config:` block — minimal canonical form
 
 ```text
 config:
-  agent_name: "it-help-investigation"     # REQUIRED, kebab-case
+  agent_name: "it-help-investigation"     # optional, conventionally kebab-case
   default_llm: @llm.openai_mini           # optional
 ```
 
-`agent_name` is required and MUST be kebab-case. Do NOT add `name` or `id`. `label` and `description` are optional.
+`agent_name` is optional per the schema. When present, use kebab-case matching the `.agent` filename stem (the docs' canonical convention) — a human-readable quoted string with spaces also validates but the kebab convention is what the IT example uses. `label` and `description` are optional. Do NOT add `name` or `id`.
 
 ### LLM `kind:` casing
 
@@ -101,7 +101,7 @@ These bite the most.
 ```text
 actions:
   help_center_agent:
-    target: "a2a://helpCenterAgentConnection"
+    target: "a2a://help_center_agent_connection"
     kind: "a2a:send_message"
 ```
 
@@ -130,7 +130,7 @@ do: ->
 ```text
 actions:
   escalate_ticket:
-    target: "mcp://escalationMcpConnection"
+    target: "mcp://escalation_mcp_connection"
     kind: "mcp:tool"
     tool_name: "escalate"
     inputs:
@@ -265,7 +265,7 @@ Wrong placement is a compile error.
   ```yaml
   context:
     connections:
-      myConnection:
+      my_connection:
         kind: a2a
         ref: { name: myAgent }
         url: ${myAgent.url}
@@ -401,10 +401,12 @@ Per asset, atomically:
 2. Add any new `${...}` variables to `exchange.json.metadata.variables`. Mark URLs `secret: false`. API keys / passwords / OAuth secrets `secret: true`.
 3. Confirm with user before next asset.
 
-**Naming conventions** (from canonical):
-- Asset id: camelCase (`helpCenterAgent`, `escalationMcp`, `openAiMini`).
-- Connection id: `<assetId>Connection`.
-- Variables: `<assetId>.url`, `<assetId>.apiKey`, etc.
+**Naming conventions** (from canonical + YAML reference):
+- **Registry asset id** (agents/mcps/llms): camelCase or kebab-case. Schema allows `^[a-zA-Z_][a-zA-Z0-9_.-]*$`. The IT example uses camelCase (`helpCenterAgent`, `escalationMcp`, `openAiMini`).
+- **Connection id**: **MUST be lowercase letters, digits, and non-trailing underscores only** (`^[a-z0-9_]+$`, no trailing `_`). `help_center_agent_connection` ✓; `helpCenterAgentConnection` ✗ (uppercase); `my_connection_` ✗ (trailing `_`). This is a hard schema rule — the linter rejects any other pattern.
+- **Broker id** (key under `brokers:`): **same rule as connections** — lowercase letters, digits, non-trailing underscores only. `it_help_investigation` ✓; `it-help-investigation` ✗ (hyphens); `itHelpInvestigation` ✗ (uppercase). The `.agent` *filename* may still use kebab-case (`it-help-investigation.agent`) — only the YAML key is restricted.
+- **Trigger `target:`**: `brokers://<broker-id>/a2a` where `<broker-id>` matches the YAML key exactly. If the broker id has underscores, the trigger target does too.
+- **Variables** (in `exchange.json.metadata.variables`): `<assetId>.url`, `<assetId>.apiKey`, etc.
 
 ### Stage 4: Bind to nodes
 

@@ -15,6 +15,7 @@ from urllib.parse import quote as _urlquote
 
 from .discovery import discover_apis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
+from .builders.param_order import sort_parameters_by_dependency
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
@@ -23,6 +24,9 @@ from .utils import hash_asset_filename
 _SKILL_SKIP_DIRS = {'node_modules', '__pycache__', '.git', '.sdd'}
 _SKILL_SKIP_FILES = {'.DS_Store'}
 _SKILL_SKIP_EXTS = {'.pyc'}
+
+# Google Tag Manager container ID for the MuleSoft marketing surface.
+GTM_CONTAINER_ID = 'GTM-NH8DNZL'
 
 
 def _generate_skill_manifest(source_dir: Path, output_dir: Path) -> None:
@@ -155,6 +159,59 @@ def _prepare_operations(apis: List[Dict]):
             op['_example_body'] = _get_example_body(op)
 
 
+def _apply_param_order_by_dependency(apis, op_lookup):
+    """Reorder each operation's `parameters` list in-place using the
+    x-origin dependency graph.
+
+    `apis` is the list of API dicts as produced by discovery; each has
+    `slug` and `operations`. `op_lookup` is the {apiSlug: {ops, servers}}
+    map returned by _build_operation_lookup — used here as the resolver
+    for x-origin source operations' path parameters.
+    """
+
+    class _Resolver:
+        __slots__ = ('_lookup',)
+
+        def __init__(self, lookup):
+            self._lookup = lookup
+
+        def path_params_of(self, api_urn, operation_id):
+            # api_urn looks like "urn:api:<slug>". Strip the prefix.
+            prefix = 'urn:api:'
+            if not isinstance(api_urn, str) or not api_urn.startswith(prefix):
+                return None
+            slug = api_urn[len(prefix):]
+            api_entry = self._lookup.get(slug)
+            if not api_entry:
+                return None
+            op = api_entry.get('ops', {}).get(operation_id)
+            if not op:
+                return None
+            return [
+                p.get('name', '')
+                for p in op.get('parameters', [])
+                if p.get('in') == 'path'
+            ]
+
+    resolver = _Resolver(op_lookup)
+    for api in apis:
+        for op in api.get('operations', []):
+            op['parameters'] = sort_parameters_by_dependency(
+                op.get('parameters', []),
+                resolver,
+            )
+    # Keep op_lookup in sync — it holds references to the same parameter
+    # dicts, but the lists themselves are separate copies. Rebuild the
+    # nested lists so callers reading op_lookup see the sorted order too.
+    for slug, entry in op_lookup.items():
+        api = next((a for a in apis if a.get('slug') == slug), None)
+        if not api:
+            continue
+        for op in api.get('operations', []):
+            if op['operationId'] in entry['ops']:
+                entry['ops'][op['operationId']]['parameters'] = list(op['parameters'])
+
+
 def _render_api_page(args: Dict) -> None:
     """Worker: render a single API detail page (runs in subprocess)."""
     env = create_env()
@@ -176,6 +233,7 @@ def _render_api_page(args: Dict) -> None:
         source_path=f"apis/{api['slug']}/api.yaml",
         asset_type='api',
         asset_name=api.get('name', api['slug']),
+        gtm_container_id=args.get('gtm_container_id', ''),
     )
     Path(args['output_path']).write_text(html, encoding='utf-8')
 
@@ -202,6 +260,7 @@ def _render_mcp_page(args: Dict) -> None:
         source_path=f"mcps/{mcp['slug']}/mcp.yaml",
         asset_type='mcp',
         asset_name=mcp.get('name', mcp['slug']),
+        gtm_container_id=args.get('gtm_container_id', ''),
     )
     Path(args['output_path']).write_text(html, encoding='utf-8')
 
@@ -232,6 +291,7 @@ def _render_skill_page(args: Dict) -> None:
         source_path=f"skills/{skill.get('skill_rel_path', skill['slug'])}/SKILL.md",
         asset_type='skill',
         asset_name=skill_name,
+        gtm_container_id=args.get('gtm_container_id', ''),
     )
     Path(args['output_path']).write_text(html, encoding='utf-8')
 
@@ -266,6 +326,7 @@ def _render_terraform_page(args: Dict) -> None:
         source_path=args.get('source_path', ''),
         asset_type='terraform',
         asset_name=provider['name'],
+        gtm_container_id=args.get('gtm_container_id', ''),
     )
     Path(args['output_path']).parent.mkdir(parents=True, exist_ok=True)
     Path(args['output_path']).write_text(html, encoding='utf-8')
@@ -277,11 +338,12 @@ class PortalGenerator:
 
     def __init__(self, output_dir: Path, proxy_url: str = 'http://localhost:8080/proxy',
                  build_label: str = 'unknown', base_url: str = 'https://dev-portal.mulesoft.com',
-                 workers: int = 0):
+                 workers: int = 0, gtm_container_id: str = GTM_CONTAINER_ID):
         self.output_dir = output_dir
         self.proxy_url = proxy_url
         self.build_label = build_label
         self.base_url = base_url.rstrip('/')
+        self.gtm_container_id = gtm_container_id
         self.env = create_env()
         self.apis = []
         self.public_apis = []
@@ -410,14 +472,25 @@ class PortalGenerator:
             'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
         }
 
+    def _error_page_asset_paths(self) -> dict:
+        """Return asset paths for error pages using base_url as prefix, so they resolve correctly at any URL depth."""
+        base = self.base_url
+        return {
+            'css_path': f"{base}/assets/{self._css_filename}",
+            'icons_path': f"{base}/assets/icons",
+            'portal_js_path': f"{base}/assets/{self._js_filename}",
+            'jsonpath_js_path': f"{base}/assets/{self._jsonpath_filename}",
+        }
+
     def _generate_static_error_page(self, template_name: str, output_name: str) -> None:
         """Render a static error page template to output_dir/output_name."""
         template = self.env.get_template(template_name)
         html = template.render(
-            **self._asset_paths(0),
+            **self._error_page_asset_paths(),
             build_label=self.build_label,
             base_url=self.base_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
+            gtm_container_id=self.gtm_container_id,
         )
         (self.output_dir / output_name).write_text(html, encoding='utf-8')
 
@@ -480,6 +553,7 @@ class PortalGenerator:
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
             build_label=self.build_label,
             base_url=self.base_url,
+            gtm_container_id=self.gtm_container_id,
         )
 
         output_path = self.output_dir / 'index.html'
@@ -521,6 +595,11 @@ class PortalGenerator:
     def _generate_detail_pages_parallel(self):
         """Generate all detail pages (APIs, MCPs, skills, terraform) in parallel."""
         op_lookup = self._build_operation_lookup()
+        # Reorder each operation's parameters by x-origin dependency so the
+        # Try It panel renders dependency-parents first (e.g. organizationId
+        # before environmentId). Stable: only params with a detected edge
+        # move; everything else keeps OAS declaration order.
+        _apply_param_order_by_dependency(self.public_apis, op_lookup)
         mcp_lookup = self._build_mcp_lookup()
         chrome = ({'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')}
                   if self.chrome else None)
@@ -541,6 +620,7 @@ class PortalGenerator:
                 'repo_branch': self.REPO_BRANCH,
                 'asset_paths': self._asset_paths(1),
                 'output_path': str(self.output_dir / 'apis' / f"{api['slug']}.html"),
+                'gtm_container_id': self.gtm_container_id,
             }))
 
         # MCP detail pages
@@ -565,6 +645,7 @@ class PortalGenerator:
                     'repo_branch': self.REPO_BRANCH,
                     'asset_paths': self._asset_paths(1),
                     'output_path': str(self.output_dir / 'mcps' / f"{mcp['slug']}.html"),
+                    'gtm_container_id': self.gtm_container_id,
                 }))
 
         # Skill pages
@@ -610,6 +691,7 @@ class PortalGenerator:
                 'output_path': str(self.output_dir / 'skills' / f"{skill['slug']}.html"),
                 'skill_source_dir': str(skill_source_dir) if skill_source_dir.is_dir() else None,
                 'manifest_output_dir': str(self.output_dir / 'skills' / skill_rel),
+                'gtm_container_id': self.gtm_container_id,
             }))
 
         # Terraform pages — one task per (provider, version)
@@ -636,6 +718,7 @@ class PortalGenerator:
                         'repo_branch': self.REPO_BRANCH,
                         'asset_paths': self._asset_paths(2),
                         'source_path': f"terraform/{provider['slug']}/{version['version']}",
+                        'gtm_container_id': self.gtm_container_id,
                     }))
 
         # Execute all tasks in parallel
@@ -696,6 +779,7 @@ class PortalGenerator:
                 source_path=f"apis/{api['slug']}/api.yaml",
                 asset_type='api',
                 asset_name=api.get('name', api['slug']),
+                gtm_container_id=self.gtm_container_id,
             )
             output_path = self.output_dir / 'apis' / f"{api['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -788,6 +872,7 @@ class PortalGenerator:
                 source_path=f"mcps/{mcp['slug']}/mcp.yaml",
                 asset_type='mcp',
                 asset_name=mcp.get('name', mcp['slug']),
+                gtm_container_id=self.gtm_container_id,
             )
             output_path = self.output_dir / 'mcps' / f"{mcp['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -848,6 +933,7 @@ class PortalGenerator:
                 source_path=f"skills/{skill.get('skill_rel_path', skill['slug'])}/SKILL.md",
                 asset_type='skill',
                 asset_name=skill_name,
+                gtm_container_id=self.gtm_container_id,
             )
             output_path = self.output_dir / 'skills' / f"{skill['slug']}.html"
             with open(output_path, 'w', encoding='utf-8') as f:

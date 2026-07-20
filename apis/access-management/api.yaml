@@ -16306,7 +16306,10 @@ paths:
 
       '
     get:
-      description: get all group access mappings configured for the team
+      description: |
+        Get all group access mappings configured for the team.
+
+        **Required Scope:** `view:access_controls` (for connected apps)
       parameters:
       - name: membership_type?
         description: Include the group access mappings that grant the provided membership
@@ -16409,8 +16412,10 @@ paths:
       - clientAuth: []
       operationId: listTeamsGroupmappings
     put:
-      description: Replace the entire list of group mappings associated with this
-        team
+      description: |
+        Replace the entire list of group mappings associated with this team.
+
+        **Required Scope:** `admin:access_controls` (for connected apps)
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_teamId_Path'
@@ -16442,8 +16447,10 @@ paths:
       - clientAuth: []
       operationId: updateTeamsGroupmappings
     patch:
-      description: bulk add mappings and/or modify mappings' membership_type to the
-        team. Removing mappings is not supported by this method.
+      description: |
+        Bulk add mappings and/or modify mappings' membership_type to the team. Removing mappings is not supported by this method.
+
+        **Required Scope:** `admin:access_controls` (for connected apps)
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_teamId_Path'
@@ -16475,7 +16482,10 @@ paths:
       - clientAuth: []
       operationId: updateOrganizationTeamGroupmappings
     delete:
-      description: bulk remove mappings from the team
+      description: |
+        Bulk remove mappings from the team.
+
+        **Required Scope:** `admin:access_controls` (for connected apps)
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_teamId_Path'

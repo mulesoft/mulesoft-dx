@@ -1,0 +1,17 @@
+{
+  "skill": "omni-gateway-logs",
+  "description": "Trigger and behavior evals for the omni-gateway-logs skill. See README.md for methodology.",
+  "cases": [
+    {
+      "id": "inspect-logs-upstream-failure",
+      "prompt": "Here are my Flex Gateway logs, can you tell me what's going wrong? [log content with upstream connection refused]",
+      "should_trigger": true,
+      "context": "User pastes gateway log lines showing upstream connectivity failures.",
+      "assertions": [
+        "Identifies the upstream connectivity failure category",
+        "Produces a structured summary with recommended next steps"
+      ],
+      "anti_assertions": []
+    }
+  ]
+}

@@ -2309,6 +2309,26 @@ function openAuthModal() {
     if (firstFocusable) firstFocusable.focus();
 }
 
+// Testing shim: expose a name-and-argument variant of applyAuthModalMode
+// used by unit tests to drive the locked / unlocked auth UI without having
+// to seed sessionStorage. Production code should keep calling
+// applyAuthModalMode() directly.
+function refreshAuthUiFor(authenticated, identity, authMethod) {
+    if (authenticated) {
+        sessionStorage.setItem('anypoint_token', 'test-token');
+        sessionStorage.setItem('anypoint_token_expires_at', String(Date.now() + 3600000));
+        sessionStorage.setItem('anypoint_auth_method',
+            (authMethod && authMethod.toLowerCase().indexOf('oauth') !== -1) ? 'OAuth2' : 'Bearer');
+        if (identity) sessionStorage.setItem('anypoint_identity', identity);
+    } else {
+        sessionStorage.removeItem('anypoint_token');
+        sessionStorage.removeItem('anypoint_token_expires_at');
+        sessionStorage.removeItem('anypoint_auth_method');
+        sessionStorage.removeItem('anypoint_identity');
+    }
+    applyAuthModalMode();
+}
+
 function applyAuthModalMode() {
     var token = sessionStorage.getItem('anypoint_token');
     var authenticated = !!token && !isTokenExpired();
@@ -2328,7 +2348,7 @@ function applyAuthModalMode() {
     var oauth2LoggedAs = document.getElementById('authOauth2LoggedAs');
     var oauth2LoggedAsValue = document.getElementById('authOauth2LoggedAsValue');
     var serverSelect = document.getElementById('serverSelect');
-    var regionPreset = document.getElementById('regionPreset');
+    var regionSelectEl = document.getElementById('regionSelect');
     var regionCustom = document.getElementById('regionCustomInput');
     var bearerTab = document.querySelector('.auth-tab[data-tab="bearer"]');
     var oauth2Tab = document.querySelector('.auth-tab[data-tab="oauth2"]');
@@ -2362,8 +2382,8 @@ function applyAuthModalMode() {
         }
 
         // Server combo + region inputs disabled (chevron stays, value visible).
+        if (regionSelectEl) { regionSelectEl.disabled = true; regionSelectEl.title = SERVER_LOCKED_TOOLTIP; }
         if (serverSelect) { serverSelect.disabled = true; serverSelect.title = SERVER_LOCKED_TOOLTIP; }
-        if (regionPreset) { regionPreset.disabled = true; regionPreset.title = SERVER_LOCKED_TOOLTIP; }
         if (regionCustom) { regionCustom.disabled = true; regionCustom.title = SERVER_LOCKED_TOOLTIP; }
     } else {
         if (bearerTab) { bearerTab.disabled = false; bearerTab.style.display = ''; bearerTab.removeAttribute('title'); }
@@ -2382,8 +2402,8 @@ function applyAuthModalMode() {
         if (oauth2LoginBtn) oauth2LoginBtn.style.display = '';
         if (oauth2LogoutBtn) oauth2LogoutBtn.style.display = 'none';
 
+        if (regionSelectEl) { regionSelectEl.disabled = false; regionSelectEl.removeAttribute('title'); }
         if (serverSelect) { serverSelect.disabled = false; serverSelect.removeAttribute('title'); }
-        if (regionPreset) { regionPreset.disabled = false; regionPreset.removeAttribute('title'); }
         if (regionCustom) { regionCustom.disabled = false; regionCustom.removeAttribute('title'); }
     }
 }
@@ -2499,7 +2519,8 @@ function updateAuthSummary() {
     if (regionText) {
         var type = getSelectedServerType();
         if (type === 'eu') {
-            regionText.textContent = 'EU';
+            var euRegion = getSelectedRegion();
+            regionText.textContent = euRegion ? euRegion.toUpperCase() : 'EU1';
         } else if (type === 'platform') {
             var region = getSelectedRegion();
             regionText.textContent = region ? region.toUpperCase() : 'CA1';
@@ -2688,14 +2709,15 @@ var __mcpJsonRpcId = 0;
 function __nextMcpId() { __mcpJsonRpcId += 1; return __mcpJsonRpcId; }
 
 function __mcpEndpointUrl() {
-    // server.json remotes[] already expose fully-qualified endpoint URLs
-    // (only streamableHttp remotes are included), so the selected server URL
-    // is used verbatim.
+    // Resolve through getEffectiveMcpRemote — the SAME MCP-specific region
+    // logic the URL bar renders — so the request/cURL endpoint matches what
+    // the user sees (including the omni region-subdomain rewrite). Using
+    // getSelectedServer() here would run the API-operations path instead and
+    // miss the omni prefix, sending the wrong URL in the payload.
     var meta = window.__MCP_META__;
-    if (!meta) return null;
-    var selected = getSelectedServer(null);
-    if (!selected) return null;
-    return selected;
+    if (!meta || !meta.servers) return null;
+    var effective = getEffectiveMcpRemote(meta.servers);
+    return effective.url || null;
 }
 
 function __mcpCoerceValue(value, type) {
@@ -3674,14 +3696,45 @@ function filterServersForRegion(servers, region) {
     return filtered;
 }
 
-function getValidRegionsForServerType(type) {
-    if (type === 'eu') {
-        return (DOMAIN_REGIONS.anypoint || []).filter(function(r) { return r !== 'us'; });
-    }
+/**
+ * Rewrite the host of a mulesoft URL so it uses `region` as subdomain, when
+ * the URL belongs to the currently selected server type's domain. Leaves
+ * everything else (foreign hosts, us type) untouched.
+ *
+ * Handles URLs with or without an existing subdomain:
+ *   https://anypoint.mulesoft.com/x     + region=aaa, type=eu       -> https://aaa.anypoint.mulesoft.com/x
+ *   https://eu1.anypoint.mulesoft.com/x + region=aaa, type=eu       -> https://aaa.anypoint.mulesoft.com/x
+ *   https://ca1.platform.mulesoft.com/x + region=aaa, type=platform -> https://aaa.platform.mulesoft.com/x
+ *   https://example.com/x               + any                       -> unchanged (foreign host)
+ *   any                                 + type=us                   -> unchanged (us has no custom region)
+ */
+function _rewriteRegionInHost(url, region, type) {
+    if (!url || !region || type === 'us') return url;
+    var result;
     if (type === 'platform') {
-        return (DOMAIN_REGIONS.platform || []).slice();
+        result = url.replace(/:\/\/(?:[a-z0-9-]+\.)?platform\.mulesoft\.com/,
+            '://' + region + '.platform.mulesoft.com');
+        if (result !== url) return result;
+        // Cross-domain: API only declares anypoint servers but platform region selected.
+        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?anypoint\.mulesoft\.com/,
+            '://' + region + '.platform.mulesoft.com');
     }
-    return [];
+    if (type === 'eu') {
+        result = url.replace(/:\/\/(?:[a-z0-9-]+\.)?anypoint\.mulesoft\.com/,
+            '://' + region + '.anypoint.mulesoft.com');
+        if (result !== url) return result;
+        // Cross-domain: API only declares platform servers but anypoint region selected.
+        return url.replace(/:\/\/(?:[a-z0-9-]+\.)?platform\.mulesoft\.com/,
+            '://' + region + '.anypoint.mulesoft.com');
+    }
+    return url;
+}
+
+function getServerTypeForRegion(region) {
+    if (!region || region === 'us') return 'us';
+    if ((DOMAIN_REGIONS.anypoint || []).indexOf(region) !== -1) return 'eu';
+    if ((DOMAIN_REGIONS.platform || []).indexOf(region) !== -1) return 'platform';
+    return null;
 }
 
 function _safeSessionGet(key) {
@@ -3694,32 +3747,57 @@ function _safeSessionGet(key) {
 }
 
 function getSelectedServerType() {
+    var region = document.getElementById('regionSelect');
+    if (region) {
+        if (region.value === 'us') return 'us';
+        if (region.value === 'custom') {
+            var srv = document.getElementById('serverSelect');
+            if (srv && (srv.value === 'eu' || srv.value === 'platform')) return srv.value;
+        } else if (region.value) {
+            var derived = getServerTypeForRegion(region.value);
+            if (derived) return derived;
+        }
+    }
+    // Backward-compat: pre-existing DOM fixtures (tests, legacy sessions before
+    // the DOMContentLoaded restore path has run) still use #serverSelect. Only
+    // prefer the DOM value when it's a real (non-default) pick — otherwise fall
+    // through to sessionStorage so the persisted selection survives the
+    // DOMContentLoaded race. See W-22945464.
     var sel = document.getElementById('serverSelect');
     var domValue = sel ? sel.value : null;
-    // DOM-first when the user has actually picked a non-default value.
-    if (domValue && domValue !== 'us') return domValue;
-    // Race window during DOMContentLoaded: serverSelect still shows the
-    // default 'us' (or is missing) because the auth restore handler hasn't
-    // run yet. Fall back to the persisted value so callers like
-    // initStepUrlBars() render the correct region. See W-22945464.
+    if (domValue && (domValue === 'eu' || domValue === 'platform')) {
+        return domValue;
+    }
     var stored = _safeSessionGet('anypoint_server_type');
     if (stored === 'eu' || stored === 'platform' || stored === 'us') return stored;
-    return domValue || 'us';
+    return 'us';
 }
 
 function getSelectedRegion() {
-    var sel = document.getElementById('serverSelect');
-    if (!sel || sel.value === 'us') return null;
-    var preset = document.getElementById('regionPreset');
-    if (preset) {
-        if (preset.value === 'custom') {
+    var type = getSelectedServerType();
+    if (type === 'us') return null;
+    var region = document.getElementById('regionSelect');
+    if (region) {
+        if (region.value === 'custom') {
             var customInput = document.getElementById('regionCustomInput');
             if (customInput && customInput.value.trim()) return customInput.value.trim();
-        } else if (preset.value) {
-            return preset.value;
+            return _safeSessionGet('anypoint_region');
+        }
+        if (region.value && region.value !== 'us') return region.value;
+    }
+    // Backward-compat: legacy DOM path (#regionPreset) or persisted value.
+    var sel = document.getElementById('serverSelect');
+    if (sel && sel.value !== 'us') {
+        var preset = document.getElementById('regionPreset');
+        if (preset) {
+            if (preset.value === 'custom') {
+                var customInputLegacy = document.getElementById('regionCustomInput');
+                if (customInputLegacy && customInputLegacy.value.trim()) return customInputLegacy.value.trim();
+            } else if (preset.value) {
+                return preset.value;
+            }
         }
     }
-    // regionPreset missing or empty — same DOMContentLoaded race as above.
     return _safeSessionGet('anypoint_region');
 }
 
@@ -3729,6 +3807,207 @@ function getSelectedBaseUrl() {
     if (type === 'eu') return 'https://' + (region || 'eu1') + '.anypoint.mulesoft.com';
     if (type === 'platform') return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
     return 'https://anypoint.mulesoft.com';
+}
+
+/**
+ * Resolve the effective server for the current region.
+ *
+ * Reads the region from sessionStorage-backed helpers (getSelectedRegion /
+ * getSelectedServerType) and picks the first server in `servers` whose URL
+ * matches the region. If no server matches, force-substitutes {region} on
+ * servers[0] and returns supported=false so callers can render a notice.
+ *
+ * Returns {server, url, supported}.
+ */
+function getEffectiveServer(servers, opId) {
+    if (!servers || servers.length === 0) {
+        return { server: null, url: '', supported: true };
+    }
+    var region = getSelectedRegion();
+    var type = getSelectedServerType();
+    // If no server declares a region-aware host (anypoint/platform), the API
+    // is region-agnostic — region doesn't apply, pass through.
+    var anyRegionAware = false;
+    for (var k = 0; k < servers.length; k++) {
+        if (servers[k] && servers[k].url && _getDomainKeyFromUrl(servers[k].url)) {
+            anyRegionAware = true;
+            break;
+        }
+    }
+    if (!anyRegionAware) {
+        return {
+            server: servers[0],
+            url: resolveServerUrl(servers[0], opId),
+            supported: true
+        };
+    }
+    // Custom / unknown region: the API cannot possibly declare a server for a
+    // region outside DOMAIN_REGIONS, so treat as unsupported and surface the
+    // notice. Pick a server whose domain matches the selected type so the URL
+    // rewrite lands on the right host; fall back to servers[0] if none match.
+    if (region) {
+        var anypointKnown = (DOMAIN_REGIONS.anypoint || []).indexOf(region) !== -1;
+        var platformKnown = (DOMAIN_REGIONS.platform || []).indexOf(region) !== -1;
+        if (!anypointKnown && !platformKnown) {
+            var template = servers[0];
+            for (var ci = 0; ci < servers.length; ci++) {
+                var cs = servers[ci];
+                if (!cs || !cs.url) continue;
+                var cd = _getDomainKeyFromUrl(cs.url);
+                if ((type === 'eu' && cd === 'anypoint') ||
+                    (type === 'platform' && cd === 'platform')) {
+                    template = cs;
+                    break;
+                }
+            }
+            return {
+                server: null,
+                url: _rewriteRegionInHost(resolveServerUrl(template, opId), region, type),
+                supported: false
+            };
+        }
+    }
+    var filtered = filterServersForRegion(servers, region);
+    if (filtered && filtered.length > 0) {
+        var match = filtered[0];
+        return {
+            server: match,
+            url: _rewriteRegionInHost(resolveServerUrl(match, opId), region, type),
+            supported: true
+        };
+    }
+    // No server declared for this region: force-substitute {region} on the
+    // first server (template) so the URL still reflects the selected region.
+    // resolveServerUrl already reads region from getSelectedRegion(), so a
+    // template with {region} yields the forced URL naturally. For fixed-URL
+    // servers we return the raw URL as best-effort.
+    var fallback = servers[0];
+    return {
+        server: null,
+        url: _rewriteRegionInHost(resolveServerUrl(fallback, opId), region, type),
+        supported: false
+    };
+}
+
+/**
+ * Detect an omni host (omni.mulesoft.com), with or without an existing
+ * subdomain. omni is a product-specific host — neither anypoint nor platform —
+ * so it's invisible to _getDomainKeyFromUrl / DOMAIN_REGIONS. MCP-only.
+ */
+function _isOmniHost(url) {
+    return !!url && /:\/\/(?:[a-z0-9-]+\.)?omni\.mulesoft\.com/.test(url);
+}
+
+/**
+ * Rewrite the host of an omni URL so it uses `region` as subdomain. Strips any
+ * existing subdomain first to avoid double-prefixing, and leaves the path
+ * (e.g. /mcp/ or /mcp-sse/sse) untouched. Ignores server type — omni is a
+ * single undifferentiated domain, unlike anypoint/platform. MCP-only.
+ *
+ *   https://omni.mulesoft.com/mcp/         + region=eu1 -> https://eu1.omni.mulesoft.com/mcp/
+ *   https://omni.mulesoft.com/mcp-sse/sse  + region=jp1 -> https://jp1.omni.mulesoft.com/mcp-sse/sse
+ *   https://eu1.omni.mulesoft.com/mcp/     + region=aaa -> https://aaa.omni.mulesoft.com/mcp/
+ */
+function _rewriteOmniRegionInHost(url, region) {
+    if (!url || !region) return url;
+    return url.replace(/:\/\/(?:[a-z0-9-]+\.)?omni\.mulesoft\.com/,
+        '://' + region + '.omni.mulesoft.com');
+}
+
+/**
+ * Resolve the effective MCP remote for the current region.
+ *
+ * remotes[].url is always fully qualified (MCP registry schema — no templates).
+ * Matching is done by domain-key inference on the host and comparing against
+ * the selected region.
+ *
+ * Returns {remote, url, supported}.
+ */
+function getEffectiveMcpRemote(remotes) {
+    if (!remotes || remotes.length === 0) {
+        return { remote: null, url: '', supported: true };
+    }
+    var region = getSelectedRegion();
+    var type = getSelectedServerType();
+    // Omni (omni.mulesoft.com) is a product-specific host that DOES deploy
+    // per-region but is invisible to the anypoint/platform domain logic below.
+    // Prefix the selected region as a subdomain regardless of server type;
+    // no region (== us) keeps the bare host. supported stays true — MCP never
+    // surfaces a region notice.
+    if (_isOmniHost(remotes[0].url)) {
+        if (region == null || region === '') {
+            return { remote: remotes[0], url: remotes[0].url, supported: true };
+        }
+        return {
+            remote: remotes[0],
+            url: _rewriteOmniRegionInHost(remotes[0].url, region),
+            supported: true
+        };
+    }
+    // No region selected == 'us' == pass-through: first remote wins.
+    if (region == null || region === '') {
+        return { remote: remotes[0], url: remotes[0].url, supported: true };
+    }
+    // If no remote declares a region-aware host (anypoint/platform), the
+    // server is region-agnostic — region doesn't apply, pass through.
+    var anyRegionAware = false;
+    for (var k = 0; k < remotes.length; k++) {
+        if (remotes[k] && remotes[k].url && _getDomainKeyFromUrl(remotes[k].url)) {
+            anyRegionAware = true;
+            break;
+        }
+    }
+    if (!anyRegionAware) {
+        return { remote: remotes[0], url: remotes[0].url, supported: true };
+    }
+    var anypointKnown = (DOMAIN_REGIONS.anypoint || []).indexOf(region) !== -1;
+    var platformKnown = (DOMAIN_REGIONS.platform || []).indexOf(region) !== -1;
+    // Custom / unknown region: no remote can declare this region, so mark as
+    // unsupported and rewrite the first suitable host to the custom subdomain
+    // so "Try it" still fires against the selected region.
+    if (!anypointKnown && !platformKnown) {
+        for (var j = 0; j < remotes.length; j++) {
+            var rj = remotes[j];
+            if (!rj || !rj.url) continue;
+            var djd = _getDomainKeyFromUrl(rj.url);
+            if ((type === 'eu' && djd === 'anypoint') ||
+                (type === 'platform' && djd === 'platform')) {
+                return {
+                    remote: null,
+                    url: _rewriteRegionInHost(rj.url, region, type),
+                    supported: false
+                };
+            }
+        }
+        return {
+            remote: null,
+            url: _rewriteRegionInHost(remotes[0].url, region, type),
+            supported: false
+        };
+    }
+    for (var i = 0; i < remotes.length; i++) {
+        var r = remotes[i];
+        if (!r || !r.url) continue;
+        var domain = _getDomainKeyFromUrl(r.url);
+        if (!domain) continue;
+        var domainRegions = DOMAIN_REGIONS[domain] || [];
+        if (domainRegions.indexOf(region) === -1) continue;
+        // 'us' is the global anypoint endpoint (no subdomain).
+        if (region === 'us') {
+            if (r.url.indexOf('://anypoint.mulesoft.com') !== -1) {
+                return { remote: r, url: r.url, supported: true };
+            }
+            continue;
+        }
+        if (r.url.indexOf(region + '.') !== -1) {
+            return { remote: r, url: r.url, supported: true };
+        }
+    }
+    return {
+        remote: null,
+        url: _rewriteRegionInHost(remotes[0].url, region, type),
+        supported: false
+    };
 }
 
 /**
@@ -3809,9 +4088,7 @@ function resolveServerUrl(server, opId) {
 function getSelectedServer(opId) {
     var meta = window.__API_META__;
     if (!meta || !meta.servers) return 'https://anypoint.mulesoft.com';
-
-    var idx = getActiveServerIndex(opId, meta.servers);
-    return resolveServerUrl(meta.servers[idx], opId);
+    return getEffectiveServer(meta.servers, opId).url;
 }
 
 /**
@@ -3820,8 +4097,7 @@ function getSelectedServer(opId) {
 function getServerForApi(apiSlug) {
     var opLookup = window.__OP_LOOKUP__;
     if (opLookup && opLookup[apiSlug] && opLookup[apiSlug].servers && opLookup[apiSlug].servers.length > 0) {
-        var server = pickServerTemplate(opLookup[apiSlug].servers);
-        return resolveServerUrl(server, null);
+        return getEffectiveServer(opLookup[apiSlug].servers, null).url;
     }
     return getSelectedServer(null);
 }
@@ -3838,89 +4114,53 @@ function _regionLabel(r) {
 }
 
 function onServerChange() {
+    // Called from the Custom sub-row: user picked a different server domain
+    // while regionSelect === 'custom'. Region select and preset are no longer
+    // touched here.
     var sel = document.getElementById('serverSelect');
-    var regionRow = document.getElementById('serverRegionRow');
-    var preset = document.getElementById('regionPreset');
-    var defaultOpt = document.getElementById('regionDefaultOption');
-    var customInput = document.getElementById('regionCustomInput');
-    if (sel && regionRow) {
-        var showRegion = sel.value === 'eu' || sel.value === 'platform';
-        regionRow.style.display = showRegion ? 'flex' : 'none';
-        if (showRegion && preset && defaultOpt) {
-            var regions = getValidRegionsForServerType(sel.value);
-            // Rebuild preset options: dynamic region entries + custom
-            while (preset.options.length > 0) preset.remove(0);
-            regions.forEach(function(r, i) {
-                var opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = _regionLabel(r);
-                if (i === 0) opt.id = 'regionDefaultOption';
-                preset.appendChild(opt);
-            });
-            var customOpt = document.createElement('option');
-            customOpt.value = 'custom';
-            customOpt.textContent = 'Custom';
-            preset.appendChild(customOpt);
-            preset.value = regions[0] || 'custom';
-            if (customInput) customInput.style.display = 'none';
-        }
-    }
-    sessionStorage.setItem('anypoint_server_type', sel ? sel.value : 'us');
+    if (sel) sessionStorage.setItem('anypoint_server_type', sel.value);
     sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
-    updateAllServerCombos();
+    updateAllServerBars();
+    updateAllMcpUrls();
+    initStepUrlBars();
+    updateAllPlaygroundUrls();
 }
 
-function onRegionPresetChange() {
-    var preset = document.getElementById('regionPreset');
-    var customInput = document.getElementById('regionCustomInput');
-    if (preset && customInput) {
-        customInput.style.display = preset.value === 'custom' ? 'block' : 'none';
-        if (preset.value === 'custom') customInput.focus();
+function onRegionSelectChange() {
+    var regionSelect = document.getElementById('regionSelect');
+    var customRow    = document.getElementById('customServerRow');
+    var serverSelect = document.getElementById('serverSelect');
+    var customInput  = document.getElementById('regionCustomInput');
+    if (!regionSelect) return;
+    var val = regionSelect.value;
+    if (val === 'custom') {
+        if (customRow) customRow.style.display = 'flex';
+        var type = (serverSelect && serverSelect.value) || 'eu';
+        sessionStorage.setItem('anypoint_server_type', type);
+        sessionStorage.setItem(
+            'anypoint_region',
+            (customInput && customInput.value.trim()) || ''
+        );
+        if (customInput) customInput.focus();
+    } else {
+        if (customRow) customRow.style.display = 'none';
+        var derived = getServerTypeForRegion(val);
+        sessionStorage.setItem('anypoint_server_type', derived);
+        sessionStorage.setItem('anypoint_region', val === 'us' ? '' : val);
+        if (serverSelect && derived !== 'us') serverSelect.value = derived;
     }
-    sessionStorage.setItem('anypoint_region', getSelectedRegion() || '');
     updateAuthSummary();
-    updateAllServerCombos();
+    updateAllServerBars();
+    updateAllMcpUrls();
+    initStepUrlBars();
+    updateAllPlaygroundUrls();
 }
 
 /**
- * Track selected server index per operation. Default null = auto.
+ * Initialize per-operation URL bars. Called from DOMContentLoaded.
  */
-var _serverSelections = {};
-
-/**
- * Return the index of the preferred server based on region selection.
- */
-function getPreferredServerIndex(servers) {
-    var type = getSelectedServerType();
-    if (type === 'eu') {
-        for (var i = 0; i < servers.length; i++) {
-            if (servers[i].url.indexOf('.anypoint.mulesoft.com') !== -1 &&
-                servers[i].url.indexOf('{region}') !== -1) return i;
-        }
-        for (var i = 0; i < servers.length; i++) {
-            if (servers[i].url.indexOf('eu1.anypoint.mulesoft.com') !== -1) return i;
-        }
-    } else if (type === 'platform') {
-        for (var i = 0; i < servers.length; i++) {
-            if (servers[i].url.indexOf('platform.mulesoft.com') !== -1) return i;
-        }
-    }
-    return 0;
-}
-
-/**
- * Get the active server index for an operation.
- */
-function getActiveServerIndex(opId, servers) {
-    if (_serverSelections[opId] != null) return _serverSelections[opId];
-    return getPreferredServerIndex(servers);
-}
-
-/**
- * Initialize unified URL bars in all operation headers.
- */
-function initServerCombos() {
+function initOperationUrls() {
     var meta = window.__API_META__;
     if (!meta || !meta.servers || meta.servers.length === 0) return;
 
@@ -3930,96 +4170,74 @@ function initServerCombos() {
         var path = bar.getAttribute('data-path');
         buildUrlBar(bar, opId, path, meta.servers);
     });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.operation-url-bar')) {
-            closeAllServerDropdowns();
-        }
-    });
 }
 
 function buildUrlBar(bar, opId, path, servers) {
     bar.innerHTML = '';
+    _clearRegionNotice(bar);
 
-    var idx = getActiveServerIndex(opId, servers);
-    var resolvedUrl = resolveServerUrl(servers[idx], opId);
-    var fullUrl = resolvedUrl + path;
+    var effective = getEffectiveServer(servers, opId);
+    var fullUrl = effective.url + path;
 
-    if (servers.length > 1) {
-        // Create combobox-style container
-        var combobox = document.createElement('div');
-        combobox.className = 'url-combobox';
-        combobox.title = 'Click to change server';
+    var urlText = document.createElement('span');
+    urlText.className = 'url-text-plain';
+    urlText.textContent = fullUrl;
+    bar.appendChild(urlText);
 
-        // URL text
-        var urlText = document.createElement('span');
-        urlText.className = 'url-combobox-text';
-        urlText.textContent = fullUrl;
-
-        // Chevron icon
-        var chevron = document.createElement('span');
-        chevron.className = 'url-combobox-chevron';
-        chevron.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-        combobox.appendChild(urlText);
-        combobox.appendChild(chevron);
-
-        combobox.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleServerDropdown(bar, opId, servers);
-        });
-
-        bar.appendChild(combobox);
-    } else {
-        // Single server - just show URL as plain text
-        var urlText = document.createElement('span');
-        urlText.className = 'url-text-plain';
-        urlText.textContent = fullUrl;
-        bar.appendChild(urlText);
+    if (!effective.supported) {
+        _placeRegionNotice(bar, _regionNoticeText('api', getSelectedRegion()));
     }
 }
 
-function toggleServerDropdown(bar, opId, servers) {
-    // Dropdown lives on document.body (outside overflow:hidden on bar)
-    var existing = document.querySelector('.server-dropdown');
-    if (existing) {
-        existing.remove();
+/**
+ * Remove any previously-placed region notice for this url bar. Called at the
+ * top of each render so region changes don't leave stale notices behind.
+ * Searches the operation header (or the url-bar's parent, if the bar is not
+ * inside a header — supports test harnesses with minimal wrappers).
+ */
+function _clearRegionNotice(bar) {
+    var host = bar.closest ? bar.closest('.operation-header-detail') : null;
+    if (!host && bar.parentElement) host = bar.parentElement;
+    if (!host) return;
+    var old = host.querySelector('.operation-region-notice');
+    if (old) old.remove();
+}
+
+/**
+ * Place the region notice one line above the method + URL row when the url
+ * bar lives inside an .operation-header-detail; fall back to a sibling of the
+ * url bar otherwise (test harnesses that build a bare wrapper).
+ */
+function _placeRegionNotice(bar, text) {
+    var notice = document.createElement('div');
+    notice.className = 'operation-region-notice';
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('aria-live', 'polite');
+    // TODO(marcelo): confirm final copy before shipping.
+    notice.textContent = text;
+
+    var header = bar.closest ? bar.closest('.operation-header-detail') : null;
+    if (header) {
+        var titleRow = header.querySelector('.operation-title-row');
+        if (titleRow) {
+            header.insertBefore(notice, titleRow);
+            return;
+        }
+        header.insertBefore(notice, header.firstChild);
         return;
     }
-    closeAllServerDropdowns();
-
-    var dropdown = document.createElement('div');
-    dropdown.className = 'server-dropdown';
-
-    // Position below the bar using viewport coordinates
-    var rect = bar.getBoundingClientRect();
-    dropdown.style.top = rect.bottom + 'px';
-    dropdown.style.left = rect.left + 'px';
-
-    var activeIdx = getActiveServerIndex(opId, servers);
-    var visibleServers = filterServersForRegion(servers, getSelectedRegion());
-
-    visibleServers.forEach(function(server) {
-        // Preserve original index so _serverSelections maps to the full servers array.
-        var idx = servers.indexOf(server);
-        var btn = document.createElement('button');
-        btn.className = 'server-dropdown-option' + (idx === activeIdx ? ' selected' : '');
-        btn.textContent = resolveServerUrl(server, opId);
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            _serverSelections[opId] = idx;
-            dropdown.remove();
-            updateAllServerBars();
-        });
-        dropdown.appendChild(btn);
-    });
-
-    document.body.appendChild(dropdown);
+    if (bar.parentElement) {
+        bar.parentElement.insertBefore(notice, bar);
+    } else {
+        bar.appendChild(notice);
+    }
 }
 
-function closeAllServerDropdowns() {
-    document.querySelectorAll('.server-dropdown').forEach(function(d) { d.remove(); });
+function _regionNoticeText(kind, region) {
+    var label = region ? String(region).toUpperCase() : 'this region';
+    var subject = kind === 'mcp' ? 'This MCP server' : 'This API';
+    return subject + ' is not available in ' + label +
+           ', you may see authentication or data-scope errors.';
 }
 
 /**
@@ -4038,8 +4256,72 @@ function updateAllServerBars() {
     });
 }
 
-// Alias for backward compat with callers
-var updateAllServerCombos = updateAllServerBars;
+function initMcpUrls() {
+    var meta = window.__API_META__;
+    if (!meta || !meta.servers || meta.servers.length === 0) return;
+
+    var bars = document.querySelectorAll('.operation-url-bar[data-mcp="1"]');
+    bars.forEach(function(bar) {
+        _renderMcpUrlBar(bar, meta.servers);
+    });
+}
+
+function updateAllMcpUrls() {
+    var meta = window.__API_META__;
+    if (!meta || !meta.servers || meta.servers.length === 0) return;
+
+    var bars = document.querySelectorAll('.operation-url-bar[data-mcp="1"]');
+    bars.forEach(function(bar) {
+        _renderMcpUrlBar(bar, meta.servers);
+    });
+}
+
+function updateAllPlaygroundUrls() {
+    var opLookup = window.__OP_LOOKUP__ || {};
+    var panels = document.querySelectorAll('[id^="playground-panel-"]');
+    panels.forEach(function(panel) {
+        if (!panel.dataset.initialized) return;
+        var apiUrn = panel.dataset.wfApi;
+        if (!apiUrn) return;
+        var apiSlug = apiUrn.replace('urn:api:', '');
+        var apiEntry = opLookup[apiSlug];
+        var effective;
+        if (apiEntry && apiEntry.servers && apiEntry.servers.length > 0) {
+            effective = getEffectiveServer(apiEntry.servers, null);
+        } else {
+            effective = { server: null, url: getSelectedServer(null), supported: true };
+        }
+        var serverUrl = effective.url.replace(/\/$/, '');
+        var serverPart = panel.querySelector('.url-server-part');
+        if (serverPart) serverPart.textContent = serverUrl;
+        var notice = panel.querySelector('.operation-region-notice');
+        if (notice) {
+            if (effective.supported) {
+                notice.style.display = 'none';
+                notice.textContent = '';
+            } else {
+                notice.style.display = '';
+                notice.textContent = _regionNoticeText('api', getSelectedRegion());
+            }
+        }
+    });
+}
+
+function _renderMcpUrlBar(bar, remotes) {
+    bar.innerHTML = '';
+    _clearRegionNotice(bar);
+
+    var effective = getEffectiveMcpRemote(remotes);
+
+    var urlText = document.createElement('span');
+    urlText.className = 'url-text-plain';
+    urlText.textContent = effective.url;
+    bar.appendChild(urlText);
+
+    // MCP never surfaces a region-availability notice (product decision):
+    // the URL always reflects the selected region and "Try it" fires against
+    // it, so no "not available in this region" warning is shown for MCP.
+}
 
 /**
  * Build server variable inputs for operations that have non-region variables.
@@ -4092,7 +4374,7 @@ function initServerVarInputs() {
             input.placeholder = vdef.description || vname;
             input.value = vdef.default || '';
             input.addEventListener('input', function() {
-                updateAllServerCombos();
+                updateAllServerBars();
             });
 
             row.appendChild(label);
@@ -6003,7 +6285,13 @@ function initializePlaygroundStep(sid) {
         console.error('Failed to parse playground inputs:', e);
     }
 
-    var serverUrl = getServerForApi(apiSlug).replace(/\/$/, '');
+    var effective;
+    if (apiEntry.servers && apiEntry.servers.length > 0) {
+        effective = getEffectiveServer(apiEntry.servers, null);
+    } else {
+        effective = { server: null, url: getSelectedServer(null), supported: true };
+    }
+    var serverUrl = effective.url.replace(/\/$/, '');
     var linkPrefix = window.__API_LINK_PREFIX__ || '';
 
     // Get the slug from the panel's parent to enable variable reference links
@@ -6038,6 +6326,14 @@ function initializePlaygroundStep(sid) {
     html += '</button>';
     html += '</div>';
     html += '</div>';
+
+    // Region notice (shown when the API doesn't declare a server for the
+    // selected region). Always emitted so updateAllPlaygroundUrls() can toggle
+    // it in place without re-rendering the whole panel.
+    var noticeDisplay = effective.supported ? 'none' : '';
+    var noticeText = effective.supported ? '' : _regionNoticeText('api', getSelectedRegion());
+    html += '<div class="operation-region-notice" role="status" aria-live="polite" ' +
+            'style="display:' + noticeDisplay + '">' + escapeHtml(noticeText) + '</div>';
 
     // Operation URL bar (after header)
     html += '<div class="operation-url-bar-container">';
@@ -6929,63 +7225,68 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
 // Initialize server selector
 // ============================================================================
 
+function restoreServerSelection() {
+    var regionSelect = document.getElementById('regionSelect');
+    var customRow    = document.getElementById('customServerRow');
+    var serverSelect = document.getElementById('serverSelect');
+    var customInput  = document.getElementById('regionCustomInput');
+    if (!regionSelect) return;
+
+    var storedType   = sessionStorage.getItem('anypoint_server_type');
+    var storedRegion = sessionStorage.getItem('anypoint_region');
+
+    // Nothing stored → default US, custom row hidden.
+    if (!storedType) {
+        regionSelect.value = 'us';
+        if (customRow) customRow.style.display = 'none';
+        return;
+    }
+
+    // US → region select = 'us', custom hidden.
+    if (storedType === 'us') {
+        regionSelect.value = 'us';
+        if (customRow) customRow.style.display = 'none';
+        return;
+    }
+
+    // Non-US: known region matches a preset option?
+    if (storedType === 'eu' || storedType === 'platform') {
+        var domainRegions = (storedType === 'eu')
+            ? (DOMAIN_REGIONS.anypoint || [])
+            : (DOMAIN_REGIONS.platform || []);
+        var isKnown = storedRegion && domainRegions.indexOf(storedRegion) !== -1 && storedRegion !== 'us';
+        if (isKnown) {
+            regionSelect.value = storedRegion;
+            if (customRow) customRow.style.display = 'none';
+            return;
+        }
+        // Custom: unknown region for this server type.
+        regionSelect.value = 'custom';
+        if (customRow) customRow.style.display = 'flex';
+        if (serverSelect) serverSelect.value = storedType;
+        if (customInput) customInput.value = storedRegion || '';
+        return;
+    }
+
+    // Unknown stored type → default US.
+    regionSelect.value = 'us';
+    if (customRow) customRow.style.display = 'none';
+}
+
 (function initServerSelect() {
     document.addEventListener('DOMContentLoaded', function() {
-        // Add listener for custom region input
         var customInput = document.getElementById('regionCustomInput');
         if (customInput) {
             customInput.addEventListener('input', function() {
                 sessionStorage.setItem('anypoint_region', customInput.value.trim());
                 updateAuthSummary();
-                updateAllServerCombos();
+                updateAllServerBars();
+                updateAllMcpUrls();
+                initStepUrlBars();
+                updateAllPlaygroundUrls();
             });
         }
-
-        // Restore server/region selection from sessionStorage
-        var storedServerType = sessionStorage.getItem('anypoint_server_type');
-        if (storedServerType) {
-            var serverSelect = document.getElementById('serverSelect');
-            if (serverSelect && serverSelect.value !== storedServerType) {
-                serverSelect.value = storedServerType;
-                var regionRow = document.getElementById('serverRegionRow');
-                var showRegion = storedServerType === 'eu' || storedServerType === 'platform';
-                if (regionRow) regionRow.style.display = showRegion ? 'flex' : 'none';
-                if (showRegion) {
-                    var preset = document.getElementById('regionPreset');
-                    if (preset) {
-                        // Rebuild options dynamically for this server type
-                        var regions = getValidRegionsForServerType(storedServerType);
-                        while (preset.options.length > 0) preset.remove(0);
-                        regions.forEach(function(r, i) {
-                            var opt = document.createElement('option');
-                            opt.value = r;
-                            opt.textContent = _regionLabel(r);
-                            if (i === 0) opt.id = 'regionDefaultOption';
-                            preset.appendChild(opt);
-                        });
-                        var customOpt = document.createElement('option');
-                        customOpt.value = 'custom';
-                        customOpt.textContent = 'Custom';
-                        preset.appendChild(customOpt);
-
-                        var storedRegion = sessionStorage.getItem('anypoint_region');
-                        if (storedRegion) {
-                            if (regions.indexOf(storedRegion) !== -1) {
-                                preset.value = storedRegion;
-                            } else {
-                                preset.value = 'custom';
-                                if (customInput) {
-                                    customInput.style.display = 'block';
-                                    customInput.value = storedRegion;
-                                }
-                            }
-                        } else {
-                            preset.value = regions[0] || 'custom';
-                        }
-                    }
-                }
-            }
-        }
+        restoreServerSelection();
 
         // Check for existing token
         var token = sessionStorage.getItem('anypoint_token');
@@ -7004,7 +7305,8 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
         updateAuthSummary();
 
         // Initialize server URL combos, variable inputs, and step URL bars
-        initServerCombos();
+        initOperationUrls();
+        initMcpUrls();
         initServerVarInputs();
         initStepUrlBars();
 

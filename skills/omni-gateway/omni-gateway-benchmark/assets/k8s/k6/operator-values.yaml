@@ -1,0 +1,20 @@
+# Helm values for grafana/k6-operator. Pin operator pods to the system node
+# group so the workload nodes stay reserved for Flex/upstream during runs.
+#
+# Schema check: grafana/k6-operator exposes top-level `nodeSelector` and
+# `tolerations` keys (verified with `helm show values grafana/k6-operator`),
+# not nested under `manager` as some other operator charts do.
+
+# Chart 4.x creates the k6-operator-system namespace itself by default; we
+# already manage it via terraform's kubernetes_namespace resource, so disable
+# the chart's namespace template to avoid an ownership conflict on `helm install`.
+namespace:
+  create: false
+
+nodeSelector:
+  node-role: system
+tolerations:
+  - key: node-role
+    operator: Equal
+    value: system
+    effect: NoSchedule

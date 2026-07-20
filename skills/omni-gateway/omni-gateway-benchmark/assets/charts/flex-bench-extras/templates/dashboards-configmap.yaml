@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.dashboards.configMapName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{ .Values.dashboards.label }}: {{ .Values.dashboards.labelValue | quote }}
+data:
+{{- range $path, $_ := .Files.Glob "files/*.json" }}
+  {{ base $path }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}

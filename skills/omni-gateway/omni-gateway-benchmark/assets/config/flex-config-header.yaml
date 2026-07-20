@@ -1,0 +1,8 @@
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: upstream
+  namespace: flex
+spec:
+  address: http://${UPSTREAM_HOST}:${UPSTREAM_PORT}
+---

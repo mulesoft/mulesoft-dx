@@ -1,0 +1,17 @@
+{
+  "skill": "omni-gateway-dump",
+  "description": "Trigger and behavior evals for the omni-gateway-dump skill. See README.md for methodology.",
+  "cases": [
+    {
+      "id": "analyze-dump-orphaned-resources",
+      "prompt": "Support sent me a gateway dump zip. What was actually deployed and is anything orphaned?",
+      "should_trigger": true,
+      "context": "A gateway diagnostic dump ZIP file is provided.",
+      "assertions": [
+        "Inspects the dump to report live API instances, service bindings, and policy config",
+        "Flags orphaned or missing resources relative to conf.d"
+      ],
+      "anti_assertions": []
+    }
+  ]
+}

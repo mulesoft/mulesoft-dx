@@ -15,6 +15,7 @@ from urllib.parse import quote as _urlquote
 
 from .discovery import discover_apis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
+from .builders.param_order import sort_parameters_by_dependency
 from .assets import get_css, get_js, get_jsonpath_js
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
@@ -156,6 +157,59 @@ def _prepare_operations(apis: List[Dict]):
     for api in apis:
         for op in api.get('operations', []):
             op['_example_body'] = _get_example_body(op)
+
+
+def _apply_param_order_by_dependency(apis, op_lookup):
+    """Reorder each operation's `parameters` list in-place using the
+    x-origin dependency graph.
+
+    `apis` is the list of API dicts as produced by discovery; each has
+    `slug` and `operations`. `op_lookup` is the {apiSlug: {ops, servers}}
+    map returned by _build_operation_lookup — used here as the resolver
+    for x-origin source operations' path parameters.
+    """
+
+    class _Resolver:
+        __slots__ = ('_lookup',)
+
+        def __init__(self, lookup):
+            self._lookup = lookup
+
+        def path_params_of(self, api_urn, operation_id):
+            # api_urn looks like "urn:api:<slug>". Strip the prefix.
+            prefix = 'urn:api:'
+            if not isinstance(api_urn, str) or not api_urn.startswith(prefix):
+                return None
+            slug = api_urn[len(prefix):]
+            api_entry = self._lookup.get(slug)
+            if not api_entry:
+                return None
+            op = api_entry.get('ops', {}).get(operation_id)
+            if not op:
+                return None
+            return [
+                p.get('name', '')
+                for p in op.get('parameters', [])
+                if p.get('in') == 'path'
+            ]
+
+    resolver = _Resolver(op_lookup)
+    for api in apis:
+        for op in api.get('operations', []):
+            op['parameters'] = sort_parameters_by_dependency(
+                op.get('parameters', []),
+                resolver,
+            )
+    # Keep op_lookup in sync — it holds references to the same parameter
+    # dicts, but the lists themselves are separate copies. Rebuild the
+    # nested lists so callers reading op_lookup see the sorted order too.
+    for slug, entry in op_lookup.items():
+        api = next((a for a in apis if a.get('slug') == slug), None)
+        if not api:
+            continue
+        for op in api.get('operations', []):
+            if op['operationId'] in entry['ops']:
+                entry['ops'][op['operationId']]['parameters'] = list(op['parameters'])
 
 
 def _render_api_page(args: Dict) -> None:
@@ -541,6 +595,11 @@ class PortalGenerator:
     def _generate_detail_pages_parallel(self):
         """Generate all detail pages (APIs, MCPs, skills, terraform) in parallel."""
         op_lookup = self._build_operation_lookup()
+        # Reorder each operation's parameters by x-origin dependency so the
+        # Try It panel renders dependency-parents first (e.g. organizationId
+        # before environmentId). Stable: only params with a detected edge
+        # move; everything else keeps OAS declaration order.
+        _apply_param_order_by_dependency(self.public_apis, op_lookup)
         mcp_lookup = self._build_mcp_lookup()
         chrome = ({'footer': self.chrome.get('footer', ''), 'dependencies': self.chrome.get('dependencies', '')}
                   if self.chrome else None)

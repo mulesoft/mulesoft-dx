@@ -131,15 +131,38 @@ make validate-mcp-server
 make test-portal
 ```
 
-### Step 4 — AI analysis
+### Step 4 — AI analysis (importance-filtered)
 
-Regardless of file type, review the diff for:
+Only flag things that are **objectively wrong or risky**. The goal is a review a
+human reviewer would agree with without argument. Style preferences, "could be
+nicer if", alternative naming, minor phrasing improvements, and typos in
+comments are **not** issues — do not include them.
 
-- **Correctness** — does the change do what the PR title/description says?
-- **Consistency** — does it follow patterns established in adjacent files in the same folder?
-- **Scope** — are there unrelated changes bundled in? Flag them.
-- **Breaking changes** — removed fields, renamed `operationId`s, changed required params, removed enum values
-- **Security** — credentials, tokens, internal URLs, or PII hardcoded anywhere
+An issue qualifies only if it falls into one of these buckets:
+
+1. **Validator failure** — any deterministic validator from Step 3 returned FAIL.
+2. **Correctness** — the change does not do what the PR title/description says,
+   or introduces a bug that will cause a runtime error, wrong output, or a broken
+   test.
+3. **Breaking change to a public API** — field removed, `operationId` renamed,
+   required parameter added, enum value removed, response schema shape changed
+   in a way existing clients depend on.
+4. **Security** — credentials, tokens, internal URLs, PII, or private keys
+   hardcoded anywhere in the diff.
+5. **Required template/structure violation** — a JTBD skill missing an
+   `operationId` reference, a prose skill missing `## Workflow` or `## When to
+   Use This Skill`, a `description` with neither `TRIGGER when:` nor `DO NOT
+   TRIGGER when:` — anything already called out as **[BLOCKER]** in Step 3.
+
+Everything else (nice-to-have consistency tweaks, minor doc rephrases, "consider
+also X") is dropped silently. When in doubt, drop it.
+
+Severity:
+- **BLOCKER** — buckets 1–5 above. Blocks approval.
+- **SUGGESTION** — a real bug or clear inconsistency that does not block
+  approval (e.g. an existing `SKIPPED` validator would have caught it but
+  wasn't relevant to this PR). Use sparingly. If the only "issue" you can find
+  is a suggestion, prefer emitting no issues.
 
 ### Step 5 — Restore repo
 
@@ -147,9 +170,15 @@ Regardless of file type, review the diff for:
 git checkout master
 ```
 
-### Step 6 — Produce verdict
+### Step 6 — Produce verdict (structured JSON)
 
-Output a structured verdict with this format:
+Emit **exactly two** things, in this order:
+
+1. A human-readable verdict block (same shape as before, for logs / stdout).
+2. A single line `VERDICT_JSON:` followed by a compact JSON object on the next
+   line. The wrapper skill consumes this JSON; keep it well-formed.
+
+Human-readable block:
 
 ```
 *PR #<number>: <title>*
@@ -174,12 +203,34 @@ Validators run:
 - test-portal: PASS / FAIL / SKIPPED
 ```
 
-`prose-template-conformance` is SKIPPED when the PR touches no prose skill; it is
-a manual check against `docs/prose-template.md`, not a `make` target.
+Structured JSON block (must appear on its own, after the human-readable block):
+
+```
+VERDICT_JSON:
+{"pr_number":<int>,"title":"<str>","author":"<str>","verdict":"APPROVE"|"REQUEST_CHANGES","summary":"<one sentence>","inline_comments":[{"path":"<repo-relative>","line":<int>,"severity":"BLOCKER"|"SUGGESTION","title":"<short>","body":"<full explanation>"}],"general_comments":[{"severity":"BLOCKER"|"SUGGESTION","body":"<explanation>"}],"validators":{"validate-descriptions":"PASS"|"FAIL"|"SKIPPED", "...":"..."}}
+```
+
+Rules for the JSON:
+
+- `inline_comments` — one entry per issue that has an unambiguous `path` and
+  `line` in the diff. `line` is the line number in the file **after** the PR's
+  changes (right side of the diff). If you can't cite a specific line, the
+  issue belongs in `general_comments` instead.
+- `general_comments` — issues without a specific line: scope creep, PR
+  title/description mismatch, cross-cutting concerns, missing template sections
+  where the whole file is the target.
+- Every entry must have severity `BLOCKER` or `SUGGESTION`; nothing else.
+- If there are no issues at all, both arrays are `[]`.
+- `validators` — all eight keys always present; use `"SKIPPED"` for those not
+  run this PR.
+
+`prose-template-conformance` is `"SKIPPED"` when the PR touches no prose skill;
+it is a manual check against `docs/prose-template.md`, not a `make` target.
 
 **Verdict rules:**
 - `APPROVE` if: all relevant validators pass AND no BLOCKERs found
-- `REQUEST CHANGES` if: any validator fails OR any BLOCKER found
+- `REQUEST_CHANGES` if: any validator fails OR any BLOCKER found
 - SUGGESTIONs alone do not block approval
 
-Post the verdict to `output_channel`.
+Post the human-readable verdict to `output_channel`. The wrapper reads
+`VERDICT_JSON:` from stdout regardless of `output_channel`.

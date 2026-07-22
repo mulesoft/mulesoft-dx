@@ -44,7 +44,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationid
+      summary: Delete organization
+      operationId: deleteOrganization
   /v1/organizations/{organizationId}/environments:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -71,7 +72,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentid
+      summary: Delete environment
+      operationId: deleteEnvironment
   /v1/organizations/{organizationId}/environments/{environmentId}/clients:
     get:
       description: 'Gets the list of messaging clients. If you are using connected app, "View clients" or "Manage clients" scope is needed.
@@ -105,7 +107,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+      summary: List messaging clients
+      operationId: listClients
     put:
       description: 'Create a messaging client. If you are using connected app, "Manage clients" scope is needed.
 
@@ -134,7 +137,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClients
+      summary: Create messaging client
+      operationId: createClient
   /v1/organizations/{organizationId}/environments/{environmentId}/clients/{clientId}:
     post:
       description: 'Regenerates the client secret. If you are using connected app, "Manage clients" scope is needed.
@@ -164,7 +168,8 @@ paths:
             '
       security:
       - {}
-      operationId: createV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClientsByClientid
+      summary: Regenerate client secret
+      operationId: regenerateClientSecret
     delete:
       description: 'Deletes a client. If you are using connected app, "Manage clients" scope is needed.
 
@@ -186,7 +191,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidClientsByClientid
+      summary: Delete messaging client
+      operationId: deleteClient
   /v1/organizations/{organizationId}/environments/{environmentId}/regions:
     get:
       description: 'Obtains the valid regions where the service is deployed. If you are using connected app, no specific scope is needed.
@@ -212,7 +218,8 @@ paths:
               example: *id003
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+      summary: List regions
+      operationId: listRegions
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
     get:
       description: 'Obtains the region entity. If you are using connected app, no specific scope is needed.
@@ -239,7 +246,8 @@ paths:
               example: *id004
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionid
+      summary: Get region
+      operationId: getRegion
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations:
     description: Collection of available destinations in the broker.
     get:
@@ -328,7 +336,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinations
+      summary: List destinations
+      operationId: listDestinations
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -382,7 +391,8 @@ paths:
             '
       security:
       - {}
-      operationId: patchV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+      summary: Update queue fields
+      operationId: patchQueue
     get:
       description: 'Get the queue with queueId = {queueId}. If you are using connected app, "View destinations" or "Administer destinations" scope is needed.
 
@@ -431,7 +441,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+      summary: Get queue
+      operationId: getQueue
     put:
       description: 'Add new queue to the broker. This is an idempotent API. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -476,7 +487,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+      summary: Create queue
+      operationId: createQueue
     delete:
       description: 'Delete queue from the broker. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -506,7 +518,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+      summary: Delete queue
+      operationId: deleteQueue
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}/messages:
     delete:
       description: 'Deletes the messages contained in the queue (effectively purging it). *The deleted messages cannot be retrieved any more* Messages present in the queue prior to this call are deleted; messages sent after this call may also be deleted.
@@ -539,7 +552,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueidMessages
+      summary: Purge queue messages
+      operationId: purgeQueueMessages
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/queues/{queueId}/fallback:
     put:
       description: 'Enables or disables cross-region failover configuration for a queue. This configuration is used to evaluate if messages published to or consumed from a queue using Anypoint MQ Connector temporarily redirect to a fallback queue in a fallback region when the primary region is unavailable.<br/><br/>If you are using a connected app, "Administer destinations" scope is required.
@@ -599,7 +613,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueidFallback
+      summary: Update queue fallback config
+      operationId: updateQueueFallback
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/destinations/exchanges:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -648,7 +663,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+      summary: Get exchange
+      operationId: getExchange
     patch:
       description: 'Modifies the exchange of the broker. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -686,7 +702,8 @@ paths:
             '
       security:
       - {}
-      operationId: patchV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+      summary: Update exchange fields
+      operationId: patchExchange
     put:
       description: 'Add new exchange to the broker. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -724,7 +741,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+      summary: Create exchange
+      operationId: createExchange
     delete:
       description: 'Delete the exchange. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -754,7 +772,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsExchangesByExchangeid
+      summary: Delete exchange
+      operationId: deleteExchange
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -838,7 +857,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeid
+      summary: List exchange bindings
+      operationId: listExchangeBindings
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -892,7 +912,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+      summary: Get exchange-to-queue binding
+      operationId: getExchangeQueueBinding
     put:
       description: 'Creates a binding between a message exchange and a queue. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -924,7 +945,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+      summary: Create exchange-to-queue binding
+      operationId: createExchangeQueueBinding
     delete:
       description: 'Deletes this binding. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -960,7 +982,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueid
+      summary: Delete exchange-to-queue binding
+      operationId: deleteExchangeQueueBinding
   ? /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/exchanges/{exchangeId}/queues/{queueId}/rules
   : parameters:
     - name: exchangeId
@@ -1069,7 +1092,8 @@ paths:
             '
       security:
       - {}
-      operationId: updateV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueidRulesRouting
+      summary: Update binding routing rules
+      operationId: updateBindingRoutingRules
     delete:
       description: 'Deleted routing rules on a binding between a message exchange and queue. If you are using connected app, "Administer destinations" scope is needed.
 
@@ -1105,7 +1129,8 @@ paths:
             '
       security:
       - {}
-      operationId: deleteV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsExchangesByExchangeidQueuesByQueueidRulesRouting
+      summary: Delete binding routing rules
+      operationId: deleteBindingRoutingRules
   /v1/organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/bindings/queues:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -1184,7 +1209,8 @@ paths:
             '
       security:
       - {}
-      operationId: getV1OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidBindingsQueuesByQueueid
+      summary: List bindings for a queue
+      operationId: listQueueBindings
   /v1/authorize:
     post:
       description: 'Obtains an access token using client credentials of the OAuth grant type. This API is not supported with connected apps.
@@ -1219,6 +1245,7 @@ paths:
               schema: {}
       security:
       - {}
+      summary: Authorize a session
       operationId: createV1Authorize
   /v2: {}
   /v2/organizations: {}
@@ -1294,7 +1321,8 @@ paths:
           description: Successful operation.
       security:
       - {}
-      operationId: patchV2OrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidDestinationsQueuesByQueueid
+      summary: Update queue fields (v2)
+      operationId: patchQueueV2
 components:
   requestBodies:
     Generated:

@@ -7,6 +7,7 @@ parent_cli:
   slug: anypoint-cli
 install:
   npm: "npm install -g anypoint-cli-v4"
+  plugin: "anypoint-cli-v4 plugins:install anypoint-cli-api-manager-plugin"
 docs:
   source: "scrape"
   base_url: "https://docs.mulesoft.com/anypoint-cli/latest/api-mgr"

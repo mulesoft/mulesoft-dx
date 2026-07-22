@@ -67,17 +67,36 @@
         <button class="btn-close-modal" onclick="closeInstallModal('{{ slug }}')" aria-label="Close modal">&times;</button>
       </div>
       <div class="install-modal-body">
-        {% for pkg, cmd in cli.install.items() %}
-        <div class="install-command-row">
-          <span class="install-command-bracket">[</span>
-          <code class="install-command-code" id="install-cmd-{{ slug }}-{{ pkg }}">{{ cmd }}</code>
-          <span class="install-command-bracket">]</span>
-          <button class="btn-install-copy" onclick="copyCliInstallModalRow('install-cmd-{{ slug }}-{{ pkg }}', this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span>Copy</span>
-          </button>
+        {% if cli.install.npm %}
+        <div class="install-section">
+          <h4 class="install-section-title">Install the full Anypoint CLI</h4>
+          <p class="install-section-hint">Installs the core package with the default plugins bundled in.</p>
+          <div class="install-command-row">
+            <span class="install-command-bracket">[</span>
+            <code class="install-command-code" id="install-cmd-{{ slug }}-npm">{{ cli.install.npm }}</code>
+            <span class="install-command-bracket">]</span>
+            <button class="btn-install-copy" onclick="copyCliInstallModalRow('install-cmd-{{ slug }}-npm', this)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
         </div>
-        {% endfor %}
+        {% endif %}
+        {% if cli.install.plugin %}
+        <div class="install-section">
+          <h4 class="install-section-title">Install this plugin only</h4>
+          <p class="install-section-hint">Requires the Anypoint CLI core package to be installed first.</p>
+          <div class="install-command-row">
+            <span class="install-command-bracket">[</span>
+            <code class="install-command-code" id="install-cmd-{{ slug }}-plugin">{{ cli.install.plugin }}</code>
+            <span class="install-command-bracket">]</span>
+            <button class="btn-install-copy" onclick="copyCliInstallModalRow('install-cmd-{{ slug }}-plugin', this)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+        </div>
+        {% endif %}
         {% if cli.docs and cli.docs.base_url %}
         <div class="install-prereqs">
           <h4>Documentation</h4>

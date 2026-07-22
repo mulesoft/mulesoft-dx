@@ -1,0 +1,28 @@
+{% set _cli_visible_tags = [] %}
+{% for t in cli.tags|default([]) %}{% if t|lower not in ('cli', 'anypoint') %}{% set _ = _cli_visible_tags.append(t) %}{% endif %}{% endfor %}
+{% set _cli_data_tags = [] %}
+{% for t in cli.tags|default([]) %}{% set _ = _cli_data_tags.append(t|lower) %}{% endfor %}
+<a href="clis/{{ cli.slug }}/index.html" class="catalog-card-link" data-name="{{ cli.name|lower }}" data-type="cli" data-tags="{{ _cli_data_tags|join(',') }}">
+    <article class="catalog-card" data-popover-title="{{ cli.name }}" data-popover-description="{{ cli.short_description }}" data-popover-type="cli">
+        <div class="catalog-card-header">
+            <div class="catalog-card-title-wrapper">
+                <img src="{{ icons_path }}/cli-filter-icon.svg" width="28" height="28" class="card-icon card-icon-cli" alt="">
+                <h3 class="catalog-card-title">{{ cli.name }}</h3>
+            </div>
+        </div>
+        <p class="catalog-card-description">{{ cli.short_description }}</p>
+        <div class="catalog-card-type">
+            <span class="badge badge-cli-type">CLI</span>
+        </div>
+        <div class="catalog-card-endpoints">
+            <span class="list-endpoints-text">{{ cli.command_count }}</span>
+        </div>
+        <div class="catalog-card-footer">
+            <span class="badge badge-cli-type">CLI</span>
+            <span class="badge badge-count">{{ cli.command_count }} command{{ 's' if cli.command_count != 1 else '' }}</span>
+            {% for tag in _cli_visible_tags %}
+            <span class="badge badge-cli-tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </article>
+</a>

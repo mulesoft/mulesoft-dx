@@ -7,7 +7,7 @@
 #   make report                - Generate summary report
 #   make help                  - Show this help message
 
-.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server validate-portal install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook
+.PHONY: help validate-all validate-all-governed validate-api clean report generate-portal serve-portal serve-proxy deploy-test deploy-prod test-portal validate-jtbd validate-xorigin validate-descriptions validate-mcp-server validate-portal install-hooks uninstall-hooks check-hooks pre-commit-hook pre-push-hook add-mulesoft-cli
 
 # Colors for output
 RED := \033[0;31m
@@ -48,6 +48,7 @@ help:
 	@echo "  $(YELLOW)make clean$(NC)                 - Clean validation reports"
 	@echo "  $(YELLOW)make list-apis$(NC)             - List all discovered APIs"
 	@echo "  $(YELLOW)make generate-portal$(NC)       - Generate static API documentation portal"
+	@echo "  $(YELLOW)make add-mulesoft-cli URL=...$(NC) - Ingest a docs.mulesoft.com CLI page into clis/"
 	@echo "  $(YELLOW)make serve-portal$(NC)          - Serve the API portal (default port 8082)"
 	@echo "  $(YELLOW)make serve-proxy$(NC)           - Start the CORS proxy server (default port 8080)"
 	@echo "  $(YELLOW)make deploy-test$(NC)           - Deploy portal to test environment via FTP"
@@ -311,6 +312,25 @@ generate-portal:
 	@echo "$(BLUE)📂 Output: portal/$(NC)"
 	@echo "$(BLUE)🌐 Open: portal/index.html$(NC)"
 	@echo ""
+
+# Ingest a MuleSoft CLI docs page into clis/<slug>/
+# Usage: make add-mulesoft-cli URL=https://docs.mulesoft.com/anypoint-cli/latest/<slug> [FORCE=1] [TAGS="tag1,tag2"]
+add-mulesoft-cli:
+	@if [ -z "$(URL)" ]; then \
+		echo "$(RED)Error: URL is required.$(NC)"; \
+		echo "Usage: make add-mulesoft-cli URL=https://docs.mulesoft.com/anypoint-cli/latest/<slug>"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  Ingesting CLI docs$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@EXTRA_ARGS=""; \
+	if [ -n "$(FORCE)" ]; then EXTRA_ARGS="$$EXTRA_ARGS --force"; fi; \
+	if [ -n "$(TAGS)" ]; then \
+		for t in $$(echo "$(TAGS)" | tr ',' ' '); do EXTRA_ARGS="$$EXTRA_ARGS --tag $$t"; done; \
+	fi; \
+	python3 scripts/add_mulesoft_cli.py --url "$(URL)" $$EXTRA_ARGS
 
 # Validate a deployed portal's agentic endpoints
 # Usage: make validate-portal URL=https://test-dev-portal.mulesoft.com [PORTAL_HEADER="X-MS-Developer: true"]

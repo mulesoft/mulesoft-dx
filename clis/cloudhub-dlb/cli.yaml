@@ -1,0 +1,23 @@
+name: CloudHub Dedicated Load Balancer
+slug: cloudhub-dlb
+version: "4.x"
+short_description: "Use the `cloudhub:load-balancer` commands to automate your CloudHub Dedicated Load Balancers processes."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/cloudhub-dlb"
+  file: docs/cloudhub-dlb.md
+tags:
+  - cli
+  - anypoint
+  - CloudHub
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

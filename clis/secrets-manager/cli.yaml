@@ -1,0 +1,22 @@
+name: Secrets Manager
+slug: secrets-manager
+version: "4.x"
+short_description: "Use the `secrets-mgr` commands to automate your Secrets Manager processes."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/secrets-manager"
+  file: docs/secrets-manager.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

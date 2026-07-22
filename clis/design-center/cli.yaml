@@ -1,0 +1,22 @@
+name: Design Center
+slug: design-center
+version: "4.x"
+short_description: "Use the `designcenter` commands for managing APIs from Design Center."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/design-center"
+  file: docs/design-center.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

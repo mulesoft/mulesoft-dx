@@ -39,6 +39,11 @@
           {% endif %}
         </div>
         {% elif api_version %}<span class="badge badge-version">{{ api_version }}</span>{% endif %}
+        {% if is_cli_page and cli_parent %}
+        <span class="badge badge-cli-parent" title="Plugin of {{ cli_parent.name }}">
+            {{ cli_parent.name }}
+        </span>
+        {% endif %}
     </div>
     {% if terraform_install_info %}
     <div class="auth-panel-right">
@@ -81,10 +86,38 @@
         {% include "partials/mcp_ide_config_btn.html" %}
     </div>
     {% endif %}
-    {% if is_skill_page or not prose_only|default(false) %}
+    {% if is_skill_page or not prose_only|default(false) or is_cli_page %}
     <div class="auth-panel-right">
         {% if is_mcp_page and mcp_install_info %}
         {% include "partials/mcp_ide_config_btn.html" %}
+        {% endif %}
+        {% if is_cli_page and cli_install_info %}
+        <div class="skill-actions-bar skill-actions-bar-header">
+            <div class="skill-split-btn" id="skill-actions-{{ cli_install_info.slug }}">
+                <button class="skill-split-main" onclick="openInstallModal('{{ cli_install_info.slug }}')">
+                    <span>Install CLI</span>
+                </button>
+                <button class="skill-split-toggle" onclick="toggleSkillDropdown('{{ cli_install_info.slug }}')" aria-haspopup="true" aria-expanded="false">
+                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="skill-dropdown-menu" id="skill-dropdown-menu-{{ cli_install_info.slug }}" style="display:none">
+                    <button onclick="openInstallModal('{{ cli_install_info.slug }}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+                        Install Command
+                    </button>
+                    <button onclick="copyCliInstallSnippet('{{ cli_install_info.slug }}', this)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy Code
+                    </button>
+                    {% if cli_install_info.docs_url %}
+                    <a href="{{ cli_install_info.docs_url }}" target="_blank" rel="noopener">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        Open Documentation
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% endif %}
         {% if is_skill_page and not prose_only|default(false) %}
         <div class="skill-mode-toggle-container">
@@ -126,7 +159,7 @@
             </div>
         </div>
         {% endif %}
-        {% if not prose_only|default(false) %}
+        {% if not prose_only|default(false) or is_cli_page %}
         <div class="auth-button-wrapper">
             <button class="auth-panel-status" onclick="onAuthButtonClick()" aria-label="Authentication status" aria-haspopup="dialog" id="authStatusButton">
                 <span class="auth-status-container" id="authStatusContainer">
@@ -152,7 +185,7 @@
     {% endif %}
 </div>
 
-{% if not prose_only|default(false) %}
+{% if not prose_only|default(false) or is_cli_page %}
 <div class="auth-modal" id="authModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <div class="auth-modal-overlay" onclick="closeAuthModal()"></div>
     <div class="auth-modal-content">

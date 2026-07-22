@@ -415,3 +415,34 @@ def _parse_version_dir(version_dir: Path, version: str, is_latest: bool) -> Opti
         'doc_count': len(docs),
         'install_info': install_info,
     }
+
+
+def discover_clis(repo_root: Path) -> List[Dict]:
+    """Discover CLI assets under ``clis/<slug>/cli.yaml``.
+
+    Returns a list sorted by slug; each entry is the parser output plus
+    ``_item_type='cli'`` and ``command_count``.
+    """
+    from .parsers.cli_parser import parse_cli_yaml
+
+    clis_dir = repo_root / 'clis'
+    if not clis_dir.exists():
+        return []
+
+    print("\n🔍 Scanning for CLIs...")
+    entries: List[Dict] = []
+    for cli_dir in sorted(clis_dir.iterdir()):
+        if not cli_dir.is_dir() or cli_dir.name.startswith('.'):
+            continue
+        try:
+            data = parse_cli_yaml(cli_dir)
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"  ⚠  Skipping {cli_dir.name}: {exc}")
+            continue
+        data['_item_type'] = 'cli'
+        data['command_count'] = len(data.get('commands') or [])
+        entries.append(data)
+        print(f"  ✓ {data['name']} ({data['command_count']} command(s))")
+
+    entries.sort(key=lambda c: c['slug'])
+    return entries

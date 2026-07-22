@@ -38,3 +38,10 @@
 - [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.md): {{ skill.description }}
 {% endfor %}
 {% endif %}
+
+{% if clis %}
+## CLIs
+{% for cli in clis %}
+- [{{ cli.name }}]({{ base_url }}/clis/{{ cli.slug }}/index.html): {{ cli.short_description }}
+{% endfor %}
+{% endif %}

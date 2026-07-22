@@ -1,0 +1,16 @@
+name: Api Catalog
+slug: api-catalog
+version: "4.x"
+short_description: "Discover and catalog your API definitions, documentation files, and associated metadata as part of an automated process with API Catalog CLI."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/api-catalog"
+  file: docs/api-catalog.md
+tags:
+  - cli
+  - anypoint

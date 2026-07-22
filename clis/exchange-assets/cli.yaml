@@ -1,0 +1,27 @@
+name: Exchange Assets
+slug: exchange-assets
+version: "4.x"
+short_description: "Use the `exchange` commands to automate your Exchange processes."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/exchange-assets"
+  file: docs/exchange-assets.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md
+  - id: exchange-asset-resource-list
+    title: "exchange:asset:resource:list"
+    matches:
+      - "#exchange-asset-resource-list"
+    file: snippets/exchange-asset-resource-list.md

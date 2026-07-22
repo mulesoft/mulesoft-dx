@@ -1,0 +1,22 @@
+name: DX Mule
+slug: dx-mule
+version: "4.x"
+short_description: "Use these commands to manage Mule Runtimes, scaffold Mule projects, and introspect connector metadata from the command line."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/dx-mule"
+  file: docs/dx-mule.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

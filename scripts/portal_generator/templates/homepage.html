@@ -40,6 +40,10 @@
                     <img src="assets/icons/terraform-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
                     Terraform
                 </button>
+                <button class="hero-tab" data-filter="cli">
+                    <img src="assets/icons/cli-filter-icon.svg" width="16" height="16" style="margin-right: 6px;" alt="">
+                    CLIs
+                </button>
             </div>
         </div>
     </section>
@@ -63,7 +67,7 @@
                         </div>
                         <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
                     </div>
-                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)<span id="sortIndicator" class="sort-indicator" style="display: none;"> · Sort by <span id="sortLabel">Name</span></span></h2>
+                    <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) + (clis|length if clis else 0) }}</span> Results)<span id="sortIndicator" class="sort-indicator" style="display: none;"> · Sort by <span id="sortLabel">Name</span></span></h2>
                 </div>
                 <div class="catalog-controls-right">
                     <button class="sort-btn" aria-label="Sort options">
@@ -116,6 +120,9 @@
                     {% elif item._item_type == 'terraform' %}
                         {% set terraform = item %}
                         {% include "homepage/terraform_card.html" %}
+                    {% elif item._item_type == 'cli' %}
+                        {% set cli = item %}
+                        {% include "homepage/cli_card.html" %}
                     {% endif %}
                 {% endfor %}
             </div>

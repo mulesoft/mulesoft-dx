@@ -1,0 +1,91 @@
+{% macro render_cli(cli, icons_path) %}
+{% set slug = cli.slug %}
+<section class="cli-detail" data-cli-slug="{{ slug }}">
+  <section id="overview" class="content-section cli-overview">
+    <div class="cli-overview-header">
+      <div>
+        <h2 class="cli-overview-title">Overview</h2>
+        <p class="cli-overview-subtitle">{{ cli.short_description }}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if cli.commands %}
+  <section class="content-section cli-commands-block">
+    {% for cmd in cli.commands %}
+    <article id="cmd-{{ cmd.name }}" class="cli-command-section">
+      <header class="cli-command-header">
+        <h2 class="cli-command-title">{{ cmd.name }}</h2>
+        {% if cmd.usage %}
+        <div class="cli-command-terminal" role="group" aria-label="Command usage">
+          <code class="cli-command-terminal-code">{{ cmd.usage }}</code>
+          <button type="button" class="cli-command-terminal-copy"
+                  onclick="copyCliCommandUsage(this)"
+                  data-command="{{ cmd.usage }}"
+                  aria-label="Copy command">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+        {% endif %}
+        {% if cmd.description %}
+        <p class="cli-command-subtitle">{{ (cmd.description_html or cmd.description)|safe }}</p>
+        {% endif %}
+      </header>
+      <div class="cli-command-doc markdown-body">
+        {{ cmd.doc_html|safe }}
+      </div>
+      {% if cmd.snippet_refs %}
+      {% for sid in cmd.snippet_refs %}
+      {% set snip = cli.snippets.get(sid) if cli.snippets else None %}
+      {% if snip %}
+      <details class="cli-command-snippet">
+        <summary>
+          <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          {{ snip.title }}
+        </summary>
+        <div class="cli-command-snippet-body markdown-body">
+          {{ snip.html|safe }}
+        </div>
+      </details>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {# Install CLI Modal — reuses skill install modal styles + JS #}
+  <div class="install-modal" id="install-modal-{{ slug }}" style="display:none" role="dialog" aria-modal="true" aria-labelledby="install-modal-title-{{ slug }}">
+    <div class="install-modal-overlay" onclick="closeInstallModal('{{ slug }}')"></div>
+    <div class="install-modal-content">
+      <div class="install-modal-header">
+        <h3 id="install-modal-title-{{ slug }}">Install {{ cli.name }}</h3>
+        <button class="btn-close-modal" onclick="closeInstallModal('{{ slug }}')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="install-modal-body">
+        {% for pkg, cmd in cli.install.items() %}
+        <div class="install-command-row">
+          <span class="install-command-bracket">[</span>
+          <code class="install-command-code" id="install-cmd-{{ slug }}-{{ pkg }}">{{ cmd }}</code>
+          <span class="install-command-bracket">]</span>
+          <button class="btn-install-copy" onclick="copyCliInstallModalRow('install-cmd-{{ slug }}-{{ pkg }}', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        {% endfor %}
+        {% if cli.docs and cli.docs.base_url %}
+        <div class="install-prereqs">
+          <h4>Documentation</h4>
+          <p><a href="{{ cli.docs.base_url }}" target="_blank" rel="noopener noreferrer">{{ cli.docs.base_url }}</a></p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endmacro %}

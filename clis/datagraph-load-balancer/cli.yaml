@@ -1,0 +1,22 @@
+name: DataGraph Load Balancer
+slug: datagraph-load-balancer
+version: "4.x"
+short_description: "Use the `datagraph` commands to automate your DataGraph Load Balancers processes."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/datagraph-load-balancer"
+  file: docs/datagraph-load-balancer.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

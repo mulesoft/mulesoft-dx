@@ -1,0 +1,23 @@
+name: Standalone Apps
+slug: standalone-apps
+version: "4.x"
+short_description: "Use these commands to control applications deployed to your local Mule server and managed with Runtime Manager."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/standalone-apps"
+  file: docs/standalone-apps.md
+tags:
+  - cli
+  - anypoint
+  - Runtime Manager
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

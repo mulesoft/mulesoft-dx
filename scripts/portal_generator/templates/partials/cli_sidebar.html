@@ -1,0 +1,94 @@
+{% set cli_slug = cli.slug %}
+
+{% macro render_tree_node(node) %}
+  {% if not node.children %}
+  <li>
+    <a href="#cmd-{{ node.command.name }}" class="nav-link nav-cli-command" title="{{ node.command.name }}">
+      <span class="cli-command-name">{{ node.segment }}</span>
+    </a>
+  </li>
+  {% else %}
+  <li class="cli-tree-group" data-group-path="{{ node.path }}">
+    <button type="button" class="cli-tree-toggle" onclick="toggleCliTreeGroup(this)" aria-expanded="true">
+      <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      <span class="cli-tree-group-label">{{ node.segment }}</span>
+    </button>
+    <ul class="cli-tree-children">
+      {% for child in node.children %}
+        {{ render_tree_node(child) }}
+      {% endfor %}
+    </ul>
+  </li>
+  {% endif %}
+{% endmacro %}
+
+<aside class="detail-sidebar" id="detailSidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-search-row">
+            <div class="sidebar-search">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path></svg>
+                <input type="text" id="sidebarSearch" class="sidebar-search-input" placeholder="Search commands…"
+                    aria-label="Filter commands" onkeyup="filterCliSidebar(this.value)">
+                <button class="btn-clear-sidebar-search" onclick="clearCliSidebarSearch()" style="display:none"
+                    aria-label="Clear search">✕</button>
+            </div>
+        </div>
+        <div class="sidebar-overview-section">
+            <a href="#overview" class="nav-link nav-link-overview active">
+                Overview
+            </a>
+        </div>
+        {% if cli.commands %}
+        <div class="sidebar-section-header">
+            <span class="sidebar-section-label">Commands</span>
+            <button type="button"
+                    class="cli-view-toggle-btn"
+                    id="cliViewToggleBtn"
+                    aria-pressed="false"
+                    aria-label="Switch to tree list"
+                    title="Switch to tree list"
+                    onclick="toggleCliSidebarView()">
+                <svg class="cli-view-icon cli-view-icon-flat" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="8" y1="6" x2="21" y2="6"/>
+                    <line x1="8" y1="12" x2="21" y2="12"/>
+                    <line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+                <svg class="cli-view-icon cli-view-icon-tree" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12h-8"/>
+                    <path d="M21 6H8"/>
+                    <path d="M21 18h-8"/>
+                    <path d="M3 6v4c0 1.1.9 2 2 2h3"/>
+                    <path d="M3 10v6c0 1.1.9 2 2 2h3"/>
+                </svg>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    <nav class="sidebar-nav">
+        <div class="sidebar-empty-state" id="sidebarEmptyState" style="display:none">
+            <img src="{{ icons_path }}/empty-state.svg" alt="" aria-hidden="true">
+            <p class="sidebar-empty-title">We didn't find any results</p>
+            <p class="sidebar-empty-hint">Try rephrasing your search.</p>
+        </div>
+
+        <ul class="nav-list cli-nav-list cli-view-flat" id="cliFlatList" data-view="flat">
+            {% for cmd in cli.commands %}
+            <li>
+                <a href="#cmd-{{ cmd.name }}" class="nav-link nav-cli-command" title="{{ cmd.name }}">
+                    <span class="cli-command-name">{{ cmd.name }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <ul class="nav-list cli-nav-list cli-view-tree" id="cliTreeList" data-view="tree" style="display:none">
+            {% for node in cli.command_tree %}
+              {{ render_tree_node(node) }}
+            {% endfor %}
+        </ul>
+    </nav>
+    {% include "partials/breadcrumb.html" %}
+</aside>

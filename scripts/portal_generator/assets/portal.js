@@ -1419,6 +1419,7 @@ function filterByTags() {
     let visibleMcps = 0;
     let visibleSkills = 0;
     let visibleTerraform = 0;
+    let visibleClis = 0;
 
     cardLinks.forEach(cardLink => {
         const name = (cardLink.dataset.name || '').toLowerCase();
@@ -1448,6 +1449,8 @@ function filterByTags() {
                 visibleSkills++;
             } else if (type === 'terraform') {
                 visibleTerraform++;
+            } else if (type === 'cli') {
+                visibleClis++;
             }
         } else {
             cardLink.style.display = 'none';
@@ -1455,7 +1458,7 @@ function filterByTags() {
     });
 
     // Update results count and type
-    const totalVisible = visibleApis + visibleMcps + visibleSkills + visibleTerraform;
+    const totalVisible = visibleApis + visibleMcps + visibleSkills + visibleTerraform + visibleClis;
     updateResultsCount(totalVisible, selectedType);
 
     // Toggle empty state when no cards match
@@ -1569,6 +1572,8 @@ function updateResultsCount(count, filterType) {
             resultsType.textContent = 'Skills';
         } else if (filterType === 'terraform') {
             resultsType.textContent = 'Terraform Providers';
+        } else if (filterType === 'cli') {
+            resultsType.textContent = 'CLIs';
         } else {
             resultsType.textContent = 'All';
         }
@@ -1652,8 +1657,13 @@ function navigateToHash(hash, smooth) {
     // Hide all operations
     document.querySelectorAll('.operation-detail').forEach(op => op.classList.remove('active'));
 
-    // Hide overview
-    if (overview) overview.style.display = 'none';
+    // On CLI detail pages (and other long-scroll pages like skills), overview
+    // and content coexist as scroll siblings — don't hide overview or we can't
+    // scroll back up to it. Only op/doc/mcp views swap overview out entirely.
+    const isSwapView = targetId.startsWith('op-')
+                       || targetId.startsWith('doc-')
+                       || isMcpInvocableId(targetId);
+    if (overview && isSwapView) overview.style.display = 'none';
 
     // Show the target
     if (targetId.startsWith('op-')) {
@@ -1664,7 +1674,6 @@ function navigateToHash(hash, smooth) {
             s.classList.remove('active');
         });
         targetElement.classList.add('active');
-        if (overview) overview.style.display = 'none';
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
@@ -4885,6 +4894,226 @@ function copyInstallFromModal(slug, buttonEl) {
     }).catch(function(err) {
         console.error('Failed to copy install command:', err);
     });
+}
+
+function copyCliInstallSnippet(slug, buttonEl) {
+    var firstCode = document.querySelector('#install-modal-' + slug + ' .install-command-code');
+    if (!firstCode) return;
+    navigator.clipboard.writeText(firstCode.textContent).then(function() {
+        _closeAllSkillDropdowns();
+        var actions = document.getElementById('skill-actions-' + slug);
+        if (!actions) return;
+        var mainBtn = actions.querySelector('.skill-split-main');
+        if (mainBtn) _showSkillCopiedFeedback(mainBtn);
+    }).catch(function(err) {
+        console.error('Failed to copy CLI install command:', err);
+    });
+}
+
+function copyCliInstallModalRow(codeId, buttonEl) {
+    var codeEl = document.getElementById(codeId);
+    if (!codeEl) return;
+    navigator.clipboard.writeText(codeEl.textContent).then(function() {
+        _showInstallCopyFeedback(buttonEl);
+    }).catch(function(err) {
+        console.error('Failed to copy CLI install command:', err);
+    });
+}
+
+function _showInstallCopyFeedback(buttonEl) {
+    if (!buttonEl) return;
+    var label = buttonEl.querySelector('span');
+    if (!label) return;
+    var saved = label.textContent;
+    label.textContent = 'Copied!';
+    buttonEl.classList.add('is-copied');
+    setTimeout(function() {
+        label.textContent = saved;
+        buttonEl.classList.remove('is-copied');
+    }, 1500);
+}
+
+function copyCliInstallInline(buttonEl) {
+    var cmd = buttonEl.getAttribute('data-install-cmd');
+    if (!cmd) return;
+    navigator.clipboard.writeText(cmd).then(function() {
+        _showSkillCopiedFeedback(buttonEl);
+    }).catch(function(err) {
+        console.error('Failed to copy install command:', err);
+    });
+}
+
+function copyCliCommandUsage(buttonEl) {
+    var cmd = buttonEl.getAttribute('data-command');
+    if (!cmd) return;
+    navigator.clipboard.writeText(cmd).then(function() {
+        var originalHTML = buttonEl.innerHTML;
+        buttonEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        buttonEl.style.color = '#04844B';
+        setTimeout(function() {
+            buttonEl.innerHTML = originalHTML;
+            buttonEl.style.color = '';
+        }, 1500);
+    }).catch(function(err) {
+        console.error('Failed to copy command usage:', err);
+    });
+}
+
+/* ================= CLI sidebar (filter + view toggle) ================= */
+
+function _domDepth(el) {
+    var d = 0;
+    while (el && el.parentElement) { d++; el = el.parentElement; }
+    return d;
+}
+
+function _cliActiveList() {
+    var flat = document.getElementById('cliFlatList');
+    var tree = document.getElementById('cliTreeList');
+    if (flat && flat.style.display !== 'none') return flat;
+    return tree;
+}
+
+function filterCliSidebar(query) {
+    var q = (query || '').trim().toLowerCase();
+    var clearBtn = document.querySelector('.detail-sidebar .btn-clear-sidebar-search');
+    if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+    var list = _cliActiveList();
+    if (!list) return;
+
+    var links = list.querySelectorAll('.nav-cli-command');
+    var anyVisible = false;
+
+    links.forEach(function(link) {
+        var full = (link.getAttribute('title') || '').toLowerCase();
+        var visible = link.querySelector('.cli-command-name');
+        var visibleText = (visible ? visible.textContent : '').toLowerCase();
+        var matches = !q || full.indexOf(q) !== -1 || visibleText.indexOf(q) !== -1;
+
+        var li = link.closest('li');
+        if (li) li.style.display = matches ? '' : 'none';
+        if (matches) anyVisible = true;
+    });
+
+    // In tree view: walk groups deepest-first so parents see resolved child state.
+    if (list.getAttribute('data-view') === 'tree') {
+        var groups = Array.from(list.querySelectorAll('.cli-tree-group'));
+        // Sort by DOM depth descending so leaves resolve before their ancestors.
+        groups.sort(function(a, b) {
+            return _domDepth(b) - _domDepth(a);
+        });
+        groups.forEach(function(group) {
+            var hasVisibleDescendant = Array.from(
+                group.querySelectorAll(':scope > .cli-tree-children > li')
+            ).some(function(li) { return li.style.display !== 'none'; });
+            group.style.display = hasVisibleDescendant ? '' : 'none';
+            if (q && hasVisibleDescendant) {
+                group.classList.remove('is-collapsed');
+                var toggle = group.querySelector(':scope > .cli-tree-toggle');
+                if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+    }
+
+    var empty = document.getElementById('sidebarEmptyState');
+    if (empty) empty.style.display = anyVisible ? 'none' : 'block';
+}
+
+function clearCliSidebarSearch() {
+    var input = document.getElementById('sidebarSearch');
+    if (input) input.value = '';
+    filterCliSidebar('');
+}
+
+function setCliSidebarView(view) {
+    var flat = document.getElementById('cliFlatList');
+    var tree = document.getElementById('cliTreeList');
+    if (!flat || !tree) return;
+
+    var wantTree = view === 'tree';
+    flat.style.display = wantTree ? 'none' : '';
+    tree.style.display = wantTree ? '' : 'none';
+
+    // Icon button: aria-pressed reflects whether we're in tree mode; the
+    // tooltip/label describes the ACTION (switch to the other view).
+    var btn = document.getElementById('cliViewToggleBtn');
+    if (btn) {
+        btn.setAttribute('aria-pressed', wantTree ? 'true' : 'false');
+        var label = wantTree ? 'Switch to command list' : 'Switch to tree list';
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+    }
+
+    // Reapply the current filter to the newly-visible list.
+    var input = document.getElementById('sidebarSearch');
+    filterCliSidebar(input ? input.value : '');
+}
+
+function toggleCliSidebarView() {
+    var btn = document.getElementById('cliViewToggleBtn');
+    var currentlyTree = btn && btn.getAttribute('aria-pressed') === 'true';
+    setCliSidebarView(currentlyTree ? 'flat' : 'tree');
+}
+
+function toggleCliTreeGroup(buttonEl) {
+    var group = buttonEl.closest('.cli-tree-group');
+    if (!group) return;
+    var collapsed = group.classList.toggle('is-collapsed');
+    buttonEl.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+}
+
+function _cliMarkActive(hash) {
+    // Clear only sidebar links (overview + command links); the same hash may
+    // appear twice (once in the flat list, once in the tree), so mark both.
+    var sidebar = document.getElementById('detailSidebar');
+    if (!sidebar) return;
+    sidebar.querySelectorAll('.nav-link.active').forEach(function(l) { l.classList.remove('active'); });
+    sidebar.querySelectorAll('.nav-link[href="' + hash + '"]').forEach(function(l) {
+        l.classList.add('active');
+    });
+}
+
+function _initCliScrollSpy() {
+    var detail = document.querySelector('.cli-detail');
+    if (!detail) return;
+
+    var sections = detail.querySelectorAll('.cli-overview, .cli-command-section');
+    if (!sections.length) return;
+
+    // Track visibility ratio per section so we can pick the top-most visible one.
+    var visibility = new Map();
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            visibility.set(e.target, e.isIntersecting ? e.intersectionRatio : 0);
+        });
+
+        // Pick the section with the highest visible ratio that's actually in view.
+        var best = null;
+        var bestRatio = 0;
+        visibility.forEach(function(ratio, el) {
+            if (ratio > bestRatio) { best = el; bestRatio = ratio; }
+        });
+        if (!best) return;
+
+        var id = best.id;
+        if (!id) return;
+        _cliMarkActive('#' + id);
+    }, {
+        // Header is ~64-100px tall; skip past it so a section is "active" only
+        // once its title is comfortably below the header.
+        rootMargin: '-110px 0px -60% 0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1]
+    });
+
+    sections.forEach(function(s) { observer.observe(s); });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _initCliScrollSpy);
+} else {
+    _initCliScrollSpy();
 }
 
 function copySkillContent(slug, buttonEl) {

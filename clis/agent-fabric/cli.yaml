@@ -1,0 +1,22 @@
+name: Agent Fabric
+slug: agent-fabric
+version: "4.x"
+short_description: "Use these commands to author, publish, and deploy agent network projects."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/agent-fabric"
+  file: docs/agent-fabric.md
+tags:
+  - cli
+  - anypoint
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

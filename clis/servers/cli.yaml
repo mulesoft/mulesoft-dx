@@ -1,0 +1,23 @@
+name: Local Servers
+slug: servers
+version: "4.x"
+short_description: "Use the `servers` commands to automate your Local Servers processes."
+parent_cli:
+  name: Anypoint CLI
+  slug: anypoint-cli
+install:
+  npm: "npm install -g anypoint-cli-v4"
+docs:
+  source: "scrape"
+  base_url: "https://docs.mulesoft.com/anypoint-cli/latest/servers"
+  file: docs/servers.md
+tags:
+  - cli
+  - anypoint
+  - Runtime Manager
+snippets:
+  - id: default-options
+    title: "Default Flags"
+    matches:
+      - "#default-options"
+    file: snippets/default-options.md

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List
 from urllib.parse import quote as _urlquote
 
-from .discovery import discover_apis, discover_terraform, calculate_stats
+from .discovery import discover_apis, discover_clis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
 from .builders.param_order import sort_parameters_by_dependency
 from .assets import get_css, get_js, get_jsonpath_js
@@ -303,6 +303,30 @@ def _render_skill_page(args: Dict) -> None:
             _generate_skill_manifest(source_dir, manifest_output_dir)
 
 
+def _render_cli_page(args: Dict) -> None:
+    """Render a single CLI detail page."""
+    env = create_env()
+    template = env.get_template('cli_page.html')
+    cli = args['cli']
+    output_path = Path(args['output_path'])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    html = template.render(
+        **args['asset_paths'],
+        cli=cli,
+        home_link='../../index.html',
+        build_label=args['build_label'],
+        base_url=args['base_url'],
+        chrome=args.get('chrome'),
+        repo_url=args.get('repo_url', ''),
+        repo_branch=args.get('repo_branch', ''),
+        source_path=args['source_path'],
+        asset_type='cli',
+        asset_name=cli.get('name', cli['slug']),
+        gtm_container_id=args.get('gtm_container_id', ''),
+    )
+    output_path.write_text(html, encoding='utf-8')
+
+
 def _render_terraform_page(args: Dict) -> None:
     """Worker: render a single Terraform version page (runs in subprocess)."""
     env = create_env()
@@ -352,6 +376,7 @@ class PortalGenerator:
         self.stats = {}
         self.all_skills = []
         self.terraform_providers = []
+        self.clis = []
         self.repo_root = None
         self.chrome = None
         self.workers = workers if workers > 0 else os.cpu_count() or 4
@@ -402,6 +427,9 @@ class PortalGenerator:
         # Discover Terraform providers
         self.terraform_providers = discover_terraform(repo_root)
 
+        # Discover CLIs
+        self.clis = discover_clis(repo_root)
+
         print(f"\n📊 Statistics:")
         print(f"  • {self.stats['api_count']} APIs")
         print(f"  • {self.stats['endpoint_count']} Endpoints")
@@ -411,7 +439,7 @@ class PortalGenerator:
 
         # Clean and create output directories to avoid stale artifacts
         print(f"\n📁 Creating output directories...")
-        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas', 'terraform']:
+        for subdir in ['apis', 'skills', 'mcps', 'assets', 'schemas', 'terraform', 'clis']:
             target = self.output_dir / subdir
             if target.exists():
                 shutil.rmtree(target)
@@ -539,6 +567,11 @@ class PortalGenerator:
                 provider_copy['_item_type'] = 'terraform'
                 all_items.append(provider_copy)
 
+        for cli in self.clis:
+            cli_copy = cli.copy()
+            cli_copy['_item_type'] = 'cli'
+            all_items.append(cli_copy)
+
         all_items.sort(key=lambda x: x.get('name', '').lower())
 
         html = template.render(
@@ -548,6 +581,7 @@ class PortalGenerator:
             stats=self.stats,
             all_skills=self.all_skills,
             terraform_providers=self.terraform_providers,
+            clis=self.clis,
             all_items=all_items,
             proxy_url=self.proxy_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
@@ -693,6 +727,24 @@ class PortalGenerator:
                 'manifest_output_dir': str(self.output_dir / 'skills' / skill_rel),
                 'gtm_container_id': self.gtm_container_id,
             }))
+
+        # CLI detail pages
+        if self.clis:
+            print(f"  ✓ Queuing {len(self.clis)} CLI detail pages...")
+            for cli in self.clis:
+                cli_dir = self.output_dir / 'clis' / cli['slug']
+                tasks.append((_render_cli_page, {
+                    'cli': cli,
+                    'asset_paths': self._asset_paths(2),
+                    'build_label': self.build_label,
+                    'base_url': self.base_url,
+                    'chrome': chrome,
+                    'repo_url': self.REPO_URL,
+                    'repo_branch': self.REPO_BRANCH,
+                    'output_path': str(cli_dir / 'index.html'),
+                    'source_path': f"clis/{cli['slug']}/cli.yaml",
+                    'gtm_container_id': self.gtm_container_id,
+                }))
 
         # Terraform pages — one task per (provider, version)
         if self.terraform_providers:
@@ -1107,6 +1159,37 @@ class PortalGenerator:
 
             registry.append(skill_entry)
 
+        # Add CLI documents
+        for cli in self.clis:
+            cli_slug = cli['slug']
+            cli_urn = f"urn:cli:{cli_slug}"
+
+            # Copy source cli.yaml + docs/ to the portal output
+            source_dir = self.repo_root / 'clis' / cli_slug
+            if source_dir.exists():
+                cli_output_dir = self.output_dir / 'clis' / cli_slug
+                cli_output_dir.mkdir(parents=True, exist_ok=True)
+                src_yaml = source_dir / 'cli.yaml'
+                if src_yaml.exists():
+                    shutil.copy2(src_yaml, cli_output_dir / 'cli.yaml')
+                src_docs = source_dir / 'docs'
+                if src_docs.is_dir():
+                    dest_docs = cli_output_dir / 'docs'
+                    if dest_docs.exists():
+                        shutil.rmtree(dest_docs)
+                    shutil.copytree(src_docs, dest_docs)
+
+            registry.append({
+                '$id': cli_urn,
+                'kind': 'cli',
+                'slug': cli_slug,
+                'name': cli.get('name', ''),
+                'description': cli.get('short_description', ''),
+                'href': f"clis/{cli_slug}/cli.yaml",
+                'docs': f"clis/{cli_slug}/index.html",
+                'command_count': cli.get('command_count', 0),
+            })
+
         # Add Schema documents
         schema_entries = [
             {
@@ -1188,6 +1271,7 @@ class PortalGenerator:
             apis=self.public_apis,
             mcp_servers=self.public_mcps,
             all_skills=self.all_skills,
+            clis=self.clis,
         )
         output_path = self.output_dir / 'llms.txt'
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -1206,6 +1290,7 @@ class PortalGenerator:
             mcp_servers=self.public_mcps,
             all_skills=self.all_skills,
             terraform_providers=self.terraform_providers,
+            clis=self.clis,
         )
         (self.output_dir / 'index.md').write_text(md, encoding='utf-8')
         count += 1

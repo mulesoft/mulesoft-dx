@@ -139,7 +139,8 @@ paths:
                 errors:
                 - code: string
                   message: string
-      operationId: getOrganizationsByOrganizationidFabrics
+      summary: List Runtime Fabrics
+      operationId: listFabrics
     post:
       description: Runtime Fabric register endpoint
       parameters:
@@ -222,7 +223,8 @@ paths:
                 errors:
                 - code: string
                   message: string
-      operationId: createOrganizationsByOrganizationidFabrics
+      summary: Register a Runtime Fabric
+      operationId: registerFabric
   /organizations/{organizationId}/fabrics/{fabricId}:
     description: Get an entity representing a fabric
     delete:
@@ -239,7 +241,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: deleteOrganizationsByOrganizationidFabricsByFabricid
+      summary: Delete Runtime Fabric
+      operationId: deleteFabric
       description: Deletes a fabrics.
     get:
       description: 'Get the fabric
@@ -518,7 +521,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidFabricsByFabricid
+      summary: Get Runtime Fabric by ID
+      operationId: getFabric
     patch:
       description: Update existing fabric
       parameters:
@@ -799,7 +803,8 @@ paths:
                         largestBlock: 12847
                     activationToken: fe01cd5a-89a1-11e7-bb31-be2e44b06b34
               example: {}
-      operationId: patchOrganizationsByOrganizationidFabricsByFabricid
+      summary: Update Runtime Fabric
+      operationId: updateFabric
   /organizations/{organizationId}/fabrics/{fabricId}/logforwarding:
     get:
       description: Get the Log forwarding config information.
@@ -841,7 +846,8 @@ paths:
                   forwardLogs:
                     id: string
                     type: string
-      operationId: getOrganizationsByOrganizationidFabricsByFabricidLogforwarding
+      summary: Get log forwarding configuration
+      operationId: getFabricLogForwarding
     patch:
       description: Update the Anypoint Log forwarding config
       parameters:
@@ -889,7 +895,8 @@ paths:
                   forwardLogs:
                     id: string
                     type: string
-      operationId: patchOrganizationsByOrganizationidFabricsByFabricidLogforwarding
+      summary: Update log forwarding configuration
+      operationId: updateFabricLogForwarding
     delete:
       description: Deletes the External and Anypoint Monitoring log forwarding.
       parameters:
@@ -898,7 +905,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidFabricsByFabricidLogforwarding
+      summary: Delete log forwarding configuration
+      operationId: deleteFabricLogForwarding
   /organizations/{organizationId}/fabrics/{fabricId}/logforwarding/external:
     patch:
       description: Configure the External log forwarding
@@ -953,7 +961,8 @@ paths:
                 forwardLogs:
                   id: string
                   type: string
-      operationId: patchOrganizationsByOrganizationidFabricsByFabricidLogforwardingExternal
+      summary: Configure external log forwarding
+      operationId: updateExternalLogForwarding
     delete:
       description: Deletes the External log forwarding configuration
       parameters:
@@ -962,7 +971,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidFabricsByFabricidLogforwardingExternal
+      summary: Delete external log forwarding
+      operationId: deleteExternalLogForwarding
   /organizations/{organizationId}/fabrics/{fabricId}/logforwarding/external/test:
     post:
       description: 'Lets the user send test message to validate the end to end connectivity.
@@ -986,7 +996,8 @@ paths:
               example:
                 messageRef: string
                 rtfName: string
-      operationId: createOrganizationsByOrganizationidFabricsByFabricidLogforwardingExternalTest
+      summary: Test external log forwarding delivery
+      operationId: testExternalLogForwarding
   /organizations/{organizationId}/fabrics/{fabricId}/events:
     get:
       description: 'Get cluster events.
@@ -998,7 +1009,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidFabricsByFabricidEvents
+      summary: List Runtime Fabric cluster events
+      operationId: listFabricEvents
   /organizations/{organizationId}/fabrics/{fabricId}/health:
     get:
       description: 'Get detailed health information.
@@ -1072,7 +1084,8 @@ paths:
                   failedProbes:
                   - id: string
                     type: string
-      operationId: getOrganizationsByOrganizationidFabricsByFabricidHealth
+      summary: Get Runtime Fabric health
+      operationId: getFabricHealth
   /organizations/{organizationId}/groups:
     get:
       description: Get the list of Fabric Groups.
@@ -1091,7 +1104,8 @@ paths:
               example:
               - id: string
                 type: string
-      operationId: getOrganizationsByOrganizationidGroups
+      summary: List fabric groups
+      operationId: listFabricGroups
   /organizations/{organizationId}/groups/{groupId}:
     get:
       parameters:
@@ -1111,7 +1125,8 @@ paths:
                 associations:
                 - id: string
                   type: string
-      operationId: getOrganizationsByOrganizationidGroupsByGroupid
+      summary: Get fabric group by ID
+      operationId: getFabricGroup
       description: Retrieves a groups.
   /organizations/{organizationId}/groups/{groupId}/associations:
     description: The collection of associations
@@ -1177,7 +1192,8 @@ paths:
                 errors:
                 - code: string
                   message: string
-      operationId: getOrganizationsByOrganizationidGroupsByGroupidAssociations
+      summary: List environment associations
+      operationId: listGroupAssociations
     post:
       description: Create a new association
       parameters:
@@ -1236,7 +1252,8 @@ paths:
                 errors:
                 - code: string
                   message: string
-      operationId: createOrganizationsByOrganizationidGroupsByGroupidAssociations
+      summary: Create environment association
+      operationId: createAssociation
   /organizations/{organizationId}/groups/{groupId}/associations/{associationId}:
     get:
       parameters:
@@ -1263,7 +1280,8 @@ paths:
                 organizationId: string
                 deploymentStatus: string
                 errorMessage: string
-      operationId: getOrganizationsByOrganizationidGroupsByGroupidAssociationsByAssociationid
+      summary: Get environment association by ID
+      operationId: getAssociation
       description: Retrieves a associations.
     patch:
       description: Update an existing environment association.
@@ -1298,7 +1316,8 @@ paths:
                 organizationId: string
                 deploymentStatus: string
                 errorMessage: string
-      operationId: patchOrganizationsByOrganizationidGroupsByGroupidAssociationsByAssociationid
+      summary: Update environment association
+      operationId: updateAssociation
     delete:
       parameters:
       - $ref: '#/components/parameters/XOrigin_fabricOrganizationId_Path'
@@ -1312,7 +1331,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: deleteOrganizationsByOrganizationidGroupsByGroupidAssociationsByAssociationid
+      summary: Delete environment association
+      operationId: deleteAssociation
       description: Deletes a associations.
   /organizations/{organizationId}:
     delete:
@@ -1323,7 +1343,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '429':
           description: Too many requests. Rate limit exceeded.
-      operationId: deleteOrganizationsByOrganizationid
+      summary: Delete organization Runtime Fabric data
+      operationId: deleteOrganization
       description: Deletes a organizations.
   /organizations/{organizationId}/environments/{environmentId}:
     delete:
@@ -1346,7 +1367,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '429':
           description: Too many requests. Rate limit exceeded.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvid
+      summary: Delete environment
+      operationId: deleteEnvironment
       description: Deletes a environments.
   /organizations/{organizationId}/imageregistrycredential:
     get:
@@ -1366,7 +1388,8 @@ paths:
                 password: string
                 endpoint: string
                 passwordExpirationTimestamp: 0.0
-      operationId: getOrganizationsByOrganizationidImageregistrycredential
+      summary: Get image registry credential
+      operationId: getImageRegistryCredential
   /runtimes:
     description: Mule runtimes
     get:
@@ -1399,7 +1422,8 @@ paths:
               example:
               - id: string
                 type: string
-      operationId: getRuntimes
+      summary: List supported Mule runtime versions
+      operationId: listRuntimes
   /runtimes/{name}:
     get:
       description: 'Retrieve a single name
@@ -1426,7 +1450,8 @@ paths:
                 endOfSupportDate: 0.0
         '404':
           description: Not found. The requested resource does not exist.
-      operationId: getRuntimesByName
+      summary: Get Mule runtime by name
+      operationId: getRuntime
   /runtimes/{name}/tags:
     get:
       description: 'Retrieves tags for a name
@@ -1454,7 +1479,8 @@ paths:
                 type: string
         '404':
           description: Not found. The requested resource does not exist.
-      operationId: getRuntimesByNameTags
+      summary: List tags for a runtime
+      operationId: listRuntimeTags
   /runtimes/{name}/tags/{tagId}:
     get:
       description: 'Retrieve a single name for a name
@@ -1490,7 +1516,8 @@ paths:
                 gracePeriodDays: 0.0
         '404':
           description: Not found. The requested resource does not exist.
-      operationId: getRuntimesByNameTagsByTagid
+      summary: Get runtime tag by ID
+      operationId: getRuntimeTag
   /downloads:
     get:
       description: List the available downloads
@@ -1529,6 +1556,7 @@ paths:
                 rtfctl:
                   id: string
                   type: string
+      summary: List available downloads
       operationId: getDownloads
   /download: {}
   /download/scripts: {}
@@ -1543,6 +1571,7 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
+      summary: Download latest installer scripts
       operationId: getDownloadScriptsLatest
   /download/installer: {}
   /download/installer/latest:
@@ -1556,6 +1585,7 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
+      summary: Download latest installer package
       operationId: getDownloadInstallerLatest
   /download/installer/latest/url:
     get:
@@ -1575,6 +1605,7 @@ paths:
                     type: string
               example:
                 url: string
+      summary: Get pre-signed installer URL
       operationId: getDownloadInstallerLatestUrl
   /download/agent: {}
   /download/agent/latest:
@@ -1588,6 +1619,7 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
+      summary: Download latest agent helm chart
       operationId: getDownloadAgentLatest
   /download/rtfctl: {}
   /download/rtfctl/latest:
@@ -1601,6 +1633,7 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
+      summary: Download latest rtfctl binary
       operationId: getDownloadRtfctlLatest
 components:
   securitySchemes:
@@ -2728,7 +2761,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:runtime-fabric
-        operation: getOrganizationsByOrganizationidFabrics
+        operation: listFabrics
         description: GET `/organizations/{organizationId}/fabrics` in this API; use `[].id` values as `fabricId`.
         values: $[*].id
         labels: $[*].name

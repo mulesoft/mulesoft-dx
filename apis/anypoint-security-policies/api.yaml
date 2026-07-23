@@ -37,7 +37,8 @@ paths:
       responses:
         '204':
           description: Successful. Returns zero length body.
-      operationId: deleteByOrganizationid
+      summary: Delete organization Security Fabric data
+      operationId: purgeOrganizationData
   /{organizationId}/environments/{envId}:
     delete:
       description: Deletes all the data belonging to an environments from Security Fabric Edge
@@ -47,7 +48,8 @@ paths:
       responses:
         '204':
           description: Successful. Returns zero length body.
-      operationId: deleteByOrganizationidEnvironmentsByEnvid
+      summary: Delete environment Security Fabric data
+      operationId: purgeEnvironmentData
   /{organizationId}/environments/{envId}/agents/{agentId}/domains:
     get:
       description: Get all CN (common name) and SANs (Subject Alternate Name) list
@@ -101,7 +103,8 @@ paths:
                   message: Edge Config for the given Runtime Fabric id does not exist
                   details: {}
               example: *id002
-      operationId: getByOrganizationidEnvironmentsByEnvidAgentsByAgentidDomains
+      summary: List agent CN and SAN domains
+      operationId: listAgentDomains
   /{organizationId}/environments/{envId}/tlsContexts:
     get:
       description: Get TLS contexts configured for the enviorment
@@ -335,7 +338,8 @@ paths:
                 type: array
                 items: {}
               example: *id003
-      operationId: getByOrganizationidEnvironmentsByEnvidTlscontexts
+      summary: List environment TLS contexts
+      operationId: listTlsContexts
   /{organizationId}/agents/{agentId}/virtualServers:
     description: The collection of virtualServers
     get:
@@ -556,7 +560,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getByOrganizationidAgentsByAgentidVirtualservers
+      summary: List agent virtual servers
+      operationId: listAgentVirtualServers
   /{organizationId}/agents/{agentId}/edge:
     description: The collection of edge
     get:
@@ -622,7 +627,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getByOrganizationidAgentsByAgentidEdge
+      summary: Get agent edge configuration
+      operationId: getAgentEdgeConfig
     post:
       description: create Edge configuration for the given runtime fabric
       parameters:
@@ -723,7 +729,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: createByOrganizationidAgentsByAgentidEdge
+      summary: Create agent edge configuration
+      operationId: createAgentEdgeConfig
   /{organizationId}/agents/{agentId}/edge/{edgeConfigId}:
     description: Get an entity representing a edge
     put:
@@ -823,7 +830,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: updateByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+      summary: Update agent edge configuration
+      operationId: updateAgentEdgeConfig
     patch:
       description: Except TLS config, update other configuration if PEM/JKS is selected d
       parameters:
@@ -921,7 +929,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: patchByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+      summary: Patch agent edge configuration
+      operationId: patchAgentEdgeConfig
     delete:
       description: Delete Edge configuration for the given edge configuration id
       parameters:
@@ -975,7 +984,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: deleteByOrganizationidAgentsByAgentidEdgeByEdgeconfigid
+      summary: Delete agent edge configuration
+      operationId: deleteAgentEdgeConfig
   /{organizationId}/agents/{agentId}/edge/{edgeConfigId}/deployments:
     get:
       description: Get the edge deployement status
@@ -1020,7 +1030,8 @@ paths:
                   message: Error while trying to get deployment data from deployer
                   errors: []
               example: *id006
-      operationId: getByOrganizationidAgentsByAgentidEdgeByEdgeconfigidDeployments
+      summary: Get edge deployment status
+      operationId: getEdgeDeploymentStatus
   /{organizationId}/policies:
     description: The collection of policies
     post:
@@ -1116,7 +1127,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: createByOrganizationidPolicies
+      summary: Create security policy
+      operationId: createSecurityPolicy
     get:
       description: Get all the policies
       parameters:
@@ -1359,7 +1371,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getByOrganizationidPolicies
+      summary: List security policies
+      operationId: listSecurityPolicies
   /{organizationId}/policies/{policyId}:
     description: Get an entity representing a policy
     get:
@@ -1440,7 +1453,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getByOrganizationidPoliciesByPolicyid
+      summary: Get security policy by ID
+      operationId: getSecurityPolicyById
     put:
       description: Update policy by id
       parameters:
@@ -1535,7 +1549,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: updateByOrganizationidPoliciesByPolicyid
+      summary: Update security policy
+      operationId: updateSecurityPolicy
     delete:
       description: Delete policy by id
       parameters:
@@ -1573,7 +1588,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: deleteByOrganizationidPoliciesByPolicyid
+      summary: Delete security policy
+      operationId: deleteSecurityPolicy
 components:
   securitySchemes:
     bearerAuth:
@@ -3187,7 +3203,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:anypoint-security-policies
-        operation: getByOrganizationidAgentsByAgentidEdge
+        operation: getAgentEdgeConfig
         description: GET `/{organizationId}/agents/{agentId}/edge` in this API; use `id` values as `edgeConfigId`.
         values: $.id
         labels: $.name

@@ -59,6 +59,7 @@ paths:
   /events:
     description: Use this endpoint to gain access to the API events that have occurred in all of your environments. Important`:` This endpoint is supported only on Pre-Crowd deployed APIs. It must be considered legacy endpoint and it's available only for backward compatibility purposes.
     get:
+      summary: Export analytics events
       description: Queries for API events that can be exported in either JSON or CSV format
       parameters:
       - name: apiIds
@@ -193,6 +194,7 @@ paths:
   /environments/{envId}/events:
     description: Use this endpoint to gain access to the API events that have occurred in a specific environment.
     get:
+      summary: Export events for environment
       description: "Queries for HTTP events that cab be exported in either JSON or CSV format. \nThis query is performed against a specific environment whose ID is included as part of the URL.\n"
       parameters:
       - name: format

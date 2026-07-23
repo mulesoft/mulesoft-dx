@@ -83,7 +83,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApmrelease
+      summary: Get APM release info
+      operationId: getApmRelease
   /organizations/{organizationId}/environments/{environmentId}/certificates:
     description: Single certificate
     get:
@@ -215,7 +216,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidCertificates
+      summary: List environment certificates
+      operationId: listEnvironmentCertificates
   /organizations/{organizationId}/environments/{environmentId}/customAttributes:
     description: Gets all custom attributes defined in environment
     get:
@@ -242,7 +244,8 @@ paths:
                     label: Order Number
                     searchable: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidCustomattributes
+      summary: List custom attributes
+      operationId: listCustomAttributes
     post:
       description: Create a new customAttribute
       parameters:
@@ -276,7 +279,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidCustomattributes
+      summary: Create custom attribute
+      operationId: createCustomAttribute
   /organizations/{organizationId}/environments/{environmentId}/customAttributes/{customAttributeId}:
     description: Single customAttribute
     get:
@@ -320,7 +324,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidCustomattributesByCustomattributeid
+      summary: Get custom attribute by ID
+      operationId: getCustomAttributeById
     delete:
       description: Delete customAttribute
       parameters:
@@ -357,7 +362,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidCustomattributesByCustomattributeid
+      summary: Delete custom attribute
+      operationId: deleteCustomAttribute
     patch:
       description: Patches customAttribute
       parameters:
@@ -413,7 +419,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidCustomattributesByCustomattributeid
+      summary: Update custom attribute
+      operationId: patchCustomAttribute
   /organizations/{organizationId}/environments/{environmentId}/deployments:
     post:
       description: Creates new Deployment config
@@ -434,7 +441,8 @@ paths:
               example: &id007
                 id: f4ace7b9-6da1-4322-8852-823532633c18
                 message: ''
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+      summary: Create deployment configuration
+      operationId: createDeployment
     get:
       description: Get Deployment configurations
       parameters:
@@ -611,7 +619,8 @@ paths:
                       require997: true
                       generate999: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+      summary: List deployment configurations
+      operationId: listDeployments
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}:
     description: Single deployment
     get:
@@ -763,7 +772,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentid
+      summary: Get deployment by ID
+      operationId: getDeploymentById
     patch:
       description: Update deployment details
       parameters:
@@ -814,7 +824,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentid
+      summary: Update deployment
+      operationId: patchDeployment
   /organizations/{organizationId}/environments/{environmentId}/documentflows:
     description: The collection of documentflows
     get:
@@ -906,7 +917,8 @@ paths:
                     last_deploy_status: ACTIVE
                     last_deploy_message: ''
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflows
+      summary: List document flows
+      operationId: listDocumentFlows
     post:
       description: Create a new documentflow
       parameters:
@@ -940,7 +952,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflows
+      summary: Create document flow
+      operationId: createDocumentFlow
   /organizations/{organizationId}/environments/{environmentId}/documentflows/{documentflowId}:
     description: Single documentflow
     patch:
@@ -993,7 +1006,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowid
+      summary: Update document flow
+      operationId: patchDocumentFlow
     get:
       description: Get documentflows
       parameters:
@@ -1099,7 +1113,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowid
+      summary: Get document flow by ID
+      operationId: getDocumentFlowById
     delete:
       description: Delete documentflow
       parameters:
@@ -1131,7 +1146,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowid
+      summary: Delete document flow
+      operationId: deleteDocumentFlow
   /organizations/{organizationId}/environments/{environmentId}/documentflows/{documentflowId}/mappings:
     description: The collection of mappings
     get:
@@ -1160,7 +1176,8 @@ paths:
                     mappingSourceRef: melora-claim.dwl
                     isComplete: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidMappings
+      summary: List document flow mappings
+      operationId: listDocumentFlowMappings
     post:
       description: Create a new mapping
       parameters:
@@ -1195,7 +1212,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidMappings
+      summary: Create document flow mapping
+      operationId: createDocumentFlowMapping
   /organizations/{organizationId}/environments/{environmentId}/documentflows/{documentflowId}/mappings/{mappingsId}:
     description: Single mapping
     get:
@@ -1241,7 +1259,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidMappingsByMappingsid
+      summary: Get document flow mapping by ID
+      operationId: getDocumentFlowMappingById
     put:
       description: Replace mapping
       parameters:
@@ -1290,7 +1309,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidMappingsByMappingsid
+      summary: Update document flow mapping
+      operationId: updateDocumentFlowMapping
   /organizations/{organizationId}/environments/{environmentId}/documentflows/{documentflowId}/resolvedview:
     description: Single resolvedview
     get:
@@ -1809,7 +1829,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidResolvedview
+      summary: Get document flow resolved view
+      operationId: getDocumentFlowResolvedView
   /organizations/{organizationId}/environments/{environmentId}/documentflows/{documentflowId}/runtimeValidations:
     description: Performs runtime validations to ensure the document flow can be deployed
     get:
@@ -1844,7 +1865,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsByDocumentflowidRuntimevalidations
+      summary: Get document flow runtime validations
+      operationId: getDocumentFlowRuntimeValidations
   /organizations/{organizationId}/environments/{environmentId}/documentflows/summarylist:
     description: Single summarylist
     get:
@@ -1992,7 +2014,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflowsSummarylist
+      summary: List document flow summaries
+      operationId: listDocumentFlowSummaries
   /organizations/{organizationId}/environments/{environmentId}/ediFormats:
     description: Get all formats accepted by the environment
     get:
@@ -2046,7 +2069,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformats
+      summary: List EDI formats
+      operationId: listEdiFormats
   /organizations/{organizationId}/environments/{environmentId}/ediFormats/{format}:
     description: Single ediFormat
     get:
@@ -2096,7 +2120,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformatsByFormat
+      summary: Get EDI format
+      operationId: getEdiFormat
   /organizations/{organizationId}/environments/{environmentId}/ediFormats/{format}/ediFormatVersions:
     description: Single ediFormatVersion
     get:
@@ -2237,7 +2262,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformatsByFormatEdiformatversions
+      summary: List EDI format versions
+      operationId: listEdiFormatVersions
   /organizations/{organizationId}/environments/{environmentId}/ediFormats/{format}/ediFormatVersions/{versionId}:
     description: Single ediFormatVersion
     get:
@@ -2289,7 +2315,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformatsByFormatEdiformatversionsByVersionid
+      summary: Get EDI format version
+      operationId: getEdiFormatVersion
   ? /organizations/{organizationId}/environments/{environmentId}/ediFormats/{format}/ediFormatVersions/{versionId}/ediDocumentTypes
   : description: Single ediDocumentType
     get:
@@ -2343,7 +2370,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformatsByFormatEdiformatversionsByVersionidEdidocumenttypes
+      summary: List EDI document types
+      operationId: listEdiDocumentTypes
   /organizations/{organizationId}/environments/{environmentId}/endpoints:
     description: The collection of endpoints
     get:
@@ -2771,7 +2799,8 @@ paths:
                       partnerType: HOST
                       isComplete: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpoints
+      summary: List endpoints
+      operationId: listEndpoints
     post:
       description: Create a new endpoint
       parameters:
@@ -2805,7 +2834,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpoints
+      summary: Create endpoint
+      operationId: createEndpoint
   /organizations/{organizationId}/environments/{environmentId}/endpoints/{endpointId}:
     description: Single endpoint
     get:
@@ -2900,7 +2930,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpointsByEndpointid
+      summary: Get endpoint by ID
+      operationId: getEndpointById
     put:
       description: Replace endpoint
       parameters:
@@ -2948,7 +2979,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpointsByEndpointid
+      summary: Update endpoint
+      operationId: updateEndpoint
     delete:
       description: Delete endpoint
       parameters:
@@ -2985,7 +3017,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpointsByEndpointid
+      summary: Delete endpoint
+      operationId: deleteEndpoint
   /organizations/{organizationId}/environments/{environmentId}/endpointTypes/{type}/configurations:
     description: Returns AS2 configurations. Only as2 endpoint types are supported by this resource.
     get:
@@ -3039,7 +3072,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEndpointtypesByTypeConfigurations
+      summary: List endpoint type configurations
+      operationId: listEndpointTypeConfigurations
   /organizations/{organizationId}/environments/{environmentId}/identifierTypes:
     description: Single identifierType
     get:
@@ -3141,7 +3175,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidIdentifiertypes
+      summary: List identifier types
+      operationId: listIdentifierTypes
   /organizations/{organizationId}/environments/{environmentId}/identifierTypes/{identifierTypeId}:
     description: Single identifierType
     get:
@@ -3194,7 +3229,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidIdentifiertypesByIdentifiertypeid
+      summary: Get identifier type by ID
+      operationId: getIdentifierTypeById
   /organizations/{organizationId}/environments/{environmentId}/partners:
     description: The collection of partners
     get:
@@ -3225,7 +3261,8 @@ paths:
                     partnerType: PARTNER
                     isComplete: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartners
+      summary: List partners
+      operationId: listPartners
     post:
       description: Create a new partner
       parameters:
@@ -3259,7 +3296,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartners
+      summary: Create partner
+      operationId: createPartner
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}:
     description: Single partner
     get:
@@ -3307,7 +3345,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartnerid
+      summary: Get partner by ID
+      operationId: getPartnerById
     put:
       description: Replace partner
       parameters:
@@ -3350,7 +3389,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartnerid
+      summary: Update partner
+      operationId: updatePartner
     delete:
       description: Delete partner
       parameters:
@@ -3382,7 +3422,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartnerid
+      summary: Delete partner
+      operationId: deletePartner
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/addresses:
     description: The collection of addresses
     get:
@@ -3415,7 +3456,8 @@ paths:
                     country: US
                     postalCode: '10001'
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridAddresses
+      summary: List partner addresses
+      operationId: listPartnerAddresses
     post:
       description: Create a new address
       parameters:
@@ -3450,7 +3492,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridAddresses
+      summary: Create partner address
+      operationId: createPartnerAddress
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/addresses/{addressId}:
     description: Single address
     get:
@@ -3498,7 +3541,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridAddressesByAddressid
+      summary: Get partner address by ID
+      operationId: getPartnerAddressById
     put:
       description: Replace address
       parameters:
@@ -3547,7 +3591,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridAddressesByAddressid
+      summary: Update partner address
+      operationId: updatePartnerAddress
     delete:
       description: Delete address
       parameters:
@@ -3585,7 +3630,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridAddressesByAddressid
+      summary: Delete partner address
+      operationId: deletePartnerAddress
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/certificates:
     get:
       description: Get Details of all the certificates saved in the environment for particular partner
@@ -3694,7 +3740,8 @@ paths:
                     flowDependencyCount: 0
                     usedInAs2: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridCertificates
+      summary: List partner certificates
+      operationId: listPartnerCertificates
     post:
       description: Create a new Certificate
       parameters:
@@ -3745,7 +3792,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridCertificates
+      summary: Create partner certificate
+      operationId: createPartnerCertificate
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/certificates/{certificateId}:
     description: Single Certificate
     get:
@@ -3804,7 +3852,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridCertificatesByCertificateid
+      summary: Get partner certificate by ID
+      operationId: getPartnerCertificateById
     put:
       description: Replace certificate
       parameters:
@@ -3876,7 +3925,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridCertificatesByCertificateid
+      summary: Update partner certificate
+      operationId: updatePartnerCertificate
     delete:
       description: Delete certificate
       parameters:
@@ -3914,7 +3964,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridCertificatesByCertificateid
+      summary: Delete partner certificate
+      operationId: deletePartnerCertificate
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/documents:
     description: The collection of documents
     get:
@@ -4053,7 +4104,8 @@ paths:
                       label: Claim Number
                       searchable: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridDocuments
+      summary: List partner documents
+      operationId: listPartnerDocuments
     post:
       description: Create a new document
       parameters:
@@ -4088,7 +4140,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridDocuments
+      summary: Create partner document
+      operationId: createPartnerDocument
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/documents/{documentById}:
     description: Single document
     get:
@@ -4150,7 +4203,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridDocumentsByDocumentbyid
+      summary: Get partner document by ID
+      operationId: getPartnerDocumentById
     put:
       description: Replace document
       parameters:
@@ -4199,7 +4253,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridDocumentsByDocumentbyid
+      summary: Update partner document
+      operationId: updatePartnerDocument
     delete:
       description: Delete document
       parameters:
@@ -4237,7 +4292,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridDocumentsByDocumentbyid
+      summary: Delete partner document
+      operationId: deletePartnerDocument
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/ediFormats/{format}/configurations:
     description: This endpoint supports any EDI format specific configuration for current Partner. For example, X12 Inbound and Outbound Connector configuration.
     get:
@@ -4339,7 +4395,8 @@ paths:
                     formatType: X12InboundConfig
                     formatTypeId: 25c1bc8a-801f-4337-a2a6-7721ef971460
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEdiformatsByFormatConfigurations
+      summary: List partner EDI configurations
+      operationId: listPartnerEdiConfigurations
     post:
       description: Create a new configuration
       parameters:
@@ -4380,7 +4437,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEdiformatsByFormatConfigurations
+      summary: Create partner EDI configuration
+      operationId: createPartnerEdiConfiguration
   ? /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/ediFormats/{format}/configurations/{configId}
   : description: Single configuration
     get:
@@ -4462,7 +4520,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEdiformatsByFormatConfigurationsByConfigid
+      summary: Get partner EDI configuration
+      operationId: getPartnerEdiConfigurationById
     put:
       description: Replace configuration
       parameters:
@@ -4517,7 +4576,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEdiformatsByFormatConfigurationsByConfigid
+      summary: Update partner EDI configuration
+      operationId: updatePartnerEdiConfiguration
     delete:
       description: Delete configuration
       parameters:
@@ -4561,7 +4621,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEdiformatsByFormatConfigurationsByConfigid
+      summary: Delete partner EDI configuration
+      operationId: deletePartnerEdiConfiguration
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/endpointTypes/{type}/configurations:
     description: Returns AS2 configurations. Only as2 endpoint types are supported by this resource. Partner Id should be the id of host partner
     get:
@@ -4600,7 +4661,8 @@ paths:
                     endpointTypeId: ab4c76b7-01b0-4bba-8f04-31c1487a3708
                     partnerId: 8365ac75-7e8b-4b17-947a-dac2aa60ddae
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEndpointtypesByTypeConfigurations
+      summary: List partner endpoint configurations
+      operationId: listPartnerEndpointConfigurations
     post:
       description: Create a new configuration
       parameters:
@@ -4641,7 +4703,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEndpointtypesByTypeConfigurations
+      summary: Create partner endpoint configuration
+      operationId: createPartnerEndpointConfiguration
   ? /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/endpointTypes/{type}/configurations/{configId}
   : description: Single configuration
     put:
@@ -4698,7 +4761,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEndpointtypesByTypeConfigurationsByConfigid
+      summary: Update partner endpoint configuration
+      operationId: updatePartnerEndpointConfig
     get:
       description: Get configurations
       parameters:
@@ -4751,7 +4815,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridEndpointtypesByTypeConfigurationsByConfigid
+      summary: Get partner endpoint configuration
+      operationId: getPartnerEndpointConfig
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/identifiers:
     description: The collection of identifiers
     get:
@@ -4816,7 +4881,8 @@ paths:
                         certificates: 0
                       messageFlowDependenciesInfo: []
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentifiers
+      summary: List partner identifiers
+      operationId: listPartnerIdentifiers
     post:
       description: Create a new identifier
       parameters:
@@ -4860,7 +4926,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentifiers
+      summary: Create partner identifier
+      operationId: createPartnerIdentifier
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/identifiers/{identifierId}:
     description: Single identifier
     get:
@@ -4905,7 +4972,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentifiersByIdentifierid
+      summary: Get partner identifier by ID
+      operationId: getPartnerIdentifierById
     delete:
       description: Delete identifier
       parameters:
@@ -4943,7 +5011,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentifiersByIdentifierid
+      summary: Delete partner identifier
+      operationId: deletePartnerIdentifier
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/identityKeys:
     post:
       parameters:
@@ -4965,7 +5034,8 @@ paths:
                   secretGroupId: 756f3961-b1ac-44f0-ab26-c478f8876083
                   certificateId: a8000e40-4058-4cd0-9517-0d15869d3241
               example: *id001
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentitykeys
+      summary: Create partner identity key
+      operationId: createPartnerIdentityKey
       description: Creates a identityKeys.
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/identityKeys/{identityId}:
     put:
@@ -4993,7 +5063,8 @@ paths:
                   secretId: ca17dfd1-3c55-43e4-80c0-9140a926f700
                   secretGroupId: 756f3961-b1ac-44f0-ab26-c478f8876083
               example: *id002
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridIdentitykeysByIdentityid
+      summary: Update partner identity key
+      operationId: updatePartnerIdentityKey
       description: Replaces a identityKeys.
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/keystores:
     post:
@@ -5016,7 +5087,8 @@ paths:
                   secretGroupId: 756f3961-b1ac-44f0-ab26-c478f8876083
                   certificateId: 96bd42fd-fd1e-47b3-94bd-2b457d04ece3
               example: *id003
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridKeystores
+      summary: Create partner keystore
+      operationId: createPartnerKeystore
       description: Creates a keystores.
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/keystores/{keystoreId}:
     put:
@@ -5045,7 +5117,8 @@ paths:
                   secretGroupId: 756f3961-b1ac-44f0-ab26-c478f8876083
                   certificateId: 96bd42fd-fd1e-47b3-94bd-2b457d04ece3
               example: *id004
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridKeystoresByKeystoreid
+      summary: Update partner keystore
+      operationId: updatePartnerKeystore
       description: Replaces a keystores.
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/logo:
     get:
@@ -5081,7 +5154,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridLogo
+      summary: Get partner logo
+      operationId: getPartnerLogo
   /organizations/{organizationId}/environments/{environmentId}/partners/{partnerId}/sequences:
     description: Provides information about the Control numbers set for particular partner.
     get:
@@ -5116,7 +5190,8 @@ paths:
                     seqInitValue: 14576
                     seqLabel: Global control number
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridSequences
+      summary: List partner sequences
+      operationId: listPartnerSequences
     post:
       description: Create a new sequence
       parameters:
@@ -5164,7 +5239,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnersByPartneridSequences
+      summary: Create partner sequence
+      operationId: createPartnerSequence
   /organizations/{organizationId}/environments/{environmentId}/partnerprofiles:
     description: The collection of partnerprofiles
     get:
@@ -5342,7 +5418,8 @@ paths:
                       partnerType: PARTNER
                       isComplete: true
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofiles
+      summary: List partner profiles
+      operationId: listPartnerProfiles
     post:
       description: Create a new partnerprofile
       parameters:
@@ -5376,7 +5453,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofiles
+      summary: Create partner profile
+      operationId: createPartnerProfile
   /organizations/{organizationId}/environments/{environmentId}/partnerprofiles/{partnerId}:
     description: Get partner profile using partner id.
     get:
@@ -5508,7 +5586,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofilesByPartnerid
+      summary: Get partner profile by ID
+      operationId: getPartnerProfileById
     patch:
       description: Patches partnerprofile
       parameters:
@@ -5559,7 +5638,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofilesByPartnerid
+      summary: Update partner profile
+      operationId: patchPartnerProfile
   /organizations/{organizationId}/environments/{environmentId}/partnerprofiles/host:
     description: Single host
     get:
@@ -5666,7 +5746,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofilesHost
+      summary: Get partner profile host
+      operationId: getPartnerProfileHost
   /organizations/{organizationId}/environments/{environmentId}/runtimeUpgrades:
     description: The collection of runtimeUpgrades
     get:
@@ -5759,7 +5840,8 @@ paths:
                       templateTypeVersion: 1.5.0
                       releaseDate: 2020-11-14 00:00:00+00:00
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRuntimeupgrades
+      summary: List runtime upgrades
+      operationId: listRuntimeUpgrades
     post:
       description: Create a new runtimeUpgrade
       parameters:
@@ -5799,7 +5881,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidRuntimeupgrades
+      summary: Create runtime upgrade
+      operationId: createRuntimeUpgrade
   /organizations/{organizationId}/environments/{environmentId}/runtimeUpgrades/{id}:
     description: Single runtimeUpgrade
     get:
@@ -5857,7 +5940,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRuntimeupgradesById
+      summary: Get runtime upgrade by ID
+      operationId: getRuntimeUpgradeById
   /organizations/{organizationId}/runtimefabric:
     description: Single runtimefabric
     get:
@@ -6066,7 +6150,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidRuntimefabric
+      summary: Get runtime fabric info
+      operationId: getRuntimeFabric
 components:
   requestBodies:
     Generated:
@@ -6695,7 +6780,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:partner-manager-v2-partners
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDocumentflows
+        operation: listDocumentFlows
         description: GET `/organizations/{organizationId}/environments/{environmentId}/documentflows` in this API; use `id` values as `documentflowId`.
         values: $.id
         labels: $.name
@@ -6708,7 +6793,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:partner-manager-v2-partners
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidEdiformatsByFormatEdiformatversions
+        operation: listEdiFormatVersions
         description: GET `/organizations/{organizationId}/environments/{environmentId}/ediFormats/{format}/ediFormatVersions` in this API; use `id` values as `versionId`.
         values: $.id
         labels: $.name
@@ -6721,7 +6806,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:partner-manager-v2-partners
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartners
+        operation: listPartners
         description: GET `/organizations/{organizationId}/environments/{environmentId}/partners` in this API; use `id` values as `partnerId`.
         values: $.id
         labels: $.name
@@ -6734,7 +6819,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:partner-manager-v2-partners
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidPartnerprofiles
+        operation: listPartnerProfiles
         description: GET `/organizations/{organizationId}/environments/{environmentId}/partnerprofiles` in this API; use `id` values as `partnerId`.
         values: $.id
         labels: $.name

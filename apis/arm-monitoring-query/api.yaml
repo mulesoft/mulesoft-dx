@@ -40,6 +40,8 @@ servers:
 paths:
   /applications:
     get:
+      summary: List application metrics
+      operationId: listApplicationMetrics
       description: |
         Returns a list of application metrics with aggregated values.
       parameters:
@@ -2213,6 +2215,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List application metrics by IDs
+      operationId: listApplicationMetricsByIds
       description: >
         Returns a list of application metrics with aggregated values
         corresponding with the provided ids.      
@@ -4380,6 +4384,8 @@ paths:
             organization/environment.  
   "/applications/{id}":
     get:
+      summary: Get application metrics by ID
+      operationId: getApplicationMetricsById
       description: |
         Returns a list of application metrics with the aggregated values.
       parameters:
@@ -6564,6 +6570,8 @@ paths:
                     type: string
   "/applications/{id}/flows":
     get:
+      summary: List application flow metrics
+      operationId: listApplicationFlowMetrics
       description: |
         Returns a list of flow metrics with aggregated values.
       parameters:
@@ -6861,6 +6869,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List application flow metrics by IDs
+      operationId: listApplicationFlowMetricsByIds
       description: >
         Returns a list of flow metrics with aggregated values corresponding with
         the provided ids.      
@@ -7152,6 +7162,8 @@ paths:
             organization/environment.  
   /targets:
     get:
+      summary: List target metrics
+      operationId: listTargetMetrics
       description: |
         Returns a list of target metrics with aggregated values.
       parameters:
@@ -42152,6 +42164,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List target metrics by IDs
+      operationId: listTargetMetricsByIds
       description: >
         Returns a list of target metrics with aggregated values corresponding
         with the provided ids.      
@@ -77146,6 +77160,8 @@ paths:
             organization/environment.  
   "/targets/{id}":
     get:
+      summary: Get target metrics by ID
+      operationId: getTargetMetricsById
       description: |
         Returns a list of target metrics with the aggregated values.
       parameters:

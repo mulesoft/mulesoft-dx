@@ -1226,8 +1226,10 @@ class TestErrorPages:
         )
 
     def test_404_has_go_home_link(self):
-        links = self.soup.find_all('a')
-        assert any('index.html' in (l.get('href', '')) for l in links)
+        links = self.soup.find_all('a', class_='btn-send')
+        assert links, "404 page missing Browse all services link"
+        href = links[0].get('href', '')
+        assert href.endswith('/'), f"Browse all services link should point to site root, got {href!r}"
 
     def test_404_has_main_element(self):
         assert self.soup.find('main') is not None

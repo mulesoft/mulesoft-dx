@@ -33,7 +33,7 @@
             </svg>
             Go back
         </button>
-        <a href="{{ base_url|default('.') }}/index.html" class="btn-send" style="text-decoration: none;">
+        <a href="{{ base_url|default('') }}/" class="btn-send" style="text-decoration: none;">
             Browse all services
         </a>
         {{ extra_actions|safe }}

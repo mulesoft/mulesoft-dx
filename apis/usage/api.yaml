@@ -199,7 +199,8 @@ paths:
           description: Too Many Requests. Rate limit exceeded.
         "500":
           description: Internal Server Error. An unexpected error occurred.
-      operationId: getMetersDescribe
+      summary: Describe all meters
+      operationId: describeMeters
   "/meters/{meter-name}:describe":
     get:
       description: Get particular meter description from usage api
@@ -295,7 +296,8 @@ paths:
           description: Too Many Requests. Rate limit exceeded.
         "500":
           description: Internal Server Error. An unexpected error occurred.
-      operationId: getMetersMeterNameDescribe
+      summary: Describe a specific meter
+      operationId: describeMeter
   /meters:search:
     post:
       description: Search meters from usage api
@@ -344,7 +346,8 @@ paths:
           description: Too Many Requests. Rate limit exceeded.
         "500":
           description: Internal Server Error. An unexpected error occurred.
-      operationId: createMetersSearch
+      summary: Search meters
+      operationId: searchMeters
 components:
   securitySchemes:
     bearerAuth:

@@ -32,7 +32,8 @@ paths:
           default: 3.8.0
           type: string
         description: The gatewayVersion query parameter.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidProxy
+      summary: Get proxy
+      operationId: getProxy
     parameters:
     - name: environmentApiId
       in: path
@@ -56,7 +57,8 @@ paths:
               type: object
         required: false
         description: The active data to create.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidActive
+      summary: Activate proxy
+      operationId: activateProxy
       description: Creates a active.
     parameters:
     - name: environmentApiId
@@ -79,7 +81,8 @@ paths:
               schema:
                 example: ./responses/deployments.json
               example: ./responses/deployments.json
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+      summary: List proxy deployments
+      operationId: listProxyDeployments
       description: Retrieves a deployments.
     post:
       responses:
@@ -98,7 +101,8 @@ paths:
               $ref: ./requests/inbound-deployment-body.json
         required: true
         description: The deployments data to create.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+      summary: Create proxy deployment
+      operationId: createProxyDeployment
       description: Creates a deployments.
     parameters:
     - name: environmentApiId
@@ -122,7 +126,8 @@ paths:
                 example: ./responses/deployment.json
               example: ./responses/deployment.json
       description: Returns a deployment (And sync it with deployment targets)
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+      summary: Get proxy deployment by ID
+      operationId: getProxyDeploymentById
     put:
       responses:
         '201':
@@ -135,7 +140,8 @@ paths:
               $ref: ./requests/inbound-deployment-body.json
         required: true
         description: The deployments data to update.
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+      summary: Replace proxy deployment
+      operationId: replaceProxyDeployment
       description: Replaces a deployments.
     patch:
       responses:
@@ -154,7 +160,8 @@ paths:
               type: object
         required: true
         description: The deployments data to update.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentid
+      summary: Patch proxy deployment
+      operationId: patchProxyDeployment
       description: Updates a deployments.
     parameters:
     - name: proxyDeploymentId
@@ -191,7 +198,8 @@ paths:
                 example: ./responses/deploymentStatus.json
               example: ./responses/deploymentStatus.json
       description: Retrieves the deployment details of a version (And sync it with deployment targets).
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeploymentsByProxydeploymentidStatus
+      summary: Get proxy deployment status
+      operationId: getProxyDeploymentStatus
     parameters:
     - name: proxyDeploymentId
       in: path
@@ -218,7 +226,8 @@ paths:
           description: Successful operation.
       parameters:
       - $ref: '#/components/parameters/XOrigin_environmentId_Query'
-      operationId: getOrganizationsByOrganizationidDeploymentTargets
+      summary: List deployment targets
+      operationId: listDeploymentTargets
       description: Retrieves a deployment targets.
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -237,7 +246,8 @@ paths:
           - redeployment
           - rollback
         description: The operation query parameter.
-      operationId: getOrganizationsByOrganizationidTargetsByTargetidRuntimesMuleVersions
+      summary: List Mule runtime versions
+      operationId: listMuleRuntimeVersions
       description: Retrieves a versions.
     parameters:
     - name: targetId
@@ -254,7 +264,8 @@ paths:
           description: Successful operation.
       parameters:
       - $ref: '#/components/parameters/XOrigin_environmentId_Query'
-      operationId: getOrganizationsByOrganizationidProvidersByProvideridRuntimeFabricDeploymentTargets
+      summary: List Runtime Fabric deployment targets
+      operationId: listRuntimeFabricTargets
       description: Retrieves a runtime fabric deployment targets.
     parameters:
     - name: providerId
@@ -276,7 +287,8 @@ paths:
         schema:
           type: boolean
         description: The returnAllTargets query parameter.
-      operationId: getOrganizationsByOrganizationidProvidersByProvideridCloudhub2DeploymentTargets
+      summary: List CloudHub 2.0 deployment targets
+      operationId: listCloudHub2DeploymentTargets
       description: Retrieves a cloudhub2 deployment targets.
     parameters:
     - name: providerId
@@ -291,7 +303,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getChDomainsByDomainname
+      summary: Get CH domain by name
+      operationId: getChDomain
       description: Retrieves a ch domains.
     parameters:
     - name: domainName
@@ -310,6 +323,7 @@ paths:
               schema:
                 example: ./responses/echo.json
               example: ./responses/echo.json
+      summary: Get echo response
       operationId: getStatusEcho
       description: Lists echo.
   /status/version:
@@ -323,6 +337,7 @@ paths:
                 example: ./responses/version.json
               example: ./responses/version.json
       description: Retrieves the date and commit of the deployed version.
+      summary: Get service version
       operationId: getStatusVersion
 components:
   schemas: {}

@@ -324,7 +324,7 @@ Deploys the API instance to the selected Omni Gateway target. This uses the Prox
 
 ```yaml
 api: urn:api:proxies-xapi
-operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByEnvironmentapiidDeployments
+operationId: createProxyDeployment
 inputs:
   organizationId:
     from:

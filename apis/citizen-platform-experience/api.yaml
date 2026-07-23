@@ -69,7 +69,8 @@ paths:
                   lastUpdatedDate: 2020-04-09 03:19:14
         '401':
           description: Unauthorized user.
-      operationId: getOrganizationsByOrganizationidFlows
+      summary: List organization flows
+      operationId: listFlows
     post:
       description: Creates a new flow.
       parameters:
@@ -97,7 +98,8 @@ paths:
           description: Unauthorized user.
         '409':
           description: Duplicated flow name.
-      operationId: createOrganizationsByOrganizationidFlows
+      summary: Create flow
+      operationId: createFlow
   /organizations/{organizationId}/flows/{flowId}:
     description: Retrieves a flow.
     get:
@@ -231,7 +233,8 @@ paths:
                       componentType: TEXT
                   createdDate: 2020-05-18 09:22:19.297000+00:00
                   lastUpdatedDate: 2020-05-18 09:22:19.297000+00:00
-      operationId: getOrganizationsByOrganizationidFlowsByFlowid
+      summary: Get flow by ID
+      operationId: getFlowById
     put:
       description: Save changes in a flow.
       parameters:
@@ -379,7 +382,8 @@ paths:
           description: You are not the owner of this flow.
         '404':
           description: Flow not found.
-      operationId: updateOrganizationsByOrganizationidFlowsByFlowid
+      summary: Update flow
+      operationId: updateFlow
     delete:
       description: Deletes a flow
       parameters:
@@ -395,7 +399,8 @@ paths:
       responses:
         '204':
           description: User flow was successfully deleted.
-      operationId: deleteOrganizationsByOrganizationidFlowsByFlowid
+      summary: Delete flow
+      operationId: deleteFlow
   /organizations/{organizationId}/flows/{flowId}/clone:
     description: Clones a Flow
     post:
@@ -426,7 +431,8 @@ paths:
           content:
             '*/*':
               schema: {}
-      operationId: createOrganizationsByOrganizationidFlowsByFlowidClone
+      summary: Clone flow
+      operationId: cloneFlow
   /organizations/{organizationId}/flows/{flowId}/execute:
     description: ''
     post:
@@ -455,7 +461,8 @@ paths:
           description: Flow not found.
         '409':
           description: Flow already running or it is being started/stopped.
-      operationId: createOrganizationsByOrganizationidFlowsByFlowidExecute
+      summary: Execute flow
+      operationId: executeFlow
   /organizations/{organizationId}/flows/{flowId}/stop:
     description: ''
     post:
@@ -484,7 +491,8 @@ paths:
           description: Flow not found.
         '409':
           description: Flow is not running or it is being stopped.
-      operationId: createOrganizationsByOrganizationidFlowsByFlowidStop
+      summary: Stop flow
+      operationId: stopFlow
   /organizations/{organizationId}/flows/{flowId}/status:
     description: ''
     get:
@@ -509,7 +517,8 @@ paths:
                 description: Status available
         '404':
           description: Flow not found.
-      operationId: getOrganizationsByOrganizationidFlowsByFlowidStatus
+      summary: Get flow status
+      operationId: getFlowStatus
   /organizations/{organizationId}/flows/{flowId}/test:
     post:
       description: Starts a test for a flow.
@@ -662,7 +671,8 @@ paths:
           description: Flow does not exists.
         '409':
           description: Flow already running.
-      operationId: createOrganizationsByOrganizationidFlowsByFlowidTest
+      summary: Start flow test
+      operationId: startFlowTest
     delete:
       description: Stops a test for a flow.
       parameters:
@@ -693,7 +703,8 @@ paths:
           description: Flow does not exists.
         '409':
           description: Flow not running.
-      operationId: deleteOrganizationsByOrganizationidFlowsByFlowidTest
+      summary: Stop flow test
+      operationId: stopFlowTest
   /organizations/{organizationId}/flows/{flowId}/test-status:
     get:
       description: Returns the status of a flow test.
@@ -734,7 +745,8 @@ paths:
           description: Flow does not exist.
         '429':
           description: Quota Limit reached for concurrent Design Operations.
-      operationId: getOrganizationsByOrganizationidFlowsByFlowidTestStatus
+      summary: Get flow test status
+      operationId: getFlowTestStatus
   /organizations/{organizationId}/flows/{flowId}/test-messages:
     get:
       description: Returns the messages of a flow test.
@@ -788,7 +800,8 @@ paths:
           description: Flow does not exist.
         '429':
           description: Quota Limit reached for concurrent Design Operations.
-      operationId: getOrganizationsByOrganizationidFlowsByFlowidTestMessages
+      summary: Get flow test messages
+      operationId: getFlowTestMessages
   /organizations/{organizationId}/connectors:
     description: List the available systems that the user can choose from.
     get:
@@ -818,7 +831,8 @@ paths:
                 hasConnection: 'true'
                 hasTrigger: 'true'
                 hasAction: 'true'
-      operationId: getOrganizationsByOrganizationidConnectors
+      summary: List connectors
+      operationId: listConnectors
   /organizations/{organizationId}/connectors/{connectorName}:
     description: Returns the citizen model for a given connector.
     get:
@@ -937,7 +951,8 @@ paths:
               example: *id006
         '404':
           description: Connector not found.
-      operationId: getOrganizationsByOrganizationidConnectorsByConnectorname
+      summary: Get connector
+      operationId: getConnector
       description: Retrieves a connectors.
   /organizations/{organizationId}/connectors/{connectorName}/sample-data:
     description: Returns the sample data for a connector element associated with a given connection.
@@ -1078,7 +1093,8 @@ paths:
           description: Connection not found.
         '429':
           description: Quota Limit reached for concurrent Design Operations.
-      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameSampleData
+      summary: Get connector sample data
+      operationId: getConnectorSampleData
   /organizations/{organizationId}/connectors/{connectorName}/entity-provider:
     description: Returns the entity provider data for a connector element associated with a given connection.
     post:
@@ -1638,7 +1654,8 @@ paths:
           description: Bad request.
         '401':
           description: Unauthorized.
-      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameEntityProvider
+      summary: Get connector entity provider
+      operationId: getConnectorEntityProvider
   /organizations/{organizationId}/connectors/{connectorName}/connections:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -1736,7 +1753,8 @@ paths:
           description: Connection not found.
         '429':
           description: Quota Limit reached for concurrent Design Operations.
-      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameConnectionsByConnectionidValueResolver
+      summary: Resolve connection data provider values
+      operationId: resolveConnectionValues
   /organizations/{organizationId}/connectors/{connectorName}/connections/{connectionId}/metadata:
     description: Returns the metadata for a connector element associated with a given connection.
     post:
@@ -1869,7 +1887,8 @@ paths:
           description: Connection not found.
         '429':
           description: Quota Limit reached for concurrent Design Operations.
-      operationId: createOrganizationsByOrganizationidConnectorsByConnectornameConnectionsByConnectionidMetadata
+      summary: Get connection metadata
+      operationId: getConnectionMetadata
   /organizations/{organizationId}/connection-schemas:
     description: Represent the avaliable connection schemas.
     parameters:
@@ -1910,7 +1929,8 @@ paths:
               example: *id011
         '400':
           description: Bad Request.
-      operationId: getOrganizationsByOrganizationidConnectionSchemasConnectorsByConnectorname
+      summary: List connector connection schemas
+      operationId: listConnectorConnectionSchemas
   /organizations/{organizationId}/connections:
     description: Manage connections.
     get:
@@ -1975,7 +1995,8 @@ paths:
               example: *id012
         '400':
           description: Bad Request.
-      operationId: getOrganizationsByOrganizationidConnections
+      summary: List connections
+      operationId: listConnections
     post:
       description: Creates a new **non-OAuth** connection. For starting OAuth dance, please use `/ocs-connections`.
       parameters:
@@ -2011,7 +2032,8 @@ paths:
               example: *id013
         '400':
           description: Bad Request.
-      operationId: createOrganizationsByOrganizationidConnections
+      summary: Create non-OAuth connection
+      operationId: createConnection
   /organizations/{organizationId}/connections/connectors:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -2054,7 +2076,8 @@ paths:
               example: *id014
         '400':
           description: Bad Request.
-      operationId: getOrganizationsByOrganizationidConnectionsConnectorsByConnectorname
+      summary: List connections by connector
+      operationId: listConnectionsByConnector
       description: Retrieves a connectors.
   /organizations/{organizationId}/connections/{connectionId}:
     get:
@@ -2085,7 +2108,8 @@ paths:
               example: *id015
         '400':
           description: Bad Request.
-      operationId: getOrganizationsByOrganizationidConnectionsByConnectionid
+      summary: Get connection by ID
+      operationId: getConnectionById
     patch:
       description: Update a connection.
       parameters:
@@ -2114,7 +2138,8 @@ paths:
           description: Connection was successfully updated.
         '400':
           description: Bad Request.
-      operationId: patchOrganizationsByOrganizationidConnectionsByConnectionid
+      summary: Update connection
+      operationId: updateConnection
     delete:
       description: Delete a connection.
       parameters:
@@ -2134,7 +2159,8 @@ paths:
           description: Unauthorized.
         '429':
           description: Quota Limit reached.
-      operationId: deleteOrganizationsByOrganizationidConnectionsByConnectionid
+      summary: Delete connection
+      operationId: deleteConnection
   /organizations/{organizationId}/connections/{connectionId}/test:
     post:
       description: Test the connectivity of an existing connection.
@@ -2175,7 +2201,8 @@ paths:
               example: *id016
         '400':
           description: Bad Request.
-      operationId: createOrganizationsByOrganizationidConnectionsByConnectionidTest
+      summary: Test connection
+      operationId: testConnection
   /organizations/{organizationId}/connections/test:
     post:
       description: Test the connectivity of a draft connection.
@@ -2221,7 +2248,8 @@ paths:
               example: *id017
         '400':
           description: Bad Request.
-      operationId: createOrganizationsByOrganizationidConnectionsTest
+      summary: Test draft connection
+      operationId: testDraftConnection
   /organizations/{organizationId}/ocs-connections:
     description: Handles the process for creating OAuth connections.
     post:
@@ -2247,7 +2275,8 @@ paths:
               example: *id018
         '400':
           description: Bad Request.
-      operationId: createOrganizationsByOrganizationidOcsConnections
+      summary: Start OAuth connection dance
+      operationId: startOauthConnection
 components:
   requestBodies:
     Generated:

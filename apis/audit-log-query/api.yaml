@@ -461,7 +461,8 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
-      operationId: createOrganizationsByIdQueryMediatypeextension
+      summary: Query audit logs as CSV export
+      operationId: queryAuditLogsCsv
   "/organizations/{id}/platforms":
     get:
       description: |
@@ -490,6 +491,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization platforms
       operationId: getOrganizationsByIdPlatforms
   "/organizations/{id}/objectTypes":
     get:
@@ -530,6 +532,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization object types
       operationId: getOrganizationsByIdObjecttypes
   "/organizations/{id}/objects":
     get:
@@ -617,6 +620,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Search organization audit objects
       operationId: getOrganizationsByIdObjects
   "/organizations/{id}/actions":
     get:
@@ -658,6 +662,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization audit actions
       operationId: getOrganizationsByIdActions
   "/organizations/{id}/retentionSettings":
     get:
@@ -687,6 +692,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Get organization retention settings
       operationId: getOrganizationsByIdRetentionsettings
     put:
       description: >
@@ -741,6 +747,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Update organization retention settings
       operationId: updateOrganizationsByIdRetentionsettings
 components:
   securitySchemes:

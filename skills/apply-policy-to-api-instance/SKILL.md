@@ -87,7 +87,7 @@ Retrieve all API instances in the selected environment. Each entry represents a 
 
 ```yaml
 api: urn:api:api-manager
-operationId: listOrganizationsEnvironmentsApis
+operationId: listApis
 inputs:
   organizationId:
     from:
@@ -114,7 +114,7 @@ outputs:
 
 List all available policy templates from Exchange for your organization. This endpoint returns the full Exchange coordinates (`groupId`, `assetId`, `version`) and gateway-compatible configuration for each template — these are required when applying a policy.
 
-**Important:** Use the `api-portal-xapi` endpoint (`getExchangePolicyTemplates`) instead of the generic `listOrganizationsPolicytemplates` endpoint. The generic endpoint does not return Exchange coordinates or gateway-specific configuration property names, which are required for the apply step.
+**Important:** Use the `api-portal-xapi` endpoint (`getExchangePolicyTemplates`) instead of the generic `listPolicyTemplates` endpoint. The generic endpoint does not return Exchange coordinates or gateway-specific configuration property names, which are required for the apply step.
 
 **What you'll need:**
 - Organization ID from Step 1
@@ -165,7 +165,7 @@ outputs:
 
 **Common issues:**
 - **Empty list**: Pass `apiInstanceId` and `environmentId` to get templates compatible with your gateway type. Without these filters, some templates may not appear.
-- **Wrong config property names**: Always use the configuration from this endpoint — the generic `listOrganizationsPolicytemplates` endpoint may return different (non-gateway-compatible) property names and defaults. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
+- **Wrong config property names**: Always use the configuration from this endpoint — the generic `listPolicyTemplates` endpoint may return different (non-gateway-compatible) property names and defaults. For example, Omni Gateway uses `credentialsOriginHasHttpBasicAuthenticationHeader` while the generic template uses `credentialsOrigin`.
 
 ## Step 5: Apply Policy to API Instance
 
@@ -180,7 +180,7 @@ Apply the selected policy to your API instance with the appropriate configuratio
 
 ```yaml
 api: urn:api:api-manager
-operationId: createOrganizationsEnvironmentsApisPolicies
+operationId: applyApiPolicy
 inputs:
   organizationId:
     from:
@@ -237,15 +237,15 @@ After completing all steps, verify the policy is properly applied:
 
 ## Next Steps
 
-1. **Verify the policy** — List applied policies with `listOrganizationsEnvironmentsApisPolicies` to confirm it's active and correctly configured.
+1. **Verify the policy** — List applied policies with `listApiPolicies` to confirm it's active and correctly configured.
 
 2. **Test the enforcement** — Send requests to the API and verify the policy behaves as expected (e.g., unauthorized requests are rejected, rate limits are enforced).
 
-3. **Adjust configuration** — Use `patchOrganizationsEnvironmentsApisPolicy` to update configuration without removing the policy.
+3. **Adjust configuration** — Use `updateApiPolicy` to update configuration without removing the policy.
 
-4. **Apply additional policies** — Repeat this workflow to layer multiple policies (e.g., add rate limiting on top of OAuth2). Use `updateOrganizationsEnvironmentsApisPoliciesBulk` to control execution order.
+4. **Apply additional policies** — Repeat this workflow to layer multiple policies (e.g., add rate limiting on top of OAuth2). Use `reorderApiPolicies` to control execution order.
 
-5. **Consider automated policies** — If you want this policy applied to all APIs in the organization automatically, explore `createOrganizationsAutomatedpolicies`.
+5. **Consider automated policies** — If you want this policy applied to all APIs in the organization automatically, explore `createAutomatedPolicy`.
 
 ## Troubleshooting
 
@@ -270,7 +270,7 @@ After completing all steps, verify the policy is properly applied:
 **Symptoms:** `"The policy to be created is missing at least one of the following properties related to the policy template: 'groupId', 'assetId', 'assetVersion'."`
 
 **Possible causes:**
-- Used the generic `listOrganizationsPolicytemplates` endpoint which does not return Exchange coordinates
+- Used the generic `listPolicyTemplates` endpoint which does not return Exchange coordinates
 
 **Solutions:**
 - Use `getExchangePolicyTemplates` from `api-portal-xapi` instead — this returns the full Exchange coordinates needed by the apply endpoint
@@ -302,7 +302,7 @@ After completing all steps, verify the policy is properly applied:
 **Solutions:**
 - Pass both `apiInstanceId` and `environmentId` to filter for compatible templates
 - Remove filters to see all templates, then check compatibility manually
-- For custom policies, verify the template is published via `listOrganizationsCustompolicytemplates`
+- For custom policies, verify the template is published via `listCustomPolicyTemplates`
 
 ## Related Jobs
 

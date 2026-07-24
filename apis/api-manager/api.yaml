@@ -2904,7 +2904,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         name: getAssetsAssetId
         values: $[*].assetId
         labels: $[*].name
@@ -2916,7 +2916,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         name: getAssetsGroupId
         values: $[*].groupId
         labels: $[*].name
@@ -2929,7 +2929,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         description: Align with Exchange asset version for the same assetId + groupId; exact response shape depends on search results.
         values: $[*].version
         labels: $[*].name

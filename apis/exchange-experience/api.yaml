@@ -45,7 +45,8 @@ paths:
       responses:
         '201':
           description: Asset created
-      operationId: createAssets
+      summary: Upload asset
+      operationId: uploadAsset
   /assets/search:
     summary: Assets Search
     description: Assets Search
@@ -103,7 +104,8 @@ paths:
                 type: array
                 items:
                   type: object
-      operationId: getAssetsSearch
+      summary: Search assets
+      operationId: searchAssets
   /assets/{groupId}/{assetId}:
     summary: Assets
     description: Asset by groupId and assetId
@@ -119,9 +121,11 @@ paths:
           description: Asset deleted
         '409':
           description: There were conflicts while deleting
-      operationId: deleteAssetsByGroupidByAssetid
+      summary: Delete asset
+      operationId: deleteAsset
     patch:
-      operationId: patchAssetsByGroupidByAssetid
+      summary: Update asset metadata
+      operationId: updateAsset
       description: Updates asset metadata (name and description)
       requestBody:
         content:
@@ -163,7 +167,8 @@ paths:
               examples:
                 MetricsCSV:
                   $ref: examples/metrics.yaml#/MetricsCSV
-      operationId: getAssetsByGroupidByAssetidMetrics
+      summary: Get asset metrics
+      operationId: getAssetMetrics
   /assets/{groupId}/{assetId}/metrics/versions:
     summary: Asset metrics
     description: Asset metrics
@@ -197,7 +202,8 @@ paths:
                   $ref: examples/metrics.yaml#/MetricVersionsCSV
               schema:
                 type: string
-      operationId: getAssetsByGroupidByAssetidMetricsVersions
+      summary: Get asset metrics by version
+      operationId: getAssetMetricsByVersion
   /assets/{groupId}/{assetId}/icon:
     summary: Icon
     description: Asset icon
@@ -205,7 +211,8 @@ paths:
     - $ref: '#/components/parameters/GroupId'
     - $ref: '#/components/parameters/AssetId'
     put:
-      operationId: updateAssetsByGroupidByAssetidIcon
+      summary: Upload asset icon
+      operationId: uploadAssetIcon
       description: Uploads an icon as a binary file
       requestBody:
         content:
@@ -233,7 +240,8 @@ paths:
       responses:
         '204':
           description: Icon deleted
-      operationId: deleteAssetsByGroupidByAssetidIcon
+      summary: Delete asset icon
+      operationId: deleteAssetIcon
   /assets/{groupId}/{assetId}/public:
     summary: Public Versions
     description: Public asset versions
@@ -241,7 +249,8 @@ paths:
     - $ref: '#/components/parameters/GroupId'
     - $ref: '#/components/parameters/AssetId'
     put:
-      operationId: updateAssetsByGroupidByAssetidPublic
+      summary: Set asset public versions
+      operationId: setAssetPublicVersions
       description: Sets the public versions for the asset
       requestBody:
         content:
@@ -273,7 +282,8 @@ paths:
               examples:
                 Asset:
                   $ref: examples/assets.yaml#/AssetWithFiles
-      operationId: getAssetsByGroupidByAssetidAsset
+      summary: Get asset files
+      operationId: getAssetFiles
   /assets/{groupId}/{assetId}/minorVersions/{minorVersion}/portal/search:
     summary: Asset portal search
     description: Search for a term within an asset portal
@@ -305,7 +315,8 @@ paths:
                 items:
                   type: object
               example: *id002
-      operationId: getAssetsByGroupidByAssetidMinorversionsByMinorversionPortalSearch
+      summary: Search asset portal pages
+      operationId: searchAssetPortalPages
       description: Retrieves a search.
   /assets/{groupId}/{assetId}/versionGroups:
     summary: Version Groups
@@ -328,7 +339,8 @@ paths:
                 type: array
                 items:
                   type: object
-      operationId: getAssetsByGroupidByAssetidVersiongroups
+      summary: List asset version groups
+      operationId: listAssetVersionGroups
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/apiGroupInstances:
     summary: API Groups Instances
     description: API Groups instances
@@ -350,7 +362,8 @@ paths:
               examples:
                 APIGroupInstances:
                   $ref: examples/instances.yaml#/APIGroupInstances
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupApigroupinstances
+      summary: List API group instances
+      operationId: listApiGroupInstances
   ? /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}
   : summary: Instance
     description: A single API Group instance identified by a "apiGroupInstanceId"
@@ -361,7 +374,8 @@ paths:
     - $ref: '#/components/parameters/EnvironmentId'
     - $ref: '#/components/parameters/APIGroupInstanceId'
     patch:
-      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceid
+      summary: Update API group visibility
+      operationId: updateApiGroupInstanceVisibility
       description: Updates API Group visibility
       requestBody:
         content:
@@ -393,7 +407,8 @@ paths:
               examples:
                 Tiers:
                   $ref: examples/tiers.yaml#/Tiers
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidTiers
+      summary: List API group instance tiers
+      operationId: listApiGroupInstanceTiers
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/terms:
     summary: Terms and Conditions
     description: Gets underlying API terms and conditions for an asset version group
@@ -411,7 +426,8 @@ paths:
               examples:
                 Terms:
                   $ref: examples/instances.yaml#/Terms
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupTerms
+      summary: Get asset terms
+      operationId: getAssetTerms
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances:
     summary: API Instances
     description: A collection of API instances
@@ -433,7 +449,8 @@ paths:
                 type: array
                 items:
                   type: object
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstances
+      summary: List asset instances
+      operationId: listAssetInstances
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/{apiInstanceId}/relatedApiGroupInstances:
     summary: API Group Instances
     description: API Group instances that include an API instance
@@ -464,7 +481,8 @@ paths:
                   version: 2.0.0
                   isPublic: false
               example: *id003
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesByApiinstanceidRelatedapigroupinstances
+      summary: List related API group instances
+      operationId: listRelatedApiGroupInstances
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/{apiId}/tiers:
     summary: Instance Tiers
     description: A collection of the available SLA Tiers for a given API instance
@@ -485,12 +503,14 @@ paths:
               examples:
                 Tiers:
                   $ref: examples/tiers.yaml#/Tiers
-      operationId: getAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesByApiidTiers
+      summary: List instance tiers
+      operationId: listInstanceTiers
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/evented-apis/external:
     summary: External Instances
     description: Evented API External instances
     post:
-      operationId: createAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesEventedApisExternal
+      summary: Create evented external instance
+      operationId: createEventedExternalInstance
       description: Creates a new external API instance for an evented API
       parameters:
       - $ref: '#/components/parameters/GroupId'
@@ -519,7 +539,8 @@ paths:
     summary: Instance Id
     description: A single instance for an evented API
     patch:
-      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesEventedApisExternalById
+      summary: Update evented external instance
+      operationId: updateEventedExternalInstance
       description: Updates an existing external API instance
       parameters:
       - $ref: '#/components/parameters/GroupId'
@@ -548,7 +569,8 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/VersionGroup'
     post:
-      operationId: createAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternal
+      summary: Create external instance
+      operationId: createExternalInstance
       description: Creates a new external API instance
       requestBody:
         content:
@@ -574,7 +596,8 @@ paths:
       responses:
         '204':
           description: deleted all external instances
-      operationId: deleteAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternal
+      summary: Delete external instances
+      operationId: deleteExternalInstances
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/external/{id}:
     summary: Instance Id
     description: A single instance
@@ -584,7 +607,8 @@ paths:
     - $ref: '#/components/parameters/VersionGroup'
     - $ref: '#/components/parameters/ExternalInstanceId'
     patch:
-      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternalById
+      summary: Update external instance
+      operationId: updateExternalInstance
       description: Updates an existing external API instance
       requestBody:
         content:
@@ -607,12 +631,14 @@ paths:
           description: External instance deleted
         '404':
           description: External instance not found
-      operationId: deleteAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesExternalById
+      summary: Delete external instance
+      operationId: deleteExternalInstance
   /assets/{groupId}/{assetId}/versionGroups/{versionGroup}/instances/managed/{id}:
     summary: Instance Id
     description: A single managed instance
     patch:
-      operationId: patchAssetsByGroupidByAssetidVersiongroupsByVersiongroupInstancesManagedById
+      summary: Update managed instance
+      operationId: updateManagedInstance
       description: Updates an existing managed API instance
       parameters:
       - $ref: '#/components/parameters/GroupId'
@@ -665,9 +691,11 @@ paths:
                     domain: mulesoft-inc
                 type: object
               example: *id004
-      operationId: getAssetsByGroupidByAssetidIdentities
+      summary: List asset identities
+      operationId: listAssetIdentities
     put:
-      operationId: updateAssetsByGroupidByAssetidIdentities
+      summary: Assign asset identities
+      operationId: assignAssetIdentities
       description: Assigns identities to an asset
       parameters:
       - name: x-skip-notifications
@@ -713,7 +741,8 @@ paths:
               schema:
                 example: domain
               example: domain
-      operationId: getAssetsByGroupidByAssetidDomain
+      summary: Get asset domain
+      operationId: getAssetDomain
   /assets/{groupId}/{assetId}/{version}:
     summary: Asset Version
     description: Asset version
@@ -735,7 +764,8 @@ paths:
               examples:
                 Asset:
                   $ref: examples/assets.yaml#/AssetWithFiles
-      operationId: getAssetsByGroupidByAssetidByVersion
+      summary: Get asset version
+      operationId: getAssetVersion
     delete:
       description: Deletes an asset by its ID
       parameters:
@@ -745,7 +775,8 @@ paths:
           description: Asset deleted
         '409':
           description: There were conflicts while deleting
-      operationId: deleteAssetsByGroupidByAssetidByVersion
+      summary: Delete asset version
+      operationId: deleteAssetVersion
   /assets/{groupId}/{assetId}/{version}/icon:
     summary: Icon
     description: Asset icon
@@ -773,7 +804,8 @@ paths:
           description: Invalid icon
         '404':
           description: Asset does not exist
-      operationId: updateAssetsByGroupidByAssetidByVersionIcon
+      summary: Upload asset version icon
+      operationId: uploadAssetVersionIcon
   /assets/{groupId}/{assetId}/{version}/asset:
     summary: Asset
     description: Asset
@@ -791,7 +823,8 @@ paths:
               examples:
                 Asset:
                   $ref: examples/assets.yaml#/AssetWithFiles
-      operationId: getAssetsByGroupidByAssetidByVersionAsset
+      summary: Get asset version files
+      operationId: getAssetVersionFiles
   /assets/{groupId}/{assetId}/{version}/rating:
     summary: Rating
     description: Rating of the asset
@@ -811,7 +844,8 @@ paths:
               examples:
                 Rating:
                   $ref: examples/ratings.yaml#/Rating
-      operationId: getAssetsByGroupidByAssetidByVersionRating
+      summary: Get asset rating
+      operationId: getAssetRating
   /assets/{groupId}/{assetId}/{version}/reviews:
     summary: Reviews
     description: Reviews of the asset
@@ -838,7 +872,8 @@ paths:
               examples:
                 Reviews:
                   $ref: examples/reviews.yaml#/Reviews
-      operationId: getAssetsByGroupidByAssetidByVersionReviews
+      summary: List asset reviews
+      operationId: listAssetReviews
     post:
       description: Creates a new asset review
       requestBody:
@@ -860,7 +895,8 @@ paths:
               examples:
                 Review:
                   $ref: examples/reviews.yaml#/Review
-      operationId: createAssetsByGroupidByAssetidByVersionReviews
+      summary: Create asset review
+      operationId: createAssetReview
   /assets/{groupId}/{assetId}/{version}/reviews/{reviewId}:
     summary: Review
     description: A single asset review identified by a "reviewId"
@@ -890,13 +926,15 @@ paths:
               examples:
                 Review:
                   $ref: examples/reviews.yaml#/Review
-      operationId: patchAssetsByGroupidByAssetidByVersionReviewsByReviewid
+      summary: Update asset review
+      operationId: updateAssetReview
     delete:
       description: Deletes an specific asset review.
       responses:
         '204':
           description: Review deleted
-      operationId: deleteAssetsByGroupidByAssetidByVersionReviewsByReviewid
+      summary: Delete asset review
+      operationId: deleteAssetReview
   /assets/{groupId}/{assetId}/{version}/api/model:
     summary: API Model
     description: API Model
@@ -914,7 +952,8 @@ paths:
               examples:
                 JsonLD:
                   $ref: examples/web-api.yaml#/JsonLD
-      operationId: getAssetsByGroupidByAssetidByVersionApiModel
+      summary: Get asset API model
+      operationId: getAssetApiModel
   /assets/{groupId}/{assetId}/{version}/api/root:
     summary: Root File
     description: Root file for the API
@@ -927,7 +966,8 @@ paths:
       responses:
         '301':
           description: Redirection to root file if available.
-      operationId: getAssetsByGroupidByAssetidByVersionApiRoot
+      summary: Get asset API root file
+      operationId: getAssetApiRoot
   /assets/{groupId}/{assetId}/{version}/api/{filePath}*:
     summary: File Path
     description: API file path
@@ -951,7 +991,8 @@ paths:
             - For example, if api.raml was specified the response will be that raml.
 
             '
-      operationId: getAssetsByGroupidByAssetidByVersionApiFilepath
+      summary: Get asset API file
+      operationId: getAssetApiFile
   /assets/{groupId}/{assetId}/{version}/domain:
     summary: Domain
     description: Allowed domain for the asset
@@ -969,7 +1010,8 @@ paths:
               schema:
                 example: domain
               example: domain
-      operationId: getAssetsByGroupidByAssetidByVersionDomain
+      summary: Get asset version domain
+      operationId: getAssetVersionDomain
   /assets/{groupId}/{assetId}/{version}/portal:
     summary: Portal Documentation
     description: Asset portal documentation
@@ -978,7 +1020,8 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     patch:
-      operationId: patchAssetsByGroupidByAssetidByVersionPortal
+      summary: Publish asset portal
+      operationId: publishAssetPortal
       description: 'Publishes draft version.
 
         This endpoint should be executed without specifying any body.
@@ -1007,7 +1050,8 @@ paths:
               examples:
                 Pages:
                   $ref: examples/pages.yaml#/PortalPages
-      operationId: getAssetsByGroupidByAssetidByVersionPortal
+      summary: Get asset portal
+      operationId: getAssetPortal
   /assets/{groupId}/{assetId}/{version}/portal/pages:
     summary: Pages
     description: Asset documentation pages
@@ -1031,7 +1075,8 @@ paths:
               examples:
                 value:
                   $ref: examples/pages.yaml#/Pages
-      operationId: getAssetsByGroupidByAssetidByVersionPortalPages
+      summary: List asset portal pages
+      operationId: listAssetPortalPages
   /assets/{groupId}/{assetId}/{version}/portal/pages/{pagePath}*:
     summary: Page
     description: A single documentation page path identified by a "pagePath"
@@ -1068,7 +1113,8 @@ paths:
               examples:
                 Page:
                   $ref: examples/pages.yaml#/Page
-      operationId: getAssetsByGroupidByAssetidByVersionPortalPagesPagepath
+      summary: Get asset portal page
+      operationId: getAssetPortalPage
   /assets/{groupId}/{assetId}/{version}/portal/resources:
     summary: Resources
     description: Asset documentation resources
@@ -1087,7 +1133,8 @@ paths:
                 example: &id005
                 - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
               example: *id005
-      operationId: getAssetsByGroupidByAssetidByVersionPortalResources
+      summary: List asset portal resources
+      operationId: listAssetPortalResources
   /assets/{groupId}/{assetId}/{version}/portal/resources/{resourceId}:
     summary: Resource
     description: A single asset documentation resource identified by a "resourceId"
@@ -1101,7 +1148,8 @@ paths:
       responses:
         '200':
           description: Retrieved file as a binary content
-      operationId: getAssetsByGroupidByAssetidByVersionPortalResourcesByResourceid
+      summary: Get asset portal resource
+      operationId: getAssetPortalResource
   /assets/{groupId}/{assetId}/{version}/portal/draft:
     summary: Draft
     description: Asset documentation draft
@@ -1114,9 +1162,11 @@ paths:
       responses:
         '204':
           description: Draft deleted
-      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraft
+      summary: Discard asset portal draft
+      operationId: discardAssetPortalDraft
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraft
+      summary: Publish asset portal draft
+      operationId: publishAssetPortalDraft
       description: 'Publishes asset documentation draft.
 
         This endpoint should be executed without specifying any body.
@@ -1145,7 +1195,8 @@ paths:
               examples:
                 Pages:
                   $ref: examples/pages.yaml#/PortalPages
-      operationId: getAssetsByGroupidByAssetidByVersionPortalDraft
+      summary: Get asset portal draft
+      operationId: getAssetPortalDraft
   /assets/{groupId}/{assetId}/{version}/portal/draft/pages:
     summary: Pages
     description: Asset documentation draft pages
@@ -1175,7 +1226,8 @@ paths:
           description: Page created.
         '409':
           description: Page already exists
-      operationId: createAssetsByGroupidByAssetidByVersionPortalDraftPages
+      summary: Create asset portal draft page
+      operationId: createAssetPortalDraftPage
     get:
       description: Gets a list of pages
       responses:
@@ -1192,7 +1244,8 @@ paths:
               examples:
                 Page:
                   $ref: examples/pages.yaml#/Page
-      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftPages
+      summary: List asset portal draft pages
+      operationId: listAssetPortalDraftPages
   /assets/{groupId}/{assetId}/{version}/portal/draft/pages/{pagePath}*:
     summary: Page
     description: A single documentation page path identified by a "pagePath"
@@ -1231,7 +1284,8 @@ paths:
                   $ref: examples/pages.yaml#/Page
         '404':
           description: Page not found
-      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+      summary: Get asset portal draft page
+      operationId: getAssetPortalDraftPage
     put:
       description: Updates a page for a version of an asset portal
       requestBody:
@@ -1246,13 +1300,15 @@ paths:
       responses:
         '204':
           description: Page updated
-      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+      summary: Update asset portal draft page
+      operationId: updateAssetPortalDraftPage
     delete:
       description: Deletes a page of a version of an asset portal
       responses:
         '204':
           description: Page deleted
-      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraftPagesPagepath
+      summary: Delete asset portal draft page
+      operationId: deleteAssetPortalDraftPage
   /assets/{groupId}/{assetId}/{version}/portal/draft/pagesOrder:
     summary: Pages Order
     description: Asset documentation pages order
@@ -1286,7 +1342,8 @@ paths:
               description: The X-Pages-Order-Revision response header value.
         '409':
           description: Pages order out of syncs
-      operationId: updateAssetsByGroupidByAssetidByVersionPortalDraftPagesorder
+      summary: Update asset portal draft page order
+      operationId: updateAssetPortalDraftPageOrder
   /assets/{groupId}/{assetId}/{version}/portal/draft/resources:
     summary: Resources
     description: Asset documentation resources
@@ -1305,9 +1362,11 @@ paths:
                 example: &id006
                 - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
               example: *id006
-      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftResources
+      summary: List asset portal draft resources
+      operationId: listAssetPortalDraftResources
     post:
-      operationId: createAssetsByGroupidByAssetidByVersionPortalDraftResources
+      summary: Create asset portal draft resource
+      operationId: createAssetPortalDraftResource
       description: 'Creates a resource for the portal draft.
 
         The required multipart fields in the body are the path of the resource and the content type. Ex:
@@ -1347,13 +1406,15 @@ paths:
       responses:
         '204':
           description: Resource deleted
-      operationId: deleteAssetsByGroupidByAssetidByVersionPortalDraftResourcesByResourceid
+      summary: Delete asset portal draft resource
+      operationId: deleteAssetPortalDraftResource
     get:
       description: Gets portals resource
       responses:
         '200':
           description: Retrieved file as a binary content
-      operationId: getAssetsByGroupidByAssetidByVersionPortalDraftResourcesByResourceid
+      summary: Get asset portal draft resource
+      operationId: getAssetPortalDraftResource
   /assets/{groupId}/{assetId}/{version}/policies/instances:
     summary: API Instances
     description: API instances affected by the policy
@@ -1396,7 +1457,8 @@ paths:
                   apiVersion: v1
                   url: localhost:8088/api/v1
               example: *id008
-      operationId: getAssetsByGroupidByAssetidByVersionPoliciesInstances
+      summary: List policy instances
+      operationId: listPolicyInstances
   /assets/{groupId}/{assetId}/{version}/policies/implementations:
     summary: Implementations
     description: Implementations of a specific policy
@@ -1455,7 +1517,8 @@ paths:
                   minRuntimeVersion: 1.0.0
                   maxRuntimeVersion: 2.0.0
               example: *id009
-      operationId: getAssetsByGroupidByAssetidByVersionPoliciesImplementations
+      summary: List policy implementations
+      operationId: listPolicyImplementations
   /assets/{groupId}/{assetId}/{version}/policies/environments:
     summary: Environments
     description: Environments affected by the policy
@@ -1490,7 +1553,8 @@ paths:
                 - environment: production
                   url: localhost:8088/api/v1
               example: *id010
-      operationId: getAssetsByGroupidByAssetidByVersionPoliciesEnvironments
+      summary: List policy environments
+      operationId: listPolicyEnvironments
   /assets/{groupId}/{assetId}/{version}/tags:
     summary: Tags
     description: Asset tags
@@ -1499,7 +1563,8 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionTags
+      summary: Update asset tags
+      operationId: updateAssetTags
       description: Upserts asset tags
       requestBody:
         content:
@@ -1522,13 +1587,15 @@ paths:
     - $ref: '#/components/parameters/Version'
     - $ref: '#/components/parameters/TagKey'
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionTagsFieldsByTagkey
+      summary: Update asset tag field
+      operationId: updateAssetTagField
       description: Update or create a custom field
       responses:
         '200':
           description: Custom field updated
     delete:
-      operationId: deleteAssetsByGroupidByAssetidByVersionTagsFieldsByTagkey
+      summary: Delete asset tag field
+      operationId: deleteAssetTagField
       description: Delete a custom field
       responses:
         '204':
@@ -1542,7 +1609,8 @@ paths:
     - $ref: '#/components/parameters/Version'
     - $ref: '#/components/parameters/TagKey'
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionTagsCategoriesByTagkey
+      summary: Update asset tag category
+      operationId: updateAssetTagCategory
       description: Updates or creates a category.
       requestBody:
         content:
@@ -1561,7 +1629,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteAssetsByGroupidByAssetidByVersionTagsCategoriesByTagkey
+      summary: Delete asset tag category
+      operationId: deleteAssetTagCategory
   /assets/{groupId}/{assetId}/{version}/status:
     summary: Status
     description: The status of the asset
@@ -1570,7 +1639,8 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionStatus
+      summary: Update asset status
+      operationId: updateAssetStatus
       description: Updates asset status
       requestBody:
         content:
@@ -1631,7 +1701,8 @@ paths:
                       description: Cannot hard delete asset after more than 7 days
                     targetStatus: hard-deleted
               example: *id011
-      operationId: getAssetsByGroupidByAssetidByVersionActions
+      summary: Get asset version actions
+      operationId: getAssetVersionActions
   /assets/{groupId}/{assetId}/{version}/owner:
     summary: Owner
     description: Asset ownership
@@ -1640,7 +1711,8 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     put:
-      operationId: updateAssetsByGroupidByAssetidByVersionOwner
+      summary: Update asset owner
+      operationId: updateAssetOwner
       description: Update Asset ownership
       requestBody:
         content:
@@ -1799,7 +1871,8 @@ paths:
                 2,"7f3d510c-bf27-4395-9b49-8ac8a9504d30","asssetname","7f3d510c-bf27-4395-9b49-8ac8a9504d30","1.0.0","AsssetName","","http-api","2022-10-13T14:54:32.507Z",,,"2022-10-13T14:54:32.716Z",76,1000,22,2000,0,0,0
 
                 '
-      operationId: createOrganizationsMetricsTop
+      summary: List top assets by metric
+      operationId: listTopAssets
       description: Creates top.
   /organizations/{masterOrganizationId}/clientProviders/{clientProviderId}/grantTypes:
     summary: Grant Types
@@ -1855,7 +1928,8 @@ paths:
                     exclude: []
                     required: false
               example: *id013
-      operationId: getOrganizationsByMasterorganizationidClientprovidersByClientprovideridGranttypes
+      summary: List client provider grant types
+      operationId: listClientProviderGrantTypes
   /organizations/{organizationId}/identities:
     summary: Identities
     description: Identities of an organization
@@ -1883,7 +1957,8 @@ paths:
                     domain: mulesoft-inc
                 type: object
               example: *id014
-      operationId: getOrganizationsByOrganizationidIdentities
+      summary: List organization identities
+      operationId: listOrganizationIdentities
   /organizations/{organizationId}/identities/{identityId}/assets/authorize:
     description: Authorizes provided resources against a given identity. For now, only teams are supported.
     post:
@@ -1907,7 +1982,8 @@ paths:
       responses:
         '201':
           description: success
-      operationId: createOrganizationsByOrganizationidIdentitiesByIdentityidAssetsAuthorize
+      summary: Authorize identity assets
+      operationId: authorizeIdentityAssets
   /organizations/{masterOrganizationId}/applications:
     summary: Applications
     description: A collection of applications that consume APIs via contracts
@@ -1956,7 +2032,8 @@ paths:
               examples:
                 ClientApplications:
                   $ref: examples/client-applications.yaml#/ClientApplications
-      operationId: getOrganizationsByMasterorganizationidApplications
+      summary: List client applications
+      operationId: listClientApplications
     post:
       description: Adds a client application
       parameters:
@@ -1977,7 +2054,8 @@ paths:
               examples:
                 ClientApplication:
                   $ref: examples/client-applications.yaml#/ClientApplication
-      operationId: createOrganizationsByMasterorganizationidApplications
+      summary: Create client application
+      operationId: createClientApplication
   /organizations/{masterOrganizationId}/applications/{applicationId}:
     summary: Application
     description: A single application identified by an "applicationId"
@@ -1994,9 +2072,11 @@ paths:
               examples:
                 ClientApplication:
                   $ref: examples/client-applications.yaml#/ClientApplication
-      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationid
+      summary: Get client application
+      operationId: getClientApplication
     patch:
-      operationId: patchOrganizationsByMasterorganizationidApplicationsByApplicationid
+      summary: Update client application
+      operationId: updateClientApplication
       description: Updates a client application
       requestBody:
         content:
@@ -2018,7 +2098,8 @@ paths:
       responses:
         '204':
           description: Client application deleted.
-      operationId: deleteOrganizationsByMasterorganizationidApplicationsByApplicationid
+      summary: Delete client application
+      operationId: deleteClientApplication
   ? /organizations/{masterOrganizationId}/applications/{applicationId}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}/limits
   : summary: Limits
     description: Limits of each instance part of the API Group
@@ -2072,7 +2153,8 @@ paths:
                       maximumRequests: 1
                       timePeriodInMilliseconds: 1000
               example: *id015
-      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidLimits
+      summary: List API group instance limits
+      operationId: listApiGroupInstanceLimits
   /organizations/{masterOrganizationId}/applications/{applicationId}/instances:
     summary: Application Instances
     description: Application instances
@@ -2089,7 +2171,8 @@ paths:
               examples:
                 Instances:
                   $ref: examples/instances.yaml#/Instances
-      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidInstances
+      summary: List application instances
+      operationId: listApplicationInstances
   /organizations/{masterOrganizationId}/applications/{applicationId}/instances/{instanceId}/contracts:
     summary: Contracts
     description: The contracts for an API instance
@@ -2107,7 +2190,8 @@ paths:
               examples:
                 InstanceContracts:
                   $ref: examples/client-applications.yaml#/InstanceContracts
-      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidInstancesByInstanceidContracts
+      summary: List instance contracts
+      operationId: listInstanceContracts
   /organizations/{masterOrganizationId}/applications/{applicationId}/contracts:
     summary: Application Contracts
     description: Contracts associated with an application
@@ -2133,9 +2217,11 @@ paths:
               examples:
                 Contracts:
                   $ref: examples/client-applications.yaml#/Contracts
-      operationId: getOrganizationsByMasterorganizationidApplicationsByApplicationidContracts
+      summary: List application contracts
+      operationId: listApplicationContracts
     post:
-      operationId: createOrganizationsByMasterorganizationidApplicationsByApplicationidContracts
+      summary: Create application contract
+      operationId: createApplicationContract
       description: Creates a contract for an API or an API Group
       requestBody:
         content:
@@ -2160,7 +2246,8 @@ paths:
     summary: Contract
     description: A single contract associated with an application and identified by a "contractId"
     patch:
-      operationId: patchOrganizationsByMasterorganizationidApplicationsByApplicationidContractsByContractid
+      summary: Update application contract
+      operationId: updateApplicationContract
       description: Updates contract SLA tier for an API or an API Group
       parameters:
       - $ref: '#/components/parameters/MasterOrganizationId'
@@ -2219,7 +2306,8 @@ paths:
     - $ref: '#/components/parameters/MasterOrganizationId'
     - $ref: '#/components/parameters/ApplicationId'
     post:
-      operationId: createOrganizationsByMasterorganizationidApplicationsByApplicationidSecretReset
+      summary: Reset application secret
+      operationId: resetApplicationSecret
       description: 'Resets the client secret for the application.
 
         This endpoint should be executed without specifying any body.
@@ -2238,7 +2326,8 @@ paths:
       responses:
         '204':
           description: Organization deleted
-      operationId: deleteOrganizationsByOrganizationid
+      summary: Delete organization
+      operationId: deleteOrganization
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}:
     summary: Asset Version
     description: Asset version
@@ -2301,7 +2390,8 @@ paths:
                   publicationStatusLink: https://anypoint.mulesoft.com/exchange/api/v2/organizations/1da12ec1-7614-43a3-bf24-ff754cab8ddf/assets/1da12ec1-7614-43a3-bf24-ff754cab8ddf/mulapp/1.0.0/publication/status/543254325432
                 type: object
               example: *id018
-      operationId: createOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersion
+      summary: Upload organization asset version
+      operationId: uploadOrganizationAssetVersion
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/mutabledata:
     summary: Asset mutable data
     description: Asset mutable data
@@ -2329,7 +2419,8 @@ paths:
                 example: &id019
                   mutableDataStatusLink: https://anypoint.mulesoft.com/exchange/api/v2/organizations/1da12ec1-7614-43a3-bf24-ff754cab8ddf/assets/1da12ec1-7614-43a3-bf24-ff754cab8ddf/mulapp/1.0.0/mutabledata/status/543254325432
               example: *id019
-      operationId: patchOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionMutabledata
+      summary: Update asset mutable data
+      operationId: updateAssetMutableData
   /organizations/{organizationId}/groups/{groupId}/assets/{assetId}/nextAvailableVersion:
     summary: Next Available Version
     description: Next Available Version
@@ -2359,7 +2450,8 @@ paths:
                 example: &id020
                   nextAvailableVersion: 1.2.0
               example: *id020
-      operationId: getOrganizationsByOrganizationidGroupsByGroupidAssetsByAssetidNextavailableversion
+      summary: Get next available version
+      operationId: getNextAvailableVersion
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/mutabledata/status/{runId}:
     summary: By RunId
     description: Mutable data publication status by "runId"
@@ -2389,7 +2481,8 @@ paths:
                     errors: []
                 type: object
               example: *id021
-      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionMutabledataStatusByRunid
+      summary: Get asset mutable data status
+      operationId: getAssetMutableDataStatus
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/extendedStatus/{runId}:
     summary: By RunId
     description: Extended asset publication status by "runId"
@@ -2409,7 +2502,8 @@ paths:
               schema:
                 type: string
               example: string
-      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationExtendedstatusByRunid
+      summary: Get asset publication extended status
+      operationId: getAssetPublicationExtendedStatus
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/status:
     summary: Status
     description: Asset publication status
@@ -2438,7 +2532,8 @@ paths:
                     errors: []
                 type: object
               example: *id022
-      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatus
+      summary: Get asset publication status
+      operationId: getAssetPublicationStatus
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/publication/status/{runId}:
     summary: By RunId
     description: Asset publication status by "runId"
@@ -2468,11 +2563,13 @@ paths:
                     errors: []
                 type: object
               example: *id023
-      operationId: getOrganizationsByOrganizationidAssetsByGroupidByAssetidByVersionPublicationStatusByRunid
+      summary: Get asset publication status by run
+      operationId: getAssetPublicationStatusByRun
   /organizations/{organizationId}/assets/{groupId}/{assetId}/{version}/documentation/generate:
     summary: Generate Documentation
     description: AI-powered documentation generation for an asset
     post:
+      summary: Generate asset documentation
       operationId: generateAssetDocumentation
       description: |
         Generates AI-powered documentation for an asset version.
@@ -2587,9 +2684,11 @@ paths:
               examples:
                 Categories:
                   $ref: examples/categories.yaml#/FieldsConfigurations
-      operationId: getOrganizationsByOrganizationidFields
+      summary: List custom fields
+      operationId: listCustomFields
     post:
-      operationId: createOrganizationsByOrganizationidFields
+      summary: Create custom field
+      operationId: createCustomField
       description: 'Adds a field configuration to the organization.
 
         - Body should be application/json. This is not specified in the raml as it conflicts with Osprey.
@@ -2612,7 +2711,8 @@ paths:
     - $ref: '#/components/parameters/OrganizationId'
     - $ref: '#/components/parameters/Id'
     patch:
-      operationId: patchOrganizationsByOrganizationidFieldsById
+      summary: Update custom field
+      operationId: updateCustomField
       description: Updates a custom field configuration
       parameters:
       - $ref: '#/components/parameters/ForceUpdate'
@@ -2626,7 +2726,8 @@ paths:
       responses:
         '204':
           description: Custom field deleted
-      operationId: deleteOrganizationsByOrganizationidFieldsById
+      summary: Delete custom field
+      operationId: deleteCustomField
   /organizations/{organizationId}/categories:
     summary: Categories
     description: Tags of type "category"
@@ -2649,7 +2750,8 @@ paths:
               examples:
                 Categories:
                   $ref: examples/categories.yaml#/CategoriesConfigurations
-      operationId: getOrganizationsByOrganizationidCategories
+      summary: List categories
+      operationId: listCategories
     post:
       description: Add a category configuration to the organization
       requestBody:
@@ -2668,7 +2770,8 @@ paths:
               examples:
                 Category:
                   $ref: examples/categories.yaml#/CategoryConfiguration
-      operationId: createOrganizationsByOrganizationidCategories
+      summary: Create category
+      operationId: createCategory
   /organizations/{organizationId}/categories/{id}:
     summary: Category Key
     description: The key that identifies the category
@@ -2676,7 +2779,8 @@ paths:
     - $ref: '#/components/parameters/OrganizationId'
     - $ref: '#/components/parameters/Id'
     patch:
-      operationId: patchOrganizationsByOrganizationidCategoriesById
+      summary: Update category
+      operationId: updateCategory
       description: 'Updates a category configuration
 
         - Body should be application/json. This is not specified in the raml as it conflicts with Osprey.
@@ -2694,7 +2798,8 @@ paths:
       responses:
         '204':
           description: Category deleted
-      operationId: deleteOrganizationsByOrganizationidCategoriesById
+      summary: Delete category
+      operationId: deleteCategory
   /organizations/{organizationId}/queries:
     summary: Organization Queries
     description: Saved searches queries that belong to an organization
@@ -2717,9 +2822,10 @@ paths:
               examples:
                 SearchQueries:
                   $ref: examples/search-queries.yaml#/SearchQueries
-      operationId: getOrganizationsByOrganizationidQueries
+      summary: List organization queries
+      operationId: listOrganizationQueries
     post:
-      summary: Creates a new query
+      summary: Create organization query
       requestBody:
         required: true
         content:
@@ -2740,7 +2846,7 @@ paths:
               examples:
                 SearchQuery:
                   $ref: examples/search-queries.yaml#/SearchQuery
-      operationId: createOrganizationsByOrganizationidQueries
+      operationId: createOrganizationQuery
       description: Creates a new query
   /organizations/{organizationId}/softDeleted:
     summary: Soft Deleted Assets
@@ -2762,7 +2868,8 @@ paths:
                 type: array
                 items:
                   type: object
-      operationId: getOrganizationsByOrganizationidSoftdeleted
+      summary: List soft deleted assets
+      operationId: listSoftDeletedAssets
   /organizations/{organizationId}/settings:
     summary: Organization Settings
     get:
@@ -2791,7 +2898,8 @@ paths:
         '400':
           description: No valid values were provided
           content: {}
-      operationId: getOrganizationsByOrganizationidSettings
+      summary: Get organization settings
+      operationId: getOrganizationSettings
     patch:
       description: Updates root organization level settings
       parameters:
@@ -2811,7 +2919,8 @@ paths:
         '400':
           description: If no valid values are provided
           content: {}
-      operationId: patchOrganizationsByOrganizationidSettings
+      summary: Update organization settings
+      operationId: updateOrganizationSettings
   /organizations/{organizationId}/queries/{queryId}:
     summary: Query
     description: A single organization saved search query identified by a "queryId"
@@ -2839,20 +2948,23 @@ paths:
               examples:
                 SearchQuery:
                   $ref: examples/search-queries.yaml#/SearchQuery
-      operationId: patchOrganizationsByOrganizationidQueriesByQueryid
+      summary: Update organization query
+      operationId: updateOrganizationQuery
     delete:
       description: Deletes the query
       responses:
         '204':
           description: Saved search query deleted
-      operationId: deleteOrganizationsByOrganizationidQueriesByQueryid
+      summary: Delete organization query
+      operationId: deleteOrganizationQuery
   /portals/{organizationDomain}:
     summary: Portal Domain
     description: Public portal domain
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     patch:
-      operationId: patchPortalsByOrganizationdomain
+      summary: Publish portal customization
+      operationId: publishPortalCustomization
       description: 'Publishes draft portal customization.
 
         This endpoint should be executed without specifying any body.
@@ -2875,7 +2987,8 @@ paths:
               examples:
                 Customization:
                   $ref: examples/customizations.yaml#/Customization
-      operationId: getPortalsByOrganizationdomain
+      summary: Get portal customization
+      operationId: getPortalCustomization
   /portals/{organizationDomain}/metadata:
     summary: Metadata
     description: Organization domain metadata
@@ -2893,7 +3006,8 @@ paths:
                   isFederated: false
                   name: Mulesoft Inc
               example: *id024
-      operationId: getPortalsByOrganizationdomainMetadata
+      summary: Get portal metadata
+      operationId: getPortalMetadata
   /portals/{organizationDomain}/resources:
     summary: Resources
     description: Public portal customization resources
@@ -2910,7 +3024,8 @@ paths:
                 example: &id025
                 - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
               example: *id025
-      operationId: getPortalsByOrganizationdomainResources
+      summary: List portal resources
+      operationId: listPortalResources
   /portals/{organizationDomain}/resources/{resourceId}:
     summary: Resource
     description: A single portal resource identified by a "resourceId"
@@ -2922,7 +3037,8 @@ paths:
       responses:
         '200':
           description: Retrieved file as a binary content
-      operationId: getPortalsByOrganizationdomainResourcesByResourceid
+      summary: Get portal resource
+      operationId: getPortalResource
   /portals/{organizationDomain}/assets/search:
     summary: Public Assets Search
     description: Public Assets Search
@@ -2946,7 +3062,8 @@ paths:
                 type: array
                 items:
                   type: object
-      operationId: getPortalsByOrganizationdomainAssetsSearch
+      summary: Search public assets
+      operationId: searchPublicAssets
   /portals/{organizationDomain}/assets/{groupId}/{assetId}:
     summary: Asset
     description: Public asset by groupId and assetId
@@ -2960,7 +3077,8 @@ paths:
       responses:
         '200':
           description: success
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetid
+      summary: Get public asset
+      operationId: getPublicAsset
       description: Retrieves a assets.
   /portals/{organizationDomain}/assets/{groupId}/{assetId}/asset:
     summary: Asset
@@ -2981,7 +3099,8 @@ paths:
                   $ref: examples/assets.yaml#/AssetWithFiles
               schema:
                 type: object
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidAsset
+      summary: Get public asset files
+      operationId: getPublicAssetFiles
   /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/apiGroupInstances:
     summary: API Group instances
     description: API Group instances for an asset version group
@@ -3004,7 +3123,8 @@ paths:
               examples:
                 APIGroupInstances:
                   $ref: examples/assets.yaml#/VersionGroups
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupApigroupinstances
+      summary: List public API group instances
+      operationId: listPublicApiGroupInstances
   ? /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/environments/{environmentId}/apiGroupInstances/{apiGroupInstanceId}/tiers
   : summary: Tiers
     description: Tiers for a public API Group instance
@@ -3025,7 +3145,8 @@ paths:
               examples:
                 CompleteTiers:
                   $ref: examples/tiers.yaml#/CompleteTiers
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupEnvironmentsByEnvironmentidApigroupinstancesByApigroupinstanceidTiers
+      summary: List public API group instance tiers
+      operationId: listPublicApiGroupInstanceTiers
   /portals/{organizationDomain}/assets/{groupId}/{assetId}/versionGroups/{versionGroup}/terms:
     summary: Terms and Conditions
     description: Gets public underlying API terms and conditions for a public asset version group
@@ -3044,7 +3165,8 @@ paths:
               examples:
                 Terms:
                   $ref: examples/instances.yaml#/Terms
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidVersiongroupsByVersiongroupTerms
+      summary: Get public asset terms
+      operationId: getPublicAssetTerms
   /portals/{organizationDomain}/assets/{groupId}/{assetId}/{version}/asset:
     summary: Asset
     description: Asset
@@ -3063,7 +3185,8 @@ paths:
               examples:
                 Asset:
                   $ref: examples/assets.yaml#/AssetWithFiles
-      operationId: getPortalsByOrganizationdomainAssetsByGroupidByAssetidByVersionAsset
+      summary: Get public asset version files
+      operationId: getPublicAssetVersionFiles
   /portals/{organizationDomain}/applications/{applicationId}/instances:
     summary: Instances
     description: Public application instances
@@ -3080,14 +3203,16 @@ paths:
               examples:
                 Instances:
                   $ref: examples/instances.yaml#/Instances
-      operationId: getPortalsByOrganizationdomainApplicationsByApplicationidInstances
+      summary: List public application instances
+      operationId: listPublicApplicationInstances
   /portals/{organizationDomain}/domain:
     summary: Organization Domain
     description: Public portal domain
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     put:
-      operationId: updatePortalsByOrganizationdomainDomain
+      summary: Update portal domain
+      operationId: updatePortalDomain
       description: Updates a domain for an organization
       requestBody:
         content:
@@ -3103,7 +3228,8 @@ paths:
       responses:
         '204':
           description: Domain deleted
-      operationId: deletePortalsByOrganizationdomainDomain
+      summary: Delete portal domain
+      operationId: deletePortalDomain
     get:
       description: Gets domain
       responses:
@@ -3114,14 +3240,16 @@ paths:
               schema:
                 example: domain
               example: domain
-      operationId: getPortalsByOrganizationdomainDomain
+      summary: Get portal domain
+      operationId: getPortalDomain
   /portals/{organizationDomain}/cookieConsentId:
     summary: Organization CookieConsentId
     description: Public portal cookie consent id
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     put:
-      operationId: updatePortalsByOrganizationdomainCookieconsentid
+      summary: Update portal cookie consent
+      operationId: updatePortalCookieConsent
       description: Updates a cookie consent id for an organization
       requestBody:
         content:
@@ -3137,7 +3265,8 @@ paths:
       responses:
         '204':
           description: Cookie consent id deleted
-      operationId: deletePortalsByOrganizationdomainCookieconsentid
+      summary: Delete portal cookie consent
+      operationId: deletePortalCookieConsent
     get:
       description: Gets cookie consent id
       responses:
@@ -3149,14 +3278,16 @@ paths:
                 type: string
                 example: 88520c5c-fa3c-4381-85bb-8Ccdb9b543974
               example: 88520c5c-fa3c-4381-85bb-8Ccdb9b543974
-      operationId: getPortalsByOrganizationdomainCookieconsentid
+      summary: Get portal cookie consent
+      operationId: getPortalCookieConsent
   /portals/{organizationDomain}/status:
     summary: Organization public portal status
     description: Public portal status
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     put:
-      operationId: updatePortalsByOrganizationdomainStatus
+      summary: Update portal status
+      operationId: updatePortalStatus
       description: Updates a public portal status for an organization
       requestBody:
         content:
@@ -3179,14 +3310,16 @@ paths:
                 type: string
                 example: enabled
               example: enabled
-      operationId: getPortalsByOrganizationdomainStatus
+      summary: Get portal status
+      operationId: getPortalStatus
   /portals/{organizationDomain}/draft:
     summary: Draft
     description: Public portal customization draft
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     put:
-      operationId: updatePortalsByOrganizationdomainDraft
+      summary: Update portal customization draft
+      operationId: updatePortalCustomizationDraft
       description: Updates the portal customization draft
       requestBody:
         content:
@@ -3207,7 +3340,8 @@ paths:
           description: Draft portal deleted
         '404':
           description: Draft does not exist
-      operationId: deletePortalsByOrganizationdomainDraft
+      summary: Delete portal customization draft
+      operationId: deletePortalCustomizationDraft
     get:
       description: Gets the customization portal
       responses:
@@ -3218,7 +3352,8 @@ paths:
               examples:
                 Customization:
                   $ref: examples/customizations.yaml#/Customization
-      operationId: getPortalsByOrganizationdomainDraft
+      summary: Get portal customization draft
+      operationId: getPortalCustomizationDraft
   /portals/{organizationDomain}/draft/pages:
     summary: Pages
     description: Public portal customization draft pages
@@ -3247,7 +3382,8 @@ paths:
           description: Page already exists
         '422':
           description: Maximum page quantity exceeded
-      operationId: createPortalsByOrganizationdomainDraftPages
+      summary: Create portal draft page
+      operationId: createPortalDraftPage
   /portals/{organizationDomain}/draft/pages/{pagePath}*:
     summary: Page
     description: A single portal draft page identified by a "pagePath"
@@ -3268,13 +3404,15 @@ paths:
       responses:
         '204':
           description: Page updated
-      operationId: updatePortalsByOrganizationdomainDraftPagesPagepath
+      summary: Update portal draft page
+      operationId: updatePortalDraftPage
     delete:
       description: Deletes a page of a custom draft portal
       responses:
         '204':
           description: Page deleted
-      operationId: deletePortalsByOrganizationdomainDraftPagesPagepath
+      summary: Delete portal draft page
+      operationId: deletePortalDraftPage
     get:
       description: Gets a particular page
       parameters:
@@ -3303,7 +3441,8 @@ paths:
               examples:
                 Page:
                   $ref: examples/pages.yaml#/Page
-      operationId: getPortalsByOrganizationdomainDraftPagesPagepath
+      summary: Get portal draft page
+      operationId: getPortalDraftPage
   /portals/{organizationDomain}/draft/pagesOrder:
     summary: Pages Order
     description: Public portal pages order
@@ -3334,7 +3473,8 @@ paths:
               description: The X-Pages-Order-Revision response header value.
         '409':
           description: Pages order out of syncs
-      operationId: updatePortalsByOrganizationdomainDraftPagesorder
+      summary: Update portal draft page order
+      operationId: updatePortalDraftPageOrder
   /portals/{organizationDomain}/draft/resources:
     summary: Resources
     description: Public portal customization resources
@@ -3352,9 +3492,11 @@ paths:
                 example: &id026
                 - path: resources/file-a0a5db36-940e-447b-9100-05b166b2c084.jpg
               example: *id026
-      operationId: getPortalsByOrganizationdomainDraftResources
+      summary: List portal draft resources
+      operationId: listPortalDraftResources
     post:
-      operationId: createPortalsByOrganizationdomainDraftResources
+      summary: Create portal draft resource
+      operationId: createPortalDraftResource
       description: 'Creates a resource for the portal draft.
 
         The required multipart fields in the body are the path of the resource and the content type. Ex:
@@ -3393,13 +3535,15 @@ paths:
       responses:
         '204':
           description: Resource deleted
-      operationId: deletePortalsByOrganizationdomainDraftResourcesByResourceid
+      summary: Delete portal draft resource
+      operationId: deletePortalDraftResource
     get:
       description: Gets portals resource
       responses:
         '200':
           description: Retrieved file as a binary content
-      operationId: getPortalsByOrganizationdomainDraftResourcesByResourceid
+      summary: Get portal draft resource
+      operationId: getPortalDraftResource
   /portals/{organizationDomain}/pages/{pagePath}*:
     summary: Page
     description: A single portal page identified by a "pagePath"
@@ -3433,7 +3577,8 @@ paths:
               examples:
                 Page:
                   $ref: examples/pages.yaml#/Page
-      operationId: getPortalsByOrganizationdomainPagesPagepath
+      summary: Get portal page
+      operationId: getPortalPage
   /users/me/queries:
     summary: Queries
     description: Saved searches queries that belong to an user
@@ -3454,7 +3599,8 @@ paths:
               examples:
                 SearchQueries:
                   $ref: examples/search-queries.yaml#/SearchQueries
-      operationId: getUsersMeQueries
+      summary: List my queries
+      operationId: listMyQueries
     post:
       description: Creates a new query
       requestBody:
@@ -3477,7 +3623,8 @@ paths:
               examples:
                 SearchQuery:
                   $ref: examples/search-queries.yaml#/SearchQuery
-      operationId: createUsersMeQueries
+      summary: Create my query
+      operationId: createMyQuery
   /users/me/queries/{queryId}:
     summary: Query
     description: A single user saved search query identified by a "queryId"
@@ -3507,7 +3654,8 @@ paths:
                   - rest-api
                   search: salesforce
               example: *id028
-      operationId: patchUsersMeQueriesByQueryid
+      summary: Update my query
+      operationId: updateMyQuery
     delete:
       description: Deletes the query
       parameters:
@@ -3515,26 +3663,30 @@ paths:
       responses:
         '204':
           description: Saved search query deleted
-      operationId: deleteUsersMeQueriesByQueryid
+      summary: Delete my query
+      operationId: deleteMyQuery
   /featureFlags:
     get:
       responses:
         '200':
           description: Successful operation.
-      operationId: getFeatureflags
+      summary: List feature flags
+      operationId: listFeatureFlags
       description: Lists featureFlags.
   /graphql:
     get:
       responses:
         '200':
           description: Successful operation.
-      operationId: getGraphql
+      summary: Get GraphQL playground
+      operationId: getGraphqlPlayground
       description: Lists graphql.
     post:
       responses:
         '200':
           description: Successful operation.
-      operationId: postGraphql
+      summary: Execute GraphQL query
+      operationId: executeGraphqlQuery
       description: Creates graphql.
 components:
   securitySchemes:
@@ -3574,7 +3726,7 @@ components:
         example: asset-id
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         description: GET `/assets/search`; use the asset search results from Exchange and extract`assetId` values.
         values: $[*].assetId
         labels: $[*].name
@@ -3607,7 +3759,7 @@ components:
         pattern: ^v{0,1}(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         description: GET `/assets/search`; use the asset search results from Exchange and extract `version` values.
         values: $.versions
         labels: $.name

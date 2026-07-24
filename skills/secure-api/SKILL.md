@@ -108,7 +108,7 @@ Publishes your API specification to Exchange as a reusable asset. This makes it 
 
 ```yaml
 api: urn:api:exchange-experience
-operationId: createAssets
+operationId: uploadAsset
 inputs:
   organizationId:
     from:

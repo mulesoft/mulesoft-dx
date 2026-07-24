@@ -114,7 +114,7 @@ Publishes your MCP server specification to Exchange as a reusable asset. This ma
 
 ```yaml
 api: urn:api:exchange-experience
-operationId: createAssets
+operationId: uploadAsset
 inputs:
   organizationId:
     from:
@@ -160,7 +160,7 @@ Search Exchange for MCP server assets. This search is not scoped to a specific o
 
 ```yaml
 api: urn:api:exchange-experience
-operationId: getAssetsSearch
+operationId: searchAssets
 inputs:
   types:
     value: "mcp"

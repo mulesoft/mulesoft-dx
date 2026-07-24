@@ -24,6 +24,10 @@ warning:
   - uri-parameter-x-origin
   - operation-id-max-length
   - operation-id-no-path-repetition
+  - operation-summary-max-length
+  - operation-summary-required
+  - operation-summary-imperative-mood
+  - operation-summary-no-trailing-period
 validations:
   path-environment-identifier:
     message: |
@@ -358,3 +362,143 @@ validations:
               responses:
                 '200':
                   description: OK
+  operation-summary-max-length:
+    message: >
+      Operation '{{apiContract.method}}' has a summary longer than 60 characters.
+      Keep summaries short so they render cleanly in developer portal sidebars
+      and operation headers. Move longer prose to the operation description.
+    documentation: >
+      The `summary` is the human-readable title shown in list views, navigation
+      sidebars, and operation detail headers. Long summaries wrap awkwardly,
+      truncate in narrow columns, and are harder to scan. Aim for a short verb
+      + primary noun (e.g. "Create messaging client"). If the operation needs
+      more context, put it in `description`, which supports full prose.
+    targetClass: apiContract.Operation
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.guiSummary:
+              minCount: 1
+      - propertyConstraints:
+          apiContract.guiSummary:
+            pattern: "^.{1,60}$"
+    examples:
+      valid: |
+        paths:
+          /clients:
+            get:
+              summary: List messaging clients
+              operationId: listClients
+              responses:
+                '200':
+                  description: OK
+      invalid: |
+        paths:
+          /clients:
+            get:
+              summary: List every single messaging client that is currently registered in this environment
+              operationId: listClients
+              responses:
+                '200':
+                  description: OK
+  operation-summary-required:
+    message: >
+      Operation '{{apiContract.method}}' is missing a `summary`. Without it,
+      developer portals fall back to the operationId as a title, which is
+      unreadable for humans.
+    documentation: >
+      Every operation should define a short human-readable `summary` — used as
+      the operation title in developer portals, navigation lists, and generated
+      docs. Prefer imperative voice (e.g. "Create messaging client"). When
+      summary is missing, portals typically render the operationId as a
+      camelCase-split string, which is often awkward and inconsistent.
+    targetClass: apiContract.Operation
+    propertyConstraints:
+      apiContract.guiSummary:
+        minCount: 1
+    examples:
+      valid: |
+        paths:
+          /clients:
+            get:
+              summary: List messaging clients
+              operationId: listClients
+              responses:
+                '200':
+                  description: OK
+      invalid: |
+        paths:
+          /clients:
+            get:
+              operationId: listClients
+              responses:
+                '200':
+                  description: OK
+  operation-summary-imperative-mood:
+    message: >
+      Operation '{{apiContract.method}}' summary should start with an imperative
+      verb (e.g. "Create", "List", "Update"), not indicative third-person
+      singular (e.g. "Creates", "Lists", "Updates").
+    documentation: >
+      Summaries read as action titles in the portal — imperative voice is
+      shorter, more scannable, and consistent with common API docs conventions
+      (Stripe, GitHub, Twilio). Prefer "Create messaging client" over
+      "Creates a messaging client". This rule rejects any first word that ends
+      in a consonant + "s" (the typical third-person indicative shape). Words
+      that end in "-ss" (e.g. "Access", "Process") are allowed. The rule does
+      not enforce that the first word be a known verb — any imperative-shaped
+      first word passes.
+    targetClass: apiContract.Operation
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.guiSummary:
+              minCount: 1
+      - propertyConstraints:
+          apiContract.guiSummary:
+            pattern: "^[A-Z][a-z]*([^s]|ss)(\\s|$)"
+    examples:
+      valid: |
+        paths:
+          /clients:
+            get:
+              summary: List messaging clients
+              operationId: listClients
+      invalid: |
+        paths:
+          /clients:
+            get:
+              summary: Lists the messaging clients
+              operationId: listClients
+  operation-summary-no-trailing-period:
+    message: >
+      Operation '{{apiContract.method}}' summary ends with a period. Summaries
+      are titles, not sentences — drop the trailing punctuation.
+    documentation: >
+      Summaries render as short titles in the portal sidebar and operation
+      headers. Trailing periods look out of place in a heading context and are
+      inconsistent with the rest of the catalog. Keep prose (with periods) in
+      `description`.
+    targetClass: apiContract.Operation
+    or:
+      - not:
+          propertyConstraints:
+            apiContract.guiSummary:
+              minCount: 1
+      - not:
+          propertyConstraints:
+            apiContract.guiSummary:
+              pattern: "\\.$"
+    examples:
+      valid: |
+        paths:
+          /clients:
+            get:
+              summary: List messaging clients
+              operationId: listClients
+      invalid: |
+        paths:
+          /clients:
+            get:
+              summary: List messaging clients.
+              operationId: listClients

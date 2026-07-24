@@ -111,6 +111,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Authorize a resource
       operationId: listAuthorize
     post:
       description: Authorize for many resources
@@ -183,6 +184,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Authorize multiple resources
       operationId: createAuthorize
   /authorize/client:
     get:
@@ -280,6 +282,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Authorize a client for a resource
       operationId: listAuthorizeClient
       description: Authorizes a client application for access to a specific resource
         using client credentials.
@@ -342,6 +345,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List contexts allowed for an action
       operationId: createAuthorizeContext
   /clients:
     description: 'Access to clients
@@ -668,6 +672,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List clients
       operationId: listClients
     post:
       description: Create a new client
@@ -752,6 +757,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a client
       operationId: createClients
   /clients/{clientId}:
     description: 'Access to a client
@@ -842,6 +848,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a client
       operationId: getClients
     patch:
       description: 'Patches a single client
@@ -885,6 +892,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a client
       operationId: updateClients
     delete:
       description: 'Deletes a single client
@@ -922,6 +930,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a client
       operationId: deleteClients
   /clients/{clientId}/roles:
     description: Access to a client's roles
@@ -994,6 +1003,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List roles assigned to a client
       operationId: listClientsRoles
     post:
       description: Assign a list of roles to a client
@@ -1027,6 +1037,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign roles to a client
       operationId: createClientsRoles
     delete:
       description: Unassign a list of roles from a client
@@ -1060,6 +1071,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign roles from a client
       operationId: deleteClientsRoles
   /clients/{clientId}/roles/{roleId}:
     get:
@@ -1132,6 +1144,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a role assigned to a client
       operationId: getClientsRoles
     post:
       description: Assign a role to a client
@@ -1166,6 +1179,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a role to a client
       operationId: createClientRole
     delete:
       description: Unassign a role from a client
@@ -1198,6 +1212,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign a role from a client
       operationId: deleteClientRole
   /clients/search:
     post:
@@ -1345,6 +1360,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Search clients
       operationId: createClientsSearch
   /connectedApplications:
     description: Access to connected applications
@@ -1561,6 +1577,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List connected applications
       operationId: listConnectedApplications
     post:
       description: Create a new connected application
@@ -1667,6 +1684,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a connected application
       operationId: createConnectedApplications
   /connectedApplications/{clientId}:
     description: Access to individual connected application
@@ -1784,6 +1802,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a connected application
       operationId: getConnectedApplications
     patch:
       description: Patches a single connected application
@@ -1900,6 +1919,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a connected application
       operationId: updateConnectedApplications
     delete:
       description: Deletes a single connected application
@@ -1929,6 +1949,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a connected application
       operationId: deleteConnectedApplications
   /connectedApplications/{clientId}/scopes:
     description: 'Routes for operationg upon context-aware scopes assigned directly
@@ -2031,6 +2052,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List connected app scopes
       operationId: listConnectedApplicationsScopes
     put:
       description: Replaces the entire list of context-aware scopes assigned to the
@@ -2063,6 +2085,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Replace connected app scopes
       operationId: updateConnectedApplicationsScopes
     patch:
       description: 'Assigns additional context-aware scopes to the connected application.
@@ -2100,6 +2123,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Add scopes to connected app
       operationId: updateConnectedApplicationScopes
     delete:
       description: 'Unassigns context-aware scopes from the connected application.
@@ -2135,6 +2159,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove scopes from connected app
       operationId: deleteConnectedApplicationsScopes
   /connectedApplications/{clientId}/revoke:
     delete:
@@ -2166,6 +2191,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Revoke connected app tokens
       operationId: deleteConnectedApplicationsRevoke
   /deletedResources:
     description: find deleted resources
@@ -2301,6 +2327,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List deleted organizations
       operationId: listDeletedResources
   /deletedResources/environments:
     get:
@@ -2423,6 +2450,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List deleted environments
       operationId: listDeletedResourcesEnvironments
   /environments:
     description: Environments resource
@@ -2497,6 +2525,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an environment
       operationId: getEnvironments
     put:
       description: Update an environment, implemented as a patch. Note that only the
@@ -2589,6 +2618,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an environment
       operationId: updateEnvironments
   /featureFlags/{featureFlagName}:
     parameters:
@@ -2637,6 +2667,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Check feature flag for organizations
       operationId: createFeatureFlagsCheck
   /featureFlags/{featureFlagName}/enabled:
     get:
@@ -2671,6 +2702,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List enabled feature flags
       operationId: listFeatureFlagsEnabled
   /invites:
     description: Invite people to join the organization
@@ -2809,6 +2841,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List invites
       operationId: listInvites
     post:
       description: Invite a person to join the organization
@@ -2845,6 +2878,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Invite a user to the organization
       operationId: createInvites
     delete:
       description: Invite a person to join your organization
@@ -2877,6 +2911,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete invites
       operationId: deleteInvites
   /invites/{inviteId}:
     description: Invite resource
@@ -2922,6 +2957,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an invite
       operationId: getInvites
   /invites/accept:
     get:
@@ -2948,6 +2984,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Redirect to accept invite
       operationId: listInvitesAccept
   /invites/resend:
     description: Resend invites
@@ -2987,6 +3024,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Resend invites
       operationId: createInvitesResend
   /login:
     description: login to the Anypoint Platform
@@ -3079,6 +3117,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Log in to Anypoint Platform
       operationId: createLogin
   /logout:
     description: logout of the Anypoint Platform
@@ -3111,6 +3150,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Log out of Anypoint Platform
       operationId: listLogout
   /me:
     description: all about the caller
@@ -4629,6 +4669,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get caller information
       operationId: listMe
   /notifications:
     description: Make Anypoint Platform activity known to subscribers; think webhooks.
@@ -4736,6 +4777,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a notification
       operationId: createNotifications
   /oauth2:
     description: oauth 2 routes
@@ -4802,6 +4844,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Start OAuth2 authorization
       operationId: listOauth2Authorize
   /oauth2/authorize/{domain}:
     description: OAuth2 authorization route for federated or non-federated users
@@ -4873,6 +4916,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Start OAuth2 authorization for domain
       operationId: listOauth2AuthorizeByDomain
   /oauth2/authorize/{domain}/providers:
     parameters:
@@ -4942,6 +4986,7 @@ paths:
           description: Bad request; an invalid redirect_uri, response_type or client_id
       security:
       - {}
+      summary: Authorize via identity provider
       operationId: getOauth2AuthorizeProviders
   /oauth2/decision: {}
   /oauth2/decision/{domain}:
@@ -4962,6 +5007,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Record OAuth2 consent decision
       operationId: createOauth2Decision
   /oauth2/introspect:
     description: Look up caller information from an access token
@@ -5049,6 +5095,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Introspect an OAuth2 token
       operationId: createOauth2Introspect
   /oauth2/token:
     description: OAuth2 token resource
@@ -5115,6 +5162,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create or retrieve OAuth2 token
       operationId: createOauth2Token
   /organizationname/{organizationName}:
     get:
@@ -5152,6 +5200,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Check organization name availability
       operationId: getOrganizationname
   /organizations:
     description: Organizations Resource
@@ -6517,6 +6566,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization
       operationId: getOrganizations
     put:
       description: Updates the referenced organization
@@ -8287,6 +8337,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an organization
       operationId: updateOrganizations
     delete:
       description: Deletes the referenced organization
@@ -8318,6 +8369,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an organization
       operationId: deleteOrganizations
   /organizations/{organizationId}/clientProviders:
     get:
@@ -8433,6 +8485,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List client management providers
       operationId: listClientProviders
     post:
       description: Adds a new client management provider for the organization. This
@@ -8473,6 +8526,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a client management provider
       operationId: createClientProviders
   /organizations/{organizationId}/clientProviders/{clientProviderId}:
     get:
@@ -8522,6 +8576,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a client management provider
       operationId: getClientProviders
     put:
       description: Replaces the associated client management provider config
@@ -8562,6 +8617,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Replace a client management provider
       operationId: updateClientProviders
     patch:
       description: Updates the associated client management provider config
@@ -8615,6 +8671,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Patch a client management provider
       operationId: updateOrganizationClientProvider
     delete:
       description: Deletes the associated client management provider
@@ -8651,6 +8708,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a client management provider
       operationId: deleteClientProviders
   /organizations/{organizationId}/clientProviders/{clientProviderId}/grantTypes:
     get:
@@ -8688,6 +8746,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List provider grant types
       operationId: listClientProvidersGrantTypes
   /organizations/{organizationId}/clientProviders/{clientProviderId}/clients:
     get:
@@ -8843,6 +8902,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List provider clients
       operationId: listClientProvidersClients
     post:
       description: Adds a new client using the Client Management Provider
@@ -8883,6 +8943,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a provider client
       operationId: createClientProvidersClients
   /organizations/{organizationId}/clientProviders/{clientProviderId}/clients/{clientId}:
     get:
@@ -8975,6 +9036,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a provider client
       operationId: getClientProvidersClients
     patch:
       description: Updates the associated client
@@ -9032,6 +9094,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a provider client
       operationId: updateClientProvidersClients
     delete:
       description: Deletes the associated client
@@ -9079,6 +9142,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a provider client
       operationId: deleteClientProvidersClients
   /organizations/{organizationId}/clients:
     description: Access to clients
@@ -9403,6 +9467,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization clients
       operationId: listOrganizationClients
     post:
       description: Create a new client
@@ -9489,6 +9554,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an organization client
       operationId: createOrganizationClient
   /organizations/{organizationId}/clients/{clientId}:
     description: Access to a client
@@ -9576,6 +9642,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization client
       operationId: getOrganizationClient
     patch:
       description: Patches a single client
@@ -9618,6 +9685,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an organization client
       operationId: updateOrganizationClient
     delete:
       description: Deletes a single client
@@ -9654,6 +9722,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an organization client
       operationId: deleteOrganizationClient
   /organizations/{organizationId}/clients/{clientId}/roles:
     description: Access to a client's roles
@@ -9690,6 +9759,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign roles to an org client
       operationId: createOrganizationClientRole
     delete:
       description: Unassign a list of roles from a client
@@ -9724,6 +9794,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign roles from an org client
       operationId: deleteOrganizationClientRoles
   /organizations/{organizationId}/clients/{clientId}/roles/{roleId}:
     post:
@@ -9765,6 +9836,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a role to an org client
       operationId: createOrganizationClientRoleById
     delete:
       description: 'Unassign a role from a client
@@ -9805,6 +9877,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign a role from an org client
       operationId: deleteOrganizationClientRole
   /organizations/{organizationId}/clients/search:
     post:
@@ -9941,6 +10014,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Search organization clients
       operationId: createOrganizationClientsSearch
   /organizations/{organizationId}/clients/validate:
     post:
@@ -10033,6 +10107,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Validate organization clients
       operationId: createClientsValidate
   /organizations/{organizationId}/connectedApplications:
     description: Access to connected applications
@@ -10250,6 +10325,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List org connected applications
       operationId: listOrganizationConnectedApplications
     post:
       description: Create a new connected application
@@ -10358,6 +10434,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an org connected application
       operationId: createOrganizationConnectedApplication
   /organizations/{organizationId}/connectedApplications/{clientId}:
     description: Access to individual connected application
@@ -10476,6 +10553,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an org connected application
       operationId: getOrganizationConnectedApplication
     patch:
       description: Patches a single connected application
@@ -10594,6 +10672,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an org connected application
       operationId: updateOrganizationConnectedApplication
     delete:
       description: Deletes a single connected application
@@ -10624,6 +10703,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an org connected application
       operationId: deleteOrganizationConnectedApplication
   /organizations/{organizationId}/connectedApplications/{clientId}/scopes:
     description: 'Routes for operationg upon context-aware scopes assigned directly
@@ -10727,7 +10807,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: listOrganizationConnectedApplicationScopes
+      summary: List org connected app scopes
+      operationId: listOrgConnectedAppScopes
     put:
       description: Replaces the entire list of context-aware scopes assigned to the
         connected application
@@ -10760,7 +10841,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: updateOrganizationConnectedApplicationScopes
+      summary: Replace org connected app scopes
+      operationId: replaceOrgConnectedAppScopes
     patch:
       description: 'Assigns additional context-aware scopes to the connected application.
 
@@ -10798,7 +10880,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: replaceOrganizationConnectedApplicationScopes
+      summary: Add scopes to org connected app
+      operationId: addOrgConnectedAppScopes
     delete:
       description: 'Unassigns context-aware scopes from the connected application.
 
@@ -10834,7 +10917,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: deleteOrganizationConnectedApplicationScopes
+      summary: Remove scopes from org connected app
+      operationId: removeOrgConnectedAppScopes
   /organizations/{organizationId}/connectedApplications/{clientId}/revoke:
     delete:
       description: Revoke all access tokens and refresh tokens issued to the connected
@@ -10866,6 +10950,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Revoke org connected app tokens
       operationId: revokeOrganizationConnectedApplication
   /organizations/{organizationId}/connectedApplications/authorizations:
     description: Permissions granted to connected applications by users within the
@@ -10951,6 +11036,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List connected app authorizations
       operationId: listConnectedApplicationsAuthorizations
     delete:
       description: Revoke all authorizations that grant rights to accessing resources
@@ -10990,7 +11076,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: deleteConnectedApplicationsAuthorizations
+      summary: Revoke all connected app authorizations
+      operationId: revokeOrgConnectedAppAuths
   /organizations/{organizationId}/connectedApplications/authorizations/{authorizationId}:
     get:
       description: Returns a single authorization
@@ -11031,6 +11118,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a connected app authorization
       operationId: getConnectedApplicationsAuthorizations
     delete:
       description: Revokes an authorization. Only available on the root organization.
@@ -11069,7 +11157,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: deleteOrganizationConnectedApplicationAuthorization
+      summary: Revoke a connected app authorization
+      operationId: revokeOrgConnectedAppAuth
   /organizations/{organizationId}/connectedApplications/settings:
     get:
       description: Returns the organization's Connected Application settings. For
@@ -11107,6 +11196,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get connected app settings
       operationId: listConnectedApplicationsSettings
     patch:
       description: Updates the organization's connected application settings
@@ -11153,6 +11243,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update connected app settings
       operationId: updateConnectedApplicationsSettings
   /organizations/{organizationId}/connectedApplications/allowlist:
     get:
@@ -11235,6 +11326,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List connected app allowlist
       operationId: listConnectedApplicationsAllowlist
     put:
       description: Replaces the organization's Connected Application allowlist with
@@ -11272,6 +11364,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Replace connected app allowlist
       operationId: updateConnectedApplicationsAllowlist
     patch:
       description: Inserts the entries into the organization's Connected Application
@@ -11309,7 +11402,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: updateOrganizationConnectedApplicationsAllowlist
+      summary: Add entries to connected app allowlist
+      operationId: addOrgConnectedAppAllowlist
     delete:
       description: Deletes the entries from the organization's Connected Application
         allowlist
@@ -11346,6 +11440,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove entries from allowlist
       operationId: deleteConnectedApplicationsAllowlist
   /organizations/{organizationId}/connectedApplications/whitelist:
     get:
@@ -11428,6 +11523,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List connected app whitelist
       operationId: listConnectedApplicationsWhitelist
     put:
       description: Replaces the organization's Connected Application allowlist with
@@ -11465,6 +11561,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Replace connected app whitelist
       operationId: updateConnectedApplicationsWhitelist
     patch:
       description: Inserts the entries into the organization's Connected Application
@@ -11502,7 +11599,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: updateOrganizationConnectedApplicationsWhitelist
+      summary: Add entries to connected app whitelist
+      operationId: addOrgConnectedAppWhitelist
     delete:
       description: Deletes the entries from the organization's Connected Application
         allowlist
@@ -11539,6 +11637,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove entries from whitelist
       operationId: deleteConnectedApplicationsWhitelist
   /organizations/{organizationId}/entitlements:
     description: Entitlements for a given organization
@@ -11570,6 +11669,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization entitlements
       operationId: listEntitlements
   /organizations/{organizationId}/entitlements/{entitlementName}:
     description: Entitlement by name
@@ -11609,6 +11709,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an entitlement
       operationId: getEntitlements
     put:
       description: 'Update an entitlement.
@@ -11674,6 +11775,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an entitlement
       operationId: updateEntitlements
   /organizations/{organizationId}/environments:
     description: Environments from an organization
@@ -11808,6 +11910,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List environments
       operationId: listEnvironments
     post:
       description: Creates an environment
@@ -11908,6 +12011,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an environment
       operationId: createEnvironments
   /organizations/{organizationId}/environments/{environmentId}:
     description: Environment by id
@@ -11981,6 +12085,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization environment
       operationId: getOrganizationEnvironment
     put:
       description: Update an environment, implemented as a patch. Note that only the
@@ -12069,6 +12174,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an organization environment
       operationId: updateOrganizationEnvironment
     delete:
       description: Delete an environment
@@ -12101,6 +12207,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an environment
       operationId: deleteEnvironments
   /organizations/{organizationId}/environments/{environmentId}/clientManagementProviders:
     get:
@@ -12152,7 +12259,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: listEnvironmentsClientManagementProviders
+      summary: List env client management providers
+      operationId: listEnvClientProviders
     put:
       description: Upsert client providers for the environment
       parameters:
@@ -12209,7 +12317,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: updateEnvironmentsClientManagementProviders
+      summary: Upsert env client management providers
+      operationId: upsertEnvClientProviders
   /organizations/{organizationId}/featureFlags:
     get:
       description: get all feature flags of an given organization
@@ -12258,6 +12367,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization feature flags
       operationId: listFeatureFlags
   /organizations/{organizationId}/featureFlags/{featureFlagName}:
     get:
@@ -12292,6 +12402,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization feature flag
       operationId: getFeatureFlags
     post:
       description: API to upsert a feature flag.
@@ -12336,6 +12447,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Upsert an organization feature flag
       operationId: createFeatureFlags
   /organizations/{organizationId}/hierarchy:
     description: get related organizations in hierarchical structure
@@ -12807,6 +12919,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get organization business group hierarchy
       operationId: listHierarchy
   /organizations/{organizationId}/identityProviders:
     get:
@@ -12936,6 +13049,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List identity providers
       operationId: listIdentityProviders
     post:
       description: Add a new identity management provider to the root organization.
@@ -12981,6 +13095,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an identity provider
       operationId: createIdentityProviders
   /organizations/{organizationId}/identityProviders/saml-sp-metadata:
     get:
@@ -13086,6 +13201,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Download SAML SP metadata
       operationId: listIdentityProvidersSamlSpMetadata
   /organizations/{organizationId}/identityProviders/ldap-test:
     post:
@@ -13134,6 +13250,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Test LDAP identity provider config
       operationId: createIdentityProvidersLdapTest
   /organizations/{organizationId}/identityProviders/{identityProviderId}:
     get:
@@ -13179,6 +13296,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an identity provider
       operationId: getIdentityProviders
     patch:
       description: Updates the associated identity management provider config
@@ -13220,6 +13338,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an identity provider
       operationId: updateIdentityProviders
     delete:
       description: Deletes the associated identity management provider
@@ -13252,6 +13371,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an identity provider
       operationId: deleteIdentityProviders
   /organizations/{organizationId}/identityProviders/{identityProviderId}/saml-sp-keys:
     get:
@@ -13299,6 +13419,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List SAML SP keys
       operationId: listIdentityProvidersSamlSpKeys
     post:
       description: Add or generate a new SAML SP key pair
@@ -13360,6 +13481,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Add or generate a SAML SP key
       operationId: createIdentityProvidersSamlSpKeys
   /organizations/{organizationId}/identityProviders/{identityProviderId}/saml-sp-keys/{samlSpKeyId}:
     get:
@@ -13455,6 +13577,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a SAML SP key
       operationId: getIdentityProvidersSamlSpKeys
     delete:
       description: Delete the SAML SP key
@@ -13496,6 +13619,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a SAML SP key
       operationId: deleteIdentityProvidersSamlSpKeys
   /organizations/{organizationId}/identityProviders/{identityProviderId}/saml-sp-keys/{samlSpKeyId}/setPrimary:
     post:
@@ -13544,7 +13668,8 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
-      operationId: createIdentityProvidersSamlSpKeysSetPrimary
+      summary: Set primary SAML SP key
+      operationId: setPrimarySamlSpKey
   /organizations/{organizationId}/identityProviderSettings:
     get:
       description: Get the identity provider settings for the org
@@ -13563,6 +13688,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get identity provider settings
       operationId: listIdentityProviderSettings
     patch:
       description: Update the identity provider settings for the org
@@ -13585,6 +13711,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update identity provider settings
       operationId: updateIdentityProviderSettings
   /organizations/{organizationId}/invites:
     description: Invite people to join the organization
@@ -13679,6 +13806,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization invites
       operationId: listOrganizationInvites
     post:
       description: Invite a person to join the organization
@@ -13717,6 +13845,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Invite a user to the organization
       operationId: createOrganizationInvite
     delete:
       description: Invite a person to join your organization
@@ -13751,6 +13880,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete organization invites
       operationId: deleteOrganizationInvites
   /organizations/{organizationId}/invites/{inviteId}:
     description: Invite resource
@@ -13797,6 +13927,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization invite
       operationId: getOrganizationInvite
   /organizations/{organizationId}/invites/resend:
     description: Resend invites
@@ -13838,6 +13969,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Resend organization invites
       operationId: resendOrganizationInvite
   /organizations/{organizationId}/members:
     description: Organization membership
@@ -14010,6 +14142,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization members
       operationId: listMembers
     put:
       description: Add a group of users to the organization by their IDs
@@ -14045,6 +14178,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Add users to organization
       operationId: updateMembers
     delete:
       description: Remove a group of users from the organization by their IDs
@@ -14080,6 +14214,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove users from organization
       operationId: deleteMembers
   /organizations/{organizationId}/members/{userId}:
     put:
@@ -14117,6 +14252,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Add a user to organization
       operationId: updateOrganizationMember
     delete:
       description: Remove the user from the organization
@@ -14153,6 +14289,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove a user from organization
       operationId: deleteOrganizationMember
   /organizations/{organizationId}/owner:
     description: Resource for owner of an organization
@@ -14269,6 +14406,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get organization owner
       operationId: listOwner
   /organizations/{organizationId}/owner/{userId}:
     description: Endpoint to switch organization owner to the one specified by userId
@@ -14398,6 +14536,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Change organization owner
       operationId: updateOwner
   /organizations/{organizationId}/provider:
     parameters:
@@ -14539,6 +14678,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get organization identity provider
       operationId: listProviderUsers
     put:
       description: Updates the identity provider for the organization
@@ -14575,6 +14715,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update organization identity provider
       operationId: updateProviderUsers
     delete:
       description: Revert to using the default identity provider
@@ -14604,6 +14745,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Reset organization identity provider
       operationId: deleteProviderUsers
   /organizations/{organizationId}/provider/users/ldap/test:
     post:
@@ -14641,6 +14783,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Test LDAP provider configuration
       operationId: createLdapTest
   /organizations/{organizationId}/provider/users/saml-sp-metadata:
     get:
@@ -14737,6 +14880,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Download organization SAML SP metadata
       operationId: listProviderUsersSamlSpMetadata
   /organizations/{organizationId}/proxyusers/{userId}:
     description: Creates a proxy user in an organization
@@ -14843,6 +14987,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an organization proxy user
       operationId: createProxyusers
   /organizations/{organizationId}/rolegroups:
     description: Role groups that belong to this organization
@@ -14933,6 +15078,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List role groups
       operationId: listRolegroups
     post:
       description: Creates a role group for this org
@@ -15056,6 +15202,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a role group
       operationId: createRolegroups
     delete:
       description: Deletes role groups that belong to this organization
@@ -15087,6 +15234,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete role groups
       operationId: deleteRolegroups
   /organizations/{organizationId}/rolegroups/{roleGroupId}:
     get:
@@ -15178,6 +15326,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a role group
       operationId: getRolegroups
     put:
       description: Updates a role group
@@ -15268,6 +15417,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a role group
       operationId: updateRolegroups
     delete:
       description: Deletes a role group
@@ -15298,6 +15448,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a role group
       operationId: deleteOrganizationRolegroup
   /organizations/{organizationId}/rolegroups/{roleGroupId}/roles:
     description: Roles assigned to this role group
@@ -15431,6 +15582,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List roles in a role group
       operationId: listRolegroupsRoles
     post:
       description: Assigns roles to this role group
@@ -15463,6 +15615,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign roles to a role group
       operationId: createRolegroupsRoles
     delete:
       description: Removes roles from this role group
@@ -15495,6 +15648,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign roles from a role group
       operationId: deleteRolegroupsRoles
   /organizations/{organizationId}/rolegroups/{roleGroupId}/users:
     description: Users assigned to this role group
@@ -15598,6 +15752,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List users in a role group
       operationId: listRolegroupsUsers
     post:
       description: Assigns a group of users to this role group
@@ -15630,6 +15785,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign users to a role group
       operationId: createRolegroupsUsers
     delete:
       description: Unassigns a group of users from this role group
@@ -15664,6 +15820,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign users from a role group
       operationId: deleteRolegroupsUsers
   /organizations/{organizationId}/rolegroups/{roleGroupId}/users/{userId}:
     post:
@@ -15696,6 +15853,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a user to a role group
       operationId: addUserToOrganizationRolegroup
     delete:
       description: Removes this user from the role group
@@ -15727,6 +15885,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove a user from a role group
       operationId: removeUserFromOrganizationRolegroup
   /organizations/{organizationId}/roles:
     description: Roles by organization
@@ -15778,6 +15937,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete role assignments
       operationId: deleteRoles
   /organizations/{organizationId}/smtp:
     description: SMTP information for the organization
@@ -15859,6 +16019,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get organization SMTP settings
       operationId: listSmtp
     put:
       description: Updates the SMTP details
@@ -15940,6 +16101,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update organization SMTP settings
       operationId: updateSmtp
   /organizations/{organizationId}/teams:
     description: Teams are groups of users and/or other teams
@@ -16087,6 +16249,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List teams
       operationId: listTeams
     post:
       description: Creates a new team.
@@ -16131,6 +16294,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a team
       operationId: createTeams
   /organizations/{organizationId}/teams/{teamId}:
     get:
@@ -16167,6 +16331,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a team
       operationId: getTeams
     patch:
       description: Update or move the team
@@ -16219,6 +16384,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a team
       operationId: updateTeams
     delete:
       description: Delete the team, including all child teams.
@@ -16249,6 +16415,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a team
       operationId: deleteTeams
   /organizations/{organizationId}/teams/{teamId}/parent:
     put:
@@ -16298,6 +16465,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Move a team under a new parent
       operationId: updateTeamsParent
   /organizations/{organizationId}/teams/{teamId}/groupmappings:
     description: 'group access mappings configure how memberships in external groups
@@ -16410,6 +16578,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List team group mappings
       operationId: listTeamsGroupmappings
     put:
       description: |
@@ -16445,6 +16614,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Replace team group mappings
       operationId: updateTeamsGroupmappings
     patch:
       description: |
@@ -16480,6 +16650,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk add team group mappings
       operationId: updateOrganizationTeamGroupmappings
     delete:
       description: |
@@ -16515,6 +16686,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk remove team group mappings
       operationId: deleteTeamsGroupmappings
   /organizations/{organizationId}/teams/{teamId}/roles:
     description: roles assigned to the team. All members of the team receive these
@@ -16610,6 +16782,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List team role assignments
       operationId: listTeamsRoles
     post:
       description: bulk assign roles to the team
@@ -16644,6 +16817,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk assign roles to a team
       operationId: createTeamsRoles
     delete:
       description: bulk unassign roles from the team
@@ -16678,6 +16852,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk unassign roles from a team
       operationId: deleteTeamsRoles
   /organizations/{organizationId}/teams/{teamId}/members:
     description: members of teams can be users or other teams
@@ -16823,6 +16998,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List team members
       operationId: listTeamsMembers
     patch:
       description: bulk add users and/or modify users' membership_type to the team.
@@ -16864,6 +17040,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk add team members
       operationId: updateTeamsMembers
     delete:
       description: bulk remove user members from the team
@@ -16904,6 +17081,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk remove team members
       operationId: deleteTeamsMembers
   /organizations/{organizationId}/teams/{teamId}/members/{userId}:
     put:
@@ -16946,6 +17124,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Add a user to a team
       operationId: updateOrganizationTeamMember
     delete:
       description: remove the user from the team.
@@ -16980,6 +17159,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove a user from a team
       operationId: removeOrganizationTeamMember
   /organizations/{organizationId}/tenantRelationships:
     get:
@@ -17113,6 +17293,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List tenant relationships
       operationId: listTenantRelationships
     post:
       description: Establish manual tenant relationships
@@ -17154,6 +17335,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a tenant relationship
       operationId: createTenantRelationships
   /organizations/{organizationId}/tenantRelationships/{relationshipId}:
     get:
@@ -17185,6 +17367,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a tenant relationship
       operationId: getTenantRelationships
     patch:
       description: Patch update a particular Tenant Relationship by ID
@@ -17222,6 +17405,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a tenant relationship
       operationId: updateTenantRelationships
     delete:
       description: Delete a particular Tenant Relationship by ID
@@ -17247,6 +17431,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a tenant relationship
       operationId: deleteTenantRelationships
   /organizations/{organizationId}/tenantRelationships/{relationshipId}/repair:
     patch:
@@ -17294,6 +17479,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Repair a tenant relationship
       operationId: updateTenantRelationshipsRepair
   /organizations/{organizationId}/myTenantRelationship:
     parameters:
@@ -17365,6 +17551,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update tenant relationship status
       operationId: updateMyTenantRelationshipStatus
   /organizations/{organizationId}/myTenantRelationship/assignments:
     get:
@@ -17449,6 +17636,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List tenant relationship assignments
       operationId: listMyTenantRelationshipAssignments
   /organizations/{organizationId}/users:
     description: Users that belong to the organization
@@ -18693,6 +18881,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List organization users
       operationId: listUsers
     post:
       description: Create a single user under the organization
@@ -18768,6 +18957,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create an organization user
       operationId: createUsers
     put:
       description: Update a group of users
@@ -18804,6 +18994,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update organization users
       operationId: updateUsers
     delete:
       description: Deletes a group of users
@@ -18837,6 +19028,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete organization users
       operationId: deleteUsers
   /organizations/{organizationId}/users/{userId}:
     description: A single user that belongs to the organization
@@ -20046,6 +20238,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get an organization user
       operationId: getUsers
     put:
       description: Updates a single user. Modifying email may require reauthentication.
@@ -21280,6 +21473,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update an organization user
       operationId: updateOrganizationUser
     delete:
       description: Deletes a user
@@ -21312,6 +21506,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete an organization user
       operationId: deleteOrganizationUser
   /organizations/{organizationId}/users/{userId}/manage_verifiers:
     get:
@@ -21331,6 +21526,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get user verifier management redirect
       operationId: listUsersManageVerifiers
   /organizations/{organizationId}/users/{userId}/properties:
     description: A user's properties.
@@ -21385,6 +21581,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update user directory properties
       operationId: updateUsersProperties
       description: Updates an existing users properties in the platform user directory.
   /organizations/{organizationId}/users/{userId}/rolegroups:
@@ -21468,6 +21665,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List user role groups
       operationId: listUsersRolegroups
   /organizations/{organizationId}/users/{userId}/rolegroups/{roleGroupId}:
     description: A single role group assigned to the user
@@ -21501,6 +21699,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a role group to a user
       operationId: createUsersRolegroups
     delete:
       description: Unassigns the role group from the user
@@ -21532,6 +21731,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign a role group from a user
       operationId: deleteUsersRolegroups
   /organizations/{organizationId}/users/{userId}/roles:
     description: Roles/permissions assigned to the user
@@ -21665,6 +21865,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List user roles
       operationId: listUsersRoles
     post:
       description: Bulk assign roles to the user
@@ -21718,6 +21919,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Bulk assign roles to a user
       operationId: createUsersRoles
   /organizations/{organizationId}/users/{userId}/roles/{roleId}:
     post:
@@ -21752,6 +21954,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a role to a user
       operationId: addRoleToOrganizationUser
     delete:
       description: Unassign a role from the user
@@ -21785,6 +21988,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign a role from a user
       operationId: deleteUsersRoles
   /organizations/{organizationId}/users/{userId}/teams:
     get:
@@ -21925,6 +22129,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List user teams
       operationId: listUsersTeams
   /organizations/{organizationId}/users/{userId}/verifiers:
     delete:
@@ -21940,6 +22145,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Revoke user MFA verifiers
       operationId: deleteUsersVerifiers
   /organizations/{organizationId}/users/{userId}/identityProviderProfiles:
     get:
@@ -22030,6 +22236,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List user identity provider profiles
       operationId: listUsersIdentityProviderProfiles
     delete:
       description: Removes an identity provider profile from a user
@@ -22082,6 +22289,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Remove a user identity provider profile
       operationId: deleteUsersIdentityProviderProfiles
   /profile:
     get:
@@ -23721,6 +23929,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get user profile for access token
       operationId: listProfile
   /recover:
     description: recover user's account
@@ -23775,6 +23984,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Send password reset email
       operationId: createRecoverPassword
   /recover/password/{recoverCode}:
     description: reset password
@@ -23821,6 +24031,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Check password reset code
       operationId: listRecoverPassword
     post:
       description: Sets a new password for the user associated with the password reset
@@ -23889,6 +24100,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Reset password with reset code
       operationId: createRecoverPasswordByCode
   /recover/username:
     post:
@@ -23933,6 +24145,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Send username recovery email
       operationId: createRecoverUsername
   /roles:
     description: Roles resource
@@ -24101,6 +24314,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List roles
       operationId: listRoles
   /roles/{roleId}:
     description: A single role
@@ -24132,6 +24346,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a role
       operationId: getRoles
   /roles/{roleId}/users:
     description: Users by role
@@ -24179,6 +24394,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List users assigned to a role
       operationId: listRolesUsers
   /roles/{roleId}/permissions:
     description: Permissions by a single role
@@ -24224,6 +24440,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List permissions assigned to a role
       operationId: listRolesPermissions
   /roles/rolegroups: {}
   /roles/rolegroups/search:
@@ -24365,6 +24582,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Search role groups by role
       operationId: createRolesRolegroupsSearch
   /roles/teams:
     description: Teams by role
@@ -24562,6 +24780,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Search teams by role assignments
       operationId: createRolesTeamsSearch
   /roles/users:
     description: Users by role
@@ -24735,6 +24954,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List users across role assignments
       operationId: listAllRolesUsers
   /roles/users/search:
     description: Search users by role assignments
@@ -25015,6 +25235,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Search users by role assignments
       operationId: createRolesUsersSearch
   /session:
     description: The session associated with the caller
@@ -25085,6 +25306,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get session timeout metadata
       operationId: listSession
     post:
       description: Extend the session timeout time
@@ -25112,6 +25334,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Extend the session timeout
       operationId: createSession
   /signup:
     description: Signup for the Anypoint Platform
@@ -25202,6 +25425,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Get invite signup metadata
       operationId: listSignup
     post:
       description: "Creates a new user and organization, or accepts an invite to join\
@@ -26449,6 +26673,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Create user via signup or invite
       operationId: createSignup
   /signup/existingUser:
     description: Information about signing up (accepting an invite) with an existing
@@ -27511,6 +27736,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Accept invite as existing user
       operationId: createSignupExistingUser
   /status:
     description: Application healthcheck, used by the load balancer to detect the
@@ -27620,6 +27846,7 @@ paths:
                 - status
       security:
       - {}
+      summary: Get application health status
       operationId: listStatus
   /subscriptions:
     description: Subscriptions
@@ -27684,6 +27911,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List supported subscriptions
       operationId: listSubscriptions
   /support:
     description: Support portal
@@ -27717,6 +27945,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Redirect to support portal
       operationId: listSupport
   /username/{username}:
     get:
@@ -27754,6 +27983,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Check username availability
       operationId: getUsername
   /users:
     description: Users Resource
@@ -28988,6 +29218,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List all users
       operationId: listAllUsers
     post:
       description: Creates new users
@@ -29015,6 +29246,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create a user
       operationId: createUser
     put:
       description: Update a group of users
@@ -29046,6 +29278,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update multiple users
       operationId: updateAllUsers
     delete:
       description: Delete a group of users
@@ -29075,6 +29308,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete multiple users
       operationId: deleteAllUsers
   /users/{userId}:
     description: A single user
@@ -30283,6 +30517,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a user by ID
       operationId: getUserById
     put:
       description: Updates a single user. Modifying email may require reauthentication.
@@ -30341,6 +30576,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update a user by ID
       operationId: updateUserById
     delete:
       description: Deletes a user
@@ -30370,6 +30606,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a user by ID
       operationId: deleteUserById
   /users/{userId}/banpassword:
     description: Ban a user's current password
@@ -30403,6 +30640,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Ban a user password
       operationId: createUsersBanpassword
   /users/{userId}/properties:
     description: Properties of a user
@@ -30457,6 +30695,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update user properties
       operationId: updateUserProperties
   /users/{userId}/roles:
     description: Roles assigned to the user
@@ -30582,6 +30821,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List roles assigned to a user
       operationId: listAllUserRoles
   /users/{userId}/roles/{roleId}:
     description: A role assigned to the user
@@ -30614,6 +30854,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Assign a role to a user
       operationId: addRoleToUser
     delete:
       description: Unassign a role from the user
@@ -30644,6 +30885,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Unassign a role from a user
       operationId: removeRoleFromUser
   /users/me:
     get:
@@ -31849,6 +32091,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get user for access token
       operationId: listUsersMe
   /version:
     description: Application version
@@ -31915,6 +32158,7 @@ paths:
                 type: number
       security:
       - {}
+      summary: Get application version info
       operationId: listVersion
   /v2: {}
   /v2/oauth2: {}
@@ -31992,6 +32236,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Start v2 OAuth2 authorization
       operationId: listV2Oauth2Authorize
     post:
       description: Starts an OAuth2 authorization flow; allows the logged-in user
@@ -32029,6 +32274,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Post v2 OAuth2 authorization
       operationId: createV2Oauth2Authorize
   /v2/oauth2/authorize/{domain}:
     description: OAuth2 authorization route for federated or non-federated users
@@ -32112,6 +32358,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Start v2 OAuth2 flow by domain
       operationId: listV2Oauth2AuthorizeByDomain
     post:
       description: Starts an OAuth2 authorization flow; allows the logged-in user
@@ -32157,6 +32404,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Post v2 OAuth2 flow by domain
       operationId: createV2Oauth2AuthorizeByDomain
   /v2/oauth2/decision:
     post:
@@ -32167,6 +32415,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Record v2 OAuth2 consent decision
       operationId: createV2Oauth2Decision
   /v2/oauth2/token:
     post:
@@ -32178,6 +32427,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Create v2 OAuth2 token
       operationId: createV2Oauth2Token
   /v2/oauth2/keys:
     get:
@@ -32213,6 +32463,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get v2 OAuth2 public JWK set
       operationId: listV2Oauth2Keys
   /v2/oauth2/.well-known/openid-configuration:
     get:
@@ -32247,6 +32498,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get OpenID Connect configuration
       operationId: getOpenidConfiguration
   /v2/oauth2/userinfo:
     get:
@@ -32280,6 +32532,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get v2 OpenID Connect userinfo
       operationId: listV2Oauth2Userinfo
     post:
       description: OpenID Connect Userinfo endpoint.
@@ -32312,6 +32565,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Post v2 OpenID Connect userinfo
       operationId: createV2Oauth2Userinfo
   /v2/oauth2/introspect:
     post:
@@ -32341,6 +32595,7 @@ paths:
           description: ''
       security:
       - basic: []
+      summary: Introspect v2 OAuth2 token
       operationId: createV2Oauth2Introspect
   /v2/oauth2/revoke:
     post:
@@ -32389,6 +32644,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Revoke v2 OAuth2 token
       operationId: createV2Oauth2Revoke
   /v2/organizations:
     description: Organizations
@@ -32433,6 +32689,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get v2 organization
       operationId: getV2Organization
       description: Retrieves details of v2.
     delete:
@@ -32468,6 +32725,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete v2 organization
       operationId: deleteV2Organization
       description: Deletes an existing v2.
   /v2/organizations/{organizationId}/einstein:
@@ -32516,6 +32774,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get org Einstein status
       operationId: listV2EinsteinStatus
     put:
       description: Set the org-wide Einstein status
@@ -32552,6 +32811,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Set org Einstein status
       operationId: updateV2EinsteinStatus
   /v2/organizations/{organizationId}/einstein/termsAndConditions:
     get:
@@ -32596,6 +32856,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get Einstein terms and conditions status
       operationId: listV2EinsteinTermsAndConditions
     put:
       description: Toggle the agreement status for einstein terms and conditions
@@ -32632,6 +32893,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Set Einstein terms and conditions status
       operationId: updateV2EinsteinTermsAndConditions
   /v2/organizations/{organizationId}/entitlements:
     get:
@@ -32817,6 +33079,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List v2 entitlements
       operationId: listV2Entitlements
       description: Retrieves a list of v2 entitlements.
     put:
@@ -33030,6 +33293,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Update v2 entitlements
       operationId: updateV2Entitlements
   /v2/organizations/{organizationId}/entitlements/{entitlementName}:
     get:
@@ -33075,6 +33339,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Get a v2 entitlement
       operationId: getV2Entitlements
   /v2/organizations/{organizationId}/environments:
     parameters:
@@ -33121,6 +33386,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: Delete a v2 environment
       operationId: deleteV2Environments
   /v2/roles: {}
   /v2/roles/users:
@@ -33295,6 +33561,7 @@ paths:
       security:
       - bearerAuth: []
       - clientAuth: []
+      summary: List v2 users by role
       operationId: listV2RolesUsers
 components:
   requestBodies:

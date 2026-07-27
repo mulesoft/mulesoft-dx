@@ -31,7 +31,6 @@ paths:
     get:
       description: List the downstream APIs the xAPI depends on, including whether each is mocked.
       operationId: getStatusApis
-      security: []
       responses:
         '200':
           description: Successful operation.
@@ -291,14 +290,8 @@ paths:
                 classifier: raml
                 type: rest-api
       responses:
-        '200':
-          description: Event accepted.
-          content:
-            application/json:
-              schema:
-                type: object
-              example:
-                status: accepted
+        '204':
+          description: Event accepted. No content is returned.
 components:
   schemas: {}
   responses: {}

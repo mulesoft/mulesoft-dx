@@ -161,12 +161,12 @@ paths:
         '401':
           description: Authorization failed
       operationId: getOrganizations
-  /organizations/{orgId}/settings:
+  /organizations/{organizationId}/settings:
     get:
       description: Retrieves settings for organization
       parameters:
-      - name: orgId
-        description: The orgId to identify the target resource.
+      - name: organizationId
+        description: The organizationId to identify the target resource.
         required: true
         in: path
         schema:
@@ -193,12 +193,12 @@ paths:
                 $ref: '#/components/schemas/OrgSettings'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrgidSettings
+      operationId: getOrganizationsByOrganizationidSettings
     post:
       description: Changes settings for organization
       parameters:
-      - name: orgId
-        description: The orgId to identify the target resource.
+      - name: organizationId
+        description: The organizationId to identify the target resource.
         required: true
         in: path
         schema:
@@ -232,13 +232,13 @@ paths:
                 $ref: '#/components/schemas/OrgSettings'
         '401':
           description: Authorization failed
-      operationId: createOrganizationsByOrgidSettings
-  /organizations/{orgId}/access/permissions:
+      operationId: createOrganizationsByOrganizationidSettings
+  /organizations/{organizationId}/access/permissions:
     get:
       description: Retrieves admin permissions
       parameters:
-      - name: orgId
-        description: The orgId to identify the target resource.
+      - name: organizationId
+        description: The organizationId to identify the target resource.
         required: true
         in: path
         schema:
@@ -259,13 +259,13 @@ paths:
                 $ref: '#/components/schemas/AdminPermissions'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrgidAccessPermissions
-  /organizations/{orgId}/exchange/facets:
+      operationId: getOrganizationsByOrganizationidAccessPermissions
+  /organizations/{organizationId}/exchange/facets:
     get:
       description: Retrieves Exchange facets for the given organization
       parameters:
-      - name: orgId
-        description: The orgId to identify the target resource.
+      - name: organizationId
+        description: The organizationId to identify the target resource.
         required: true
         in: path
         schema:
@@ -286,13 +286,13 @@ paths:
                 $ref: '#/components/schemas/ExchangeFacets'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrgidExchangeFacets
-  /organizations/{orgId}/identities:
+      operationId: getOrganizationsByOrganizationidExchangeFacets
+  /organizations/{organizationId}/identities:
     get:
       description: Retrieves identities (users/teams) belonging to the given organization, optionally filtered by search term
       parameters:
-      - name: orgId
-        description: The orgId to identify the target resource.
+      - name: organizationId
+        description: The organizationId to identify the target resource.
         required: true
         in: path
         schema:
@@ -313,7 +313,7 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrgidIdentities
+      operationId: getOrganizationsByOrganizationidIdentities
   /documentation:
     get:
       description: Retrieves documentation content for the given language
@@ -401,7 +401,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
@@ -552,7 +551,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '400':
@@ -636,7 +634,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
@@ -691,7 +688,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
@@ -814,7 +810,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
@@ -873,7 +868,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
@@ -1563,7 +1557,7 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchStatus
+      operationId: createProjectsByProjectidBranchesByBranchStatus
   /projects/{projectId}/branches/{branch}/save:
     post:
       description: save listed files (save and save All)
@@ -1657,6 +1651,7 @@ paths:
         schema:
           type: string
       - name: metadata
+        description: When true, it retrieves extra file metadata such as lastPublishedVersion
         in: query
         schema:
           type: boolean
@@ -2274,7 +2269,10 @@ paths:
           x-amf-mediaType: application/zip
           content:
             application/zip:
-              schema: {}
+              schema:
+                type: string
+                format: binary
+              example: PK\x03\x04...(zip archive binary contents)
       operationId: getProjectsByProjectidBranchesByBranchArchive
   /projects/{projectId}/branches/{branch}/exchange/dependencies:
     put:
@@ -2810,6 +2808,7 @@ paths:
           description: Redirection response
           headers:
             Location:
+              description: URL to redirect the client to in order to complete the Github authorization workflow.
               schema:
                 type: string
         '401':
@@ -2869,10 +2868,12 @@ paths:
       description: Redirects the response received from Github (code and state query params) back to the Design Center UI
       parameters:
       - name: code
+        description: Github OAuth authorization code returned by Github after the user grants access.
         in: query
         schema:
           type: string
       - name: state
+        description: Opaque value echoed back by Github, used to correlate this callback with the originating request.
         in: query
         schema:
           type: string
@@ -2881,6 +2882,7 @@ paths:
           description: Redirection response
           headers:
             Location:
+              description: URL of the Design Center UI to redirect the client to after completing the Github OAuth workflow.
               schema:
                 type: string
       operationId: getGithubOauthCallback
@@ -2914,18 +2916,22 @@ paths:
         schema:
           type: boolean
       - name: searchTerm
+        description: Free-text term to filter Exchange assets by name or description.
         in: query
         schema:
           type: string
       - name: businessId
+        description: Restricts the search to assets belonging to the given business group.
         in: query
         schema:
           type: string
       - name: pageOffset
+        description: Number of assets to skip, used for pagination.
         in: query
         schema:
           type: number
       - name: status
+        description: Restricts the search to assets in the given publish status.
         in: query
         schema:
           type: string
@@ -2935,6 +2941,40 @@ paths:
         '401':
           description: Authorization failed
       operationId: getExchangeAssets
+  /exchange/assets/{groupId}/{assetId}/{version}:
+    get:
+      description: Returns Exchange asset metadata
+      parameters:
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: groupId
+        description: Exchange group identifier that owns the asset, typically the organization id.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: assetId
+        description: Exchange asset identifier of the asset to retrieve metadata for.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: version
+        description: Version of the Exchange asset to retrieve metadata for.
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      operationId: getExchangeAssetsByGroupidByAssetidByVersion
   /exchange/graphql:
     post:
       description: Executes GQL queries against exchange GraphQL service
@@ -2986,6 +3026,7 @@ paths:
         schema:
           type: string
       - name: vcsStorageType
+        description: Type of external git repository storage to check access against.
         in: query
         schema:
           enum:
@@ -3032,6 +3073,7 @@ paths:
         schema:
           type: string
       - name: vcsStorageType
+        description: Type of external git repository storage to list repositories from.
         in: query
         schema:
           enum:
@@ -3040,18 +3082,22 @@ paths:
           type: string
           default: GIT_EXTERNAL
       - name: page
+        description: Page number to retrieve, used for pagination.
         in: query
         schema:
           type: number
       - name: externalOrg
+        description: Name of the external git organization to list repositories from.
         in: query
         schema:
           type: string
       - name: externalOrgType
+        description: Type of the external git organization (e.g. user or organization account).
         in: query
         schema:
           type: string
       - name: name
+        description: Search term to filter repositories by name.
         in: query
         schema:
           type: string
@@ -3106,6 +3152,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExternalRepository'
+              example:
+                name: my-repo
+                owner:
+                  name: my-org
+                  type: Organization
+                private: false
+                imported: false
+                description: An example external repository.
         '401':
           description: Authorization failed
       operationId: getExternalRepositoriesByRepositoryid
@@ -3177,6 +3231,7 @@ components:
         name:
           description: Project name. Required, max 100 characters
           type: string
+          maxLength: 100
         description:
           type: string
         classifier:

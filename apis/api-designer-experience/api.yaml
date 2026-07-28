@@ -1956,8 +1956,11 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The acquireLock data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
@@ -2004,8 +2007,11 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The releaseLock data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
@@ -2044,8 +2050,11 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The keepAlive data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
@@ -2084,8 +2093,11 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The exchange data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
@@ -3206,13 +3218,6 @@ components:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
-  requestBodies:
-    Generated:
-      content:
-        application/json:
-          schema: {}
-      x-amf-mediaType: application/json
-      description: Request payload for Generated operations.
   schemas:
     ProjectCreate:
       example:
@@ -3528,13 +3533,12 @@ components:
         fileExample.txt: Content of fileExample file in text/plain
         file.json: "{\n    \"type\": \"FOLDER\",\n    \"path\": \"/folder\"\n}\n"
       type: object
-      patternProperties:
-        ^.+$:
-          description: File to save, where the property name is the file path
-          type: string
-          x-amf-fileTypes:
-          - '*/*'
-          format: binary
+      additionalProperties:
+        description: File to save, where the property name is the file path
+        type: string
+        x-amf-fileTypes:
+        - '*/*'
+        format: binary
     FilePath:
       example:
         type: FOLDER

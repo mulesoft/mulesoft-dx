@@ -13,7 +13,7 @@
     {# Title First #}
     <div class="operation-title-header">
         <h3 class="operation-title">
-            {{ operation.operationId|titleize_operation }}
+            {{ operation.summary if operation.summary else (operation.operationId|titleize_operation) }}
             <span class="operation-id-inline">{{ operation.operationId }}</span>
         </h3>
     </div>

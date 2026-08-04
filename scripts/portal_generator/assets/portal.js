@@ -1656,12 +1656,22 @@ function navigateToHash(hash, smooth) {
 
     // Hide all operations
     document.querySelectorAll('.operation-detail').forEach(op => op.classList.remove('active'));
+    // Hide all CLI commands (swap-view: only one visible at a time)
+    document.querySelectorAll('.cli-command-section').forEach(cmd => cmd.classList.remove('active'));
+
+    // Snippet targets live INSIDE a CLI command section — resolve the parent
+    // command so we can activate it (swap-view) before scrolling to the snippet.
+    const parentCliCommand = targetId.startsWith('snippet-')
+        ? targetElement.closest('.cli-command-section')
+        : null;
 
     // On CLI detail pages (and other long-scroll pages like skills), overview
     // and content coexist as scroll siblings — don't hide overview or we can't
-    // scroll back up to it. Only op/doc/mcp views swap overview out entirely.
+    // scroll back up to it. Only op/doc/mcp/cmd views swap overview out entirely.
     const isSwapView = targetId.startsWith('op-')
                        || targetId.startsWith('doc-')
+                       || targetId.startsWith('cmd-')
+                       || parentCliCommand !== null
                        || isMcpInvocableId(targetId);
     if (overview && isSwapView) overview.style.display = 'none';
 
@@ -1674,6 +1684,10 @@ function navigateToHash(hash, smooth) {
             s.classList.remove('active');
         });
         targetElement.classList.add('active');
+    } else if (targetId.startsWith('cmd-')) {
+        targetElement.classList.add('active');
+    } else if (parentCliCommand) {
+        parentCliCommand.classList.add('active');
     } else if (isMcpInvocableId(targetId)) {
         targetElement.classList.add('active');
     } else if (targetId === 'overview' || targetId === 'main-content') {
@@ -1941,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-') && !isMcpInvocableId(hash.substring(1))) return;
+        if (!hash.startsWith('#op-') && !hash.startsWith('#skill-') && !hash.startsWith('#cmd-') && !hash.startsWith('#snippet-') && !isMcpInvocableId(hash.substring(1))) return;
 
         e.preventDefault();
         if (navigateToHash(hash, true)) {

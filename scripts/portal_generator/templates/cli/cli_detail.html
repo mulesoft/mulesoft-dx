@@ -8,12 +8,34 @@
         <p class="cli-overview-subtitle">{{ cli.short_description }}</p>
       </div>
     </div>
+    {% if cli.commands %}
+    <table class="cli-commands-table">
+      <thead>
+        <tr>
+          <th scope="col">Command</th>
+          <th scope="col">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cmd in cli.commands %}
+        <tr>
+          <td>
+            <a href="#cmd-{{ cmd.name }}" class="cli-commands-table-link">
+              <code>{{ cmd.name }}</code>
+            </a>
+          </td>
+          <td>{{ (cmd.description_html or cmd.description)|safe }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
   </section>
 
   {% if cli.commands %}
-  <section class="content-section cli-commands-block">
+  <section class="cli-commands-block">
     {% for cmd in cli.commands %}
-    <article id="cmd-{{ cmd.name }}" class="cli-command-section">
+    <article id="cmd-{{ cmd.name }}" class="content-section cli-command-section">
       <header class="cli-command-header">
         <h2 class="cli-command-title">{{ cmd.name }}</h2>
         {% if cmd.usage %}
@@ -41,15 +63,12 @@
       {% for sid in cmd.snippet_refs %}
       {% set snip = cli.snippets.get(sid) if cli.snippets else None %}
       {% if snip %}
-      <details class="cli-command-snippet">
-        <summary>
-          <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-          {{ snip.title }}
-        </summary>
+      <section id="snippet-{{ cmd.name }}-{{ snip.id }}" class="cli-command-snippet">
+        <h3 class="cli-command-snippet-title">{{ snip.title }}</h3>
         <div class="cli-command-snippet-body markdown-body">
           {{ snip.html|safe }}
         </div>
-      </details>
+      </section>
       {% endif %}
       {% endfor %}
       {% endif %}

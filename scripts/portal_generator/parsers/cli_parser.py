@@ -283,19 +283,23 @@ def build_command_tree(commands: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return root['children']
 
 
-def _strip_snippet_link(text: str, matches: List[str]) -> str:
-    """Replace markdown links whose href contains any of `matches` with the
-    link's plain text. Keeps the surrounding prose intact so users still see
-    "default flags" — just without the broken hash link.
+def _rewrite_snippet_links(text: str, snippets: List[Dict[str, Any]], cmd_name: str) -> str:
+    """Rewrite markdown links pointing to a snippet match (e.g. `#default-options`)
+    into in-page anchors that target the command-scoped snippet section rendered
+    by the template (`#snippet-<cmd_name>-<snip_id>`). Links whose href doesn't
+    match any snippet are left untouched.
     """
-    if not matches or not text:
+    if not snippets or not text:
         return text
     link_re = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 
     def _repl(m):
         href = m.group(2)
-        if any(needle in href for needle in matches):
-            return m.group(1)
+        for snip in snippets:
+            needles = snip.get('matches') or []
+            if any(n and n in href for n in needles):
+                new_href = f'#snippet-{cmd_name}-{snip["id"]}'
+                return f'[{m.group(1)}]({new_href})'
         return m.group(0)
 
     return link_re.sub(_repl, text)
@@ -349,12 +353,13 @@ def _split_commands_from_doc(text: str, snippets: Optional[List[Dict[str, Any]]]
                 commands[-1]['doc_html'] += _render(f'## {name}\n\n{body}')
             continue
 
-        # Detect which snippets this command references BEFORE we strip the
+        # Detect which snippets this command references BEFORE we rewrite the
         # links — the detection needs the anchor hrefs to survive.
         snippet_refs = _detect_snippet_refs(body, snippets or [])
-        # Now strip broken hash links so the rendered prose reads clean.
+        # Rewrite snippet references to in-page anchors targeting the
+        # per-command snippet section (`#snippet-<cmd>-<id>`).
         if snippet_matches:
-            body = _strip_snippet_link(body, snippet_matches)
+            body = _rewrite_snippet_links(body, snippets or [], name)
 
         usage_match = _USAGE_RE.search(body)
         # group(1) is the usage body without the marker or wrapping backticks.

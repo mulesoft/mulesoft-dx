@@ -9379,7 +9379,7 @@ code[class*="language-"][class*="language-"] {
 .cli-overview-subtitle {
     margin: var(--space-xs) 0 0;
     color: var(--color-text-secondary);
-    font-size: var(--font-size-3);
+    font-size: 14px;
 }
 
 .cli-install-block {
@@ -9436,19 +9436,39 @@ code[class*="language-"][class*="language-"] {
     gap: var(--space-xl);
 }
 
-.cli-command-section {
-    scroll-margin-top: 100px;
-    padding-top: var(--space-xl);
-    border-top: 1px solid var(--color-neutral-3);
+.cli-commands-table td:first-child {
+    width: 1%;
+    white-space: nowrap;
 }
 
-.cli-command-section:first-child {
-    padding-top: 0;
-    border-top: none;
+.cli-commands-table tbody tr:hover td {
+    background: var(--color-neutral-2);
+}
+
+.cli-commands-table-link {
+    color: var(--color-text-link);
+    text-decoration: none;
+}
+
+.cli-commands-table-link:hover {
+    text-decoration: underline;
+}
+
+.cli-commands-table-link code {
+    color: inherit;
+}
+
+.cli-command-section {
+    scroll-margin-top: 100px;
+    display: none;
+}
+
+.cli-command-section.active {
+    display: block;
 }
 
 .cli-command-header {
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-xl);
 }
 
 .content-section h2.cli-command-title,
@@ -9462,7 +9482,7 @@ code[class*="language-"][class*="language-"] {
 .cli-command-subtitle {
     font-family: var(--font-sans);
     font-size: var(--font-size-4);
-    margin: var(--space-xs) 0 var(--space-medium);
+    margin: var(--space-md) 0 0;
     color: var(--color-text-secondary);
     overflow-wrap: break-word;
 }
@@ -9575,7 +9595,9 @@ code[class*="language-"][class*="language-"] {
     mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='black' d='M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z'/></svg>");
 }
 
-.cli-command-doc table {
+.cli-command-doc table,
+.cli-command-snippet-body table,
+.cli-commands-table {
     border-collapse: collapse;
     width: 100%;
     margin: var(--space-md) 0;
@@ -9587,7 +9609,11 @@ code[class*="language-"][class*="language-"] {
 }
 
 .cli-command-doc th,
-.cli-command-doc td {
+.cli-command-doc td,
+.cli-command-snippet-body th,
+.cli-command-snippet-body td,
+.cli-commands-table th,
+.cli-commands-table td {
     border-bottom: 1px solid var(--color-border-primary);
     padding: var(--space-sm) var(--space-md);
     text-align: left;
@@ -9595,11 +9621,15 @@ code[class*="language-"][class*="language-"] {
     color: var(--color-text-primary);
 }
 
-.cli-command-doc tr:last-child > td {
+.cli-command-doc tr:last-child > td,
+.cli-command-snippet-body tr:last-child > td,
+.cli-commands-table tr:last-child > td {
     border-bottom: 0;
 }
 
-.cli-command-doc th {
+.cli-command-doc th,
+.cli-command-snippet-body th,
+.cli-commands-table th {
     background: var(--color-neutral-2);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-secondary);
@@ -9613,12 +9643,18 @@ code[class*="language-"][class*="language-"] {
 .cli-command-doc td > div,
 .cli-command-doc td > div > div,
 .cli-command-doc td p,
-.cli-command-doc th p {
+.cli-command-doc th p,
+.cli-command-snippet-body td > div,
+.cli-command-snippet-body td > div > div,
+.cli-command-snippet-body td p,
+.cli-command-snippet-body th p {
     margin: 0;
 }
 
 .cli-command-doc td code,
-.cli-command-doc th code {
+.cli-command-doc th code,
+.cli-command-snippet-body td code,
+.cli-command-snippet-body th code {
     background: var(--color-neutral-2);
     padding: 1px 6px;
     border-radius: var(--radius-small);
@@ -9706,7 +9742,7 @@ code[class*="language-"][class*="language-"] {
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-medium);
     padding: var(--space-sm) var(--space-md);
-    margin: var(--space-xs) 0 0;
+    margin: var(--space-md) 0 0;
     font-family: var(--font-mono);
     font-size: var(--font-size-3);
     font-weight: var(--font-weight-bold);
@@ -9763,44 +9799,22 @@ code[class*="language-"][class*="language-"] {
     border-color: var(--color-success);
 }
 
-/* Collapsible reference snippet attached to a CLI command (e.g. "default flags"). */
+/* Reference snippet attached to a CLI command (e.g. "default flags"). */
 .cli-command-snippet {
-    margin-top: var(--space-md);
-    border: 0;
-    border-radius: var(--radius-medium);
-    background: transparent;
-    overflow: hidden;
+    margin-top: var(--space-xl);
+    scroll-margin-top: 100px;
 }
 
-.cli-command-snippet > summary {
-    list-style: none;
-    cursor: pointer;
-    padding: var(--space-sm) var(--space-md) var(--space-sm) 0;
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-weight: var(--font-weight-bold);
+.cli-command-snippet-title {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-    border-radius: var(--radius-medium);
-    user-select: none;
-}
-
-.cli-command-snippet > summary::-webkit-details-marker {
-    display: none;
-}
-
-.cli-command-snippet > summary .chevron-icon {
-    transition: transform 0.15s ease;
-    color: var(--color-text-secondary);
-}
-
-.cli-command-snippet[open] > summary .chevron-icon {
-    transform: rotate(180deg);
+    margin: 0 0 var(--space-sm);
 }
 
 .cli-command-snippet-body {
-    padding: var(--space-md) 0 0;
+    padding: 0;
 }
 
 .cli-command-snippet-body > *:first-child {

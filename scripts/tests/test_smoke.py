@@ -1196,6 +1196,137 @@ def test_homepage_terraform_card_links_to_index(generated_portal):
     assert soup.select_one(".tf-card-version") is None
 
 
+class TestNoPromptInjectionTriggers:
+    """W-23515831: the base template must not emit imperative,
+    agent-directed text that trips LLM prompt-injection heuristics.
+
+    The former `<nav aria-label="machine-readable" class="visually-hidden">`
+    block in `base.html` contained a `<p>STOP...</p>` paragraph and
+    imperative descriptive text after each anchor. These triggered a
+    prompt-injection warning in Claude Code (automode) when browsing the
+    Dev Portal. The fix strips the paragraph and reduces each anchor to
+    the raw filename ("AGENTS.md", "registry.json", "llms.txt").
+    """
+
+    FORBIDDEN_PHRASES = [
+        'STOP.',
+        'MANDATORY first read',
+        'If you are an AI agent',
+        'Do NOT use summarizer',
+        'read AGENTS.md FIRST',
+    ]
+
+    def _all_generated_html(self, portal_root):
+        return list(portal_root.rglob('*.html'))
+
+    def test_no_forbidden_phrases_on_homepage(self, generated_portal):
+        """AC1: homepage HTML must not contain any of the injection-trigger
+        phrases that were embedded in the base template's machine-readable nav."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in index.html — base.html machine-readable nav was not "
+                f"neutralized."
+            )
+
+    def test_no_forbidden_phrases_on_api_detail_page(self, generated_portal):
+        """AC1: API detail pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in apis/test-api.html."
+            )
+
+    def test_no_forbidden_phrases_on_mcp_detail_page(self, generated_portal):
+        """AC1: MCP detail pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'mcps' / 'test-mcp.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in mcps/test-mcp.html."
+            )
+
+    def test_no_forbidden_phrases_on_skill_page(self, generated_portal):
+        """AC1: skill pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'skills' / 'deploy-app.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in skills/deploy-app.html."
+            )
+
+    def test_no_forbidden_phrases_on_any_generated_html(self, generated_portal):
+        """AC1: because base.html is the shared base for every generated
+        page, no generated HTML file anywhere in the portal should contain
+        any of the forbidden phrases. This catches new page types added
+        later that also extend base.html."""
+        for html_file in self._all_generated_html(generated_portal):
+            content = html_file.read_text(encoding='utf-8')
+            for phrase in self.FORBIDDEN_PHRASES:
+                assert phrase not in content, (
+                    f"AC1 regression: forbidden phrase {phrase!r} present "
+                    f"in {html_file.relative_to(generated_portal)}."
+                )
+
+    def test_machine_readable_nav_has_three_anchors(self, generated_portal):
+        """AC3: the visually-hidden machine-readable nav in <body> must
+        contain three anchors pointing to /AGENTS.md, /registry.json,
+        /llms.txt. Anchor text starts with the filename; descriptive
+        text is allowed only if it stays declarative (no imperatives)."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        nav = soup.find('nav', attrs={'aria-label': 'machine-readable'})
+        assert nav is not None, (
+            "AC3: <nav aria-label='machine-readable'> must exist in <body>"
+        )
+        # Wrapper must be visually-hidden — preserves the semantic role
+        # without exposing the block to sighted users.
+        classes = nav.get('class', [])
+        assert 'visually-hidden' in classes, (
+            f"AC3: machine-readable nav must keep class='visually-hidden', got {classes!r}"
+        )
+
+        anchors = nav.find_all('a')
+        assert len(anchors) == 3, (
+            f"AC3: expected exactly three anchors inside machine-readable "
+            f"nav, got {len(anchors)}"
+        )
+
+        # Each anchor text must START with its filename (descriptive
+        # suffix after "— ..." is allowed as long as it is declarative,
+        # which is enforced separately by the forbidden-phrases sweep).
+        anchor_texts = [a.get_text(strip=True) for a in anchors]
+        assert anchor_texts[0].startswith('AGENTS.md'), anchor_texts
+        assert anchor_texts[1].startswith('registry.json'), anchor_texts
+        assert anchor_texts[2].startswith('llms.txt'), anchor_texts
+
+        # And each anchor must still resolve to the well-known path.
+        hrefs = [a.get('href', '') for a in anchors]
+        assert any(h.endswith('/AGENTS.md') for h in hrefs)
+        assert any(h.endswith('/registry.json') for h in hrefs)
+        assert any(h.endswith('/llms.txt') for h in hrefs)
+
+    def test_machine_readable_nav_paragraph_is_declarative(self, generated_portal):
+        """AC1/AC3: the machine-readable nav may contain a descriptive
+        <p>, but it must be declarative — no imperatives, no LLM-targeted
+        second-person addressing. The forbidden-phrases sweep on the
+        whole HTML covers the specific triggers; here we just ensure the
+        <p>, if present, is a single element (not a list of instructions)."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        nav = soup.find('nav', attrs={'aria-label': 'machine-readable'})
+        assert nav is not None
+        paragraphs = nav.find_all('p')
+        assert len(paragraphs) <= 1, (
+            f"AC1/AC3: machine-readable nav must contain at most one <p> "
+            f"element (a single declarative description). Got "
+            f"{len(paragraphs)}: "
+            f"{[p.get_text(strip=True) for p in paragraphs]}"
+        )
+
+
 class TestErrorPages:
     @pytest.fixture(autouse=True)
     def _parse_404(self, generated_portal):

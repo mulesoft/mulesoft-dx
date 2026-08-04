@@ -526,6 +526,12 @@ describe('isServerValidForRegion', () => {
         expect(isServerValidForRegion(platformRegional, 'in1')).toBe(true);
     });
 
+    test('au1: only platform, NOT anypoint regional', () => {
+        expect(isServerValidForRegion(anypointGlobal, 'au1')).toBe(false);
+        expect(isServerValidForRegion(anypointRegional, 'au1')).toBe(false);
+        expect(isServerValidForRegion(platformRegional, 'au1')).toBe(true);
+    });
+
     test('legacy hardcoded eu1 server is valid for eu1', () => {
         expect(isServerValidForRegion(anypointLegacyEu, 'eu1')).toBe(true);
         expect(isServerValidForRegion(anypointLegacyEu, 'ca1')).toBe(false);
@@ -569,6 +575,10 @@ describe('filterServersForRegion', () => {
 
     test('in1 keeps only platform regional', () => {
         expect(filterServersForRegion(all, 'in1')).toEqual([platformRegional]);
+    });
+
+    test('au1 keeps only platform regional', () => {
+        expect(filterServersForRegion(all, 'au1')).toEqual([platformRegional]);
     });
 
     test('null region (us) returns all', () => {
@@ -3246,6 +3256,7 @@ describe('getServerTypeForRegion', () => {
         expect(getServerTypeForRegion('ca1')).toBe('platform');
         expect(getServerTypeForRegion('jp1')).toBe('platform');
         expect(getServerTypeForRegion('in1')).toBe('platform');
+        expect(getServerTypeForRegion('au1')).toBe('platform');
     });
 
     test('returns null for unknown / custom regions', () => {
@@ -3281,7 +3292,7 @@ describe('auth_panel.html template — region-led layout', () => {
         return src.slice(Math.max(0, startIdx - 40), startIdx + 1500);
     }
 
-    test('exposes a single #regionSelect with the six expected options', () => {
+    test('exposes a single #regionSelect with the seven expected options', () => {
         const section = sliceServerSection(authPanelHtml);
         expect(section).toMatch(/id\s*=\s*["']regionSelect["']/);
         expect(section).toMatch(/onchange\s*=\s*["']onRegionSelectChange\(\)["']/);
@@ -3290,6 +3301,7 @@ describe('auth_panel.html template — region-led layout', () => {
         expect(section).toMatch(/<option[^>]*value\s*=\s*["']ca1["']/);
         expect(section).toMatch(/<option[^>]*value\s*=\s*["']jp1["']/);
         expect(section).toMatch(/<option[^>]*value\s*=\s*["']in1["']/);
+        expect(section).toMatch(/<option[^>]*value\s*=\s*["']au1["']/);
         expect(section).toMatch(/<option[^>]*value\s*=\s*["']custom["']/);
     });
 
@@ -3339,11 +3351,11 @@ describe('auth_panel.html template — region-led layout', () => {
 // / custom, but not the other two platform-domain presets. Cover jp1 and in1
 // so every option in the flat list is exercised.
 // ---------------------------------------------------------------------------
-describe('onRegionSelectChange — remaining preset regions (jp1, in1)', () => {
+describe('onRegionSelectChange — remaining preset regions (jp1, in1, au1)', () => {
     function setupDom(regionValue) {
         const region = document.createElement('select');
         region.id = 'regionSelect';
-        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'custom'].forEach((v) => {
+        ['us', 'eu1', 'ca1', 'jp1', 'in1', 'au1', 'custom'].forEach((v) => {
             const o = document.createElement('option'); o.value = v; region.appendChild(o);
         });
         region.value = regionValue;
@@ -3387,6 +3399,14 @@ describe('onRegionSelectChange — remaining preset regions (jp1, in1)', () => {
         onRegionSelectChange();
         expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
         expect(sessionStorage.getItem('anypoint_region')).toBe('in1');
+        expect(document.getElementById('customServerRow').style.display).toBe('none');
+    });
+
+    test('picking au1 stores type=platform, region=au1, and hides custom row', () => {
+        setupDom('au1');
+        onRegionSelectChange();
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(sessionStorage.getItem('anypoint_region')).toBe('au1');
         expect(document.getElementById('customServerRow').style.display).toBe('none');
     });
 });
@@ -3683,6 +3703,87 @@ describe('refreshAuthUiFor — locked-state tooltip contents (SERVER_LOCKED_TOOL
         expect(document.getElementById('regionSelect').hasAttribute('title')).toBe(false);
         expect(document.getElementById('serverSelect').hasAttribute('title')).toBe(false);
         expect(document.getElementById('regionCustomInput').hasAttribute('title')).toBe(false);
+    });
+});
+
+// ===========================================================================
+// W-23256513 — AU (au1) region label parity
+//
+// Spec AC #2: "Region appears in the auth modal's region preset dropdown when
+// platform is selected." The spec explicitly treats the human-friendly
+// `_REGION_LABELS` entry as part of AC #2 — the region must "appear the same
+// way the peers do" (e.g. `Australia (au1)`, not the bare code `au1`).
+//
+// The plan's baseline tests only assert the `value="au1"` attribute exists in
+// the template and that `au1` is recognized by the region contract helpers;
+// they do NOT verify that:
+//   (a) `_regionLabel('au1')` returns the human-friendly label, matching the
+//       peer regions' shape (e.g. `Canada (ca1)`, `Japan (jp1)`).
+//   (b) the rendered <option> for `au1` in auth_panel.html displays the
+//       "Australia (au1)" text (not just the value attribute).
+// These are the two label-parity assertions this block adds.
+// ===========================================================================
+describe('W-23256513 — au1 label parity (_REGION_LABELS + template display text)', () => {
+    test('_regionLabel("au1") returns "Australia (au1)"', () => {
+        expect(_regionLabel('au1')).toBe('Australia (au1)');
+    });
+
+    test('_regionLabel shape matches the peer platform-domain regions', () => {
+        // Peer regions all render as `<Country name> (<code>)`. The au1 label
+        // must follow the same convention so the dropdown reads uniformly.
+        expect(_regionLabel('ca1')).toBe('Canada (ca1)');
+        expect(_regionLabel('jp1')).toBe('Japan (jp1)');
+        expect(_regionLabel('in1')).toBe('India (in1)');
+        expect(_regionLabel('au1')).toBe('Australia (au1)');
+    });
+
+    test('auth_panel.html renders the au1 option with "Australia (au1)" display text', () => {
+        const authPanelHtml = fs.readFileSync(
+            path.resolve(__dirname, '../portal_generator/templates/partials/auth_panel.html'),
+            'utf-8',
+        );
+        // Match the full <option value="au1">Australia (au1)</option> shape,
+        // tolerating single/double quotes and inner whitespace.
+        expect(authPanelHtml).toMatch(
+            /<option[^>]*value\s*=\s*["']au1["'][^>]*>\s*Australia\s*\(au1\)\s*<\/option>/,
+        );
+    });
+});
+
+// ===========================================================================
+// W-23256513 — au1 in the DOMAIN_REGIONS matrix (source-of-truth check)
+//
+// Spec AC #1: `au1` is present in `DOMAIN_REGIONS.platform`. The plan verifies
+// this only *indirectly*, by exercising the three helper functions that read
+// the matrix. This block asserts the invariant more directly at the template
+// / source layer, so a regression that removes `au1` from `DOMAIN_REGIONS`
+// (or from `_REGION_LABELS`) surfaces even if the helpers happen to keep
+// working through some other code path.
+// ===========================================================================
+describe('W-23256513 — au1 is registered in portal.js source', () => {
+    const portalSource = fs.readFileSync(
+        path.resolve(__dirname, '../portal_generator/assets/portal.js'),
+        'utf-8',
+    );
+
+    test('DOMAIN_REGIONS.platform contains "au1"', () => {
+        // Isolate the DOMAIN_REGIONS literal.
+        const match = portalSource.match(
+            /var\s+DOMAIN_REGIONS\s*=\s*\{[\s\S]*?platform\s*:\s*\[([^\]]*)\]/,
+        );
+        expect(match).not.toBeNull();
+        const platformArrayContents = match[1];
+        expect(platformArrayContents).toMatch(/['"]au1['"]/);
+    });
+
+    test('_REGION_LABELS has an "au1" entry with the Australia label', () => {
+        // Isolate the _REGION_LABELS literal.
+        const match = portalSource.match(
+            /var\s+_REGION_LABELS\s*=\s*\{([\s\S]*?)\}/,
+        );
+        expect(match).not.toBeNull();
+        const labelsBlock = match[1];
+        expect(labelsBlock).toMatch(/au1\s*:\s*['"]Australia \(au1\)['"]/);
     });
 });
 

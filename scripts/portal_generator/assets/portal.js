@@ -3649,7 +3649,7 @@ function toggleTryItOutExpand(opId) {
 // so the matrix stays self-describing.
 var DOMAIN_REGIONS = {
     anypoint: ['us', 'eu1'],
-    platform: ['ca1', 'jp1', 'in1']
+    platform: ['ca1', 'jp1', 'in1', 'au1']
 };
 
 function _getDomainKeyFromUrl(url) {
@@ -4106,7 +4106,8 @@ var _REGION_LABELS = {
     eu1: 'Europe (eu1)',
     ca1: 'Canada (ca1)',
     jp1: 'Japan (jp1)',
-    in1: 'India (in1)'
+    in1: 'India (in1)',
+    au1: 'Australia (au1)'
 };
 
 function _regionLabel(r) {

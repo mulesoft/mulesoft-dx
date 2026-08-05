@@ -262,11 +262,10 @@ The most critical check. Bugs like skills living in nested subdirectories (`skil
 
 ## Discovered APIs
 
-The Makefile automatically discovers all API directories by looking for `exchange.json` files. Currently discovering **32 APIs**:
+The Makefile automatically discovers all API directories by looking for `exchange.json` files. Currently discovering **31 APIs**:
 
 - access-management
 - amc-application-manager
-- analytics-event-export
 - anypoint-monitoring-archive
 - anypoint-mq-admin
 - anypoint-mq-broker

@@ -33,7 +33,6 @@ CATEGORY_MAPPING = {
     'partner-manager-v2-partners': 'B2B',
     'partner-manager-v2-tracking': 'B2B',
     'amc-application-manager': 'Management',
-    'analytics-event-export': 'Analytics',
     'api-designer-experience': 'Design',
     'citizen-platform-experience': 'Platform',
     'mule-agent-plugin': 'Management',

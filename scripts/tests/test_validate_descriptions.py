@@ -86,7 +86,7 @@ class TestDescriptionValidator:
     def test_banned_the_api_allows(self, tmp_path):
         validator = self._make_validator(
             tmp_path,
-            'The Analytics Events Export API allows you to query events.'
+            'The Test API allows you to query events.'
         )
         violations = validator.validate()
         rules = [v.rule for v in violations]

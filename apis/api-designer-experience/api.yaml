@@ -25,6 +25,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Check service health
       operationId: getPing
   /status:
     get:
@@ -32,6 +33,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Get service status
       operationId: getStatus
   /health:
     get:
@@ -39,6 +41,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Get service health status
       operationId: getHealth
   /ready:
     get:
@@ -46,6 +49,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Check service readiness
       operationId: getReady
   /config:
     get:
@@ -79,6 +83,7 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
+      summary: Get client configuration
       operationId: getConfig
   /features:
     post:
@@ -130,7 +135,8 @@ paths:
                 api-designer-ui-pkce-ready: false
         '401':
           description: Authorization failed
-      operationId: createFeatures
+      summary: Resolve feature flags
+      operationId: resolveFeatures
   /organizations:
     get:
       description: Retrieves the organizations the current user is a member of
@@ -160,7 +166,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getOrganizations
+      summary: List organizations the user belongs to
+      operationId: listOrganizations
   /organizations/{organizationId}/settings:
     get:
       description: Retrieves settings for organization
@@ -193,7 +200,8 @@ paths:
                 $ref: '#/components/schemas/OrgSettings'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrganizationidSettings
+      summary: Get organization settings
+      operationId: getOrganizationSettings
     post:
       description: Changes settings for organization
       parameters:
@@ -232,7 +240,8 @@ paths:
                 $ref: '#/components/schemas/OrgSettings'
         '401':
           description: Authorization failed
-      operationId: createOrganizationsByOrganizationidSettings
+      summary: Update organization settings
+      operationId: updateOrganizationSettings
   /organizations/{organizationId}/access/permissions:
     get:
       description: Retrieves admin permissions
@@ -259,7 +268,8 @@ paths:
                 $ref: '#/components/schemas/AdminPermissions'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrganizationidAccessPermissions
+      summary: Get organization admin permissions
+      operationId: getOrganizationPermissions
   /organizations/{organizationId}/exchange/facets:
     get:
       description: Retrieves Exchange facets for the given organization
@@ -286,7 +296,8 @@ paths:
                 $ref: '#/components/schemas/ExchangeFacets'
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrganizationidExchangeFacets
+      summary: Get organization Exchange facets
+      operationId: getOrganizationExchangeFacets
   /organizations/{organizationId}/identities:
     get:
       description: Retrieves identities (users/teams) belonging to the given organization, optionally filtered by search term
@@ -313,7 +324,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getOrganizationsByOrganizationidIdentities
+      summary: List organization identities
+      operationId: listOrganizationIdentities
   /documentation:
     get:
       description: Retrieves documentation content for the given language
@@ -355,6 +367,7 @@ paths:
           description: Authorization failed
         '404':
           description: No documentation URL was provided
+      summary: Get documentation content
       operationId: getDocumentation
   /projects:
     post:
@@ -407,7 +420,8 @@ paths:
           description: Authorization failed
         '409':
           description: Project {type}-{name} already exists
-      operationId: createProjects
+      summary: Create project
+      operationId: createProject
     get:
       description: Gets all the projects that the user has access
       parameters:
@@ -446,7 +460,8 @@ paths:
                 type: string
         '401':
           description: Authorization failed
-      operationId: getProjects
+      summary: List projects the user can access
+      operationId: listProjects
   /projects/credentials:
     get:
       description: Retrieve VCS credentials associated to the given user. Used for Github sync
@@ -476,7 +491,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsCredentials
+      summary: Get VCS credentials for Github sync
+      operationId: getProjectCredentials
     delete:
       description: Delete VCS credentials associated to the given user. Used for Github sync
       parameters:
@@ -505,7 +521,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsCredentials
+      summary: Delete VCS credentials for Github sync
+      operationId: deleteProjectCredentials
   /projects/import:
     post:
       description: Creates a project from a zip file containing files
@@ -559,7 +576,8 @@ paths:
           description: Authorization failed
         '409':
           description: Project {type}-{name} already exists
-      operationId: createProjectsImport
+      summary: Import project from zip file
+      operationId: importProject
   /projects/access/permissions:
     get:
       description: Gets design center general permissions. eg Create projects
@@ -594,7 +612,8 @@ paths:
                 $ref: '#/components/schemas/GeneralPermissions'
         '401':
           description: Authorization failed
-      operationId: getProjectsAccessPermissions
+      summary: Get Design Center general permissions
+      operationId: getDesignCenterPermissions
   /projects/{projectId}:
     get:
       description: Get project data
@@ -638,7 +657,8 @@ paths:
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectid
+      summary: Get project by ID
+      operationId: getProjectById
     patch:
       description: 'Patches project metadata.
 
@@ -692,7 +712,8 @@ paths:
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: patchProjectsByProjectid
+      summary: Patch project metadata
+      operationId: patchProject
     delete:
       description: Deletes the given project
       parameters:
@@ -722,7 +743,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectid
+      summary: Delete project
+      operationId: deleteProject
   /projects/{projectId}/files:
     delete:
       description: Deletes all project files, except reserved ones (exchange modules, exchange.json, designer.json, .gitignore)
@@ -758,7 +780,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidFiles
+      summary: Delete all project files
+      operationId: deleteProjectFiles
   /projects/{projectId}/rename:
     put:
       description: Renames the given project
@@ -814,7 +837,8 @@ paths:
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: updateProjectsByProjectidRename
+      summary: Rename project
+      operationId: renameProject
   /projects/{projectId}/clone:
     post:
       description: Clones the given project into a new one
@@ -872,7 +896,8 @@ paths:
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidClone
+      summary: Clone project
+      operationId: cloneProject
   /projects/{projectId}/settings:
     patch:
       description: Sets project settings, e.g. defaultBranch
@@ -913,7 +938,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: patchProjectsByProjectidSettings
+      summary: Patch project settings
+      operationId: patchProjectSettings
   /projects/{projectId}/changes:
     get:
       description: Lists all changes (commits) of the project
@@ -954,7 +980,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidChanges
+      summary: List project changes
+      operationId: listProjectChanges
   /projects/{projectId}/changes/{commitId}:
     get:
       description: Gets the list of files involved in the given commit
@@ -991,7 +1018,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidChangesByCommitid
+      summary: List files changed in a commit
+      operationId: listCommitFiles
   /projects/{projectId}/changes/{commitId}/{filePath}:
     get:
       description: Gets the given file at the given commit id. filePath must be uri compliant, / must be escaped
@@ -1038,7 +1066,8 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidChangesByCommitidByFilepath
+      summary: Get file content at a specific commit
+      operationId: getCommitFile
   /projects/{projectId}/branches:
     post:
       description: Creates new branch
@@ -1113,7 +1142,8 @@ paths:
                 commitId: 734713bc0
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranches
+      summary: Create branch
+      operationId: createBranch
     get:
       description: List branches
       parameters:
@@ -1163,7 +1193,8 @@ paths:
                 type: string
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranches
+      summary: List branches
+      operationId: listBranches
   /projects/{projectId}/branches/{branch}:
     delete:
       description: Deletes a branch
@@ -1200,7 +1231,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranch
+      summary: Delete branch
+      operationId: deleteBranch
     put:
       description: Changes a branch's name
       parameters:
@@ -1243,7 +1275,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: updateProjectsByProjectidBranchesByBranch
+      summary: Rename branch
+      operationId: renameBranch
   /projects/{projectId}/branches/{branch}/commits:
     get:
       description: Returns the list of commits for a project branch
@@ -1305,7 +1338,8 @@ paths:
                 dateCreated: 1601480399000
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchCommits
+      summary: List branch commits
+      operationId: listBranchCommits
   /projects/{projectId}/branches/{branch}/merge:
     post:
       description: Merge this branch with a source branch
@@ -1351,7 +1385,8 @@ paths:
           description: Authorization failed
         '409':
           description: Merge was aborted due to conflicts when trying to merge
-      operationId: createProjectsByProjectidBranchesByBranchMerge
+      summary: Merge branch
+      operationId: mergeBranch
   /projects/{projectId}/branches/{branch}/conformance:
     get:
       description: Returns conformance report for the latest published version
@@ -1374,7 +1409,8 @@ paths:
           description: Report returned successfully
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchConformance
+      summary: Get branch conformance report
+      operationId: getBranchConformance
   /projects/{projectId}/branches/{branch}/conformance/plan:
     get:
       description: Returns conformance plan for the latest published version
@@ -1402,7 +1438,8 @@ paths:
           description: Report returned successfully
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchConformancePlan
+      summary: Get branch conformance plan
+      operationId: getBranchConformancePlan
   /projects/{projectId}/branches/{branch}/events:
     post:
       description: Report event to MDAS Metrics service
@@ -1430,7 +1467,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createProjectsByProjectidBranchesByBranchEvents
+      summary: Report branch event to metrics service
+      operationId: reportBranchEvent
   /projects/{projectId}/branches/{branch}/open:
     get:
       description: List project files. If user's workingDir does not exists, it creates one.
@@ -1483,7 +1521,8 @@ paths:
                 type: FILE
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchOpen
+      summary: Open branch and list project files
+      operationId: openBranch
   /projects/{projectId}/branches/{branch}/clean:
     post:
       description: cleans uncommited files from users workingDir
@@ -1520,7 +1559,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchClean
+      summary: Clean uncommitted files from working dir
+      operationId: cleanBranch
   /projects/{projectId}/branches/{branch}/status:
     post:
       description: list WorkingDir status
@@ -1557,7 +1597,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchStatus
+      summary: Get branch working directory status
+      operationId: getBranchStatus
   /projects/{projectId}/branches/{branch}/save:
     post:
       description: save listed files (save and save All)
@@ -1609,7 +1650,8 @@ paths:
           description: Authorization failed
         '409':
           description: Could not save changes
-      operationId: createProjectsByProjectidBranchesByBranchSave
+      summary: Save branch files
+      operationId: saveBranchFiles
   /projects/{projectId}/branches/{branch}/save/v2:
     post:
       description: 'Save listed files (save and save All).
@@ -1682,7 +1724,8 @@ paths:
           description: Authorization failed
         '409':
           description: Could not save changes
-      operationId: createProjectsByProjectidBranchesByBranchSaveV2
+      summary: Save branch files (v2 multipart)
+      operationId: saveBranchFilesV2
   /projects/{projectId}/branches/{branch}/files:
     get:
       description: Gets a list of the structure of the file system (open project)
@@ -1725,7 +1768,8 @@ paths:
               example: *id001
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFiles
+      summary: List branch files
+      operationId: listBranchFiles
   /projects/{projectId}/branches/{branch}/files/v2/{filePath}:
     get:
       description: Returns the given file (getFile) with content-type according to file's content
@@ -1777,7 +1821,8 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFilesV2ByFilepath
+      summary: Get branch file content (v2)
+      operationId: getBranchFileV2
   /projects/{projectId}/branches/{branch}/files/{filePath}:
     description: Operations over a specific file path
     get:
@@ -1825,7 +1870,8 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFilesByFilepath
+      summary: Get branch file as JSON
+      operationId: getBranchFile
     delete:
       description: Deletes the given file or folder and commit changes (deleteFile)
       parameters:
@@ -1867,7 +1913,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranchFilesByFilepath
+      summary: Delete branch file or folder
+      operationId: deleteBranchFile
   /projects/{projectId}/branches/{branch}/files/{filePath}/move:
     post:
       description: renames the file or folder (move or rename)
@@ -1923,7 +1970,8 @@ paths:
           description: File not found
         '409':
           description: The file or folder already exists
-      operationId: createProjectsByProjectidBranchesByBranchFilesByFilepathMove
+      summary: Move or rename branch file
+      operationId: moveBranchFile
   /projects/{projectId}/branches/{branch}/acquireLock:
     post:
       description: Acquire lock for given project
@@ -1974,7 +2022,8 @@ paths:
                 name: demo-username
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchAcquirelock
+      summary: Acquire branch lock
+      operationId: acquireBranchLock
   /projects/{projectId}/branches/{branch}/releaseLock:
     post:
       description: Release lock for given project
@@ -2017,7 +2066,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchReleaselock
+      summary: Release branch lock
+      operationId: releaseBranchLock
   /projects/{projectId}/branches/{branch}/keepAlive:
     post:
       description: Mantain lock for given project
@@ -2060,7 +2110,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchKeepalive
+      summary: Keep branch lock alive
+      operationId: renewBranchLock
   /projects/{projectId}/branches/{branch}/publish/exchange:
     post:
       description: Publish project to Exchange. As a result, an Exchange asset is created.
@@ -2103,7 +2154,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchPublishExchange
+      summary: Publish branch to Exchange
+      operationId: publishBranchToExchange
   /projects/{projectId}/branches/{branch}/exchange:
     get:
       description: Retrieve Exchange metadata for a project's branch
@@ -2140,7 +2192,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchExchange
+      summary: Get branch Exchange metadata
+      operationId: getBranchExchangeMetadata
   /projects/{projectId}/branches/{branch}/exchange/assets:
     post:
       description: Publish new Exchange Asset through Exchange xAPI v2
@@ -2184,7 +2237,8 @@ paths:
           description: Asset created successfully
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchExchangeAssets
+      summary: Publish Exchange asset via xAPI v2
+      operationId: publishBranchAssetV2
   /projects/{projectId}/branches/{branch}/import:
     put:
       description: Replaces branch contents from a zip file
@@ -2243,7 +2297,8 @@ paths:
               example: *id001
         '400':
           description: No files were uploaded. Use content-type:application/zip
-      operationId: updateProjectsByProjectidBranchesByBranchImport
+      summary: Replace branch contents from zip archive
+      operationId: importBranchArchive
   /projects/{projectId}/branches/{branch}/archive:
     get:
       description: Gets an archive file (zip) of the full project in the given branch
@@ -2285,7 +2340,8 @@ paths:
                 type: string
                 format: binary
               example: PK\x03\x04...(zip archive binary contents)
-      operationId: getProjectsByProjectidBranchesByBranchArchive
+      summary: Download branch archive as zip
+      operationId: getBranchArchive
   /projects/{projectId}/branches/{branch}/exchange/dependencies:
     put:
       description: Add new dependencies in exchange.json
@@ -2341,7 +2397,8 @@ paths:
               example: *id001
         '401':
           description: Authorization failed
-      operationId: updateProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Add Exchange dependencies
+      operationId: addExchangeDependencies
     post:
       description: Updates exchange.json file, with given dependencies
       parameters:
@@ -2410,7 +2467,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Update Exchange dependencies
+      operationId: updateExchangeDependencies
     patch:
       description: Reload and update the dependencies listed in exchange.json
       parameters:
@@ -2474,7 +2532,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: patchProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Reload Exchange dependencies metadata
+      operationId: reloadExchangeDependencies
     get:
       description: Retrieve the dependencies listed in exchange.json, along with their asset metadata
       parameters:
@@ -2510,7 +2569,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: List Exchange dependencies
+      operationId: listExchangeDependencies
     delete:
       description: Removes dependencies in exchange.json
       parameters:
@@ -2559,7 +2619,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Remove Exchange dependencies
+      operationId: removeExchangeDependencies
   /projects/{projectId}/branches/{branch}/exchange/dependencies/job:
     post:
       description: Triggers an asynchronous dependency resolution job for the project's exchange.json
@@ -2594,7 +2655,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createProjectsByProjectidBranchesByBranchExchangeDependenciesJob
+      summary: Trigger Exchange dependency resolution job
+      operationId: resolveExchangeDependencies
     get:
       description: Retrieves the status of the dependency resolution job
       parameters:
@@ -2639,7 +2701,8 @@ paths:
                 status: running
         '404':
           description: No dependency resolver job found
-      operationId: getProjectsByProjectidBranchesByBranchExchangeDependenciesJob
+      summary: Get dependency resolution job status
+      operationId: getExchangeDependenciesJobStatus
   /projects/{projectId}/sync/github:
     description: Endpoint to manage project's Github sync
     post:
@@ -2656,7 +2719,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createProjectsByProjectidSyncGithub
+      summary: Sync project with Github repository
+      operationId: syncProjectGithub
     delete:
       description: Remove sync with Github repository
       parameters:
@@ -2664,7 +2728,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: deleteProjectsByProjectidSyncGithub
+      summary: Remove Github repository sync
+      operationId: removeGithubSync
   /projects/{projectId}/access/permissions:
     get:
       description: Gets permissions for a project
@@ -2705,7 +2770,8 @@ paths:
                 canRename: true
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidAccessPermissions
+      summary: Get project permissions
+      operationId: getProjectPermissions
   /projects/{projectId}/access/permissions/share:
     get:
       description: Get the identities (users and teams) with access to the project, along with their granted permission role
@@ -2741,7 +2807,8 @@ paths:
                 $ref: '#/components/schemas/SharedWithIdentities'
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidAccessPermissionsShare
+      summary: List identities with project access
+      operationId: listProjectSharedIdentities
     post:
       description: Grants or Revokes permissions on a [user | role] matrix for a project.
       parameters:
@@ -2792,7 +2859,8 @@ paths:
                   result: string
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidAccessPermissionsShare
+      summary: Share or revoke project permissions
+      operationId: shareProjectPermissions
   /github:
     get:
       description: Returns a redirect to start Github installation
@@ -2825,6 +2893,7 @@ paths:
                 type: string
         '401':
           description: Authorization failed
+      summary: Start Github installation
       operationId: getGithub
   /github/callback:
     get:
@@ -2841,6 +2910,7 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
+      summary: Handle Github installation callback
       operationId: getGithubCallback
   /github/oauth:
     post:
@@ -2874,7 +2944,8 @@ paths:
           description: Missing code or state in the request body
         '401':
           description: Authorization failed
-      operationId: createGithubOauth
+      summary: Complete Github OAuth authorization
+      operationId: completeGithubOauth
   /github/oauth/callback:
     get:
       description: Redirects the response received from Github (code and state query params) back to the Design Center UI
@@ -2897,6 +2968,7 @@ paths:
               description: URL of the Design Center UI to redirect the client to after completing the Github OAuth workflow.
               schema:
                 type: string
+      summary: Handle Github OAuth callback
       operationId: getGithubOauthCallback
   /exchange/assets:
     get:
@@ -2952,7 +3024,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getExchangeAssets
+      summary: Search Exchange assets
+      operationId: searchExchangeAssets
   /exchange/assets/{groupId}/{assetId}/{version}:
     get:
       description: Returns Exchange asset metadata
@@ -2986,7 +3059,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getExchangeAssetsByGroupidByAssetidByVersion
+      summary: Get Exchange asset metadata
+      operationId: getExchangeAssetMetadata
   /exchange/graphql:
     post:
       description: Executes GQL queries against exchange GraphQL service
@@ -3012,7 +3086,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createExchangeGraphql
+      summary: Execute Exchange GraphQL query
+      operationId: executeExchangeGraphql
   /external/check_access:
     get:
       description: Checks if the provided user has access to the provided git repository type
@@ -3059,7 +3134,8 @@ paths:
                     type: boolean
         '401':
           description: Authorization failed
-      operationId: getExternalCheckAccess
+      summary: Check external repository access
+      operationId: checkExternalAccess
   /external/repositories:
     get:
       description: Retrieves external repositories associated with the provided user and organization
@@ -3125,7 +3201,8 @@ paths:
                   $ref: '#/components/schemas/ExternalRepository'
         '401':
           description: Authorization failed
-      operationId: getExternalRepositories
+      summary: List external repositories
+      operationId: listExternalRepositories
   /external/repositories/{repositoryId}:
     get:
       description: Retrieves metadata of the repository represented with the provided ID
@@ -3174,7 +3251,8 @@ paths:
                 description: An example external repository.
         '401':
           description: Authorization failed
-      operationId: getExternalRepositoriesByRepositoryid
+      summary: Get external repository by ID
+      operationId: getExternalRepositoryById
   /external/organizations:
     get:
       description: Retrieves all external organizations associated with the provided user
@@ -3211,7 +3289,8 @@ paths:
                   $ref: '#/components/schemas/ExternalOrganization'
         '401':
           description: Authorization failed
-      operationId: getExternalOrganizations
+      summary: List external organizations
+      operationId: listExternalOrganizations
 components:
   securitySchemes:
     bearerAuth:
@@ -4015,7 +4094,7 @@ components:
         pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
       x-origin:
       - api: urn:api:api-designer-experience
-        operation: getProjects
+        operation: listProjects
         description: GET `/projects` in this API; use `[].id` values as `projectId`.
         values: $[*].id
         labels: $[*].name

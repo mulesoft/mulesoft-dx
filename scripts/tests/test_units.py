@@ -10,6 +10,7 @@ from portal_generator.utils import get_category, CATEGORY_MAPPING, parse_semver,
 from portal_generator.builders.tree_builder import build_operation_tree, count_tree_operations
 from portal_generator.template_env import _nl2br, _render_markdown, _tojson_raw, _skill_title, _titleize_operation, _slugify, _resolve_skill_inputs
 from portal_generator.generator import _build_api_meta, _get_example_body, PortalGenerator
+from portal_generator.assets import get_minisearch_js
 from portal_generator.parsers.skill_parser import (
     _extract_yaml_blocks,
     _extract_step_details,
@@ -25,6 +26,21 @@ from portal_generator.discovery import calculate_stats, _extract_api_refs, disco
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'build'))
 from validate_jtbd import JobValidator
+
+
+# ============================================================================
+# assets.get_minisearch_js
+# ============================================================================
+
+class TestGetMinisearchJs:
+    def test_returns_non_empty_string(self):
+        content = get_minisearch_js()
+        assert isinstance(content, str)
+        assert len(content) > 1000
+
+    def test_defines_minisearch_global(self):
+        content = get_minisearch_js()
+        assert 'MiniSearch' in content
 
 
 # ============================================================================

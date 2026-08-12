@@ -905,7 +905,7 @@ code {
 
 /* Catalog Search Row - Removed, search now in catalog-results-header */
 
-.tag-search-wrapper {
+.catalog-search-wrapper {
     position: relative;
     display: flex;
     align-items: center;
@@ -1061,137 +1061,33 @@ code {
     box-shadow: 0 0 0 1px var(--color-primary);
 }
 
-/* Tag Search Wrapper */
-
-/* Tag Search Input Container */
-.tag-search-input-container {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-xx-small);
-    padding: 8px 16px 8px 46px;
+/* Catalog Search Input */
+.catalog-search-input {
     width: 850px;
+    padding: 8px 16px 8px 46px;
     border: 1.5px solid var(--color-gray-300);
     border-radius: 24px;
     background: var(--color-white);
     min-height: 30px;
-    cursor: text;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-5);
+    color: var(--color-text-primary);
+    outline: none;
     transition: all 0.2s;
     margin-left: -32px;
 }
 
-.tag-search-input-container:hover {
+.catalog-search-input:hover {
     border-color: var(--hover-border);
 }
 
-.tag-search-input-container:focus-within {
+.catalog-search-input:focus {
     border-color: var(--color-primary);
     box-shadow: none;
 }
 
-/* Selected Tags (inline with input) */
-.selected-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
-    align-items: center;
-}
-
-.tag-search-input {
-    flex: 1;
-    min-width: 120px;
-    border: none;
-    outline: none;
-    padding: 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-5);
-    background: transparent;
-    color: var(--color-text-primary);
-}
-
-.tag-search-input::placeholder {
+.catalog-search-input::placeholder {
     color: var(--color-neutral-7);
-}
-
-.tag-chip {
-    display: inline-flex;
-    border: 1px solid var(--color-border-primary);
-    align-items: center;
-    gap: var(--space-xx-small);
-    padding: var(--space-xxx-small) var(--space-x-small);
-    color: var(--color-text-primary);
-    background: var(--color-bg-primary);
-    border-radius: var(--radius-xl);
-    font-size: var(--font-size-3);
-    font-weight: var(--font-weight-medium);
-    transition: background 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
-    white-space: nowrap;
-    height: 1.5rem;
-    line-height: 1;
-}
-
-
-
-.tag-chip-remove {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    background: var(--overlay-light);
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: var(--font-size-4);
-    line-height: 1;
-    padding: 0;
-    transition: background 0.2s ease;
-    flex-shrink: 0;
-}
-
-.tag-chip-remove:hover {
-    background: var(--overlay-lighter);
-}
-
-/* Tag Suggestions */
-.tag-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 4px;
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-medium);
-    box-shadow: 0 4px 12px var(--shadow-lg);
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.tag-suggestion-item {
-    padding: var(--space-sm) var(--space-md);
-    cursor: pointer;
-    transition: background 0.2s ease;
-    font-size: var(--font-size-sm);
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-}
-
-.tag-suggestion-item:hover,
-.tag-suggestion-item.active {
-    background: var(--hover-bg);
-    border-left: 3px solid var(--hover-border);
-    padding-left: calc(var(--space-md) - 3px);
-}
-
-.tag-suggestion-type {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.5px;
 }
 
 /* Filter Bar */
@@ -1425,7 +1321,7 @@ code {
         min-width: 0;
     }
 
-    .tag-search-wrapper {
+    .catalog-search-wrapper {
         min-width: 0;
         flex: 1 1 200px;
     }
@@ -1892,6 +1788,27 @@ code {
 [data-theme="dark"] .search-highlight {
     background: var(--color-badge-bg);
     color: var(--color-badge-text);
+}
+
+/* Badge shown in the card footer when a search match exists only in
+   content not rendered on the card (API operations, MCP tools, skill
+   body, terraform docs). Pinned to the right of the footer; hovering it
+   (data-tooltip) reveals the matching excerpt. */
+.catalog-card-deep-match {
+    margin-left: auto;
+    cursor: help;
+}
+
+.badge-count.catalog-card-deep-match {
+    background: var(--color-yellow-100);
+    color: var(--color-yellow-800);
+    border-color: var(--color-yellow-100);
+}
+
+[data-theme="dark"] .badge-count.catalog-card-deep-match {
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-color: var(--color-badge-bg);
 }
 
 /* Grid view: hide list-only columns */
@@ -5655,11 +5572,11 @@ details[open] .examples-toggle-icon {
         width: 100%;
     }
 
-    .tag-search-wrapper {
+    .catalog-search-wrapper {
         max-width: 100%;
     }
 
-    .tag-search-input-container {
+    .catalog-search-input {
         max-width: 100%;
     }
 

@@ -16,7 +16,8 @@ from urllib.parse import quote as _urlquote
 from .discovery import discover_apis, discover_terraform, calculate_stats
 from .builders.tree_builder import build_operation_tree
 from .builders.param_order import sort_parameters_by_dependency
-from .assets import get_css, get_js, get_jsonpath_js
+from .assets import get_css, get_js, get_jsonpath_js, get_minisearch_js
+from .search_index import build_search_documents
 from .template_env import create_env, _skill_title
 from .mulesoft_chrome import fetch_mulesoft_chrome
 from .utils import hash_asset_filename
@@ -441,10 +442,13 @@ class PortalGenerator:
         # Generate files
         print(f"\n📝 Generating portal files (workers={self.workers})...")
         self._css_filename = self._generate_css()
-        self._js_filename, self._jsonpath_filename = self._generate_js()
+        self._js_filename, self._jsonpath_filename, self._minisearch_filename = self._generate_js()
         self._generate_404()
         self._generate_500()
         self._generate_error_page()
+        self._search_docs = build_search_documents(
+            self.public_apis, self.public_mcps, self.all_skills, self.terraform_providers
+        )
         self._generate_homepage()
         self._generate_detail_pages_parallel()
         self._generate_registry()
@@ -470,6 +474,7 @@ class PortalGenerator:
             'icons_path': f"{prefix}assets/icons",
             'portal_js_path': f"{prefix}assets/{self._js_filename}",
             'jsonpath_js_path': f"{prefix}assets/{self._jsonpath_filename}",
+            'minisearch_js_path': f"{prefix}assets/{self._minisearch_filename}",
         }
 
     def _error_page_asset_paths(self) -> dict:
@@ -480,6 +485,7 @@ class PortalGenerator:
             'icons_path': f"{base}/assets/icons",
             'portal_js_path': f"{base}/assets/{self._js_filename}",
             'jsonpath_js_path': f"{base}/assets/{self._jsonpath_filename}",
+            'minisearch_js_path': f"{base}/assets/{self._minisearch_filename}",
         }
 
     def _generate_static_error_page(self, template_name: str, output_name: str) -> None:
@@ -549,6 +555,7 @@ class PortalGenerator:
             all_skills=self.all_skills,
             terraform_providers=self.terraform_providers,
             all_items=all_items,
+            search_docs=self._search_docs,
             proxy_url=self.proxy_url,
             chrome={k: v for k, v in self.chrome.items() if k != 'header'} if self.chrome else None,
             build_label=self.build_label,
@@ -1294,7 +1301,7 @@ class PortalGenerator:
         return hashed_name
 
     def _generate_js(self) -> tuple:
-        """Generate portal.js and jsonpath-plus library with content-hashed filenames."""
+        """Generate portal.js, jsonpath-plus, and minisearch libraries with content-hashed filenames."""
         print("  ✓ Generating JavaScript...")
         js_content = get_js()
         js_name = hash_asset_filename('portal.js', js_content)
@@ -1307,7 +1314,14 @@ class PortalGenerator:
         jsonpath_path = self.output_dir / 'assets' / jsonpath_name
         with open(jsonpath_path, 'w', encoding='utf-8') as f:
             f.write(jsonpath_content)
-        return (js_name, jsonpath_name)
+
+        minisearch_content = get_minisearch_js()
+        minisearch_name = hash_asset_filename('minisearch.min.js', minisearch_content)
+        minisearch_path = self.output_dir / 'assets' / minisearch_name
+        with open(minisearch_path, 'w', encoding='utf-8') as f:
+            f.write(minisearch_content)
+
+        return (js_name, jsonpath_name, minisearch_name)
 
     def _copy_images(self):
         

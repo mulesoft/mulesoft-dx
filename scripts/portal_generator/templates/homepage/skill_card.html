@@ -1,7 +1,7 @@
 {% set skill_name = skill.name|skill_title %}
 {% set _skill_tags = [] %}
 {% for t in skill.tag_names|default([]) %}{% set _ = _skill_tags.append(t|lower) %}{% endfor %}
-<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill" data-tags="{{ _skill_tags|join(',') }}">
+<a href="skills/{{ skill.slug }}.html" class="catalog-card-link" data-name="{{ skill_name|lower }}" data-type="skill" data-tags="{{ _skill_tags|join(',') }}" data-search-id="{{ skill.slug }}">
     <article class="catalog-card" data-popover-title="{{ skill_name }}" data-popover-description="{{ skill.description|default('') }}" data-popover-steps="{{ skill.step_count|default(0) }}" data-popover-type="skill">
         <div class="catalog-card-header">
             <div class="catalog-card-title-wrapper">

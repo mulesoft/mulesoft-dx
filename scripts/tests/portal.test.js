@@ -20,6 +20,16 @@ const _jpModule = { exports: _jpExports };
 )))(_jpExports, _jpModule);
 globalThis.JSONPath = _jpExports.JSONPath ? _jpExports : _jpModule.exports;
 
+// Load minisearch. The UMD bundle detects CommonJS `exports` and writes
+// there instead of globalThis, so we capture and re-export as a global.
+const _msExports = {};
+const _msModule = { exports: _msExports };
+(new Function('exports', 'module', fs.readFileSync(
+    path.resolve(__dirname, '../portal_generator/assets/minisearch.min.js'),
+    'utf-8',
+)))(_msExports, _msModule);
+globalThis.MiniSearch = _msModule.exports;
+
 // Load portal.js into the module scope so all functions are available.
 // eval in module scope makes function declarations accessible as local vars.
 const portalJs = fs.readFileSync(
@@ -1472,32 +1482,650 @@ describe('getFilterFromURL', () => {
     });
 });
 
-describe('getTagsFromURL', () => {
-    afterEach(() => setURL('/'));
+// ---------------------------------------------------------------------------
+// stemTerm — basic English suffix stripping
+// ---------------------------------------------------------------------------
+describe('stemTerm', () => {
+    test.each([
+        ['deploying', 'deploy'],
+        ['deployment', 'deploy'],
+        ['deployed', 'deploy'],
+        ['servers', 'server'],
+        ['access', 'access'], // -ss guard: not stripped as a plural
+        ['api', 'api'], // short word, no rule applies
+        ['id', 'id'],
+    ])('stemTerm(%s) -> %s', (input, expected) => {
+        expect(stemTerm(input)).toBe(expected);
+    });
+});
 
-    test('returns empty array when no tags param', () => {
-        setURL('/');
-        expect(getTagsFromURL()).toEqual([]);
+// ---------------------------------------------------------------------------
+// filterBySearch — MiniSearch-backed catalog filtering
+// ---------------------------------------------------------------------------
+describe('filterBySearch', () => {
+    function addCard(searchId, type, name) {
+        const a = document.createElement('a');
+        a.className = 'catalog-card-link';
+        a.dataset.searchId = searchId;
+        a.dataset.type = type;
+        const article = document.createElement('article');
+        const title = document.createElement('h3');
+        title.className = 'catalog-card-title';
+        title.textContent = name;
+        const desc = document.createElement('p');
+        desc.className = 'catalog-card-description';
+        desc.textContent = name + ' description';
+        const footer = document.createElement('div');
+        footer.className = 'catalog-card-footer';
+        article.appendChild(title);
+        article.appendChild(desc);
+        article.appendChild(footer);
+        a.appendChild(article);
+        document.body.appendChild(a);
+        return a;
+    }
+
+    function addHeroTab(filter, active) {
+        const btn = document.createElement('button');
+        btn.className = 'hero-tab' + (active ? ' active' : '');
+        btn.dataset.filter = filter;
+        document.body.appendChild(btn);
+        return btn;
+    }
+
+    beforeEach(() => {
+        document.body.innerHTML = `
+            <div id="catalogGrid"></div>
+            <div id="catalogEmptyState" style="display:none"></div>
+            <span id="resultsCount"></span>
+            <span id="resultsType"></span>
+        `;
+        window.__SEARCH_INDEX__ = [
+            {
+                id: 'secure-mcp-server', type: 'mcp', name: 'Secure MCP Server', category: '',
+                description: 'Deploy and manage a secure mcp server with policy enforcement',
+                deep_text: 'applyPolicy apply a security policy to the server auditPrompt audit current policies',
+                deep_items: [
+                    { label: 'applyPolicy (tool)', text: 'Apply a security policy to the server' },
+                    { label: 'auditPrompt (prompt)', text: 'Audit current policies' },
+                ],
+            },
+            {
+                id: 'test-api', type: 'api', name: 'Test API', category: 'Platform',
+                description: 'Test API platform endpoints',
+                deep_text: 'listWidgets returns all widgets, subject to policy limits',
+                deep_items: [
+                    { label: 'GET /widgets', text: 'listWidgets returns all widgets, subject to policy limits' },
+                ],
+            },
+        ];
+        buildSearchIndex();
+        currentQuery = '';
     });
 
-    test('returns array of tags from comma-separated param', () => {
-        setURL('/?tags=exchange,api,governance');
-        expect(getTagsFromURL()).toEqual(['exchange', 'api', 'governance']);
+    afterEach(() => {
+        document.body.innerHTML = '';
+        delete window.__SEARCH_INDEX__;
     });
 
-    test('normalizes tags to lowercase', () => {
-        setURL('/?tags=Exchange,API');
-        expect(getTagsFromURL()).toEqual(['exchange', 'api']);
+    test('empty query shows everything', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        currentQuery = '';
+        filterBySearch();
+        const links = document.querySelectorAll('.catalog-card-link');
+        links.forEach(l => expect(l.style.display).toBe(''));
     });
 
-    test('trims whitespace from tags', () => {
-        setURL('/?tags=foo%20,%20bar');
-        expect(getTagsFromURL()).toEqual(['foo', 'bar']);
+    test('matching query filters to relevant cards', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        currentQuery = 'deploy and manage an mcp server';
+        filterBySearch();
+        const mcpLink = document.querySelector('[data-search-id="secure-mcp-server"]');
+        const apiLink = document.querySelector('[data-search-id="test-api"]');
+        expect(mcpLink.style.display).not.toBe('none');
+        expect(apiLink.style.display).toBe('none');
     });
 
-    test('filters out empty tags', () => {
-        setURL('/?tags=foo,,bar,');
-        expect(getTagsFromURL()).toEqual(['foo', 'bar']);
+    // AC: below MIN_QUERY_LENGTH (3 chars) a query is treated like no query
+    // at all — short fuzzy/prefix queries (e.g. "ap") tend to match almost
+    // every card, so filtering before the user has typed enough would be
+    // noisy rather than helpful.
+    test('query shorter than 3 characters (after trim) shows everything, no highlighting', () => {
+        const mcpLink = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        const apiLink = addCard('test-api', 'api', 'Test API');
+        currentQuery = ' ap ';
+        filterBySearch();
+        expect(mcpLink.style.display).not.toBe('none');
+        expect(apiLink.style.display).not.toBe('none');
+        expect(mcpLink.querySelector('.catalog-card-title').innerHTML).not.toContain('search-highlight');
+    });
+
+    test('query at exactly 3 characters filters normally', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        currentQuery = 'mcp';
+        filterBySearch();
+        const mcpLink = document.querySelector('[data-search-id="secure-mcp-server"]');
+        const apiLink = document.querySelector('[data-search-id="test-api"]');
+        expect(mcpLink.style.display).not.toBe('none');
+        expect(apiLink.style.display).toBe('none');
+    });
+
+    test('empty-state toggles when nothing matches', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'totally unrelated nonexistent query zzz';
+        filterBySearch();
+        expect(document.getElementById('catalogEmptyState').style.display).toBe('');
+        expect(document.getElementById('catalogGrid').style.display).toBe('none');
+    });
+
+    test('hero-tab type filter combines with active query', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        addHeroTab('api', true);
+        currentQuery = '';
+        filterBySearch();
+        const mcpLink = document.querySelector('[data-search-id="secure-mcp-server"]');
+        const apiLink = document.querySelector('[data-search-id="test-api"]');
+        expect(mcpLink.style.display).toBe('none');
+        expect(apiLink.style.display).toBe('');
+    });
+
+    // AC: typo tolerance ("deploiy mcp") and morphological variants
+    // ("deploying"/"deployment") still surface secure-mcp-server, thanks to
+    // fuzzy/prefix matching plus the custom stemmer — exercised end-to-end
+    // through filterBySearch(), not just stemTerm() in isolation.
+    test.each([
+        ['deploiy mcp'],
+        ['deploying mcp server'],
+        ['deployment mcp server'],
+    ])('typo/morphological query %s still surfaces secure-mcp-server', (query) => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        currentQuery = query;
+        filterBySearch();
+        const mcpLink = document.querySelector('[data-search-id="secure-mcp-server"]');
+        expect(mcpLink.style.display).not.toBe('none');
+    });
+
+    // AC: fuzzy (edit-distance) matching against deep_text produces
+    // unexplainable false positives — e.g. "pepe" fuzzy-matching "pipe"
+    // somewhere inside a skill's body — with no visible highlight or badge
+    // to justify the result. deep_text search must be prefix/exact only.
+    test('a fuzzy near-miss against deep_text content does not surface the card', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'has-pipe-word', type: 'skill', name: 'Some Skill', category: '',
+            description: 'A skill with unrelated content',
+            deep_text: 'never pipe it into anything, redirect output instead',
+            deep_items: [{ label: 'Skill content', text: 'never pipe it into anything, redirect output instead' }],
+        }];
+        buildSearchIndex();
+        const card = addCard('has-pipe-word', 'skill', 'Some Skill');
+        currentQuery = 'pepe';
+        filterBySearch();
+        expect(card.style.display).toBe('none');
+    });
+
+    test('results count and hero-tab type label stay accurate for a filtered query', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        currentQuery = 'deploy and manage an mcp server';
+        filterBySearch();
+        expect(document.getElementById('resultsCount').textContent).toBe('1');
+        expect(document.getElementById('resultsType').textContent).toBe('All');
+    });
+
+    test('results count reflects hero-tab label when a type tab is active', () => {
+        addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        addCard('test-api', 'api', 'Test API');
+        addHeroTab('mcp', true);
+        currentQuery = '';
+        filterBySearch();
+        expect(document.getElementById('resultsCount').textContent).toBe('1');
+        expect(document.getElementById('resultsType').textContent).toBe('MCP Servers');
+    });
+
+    test('matching query highlights the query terms in card title/description', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'secure';
+        filterBySearch();
+        const title = card.querySelector('.catalog-card-title');
+        expect(title.innerHTML).toContain('<mark class="search-highlight">Secure</mark>');
+    });
+
+    test('clearing the query restores the original unhighlighted text', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'secure';
+        filterBySearch();
+        currentQuery = '';
+        filterBySearch();
+        const title = card.querySelector('.catalog-card-title');
+        expect(title.innerHTML).not.toContain('<mark');
+        expect(title.textContent).toBe('Secure MCP Server');
+    });
+
+    // Repeated/overlapping terms (e.g. "a a") must not corrupt the markup: a
+    // naive per-term sequential replace re-scans HTML already inserted by an
+    // earlier term (the "a" inside a previously-inserted
+    // <mark class="search-highlight"> tag), breaking the tag itself.
+    test('a query with a repeated term does not corrupt the highlighted markup', () => {
+        const card = addCard('test-api', 'api', 'Test API');
+        currentQuery = 'api api';
+        filterBySearch();
+        const title = card.querySelector('.catalog-card-title');
+        // The bug rendered garbled markup as literal visible text (e.g.
+        // 'ark class="search-highlight">Aark>PI') — textContent catches that.
+        expect(title.textContent).toBe('Test API');
+        const marks = title.querySelectorAll('mark.search-highlight');
+        expect(marks.length).toBeGreaterThan(0);
+        expect(marks[0].textContent).toBe('API');
+    });
+
+    test('single-letter stopwords ("a", "an") are ignored by search and highlighting', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'deploy and manage an mcp server';
+        filterBySearch();
+        expect(card.style.display).not.toBe('none');
+        const title = card.querySelector('.catalog-card-title');
+        // "an" must not highlight inside "MCP"/"Server", and "and" must not
+        // trigger a deep-match badge on its own.
+        expect(title.innerHTML).not.toContain('<mark class="search-highlight">M</mark>CP');
+        expect(title.innerHTML).not.toContain('<mark class="search-highlight">S</mark>erver');
+    });
+
+    // AC: results are reordered by relevance (title/description > deep
+    // content), not left in build-time alphabetical DOM order.
+    test('cards are ranked by relevance via CSS order, description match ranks above deep-text-only match', () => {
+        const apiLink = addCard('test-api', 'api', 'Test API');
+        const mcpLink = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'policy';
+        filterBySearch();
+        // "policy" appears in the mcp's description (boosted) and only in
+        // the api's deep_text (unboosted) — mcp must rank first.
+        expect(Number(mcpLink.style.order)).toBeLessThan(Number(apiLink.style.order));
+    });
+
+    // AC: field tiers are strict, not additive — a huge deep_text match
+    // count must never outweigh even a single description match.
+    test('one description match beats twenty deep_text matches', () => {
+        window.__SEARCH_INDEX__ = [
+            {
+                id: 'many-deep-matches', type: 'api', name: 'Bulk Endpoints API', category: '',
+                description: 'Handles bulk operations',
+                deep_text: Array.from({ length: 20 }, (_, i) => 'widget' + i + ' policy').join(' '),
+                deep_items: [],
+            },
+            {
+                id: 'one-description-match', type: 'api', name: 'Other API', category: '',
+                description: 'Applies a single policy check',
+                deep_text: 'unrelated content',
+                deep_items: [],
+            },
+        ];
+        buildSearchIndex();
+        const manyLink = addCard('many-deep-matches', 'api', 'Bulk Endpoints API');
+        const oneLink = addCard('one-description-match', 'api', 'Other API');
+        currentQuery = 'policy';
+        filterBySearch();
+        expect(Number(oneLink.style.order)).toBeLessThan(Number(manyLink.style.order));
+    });
+
+    test('clearing the query resets order back to DOM default', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'secure';
+        filterBySearch();
+        expect(card.style.order).not.toBe('');
+        currentQuery = '';
+        filterBySearch();
+        expect(card.style.order).toBe('');
+    });
+
+    // AC: when a match exists only in content not rendered on the card
+    // (deep_text — API operations, MCP tools, skill body, terraform docs),
+    // surface a badge in the card footer explaining why the card matched,
+    // since no visible highlight can show it. The badge shows the match
+    // count; hovering it reveals the actual excerpt via the existing
+    // [data-tooltip] tooltip system.
+    test('shows a deep-match badge with a tooltip excerpt when the match is only in deep_text', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'applyPolicy';
+        filterBySearch();
+        const badge = card.querySelector('.catalog-card-deep-match');
+        expect(badge).not.toBeNull();
+        expect(badge.textContent).toBe('1 match');
+        const title = card.querySelector('.catalog-card-title');
+        expect(title.innerHTML).not.toContain('<mark');
+
+        const tooltip = badge.getAttribute('data-tooltip');
+        expect(tooltip).toContain('applyPolicy (tool)');
+        expect(tooltip).toContain('**applyPolicy**');
+    });
+
+    test('does not show a deep-match badge when the title/description already highlights', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'secure';
+        filterBySearch();
+        expect(card.querySelector('.catalog-card-deep-match')).toBeNull();
+    });
+
+    test('removes a stale deep-match badge once the query no longer deep-matches', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'applyPolicy';
+        filterBySearch();
+        expect(card.querySelector('.catalog-card-deep-match')).not.toBeNull();
+        currentQuery = '';
+        filterBySearch();
+        expect(card.querySelector('.catalog-card-deep-match')).toBeNull();
+    });
+
+    // AC: when the same query term matches more than one deep_items entry,
+    // list each match once (dedupe by item), capped at 3, with a "+N more"
+    // overflow line beyond the cap.
+    test('tooltip lists multiple matched items and caps overflow at "+N more"', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'multi-match', type: 'mcp', name: 'Multi Match Server', category: '',
+            description: 'A server with several matching tools',
+            deep_text: 'policyOne apply policy policyTwo enforce policy policyThree check policy policyFour audit policy',
+            deep_items: [
+                { label: 'policyOne (tool)', text: 'apply policy' },
+                { label: 'policyTwo (tool)', text: 'enforce policy' },
+                { label: 'policyThree (tool)', text: 'check policy' },
+                { label: 'policyFour (tool)', text: 'audit policy' },
+            ],
+        }];
+        buildSearchIndex();
+        const card = addCard('multi-match', 'mcp', 'Multi Match Server');
+        currentQuery = 'policy';
+        filterBySearch();
+        const badge = card.querySelector('.catalog-card-deep-match');
+        expect(badge.textContent).toBe('4 matches');
+        const tooltip = badge.getAttribute('data-tooltip');
+        expect(tooltip).toContain('policyOne (tool)');
+        expect(tooltip).toContain('policyTwo (tool)');
+        expect(tooltip).toContain('policyThree (tool)');
+        expect(tooltip).not.toContain('policyFour (tool)');
+        expect(tooltip).toContain('+1 more');
+    });
+
+    // AC: the excerpt must contain a real occurrence of the searched term
+    // (or a legitimate stem of it), never an unrelated short word that
+    // happens to share a prefix (e.g. "a" is a prefix of "access" but is
+    // not a match for it).
+    test('excerpt highlights the actual searched word, not an unrelated short prefix match', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'discover-portal-apis', type: 'skill', name: 'Discover Portal APIs', category: '',
+            description: 'Find and evaluate APIs published on the portal',
+            deep_text: 'Discover Portal APIs Overview As a portal consumer end user you need to find the right API before requesting access',
+            deep_items: [
+                { label: 'Skill content', text: 'Discover Portal APIs\n\n## Overview\n\nAs a portal consumer (end user), you need to find the right API and understand what it does before requesting access.' },
+            ],
+        }];
+        buildSearchIndex();
+        const card = addCard('discover-portal-apis', 'skill', 'Discover Portal APIs');
+        currentQuery = 'access';
+        filterBySearch();
+        const badge = card.querySelector('.catalog-card-deep-match');
+        expect(badge).not.toBeNull();
+        const tooltip = badge.getAttribute('data-tooltip');
+        expect(tooltip).toContain('**access**');
+    });
+
+    // AC: when the deep-match badge's tooltip actually renders (on hover),
+    // the searched term inside the excerpt is rendered as a search-highlight
+    // <mark>, not a plain <strong>, so it visually matches the yellow
+    // highlight used elsewhere on the page.
+    test('rendered tooltip highlights the matched term with the search-highlight color', () => {
+        const card = addCard('secure-mcp-server', 'mcp', 'Secure MCP Server');
+        currentQuery = 'applyPolicy';
+        filterBySearch();
+        const badge = card.querySelector('.catalog-card-deep-match');
+        badge.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        const tip = document.getElementById('portal-tooltip');
+        expect(tip).not.toBeNull();
+        expect(tip.innerHTML).toContain('<mark class="search-highlight">applyPolicy</mark>');
+        expect(tip.innerHTML).not.toContain('<strong>');
+    });
+
+    // AC: deep_items text is raw source content that can already contain its
+    // own markdown (e.g. skill body **bold** headers). The excerpt's own **
+    // wrapper around the matched word must not collide with pre-existing
+    // markdown syntax in the surrounding context, or the rendered tooltip
+    // highlights the wrong span (repro: "Anypoint Platform **Access**" with
+    // query "access" used to highlight "Anypoint Platform " instead).
+    test('excerpt highlights only the matched word even when surrounded by pre-existing markdown', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'setup-service-scanner', type: 'skill', name: 'Setup Service Scanner', category: '',
+            description: 'Creates a scanner configuration',
+            deep_text: 'Anypoint Platform Access valid Anypoint Platform account with appropriate permissions',
+            deep_items: [
+                { label: 'Skill content', text: '1. **Anypoint Platform Access**\n   - Valid Anypoint Platform account with appropriate permissions' },
+            ],
+        }];
+        buildSearchIndex();
+        const card = addCard('setup-service-scanner', 'skill', 'Setup Service Scanner');
+        currentQuery = 'access';
+        filterBySearch();
+        const badge = card.querySelector('.catalog-card-deep-match');
+        expect(badge).not.toBeNull();
+        const tooltip = badge.getAttribute('data-tooltip');
+        expect(tooltip).toContain('**Access**');
+        expect(tooltip).not.toContain('**Anypoint');
+        // No stray asterisks from the source markdown should survive into
+        // the excerpt's surrounding context.
+        expect(tooltip).not.toContain('****');
+    });
+
+    // AC: the strict tier requires every query term to match somewhere in
+    // title+description TOGETHER (an AND scoped to that field group) — a doc
+    // qualifies even if different terms hit different fields, since the spec
+    // is "title and/or description match all the words", not "the same
+    // field matches every word".
+    test('strict tier matches when different query terms hit title vs. description separately', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'split-match', type: 'api', name: 'Audit Tool', category: '',
+            description: 'inspects widget inventory',
+            deep_text: 'unrelated content',
+            deep_items: [],
+        }];
+        buildSearchIndex();
+        const card = addCard('split-match', 'api', 'Audit Tool');
+        currentQuery = 'audit widget';
+        filterBySearch();
+        expect(card.style.display).not.toBe('none');
+        expect(card.querySelector('.catalog-card-deep-match')).toBeNull();
+    });
+
+    // AC precise re-spec: block 1 = title/description match ALL terms (AND).
+    // Block 2 = title/description match SOME term (OR, minus block 1) UNION
+    // content-only (deep_text, neither title nor description) matching ALL
+    // terms (AND, minus block 1). A doc satisfying neither must stay hidden.
+    // Both groups are appended into one continuous ranked list — no visual
+    // separator between them, just relative order.
+    test('related matches rank after strict matches in one continuous order, as a union of a partial title/description match and a full deep_text-only match, and docs matching neither stay hidden', () => {
+        window.__SEARCH_INDEX__ = [
+            {
+                id: 'strict-doc', type: 'api', name: 'Audit Tool', category: '',
+                description: 'inspects widget inventory',
+                deep_text: 'nothing relevant here',
+                deep_items: [],
+            },
+            {
+                id: 'related-or-doc', type: 'api', name: 'Other Tool', category: '',
+                description: 'widget inventory system',
+                deep_text: 'nothing relevant here either',
+                deep_items: [],
+            },
+            {
+                id: 'related-deep-and-doc', type: 'api', name: 'Nothing Related', category: '',
+                description: 'no overlap at all',
+                deep_text: 'audit widget report, a full audit of all widget types',
+                deep_items: [{ label: 'Report', text: 'audit widget report, a full audit of all widget types' }],
+            },
+            {
+                id: 'no-match-doc', type: 'api', name: 'Irrelevant Tool', category: '',
+                description: 'nothing to see',
+                deep_text: 'audit only, no other term here',
+                deep_items: [],
+            },
+        ];
+        buildSearchIndex();
+        const strictLink = addCard('strict-doc', 'api', 'Audit Tool');
+        const relatedOrLink = addCard('related-or-doc', 'api', 'Other Tool');
+        const relatedDeepLink = addCard('related-deep-and-doc', 'api', 'Nothing Related');
+        const noMatchLink = addCard('no-match-doc', 'api', 'Irrelevant Tool');
+        currentQuery = 'audit widget';
+        filterBySearch();
+
+        expect(strictLink.style.display).not.toBe('none');
+        expect(relatedOrLink.style.display).not.toBe('none');
+        expect(relatedDeepLink.style.display).not.toBe('none');
+        expect(noMatchLink.style.display).toBe('none');
+
+        const strictOrder = Number(strictLink.style.order);
+        const relatedOrOrder = Number(relatedOrLink.style.order);
+        const relatedDeepOrder = Number(relatedDeepLink.style.order);
+        expect(strictOrder).toBeLessThan(relatedOrOrder);
+        expect(strictOrder).toBeLessThan(relatedDeepOrder);
+
+        // No gap reserved for a divider — order values are consecutive.
+        expect(document.getElementById('catalogRelatedDivider')).toBeNull();
+
+        // deep_text-only match still gets its "why matched" badge in the
+        // related tier, same as before.
+        expect(relatedDeepLink.querySelector('.catalog-card-deep-match')).not.toBeNull();
+    });
+
+    // AC: a plain OR on a 4+ term query lets a single generic word (e.g.
+    // "manage" matching dozens of "X Manager" cards) flood the related tier
+    // with results that share almost nothing with what was actually typed.
+    // The related (OR) tier requires a strict majority of the query's terms
+    // to match (more than half — floor(n/2)+1, capped at n-1), not just one
+    // or two, so a doc must genuinely overlap with the query to show up as
+    // "related" rather than "strict".
+    test('related tier requires a strict majority of query terms to match, not just one or two', () => {
+        window.__SEARCH_INDEX__ = [
+            {
+                id: 'one-term-only', type: 'api', name: 'Config Manager', category: '',
+                description: 'manages configuration values',
+                deep_text: 'unrelated content',
+                deep_items: [],
+            },
+            {
+                id: 'two-of-four-terms', type: 'api', name: 'Server Manager', category: '',
+                description: 'manages server instances',
+                deep_text: 'unrelated content',
+                deep_items: [],
+            },
+            {
+                id: 'three-of-four-terms', type: 'api', name: 'Server Deployment Manager', category: '',
+                description: 'manages server deployments',
+                deep_text: 'unrelated content',
+                deep_items: [],
+            },
+        ];
+        buildSearchIndex();
+        const oneTermLink = addCard('one-term-only', 'api', 'Config Manager');
+        const twoTermsLink = addCard('two-of-four-terms', 'api', 'Server Manager');
+        const threeTermsLink = addCard('three-of-four-terms', 'api', 'Server Deployment Manager');
+        // 4 meaningful terms after stopword removal: deploy, manage, mcp, server.
+        // Majority floor for 4 terms is 3 (floor(4/2)+1, capped at 4-1=3).
+        currentQuery = 'deploy and manage mcp server';
+        filterBySearch();
+        // Only matches "manage" (1 of 4 terms) — below the majority floor.
+        expect(oneTermLink.style.display).toBe('none');
+        // Matches "manage" and "server" (2 of 4 terms) — still below the floor.
+        expect(twoTermsLink.style.display).toBe('none');
+        // Matches "deploy", "manage", and "server" (3 of 4 terms) — meets the floor.
+        expect(threeTermsLink.style.display).not.toBe('none');
+    });
+
+    // AC: for short queries (1-2 terms) the majority floor must stay at "at
+    // least 1" — a strict majority of 2 terms would require matching both,
+    // which collapses the related (OR) tier into the strict (AND) tier and
+    // defeats its purpose as a lower-confidence fallback.
+    test('related tier floor stays at "at least one term" for short queries', () => {
+        window.__SEARCH_INDEX__ = [{
+            id: 'partial-match', type: 'api', name: 'Secure Widget API', category: '',
+            description: 'widget endpoints',
+            deep_text: 'unrelated content',
+            deep_items: [],
+        }];
+        buildSearchIndex();
+        const card = addCard('partial-match', 'api', 'Secure Widget API');
+        currentQuery = 'secure mcp';
+        filterBySearch();
+        expect(card.style.display).not.toBe('none');
+    });
+
+    // AC (regression): detail pages (API/MCP/skill/terraform) share this same
+    // portal.js bundle but never define window.__SEARCH_INDEX__ (only the
+    // homepage does) and don't load minisearch.min.js at all. buildSearchIndex()
+    // used to throw in that case, which — since it runs synchronously inside
+    // the single DOMContentLoaded handler — aborted every listener registered
+    // after it (sidebar nav, popstate, etc.), breaking in-page navigation.
+    test('buildSearchIndex is a no-op when __SEARCH_INDEX__ is absent (detail pages)', () => {
+        delete window.__SEARCH_INDEX__;
+        searchIndex = null;
+        expect(() => buildSearchIndex()).not.toThrow();
+        expect(searchIndex).toBeNull();
+    });
+
+    test('buildSearchIndex is a no-op when MiniSearch is not loaded (detail pages)', () => {
+        const realMiniSearch = globalThis.MiniSearch;
+        delete globalThis.MiniSearch;
+        searchIndex = null;
+        try {
+            expect(() => buildSearchIndex()).not.toThrow();
+            expect(searchIndex).toBeNull();
+        } finally {
+            globalThis.MiniSearch = realMiniSearch;
+        }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// debounce — delays fn invocation and coalesces rapid successive calls
+// ---------------------------------------------------------------------------
+describe('debounce', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    test('does not call fn before the delay elapses', () => {
+        const fn = jest.fn();
+        const debounced = debounce(fn, 150);
+        debounced();
+        jest.advanceTimersByTime(100);
+        expect(fn).not.toHaveBeenCalled();
+    });
+
+    test('calls fn once the delay elapses', () => {
+        const fn = jest.fn();
+        const debounced = debounce(fn, 150);
+        debounced();
+        jest.advanceTimersByTime(150);
+        expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    test('coalesces rapid successive calls into a single invocation', () => {
+        const fn = jest.fn();
+        const debounced = debounce(fn, 150);
+        debounced();
+        jest.advanceTimersByTime(50);
+        debounced();
+        jest.advanceTimersByTime(50);
+        debounced();
+        jest.advanceTimersByTime(150);
+        expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    test('forwards arguments to the wrapped function', () => {
+        const fn = jest.fn();
+        const debounced = debounce(fn, 150);
+        debounced('deploy mcp server');
+        jest.advanceTimersByTime(150);
+        expect(fn).toHaveBeenCalledWith('deploy mcp server');
     });
 });
 
@@ -1520,16 +2148,35 @@ describe('getViewFromURL', () => {
     });
 });
 
+describe('getQueryFromURL', () => {
+    afterEach(() => setURL('/'));
+
+    test('returns empty string when no q param', () => {
+        setURL('/');
+        expect(getQueryFromURL()).toBe('');
+    });
+
+    test('returns query value from URL', () => {
+        setURL('/?q=deploy%20mcp%20server');
+        expect(getQueryFromURL()).toBe('deploy mcp server');
+    });
+
+    test('returns empty string for empty q param', () => {
+        setURL('/?q=');
+        expect(getQueryFromURL()).toBe('');
+    });
+});
+
 describe('updateURLState', () => {
     beforeEach(() => {
         setURL('/');
         document.body.innerHTML = '';
-        selectedTags.length = 0;
+        currentQuery = '';
     });
 
     afterEach(() => {
         document.body.innerHTML = '';
-        selectedTags.length = 0;
+        currentQuery = '';
     });
 
     function addHeroTab(filter, active) {
@@ -1566,27 +2213,27 @@ describe('updateURLState', () => {
         expect(getParams().has('filter')).toBe(false);
     });
 
-    test('sets tags param from selectedTags', () => {
+    test('sets q param from currentQuery', () => {
         addHeroTab('all', true);
         addViewBtn('grid', true);
-        selectedTags.push('exchange', 'governance');
+        currentQuery = 'deploy mcp server';
         updateURLState();
-        expect(getParams().get('tags')).toBe('exchange,governance');
+        expect(getParams().get('q')).toBe('deploy mcp server');
     });
 
-    test('omits tags param when no tags selected', () => {
+    test('omits q param when currentQuery is shorter than 3 characters', () => {
+        addHeroTab('all', true);
+        addViewBtn('grid', true);
+        currentQuery = 'ap';
+        updateURLState();
+        expect(getParams().has('q')).toBe(false);
+    });
+
+    test('omits q param when currentQuery is empty', () => {
         addHeroTab('all', true);
         addViewBtn('grid', true);
         updateURLState();
-        expect(getParams().has('tags')).toBe(false);
-    });
-
-    test('sets view param when list mode', () => {
-        addHeroTab('all', true);
-        addViewBtn('list', true);
-        updateURLState();
-        // View mode disabled for launch - always grid
-        expect(getParams().has('view')).toBe(false);
+        expect(getParams().has('q')).toBe(false);
     });
 
     test('omits view param when grid mode (default)', () => {
@@ -1599,10 +2246,10 @@ describe('updateURLState', () => {
     test('combines all state in URL', () => {
         addHeroTab('mcp', true);
         addViewBtn('list', true);
-        selectedTags.push('exchange');
+        currentQuery = 'secure server';
         updateURLState();
         expect(getParams().get('filter')).toBe('mcp');
-        expect(getParams().get('tags')).toBe('exchange');
+        expect(getParams().get('q')).toBe('secure server');
         // View mode disabled for launch - always grid
         expect(getParams().has('view')).toBe(false);
     });

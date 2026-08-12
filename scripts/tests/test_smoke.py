@@ -139,6 +139,46 @@ class TestHomepageStructure:
         assert 'count' in options
         assert 'endpoints' not in options
 
+    def test_has_catalog_search_input(self):
+        search_input = self.soup.find('input', id='catalogSearchInput')
+        assert search_input is not None
+        assert search_input.get('placeholder') == 'Search APIs, skills, and MCP servers'
+
+    def test_no_tag_search_input(self):
+        assert self.soup.find('input', id='tagSearchInput') is None
+        assert self.soup.find(id='tagSuggestions') is None
+
+    def test_card_links_have_search_id(self):
+        card_links = self.soup.find_all('a', class_='catalog-card-link')
+        assert len(card_links) > 0
+        for link in card_links:
+            assert link.get('data-search-id'), f"missing data-search-id on {link.get('href')}"
+
+    def test_no_tag_chip_dead_dom(self):
+        # AC: the tag-chip picker (state, functions, DOM, CSS hooks it
+        # uniquely needed) is completely removed — no leftover dead DOM.
+        assert self.soup.find(id='selectedTags') is None
+        assert self.soup.find(id='tagSearchInputContainer') is None
+        assert self.soup.find(class_='tag-chip') is None
+        assert self.soup.find(class_='tag-suggestion-item') is None
+
+    def test_data_search_id_matches_a_real_catalog_slug(self, generated_portal):
+        # AC: window.__SEARCH_INDEX__ ids are what filterBySearch() matches
+        # data-search-id against — they must actually correspond, not just
+        # both be independently non-empty.
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        marker = 'window.__SEARCH_INDEX__ = '
+        start = html.index(marker) + len(marker)
+        end = html.index(';</script>', start)
+        doc_ids = {d['id'] for d in json.loads(html[start:end])}
+
+        card_links = self.soup.find_all('a', class_='catalog-card-link')
+        for link in card_links:
+            search_id = link.get('data-search-id')
+            assert search_id in doc_ids, (
+                f"data-search-id={search_id!r} on {link.get('href')} has no "
+                f"matching document in window.__SEARCH_INDEX__")
+
 
 class TestDetailPageStructure:
     @pytest.fixture(autouse=True)
@@ -376,6 +416,68 @@ class TestRegistryStructure:
                 assert entry['docs'] == 'schemas/x-origin-schema.md'
             elif entry['$id'] == 'urn:schema:jtbd':
                 assert entry['href'] == 'schemas/jtbd-schema.md'
+
+
+class TestSearchIndexArtifact:
+    def test_search_index_present_in_homepage(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        assert '__SEARCH_INDEX__' in html
+
+    def test_search_index_count_matches_catalog(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        marker = 'window.__SEARCH_INDEX__ = '
+        start = html.index(marker) + len(marker)
+        end = html.index(';</script>', start)
+        docs = json.loads(html[start:end])
+
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        # test-api (1) + test-mcp (1) + 4 skills (deploy-app, platform-guide,
+        # run-diagnostics, build-mule-app) + anypoint-provider (1) = 7,
+        # matching the generated_portal fixture's known catalog composition.
+        assert len(docs) == 7
+        assert {d['type'] for d in docs} == {'api', 'mcp', 'skill', 'terraform'}
+
+    def test_search_index_documents_have_required_fields(self, generated_portal):
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        marker = 'window.__SEARCH_INDEX__ = '
+        start = html.index(marker) + len(marker)
+        end = html.index(';</script>', start)
+        docs = json.loads(html[start:end])
+        for doc in docs:
+            assert set(doc.keys()) == {'id', 'type', 'name', 'category', 'description', 'deep_text', 'deep_items'}
+            assert doc['name'].strip() != ''
+
+    def test_minisearch_js_vendored_and_hashed(self, generated_portal):
+        js_files = list((generated_portal / 'assets').glob('minisearch.min.*.js'))
+        assert len(js_files) == 1
+        assert js_files[0].stat().st_size > 0
+
+    def test_minisearch_script_tag_loads_before_portal_js(self, generated_portal):
+        # AC/spec: portal.js's DOMContentLoaded handler calls buildSearchIndex(),
+        # which needs the MiniSearch global already defined — the <script>
+        # tag order in the emitted HTML must load minisearch before portal.js.
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        minisearch_pos = html.index('assets/minisearch.min.')
+        portal_js_pos = html.index('assets/portal.')
+        assert minisearch_pos < portal_js_pos
+
+    def test_search_index_id_matches_registry_slugs(self, generated_portal):
+        # Defensive cross-check: every search-index document id must be a real
+        # slug from the registry (api/mcp/skill), so a future field-name typo
+        # in search_index.py (e.g. using 'name' instead of 'slug' as id)
+        # doesn't silently pass the count-only assertion above.
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        marker = 'window.__SEARCH_INDEX__ = '
+        start = html.index(marker) + len(marker)
+        end = html.index(';</script>', start)
+        docs = json.loads(html[start:end])
+
+        registry = json.loads((generated_portal / 'registry.json').read_text())
+        registry_slugs = {e['slug'] for e in registry if 'slug' in e}
+        # Every non-terraform search doc id should trace back to a registry
+        # slug (terraform providers aren't in registry.json today).
+        non_terraform_ids = {d['id'] for d in docs if d['type'] != 'terraform'}
+        assert non_terraform_ids <= registry_slugs
 
 
 class TestAgentFiles:

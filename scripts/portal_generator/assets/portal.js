@@ -1254,166 +1254,199 @@ var GLOBAL_PARAM_X_ORIGIN = {};
 // ============================================================================
 
 // ============================================================================
-// Tag-based Search System
+// Free-text Search System (MiniSearch-backed)
 // ============================================================================
 
-var selectedTags = [];
-var availableTags = [];
-var currentSuggestionIndex = -1;
-var lastNonEmptySuggestions = [];
+var searchIndex = null;   // MiniSearch instance, built once
+var deepItemsById = null; // id -> deep_items array, powers the "why matched" tooltip
+var currentQuery = '';    // current free-text query, drives filterBySearch()
 
-function buildAvailableTags() {
-    const tagSet = new Set();
-    const cardLinks = document.querySelectorAll('.catalog-card-link');
+// Below this many characters a query is too short to rank meaningfully (e.g.
+// "ap" fuzzy/prefix-matches almost every card) — treat it like no query at
+// all rather than surfacing noisy results while the user is still typing.
+const MIN_QUERY_LENGTH = 3;
 
-    cardLinks.forEach(cardLink => {
-        // Add name
-        const name = cardLink.dataset.name || '';
-        if (name) tagSet.add(name.toLowerCase());
+function isSearchableQuery(query) {
+    return query.trim().length >= MIN_QUERY_LENGTH;
+}
 
-        // Add category
-        const category = cardLink.dataset.category || '';
-        if (category) tagSet.add(category.toLowerCase());
+function buildSearchIndex() {
+    // Only the homepage loads minisearch.min.js and defines __SEARCH_INDEX__;
+    // detail pages (API/MCP/skill/terraform) include this same portal.js
+    // bundle but have no catalog to search, so skip silently instead of
+    // throwing ReferenceError: MiniSearch is not defined mid-DOMContentLoaded
+    // (which would abort every listener registered after this call).
+    if (typeof MiniSearch === 'undefined' || !window.__SEARCH_INDEX__) return;
+    const docs = window.__SEARCH_INDEX__;
+    searchIndex = new MiniSearch({
+        idField: 'id',
+        fields: ['name', 'description', 'deep_text'],
+        storeFields: ['id', 'type'],
+        processTerm: stemTerm,
+        searchOptions: { fuzzy: 0.2, prefix: true, boost: { name: 3, description: 2 } },
+    });
+    searchIndex.addAll(docs);
+    deepItemsById = new Map(docs.map(doc => [doc.id, doc.deep_items || []]));
+}
 
-        // Add type
-        const type = cardLink.dataset.type || '';
-        if (type) {
-            tagSet.add(type.toLowerCase());
-            // Also add variations
-            if (type === 'api') tagSet.add('api');
+// Search name/description with fuzzy+prefix (typo tolerance matters most
+// where the user actually reads the text). combineWith lets callers require
+// every query term to match (AND) vs. any term (OR, MiniSearch's default).
+function searchNameDescription(query, combineWith) {
+    return searchIndex.search(query, { combineWith, fields: ['name', 'description'] });
+}
+
+// deep_text (API operations, MCP tools, skill body, terraform docs — never
+// rendered on the card) is always prefix/exact only, never fuzzy:
+// edit-distance matching against thousands of words of unseen content
+// produces false positives (e.g. "pepe" fuzzy-matching "pipe") with no
+// visible highlight to explain the match.
+function searchDeepText(query, combineWith) {
+    return searchIndex.search(query, { combineWith, fields: ['deep_text'], fuzzy: false });
+}
+
+// Merges same-query result sets (e.g. a name/description search and a
+// deep_text search run with different fuzzy settings) by id, keeping the
+// highest score and the union of matched terms/fields.
+function mergeResultsById(resultSets) {
+    const byId = new Map();
+    resultSets.flat().forEach(r => {
+        const existing = byId.get(r.id);
+        if (!existing) {
+            byId.set(r.id, r);
+            return;
         }
-
-        // Add spec-declared tags (data-tags="tag1,tag2")
-        const tagsAttr = cardLink.dataset.tags || '';
-        tagsAttr.split(',').forEach(t => {
-            const trimmed = t.trim().toLowerCase();
-            if (trimmed) tagSet.add(trimmed);
+        const mergedMatch = { ...existing.match };
+        Object.entries(r.match || {}).forEach(([term, fields]) => {
+            mergedMatch[term] = [...new Set([...(mergedMatch[term] || []), ...fields])];
         });
+        byId.set(r.id, { ...existing, match: mergedMatch, score: Math.max(existing.score, r.score) });
+    });
+    return Array.from(byId.values());
+}
 
-        // Extract individual words from name
-        name.split(/\s+/).forEach(word => {
-            if (word.length > 2) tagSet.add(word.toLowerCase());
+// Common English stopwords: no semantic value for ranking, and matching them
+// literally (e.g. "an" inside "Anypoint") produces noisy, unexplainable hits.
+// MiniSearch has no built-in stopword list — processTerm returning a falsy
+// value is its documented hook for dropping a term at both index and search
+// time, so this doubles as that hook (see buildSearchIndex()).
+const STOPWORDS = new Set([
+    'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
+    'has', 'in', 'into', 'is', 'it', 'of', 'on', 'or', 'that', 'the',
+    'to', 'was', 'with',
+]);
+
+function stemTerm(term) {
+    let t = term.toLowerCase();
+    if (STOPWORDS.has(t)) return '';
+    if (t.length > 5 && t.endsWith('ment')) return t.slice(0, -4);
+    if (t.length > 5 && t.endsWith('ing')) return t.slice(0, -3);
+    if (t.length > 4 && t.endsWith('ed')) return t.slice(0, -2);
+    if (t.length > 3 && t.endsWith('s') && !t.endsWith('ss')) return t.slice(0, -1);
+    return t;
+}
+
+// Number of distinct search concepts in a query, after the same stopword
+// filtering and stemming MiniSearch applies via processTerm (stemTerm) —
+// used to size the "how many terms must match" threshold for the related
+// (OR) tier below.
+function countQueryTerms(query) {
+    return new Set(query.split(/\s+/).filter(Boolean).map(stemTerm).filter(Boolean)).size;
+}
+
+// Strict majority of n terms (more than half — floor(n/2)+1), capped at
+// n-1 so the related tier's OR search never effectively demands every term
+// (that's what the strict AND tier is for). For 1-2 term queries this is
+// the same "at least 1" floor as before; longer queries need more overlap
+// to count as "related" rather than one generic word pulling in the whole
+// catalog (e.g. "manage" alone matching every "X Manager" card).
+function majorityThreshold(n) {
+    return Math.min(n - 1, Math.floor(n / 2) + 1);
+}
+
+// Re-rank MiniSearch's results into strict field tiers: any match in
+// `name` (title) outranks every result with no title match, regardless of
+// how many terms matched elsewhere; `description` similarly outranks
+// `deep_text`. Match count within a field only breaks ties inside the same
+// tier. MiniSearch's own weighted score is the final tiebreaker, so quality
+// signals (fuzzy distance, term frequency) still matter once tiers and
+// counts are exhausted.
+function rankSearchResults(results) {
+    function fieldMatchCount(result, field) {
+        let count = 0;
+        Object.values(result.match || {}).forEach(fields => {
+            if (fields.includes(field)) count++;
         });
-
-        // Extract individual words from category
-        category.split(/\s+/).forEach(word => {
-            if (word.length > 2) tagSet.add(word.toLowerCase());
-        });
+        return count;
+    }
+    const ranked = results.map(r => ({
+        result: r,
+        nameCount: fieldMatchCount(r, 'name'),
+        descriptionCount: fieldMatchCount(r, 'description'),
+        deepTextCount: fieldMatchCount(r, 'deep_text'),
+    }));
+    ranked.sort((a, b) => {
+        if (a.nameCount !== b.nameCount) return b.nameCount - a.nameCount;
+        if (a.descriptionCount !== b.descriptionCount) return b.descriptionCount - a.descriptionCount;
+        if (a.deepTextCount !== b.deepTextCount) return b.deepTextCount - a.deepTextCount;
+        return b.result.score - a.result.score;
     });
-
-    availableTags = Array.from(tagSet).sort();
+    return ranked.map(entry => entry.result);
 }
 
-function showTagSuggestions(query) {
-    const suggestionsDiv = document.getElementById('tagSuggestions');
-    if (!suggestionsDiv) return;
-
-    if (!query || query.length < 1) {
-        suggestionsDiv.style.display = 'none';
-        currentSuggestionIndex = -1;
-        return;
-    }
-
-    const lowerQuery = query.toLowerCase();
-    const matches = availableTags.filter(tag =>
-        tag.includes(lowerQuery) && !selectedTags.includes(tag)
-    ).slice(0, 10);
-
-    const displayList = matches.length > 0 ? matches : lastNonEmptySuggestions;
-
-    if (matches.length > 0) {
-        lastNonEmptySuggestions = matches;
-    }
-
-    if (displayList.length === 0) {
-        suggestionsDiv.style.display = 'none';
-        currentSuggestionIndex = -1;
-        return;
-    }
-
-    let html = '';
-    displayList.forEach((tag, index) => {
-        const activeClass = index === currentSuggestionIndex ? 'active' : '';
-        html += '<div class="tag-suggestion-item ' + activeClass + '" data-tag="' + escapeHtml(tag) + '">' + escapeHtml(tag) + '</div>';
-    });
-
-    suggestionsDiv.innerHTML = html;
-    suggestionsDiv.style.display = 'block';
-
-    // Add click handlers
-    suggestionsDiv.querySelectorAll('.tag-suggestion-item').forEach((item, index) => {
-        item.addEventListener('click', function() {
-            addTag(item.dataset.tag);
-        });
-    });
+function debounce(fn, ms) {
+    let timer = null;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), ms);
+    };
 }
 
-function addTag(tag) {
-    if (!tag || selectedTags.includes(tag.toLowerCase())) return;
-
-    const normalizedTag = tag.toLowerCase();
-    selectedTags.push(normalizedTag);
-    renderSelectedTags();
-    filterByTags();
-
-    // Clear input
-    const input = document.getElementById('tagSearchInput');
-    if (input) {
-        input.value = '';
-        input.focus();
-    }
-
-    // Hide suggestions
-    const suggestionsDiv = document.getElementById('tagSuggestions');
-    if (suggestionsDiv) {
-        suggestionsDiv.style.display = 'none';
-    }
-    currentSuggestionIndex = -1;
-}
-
-function removeTag(tag) {
-    selectedTags = selectedTags.filter(t => t !== tag);
-    renderSelectedTags();
-    filterByTags();
-}
-
-function renderSelectedTags() {
-    const container = document.getElementById('selectedTags');
-    if (!container) return;
-
-    if (selectedTags.length === 0) {
-        container.innerHTML = '';
-        updatePlaceholder();
-        return;
-    }
-
-    let html = '';
-    selectedTags.forEach(tag => {
-        html += '<div class="tag-chip">';
-        html += '<span>' + escapeHtml(tag) + '</span>';
-        html += '<button class="tag-chip-remove" onclick="removeTag(\'' + escapeHtml(tag) + '\')" aria-label="Remove tag">&times;</button>';
-        html += '</div>';
-    });
-
-    container.innerHTML = html;
-    updatePlaceholder();
-}
-
-function updatePlaceholder() {
-    const input = document.getElementById('tagSearchInput');
-    if (!input) return;
-
-    if (selectedTags.length > 0) {
-        input.placeholder = '';
-    } else {
-        input.placeholder = 'Search by tags';
-    }
-}
-
-function filterByTags() {
+function filterBySearch() {
     const cardLinks = document.querySelectorAll('.catalog-card-link');
     const activeTab = document.querySelector('.hero-tab.active');
     const selectedType = activeTab ? activeTab.dataset.filter : 'all';
+    const catalogGrid = document.getElementById('catalogGrid');
+
+    let rankById = null;    // null = no query, everyone matches, no reordering
+    let matchedFieldsById = null;  // id -> Set of matched field names (name/description/deep_text)
+
+    if (isSearchableQuery(currentQuery) && searchIndex) {
+        const query = currentQuery.trim();
+        // Strict tier: title and/or description together match every query
+        // term (combineWith: 'AND', scoped to just those two fields — a doc
+        // qualifies even if different terms hit different fields).
+        const strictResults = rankSearchResults(searchNameDescription(query, 'AND'));
+        const strictIds = new Set(strictResults.map(r => r.id));
+        // Related tier: docs that just missed the strict cut, from two
+        // independent sources — title/description matching a strict majority
+        // of the query's terms (OR, but with a majority floor — plain OR
+        // alone lets one generic word like "manage" pull in dozens of
+        // unrelated cards on longer queries), and deep_text (never rendered
+        // on the card) matching every term on its own. Kept out of the
+        // strict tier and appended after it in one continuous ranking, so a
+        // single incidental word match never outranks a full-phrase match,
+        // but content that fully answers the query still surfaces further
+        // down the same list.
+        const minRelatedTerms = majorityThreshold(countQueryTerms(query));
+        const relatedNameDesc = searchNameDescription(query, 'OR')
+            .filter(r => !strictIds.has(r.id))
+            // queryTerms is how many QUERY words produced a hit; match's keys
+            // are matched INDEX terms, which can outnumber query terms when
+            // fuzzy/prefix matches more than one indexed word per query word
+            // (e.g. "manage" prefix-matching both "manage" and "manager").
+            .filter(r => (r.queryTerms || []).length >= minRelatedTerms);
+        const relatedDeepText = searchDeepText(query, 'AND')
+            .filter(r => !strictIds.has(r.id));
+        const relatedResults = rankSearchResults(mergeResultsById([relatedNameDesc, relatedDeepText]));
+
+        rankById = new Map();
+        matchedFieldsById = new Map();
+        strictResults.concat(relatedResults).forEach((r, i) => {
+            rankById.set(r.id, i);
+            matchedFieldsById.set(r.id, new Set(Object.values(r.match || {}).flat()));
+        });
+    }
 
     let visibleApis = 0;
     let visibleMcps = 0;
@@ -1421,25 +1454,14 @@ function filterByTags() {
     let visibleTerraform = 0;
 
     cardLinks.forEach(cardLink => {
-        const name = (cardLink.dataset.name || '').toLowerCase();
-        const category = (cardLink.dataset.category || '').toLowerCase();
         const type = (cardLink.dataset.type || '').toLowerCase();
-        const tagsAttr = (cardLink.dataset.tags || '').toLowerCase();
-
-        // Check type filter
+        const searchId = cardLink.dataset.searchId || '';
         const matchesType = selectedType === 'all' || type === selectedType;
+        const matchesSearch = rankById === null || rankById.has(searchId);
 
-        // Check tag filter
-        let matchesTags = true;
-        if (selectedTags.length > 0) {
-            const searchableText = name + ' ' + category + ' ' + type + ' ' + tagsAttr;
-            matchesTags = selectedTags.some(tag => searchableText.includes(tag));
-        }
-
-        // Show if matches both type AND tags (or no tags selected)
-        if (matchesType && matchesTags) {
+        if (matchesType && matchesSearch) {
             cardLink.style.display = '';
-            // Count visible items by type
+            cardLink.style.order = rankById === null ? '' : String(rankById.get(searchId));
             if (type === 'api') {
                 visibleApis++;
             } else if (type === 'mcp') {
@@ -1451,59 +1473,180 @@ function filterByTags() {
             }
         } else {
             cardLink.style.display = 'none';
+            cardLink.style.order = '';
         }
     });
 
-    // Update results count and type
     const totalVisible = visibleApis + visibleMcps + visibleSkills + visibleTerraform;
     updateResultsCount(totalVisible, selectedType);
 
-    // Toggle empty state when no cards match
-    const catalogGrid = document.getElementById('catalogGrid');
     const catalogEmptyState = document.getElementById('catalogEmptyState');
     if (catalogGrid && catalogEmptyState) {
         catalogGrid.style.display = totalVisible === 0 ? 'none' : '';
         catalogEmptyState.style.display = totalVisible === 0 ? '' : 'none';
     }
 
-    // Highlight matched terms on visible cards
-    applyTagHighlights();
-
-    // Update URL with current state
+    applyQueryHighlights(matchedFieldsById);
     updateURLState();
 }
 
-function applyTagHighlights() {
+const DEEP_MATCH_EXCERPT_RADIUS = 35; // chars kept on each side of the match
+const DEEP_MATCH_MAX_ITEMS = 3;       // cap on tooltip lines before "+N more"
+
+function applyQueryHighlights(matchedFieldsById) {
+    const allTerms = isSearchableQuery(currentQuery) ? currentQuery.trim().split(/\s+/).filter(Boolean) : [];
+    // Drop stopwords from the terms used for highlighting/deep-match too —
+    // they never drive a match on their own (see STOPWORDS/stemTerm) and
+    // highlighting them literally can hit substrings of unrelated words
+    // (e.g. "an" inside "Anypoint"). Fall back to the unfiltered terms if
+    // the whole query is stopwords, so searching literally for "and" still
+    // highlights something instead of silently matching nothing.
+    const meaningfulTerms = allTerms.filter(t => !STOPWORDS.has(t.toLowerCase()));
+    const terms = meaningfulTerms.length > 0 ? meaningfulTerms : allTerms;
     const cardLinks = document.querySelectorAll('.catalog-card-link');
     cardLinks.forEach(cardLink => {
         const targets = cardLink.querySelectorAll('.catalog-card-title, .catalog-card-description');
+        let highlighted = false;
         targets.forEach(target => {
             // Restore original text from data-original or capture once
             if (!target.dataset.originalText) {
                 target.dataset.originalText = target.textContent;
             }
             const original = target.dataset.originalText;
-            if (selectedTags.length === 0 || cardLink.style.display === 'none') {
+            if (terms.length === 0 || cardLink.style.display === 'none') {
                 target.textContent = original;
                 return;
             }
-            target.innerHTML = highlightTerms(original, selectedTags);
+            const result = highlightTerms(original, terms);
+            target.innerHTML = result.html;
+            highlighted = highlighted || result.matched;
         });
+        updateDeepMatchBadge(cardLink, matchedFieldsById, terms, highlighted);
     });
 }
 
-function highlightTerms(text, terms) {
-    // Escape HTML once, then wrap matches in <mark>
-    let escaped = escapeHtml(text);
-    // Sort longest first to avoid partial matches eating multi-word tags
-    const sorted = terms.slice().sort((a, b) => b.length - a.length);
-    sorted.forEach(term => {
-        if (!term) return;
-        const escapedTerm = escapeHtml(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const re = new RegExp('(' + escapedTerm + ')', 'gi');
-        escaped = escaped.replace(re, '<mark class="search-highlight">$1</mark>');
+function updateDeepMatchBadge(cardLink, matchedFieldsById, terms, highlighted) {
+    let badge = cardLink.querySelector('.catalog-card-deep-match');
+    const searchId = cardLink.dataset.searchId || '';
+    const fields = matchedFieldsById ? matchedFieldsById.get(searchId) : null;
+    const showBadge = terms.length > 0 && cardLink.style.display !== 'none' &&
+        !highlighted && fields && fields.has('deep_text');
+
+    if (!showBadge) {
+        if (badge) badge.remove();
+        return;
+    }
+
+    const matches = findDeepMatches(searchId, terms);
+    // Fuzzy matches (edit-distance tolerant) can flag deep_text as matched
+    // without any item's text containing an exact/stemmed hit we can excerpt
+    // — nothing concrete to show in that case, so skip the badge entirely.
+    if (matches.length === 0) {
+        if (badge) badge.remove();
+        return;
+    }
+
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'catalog-card-deep-match badge badge-count';
+        const footer = cardLink.querySelector('.catalog-card-footer');
+        if (footer) {
+            footer.appendChild(badge);
+        } else {
+            cardLink.querySelector('.catalog-card').appendChild(badge);
+        }
+    }
+    badge.textContent = matches.length + (matches.length === 1 ? ' match' : ' matches');
+    badge.setAttribute('data-tooltip', buildDeepMatchTooltip(matches));
+}
+
+function findDeepMatches(searchId, terms) {
+    const items = deepItemsById ? deepItemsById.get(searchId) : null;
+    if (!items || items.length === 0) return [];
+    const stemmedTerms = terms.map(t => stemTerm(t.toLowerCase())).filter(Boolean);
+    if (stemmedTerms.length === 0) return [];
+
+    const matches = [];
+    items.forEach(item => {
+        const haystack = [item.label, item.text].filter(Boolean).join(' — ');
+        const excerpt = findDeepMatchExcerpt(haystack, stemmedTerms);
+        if (excerpt !== null) {
+            matches.push({ label: item.label, excerpt });
+        }
     });
-    return escaped;
+    return matches;
+}
+
+function buildDeepMatchTooltip(matches) {
+    const shown = matches.slice(0, DEEP_MATCH_MAX_ITEMS);
+    const lines = shown.map(m => '• ' + m.label + ': "' + m.excerpt + '"');
+    const extra = matches.length - shown.length;
+    if (extra > 0) lines.push('+' + extra + ' more');
+    return 'Matched in:\n' + lines.join('\n');
+}
+
+// Below this length, a prefix relationship is meaningless ("a" is a prefix
+// of "access" but shares no real content with it) — only exact stemmed
+// equality is trusted for short words/terms.
+const DEEP_MATCH_MIN_PREFIX_LENGTH = 3;
+
+function findDeepMatchExcerpt(text, stemmedTerms) {
+    const wordPattern = /[A-Za-z0-9]+/g;
+    let match;
+    while ((match = wordPattern.exec(text)) !== null) {
+        const stemmed = stemTerm(match[0]);
+        const isMatch = stemmedTerms.some(t => {
+            if (stemmed === t) return true;
+            if (t.length < DEEP_MATCH_MIN_PREFIX_LENGTH || stemmed.length < DEEP_MATCH_MIN_PREFIX_LENGTH) return false;
+            return stemmed.startsWith(t) || t.startsWith(stemmed);
+        });
+        if (isMatch) {
+            return buildExcerpt(text, match.index, match.index + match[0].length);
+        }
+    }
+    return null;
+}
+
+// deep_items text is raw source content (skill/API markdown), which can
+// already contain **bold**/`code` markers of its own. Those would collide
+// with the ** wrapper added below, breaking renderInlineMarkdown()'s regex
+// and highlighting the wrong span — so strip markdown syntax characters from
+// the excerpt's surrounding context before wrapping the actual match.
+function stripMarkdownSyntax(str) {
+    return str.replace(/[*`_]/g, '');
+}
+
+function buildExcerpt(text, start, end) {
+    const radius = DEEP_MATCH_EXCERPT_RADIUS;
+    const excerptStart = Math.max(0, start - radius);
+    const excerptEnd = Math.min(text.length, end + radius);
+    const prefix = excerptStart > 0 ? '...' : '';
+    const suffix = excerptEnd < text.length ? '...' : '';
+    const before = stripMarkdownSyntax(text.slice(excerptStart, start));
+    const matchText = text.slice(start, end);
+    const after = stripMarkdownSyntax(text.slice(end, excerptEnd));
+    return prefix + before + '**' + matchText + '**' + after + suffix;
+}
+
+function highlightTerms(text, terms) {
+    const escaped = escapeHtml(text);
+    const validTerms = terms.filter(Boolean);
+    if (validTerms.length === 0) return { html: escaped, matched: false };
+    // Sort longest first so multi-word/longer terms aren't eaten by shorter
+    // ones sharing a prefix, then run every term through ONE regex pass —
+    // sequential per-term passes would re-scan HTML already inserted by an
+    // earlier term (e.g. "a" matching inside a previously-inserted
+    // <mark class="search-highlight"> tag), corrupting the markup.
+    const escapedTerms = validTerms
+        .map(term => escapeHtml(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .sort((a, b) => b.length - a.length);
+    const re = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
+    let matched = false;
+    const html = escaped.replace(re, match => {
+        matched = true;
+        return '<mark class="search-highlight">' + match + '</mark>';
+    });
+    return { html, matched };
 }
 
 function updateURLState() {
@@ -1517,10 +1660,10 @@ function updateURLState() {
         url.searchParams.delete('filter');
     }
 
-    if (selectedTags.length > 0) {
-        url.searchParams.set('tags', selectedTags.join(','));
+    if (isSearchableQuery(currentQuery)) {
+        url.searchParams.set('q', currentQuery.trim());
     } else {
-        url.searchParams.delete('tags');
+        url.searchParams.delete('q');
     }
 
     // View mode disabled for launch - always grid
@@ -1540,11 +1683,9 @@ function getFilterFromURL() {
     return url.searchParams.get('filter') || 'all';
 }
 
-function getTagsFromURL() {
+function getQueryFromURL() {
     const url = new URL(window.location);
-    const tags = url.searchParams.get('tags');
-    if (!tags) return [];
-    return tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+    return url.searchParams.get('q') || '';
 }
 
 function getViewFromURL() {
@@ -1703,17 +1844,6 @@ function navigateToHash(hash, smooth) {
     return true;
 }
 
-function updateSuggestionHighlight(items) {
-    items.forEach((item, index) => {
-        if (index === currentSuggestionIndex) {
-            item.classList.add('active');
-            item.scrollIntoView({ block: 'nearest' });
-        } else {
-            item.classList.remove('active');
-        }
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
@@ -1737,8 +1867,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Build available tags from catalog
-    buildAvailableTags();
+    // Build the client-side search index once
+    buildSearchIndex();
 
     // Set up hero tabs for filtering
     const heroTabs = document.querySelectorAll('.hero-tab');
@@ -1749,7 +1879,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add active class to clicked tab
             tab.classList.add('active');
             // Filter catalog
-            filterByTags();
+            filterBySearch();
         });
     });
 
@@ -1763,86 +1893,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const urlTags = getTagsFromURL();
-    if (urlTags.length > 0) {
-        urlTags.forEach(tag => {
-            if (!selectedTags.includes(tag)) {
-                selectedTags.push(tag);
-            }
-        });
-        renderSelectedTags();
+    const urlQuery = getQueryFromURL();
+    currentQuery = urlQuery;
+    const catalogSearchInput = document.getElementById('catalogSearchInput');
+    if (catalogSearchInput && urlQuery) {
+        catalogSearchInput.value = urlQuery;
     }
 
-    if (urlFilter !== 'all' || urlTags.length > 0) {
-        filterByTags();
+    if (urlFilter !== 'all' || urlQuery) {
+        filterBySearch();
     }
 
-    // Set up tag search input
-    const tagSearchInput = document.getElementById('tagSearchInput');
-    const tagSearchContainer = document.getElementById('tagSearchInputContainer');
-
-    if (tagSearchInput && tagSearchContainer) {
-        // Click on container focuses input
-        tagSearchContainer.addEventListener('click', (e) => {
-            if (e.target !== tagSearchInput && !e.target.closest('.tag-chip-remove')) {
-                tagSearchInput.focus();
-            }
-        });
-
-        // Input event for suggestions
-        tagSearchInput.addEventListener('input', (e) => {
-            showTagSuggestions(e.target.value);
-            updatePlaceholder();
-        });
-
-        // Keyboard navigation
-        tagSearchInput.addEventListener('keydown', (e) => {
-            const suggestionsDiv = document.getElementById('tagSuggestions');
-
-            // Handle backspace to delete last tag when input is empty
-            if (e.key === 'Backspace' && e.target.value === '' && selectedTags.length > 0) {
-                e.preventDefault();
-                removeTag(selectedTags[selectedTags.length - 1]);
-                return;
-            }
-
-            if (!suggestionsDiv || suggestionsDiv.style.display === 'none') {
-                return;
-            }
-
-            const items = suggestionsDiv.querySelectorAll('.tag-suggestion-item');
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                currentSuggestionIndex = Math.min(currentSuggestionIndex + 1, items.length - 1);
-                updateSuggestionHighlight(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                currentSuggestionIndex = Math.max(currentSuggestionIndex - 1, -1);
-                updateSuggestionHighlight(items);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (currentSuggestionIndex >= 0 && items[currentSuggestionIndex]) {
-                    addTag(items[currentSuggestionIndex].dataset.tag);
-                } else if (e.target.value.trim()) {
-                    // Add current input as tag
-                    addTag(e.target.value.trim());
-                }
-            } else if (e.key === 'Escape') {
-                suggestionsDiv.style.display = 'none';
-                currentSuggestionIndex = -1;
-            }
-        });
-
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', function(e) {
-            const suggestionsDiv = document.getElementById('tagSuggestions');
-            const wrapper = tagSearchInput.closest('.tag-search-wrapper');
-            if (suggestionsDiv && wrapper && !wrapper.contains(e.target)) {
-                suggestionsDiv.style.display = 'none';
-                currentSuggestionIndex = -1;
-            }
-        });
+    // Set up free-text search input
+    if (catalogSearchInput) {
+        catalogSearchInput.addEventListener('input', debounce((e) => {
+            currentQuery = e.target.value;
+            filterBySearch();
+        }, 150));
     }
 
     // Set up view toggle buttons (DISABLED FOR LAUNCH)
@@ -8347,16 +8414,19 @@ function setNestedValue(obj, path, value) {
 (function initTooltips() {
     var tip = null;
 
-    function renderInlineMarkdown(text) {
+    function renderInlineMarkdown(text, highlightBold) {
         if (!text) return '';
         // Escape HTML first
         var safe = text
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-        // Render inline markdown: **bold**, *italic*, `code`
+        // Render inline markdown: **bold**, *italic*, `code`. In deep-match
+        // excerpts, **bold** marks the searched term itself, so render it as
+        // a search-highlight <mark> instead of plain <strong>.
+        var boldReplacement = highlightBold ? '<mark class="search-highlight">$1</mark>' : '<strong>$1</strong>';
         safe = safe
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*\*(.+?)\*\*/g, boldReplacement)
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/`([^`]+)`/g, '<code>$1</code>');
         // Convert newlines to <br>
@@ -8413,11 +8483,11 @@ function setNestedValue(obj, path, value) {
         if (!tip) tip = createTip();
         // Apply theme colors at show-time (CSS vars resolved then)
         var cs = getComputedStyle(document.documentElement);
-        var bg = cs.getPropertyValue('--lume-color-neutral-10').trim() || '#1a1a2e';
-        var fg = cs.getPropertyValue('--lume-color-neutral-1').trim() || '#fff';
+        var bg = cs.getPropertyValue('--color-neutral-1').trim() || '#1a1a2e';
+        var fg = cs.getPropertyValue('--color-neutral-10').trim() || '#fff';
         tip.style.background = bg;
         tip.style.color = fg;
-        tip.innerHTML = renderInlineMarkdown(text);
+        tip.innerHTML = renderInlineMarkdown(text, el.classList.contains('catalog-card-deep-match'));
         tip.style.opacity = '0';
         tip.style.display = 'block';
         // Position after paint so offsetWidth/Height are available

@@ -8,6 +8,7 @@
 
 {% block head_scripts %}
 <script src="{{ jsonpath_js_path }}" defer></script>
+<script src="{{ minisearch_js_path }}" defer></script>
 <script src="{{ portal_js_path }}" defer></script>
 {% endblock %}
 
@@ -48,20 +49,17 @@
         <div class="catalog-controls-wrapper">
             <div class="catalog-results-header">
                 <div class="catalog-search-and-results">
-                    <div class="tag-search-wrapper">
+                    <div class="catalog-search-wrapper">
                         <svg class="search-icon-catalog" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
                             <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 0 1 2 10Z"></path>
                         </svg>
-                        <div class="tag-search-input-container" id="tagSearchInputContainer">
-                            <div class="selected-tags" id="selectedTags"></div>
-                            <input type="text"
-                                   id="tagSearchInput"
-                                   class="tag-search-input"
-                                   placeholder="Search by tags"
-                                   aria-label="Search by tags"
-                                   autocomplete="off">
-                        </div>
-                        <div class="tag-suggestions" id="tagSuggestions" style="display: none;"></div>
+                        <input type="text"
+                               id="catalogSearchInput"
+                               class="catalog-search-input"
+                               placeholder="Search APIs, skills, and MCP servers"
+                               aria-label="Search APIs, skills, and MCP servers"
+                               autocomplete="off"
+                               value="">
                     </div>
                     <h2 class="results-count"><span id="resultsType">All</span> (<span id="resultsCount">{{ apis|length + (mcp_servers|length if mcp_servers else 0) + (all_skills|length if all_skills else 0) + (terraform_providers|length if terraform_providers else 0) }}</span> Results)<span id="sortIndicator" class="sort-indicator" style="display: none;"> · Sort by <span id="sortLabel">Name</span></span></h2>
                 </div>
@@ -134,5 +132,5 @@
 {% block scripts %}
 <script>
 window.__PROXY_CONFIG__ = { url: {{ proxy_url|tojson }} };
-</script>
+window.__SEARCH_INDEX__ = {{ search_docs | tojson_raw }};</script>
 {% endblock %}

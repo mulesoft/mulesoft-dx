@@ -15,3 +15,7 @@ def get_js() -> str:
 
 def get_jsonpath_js() -> str:
     return (_ASSETS_DIR / 'jsonpath-plus.min.js').read_text(encoding='utf-8')
+
+
+def get_minisearch_js() -> str:
+    return (_ASSETS_DIR / 'minisearch.min.js').read_text(encoding='utf-8')

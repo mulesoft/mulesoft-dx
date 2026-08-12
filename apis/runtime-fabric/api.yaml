@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Runtime Fabric Management API
-  version: 1.0.0
+  version: 1.0.5
   description: Manage Runtime Fabric clusters, agents, associations, ingress configurations, and deployment targets.
 servers:
 - url: https://anypoint.mulesoft.com/runtimefabric/api
@@ -987,18 +987,37 @@ paths:
                 messageRef: string
                 rtfName: string
       operationId: createOrganizationsByOrganizationidFabricsByFabricidLogforwardingExternalTest
-  /organizations/{organizationId}/fabrics/{fabricId}/events:
+  /organizations/{organizationId}/fabrics/events:
     get:
-      description: 'Get cluster events.
+      summary: List cluster events
+      description: 'Retrieve the cluster events across the Runtime Fabrics in the
+        organization.
 
         '
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
-      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidFabricsByFabricidEvents
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterEvent'
+              example:
+              - type: connectivity
+                message: 'Cannot reach anypoint.mulesoft.com: connection timed out'
+                createdAt: 1573599617.0
+                updatedAt: 1573599618.0
+              - type: component
+                message: 'Cronjob/registry-creds failed: aws-cli connection timed
+                  out'
+                createdAt: 1573599617.0
+                updatedAt: 1573599618.0
+                resolvedAt: 1573599618.0
+      operationId: listFabricEvents
   /organizations/{organizationId}/fabrics/{fabricId}/health:
     get:
       description: 'Get detailed health information.
@@ -1073,6 +1092,264 @@ paths:
                   - id: string
                     type: string
       operationId: getOrganizationsByOrganizationidFabricsByFabricidHealth
+  /organizations/{organizationId}/fabrics/{fabricId}/oidcIssuers:
+    get:
+      summary: Get OIDC issuers
+      description: 'Retrieve the OIDC issuers associated with the Runtime Fabric.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OidcIssuersPatch'
+              example:
+                oidcIssuers:
+                - https://login.example.com/oidc
+      operationId: getFabricOidcIssuers
+    patch:
+      summary: Update OIDC issuers
+      description: 'Update the OIDC issuers associated with the Runtime Fabric. Omit
+        the field to leave the existing value unchanged. Send an empty array ([])
+        to explicitly clear the OIDC issuers.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      requestBody:
+        description: The OIDC issuers data to update.
+        x-amf-mediaType: application/json
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OidcIssuersPatch'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fabric'
+              example:
+                id: string
+                name: string
+      operationId: updateFabricOidcIssuers
+  /organizations/{organizationId}/fabrics/{fabricId}/associations:
+    post:
+      summary: Create fabric associations
+      description: 'Create associations for the Runtime Fabric with business groups
+        and environments.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      requestBody:
+        description: The associations data to create.
+        x-amf-mediaType: application/json
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssociationPostPayload'
+            example:
+              associations:
+              - organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                environment: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+              - organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+                environment: 3e9d5bde-6ef7-4947-9f98-0f7c32d48909
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Association'
+              example:
+              - id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+      operationId: createFabricAssociations
+    get:
+      summary: List fabric associations
+      description: 'Retrieve all associations of the Runtime Fabric.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Association'
+              example:
+              - id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+      operationId: listFabricAssociations
+  /organizations/{organizationId}/fabrics/{fabricId}/associations/{associationId}:
+    get:
+      summary: Get fabric association
+      description: 'Retrieve a specific association of the Runtime Fabric.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      - name: associationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The association ID to identify the target resource.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+              example:
+                id: d282e462-07af-4146-b7d8-8bd7e6b18d83
+                environmentId: 2ea3eff9-569a-4495-b7b6-1e28c6440aeb
+                organizationId: 1ffdaa42-4702-4747-aeb9-aecab0f5ac1b
+      operationId: getFabricAssociation
+    delete:
+      summary: Delete fabric association
+      description: 'Delete a specific association of the Runtime Fabric.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      - name: associationId
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The association ID to identify the target resource.
+      responses:
+        '204':
+          description: Resource deleted successfully.
+      operationId: deleteFabricAssociation
+  /organizations/{organizationId}/fabrics/{fabricId}/upgrade/compatibilitycheck:
+    get:
+      summary: Get upgrade pre-check status
+      description: 'Retrieve the pre-upgrade compatibility check status.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      - name: scope
+        required: false
+        in: query
+        schema:
+          type: string
+          default: all
+          enum:
+          - mTls
+          - rtfRegistry
+          - all
+        description: Optional parameter to limit the scope of the pre-check operation.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradePreChecks'
+              example:
+                mTls:
+                  status: success
+                rtfRegistry:
+                  status: running
+                  actionId: string
+      operationId: getUpgradeCompatibilityCheck
+    post:
+      summary: Run upgrade pre-check
+      description: 'Run the pre-upgrade compatibility checks against the appliance-based
+        fabric. Includes the status of the checks in the fabric response.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      - name: scope
+        required: false
+        in: query
+        schema:
+          type: string
+          default: all
+          enum:
+          - mTls
+          - rtfRegistry
+          - all
+        description: Optional parameter to limit the scope of the pre-check operation.
+      - name: force
+        required: false
+        in: query
+        schema:
+          type: string
+          default: 'false'
+          enum:
+          - 'true'
+          - 'false'
+        description: 'Optional parameter to force run the pre-check. Supported values
+          are ''true'' or ''false''.'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradePreChecks'
+              example:
+                mTls:
+                  status: running
+                  actionId: string
+      operationId: runUpgradeCompatibilityCheck
+  /organizations/{organizationId}/fabrics/{fabricId}/k8s/compatibilitycheck:
+    get:
+      summary: Check Kubernetes compatibility
+      description: 'Check fabric compatibility with a specific Kubernetes release.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_fabricId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/K8sCompatibilityResponse'
+              example:
+                isCompatible: true
+                details: string
+                kubernetesVersion: string
+      operationId: getK8sCompatibilityCheck
   /organizations/{organizationId}/groups:
     get:
       description: Get the list of Fabric Groups.
@@ -1367,6 +1644,81 @@ paths:
                 endpoint: string
                 passwordExpirationTimestamp: 0.0
       operationId: getOrganizationsByOrganizationidImageregistrycredential
+  /organizations/{organizationId}/imageRegistryProperties:
+    get:
+      summary: Get image registry properties
+      description: 'Retrieve properties related to the image registry.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageRegistryProperties'
+              example:
+                RTF_IMAGE_REGISTRY_ENDPOINT: https://registry.example.com
+                RTF_IMAGE_REGISTRY_USER: string
+                RTF_IMAGE_REGISTRY_PASSWORD: string
+      operationId: getImageRegistryProperties
+  /agentmanifests/{version}:
+    get:
+      summary: Get agent manifest
+      description: 'Retrieve the agent manifest holding the dependency information
+        a specific agent version uses for BYOK installations.
+
+        '
+      parameters:
+      - name: version
+        required: true
+        in: path
+        schema:
+          type: string
+        description: The agent release version to identify the target manifest.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentManifestResponse'
+              example:
+                agentVersion: string
+                dependencies:
+                - artifact: string
+                  version: string
+                  provider: Generic
+        '404':
+          description: The agent manifest was not found.
+      operationId: getAgentManifest
+  /runtimes/supportdates:
+    get:
+      summary: List runtime support dates
+      description: 'List the support dates for the Mule runtime versions.
+
+        '
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuntimeVersionAdditionalInfo'
+              example:
+              - version: string
+                channel: string
+                endOfStandardSupportDate: 0.0
+                endOfExtendedSupportDate: 0.0
+                endOfLifeSupportDate: 0.0
+      operationId: listRuntimeSupportDates
   /runtimes:
     description: Mule runtimes
     get:
@@ -2717,6 +3069,191 @@ components:
           format: int64
         pods:
           type: integer
+    ClusterEvent:
+      type: object
+      required:
+      - type
+      - message
+      - createdAt
+      - updatedAt
+      properties:
+        type:
+          description: The type of the cluster event.
+          type: string
+        message:
+          description: Detailed human-readable message describing the event.
+          type: string
+        createdAt:
+          description: EPOCH timestamp when the event was created.
+          type: number
+        updatedAt:
+          description: EPOCH timestamp when the event was last updated.
+          type: number
+        resolvedAt:
+          description: EPOCH timestamp when the event was resolved.
+          type: number
+    OidcIssuersPatch:
+      type: object
+      properties:
+        oidcIssuers:
+          description: 'OIDC issuer URLs associated with the Runtime Fabric. Omit
+            the field to leave the existing value unchanged. Send an empty array
+            ([]) to explicitly clear the OIDC issuers.'
+          type: array
+          items:
+            type: string
+    AssociationPayload:
+      type: object
+      required:
+      - organizationId
+      - environment
+      properties:
+        id:
+          description: The UUID of the association.
+          type: string
+        organizationId:
+          description: 'The organization to associate with a Runtime Fabric. Can
+            be `all`, or a specific organization UUID.'
+          type: string
+        environment:
+          description: 'The environment to associate with a Runtime Fabric. Can be
+            `all`, `sandbox`, `production`, or a specific environment UUID.'
+          type: string
+    AssociationPostPayload:
+      type: object
+      required:
+      - associations
+      properties:
+        associations:
+          description: The list of associations to create.
+          type: array
+          items:
+            $ref: '#/components/schemas/AssociationPayload'
+    UpgradePreCheckModel:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          description: 'The status of the pre-check action. Possible values are ''success'',
+            ''failure'', or ''running''.'
+          type: string
+          enum:
+          - success
+          - failure
+          - running
+        actionId:
+          description: The id of the scheduled pre-check action when the status is
+            'running'.
+          type: string
+        reason:
+          description: Reason for failure.
+          type: string
+        type:
+          description: Type of the pre-check.
+          type: string
+        scheduled:
+          description: EPOCH timestamp when the check was scheduled.
+          type: number
+        finished:
+          description: EPOCH timestamp when the check was finished.
+          type: number
+    UpgradePreChecks:
+      type: object
+      properties:
+        mTls:
+          $ref: '#/components/schemas/UpgradePreCheckModel'
+        rtfRegistry:
+          $ref: '#/components/schemas/UpgradePreCheckModel'
+    K8sCompatibilityResponse:
+      type: object
+      required:
+      - isCompatible
+      - details
+      - kubernetesVersion
+      properties:
+        isCompatible:
+          description: Whether the fabric version is compatible with a specific Kubernetes
+            release.
+          type: boolean
+        details:
+          description: The reason why the fabric version is not compatible with a
+            specific Kubernetes release.
+          type: string
+        kubernetesVersion:
+          description: The fabric's current Kubernetes version.
+          type: string
+    ImageRegistryProperties:
+      type: object
+      required:
+      - RTF_IMAGE_REGISTRY_ENDPOINT
+      properties:
+        RTF_IMAGE_REGISTRY_ENDPOINT:
+          description: The auth proxy url of the image registry for pulling Runtime
+            Fabric Docker images.
+          type: string
+        RTF_IMAGE_REGISTRY_USER:
+          description: The auth proxy username for pulling Runtime Fabric Docker images.
+          type: string
+        RTF_IMAGE_REGISTRY_PASSWORD:
+          description: The auth proxy password for pulling Runtime Fabric Docker images.
+          type: string
+    AgentDependencyResponse:
+      type: object
+      required:
+      - artifact
+      - version
+      - provider
+      properties:
+        artifact:
+          description: The name of the dependency artifact.
+          type: string
+        version:
+          description: The version of the dependency artifact.
+          type: string
+        provider:
+          description: 'The provider of the dependency (e.g., Generic, Openshift).'
+          type: string
+    AgentManifestResponse:
+      type: object
+      required:
+      - agentVersion
+      - dependencies
+      properties:
+        agentVersion:
+          description: The version of the agent.
+          type: string
+        dependencies:
+          description: Lists the dependencies of the agent.
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentDependencyResponse'
+    RuntimeVersionAdditionalInfo:
+      type: object
+      required:
+      - version
+      - channel
+      - endOfStandardSupportDate
+      - endOfExtendedSupportDate
+      - endOfLifeSupportDate
+      properties:
+        version:
+          description: The Mule runtime version identifier.
+          type: string
+        channel:
+          description: The release channel this version belongs to.
+          type: string
+        endOfStandardSupportDate:
+          description: EPOCH timestamp marking the end of standard support for this
+            version.
+          type: number
+        endOfExtendedSupportDate:
+          description: EPOCH timestamp marking the end of extended support for this
+            version.
+          type: number
+        endOfLifeSupportDate:
+          description: EPOCH timestamp marking the end of life support for this version.
+          type: number
   parameters:
     XOrigin_organizationId_Path:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path

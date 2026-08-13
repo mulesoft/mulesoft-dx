@@ -336,6 +336,8 @@ def extract_operations(paths: Dict, components: Dict = None, base_dir: Path = No
     """Extract all operations from paths with detailed info"""
     operations = []
     http_methods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
+    method_order = {method.upper(): index for index, method in enumerate(http_methods)}
+    path_order = {}
 
     if not paths:
         return operations
@@ -346,6 +348,8 @@ def extract_operations(paths: Dict, components: Dict = None, base_dir: Path = No
     for path, path_item in paths.items():
         if not isinstance(path_item, dict):
             continue
+
+        path_order.setdefault(path, len(path_order))
 
         # Path-level parameters (apply to all operations)
         path_parameters = []
@@ -419,7 +423,14 @@ def extract_operations(paths: Dict, components: Dict = None, base_dir: Path = No
                     'security': op.get('security', None),
                 })
 
-    return operations
+    return sorted(
+        operations,
+        key=lambda operation: (
+            path_order[operation['path']],
+            method_order[operation['method']],
+            operation['operationId'],
+        ),
+    )
 
 
 def _extract_param(param: Dict) -> Dict:

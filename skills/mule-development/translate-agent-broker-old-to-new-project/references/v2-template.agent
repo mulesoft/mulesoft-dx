@@ -17,8 +17,9 @@ llm:
     model: "<model from V1 spec.llm.configuration.model>"
 
 # -- ACTION DEFINITIONS -------------------------------------------------------
-# Connection ids in `a2a://...` and `mcp://...` targets MUST match snake_case
-# connection keys declared in agent-network.yaml (schema: ^[a-z0-9_]+$).
+# Connection ids in `a2a://...` and `mcp://...` targets MUST match the
+# connection keys declared in agent-network.yaml exactly (any valid identifier;
+# this converter uses snake_case by convention, not because the schema requires it).
 actions:
   <agent_action_id>:
     target: "a2a://<agent_connection_name_snake_case>"
@@ -33,8 +34,9 @@ actions:
     # auto-discovers tool arguments from the MCP server.
 
 # -- TRIGGER ------------------------------------------------------------------
-# <broker_id_snake_case> MUST match the YAML broker key exactly (schema: ^[a-z0-9_]+$).
-# The .agent filename may still be kebab-case for readability.
+# <broker_id> MUST match the YAML broker key exactly (any valid identifier; this
+# converter uses snake_case by convention, not because the schema requires it).
+# The .agent filename is independent and may be kebab-case for readability.
 trigger <triggerNameCamelCase>:
   kind: "a2a"
   target: "brokers://<broker_id_snake_case>/a2a"

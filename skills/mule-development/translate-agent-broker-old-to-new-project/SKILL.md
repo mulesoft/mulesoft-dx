@@ -131,8 +131,8 @@ Mapping rules:
 - `kind: agent` (V1) → `kind: a2a` (V2). `kind: mcp` and `kind: llm` stay.
 - For LLM connections, move auth into a top-level `authentication` block: `kind: apiKey`, `apiKey: ${<llmName>.apiKey}`. Don't keep V1's `spec.configuration` shape.
 - Replace hardcoded URLs with `${<refName>.url}` variables. The actual URL value goes into `exchange.json`.
-- **Connection ID format is enforced by the V2 schema**: `context.connections.<id>` keys must use only lowercase letters, digits, and non-trailing underscores (`^[a-z0-9_]+$`). Convert V1 PascalCase like `WorkdayAgentTestConnection` into `workday_agent_connection` (snake_case). Do NOT use camelCase or kebab-case for connection ids — the linter rejects them.
-- Registry `ref.name` values (agents/mcps/llms) are more permissive and typically become camelCase in V2 (e.g. `workdayAgent`). Only the connection *key* is snake_case-restricted.
+- **Connection IDs are not format-restricted by the V2 schema**: `context.connections.<id>` keys accept any valid YAML identifier (camelCase, snake_case, or kebab-case all validate). Convert V1 PascalCase like `WorkdayAgentTestConnection` into a readable id — this converter uses snake_case (`workday_agent_connection`) for consistency, but that's a convention, not a lint rule. The one hard requirement: the id must match the `.agent` target (`a2a://<id>`, `mcp://<id>`, `llm://<id>`) exactly.
+- Registry `ref.name` values (agents/mcps/llms) typically become camelCase in V2 (e.g. `workdayAgent`).
 
 #### Broker translation
 
@@ -167,7 +167,7 @@ brokers:
               outputModes: [application/json, text/plain]
 ```
 
-**Broker ID format is enforced by the V2 schema**: the key under `brokers:` must use only lowercase letters, digits, and non-trailing underscores (`^[a-z0-9_]+$`). Convert V1 PascalCase like `CustomerOnboardingBrokerTest` into `customer_onboarding` (snake_case). Kebab-case (`customer-onboarding`) fails lint. The `.agent` *filename* is separate and may use kebab-case if you prefer (e.g. `./brokers/customer-onboarding.agent`) — only the YAML broker key is restricted. Match the trigger `target: "brokers://<broker-id>/a2a"` to the YAML key exactly.
+**Broker IDs are not format-restricted by the V2 schema**: the key under `brokers:` accepts any valid YAML identifier (snake_case, kebab-case, and camelCase all validate). Convert V1 PascalCase like `CustomerOnboardingBrokerTest` into a readable id — this converter uses snake_case (`customer_onboarding`) for consistency, but that's a convention, not a lint rule. The `.agent` *filename* is independent (e.g. `./brokers/customer-onboarding.agent`). The one hard rule: match the trigger `target: "brokers://<broker-id>/a2a"` to the YAML broker key **exactly**.
 
 ### 3b. Build the V2 `exchange.json`
 

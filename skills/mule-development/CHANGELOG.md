@@ -4,6 +4,16 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.4] - 2026-08-10
+
+### Fixed
+
+- **`build-agent-broker-project`** and **`translate-agent-broker-old-to-new-project`** — Removed the incorrect claim that connection ids (`context.connections.<id>`) and broker ids (keys under `brokers:`) are restricted by the V2 schema to `^[a-z0-9_]+$` (lowercase/digits/non-trailing-underscore only) and that camelCase or kebab-case "fails lint." The schema does not enforce a snake_case-only format on these keys — any valid YAML identifier validates. The skills now frame snake_case as a readability convention and preserve the one genuine invariant: an `.agent` target (`a2a://`, `mcp://`, `llm://`, `brokers://`) must match its corresponding `agent-network.yaml` key exactly. Affects `canonical-example.md` item 0, `gotchas.md` naming conventions, and the converter's connection/broker translation notes, template comments, and example annotations.
+
+### Changed
+
+- **`build-agent-broker-project`** — Updated the Step 9 deploy/gateway guidance to the current Anypoint CLI Agent Fabric plugin (v1.2.10) gateway model: single-gateway mode (`-g/--gateway`, default `agent-network-gw`) is the recommended path, with separate ingress/egress (`-i/--ingress-gw` + `-e/--egress-gw`) as the alternate mode. Replaces the stale separate-gateway-only defaults (`agent-network-ingress-gw` / `agent-network-egress-gw`).
+
 ## [1.8.3] - 2026-07-13
 
 ### Fixed

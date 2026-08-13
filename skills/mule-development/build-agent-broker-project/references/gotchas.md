@@ -403,8 +403,8 @@ Per asset, atomically:
 
 **Naming conventions** (from canonical + YAML reference):
 - **Registry asset id** (agents/mcps/llms): camelCase or kebab-case. Schema allows `^[a-zA-Z_][a-zA-Z0-9_.-]*$`. The IT example uses camelCase (`helpCenterAgent`, `escalationMcp`, `openAiMini`).
-- **Connection id**: **MUST be lowercase letters, digits, and non-trailing underscores only** (`^[a-z0-9_]+$`, no trailing `_`). `help_center_agent_connection` ✓; `helpCenterAgentConnection` ✗ (uppercase); `my_connection_` ✗ (trailing `_`). This is a hard schema rule — the linter rejects any other pattern.
-- **Broker id** (key under `brokers:`): **same rule as connections** — lowercase letters, digits, non-trailing underscores only. `it_help_investigation` ✓; `it-help-investigation` ✗ (hyphens); `itHelpInvestigation` ✗ (uppercase). The `.agent` *filename* may still use kebab-case (`it-help-investigation.agent`) — only the YAML key is restricted.
+- **Connection id**: any valid YAML identifier. There is **no snake_case-only schema restriction** — camelCase, snake_case, and kebab-case all validate. The canonical example uses snake_case (`help_center_agent_connection`) for readability, but that's a convention, not a rule. The one hard requirement: the id must match the `.agent` target exactly (see Trigger/target rules below).
+- **Broker id** (key under `brokers:`): same — any valid YAML identifier; no snake_case-only restriction. `it_help_investigation`, `it-help-investigation`, and `itHelpInvestigation` all validate. The `.agent` *filename* is independent (kebab-case is fine — `it-help-investigation.agent`). The only hard rule: the trigger `target: "brokers://<broker-id>/a2a"` must match the YAML key exactly.
 - **Trigger `target:`**: `brokers://<broker-id>/a2a` where `<broker-id>` matches the YAML key exactly. If the broker id has underscores, the trigger target does too.
 - **Variables** (in `exchange.json.metadata.variables`): `<assetId>.url`, `<assetId>.apiKey`, etc.
 
@@ -565,12 +565,16 @@ After publish, surface published asset URLs.
 
 ### Step 9 — Deploy
 
-**One-time setup per private space:** `anypoint-cli-agent-fabric-plugin agent-network setup gateways --target-space <space>`. Defaults: ingress `agent-network-ingress-gw`, egress `agent-network-egress-gw`, space `agent-network-space`. Skip if gateways already exist.
+**One-time setup per private space:** `anypoint-cli-agent-fabric-plugin agent-network setup gateways --target-space <space>`. Space defaults to `agent-network-space`. Skip if gateways already exist.
+
+**Gateway modes (both `setup gateways` and `project deploy`):**
+- **Single-gateway mode (recommended):** `-g/--gateway <name>`. When no gateway flags are passed at all, deploy defaults to single-gateway mode using `agent-network-gw`.
+- **Separate-gateways mode:** `-i/--ingress-gw <name>` **with** `-e/--egress-gw <name>`. `-g` is mutually exclusive with `-i`/`-e`.
 
 **CLI deploy:** `anypoint-cli-agent-fabric-plugin agent-network project deploy [flags]`. Useful flags:
 - `--environment <name>` (or `ANYPOINT_ENV`)
-- `--target-space <name>` (defaults to `agent-network-space`)
-- `--ingress-gw <name>` / `--egress-gw <name>` (defaults shown above)
+- `-g/--gateway <name>` (single-gateway mode, recommended)
+- `-t/--target-space <name>` (single-gateway mode: optional; separate-gateways mode: defaults to `agent-network-space`)
 - `--property k:v` (repeatable — env-specific secrets/config; e.g., `--property openai.apiKey:STAGING_API_KEY`)
 - `--dont-wait-for-agent-network` (CI: return immediately)
 - `--disable-tracing` (CI/test: skip telemetry)

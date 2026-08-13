@@ -40,7 +40,7 @@ jobs:
   test-portal-generator:
     name: Test Portal Generator
     needs: validate-tag
-    if: always() && (needs.validate-tag.result == 'success' || needs.validate-tag.result == 'skipped')
+    if: "!cancelled() && (needs.validate-tag.result == 'success' || needs.validate-tag.result == 'skipped')"
     runs-on: ubuntu-latest
 
     steps:
@@ -71,6 +71,7 @@ jobs:
   generate-portal:
     name: Generate Portal
     needs: test-portal-generator
+    if: "!cancelled() && needs.test-portal-generator.result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -101,6 +102,7 @@ jobs:
   validate-specs:
     name: Validate Specs
     needs: generate-portal
+    if: "!cancelled() && needs.generate-portal.result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -140,7 +142,7 @@ jobs:
     needs: validate-specs
     runs-on: ubuntu-latest
     # Only run on master branch
-    if: github.ref == 'refs/heads/master'
+    if: "!cancelled() && needs.validate-specs.result == 'success' && github.ref == 'refs/heads/master'"
     environment:
       name: test
       url: https://test-dev-portal.mulesoft.com
@@ -190,7 +192,7 @@ jobs:
     needs: validate-specs
     runs-on: ubuntu-latest
     # Only run on poc/* branches
-    if: startsWith(github.ref, 'refs/heads/poc/')
+    if: "!cancelled() && needs.validate-specs.result == 'success' && startsWith(github.ref, 'refs/heads/poc/')"
     environment:
       name: poc
 
@@ -253,7 +255,7 @@ jobs:
     needs: validate-specs
     runs-on: ubuntu-latest
     # Only run against a release tag (vX.Y.Z), dispatched manually via workflow_dispatch
-    if: startsWith(github.ref, 'refs/tags/')
+    if: "!cancelled() && needs.validate-specs.result == 'success' && startsWith(github.ref, 'refs/tags/')"
     environment:
       name: production
       url: https://dev-portal.mulesoft.com

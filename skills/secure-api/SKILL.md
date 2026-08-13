@@ -223,7 +223,7 @@ Creates a managed API instance in API Manager from your Exchange asset. This cre
 
 ```yaml
 api: urn:api:api-manager
-operationId: createApi
+operationId: createApiInstance
 inputs:
   organizationId:
     from:
@@ -417,7 +417,7 @@ Apply the selected policy to your API instance with the appropriate configuratio
 
 ```yaml
 api: urn:api:api-manager
-operationId: applyApiPolicy
+operationId: applyApiInstancePolicy
 inputs:
   organizationId:
     from:

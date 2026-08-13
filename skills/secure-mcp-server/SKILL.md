@@ -261,7 +261,7 @@ Creates a managed API instance in API Manager from your MCP server Exchange asse
 
 ```yaml
 api: urn:api:api-manager
-operationId: createApi
+operationId: createApiInstance
 inputs:
   organizationId:
     from:
@@ -395,7 +395,7 @@ Lists MCP server instances in the selected environment by filtering with `family
 
 ```yaml
 api: urn:api:api-manager
-operationId: listApis
+operationId: listApiInstances
 inputs:
   organizationId:
     from:
@@ -490,7 +490,7 @@ Apply the selected policy to your MCP server instance with the appropriate confi
 
 ```yaml
 api: urn:api:api-manager
-operationId: applyApiPolicy
+operationId: applyApiInstancePolicy
 inputs:
   organizationId:
     from:

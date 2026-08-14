@@ -3064,7 +3064,6 @@ describe('restoreServerSelection (legacy migration)', () => {
         restoreServerSelection();
         expect(document.getElementById('regionSelect').value).toBe('custom');
         expect(document.getElementById('customServerRow').style.display).toBe('flex');
-        expect(document.getElementById('serverSelect').value).toBe('platform');
         expect(document.getElementById('regionCustomInput').value).toBe('apac2');
     });
 
@@ -3147,17 +3146,17 @@ describe('onRegionSelectChange', () => {
         expect(sessionStorage.getItem('anypoint_region')).toBe('ca1');
     });
 
-    test('picking custom shows customServerRow and defaults type to eu', () => {
+    test('picking custom shows customServerRow and stores a custom type', () => {
         setupDom('custom');
         onRegionSelectChange();
         expect(document.getElementById('customServerRow').style.display).toBe('flex');
-        expect(sessionStorage.getItem('anypoint_server_type')).toBe('eu');
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('custom');
     });
 
-    test('picking custom preserves server=platform if already selected', () => {
+    test('picking custom ignores the legacy server selector', () => {
         setupDom('custom', 'platform');
         onRegionSelectChange();
-        expect(sessionStorage.getItem('anypoint_server_type')).toBe('platform');
+        expect(sessionStorage.getItem('anypoint_server_type')).toBe('custom');
         expect(document.getElementById('customServerRow').style.display).toBe('flex');
     });
 });
@@ -3221,8 +3220,8 @@ describe('getSelectedServerType / getSelectedRegion — region-led DOM', () => {
         makeRegionSelect('custom');
         makeServerSelect('platform');
         makeCustomInput('apac2');
-        expect(getSelectedServerType()).toBe('platform');
-        expect(getSelectedRegion()).toBe('apac2');
+        expect(getSelectedServerType()).toBe('custom');
+        expect(getSelectedRegion()).toBeNull();
     });
 
     test('custom with empty input → falls back to sessionStorage region', () => {
@@ -3232,8 +3231,8 @@ describe('getSelectedServerType / getSelectedRegion — region-led DOM', () => {
         sessionStorage.setItem('anypoint_server_type', 'eu');
         sessionStorage.setItem('anypoint_region', 'legacy-custom');
         try {
-            expect(getSelectedServerType()).toBe('eu');
-            expect(getSelectedRegion()).toBe('legacy-custom');
+            expect(getSelectedServerType()).toBe('custom');
+            expect(getSelectedRegion()).toBeNull();
         } finally {
             sessionStorage.removeItem('anypoint_server_type');
             sessionStorage.removeItem('anypoint_region');
@@ -3305,23 +3304,13 @@ describe('auth_panel.html template — region-led layout', () => {
         expect(section).toMatch(/<option[^>]*value\s*=\s*["']custom["']/);
     });
 
-    test('#serverSelect lives inside #customServerRow and offers only eu/platform', () => {
+    test('#customServerRow exposes free-form host and proxy inputs', () => {
         const section = sliceServerSection(authPanelHtml);
         expect(section).toMatch(/id\s*=\s*["']customServerRow["']/);
         // Custom sub-row is hidden by default.
         expect(section).toMatch(/id\s*=\s*["']customServerRow["'][^>]*style\s*=\s*["']display\s*:\s*none/);
-        // serverSelect keeps its id but drops the "us" option.
-        expect(section).toMatch(/id\s*=\s*["']serverSelect["']/);
-        // No <option value="us"> inside serverSelect. We approximate by
-        // ensuring the serverSelect block does not contain a `us` option:
-        // slice from `serverSelect` to the next closing </select>.
-        const serverSelectStart = section.indexOf('id="serverSelect"');
-        expect(serverSelectStart).toBeGreaterThan(-1);
-        const serverSelectEnd = section.indexOf('</select>', serverSelectStart);
-        const serverSelectBlock = section.slice(serverSelectStart, serverSelectEnd);
-        expect(serverSelectBlock).not.toMatch(/<option[^>]*value\s*=\s*["']us["']/);
-        expect(serverSelectBlock).toMatch(/<option[^>]*value\s*=\s*["']eu["']/);
-        expect(serverSelectBlock).toMatch(/<option[^>]*value\s*=\s*["']platform["']/);
+        expect(section).toMatch(/id\s*=\s*["']regionCustomInput["']/);
+        expect(section).toMatch(/id\s*=\s*["']proxyCustomInput["']/);
     });
 
     test('#regionCustomInput lives inside customServerRow with no inline display:none', () => {
@@ -3456,18 +3445,18 @@ describe('Custom row — both selectors required for a working URL', () => {
     }
     afterEach(() => cleanup());
 
-    test('custom + server=platform + input=apac2 composes a platform URL', () => {
+    test('custom host input is used as the base URL', () => {
         makeRegionSelect('custom');
         makeServerSelect('platform');
-        makeCustomInput('apac2');
-        expect(getSelectedBaseUrl()).toBe('https://apac2.platform.mulesoft.com');
+        makeCustomInput('api.example.test');
+        expect(getSelectedBaseUrl()).toBe('https://api.example.test');
     });
 
-    test('custom + server=eu + input=eu2 composes an anypoint URL', () => {
+    test('custom host input accepts a full HTTPS origin', () => {
         makeRegionSelect('custom');
         makeServerSelect('eu');
-        makeCustomInput('eu2');
-        expect(getSelectedBaseUrl()).toBe('https://eu2.anypoint.mulesoft.com');
+        makeCustomInput('https://api.example.test');
+        expect(getSelectedBaseUrl()).toBe('https://api.example.test');
     });
 
     test('custom with empty input still yields a defaulted, non-throwing URL', () => {
@@ -3479,10 +3468,49 @@ describe('Custom row — both selectors required for a working URL', () => {
         makeServerSelect('platform');
         makeCustomInput('');
         expect(() => getSelectedBaseUrl()).not.toThrow();
-        // Behavioral floor: the URL must at least be a well-formed https URL
-        // for the selected server domain.
-        const url = getSelectedBaseUrl();
-        expect(url).toMatch(/^https:\/\/[^/]*platform\.mulesoft\.com$/);
+        expect(getSelectedCustomHost()).toBeNull();
+    });
+});
+
+describe('Custom host and proxy overrides', () => {
+    function makeCustomInput(id, value) {
+        const input = document.createElement('input');
+        input.id = id;
+        input.value = value;
+        document.body.appendChild(input);
+    }
+
+    beforeEach(() => {
+        makeSelect('regionSelect', 'custom');
+    });
+
+    afterEach(() => {
+        ['regionSelect', 'regionCustomInput', 'proxyCustomInput'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+        sessionStorage.removeItem('anypoint_custom_host');
+        sessionStorage.removeItem('anypoint_custom_proxy');
+    });
+
+    test('uses an HTTPS custom host and preserves API path and query', () => {
+        makeCustomInput('regionCustomInput', 'https://api.example.test');
+        expect(getSelectedBaseUrl()).toBe('https://api.example.test');
+        expect(getEffectiveServer([{ url: 'https://anypoint.mulesoft.com/api/v1?verbose=true' }]).url)
+            .toBe('https://api.example.test/api/v1?verbose=true');
+    });
+
+    test('uses the custom host for MCP endpoints and preserves its path', () => {
+        makeCustomInput('regionCustomInput', 'https://api.example.test');
+        expect(getEffectiveMcpRemote([{ url: 'https://omni.mulesoft.com/mcp/sse' }]).url)
+            .toBe('https://api.example.test/mcp/sse');
+    });
+
+    test('rejects non-HTTPS hosts and accepts an HTTPS proxy URL with a path', () => {
+        makeCustomInput('regionCustomInput', 'http://api.example.test');
+        makeCustomInput('proxyCustomInput', 'https://proxy.example.test/gateway');
+        expect(getSelectedCustomHost()).toBeNull();
+        expect(getSelectedProxyUrl()).toBe('https://proxy.example.test/gateway');
     });
 });
 
@@ -3786,4 +3814,3 @@ describe('W-23256513 — au1 is registered in portal.js source', () => {
         expect(labelsBlock).toMatch(/au1\s*:\s*['"]Australia \(au1\)['"]/);
     });
 });
-

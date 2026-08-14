@@ -1055,7 +1055,7 @@ function getMcpEndpointForSlug(mcpSlug) {
     var servers = entry.servers || [];
     if (servers.length === 0) return null;
     var server = pickServerTemplate(servers);
-    return resolveServerUrl(server, null);
+    return _replaceUrlOrigin(resolveServerUrl(server, null), getSelectedCustomHost());
 }
 
 function unwrapMcpToolResponse(proxyData) {
@@ -2296,8 +2296,49 @@ function toggleSkill(skillId) {
 // Try It Out — Authentication
 // ============================================================================
 
-// Proxy URL can be configured via window.__PROXY_CONFIG__ or defaults to localhost:8080
-var PROXY_URL = (window.__PROXY_CONFIG__ && window.__PROXY_CONFIG__.url) || 'http://localhost:8080/proxy';
+// Proxy URL can be configured via window.__PROXY_CONFIG__, the Custom modal,
+// or defaults to localhost:8080.
+var DEFAULT_PROXY_URL = (window.__PROXY_CONFIG__ && window.__PROXY_CONFIG__.url) || 'http://localhost:8080/proxy';
+var PROXY_URL = DEFAULT_PROXY_URL;
+
+function _normalizeHttpsUrl(value, allowPath) {
+    if (!value || !value.trim()) return null;
+    var input = value.trim();
+    if (input.indexOf('://') === -1) input = 'https://' + input;
+    try {
+        var parsed = new URL(input);
+        if (parsed.protocol !== 'https:' || !parsed.hostname || parsed.username || parsed.password ||
+            parsed.search || parsed.hash || (!allowPath && parsed.pathname !== '/')) return null;
+        return allowPath ? parsed.href.replace(/\/$/, '') : parsed.origin;
+    } catch (e) {
+        return null;
+    }
+}
+
+function getSelectedCustomHost() {
+    var region = document.getElementById('regionSelect');
+    if (region && region.value !== 'custom') return null;
+    var input = document.getElementById('regionCustomInput');
+    return _normalizeHttpsUrl(input ? input.value : _safeSessionGet('anypoint_custom_host'), false);
+}
+
+function getSelectedProxyUrl() {
+    var region = document.getElementById('regionSelect');
+    if (region && region.value !== 'custom') return DEFAULT_PROXY_URL;
+    var input = document.getElementById('proxyCustomInput');
+    return _normalizeHttpsUrl(input ? input.value : _safeSessionGet('anypoint_custom_proxy'), true) || DEFAULT_PROXY_URL;
+}
+
+function _replaceUrlOrigin(url, origin) {
+    if (!url || !origin) return url;
+    try {
+        var target = new URL(url);
+        var replacement = new URL(origin);
+        return replacement.origin + target.pathname + target.search + target.hash;
+    } catch (e) {
+        return url;
+    }
+}
 
 function openAuthModal() {
     var modal = document.getElementById('authModal');
@@ -2350,6 +2391,7 @@ function applyAuthModalMode() {
     var serverSelect = document.getElementById('serverSelect');
     var regionSelectEl = document.getElementById('regionSelect');
     var regionCustom = document.getElementById('regionCustomInput');
+    var proxyCustom = document.getElementById('proxyCustomInput');
     var bearerTab = document.querySelector('.auth-tab[data-tab="bearer"]');
     var oauth2Tab = document.querySelector('.auth-tab[data-tab="oauth2"]');
 
@@ -2385,6 +2427,7 @@ function applyAuthModalMode() {
         if (regionSelectEl) { regionSelectEl.disabled = true; regionSelectEl.title = SERVER_LOCKED_TOOLTIP; }
         if (serverSelect) { serverSelect.disabled = true; serverSelect.title = SERVER_LOCKED_TOOLTIP; }
         if (regionCustom) { regionCustom.disabled = true; regionCustom.title = SERVER_LOCKED_TOOLTIP; }
+        if (proxyCustom) { proxyCustom.disabled = true; proxyCustom.title = SERVER_LOCKED_TOOLTIP; }
     } else {
         if (bearerTab) { bearerTab.disabled = false; bearerTab.style.display = ''; bearerTab.removeAttribute('title'); }
         if (oauth2Tab) { oauth2Tab.disabled = false; oauth2Tab.style.display = ''; oauth2Tab.removeAttribute('title'); }
@@ -2405,6 +2448,7 @@ function applyAuthModalMode() {
         if (regionSelectEl) { regionSelectEl.disabled = false; regionSelectEl.removeAttribute('title'); }
         if (serverSelect) { serverSelect.disabled = false; serverSelect.removeAttribute('title'); }
         if (regionCustom) { regionCustom.disabled = false; regionCustom.removeAttribute('title'); }
+        if (proxyCustom) { proxyCustom.disabled = false; proxyCustom.removeAttribute('title'); }
     }
 }
 
@@ -3751,8 +3795,7 @@ function getSelectedServerType() {
     if (region) {
         if (region.value === 'us') return 'us';
         if (region.value === 'custom') {
-            var srv = document.getElementById('serverSelect');
-            if (srv && (srv.value === 'eu' || srv.value === 'platform')) return srv.value;
+            return 'custom';
         } else if (region.value) {
             var derived = getServerTypeForRegion(region.value);
             if (derived) return derived;
@@ -3775,7 +3818,7 @@ function getSelectedServerType() {
 
 function getSelectedRegion() {
     var type = getSelectedServerType();
-    if (type === 'us') return null;
+    if (type === 'us' || type === 'custom') return null;
     var region = document.getElementById('regionSelect');
     if (region) {
         if (region.value === 'custom') {
@@ -3802,6 +3845,8 @@ function getSelectedRegion() {
 }
 
 function getSelectedBaseUrl() {
+    var customHost = getSelectedCustomHost();
+    if (customHost) return customHost;
     var type = getSelectedServerType();
     var region = getSelectedRegion();
     if (type === 'eu') return 'https://' + (region || 'eu1') + '.anypoint.mulesoft.com';
@@ -3822,6 +3867,14 @@ function getSelectedBaseUrl() {
 function getEffectiveServer(servers, opId) {
     if (!servers || servers.length === 0) {
         return { server: null, url: '', supported: true };
+    }
+    var customHost = getSelectedCustomHost();
+    if (customHost) {
+        return {
+            server: servers[0],
+            url: _replaceUrlOrigin(resolveServerUrl(servers[0], opId), customHost),
+            supported: true
+        };
     }
     var region = getSelectedRegion();
     var type = getSelectedServerType();
@@ -3926,6 +3979,10 @@ function _rewriteOmniRegionInHost(url, region) {
 function getEffectiveMcpRemote(remotes) {
     if (!remotes || remotes.length === 0) {
         return { remote: null, url: '', supported: true };
+    }
+    var customHost = getSelectedCustomHost();
+    if (customHost) {
+        return { remote: remotes[0], url: _replaceUrlOrigin(remotes[0].url, customHost), supported: true };
     }
     var region = getSelectedRegion();
     var type = getSelectedServerType();
@@ -4128,34 +4185,32 @@ function onServerChange() {
     updateAllPlaygroundUrls();
 }
 
+function _refreshCustomEndpoints() {
+    PROXY_URL = getSelectedProxyUrl();
+    updateAuthSummary();
+    updateAllServerBars();
+    updateAllMcpUrls();
+    initStepUrlBars();
+    updateAllPlaygroundUrls();
+}
+
 function onRegionSelectChange() {
     var regionSelect = document.getElementById('regionSelect');
     var customRow    = document.getElementById('customServerRow');
-    var serverSelect = document.getElementById('serverSelect');
     var customInput  = document.getElementById('regionCustomInput');
     if (!regionSelect) return;
     var val = regionSelect.value;
     if (val === 'custom') {
         if (customRow) customRow.style.display = 'flex';
-        var type = (serverSelect && serverSelect.value) || 'eu';
-        sessionStorage.setItem('anypoint_server_type', type);
-        sessionStorage.setItem(
-            'anypoint_region',
-            (customInput && customInput.value.trim()) || ''
-        );
+        sessionStorage.setItem('anypoint_server_type', 'custom');
         if (customInput) customInput.focus();
     } else {
         if (customRow) customRow.style.display = 'none';
         var derived = getServerTypeForRegion(val);
         sessionStorage.setItem('anypoint_server_type', derived);
         sessionStorage.setItem('anypoint_region', val === 'us' ? '' : val);
-        if (serverSelect && derived !== 'us') serverSelect.value = derived;
     }
-    updateAuthSummary();
-    updateAllServerBars();
-    updateAllMcpUrls();
-    initStepUrlBars();
-    updateAllPlaygroundUrls();
+    _refreshCustomEndpoints();
 }
 
 /**
@@ -7229,12 +7284,14 @@ function canProceedToNextStep(skillSlug, currentStepIndex) {
 function restoreServerSelection() {
     var regionSelect = document.getElementById('regionSelect');
     var customRow    = document.getElementById('customServerRow');
-    var serverSelect = document.getElementById('serverSelect');
     var customInput  = document.getElementById('regionCustomInput');
+    var proxyInput   = document.getElementById('proxyCustomInput');
     if (!regionSelect) return;
 
     var storedType   = sessionStorage.getItem('anypoint_server_type');
     var storedRegion = sessionStorage.getItem('anypoint_region');
+    var storedHost   = sessionStorage.getItem('anypoint_custom_host');
+    var storedProxy  = sessionStorage.getItem('anypoint_custom_proxy');
 
     // Nothing stored → default US, custom row hidden.
     if (!storedType) {
@@ -7247,6 +7304,15 @@ function restoreServerSelection() {
     if (storedType === 'us') {
         regionSelect.value = 'us';
         if (customRow) customRow.style.display = 'none';
+        return;
+    }
+
+    if (storedType === 'custom') {
+        regionSelect.value = 'custom';
+        if (customRow) customRow.style.display = 'flex';
+        if (customInput) customInput.value = storedHost || '';
+        if (proxyInput) proxyInput.value = storedProxy || '';
+        PROXY_URL = getSelectedProxyUrl();
         return;
     }
 
@@ -7264,7 +7330,6 @@ function restoreServerSelection() {
         // Custom: unknown region for this server type.
         regionSelect.value = 'custom';
         if (customRow) customRow.style.display = 'flex';
-        if (serverSelect) serverSelect.value = storedType;
         if (customInput) customInput.value = storedRegion || '';
         return;
     }
@@ -7279,12 +7344,15 @@ function restoreServerSelection() {
         var customInput = document.getElementById('regionCustomInput');
         if (customInput) {
             customInput.addEventListener('input', function() {
-                sessionStorage.setItem('anypoint_region', customInput.value.trim());
-                updateAuthSummary();
-                updateAllServerBars();
-                updateAllMcpUrls();
-                initStepUrlBars();
-                updateAllPlaygroundUrls();
+                sessionStorage.setItem('anypoint_custom_host', customInput.value.trim());
+                _refreshCustomEndpoints();
+            });
+        }
+        var proxyInput = document.getElementById('proxyCustomInput');
+        if (proxyInput) {
+            proxyInput.addEventListener('input', function() {
+                sessionStorage.setItem('anypoint_custom_proxy', proxyInput.value.trim());
+                _refreshCustomEndpoints();
             });
         }
         restoreServerSelection();

@@ -176,11 +176,8 @@
                     </select>
                 </div>
                 <div class="custom-server-row" id="customServerRow" style="display:none">
-                    <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select server domain for custom region">
-                        <option value="eu">Regional (anypoint.mulesoft.com)</option>
-                        <option value="platform">Regional (platform.mulesoft.com)</option>
-                    </select>
-                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. mytest" aria-label="Custom region">
+                    <input type="url" id="regionCustomInput" class="server-var-input" placeholder="https://my-host.example.com" aria-label="Custom host" autocomplete="url">
+                    <input type="url" id="proxyCustomInput" class="server-var-input" placeholder="https://my-proxy.example.com/proxy" aria-label="Custom proxy URL" autocomplete="url">
                 </div>
             </div>
 

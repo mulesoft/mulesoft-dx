@@ -1000,7 +1000,6 @@ paths:
       operationId: testExternalLogForwarding
   /organizations/{organizationId}/fabrics/events:
     get:
-      summary: List cluster events
       description: 'Retrieve the cluster events across the Runtime Fabrics in the
         organization.
 

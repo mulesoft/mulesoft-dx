@@ -114,7 +114,7 @@ Publishes your agent specification to Exchange as a reusable asset. This makes i
 
 ```yaml
 api: urn:api:exchange-experience
-operationId: createAssets
+operationId: uploadAsset
 inputs:
   organizationId:
     from:
@@ -160,7 +160,7 @@ Search Exchange for agent assets. This search is not scoped to a specific organi
 
 ```yaml
 api: urn:api:exchange-experience
-operationId: getAssetsSearch
+operationId: searchAssets
 inputs:
   types:
     value: "agent"

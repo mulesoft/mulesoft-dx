@@ -109,7 +109,8 @@ paths:
               example: *id001
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationid
+      summary: Get organization request counts
+      operationId: getOrganizationRequestCounts
   /organizations/{organizationId}/environments:
     get:
       description: Get list of environments with data for a specific queried time frame. This api will also return list of deleted environments. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -152,7 +153,8 @@ paths:
               example: *id002
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironments
+      summary: List organization environments
+      operationId: listOrganizationEnvironments
   /organizations/{organizationId}/environments/{environmentId}:
     get:
       description: Get list of request counts. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -244,7 +246,8 @@ paths:
               example: *id003
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentid
+      summary: Get environment request counts
+      operationId: getEnvironmentRequestCounts
   /organizations/{organizationId}/environments/{environmentId}/regions:
     get:
       description: Get list of regions with data for a specific queried time frame. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -288,7 +291,8 @@ paths:
               example: *id004
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegions
+      summary: List environment regions
+      operationId: listEnvironmentRegions
   /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}:
     get:
       description: Get list of request count per region. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -381,7 +385,8 @@ paths:
               example: *id005
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionid
+      summary: Get region request counts
+      operationId: getRegionRequestCounts
   /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores:
     get:
       description: Get list of stores with data for a specific queried time frame. This api will also return list of deleted stores. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -427,7 +432,8 @@ paths:
               example: *id006
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidStores
+      summary: List region stores
+      operationId: listRegionStores
   /organizations/{organizationId}/environments/{environmentId}/regions/{regionId}/stores/{storeId}:
     get:
       description: Get list of request count per store. If you are using connected app, "Store Metrics Viewer" scope is needed. For query timeframes and retention refer to [OSv2 documentation](https://docs.mulesoft.com/object-store/osv2-apis#osv2-usage-limits)
@@ -531,7 +537,8 @@ paths:
               example: *id007
         '400':
           description: If invalid query parameters or exceeds the limits documented above.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidRegionsByRegionidStoresByStoreid
+      summary: Get store request counts
+      operationId: getStoreRequestCounts
 components:
   securitySchemes:
     bearerAuth:

@@ -22,6 +22,7 @@ paths:
   /apimanager/xapi/v1/organizations/{organizationId}/exchange-policy-templates:
     get:
       description: Retrieve all policy templates (OOTB or custom) stored in Exchange for a given organization. Optionally filter by environment, API instance, Mule runtime version, or automation scope.
+      summary: List exchange policy templates
       operationId: getExchangePolicyTemplates
       parameters:
       - name: apiInstanceId
@@ -81,6 +82,7 @@ paths:
   /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/gateway-targets:
     get:
       description: Retrieve a paged list of gateway targets registered in a given environment. Optionally filter by gateway name, kind, or status.
+      summary: List gateway targets
       operationId: getGatewayTargets
       responses:
         '200':

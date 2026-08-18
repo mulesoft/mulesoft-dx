@@ -21,6 +21,7 @@ security:
 paths:
   /metric_types:
     get:
+      summary: List supported metric types
       operationId: getMetricTypes
       description: Get a list of all supported metric names and descriptions.
       parameters:
@@ -90,7 +91,8 @@ paths:
           description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
   "/metric_types/{metricTypeName}:describe":
     get:
-      operationId: getMetricTypesMetrictypenameDescribe
+      summary: Describe a metric type
+      operationId: describeMetricType
       description: Get the metric descriptor by a metric type name.
       parameters:
       - name: metricTypeName
@@ -198,7 +200,8 @@ paths:
           description: Exceeded service rate limit. Wait and try again.
         "500":
           description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
-      operationId: createMetricsSearch
+      summary: Search metrics
+      operationId: searchMetrics
 components:
   securitySchemes:
     bearerAuth:

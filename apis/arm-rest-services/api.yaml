@@ -155,6 +155,7 @@ paths:
                 example: &id005
                   message: 'Unable to process Core Services response. Returned status code: 409'
               example: *id005
+      summary: Register server
       operationId: createServers
     get:
       description: Get the registered servers information.
@@ -196,6 +197,7 @@ paths:
                       clusterId: 2195
                       clusterName: Cluster-1
               example: *id006
+      summary: List servers
       operationId: getServers
   /servers/{serverId}:
     description: Operate on a server.
@@ -280,6 +282,7 @@ paths:
                 example: &id008
                   message: server not found
               example: *id008
+      summary: Get server by ID
       operationId: getServersByServerid
     patch:
       description: Modify a server name.
@@ -359,6 +362,7 @@ paths:
                   runtimeInformation:
                     type: object
               example: *id009
+      summary: Update server name
       operationId: patchServersByServerid
     delete:
       description: "remove the server from Runtime Manager: \n\nDeletes related server artifacts from all deployments. Does not attempt to undeploy the server artifacts from the server. Records are simply deleted.\n\nIf the server is connected, the connection is terminated and cannot be accepted in future.\n\nTo cleanly delete a server, first:\n\nRemove the server from its group/cluster.\n\nDelete all deployments whose deployment target is this server.\n\nWait until all applications are undeployed.\n"
@@ -381,6 +385,7 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
+      summary: Delete server
       operationId: deleteServersByServerid
   /servers/{serverId}/actions:
     description: "Performs stateless synchronic actions immediately. \nPossible options are:\n- RESTART\n- DELETE\n- RENEW_CERTIFICATE\n- SHUTDOWN\n"
@@ -416,6 +421,7 @@ paths:
                     reason: ''
                     description: ''
               example: *id010
+      summary: Execute server action
       operationId: createServersByServeridActions
   /servers/registrationToken:
     description: Get a registration token. This token needs to be used to register a new server.
@@ -455,6 +461,7 @@ paths:
                 example: &id012
                   message: registrationToken not found
               example: *id012
+      summary: Get server registration token
       operationId: getServersRegistrationtoken
     patch:
       parameters:
@@ -476,6 +483,7 @@ paths:
                   data:
                     type: string
               example: *id013
+      summary: Refresh server registration token
       operationId: patchServersRegistrationtoken
       description: Updates registrationToken.
   /serverGroups:
@@ -530,6 +538,7 @@ paths:
                     type: SERVER_GROUP
                     status: DISCONNECTED
               example: *id014
+      summary: List server groups
       operationId: getServergroups
     post:
       description: Create a server group from a list of servers. The servers must not belong to any other server group or cluster.
@@ -592,6 +601,7 @@ paths:
                     type: SERVER_GROUP
                     status: DISCONNECTED
               example: *id015
+      summary: Create server group
       operationId: createServergroups
   /serverGroups/{serverGroupId}:
     description: Performs operations on a server group.
@@ -655,6 +665,7 @@ paths:
                 example: &id017
                   message: serverGroup not found
               example: *id017
+      summary: Get server group by ID
       operationId: getServergroupsByServergroupid
     patch:
       description: Modify a server group. The only field that can be modified is the name of the server group.
@@ -769,6 +780,7 @@ paths:
                     - PARTIAL
                     type: string
               example: *id018
+      summary: Update server group
       operationId: patchServergroupsByServergroupid
     delete:
       description: Delete a server group.
@@ -779,6 +791,7 @@ paths:
       responses:
         '202':
           description: Request accepted for processing.
+      summary: Delete server group
       operationId: deleteServergroupsByServergroupid
   /serverGroups/{serverGroupId}/servers/{serverId}:
     description: Perform operations on a server that is part of a server group.
@@ -908,7 +921,8 @@ paths:
                 example: &id020
                   message: There are applications already deployed on the servers to be added
               example: *id020
-      operationId: createServergroupsByServergroupidServersByServerid
+      summary: Add server to server group
+      operationId: addServerToServerGroup
     delete:
       description: Remove a server from a server group. This undeploys any artifacts from the server that are deployed to this server group.
       parameters:
@@ -924,7 +938,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteServergroupsByServergroupidServersByServerid
+      summary: Remove server from server group
+      operationId: removeServerFromServerGroup
   /clusters:
     description: A server cluster consists of a set of tightly connected servers that work together and can be viewed as a single system. Unlike server groups, server clusters share information and status between nodes.
     post:
@@ -966,6 +981,7 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
+      summary: Create cluster
       operationId: createClusters
     get:
       description: Get a list of all registered clusters.
@@ -1029,6 +1045,7 @@ paths:
                       unknownNodeIps: []
                   status: RUNNING
               example: *id021
+      summary: List clusters
       operationId: getClusters
   /clusters/{clusterId}:
     description: Perform actions in a particular cluster.
@@ -1109,6 +1126,7 @@ paths:
                 example: &id023
                   message: cluster not found
               example: *id023
+      summary: Get cluster by ID
       operationId: getClustersByClusterid
     patch:
       description: Modify a cluster. The only field that can be modified is the name of the cluster.
@@ -1182,6 +1200,7 @@ paths:
                 type: array
                 items: {}
               example: *id024
+      summary: Update cluster
       operationId: patchClustersByClusterid
     delete:
       description: Delete a cluster.
@@ -1209,6 +1228,7 @@ paths:
       responses:
         '202':
           description: Request accepted for processing.
+      summary: Delete cluster
       operationId: deleteClustersByClusterid
   /clusters/{clusterId}/servers:
     description: Perform actions on a particular server in a cluster.
@@ -1252,6 +1272,7 @@ paths:
                 example: &id025
                   message: There are applications already deployed on the servers to be added
               example: *id025
+      summary: Add server to cluster
       operationId: createClustersByClusteridServers
   /clusters/{clusterId}/servers/{serverId}:
     description: Perform actions on a particular server in a cluster.
@@ -1287,7 +1308,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteClustersByClusteridServersByServerid
+      summary: Remove server from cluster
+      operationId: removeServerFromCluster
     put:
       description: Modifies clustering information for a server. The server must be part of a cluster.
       parameters:
@@ -1345,7 +1367,8 @@ paths:
                 - message: Server does not exist for this organization.
                 - message: Cluster does not exist in your organization.
               example: *id027
-      operationId: updateClustersByClusteridServersByServerid
+      summary: Update clustered server configuration
+      operationId: updateClusterServer
   /targets:
     description: A target can be a Server, Server Group or Cluster.
   /targets/{targetId}/components:
@@ -1363,6 +1386,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: List target components
       operationId: getTargetsByTargetidComponents
       description: Retrieves a components.
   /targets/{targetId}/components/{componentId}:
@@ -1408,7 +1432,8 @@ paths:
                 example: &id029
                   message: component not found
               example: *id029
-      operationId: getTargetsByTargetidComponentsByComponentid
+      summary: Get target component by ID
+      operationId: getTargetComponent
     put:
       parameters:
       - name: targetId
@@ -1423,7 +1448,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateTargetsByTargetidComponentsByComponentid
+      summary: Replace target component
+      operationId: replaceTargetComponent
       description: Replaces a components.
     patch:
       parameters:
@@ -1468,7 +1494,8 @@ paths:
                         - type: object
                         - type: string
               example: *id030
-      operationId: patchTargetsByTargetidComponentsByComponentid
+      summary: Update target component
+      operationId: updateTargetComponent
       description: Updates a components.
   /applications:
     description: An application refers to a Mule application or proxy that is running in a Mule Runtime. It's important to differentiate the application from its corresponding binary. The same binary can be deployed twice and represents two different applications.
@@ -1684,6 +1711,7 @@ paths:
               example: *id031
         '202':
           description: Request accepted for processing.
+      summary: Deploy application
       operationId: createApplications
     get:
       description: Get deployed applications that matches the query params.
@@ -1784,6 +1812,7 @@ paths:
                       discoveredArtifactNames: []
                       status: PARTIAL
               example: *id032
+      summary: List deployed applications
       operationId: getApplications
   /applications/{applicationId}:
     description: Operate over a single application.
@@ -1876,6 +1905,7 @@ paths:
                 example: &id034
                   message: application not found
               example: *id034
+      summary: Get application deployment status
       operationId: getApplicationsByApplicationid
     delete:
       description: Undeploy artifact from all servers in deployment target and delete the deployment.
@@ -1886,6 +1916,7 @@ paths:
       responses:
         '204':
           description: Undeployment is in progress.
+      summary: Undeploy application
       operationId: deleteApplicationsByApplicationid
     patch:
       description: Redeploys the app with a new artifact. If the file is not specified in the request then Runtime Manager redeploys the same file that was already in the server. If the content type is application/json then it changes the status of the deployed application from started to stopped or from stopped to started. No other application status changes are allowed. If the file is not specified and the content-type of the request body is multipart/form-data the application is RESTARTED.
@@ -2192,6 +2223,7 @@ paths:
                     - DEPLOYING
                     type: string
               example: *id035
+      summary: Redeploy or change application status
       operationId: patchApplicationsByApplicationid
   /applications/{applicationId}/artifact:
     get:
@@ -2208,6 +2240,7 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
+      summary: Download application artifact binary
       operationId: getApplicationsByApplicationidArtifact
     patch:
       description: Redeploys the app with a new artifact from the provided source.
@@ -2270,6 +2303,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Redeploy application with new artifact
       operationId: patchApplicationsByApplicationidArtifact
   /applications/{applicationId}/flows:
     description: Default structure with which Mule applications are built.
@@ -2305,6 +2339,7 @@ paths:
                 example: &id037
                   message: Deployment does not exist in your organization
               example: *id037
+      summary: List application flows
       operationId: getApplicationsByApplicationidFlows
     patch:
       description: Updates the flows defined in the request body.
@@ -2356,6 +2391,7 @@ paths:
                 example: &id039
                   message: Deployment does not exist in your organization
               example: *id039
+      summary: Update application flows
       operationId: patchApplicationsByApplicationidFlows
     post:
       parameters:
@@ -2382,6 +2418,7 @@ paths:
                     - id: 54456
                       lastReportedStatus: STARTED
               example: *id040
+      summary: Create application flow
       operationId: createApplicationsByApplicationidFlows
       description: Creates a flows.
   /applications/{applicationId}/flows/{flowId}:
@@ -2409,7 +2446,8 @@ paths:
                 example: &id041
                   message: The given flow does not exist in this deployment.
               example: *id041
-      operationId: getApplicationsByApplicationidFlowsByFlowid
+      summary: Get application flow by ID
+      operationId: getApplicationFlow
     patch:
       description: Updates the flow with the specified ID.
       parameters:
@@ -2512,7 +2550,8 @@ paths:
                 example: &id044
                   message: The given flow does not exist in this deployment.
               example: *id044
-      operationId: patchApplicationsByApplicationidFlowsByFlowid
+      summary: Update application flow
+      operationId: updateApplicationFlow
   /applications/{applicationId}/schedulers:
     description: Retrieves all discovered schedulers for an application with its corresponding configuration.
     get:
@@ -2559,6 +2598,7 @@ paths:
                 example: &id046
                   message: Deployment does not exist in your organization
               example: *id046
+      summary: List application schedulers
       operationId: getApplicationsByApplicationidSchedulers
     patch:
       description: Updates the schedulers specified in the request body.
@@ -2624,7 +2664,8 @@ paths:
                 example: &id047
                   message: Scheduler does not exist in the specified deployment.
               example: *id047
-      operationId: patchApplicationsByApplicationidSchedulers
+      summary: Update application schedulers
+      operationId: updateApplicationSchedulers
     post:
       parameters:
       - $ref: '#/components/parameters/XOrigin_applicationId_Path'
@@ -2662,7 +2703,8 @@ paths:
                     startDelay: 0
                     timeUnit: MILLISECONDS
               example: *id048
-      operationId: createApplicationsByApplicationidSchedulers
+      summary: Create application schedulers
+      operationId: createApplicationSchedulers
       description: Creates a schedulers.
   /alerts:
     description: Alerts are the composition of a trigger and an event which is triggered based on conditions that are evaluated for Runtime Manager resources. This endpoint allows you to administrate the alerts that can be triggered by Runtime Manager.
@@ -2697,6 +2739,7 @@ paths:
                       - 45
                       event: DISCONNECTED
               example: *id049
+      summary: List alerts
       operationId: getAlerts
     post:
       parameters:
@@ -2731,6 +2774,7 @@ paths:
                       - 45
                       event: DISCONNECTED
               example: *id050
+      summary: Create alert
       operationId: createAlerts
       description: Creates alerts.
   /alerts/{alertId}:
@@ -2787,6 +2831,7 @@ paths:
                 example: &id052
                   message: alert not found
               example: *id052
+      summary: Get alert by ID
       operationId: getAlertsByAlertid
     patch:
       parameters:
@@ -2919,6 +2964,7 @@ paths:
                           - DEPLOYMENT_FAILED
                     type: object
               example: *id053
+      summary: Update alert
       operationId: patchAlertsByAlertid
       description: Updates a alerts.
   /alerts/{alertId}/history:
@@ -2965,6 +3011,7 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
+      summary: List alert history
       operationId: getAlertsByAlertidHistory
   /alerts/resources/{resourceId}/history:
     get:
@@ -3033,6 +3080,7 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
+      summary: List alert history for resource
       operationId: getAlertsResourcesByResourceidHistory
 components:
   securitySchemes:

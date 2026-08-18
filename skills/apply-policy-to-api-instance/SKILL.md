@@ -87,7 +87,7 @@ Retrieve all API instances in the selected environment. Each entry represents a 
 
 ```yaml
 api: urn:api:api-manager
-operationId: listApis
+operationId: listApiInstances
 inputs:
   organizationId:
     from:
@@ -180,7 +180,7 @@ Apply the selected policy to your API instance with the appropriate configuratio
 
 ```yaml
 api: urn:api:api-manager
-operationId: applyApiPolicy
+operationId: applyApiInstancePolicy
 inputs:
   organizationId:
     from:

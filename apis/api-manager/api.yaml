@@ -157,7 +157,7 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
       summary: List APIs
-      operationId: listApis
+      operationId: listApiInstances
     post:
       responses:
         '201':
@@ -224,7 +224,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API
-      operationId: createApi
+      operationId: createApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -267,7 +267,7 @@ paths:
           - type: boolean
             default: false
       summary: Get an API
-      operationId: getApi
+      operationId: getApiInstance
     put:
       responses:
         '201':
@@ -290,8 +290,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      summary: Replace an API
-      operationId: updateApi
+      summary: Update an API
+      operationId: updateApiInstance
     patch:
       responses:
         '200':
@@ -332,14 +332,14 @@ paths:
           - type: boolean
             default: false
       summary: Update an API
-      operationId: patchApi
+      operationId: patchApiInstance
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes an API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
       summary: Delete an API
-      operationId: deleteApi
+      operationId: deleteApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -356,14 +356,14 @@ paths:
                 message: Resource created successfully
       description: "Pins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
       summary: Pin an API version
-      operationId: pinApi
+      operationId: pinApiInstance
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Unpins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
       summary: Unpin an API version
-      operationId: unpinApi
+      operationId: unpinApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -390,7 +390,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API upstream
-      operationId: createApiUpstream
+      operationId: createApiInstanceUpstream
     get:
       responses:
         '200':
@@ -404,7 +404,7 @@ paths:
                   $ref: ./apimanager/examples/responses/upstreams.json
       description: "Get API version upstreams\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
       summary: List API upstreams
-      operationId: listApiUpstreams
+      operationId: listApiInstanceUpstreams
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -423,7 +423,7 @@ paths:
                   $ref: ./apimanager/examples/responses/upstream.json
       description: "Get an upstream\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
       summary: Get an API upstream
-      operationId: getApiUpstream
+      operationId: getApiInstanceUpstream
     patch:
       responses:
         '200':
@@ -447,7 +447,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update an API upstream
-      operationId: updateApiUpstream
+      operationId: updateApiInstanceUpstream
     delete:
       responses:
         default:
@@ -458,7 +458,7 @@ paths:
                 message: Success
       description: "Delete an upstream\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
       summary: Delete an API upstream
-      operationId: deleteApiUpstream
+      operationId: deleteApiInstanceUpstream
     parameters:
     - $ref: '#/components/parameters/param_upstream_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -510,7 +510,7 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
       summary: List API policies
-      operationId: listApiPolicies
+      operationId: listApiInstancePolicies
     post:
       responses:
         '201':
@@ -532,7 +532,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Apply a new API policy
-      operationId: applyApiPolicy
+      operationId: applyApiInstancePolicy
     patch:
       responses:
         '200':
@@ -564,7 +564,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Reorder API policies
-      operationId: reorderApiPolicies
+      operationId: reorderApiInstancePolicies
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -583,7 +583,7 @@ paths:
                   $ref: ./apimanager/examples/responses/policies.json
       description: "Retrieves a specific policy for the API\n\nConnected Apps require the following scopes:\n  - View Policies\n"
       summary: Get an API policy
-      operationId: getApiPolicy
+      operationId: getApiInstancePolicy
     patch:
       responses:
         '200':
@@ -604,14 +604,14 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update an API policy
-      operationId: updateApiPolicy
+      operationId: updateApiInstancePolicy
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Unapplies a policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
       summary: Unapply an API policy
-      operationId: unapplyApiPolicy
+      operationId: unapplyApiInstancePolicy
     parameters:
     - $ref: '#/components/parameters/param_policy_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -645,7 +645,7 @@ paths:
           - type: boolean
             default: false
       summary: Update policy implementation asset
-      operationId: updateApiPolicyImplementationAsset
+      operationId: updateApiInstancePolicyImplementationAsset
     parameters:
     - $ref: '#/components/parameters/param_policy_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -679,7 +679,7 @@ paths:
       - $ref: '#/components/parameters/trait_searchable_ascending'
       - $ref: '#/components/parameters/trait_searchable_query'
       summary: List API tiers
-      operationId: listApiTiers
+      operationId: listApiInstanceTiers
     post:
       responses:
         '201':
@@ -717,14 +717,14 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an SLA tier for the API
-      operationId: createApiTier
+      operationId: createApiInstanceTier
     head:
       responses:
         '200':
           description: Success. Returns the requested resource.
       description: Retrieves a count tiers of the API version
       summary: Count API tiers
-      operationId: checkApiTiers
+      operationId: checkApiInstanceTiers
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -767,14 +767,14 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update an API tier
-      operationId: updateApiTier
+      operationId: updateApiInstanceTier
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes a tier that has no active applications\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
       summary: Delete an API tier
-      operationId: deleteApiTier
+      operationId: deleteApiInstanceTier
     parameters:
     - $ref: '#/components/parameters/param_tier_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -787,7 +787,7 @@ paths:
           description: Success. Returns the requested resource.
       description: Retrieves a count group tiers of the API version
       summary: Count API group tiers
-      operationId: checkApiGroupTiers
+      operationId: checkApiInstanceGroupTiers
     get:
       responses:
         '200':
@@ -799,7 +799,7 @@ paths:
                 data: []
       description: Returns a list of elements.
       summary: List API group tiers
-      operationId: listApiGroupTiers
+      operationId: listApiInstanceGroupTiers
     post:
       responses:
         '201':
@@ -821,7 +821,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API group tier
-      operationId: createApiGroupTier
+      operationId: createApiInstanceGroupTier
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -840,7 +840,7 @@ paths:
                   $ref: ./apimanager/examples/responses/contracts.json
       description: "Retrieves a list of group contracts of the API version\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
       summary: List API group contracts
-      operationId: listApiGroupContracts
+      operationId: listApiInstanceGroupContracts
     post:
       responses:
         '201':
@@ -862,7 +862,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API group contract
-      operationId: createApiGroupContract
+      operationId: createApiInstanceGroupContract
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -898,7 +898,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API contract
-      operationId: createApiContract
+      operationId: createApiInstanceContract
     get:
       responses:
         '200':
@@ -945,7 +945,7 @@ paths:
       - $ref: '#/components/parameters/trait_searchable_ascending'
       - $ref: '#/components/parameters/trait_searchable_query'
       summary: List API contracts
-      operationId: listApiContracts
+      operationId: listApiInstanceContracts
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -964,7 +964,7 @@ paths:
                   $ref: ./apimanager/examples/responses/contracts.json
       description: "Retrieves a specific contract for the API\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
       summary: Get an API contract
-      operationId: getApiContract
+      operationId: getApiInstanceContract
     patch:
       responses:
         '200':
@@ -988,14 +988,14 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update API contract conditions
-      operationId: updateApiContract
+      operationId: updateApiInstanceContract
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes the contract\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
       summary: Delete an API contract
-      operationId: deleteApiContract
+      operationId: deleteApiInstanceContract
     parameters:
     - $ref: '#/components/parameters/param_contract_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -1015,7 +1015,7 @@ paths:
                   $ref: ./apimanager/examples/responses/alerts.json
       description: "Retrieves a list of API alerts\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
       summary: List API alerts
-      operationId: listApiAlerts
+      operationId: listApiInstanceAlerts
     post:
       responses:
         '201':
@@ -1039,7 +1039,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create an API alert
-      operationId: createApiAlert
+      operationId: createApiInstanceAlert
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1077,7 +1077,7 @@ paths:
                 message: Resource not found
       description: "Retrieves an API alert\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
       summary: Get an API alert
-      operationId: getApiAlert
+      operationId: getApiInstanceAlert
     patch:
       responses:
         '200':
@@ -1127,7 +1127,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update an API alert
-      operationId: updateApiAlert
+      operationId: updateApiInstanceAlert
     delete:
       responses:
         '204':
@@ -1153,7 +1153,7 @@ paths:
                 message: Resource not found
       description: "Deletes the specified alert definition\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
       summary: Delete an API alert
-      operationId: deleteApiAlert
+      operationId: deleteApiInstanceAlert
     parameters:
     - $ref: '#/components/parameters/param_alert_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -1199,7 +1199,7 @@ paths:
           - type: boolean
             default: false
       summary: Export the API bundle
-      operationId: exportApiBundle
+      operationId: exportApiInstanceBundle
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1216,14 +1216,14 @@ paths:
                 message: Resource created successfully
       description: "Adds a new API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
       summary: Add a new API tag
-      operationId: addApiTag
+      operationId: addApiInstanceTag
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes an API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
       summary: Delete an API tag
-      operationId: deleteApiTag
+      operationId: deleteApiInstanceTag
     parameters:
     - name: tag
       in: path
@@ -1254,7 +1254,7 @@ paths:
         schema:
           type: string
       summary: Get API autodiscovery properties
-      operationId: getApiAutodiscoveryProperties
+      operationId: getApiInstanceAutodiscoveryProperties
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1287,7 +1287,7 @@ paths:
                 message: Resource not found
       description: Retrieves TLS Contexts configuration for a given API endpoint
       summary: Get API TLS context configuration
-      operationId: getApiTlsContexts
+      operationId: getApiInstanceTlsContexts
     post:
       responses:
         '201':
@@ -1323,7 +1323,7 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Create API TLS context configuration
-      operationId: createApiTlsContexts
+      operationId: createApiInstanceTlsContexts
     put:
       responses:
         '200':
@@ -1344,14 +1344,14 @@ paths:
         required: true
         description: Request body containing the data needed for this operation.
       summary: Update API TLS context configuration
-      operationId: updateApiTlsContexts
+      operationId: updateApiInstanceTlsContexts
     delete:
       responses:
         '204':
           description: TLS Contexts successfully deleted
       description: Deletes TLS Contexts configuration
       summary: Delete API TLS context configuration
-      operationId: deleteApiTlsContexts
+      operationId: deleteApiInstanceTlsContexts
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -3061,7 +3061,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:api-manager
-        operation: listApiUpstreams
+        operation: listApiInstanceUpstreams
         values: $.id
         labels: $.name
     param_policy_id:
@@ -3083,7 +3083,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:api-manager
-        operation: listApiAlerts
+        operation: listApiInstanceAlerts
         values: $.id
         labels: $.name
     param_group_instance_id:

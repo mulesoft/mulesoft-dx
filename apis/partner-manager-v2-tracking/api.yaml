@@ -830,7 +830,8 @@ paths:
               example: {}
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissions
+      summary: List transmissions
+      operationId: listTransmissions
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/replay:
     description: The collection of replay
     post:
@@ -882,7 +883,8 @@ paths:
                 message: Operation completed successfully.
       security:
       - oauth_2_0: []
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsReplay
+      summary: Replay multiple transmissions
+      operationId: replayTransmissions
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}:
     description: The collection of transmissions
     get:
@@ -1009,7 +1011,8 @@ paths:
               example: {}
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionid
+      summary: Get transmission by ID
+      operationId: getTransmissionById
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/reviews:
     description: Get an entity representing a review
     get:
@@ -1112,7 +1115,8 @@ paths:
                   message: string
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviews
+      summary: List transmission reviews
+      operationId: listTransmissionReviews
     post:
       description: Create a new review
       parameters:
@@ -1180,7 +1184,8 @@ paths:
                   message: string
       security:
       - oauth_2_0: []
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviews
+      summary: Create transmission review
+      operationId: createTransmissionReview
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/reviews/{reviewId}:
     description: Get an entity representing a review
     put:
@@ -1253,7 +1258,8 @@ paths:
                   message: string
       security:
       - oauth_2_0: []
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReviewsByReviewid
+      summary: Update transmission review
+      operationId: updateTransmissionReview
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/summaries:
     description: The collection of summaries
     get:
@@ -1320,7 +1326,8 @@ paths:
               example: {}
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidSummaries
+      summary: List transmission summaries
+      operationId: listTransmissionSummaries
   /organizations/{organizationId}/environments/{envId}/activity/transmissions/{transmissionId}/replays:
     description: Get an entity representing a replay
     post:
@@ -1394,7 +1401,8 @@ paths:
                   message: string
       security:
       - oauth_2_0: []
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvidActivityTransmissionsByTransmissionidReplays
+      summary: Replay transmission
+      operationId: replayTransmission
   /organizations/{organizationId}/environments/{envId}/activity/messages:
     description: The collection of messages
     get:
@@ -1682,7 +1690,8 @@ paths:
               example: {}
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityMessages
+      summary: List messages
+      operationId: listMessages
   /organizations/{organizationId}/environments/{envId}/activity/messages/{messageId}:
     description: Get an entity representing a message
     get:
@@ -1865,7 +1874,8 @@ paths:
                   message: string
       security:
       - oauth_2_0: []
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidActivityMessagesByMessageid
+      summary: Get message by ID
+      operationId: getMessageById
   /organizations/{organizationId}/environments/{envId}/contents:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -1890,7 +1900,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvidContentsByContentid
+      summary: Get content by ID
+      operationId: getContentById
       description: Retrieves a contents.
 components:
   requestBodies:

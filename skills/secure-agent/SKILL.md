@@ -261,7 +261,7 @@ Creates a managed API instance in API Manager from your agent Exchange asset. Th
 
 ```yaml
 api: urn:api:api-manager
-operationId: createOrganizationsEnvironmentsApis
+operationId: createApi
 inputs:
   organizationId:
     from:
@@ -395,7 +395,7 @@ Lists agent instances in the selected environment by filtering with `family=agen
 
 ```yaml
 api: urn:api:api-manager
-operationId: listOrganizationsEnvironmentsApis
+operationId: listApis
 inputs:
   organizationId:
     from:
@@ -423,7 +423,7 @@ outputs:
 
 List all available policy templates from Exchange for your organization. This endpoint returns the full Exchange coordinates (`groupId`, `assetId`, `assetVersion`) and gateway-compatible configuration for each template — these are required when applying a policy.
 
-**Important:** Use the `api-portal-xapi` endpoint (`getExchangePolicyTemplates`) instead of the generic `listOrganizationsPolicytemplates` endpoint. The generic endpoint does not return Exchange coordinates or gateway-specific configuration property names, which are required for the apply step.
+**Important:** Use the `api-portal-xapi` endpoint (`getExchangePolicyTemplates`) instead of the generic `listPolicyTemplates` endpoint. The generic endpoint does not return Exchange coordinates or gateway-specific configuration property names, which are required for the apply step.
 
 **What you'll need:**
 - Organization ID
@@ -475,7 +475,7 @@ outputs:
 
 **Common issues:**
 - **Empty list**: Pass `apiInstanceId` and `environmentId` to get templates compatible with your gateway type. Without these filters, some templates may not appear.
-- **Wrong config property names**: Always use the configuration from this endpoint — the generic `listOrganizationsPolicytemplates` endpoint may return different (non-gateway-compatible) property names and defaults.
+- **Wrong config property names**: Always use the configuration from this endpoint — the generic `listPolicyTemplates` endpoint may return different (non-gateway-compatible) property names and defaults.
 
 ## Step 9: Apply Policy to Instance
 
@@ -490,7 +490,7 @@ Apply the selected policy to your agent instance with the appropriate configurat
 
 ```yaml
 api: urn:api:api-manager
-operationId: createOrganizationsEnvironmentsApisPolicies
+operationId: applyApiPolicy
 inputs:
   organizationId:
     from:
@@ -622,7 +622,7 @@ Your agent is now protected with:
 **Symptoms:** `"The policy to be created is missing at least one of the following properties related to the policy template: 'groupId', 'assetId', 'assetVersion'."`
 
 **Possible causes:**
-- Used the generic `listOrganizationsPolicytemplates` endpoint which does not return Exchange coordinates
+- Used the generic `listPolicyTemplates` endpoint which does not return Exchange coordinates
 
 **Solutions:**
 - Use `getExchangePolicyTemplates` from `api-portal-xapi` instead — this returns the full Exchange coordinates needed by the apply endpoint

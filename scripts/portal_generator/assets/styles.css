@@ -3236,7 +3236,6 @@ button.nav-group-header {
 .server-desc,
 .security-desc {
     display: block;
-    margin-top: var(--space-xx-small);
     font-family: var(--font-sans);
     color: var(--color-neutral-8);
     font-size: var(--font-size-2);
@@ -3244,6 +3243,11 @@ button.nav-group-header {
 
 .server-desc {
     font-style: italic;
+    margin-bottom: var(--space-xx-small);
+}
+
+.security-desc {
+    margin-top: var(--space-xx-small);
 }
 
 .badge-security {

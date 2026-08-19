@@ -7329,12 +7329,40 @@ details[open] .examples-toggle-icon {
     border-color: #80BFFF;
 }
 
+/* Temporary restriction while the portal request proxy is unavailable. */
+.btn-send:disabled,
+.btn-send:disabled:hover {
+    background: var(--color-bg-primary);
+    border-color: var(--color-border-primary);
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
+}
+
+.send-disabled-tooltip {
+    display: inline-flex;
+    cursor: not-allowed;
+}
+
+.temporary-hidden {
+    display: none !important;
+}
+
+.auth-panel-status.region-selector {
+    border: 1px solid #A4A4A4;
+    border-radius: 100px;
+}
+
+.region-selector .auth-info-container {
+    border: none;
+    border-radius: inherit;
+}
+
 .btn-copy-curl {
     height: 32px;
     padding: 6px 16px;
-    background: #FFFFFF;
-    color: #4B5563;
-    border: 1px solid #D1D5DB;
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
     border-radius: 9999px;
     font-family: var(--font-sans);
     font-size: var(--font-size-3);
@@ -7349,8 +7377,8 @@ details[open] .examples-toggle-icon {
 }
 
 .btn-copy-curl:hover {
-    background: #F3F4F6;
-    border-color: #9CA3AF;
+    background: var(--color-bg-primary);
+    border-color: var(--color-text-secondary);
 }
 
 .send-dropdown-item svg {

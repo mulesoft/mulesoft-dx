@@ -185,10 +185,10 @@ function openXOriginModal(opId, paramName, location) {
             // Right side: actions (spinner + send button + dropdown)
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-            html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
-            html += '</button>';
+            html += '</button></span>';
             html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
             html += '<span>Copy cURL</span>';
@@ -330,10 +330,10 @@ function reopenXOriginModal(modalContext) {
 
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-            html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
+            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
-            html += '</button>';
+            html += '</button></span>';
             html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
             html += '<span>Copy cURL</span>';
@@ -898,8 +898,8 @@ function _buildApiSourcePanel(idx, apiSlug, operationId, origin, opLookup, envVa
     html += '</div>';
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-    html += '<button class="btn-send" onclick="executeXOriginSource(' + idx + ', this)">';
-    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button></span>';
     html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
     html += '</div></div>';
@@ -940,8 +940,8 @@ function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVars
     html += '</div>';
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-    html += '<button class="btn-send" onclick="executeMcpXOriginSource(' + idx + ', this)">';
-    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button>';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+    html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button></span>';
     html += '<button class="btn-copy-curl" onclick="copyXOriginMcpCurl(\'' + xoriginOpId + '\', ' + idx + ', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
     html += '</div></div>';
@@ -2381,10 +2381,10 @@ function applyAuthModalMode() {
             if (oauth2LogoutBtn) oauth2LogoutBtn.style.display = '';
         }
 
-        // Server combo + region inputs disabled (chevron stays, value visible).
-        if (regionSelectEl) { regionSelectEl.disabled = true; regionSelectEl.title = SERVER_LOCKED_TOOLTIP; }
-        if (serverSelect) { serverSelect.disabled = true; serverSelect.title = SERVER_LOCKED_TOOLTIP; }
-        if (regionCustom) { regionCustom.disabled = true; regionCustom.title = SERVER_LOCKED_TOOLTIP; }
+        // Region selection remains available while the temporary login restriction is active.
+        if (regionSelectEl) { regionSelectEl.disabled = false; regionSelectEl.removeAttribute('title'); }
+        if (serverSelect) { serverSelect.disabled = false; serverSelect.removeAttribute('title'); }
+        if (regionCustom) { regionCustom.disabled = false; regionCustom.removeAttribute('title'); }
     } else {
         if (bearerTab) { bearerTab.disabled = false; bearerTab.style.display = ''; bearerTab.removeAttribute('title'); }
         if (oauth2Tab) { oauth2Tab.disabled = false; oauth2Tab.style.display = ''; oauth2Tab.removeAttribute('title'); }
@@ -5506,10 +5506,10 @@ function renderOperationPanel(opId, opMeta, options) {
     // Execute buttons
     if (showExecuteButton) {
         html += '<div class="operation-panel-actions">';
-        html += '<button class="btn-send" ' + (executeButtonClick ? 'onclick="' + executeButtonClick + ', this)"' : '') + '>';
+        html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
         html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
         html += '<span>' + executeButtonText + '</span>';
-        html += '</button>';
+        html += '</button></span>';
         html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + opId + '\', this)">';
         html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         html += '<span>Copy cURL</span>';
@@ -6317,10 +6317,10 @@ function initializePlaygroundStep(sid) {
     // Right side: actions (spinner + send button + dropdown)
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
-    html += '<button class="btn-send" onclick="executePlaygroundStep(\'' + sid + '\', this)">';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
     html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
     html += '<span>Send</span>';
-    html += '</button>';
+    html += '</button></span>';
     html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'' + sid + '\', this)">';
     html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
     html += '<span>Copy cURL</span>';

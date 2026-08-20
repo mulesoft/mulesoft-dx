@@ -185,7 +185,7 @@ function openXOriginModal(opId, paramName, location) {
             // Right side: actions (spinner + send button + dropdown)
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
             html += '</button></span>';
@@ -330,7 +330,7 @@ function reopenXOriginModal(modalContext) {
 
             html += '<div class="try-header-actions">';
             html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+            html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
             html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
             html += '<span>Send</span>';
             html += '</button></span>';
@@ -898,7 +898,7 @@ function _buildApiSourcePanel(idx, apiSlug, operationId, origin, opLookup, envVa
     html += '</div>';
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
     html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button></span>';
     html += '<button class="btn-copy-curl" onclick="copyCurlCommand(\'xorigin-' + idx + '\', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
@@ -940,7 +940,7 @@ function _buildMcpSourcePanel(idx, mcpSlug, toolName, origin, mcpLookup, envVars
     html += '</div>';
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-xorigin-' + idx + '" style="display:none">Sending...</span>';
-    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
     html += '<img src="../assets/icons/send-icon.svg" alt="" width="13" height="11"><span>Send</span></button></span>';
     html += '<button class="btn-copy-curl" onclick="copyXOriginMcpCurl(\'' + xoriginOpId + '\', ' + idx + ', this)">';
     html += '<img src="../assets/icons/copy-curl-icon.svg" alt="" width="13" height="13"><span>Copy cURL</span></button>';
@@ -5506,7 +5506,7 @@ function renderOperationPanel(opId, opMeta, options) {
     // Execute buttons
     if (showExecuteButton) {
         html += '<div class="operation-panel-actions">';
-        html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+        html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
         html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
         html += '<span>' + executeButtonText + '</span>';
         html += '</button></span>';
@@ -6317,7 +6317,7 @@ function initializePlaygroundStep(sid) {
     // Right side: actions (spinner + send button + dropdown)
     html += '<div class="try-header-actions">';
     html += '<span class="try-spinner" id="spinner-' + sid + '" style="display:none">Sending...</span>';
-    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable. Use the Copy cURL command and run it locally."><button class="btn-send" disabled aria-disabled="true">';
+    html += '<span class="send-disabled-tooltip" data-tooltip="Sending requests is temporarily unavailable."><button class="btn-send" disabled aria-disabled="true">';
     html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
     html += '<span>Send</span>';
     html += '</button></span>';

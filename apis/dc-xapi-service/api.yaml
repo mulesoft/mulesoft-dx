@@ -5,16 +5,9 @@ info:
   version: 2.0.0
 servers:
 - url: https://anypoint.mulesoft.com/designcenter/api/v2
-- url: https://{region}.anypoint.mulesoft.com/designcenter/api/v2
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/designcenter/api/v2
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/designcenter/api/v2
+  description: EU
 security:
 - bearerAuth: []
 - clientAuth: []

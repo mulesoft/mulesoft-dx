@@ -6,6 +6,7 @@ info:
 
 servers:
 - url: https://anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: US
   variables:
     version:
       default: unknown
@@ -13,23 +14,27 @@ servers:
       default: unknown
     envId:
       default: unknown
-- url: https://{region}.anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+- url: https://eu1.anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
     organizationId:
       default: unknown
     envId:
       default: unknown
-
-- url: https://{region}.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+- url: https://ca1.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+    organizationId:
+      default: unknown
+    envId:
+      default: unknown
+- url: https://jp1.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: JP
+  variables:
     version:
       default: unknown
     organizationId:

@@ -8,6 +8,7 @@ info:
   description: Manage tokenization services, formats, and deployments for data tokenization within Anypoint Security.
 servers:
 - url: https://anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: US
   variables:
     version:
       default: unknown
@@ -15,22 +16,27 @@ servers:
     organizationId:
       default: unknown
       description: The organization ID for the Anypoint Platform account.
-- url: https://{region}.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+- url: https://eu1.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
     organizationId:
       default: unknown
       description: The organization ID for the Anypoint Platform account.
-- url: https://{region}.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+- url: https://ca1.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+    organizationId:
+      default: unknown
+      description: The organization ID for the Anypoint Platform account.
+- url: https://jp1.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: JP
+  variables:
     version:
       default: unknown
       description: API version identifier.

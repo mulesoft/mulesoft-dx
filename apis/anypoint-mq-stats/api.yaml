@@ -5,23 +5,26 @@ info:
   description: Retrieve usage statistics for Anypoint MQ queues, exchanges, and environments.
 servers:
 - url: https://anypoint.mulesoft.com/mq/stats/api/{version}
+  description: US
   variables:
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/mq/stats/api/{version}
+- url: https://eu1.anypoint.mulesoft.com/mq/stats/api/{version}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/mq/stats/api/{version}
+- url: https://ca1.platform.mulesoft.com/mq/stats/api/{version}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/mq/stats/api/{version}
+  description: JP
+  variables:
     version:
       default: unknown
       description: API version identifier.

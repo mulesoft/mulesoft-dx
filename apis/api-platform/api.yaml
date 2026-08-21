@@ -5,23 +5,38 @@ info:
   description: Manage APIs, applications, alerts, and classifications in the Anypoint API Platform repository.
 servers:
 - url: https://anypoint.mulesoft.com/apiplatform/repository/{version}
+  description: US
   variables:
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/apiplatform/repository/{version}
+- url: https://eu1.anypoint.mulesoft.com/apiplatform/repository/{version}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/apiplatform/repository/{version}
+- url: https://ca1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: JP
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://in1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: IN
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://au1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: AU
+  variables:
     version:
       default: unknown
       description: API version identifier.

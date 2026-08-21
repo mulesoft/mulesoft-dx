@@ -5,23 +5,26 @@ info:
   description: Manage edge security policies, TLS contexts, virtual servers, and deployments for Anypoint Security.
 servers:
 - url: https://anypoint.mulesoft.com/securityfabric/api/{version}/organizations
+  description: US
   variables:
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/securityfabric/api/{version}/organizations
+- url: https://eu1.anypoint.mulesoft.com/securityfabric/api/{version}/organizations
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/securityfabric/api/{version}/organizations
+- url: https://ca1.platform.mulesoft.com/securityfabric/api/{version}/organizations
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/securityfabric/api/{version}/organizations
+  description: JP
+  variables:
     version:
       default: unknown
       description: API version identifier.

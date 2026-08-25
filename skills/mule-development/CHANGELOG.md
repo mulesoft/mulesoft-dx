@@ -4,6 +4,17 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.5] - 2026-08-24
+
+### Added
+
+- **`build-agent-broker-project`** — Documented the `agent-network project undeploy` and `agent-network project unpublish` commands, which became public in Anypoint CLI Agent Fabric plugin **v1.3.0** (both were `hidden` in v1.2.10). Added them as optional lifecycle Steps 10 and 11 with the capability matrix rows, full flag surface (`--path`/`--gav`, `--environment`, `--dry-run`, `--api-version`, timeouts; `--hard-delete` for unpublish), the Anypoint Code Builder commands (*MuleSoft: Undeploy/Unpublish Agent Network*) and MuleSoft Vibes phrasings, the **undeploy-before-unpublish** ordering rule, and the soft-delete vs `--hard-delete` behavior (GAV stays reserved on soft-delete; 7-day window then hard delete; republish takes the next available patch version).
+- **`build-agent-broker-project`** — Added guidance for `interfaces.a2a.card.supportedInterfaces`: an array of `{url, protocolBinding (JSONRPC | GRPC | HTTP+JSON), protocolVersion, tenant}` objects, with a concrete two-object HTTP+JSON + JSONRPC example (so the agent writes both bindings in one pass instead of guessing key names) and the warning that a `protocolVersion` mismatch with the deployed agent's real runtime version surfaces as a runtime `401 Unauthorized`, not a version error.
+
+### Changed
+
+- **`build-agent-broker-project`** and **`translate-agent-broker-old-to-new-project`** — Added a hard guardrail: never read from or write into the `target/` folder (Maven build output, regenerated on each build). All configuration edits — including adding a connection policy such as client-id enforcement — belong in the source `agent-network.yaml` / `brokers/*.agent`, never in `target/`.
+
 ## [1.8.4] - 2026-08-10
 
 ### Fixed

@@ -472,3 +472,16 @@ These are the things the published docs don't make obvious — read the docs for
 10. **One echo per terminal path** — this example uses 4 separate echo nodes. Inside `a2a.message()` / `a2a.textPart()`, references are direct (`@generator.classifySeverity.output.ticket_id + " escalated"`). The `{!@...}` template form does NOT apply inside echo helpers.
 11. **Dialect `# @dialect: AGENTFABRIC=1.0`** — pinned to GA dialect 1.0.
 12. **`policies` shape (GA)** — when used, `policies` is an object with `inbound` and `outbound` arrays, not a flat list of policy ids.
+13. **`supportedInterfaces` — one object per transport binding.** A card can advertise multiple transports via `metadata.interfaces.a2a.card.supportedInterfaces` (an array). Each entry is `{url, protocolBinding, protocolVersion, tenant}`; `protocolBinding` is one of `JSONRPC`, `GRPC`, `HTTP+JSON` (literal `+`), and `protocolVersion` is a **quoted string**. To support both HTTP+JSON and JSONRPC, write exactly two objects — don't retry or improvise the key names:
+
+    ```yaml
+    supportedInterfaces:
+      - url: http://localhost:8001/itHelpInvestigationBroker/
+        protocolBinding: HTTP+JSON
+        protocolVersion: "1.0"
+      - url: http://localhost:8001/itHelpInvestigationBroker/
+        protocolBinding: JSONRPC
+        protocolVersion: "1.0"
+    ```
+
+    `protocolVersion` must match the agent's actual runtime A2A version — a mismatch makes the platform apply the wrong Agent Card policy, skip the egress-proxy URL rewrite, and fail at runtime with `401 Unauthorized` (not a version error).

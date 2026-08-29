@@ -186,7 +186,7 @@ Per-type schema notes:
 
 - **LLM** — Inline: `info.label`, `metadata.platform: Gemini | OpenAI | AzureOpenai`. Connection: `kind: llm` + `url` + `authentication`.
 - **MCP** — Inline: `info.label`, `metadata.transport.kind` (`streamableHttp` | `sse` | `stdio`). After registering, ask the user **what `tool_name`** to call (required for the action). Ask if they know the input parameters. If yes, declare in action `inputs:`. If no, omit `inputs:` — runtime auto-discovers. **Never fabricate tool names or input schemas.**
-- **A2A** — Inline: `info.label` + interfaces branch. Use `a2a` for current A2A v1.0 agents, `a2a_v03` for legacy A2A v0.3 (Agent Broker stays backward-compatible). Card under `metadata.interfaces.<branch>.card` includes `name`, `description`, `url`, `protocolVersion`, `version`, `capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`. See `references/gotchas.md` § "Registry agents" for the per-branch shape.
+- **A2A** — Inline: `info.label` + interfaces branch. Use `a2a` for current A2A v1.0 agents, `a2a_v03` for legacy A2A v0.3 (Agent Broker stays backward-compatible). Card under `metadata.interfaces.<branch>.card` includes `name`, `description`, `url`, `protocolVersion`, `version`, `capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`. To advertise multiple transports, add `supportedInterfaces` — an array of `{url, protocolBinding (JSONRPC | GRPC | HTTP+JSON), protocolVersion, tenant}` objects. When the user asks to support both HTTP+JSON and JSONRPC, write **exactly two objects** (one per binding) — don't iterate. `protocolVersion` is a quoted string and **must match the agent's real runtime version** (a mismatch surfaces as a runtime `401`, not a version error). See `references/gotchas.md` § "Registry agents" (`supportedInterfaces` subsection) for the exact shape.
 
 ## Step 4: Technical Graph Definition (Phase 3 — Agent Script)
 
@@ -304,6 +304,14 @@ Ask the user: `environmentName`, `targetSpace` (private space), and any deployme
 
 Run the deploy command (CLI preferred → MCP fallback → doc link). Surface deployment URL/ID. Full command syntax, gateway defaults, and CI flags are in `references/gotchas.md` § "Step 9 — Deploy".
 
+## Step 10: Undeploy (optional, reversible)
+
+Only on explicit request. Removes deployed runtime resources; leaves Exchange assets intact (you can redeploy). Requires `--environment` and either `--path` or `--gav`. Prefer `--dry-run` first. Run the undeploy command (CLI preferred → MCP fallback → doc link); surface what was removed. Full syntax in `references/gotchas.md` § "Step 10 — Undeploy". (ACB: *MuleSoft: Undeploy Agent Network*.)
+
+## Step 11: Unpublish (optional; destructive)
+
+Only on explicit request. Removes Exchange assets. **Undeploy first** (Step 10) to avoid orphaned runtime references. Default is a soft-delete (GAV stays reserved, not restorable; 7-day → next patch on republish); `--hard-delete` frees the GAV irreversibly and needs dependents removed first. **Prefer `--dry-run`, and confirm with the user before any non-dry-run — especially `--hard-delete`.** Run the unpublish command (CLI preferred → MCP fallback → doc link). Full syntax in `references/gotchas.md` § "Step 11 — Unpublish". (ACB: *MuleSoft: Unpublish Agent Network*.)
+
 ---
 
 ## Workflow B — Edit an existing project
@@ -342,7 +350,7 @@ Edit `.agent` only. Apply Phase 5 contradiction tests. If user pastes a policy d
 
 ### B.4 — Add or change a connection policy
 
-Edit `agent-network.yaml`. The GA schema supports policies even though the build flow doesn't surface them.
+Edit the **source `agent-network.yaml`** — NEVER `target/`. The GA schema supports policies even though the build flow doesn't surface them. (A request like *"add a client-id enforcement policy to my broker"* is this workflow: edit the source YAML, not any `agent-network.yaml` that appears under `target/`. `target/` is Maven build output and is overwritten on the next build — editing it changes nothing. See `gotchas.md` § "Project file layout".)
 
 A policy has **two parts**:
 1. **Definition** — `context.policies.<policyId>`.

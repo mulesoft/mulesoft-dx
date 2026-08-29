@@ -1,0 +1,162 @@
+{
+  "audit": {
+    "created": {
+      "date": "2026-04-10T14:02:16.453Z"
+    },
+    "updated": {
+      "date": "2026-04-15T11:59:51.597Z"
+    }
+  },
+  "masterOrganizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "organizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "id": 4292323,
+  "instanceLabel": null,
+  "groupId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "assetId": "aditi-adv-semantic-apr",
+  "assetVersion": "1.0.0",
+  "productVersion": "v1.0",
+  "description": null,
+  "tags": [],
+  "order": 1,
+  "providerId": null,
+  "deprecated": false,
+  "lastActiveDate": null,
+  "endpointUri": "https://godaddy.testnewstgx.com/,https://godaddy-1hgo6r.hwszu3.usa-e1.qax.cloudhub.io",
+  "environmentId": "c51bf541-b006-430f-bd17-a043eadd1203",
+  "isPublic": false,
+  "stage": "release",
+  "technology": "flexGateway",
+  "approvalMethod": null,
+  "endpoint": {
+    "audit": {
+      "created": {},
+      "updated": {}
+    },
+    "id": 3845274,
+    "type": "llm",
+    "apiGatewayVersion": "1.13.1",
+    "proxyUri": "http://0.0.0.0:8081/aditi-adv-semantic",
+    "proxyRegistrationUri": null,
+    "lastActiveDate": null,
+    "isCloudHub": null,
+    "deploymentType": "HY",
+    "policiesVersion": null,
+    "referencesUserDomain": null,
+    "responseTimeout": null,
+    "wsdlConfig": null,
+    "muleVersion4OrAbove": null
+  },
+  "deployment": {
+    "audit": {
+      "created": {},
+      "updated": {
+        "date": "2026-04-15T12:00:36.390Z"
+      }
+    },
+    "id": 485053,
+    "applicationId": "55a50b6f-0f20-4b18-b310-c34c12250905",
+    "applicationName": null,
+    "gatewayVersion": "1.13.1",
+    "environmentName": null,
+    "environmentId": "c51bf541-b006-430f-bd17-a043eadd1203",
+    "targetId": "5aef80f2-4dc4-4941-915f-d09e53e2d7df",
+    "targetName": "godaddy",
+    "deploymentId": null,
+    "updatedDate": "2026-04-15T12:00:36.390Z",
+    "type": "HY",
+    "expectedStatus": "deployed",
+    "targetMetadata": {
+      "spec": {
+        "target": {
+          "annotations": {
+            "gateway-manager.mulesoft.com/kind": "managed",
+            "gateway-manager.mulesoft.com/targetType": "private-space"
+          },
+          "environment": {
+            "target": {
+              "id": "5aef80f2-4dc4-4941-915f-d09e53e2d7df",
+              "provider": "RR"
+            }
+          }
+        }
+      },
+      "target": {
+        "id": "5aef80f2-4dc4-4941-915f-d09e53e2d7df",
+        "provider": "RR"
+      }
+    },
+    "apiId": 4292323
+  },
+  "routing": [
+    {
+      "label": "Route A",
+      "rules": {
+        "headers": {
+          "x-routing-header": "openai"
+        }
+      },
+      "upstreams": [
+        {
+          "id": "759f6db1-22fe-4d4e-9b8a-e52ce39eec8d",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "label": "Route B",
+      "rules": {
+        "headers": {
+          "x-routing-header": "gemini"
+        }
+      },
+      "upstreams": [
+        {
+          "id": "f5b49ce4-15f9-4f8d-adc4-5ee0bd70ab0c",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "label": "Route C",
+      "rules": {
+        "headers": {
+          "x-routing-header": "azureopenai"
+        }
+      },
+      "upstreams": [
+        {
+          "id": "bc2b94fd-f254-4781-8950-6b161df8d841",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "label": "Route D",
+      "rules": {
+        "headers": {
+          "x-routing-header": "bedrockanthropic"
+        }
+      },
+      "upstreams": [
+        {
+          "id": "8e173efa-eb04-46de-a83d-d7ae9f21ed5a",
+          "weight": 100
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "globalRouting": {
+      "llmConfigs": {
+        "routingType": "semantic-based",
+        "fallbackModel": "gpt-5.2",
+        "fallbackRoute": "Route A",
+        "fallbackThreshold": 0.6
+      }
+    },
+    "semanticServiceConfigId": "15e32731-fb86-4ea5-af71-67028f229a84"
+  },
+  "semanticServiceConfigId": null,
+  "status": "active",
+  "autodiscoveryInstanceName": "v1.0:4292323"
+}

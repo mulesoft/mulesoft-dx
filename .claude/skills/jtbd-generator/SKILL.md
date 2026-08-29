@@ -1,26 +1,9 @@
 ---
 name: jtbd-generator
-description: |
-  Generate JTBD (Jobs-to-be-Done) markdown files from step descriptions.
-  Use when creating API workflows, building JTBD files, documenting multi-step
-  processes, or when user says "create a JTBD", "generate workflow",
-  "document these API steps", or "build a job with these operations".
+description: "Generate, validate, and update JTBD (Jobs-to-be-Done) markdown files from step descriptions. Discovers matching API operations, maps cross-step data flow, and produces validated hybrid-format files. Use when creating API workflows, building JTBD files, documenting multi-step processes, or when user says 'create a JTBD', 'generate workflow', 'document these API steps', or 'build a job with these operations'."
 ---
 
-# JTBD Generator Skill
-
-This skill generates complete JTBD (Jobs-to-be-Done) markdown files from user-provided step descriptions. It discovers the correct API operations, maps data flow between steps, and produces validated, hybrid-format JTBD files.
-
-## How to Use
-
-When the user wants to create a JTBD, they will provide:
-
-1. **Prerequisites**: Conditions that must be met (e.g., "user logged in", "API asset exists in Exchange")
-2. **Steps**: List of operations in natural language (e.g., "Get GAV from Exchange", "Create API in API Manager")
-
-You will guide them through discovery, validation, and generation.
-
----
+# JTBD Generator
 
 ## Workflow
 
@@ -265,245 +248,26 @@ If validation succeeds:
 
 ---
 
-## Example Interaction
+## Data Flow Rules
 
-```
-User: Create a JTBD with these prerequisites: user logged in, API asset in Exchange.
-Steps: 1) Get GAV from Exchange, 2) Get omni gateway targets, 3) Create API in api-manager.
+Apply when detecting parameter sources in Step 3:
 
-You: I'll create a workflow for deploying an API with a Omni Gateway target.
-
-Let me find the right operations for each step...
-
-[Calls search_operations for each step]
-
-I found these operations:
-
-Step 1: Get GAV from Exchange
-  → getAssetsByGroupidByAssetid (urn:api:exchange-experience)
-     GET /assets/{groupId}/{assetId}
-     Score: 0.85
-
-Step 2: Get omni gateway targets
-  → getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways (urn:api:flex-gateway-manager)
-     GET /organizations/{organizationId}/environments/{environmentId}/gateways
-     Score: 0.78
-
-Step 3: Create API in api-manager
-  → createOrganizationsEnvironmentsApis (urn:api:api-manager)
-     POST /organizations/{organizationId}/environments/{environmentId}/apis
-     Score: 0.92
-
-Does this match your intent?
-
-User: Yes
-
-You: Building the workflow...
-
-[Analyzes parameters and data flow]
-
-Data flow detected:
-✓ Step 1 outputs: groupId, assetId, version
-✓ Step 2 outputs: gatewayId
-✓ Step 3 uses: groupId, assetId, version (from Step 1), gatewayId (from Step 2)
-
-[Generates complete JTBD with prose]
-
-Generated JTBD:
-- Name: deploy-api-with-flex-gateway
-- Steps: 3
-- Prerequisites: User authentication, Exchange asset, Omni Gateway
-
-[Validates]
-
-Validation: ✅ PASSED
-
-Save to skills/deploy-api-with-flex-gateway/SKILL.md?
-
-User: Yes
-
-You: ✅ Saved successfully!
-
-File: skills/deploy-api-with-flex-gateway/SKILL.md
-
-Next steps:
-- Review the generated workflow
-- Test with: python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py skills/deploy-api-with-flex-gateway/SKILL.md .
-- Related workflows: deploy-api-with-rate-limiting, setup-multi-upstream-routing
-```
+1. **Output → Input match**: If Step N outputs a field Step N+1 needs → auto-link via `{ from: { step: "Step N", output: "<field>" } }`
+2. **Input reuse**: If Step N uses a field Step N+1 also needs → reuse via `{ from: { step: "Step N", input: "<field>" } }`
+3. **x-origin**: If parameter has `x-origin` annotation → use as default source
+4. **Common patterns**: `organizationId` → `access-management#getOrganizations`; `environmentId` → `access-management#listEnvironments`
+5. **Fallback**: Mark as `userProvided: true` with example from schema
 
 ---
 
-## Data Flow Intelligence
+## References
 
-Apply these rules when detecting parameter sources:
-
-**Rule 1: Output → Input Matching (High Confidence)**
-```
-If Step N outputs 'environmentApiId' AND Step N+1 needs 'environmentApiId':
-  → Auto-link with { from: { step: "Step N", output: "environmentApiId" } }
-```
-
-**Rule 2: Input Reuse (High Confidence)**
-```
-If Step N uses 'organizationId' AND Step N+1 needs 'organizationId':
-  → Reuse with { from: { step: "Step N", input: "organizationId" } }
-  (Not from original source - reuse the previous step's input)
-```
-
-**Rule 3: x-origin Suggestions (High Confidence)**
-```
-If parameter has x-origin annotation:
-  → Use that as the default source
-  → Add alternatives if provided
-```
-
-**Rule 4: Common Patterns (Medium Confidence)**
-```
-If parameter is 'organizationId' and no previous source:
-  → Default to access-management#getOrganizations
-
-If parameter is 'environmentId' and no previous source:
-  → Default to access-management#listEnvironments
-```
-
-**Rule 5: User-Provided Fallback (Low Confidence)**
-```
-If no source detected:
-  → Mark as userProvided: true
-  → Add example if parameter has example in schema
-  → Mention in conversation that this needs user input
-```
-
----
-
-## Error Handling
-
-### Operation Not Found
-```
-"I couldn't find an operation matching '{description}' in {api_urn}.
-
-Let me search more broadly..."
-
-[Search all APIs, show top matches]
-
-"Here are some operations that might work:
-1. {operationId} ({api}) - {summary}
-2. {operationId} ({api}) - {summary}
-
-Which one fits best, or would you like to search differently?"
-```
-
-### Validation Fails
-```
-"The generated JTBD has validation errors:
-
-❌ Step 2 references unknown output 'apiId' from Step 1
-
-I'll fix this by:
-- Checking Step 1's actual outputs
-- Updating Step 2's input to use the correct output name
-
-Regenerating..."
-```
-
-### Ambiguous Step Description
-```
-"Step 2: 'Get gateway targets' is ambiguous.
-
-I found operations in two APIs:
-1. Omni Gateway Manager - List omni gateways
-2. Runtime Manager - List CloudHub workers
-
-Which one should I use?"
-```
-
----
-
-## Tips for Quality Output
-
-1. **Write conversational prose:**
-   - "Start by retrieving..." not "This step retrieves..."
-   - "You'll need the organization ID..." not "organizationId is required"
-
-2. **Explain the why:**
-   - Not just "Create an API instance"
-   - But "Create an API instance to register your Exchange asset with API Manager, enabling policy application and gateway routing"
-
-3. **Connect steps logically:**
-   - End each step with "What happens next" that leads into the next step
-   - Show how outputs become inputs
-
-4. **Anticipate issues:**
-   - Add "Common issues" for known problems
-   - Mention typical error responses
-
-5. **Be specific:**
-   - "Organization Business Group GUID" not just "organization ID"
-   - "Target environment ID (e.g., Production, Sandbox)" not just "environment ID"
-
----
-
-## Available Python Utilities
-
-You have access to these utilities in `.claude/skills/jtbd-generator/lib/`:
-
-### api_discovery.py
-- `list_available_apis(repo_root)` - List all APIs with metadata
-- `search_operations(query, api_urn, repo_root)` - Fuzzy search for operations
-- `get_operation_details(api_urn, operation_id, repo_root)` - Get full operation details
-- `get_operations_by_api(api_urn, repo_root)` - List all operations in an API
-
-### parameter_analyzer.py
-- `analyze_parameters(spec, operation_id, spec_path)` - Extract all parameters with metadata
-- `detect_parameter_source(param_name, param_def, previous_steps)` - Detect where parameter should come from
-- `build_input_definition(param_name, param_def, source)` - Build JTBD input definition
-- `build_all_inputs(api_urn, operation_id, repo_root, previous_steps)` - Build complete inputs section
-
-### response_analyzer.py
-- `suggest_outputs(spec, operation_id, spec_path, next_steps)` - Suggest which fields to capture
-- `generate_jsonpath(field_path)` - Generate JSONPath expressions
-- `analyze_response_for_operation(api_urn, operation_id, repo_root, next_steps)` - Main entry point
-
-### jtbd_builder.py
-- `build_frontmatter(name, description)` - Generate YAML frontmatter
-- `build_step_yaml(api_urn, operation_id, inputs, outputs)` - Generate YAML block for step
-- `build_step_markdown(step_number, step_name, ...)` - Generate complete step section
-- `build_complete_jtbd(name, description, title, ...)` - Assemble complete JTBD
-
-### utils.py
-- `load_openapi_spec(api_path)` - Load and parse OpenAPI spec
-- `urn_to_path(urn, repo_root)` - Convert URN to filesystem path
-- `path_to_urn(api_path)` - Convert filesystem path to URN
-- `kebab_case(text)` - Convert text to kebab-case
-- `resolve_ref(ref, spec, spec_path)` - Resolve $ref references
-- `find_api_dirs(repo_root)` - Find all API directories
-
-### common_patterns.py
-- `match_common_pattern(param_name)` - Check for known patterns
-- `is_likely_user_provided(param_name)` - Check if likely user-provided
-- `get_example_for_param(param_name, param_schema)` - Get example values
-
----
-
-## Success Criteria
-
-A successful JTBD generation:
-
-1. ✅ Passes validation (`validate_jtbd.py`)
-2. ✅ All operations exist in referenced API specs
-3. ✅ Data flow correctly maps outputs to inputs
-4. ✅ Prose sections are clear and helpful (not template-like)
-5. ✅ User completed generation in <5 minutes of interaction
-6. ✅ User understands what the workflow does and how to use it
-
----
-
-## Notes
-
-- Always run the workflow in order: Parse → Discover → Analyze → Generate → Validate → Save
-- Use the Python utilities for spec parsing and structure building
-- Use your intelligence for prose generation and user interaction
-- Be conversational and helpful
-- When in doubt, ask the user for clarification
-- Default to skills/{name}/SKILL.md for output location
+- [README](README.md) — detailed overview, usage examples, and interaction walkthrough
+- **Python utilities** in `lib/` (see module docstrings for full API):
+  - `api_discovery` — search operations, get details, list APIs
+  - `parameter_analyzer` — extract parameters, detect sources, build inputs
+  - `response_analyzer` — suggest outputs, generate JSONPath
+  - `jtbd_builder` — build frontmatter, step YAML, complete JTBD markdown
+  - `utils` — load specs, resolve refs, URN/path conversion
+  - `common_patterns` — match known parameter patterns
+- **Validation**: `python3 .claude/skills/jtbd-generator/scripts/validate_jtbd.py <path> .`

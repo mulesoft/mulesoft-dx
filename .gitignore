@@ -12,3 +12,6 @@ node_modules/
 .idea/**
 
 docs/superpowers/
+
+# Runtime scratch dirs written by skill helper scripts. Never commit.
+skills/**/tmp/

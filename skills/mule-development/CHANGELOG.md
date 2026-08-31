@@ -4,6 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-08-27
+
+### Added
+
+- **`upgrade-mule-app`** — new skill that upgrades a Mule application's Java and Mule Runtime version end to end. Detects the current versions, resolves a compatible target (runtime, JDK, and connector versions from live Maven metadata), and updates `pom.xml`, `mule-artifact.json`, and inherited parent POMs. Beyond bumping versions it remediates the source impact of newer connectors — renamed or removed operations, changed attributes, and error-type changes — across flow XML, DataWeave, MUnit tests, and custom-Java (`.java`) sources.
+
 ## [1.8.4] - 2026-08-10
 
 ### Fixed

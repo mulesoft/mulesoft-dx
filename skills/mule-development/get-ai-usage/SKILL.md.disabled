@@ -1,0 +1,111 @@
+---
+name: get-ai-usage
+description: >
+  Retrieve AI usage metrics for the user's Anypoint organization. Reports
+  prompt counts, lines of code accepted, and tool calls across Vibes/ACB
+  sessions. Use when the user asks about their AI consumption, usage trends,
+  remaining entitlements, or wants a breakdown by business group or
+  interaction type.
+metadata:
+  author: mule-dx-tooling
+  version: "1.0.0"
+---
+
+# Get AI Usage
+
+Retrieve AI usage metrics (prompts sent, lines accepted, tool calls) for the
+user's Anypoint organization via the `get_platform_insights` MCP tool.
+
+## When to Use This Skill
+
+**Use this skill when users ask:**
+
+- "How much AI have I used?"
+- "Show me my Vibes usage"
+- "How many prompts have I sent this month?"
+- "What's my AI consumption?"
+- "Show AI usage by business group"
+- "How many lines of code did AI generate?"
+- "What's my tool call count?"
+
+**Trigger keywords:** AI usage, vibes usage, prompt count, lines accepted,
+tool calls, AI consumption, AI metrics, usage breakdown, AI entitlement.
+
+## Step 1: Invoke the MCP Tool
+
+Call the existing `get_platform_insights` tool with the AI usage parameters
+based on the user's query.
+
+### Relevant Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `includeAiPrompts` | boolean | `false` | Include AI prompt count |
+| `includeAiLinesAccepted` | boolean | `false` | Include lines of AI-generated code accepted |
+| `includeAiToolCalls` | boolean | `false` | Include AI tool call count |
+
+These parameters extend the existing `get_platform_insights` tool alongside
+its current parameters (`includeFlows`, `includeMessages`, etc.).
+
+### Parameter Selection Logic
+
+- Set all three `includeAi*` flags to `true` unless the user asks about a
+  specific metric only (e.g. "how many prompts" → only `includeAiPrompts`).
+- Other `get_platform_insights` params (`includeFlows`, `includeMessages`,
+  etc.) should be `false` unless the user explicitly asks for them alongside
+  AI metrics.
+- AI usage data follows the same time period logic as other metering data
+  in the tool (current month, or previous month if early in the month).
+
+## Step 2: Present Results
+
+Format the response clearly for the user:
+
+### Single-metric response
+
+```
+Your AI usage (current month):
+  Prompts sent: 1,247
+```
+
+### Full summary response
+
+```
+Your AI usage (current month):
+  Prompts sent:       1,247
+  Lines accepted:     3,891
+  Tool calls:           562
+```
+
+### Grouped response
+
+```
+AI usage by business group (current month):
+
+  Engineering (bg-001):
+    Prompts: 892 | Lines: 2,341 | Tool calls: 401
+
+  Design (bg-002):
+    Prompts: 355 | Lines: 1,550 | Tool calls: 161
+```
+
+## Step 3: Handle Edge Cases
+
+- **No data available**: If the tool returns empty results, inform the user
+  that no AI usage has been recorded for the requested period. Suggest they
+  check a different time period or verify that AI features are enabled for
+  their organization.
+- **Partial data**: If some metrics succeed but others fail, present what's
+  available and note which metrics could not be retrieved.
+- **Permission errors**: If the tool returns an authorization error, inform
+  the user that their account may not have access to usage metrics and suggest
+  contacting their org admin.
+
+## Notes
+
+- Metrics are sourced from the `mule_dx_vibes_prompts_count`,
+  `mule_dx_vibes_lines_accepted_count`, and
+  `mule_dx_vibes_tool_calls_count` meters.
+- Data granularity is monthly (meters aggregate by calendar month).
+- The `conversation_type` dimension includes: `vibes_chat`,
+  `inline_completion`, `flow_generation`.

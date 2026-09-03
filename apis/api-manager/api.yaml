@@ -2987,40 +2987,49 @@ paths:
         '404':
           description: Feature not enabled
       description: List flagged agents for an organization
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
       parameters:
       - name: status
         in: query
         required: false
+        description: Filter flagged agents by status.
         schema:
           type: string
       - name: agentId
         in: query
         required: false
+        description: Filter flagged agents by agent identifier.
         schema:
           type: string
       - name: signalKind
         in: query
         required: false
+        description: Filter flagged agents by the kind of detection signal.
         schema:
           type: string
       - name: apiInstanceId
         in: query
         required: false
+        description: Filter flagged agents by the associated API instance identifier.
         schema:
           type: string
       - name: environmentId
         in: query
         required: false
+        description: Filter flagged agents by environment identifier.
         schema:
           type: string
       - name: limit
         in: query
         required: false
+        description: Maximum number of results to return.
         schema:
           type: integer
       - name: offset
         in: query
         required: false
+        description: Number of results to skip for pagination.
         schema:
           type: integer
       # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
@@ -3193,25 +3202,31 @@ paths:
         '404':
           description: Feature not enabled
       description: List kill switches for an organization
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
       parameters:
       - name: status
         in: query
         required: false
+        description: Filter kill switches by status.
         schema:
           type: string
       - name: sourceAlertId
         in: query
         required: false
+        description: Filter kill switches by the source alert identifier that triggered them.
         schema:
           type: string
       - name: limit
         in: query
         required: false
+        description: Maximum number of results to return.
         schema:
           type: integer
       - name: offset
         in: query
         required: false
+        description: Number of results to skip for pagination.
         schema:
           type: integer
       # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
@@ -3229,15 +3244,19 @@ paths:
         '404':
           description: Feature not enabled
       description: Whether an agent instance is currently killed in an environment
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
       parameters:
       - name: agentId
         in: query
         required: true
+        description: The agent identifier to check kill status for.
         schema:
           type: string
       - name: environmentId
         in: query
         required: true
+        description: The environment identifier in which to check the agent's kill status.
         schema:
           type: string
       # REVIEWER: response schema not defined in implementation (description hints at a boolean 'killed' field, but no schema/example present); not inferred.
@@ -3280,6 +3299,7 @@ paths:
       - name: If-Match
         in: header
         required: false
+        description: Optional ETag for optimistic concurrency; the update is applied only if it matches the current resource version.
         schema:
           type: string
       requestBody:
@@ -3315,6 +3335,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: List all model wallets (policy bags) in an environment
       summary: List model wallets
@@ -3327,6 +3348,9 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Create a model wallet (predicates -> token rate-limit actions)
       requestBody:
@@ -3351,6 +3375,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Get a model wallet by ID
       summary: Get a model wallet
@@ -3363,6 +3388,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Replace a model wallet (optimistic concurrency via If-Match)
       # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
@@ -3384,6 +3411,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Partially update a model wallet (optimistic concurrency via If-Match)
       # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
@@ -3422,6 +3451,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Change a model wallet status (active|suspended|revoked)
       requestBody:
@@ -3458,6 +3489,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: List LLM models (per-tenant catalog overlay with pricing)
       summary: List LLM models
@@ -3474,6 +3506,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Get an LLM model by composite wire id "{provider}:{modelId}"
       summary: Get an LLM model
@@ -3486,6 +3519,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Update model metadata and pricing (optimistic concurrency via If-Match)
       # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
@@ -3517,6 +3552,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Patch only the pricing fields of a model (optimistic concurrency via If-Match)
       # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
@@ -3552,6 +3589,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: List all semantic cache configs for an environment
       summary: List semantic cache configs
@@ -3564,6 +3602,9 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Create a semantic cache config
       requestBody:
@@ -3588,6 +3629,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Get a semantic cache config by ID
       summary: Get a semantic cache config
@@ -3600,6 +3642,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Update a semantic cache config
       requestBody:
@@ -3637,6 +3681,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: Get LLM proxies by semantic cache config ID
       summary: List semantic cache config LLM proxies
@@ -3660,6 +3705,12 @@ paths:
               schema:
                 type: string
                 format: binary
+              # REVIEWER (W-24079456): the implementation returns the actual populated bash
+              # script (content varies per config). The example below is a minimal placeholder
+              # to convey the media type only; it is not sourced from the implementation.
+              example: |
+                #!/usr/bin/env bash
+                # Semantic cache setup script (populated with the semantic cache configuration)
       description: Downloads a bash script populated with the semantic cache configuration
       summary: Download semantic cache setup script
       operationId: getSemanticCacheSetupScript
@@ -3687,6 +3738,9 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
         '409':
           description: Conflict. The request conflicts with the current state of the resource.
@@ -3713,6 +3767,8 @@ paths:
             application/json:
               schema:
                 type: object
+              example:
+                message: Resource updated successfully
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: "Updates an LLM proxy API instance, including deployment configuration.\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
       parameters:
@@ -3755,6 +3811,8 @@ paths:
                     items:
                       type: object
                     # REVIEWER: the array item shape is not defined in the implementation (items is a bare 'type: object', no properties/example); not inferred.
+              example:
+                routeConfigurations: []
       description: Get all available LLM route configurations
       summary: List LLM route configurations
       operationId: listLlmRouteConfigurations
@@ -3773,6 +3831,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
           # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
       description: List budget lines in the (org, env) scope, joined to the owning client key for its name. Returns clientKeyName, provider, modelId, model, costLimit, tokenLimit and timeWindow. The "Used"/consumption column is not included.
       summary: List budget lines

@@ -20,7 +20,7 @@ metadata:
 
 # Switch a Classic Mule App to Versionless
 
-You are a MuleSoft tooling specialist converting a classic (versioned) Mule 4
+You are a MuleSoft tooling specialist converting a classic (versioned connector usage) Mule 4
 application into a **versionless** application.
 
 Switching to versionless means the app no longer pins each connector to a Maven
@@ -33,10 +33,10 @@ skill performs that switch standalone — no IDE, no platform connection, no net
 **Use this skill when the user asks to:**
 
 - "Switch this Mule app to versionless"
-- "Convert my classic Mule project to a versionless app"
+- "Migrate my classic Mule project to a versionless app"
 - "Create the project-manifest.json and move my connectors into it"
 
-**Trigger keywords:** switch · convert · versionless · project-manifest.json · classic-to-versionless.
+**Trigger keywords:** switch · migrate · versionless · project-manifest.json · classic-to-versionless.
 
 **Do NOT use this skill when:** the user wants to upgrade connector or runtime
 **versions** or fix Java compatibility → use **skill upgrade-mule-app**; or to

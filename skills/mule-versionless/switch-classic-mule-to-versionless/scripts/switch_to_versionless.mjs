@@ -5,11 +5,6 @@
 // For full license text, see the LICENSE.txt file
 //
 // Part of switch-classic-mule-to-versionless skill.
-//
-// Standalone translation of DefaultProjectPropertiesService.upgradeProjectToVersionless
-// + writeProjectManifest (mule-dx-mule-dev-plugin). Runs with no IDE, no registry,
-// no network — pure filesystem.
-//
 // What it does, in order:
 //   1. Reads the project's pom.xml (and its local parent chain) and collects every
 //      Mule-plugin dependency (<classifier>mule-plugin</classifier>, non-test scope).

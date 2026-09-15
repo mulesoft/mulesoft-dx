@@ -1,0 +1,421 @@
+openapi: 3.0.0
+info:
+  title: Anypoint CLI Analytics API
+  version: 1.0.0
+  description: >-
+    Submit product-usage telemetry to Monitoring Cloud's Product Data Platform
+    (PDP) through the shared Anypoint CLI backend. This API exposes the Anypoint
+    CLI's own command and error telemetry endpoints, plus a shared
+    `pdp-event` endpoint that any MuleSoft CLI plugin team (Exchange, API
+    Manager, Data Graph, Access Management, PDK, and others) can call to land
+    `PDP_ProductUsage` events in PDP/PFT dashboards without operating their own
+    Funnel connection, mTLS certificates, or credentials. The CLI backend owns
+    the secure egress to Funnel; callers send well-formed JSON. Events are
+    validated per item, so a single malformed event never blocks the valid
+    events in the same batch.
+servers:
+  - url: https://anypoint.mulesoft.com/cli/api/v1
+paths:
+  /analytics/event:
+    post:
+      summary: Track CLI command event
+      description: >-
+        Record a single Anypoint CLI command-usage event. The backend transforms
+        the payload into a `PDP_ProductUsage` event and forwards it to Monitoring
+        Cloud's Funnel ingestion service. This endpoint carries the Anypoint
+        CLI's own client telemetry and is fire-and-forget.
+      operationId: trackCliEvent
+      requestBody:
+        description: The Anypoint CLI command event to record.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CliCommandEvent'
+            example:
+              installmentId: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+              command: api-mgr:api:list
+              platform:
+                cliVersion: 4.0.0
+                nodeVersion: 20.0.0
+                nodeVersionMajor: '20'
+                os: Darwin
+                osPlatform: darwin
+                osVersion: 23.5.0
+              properties:
+                interactive: false
+              user:
+                id: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88
+                organizationId: 8bfc8bbf-5508-419e-aadc-77dfe18a8172
+      responses:
+        '204':
+          description: The event was accepted for forwarding to PDP.
+        '400':
+          description: The payload was malformed or failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: request/body must be an object
+  /analytics/error:
+    post:
+      summary: Track CLI error event
+      description: >-
+        Record a single Anypoint CLI command-error event. The backend transforms
+        the payload into a `PDP_ProductUsage` event (with `eventName`
+        `anypointCliCommand.failed`) and forwards it to Funnel. This endpoint is
+        fire-and-forget.
+      operationId: trackCliError
+      requestBody:
+        description: The Anypoint CLI error event to record.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CliErrorEvent'
+            example:
+              installmentId: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+              command: api-mgr:api:list
+              error: Request failed with status code 401
+              stack: "Error: Request failed with status code 401\n    at ..."
+              platform:
+                cliVersion: 4.0.0
+                nodeVersion: 20.0.0
+                nodeVersionMajor: '20'
+                os: Darwin
+                osPlatform: darwin
+                osVersion: 23.5.0
+              properties:
+                interactive: false
+              user:
+                id: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88
+                organizationId: 8bfc8bbf-5508-419e-aadc-77dfe18a8172
+      responses:
+        '204':
+          description: The error event was accepted for forwarding to PDP.
+        '400':
+          description: The payload was malformed or failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: request/body must be an object
+  /analytics/pdp-event:
+    post:
+      summary: Publish PDP product-usage events
+      description: >-
+        Accept an array of `PDP_ProductUsage` events from any caller and forward
+        the valid ones to Monitoring Cloud's Product Data Platform (PDP) via
+        Funnel. Send your own `productFeatureId`; the backend records it as
+        `componentId` and rolls the event up under the shared Anypoint CLI
+        Product Feature. Events are validated per item (partial acceptance):
+        valid events are forwarded even when others in the same batch fail.
+      operationId: publishPdpEvents
+      requestBody:
+        description: A non-empty array of PDP product-usage events (up to 1000 per request).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PdpEvents'
+            example:
+              - eventName: apiManagerApi.listed
+                productFeatureId: aJCEE0000000nY54AI
+                tenantIdType: Mulesoft_RootOrgId
+                tenantId: e0f1a2b3c4d5e6f7a8b9c0d1
+                userId: 005xx000001X8Xh
+                contextName: commandName
+                contextValue: api-mgr:api:list
+              - eventName: exchangeAsset.published
+                productFeatureId: aJCEE0000000oZ65BJ
+                tenantIdType: Mulesoft_RootOrgId
+                tenantId: e0f1a2b3c4d5e6f7a8b9c0d1
+      responses:
+        '202':
+          description: All events were accepted and forwarded to PDP.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PdpEventsResult'
+              example:
+                accepted: 2
+                rejected: 0
+                errors: []
+        '207':
+          description: >-
+            Some events were accepted and forwarded; others failed validation
+            and were skipped.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PdpEventsResult'
+              example:
+                accepted: 8
+                rejected: 2
+                errors:
+                  - index: 3
+                    errors:
+                      - "eventName must match <object>.<action> format: 'BadName'"
+                  - index: 7
+                    errors:
+                      - "productFeatureId must be 15 or 18 chars and start with 'aJC': 'xyz'"
+        '400':
+          description: >-
+            The payload was malformed, or every event failed validation and
+            nothing was forwarded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: request body must be a non-empty JSON array
+components:
+  schemas:
+    Platform:
+      type: object
+      description: Runtime environment details captured from the Anypoint CLI client.
+      properties:
+        cliVersion:
+          type: string
+          description: Semantic version of the Anypoint CLI (for example `4.0.0`).
+          minLength: 5
+          maxLength: 14
+          pattern: ^v?(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$
+        nodeVersion:
+          type: string
+          description: Semantic version of the Node.js runtime.
+          minLength: 5
+          maxLength: 14
+          pattern: ^v?(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$
+        nodeVersionMajor:
+          type: string
+          description: Major version component of the Node.js runtime.
+          minLength: 1
+        os:
+          type: string
+          description: Operating system name (for example `Darwin`, `Linux`).
+          minLength: 1
+        osPlatform:
+          type: string
+          description: Node.js platform identifier (for example `darwin`, `linux`).
+          minLength: 1
+        osVersion:
+          type: string
+          description: Operating system version string.
+          minLength: 1
+    CliUser:
+      type: object
+      description: Identity of the user and organization associated with the CLI action.
+      properties:
+        id:
+          type: string
+          description: GUID of the acting user.
+          pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$
+        masterOrganizationId:
+          type: string
+          description: GUID of the user's master (root) organization.
+          pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$
+        organizationId:
+          type: string
+          description: GUID of the active Business Group organization.
+          pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$
+    CliCommandEvent:
+      type: object
+      description: A single Anypoint CLI command-usage event.
+      additionalProperties: false
+      required:
+        - installmentId
+        - command
+        - platform
+        - properties
+        - user
+      properties:
+        installmentId:
+          type: string
+          description: >-
+            Anonymous installation identifier (a UUID plus a hashed suffix)
+            uniquely identifying the CLI installation.
+          pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}-[a-f0-9]{128}$
+        command:
+          type: string
+          description: The CLI command that was executed (for example `api-mgr:api:list`).
+          minLength: 1
+        platform:
+          $ref: '#/components/schemas/Platform'
+        properties:
+          type: object
+          description: Additional command properties.
+          properties:
+            interactive:
+              type: boolean
+              description: Whether the command ran in interactive mode.
+        user:
+          $ref: '#/components/schemas/CliUser'
+    CliErrorEvent:
+      type: object
+      description: A single Anypoint CLI command-error event.
+      additionalProperties: false
+      required:
+        - installmentId
+        - command
+        - platform
+        - properties
+        - user
+      properties:
+        installmentId:
+          type: string
+          description: >-
+            Anonymous installation identifier (a UUID plus a hashed suffix)
+            uniquely identifying the CLI installation.
+          pattern: ^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}-[a-f0-9]{128}$
+        command:
+          type: string
+          description: The CLI command that failed (for example `api-mgr:api:list`).
+          minLength: 1
+        error:
+          type: string
+          description: The error message text.
+          minLength: 1
+        stack:
+          type: string
+          description: The error stack trace (truncated by the client).
+          minLength: 1
+        platform:
+          $ref: '#/components/schemas/Platform'
+        properties:
+          type: object
+          description: Additional command properties.
+          properties:
+            interactive:
+              type: boolean
+              description: Whether the command ran in interactive mode.
+        user:
+          $ref: '#/components/schemas/CliUser'
+    PdpEvent:
+      type: object
+      description: >-
+        A single `PDP_ProductUsage` event. Per-item validation (required fields,
+        `eventName`/`productFeatureId` formats, and `tenantIdType` enum) is
+        enforced by the backend so one bad event does not fail the whole batch.
+      required:
+        - eventName
+        - productFeatureId
+        - tenantIdType
+        - tenantId
+      properties:
+        eventType:
+          type: string
+          description: Optional; always forced to `PDP_ProductUsage` by the backend.
+          enum:
+            - PDP_ProductUsage
+        timestamp:
+          type: integer
+          format: int64
+          description: Epoch milliseconds. Defaulted to server time when omitted.
+        serviceName:
+          type: string
+          description: Originating service name. Defaulted to `anypoint-cli-backend` when omitted.
+          minLength: 1
+        eventName:
+          type: string
+          description: >-
+            The user action in `<object>.<action>` format, where `object` is
+            lowerCamelCase and `action` is a single lowercase past-tense word
+            (for example `apiManagerApi.listed`).
+          pattern: '^[a-z][a-zA-Z0-9]*\.[a-z][a-zA-Z0-9]*$'
+        productFeatureId:
+          type: string
+          description: >-
+            Your Product Feature's PF ID from the PFT Browser (starts with `aJC`,
+            15 or 18 characters). The backend records this value as `componentId`
+            and sets the stored event's `productFeatureId` to the shared Anypoint
+            CLI PF ID, so your PF ID is preserved as `componentId` while the event
+            rolls up under the CLI Product Feature.
+          pattern: '^aJC[a-zA-Z0-9]{12}([a-zA-Z0-9]{3})?$'
+        tenantIdType:
+          type: string
+          description: The kind of tenant identifier supplied in `tenantId`.
+          enum:
+            - Core_OrgId
+            - TableauCloud_SiteLuid
+            - TableauCloud_TenantId
+            - Mulesoft_RootOrgId
+            - Marketing_TenantId
+            - Data360_TenantId
+            - Other
+        tenantId:
+          type: string
+          description: >-
+            The tenant identifier, validated by `tenantIdType`. For
+            `Mulesoft_RootOrgId`, use the customer's Root Org ID.
+          minLength: 1
+          maxLength: 1024
+        userId:
+          type: string
+          description: The acting user's id. Enables MAU/DAU metrics; omit for system events.
+        componentId:
+          type: string
+          description: >-
+            Server-populated. Do not send. The backend sets `componentId` to the
+            `productFeatureId` you supplied; any value you send is overwritten.
+        eventVolume:
+          type: integer
+          description: Multiplier for pre-aggregated events (default 1).
+          minimum: 1
+        contextName:
+          type: string
+          description: Optional custom dimension key (for example `commandName` or `region`).
+        contextValue:
+          type: string
+          description: Value for `contextName`. Meaningful only when `contextName` is set.
+    PdpEvents:
+      type: array
+      description: A non-empty batch of PDP product-usage events.
+      minItems: 1
+      maxItems: 1000
+      items:
+        $ref: '#/components/schemas/PdpEvent'
+    PdpEventsResult:
+      type: object
+      description: Result of a PDP publish request, listing per-item validation failures.
+      additionalProperties: true
+      required:
+        - accepted
+        - rejected
+      properties:
+        accepted:
+          type: integer
+          description: Number of events forwarded to PDP.
+        rejected:
+          type: integer
+          description: Number of events that failed validation and were not forwarded.
+        errors:
+          type: array
+          description: Per-item validation failures.
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              index:
+                type: integer
+                description: Zero-based position of the invalid event in the request array.
+              errors:
+                type: array
+                description: Validation error messages for this event.
+                items:
+                  type: string
+    Error:
+      type: object
+      description: Error response returned when a request is malformed or fails validation.
+      additionalProperties: true
+      properties:
+        message:
+          type: string
+          description: Human-readable description of the error.
+        errors:
+          type: array
+          description: Optional list of field-level validation error messages.
+          items:
+            type: string

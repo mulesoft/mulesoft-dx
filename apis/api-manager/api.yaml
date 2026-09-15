@@ -111,6 +111,12 @@ paths:
         allowReserved: true
         schema:
           type: string
+      # REVIEWER (W-24079456): `family` has no counterpart in the implementation spec
+      # (apiManagerV1.yaml @ integration/develop). The implementation exposes `endpointType`
+      # (array of free-form strings, added below) instead — this is NOT a 1:1 rename (different
+      # name, type: scalar-enum vs array, and value space). `family` is kept in place rather
+      # than removed to avoid dropping possibly-live behavior; please confirm whether `family`
+      # is still supported or is documentation drift.
       - name: family
         in: query
         description: Filter API instances by family type. Use "agentic" to list MCP server instances, "llm" for LLM-based APIs, or "api" for standard APIs.
@@ -120,6 +126,16 @@ paths:
             - api
             - agentic
             - llm
+      # REVIEWER (W-24079456): `endpointType` is implemented (apiManagerV1.yaml) as an array of
+      # strings (each maxLength 20, no enum) and was previously undocumented. Added verbatim.
+      - name: endpointType
+        in: query
+        description: Filter APIs by endpoint type
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 20
       - name: filters
         in: query
         allowReserved: true
@@ -148,6 +164,8 @@ paths:
           - name
           - createdDate
           - updatedDate
+          # REVIEWER (W-24079456): `endpointType` added to the sort enum to match the implementation spec.
+          - endpointType
           type: string
       - name: ascending
         in: query
@@ -262,6 +280,23 @@ paths:
       - name: includeTlsContexts
         in: query
         description: Include the configured TLS contexts
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      # REVIEWER (W-24079456): implemented in apiManagerV1.yaml, previously undocumented. Added verbatim.
+      - name: includePolicyTemplates
+        in: query
+        description: Include the policy-templates map in the AMCL response (only effective when Accept is application/json+amcl)
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      - name: includeFlexEOLWarnings
+        in: query
+        description: Include Flex end-of-life warnings for the associated gateway version
         schema:
           allOf:
           - x-force-coercion-to: boolean
@@ -522,6 +557,17 @@ paths:
                 id: 550e8400-e29b-41d4-a716-446655440000
                 message: Resource created successfully
       description: "Applies a new API Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      # REVIEWER (W-24079456): implemented in apiManagerV1.yaml, previously undocumented. Added verbatim.
+      - name: allowDuplicated
+        in: query
+        description: If true, allows the Policy to be applied multiple times on the API Instance
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
       requestBody:
         content:
           application/json:
@@ -594,11 +640,30 @@ paths:
               example:
                 message: Resource updated successfully
       description: "Updates an API policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      # REVIEWER (W-24079456): implemented in apiManagerV1.yaml, previously undocumented. Added verbatim.
+      - name: allowDuplicated
+        in: query
+        description: If true, allows the Policy to be applied multiple times on the API Instance
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              properties:
+                # REVIEWER (W-24079456): `label` (nullable string, maxLength 255) is implemented on
+                # this PATCH body in apiManagerV1.yaml (additionalProperties:true otherwise). Added verbatim.
+                label:
+                  type: string
+                  nullable: true
+                  maxLength: 255
+              additionalProperties: true
             example:
               name: Updated Resource
               description: Updated description
@@ -1260,103 +1325,17 @@ paths:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
-  /organizations/{organizationId}/environments/{environmentId}/apis/{environmentApiId}/tls-contexts:
-    get:
-      responses:
-        '200':
-          description: Successful
-          content:
-            application/json:
-              schema:
-                $ref: ./apimanager/schemas/responses/tlsContexts.yaml
-              examples:
-                Tls:
-                  $ref: ./apimanager/examples/responses/tlsContexts.json
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              example:
-                error: Bad Request
-                message: Invalid request parameters
-        '404':
-          description: No TLS Contexts found
-          content:
-            application/json:
-              example:
-                error: Not Found
-                message: Resource not found
-      description: Retrieves TLS Contexts configuration for a given API endpoint
-      summary: Get API TLS context configuration
-      operationId: getApiInstanceTlsContexts
-    post:
-      responses:
-        '201':
-          description: TLS Contexts configuration was created successfully
-          content:
-            application/json:
-              example:
-                id: 550e8400-e29b-41d4-a716-446655440000
-                message: Resource created successfully
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              example:
-                error: Bad Request
-                message: Invalid request parameters
-        '409':
-          description: TLS Contexts for that API endpoint already existed
-          content:
-            application/json:
-              example:
-                error: Conflict
-                message: Resource already exists or conflicts with existing state
-      description: Creates TLS Contexts configuration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-            examples:
-              Tls:
-                $ref: ./apimanager/examples/tlsContextsRequest.json
-        required: true
-        description: Request body containing the data needed for this operation.
-      summary: Create API TLS context configuration
-      operationId: createApiInstanceTlsContexts
-    put:
-      responses:
-        '200':
-          description: TLS Contexts configuration was successfully updated
-          content:
-            application/json:
-              example:
-                message: Resource updated successfully
-      description: Updates TLS Contexts configuration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-            examples:
-              Tls:
-                $ref: ./apimanager/examples/tlsContextsRequest.json
-        required: true
-        description: Request body containing the data needed for this operation.
-      summary: Update API TLS context configuration
-      operationId: updateApiInstanceTlsContexts
-    delete:
-      responses:
-        '204':
-          description: TLS Contexts successfully deleted
-      description: Deletes TLS Contexts configuration
-      summary: Delete API TLS context configuration
-      operationId: deleteApiInstanceTlsContexts
-    parameters:
-    - $ref: '#/components/parameters/param_environment_api_id'
-    - $ref: '#/components/parameters/param_environment_id'
-    - $ref: '#/components/parameters/param_organization_id'
+  # REVIEWER (W-24079456): the standalone TLS-contexts CRUD sub-resource
+  # (GET/POST/PUT/DELETE .../apis/{environmentApiId}/tls-contexts — operationIds
+  # getApiInstanceTlsContexts / createApiInstanceTlsContexts / updateApiInstanceTlsContexts /
+  # deleteApiInstanceTlsContexts) has been REMOVED. It does not exist anywhere in the current
+  # implementation: not in the public V1 router/spec (apiManagerV1Router.js / apiManagerV1.yaml)
+  # nor in the xAPI router/spec (apiManagerXapiV1Router.js / apiManagerXapiV1.yaml) @
+  # integration/develop. TLS contexts now exist only as an embedded, read-only `endpoint.tlsContexts`
+  # array on the API resource, surfaced via the `includeTlsContexts` query param on GET .../apis/{environmentApiId}.
+  # Please confirm this is an intentional deprecation rather than a routing oversight before this is
+  # finalized. The now-orphaned external files schemas/responses/tlsContexts.yaml,
+  # examples/responses/tlsContexts.json and examples/tlsContextsRequest.json are deleted in this PR.
   /organizations/{organizationId}/environments/{environmentId}/groupInstances:
     post:
       responses:
@@ -2417,6 +2396,17 @@ paths:
                 error: Conflict
                 message: Resource already exists or conflicts with existing state
       description: "Creates an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      # REVIEWER (W-24079456): implemented in apiManagerV1.yaml, previously undocumented. Added verbatim.
+      - name: allowDuplicated
+        in: query
+        description: If true, allows the Policy to be applied multiple times on the API Instance
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
       requestBody:
         content:
           application/json:
@@ -2462,6 +2452,17 @@ paths:
                 error: Bad Request
                 message: Invalid request parameters
       description: "Updates an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
+      parameters:
+      # REVIEWER (W-24079456): implemented in apiManagerV1.yaml, previously undocumented. Added verbatim.
+      - name: allowDuplicated
+        in: query
+        description: If true, allows the Policy to be applied multiple times on the API Instance
+        schema:
+          default: false
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
       requestBody:
         content:
           application/json:
@@ -2963,6 +2964,880 @@ paths:
     parameters:
     - $ref: '#/components/parameters/param_group_version_id'
     - $ref: '#/components/parameters/param_api_group_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  # =====================================================================================
+  # REVIEWER NOTE (W-24079456) — the operations below were added to sync this public
+  # dev-portal doc with what is actually implemented and publicly routed in
+  # api-platform-api (assets/raml/apiManagerV1.yaml + api/routers/apiManagerV1Router.js @
+  # integration/develop). For most of these operations the implementation spec defines
+  # request/response bodies only as a bare `type: object` with NO properties and NO
+  # examples. Per the sync task's rule, nothing has been invented or inferred: wherever a
+  # concrete schema/example is unavailable in the implementation it is left as
+  # `type: object` and flagged inline with "REVIEWER: schema not defined in implementation".
+  # These gaps need a concrete schema from the API Manager team before this doc is final.
+  # xAPI-only / non-public routes are intentionally excluded (see kill-switches below).
+  # =====================================================================================
+  #
+  # ----- FLAGGED AGENTS -----
+  /organizations/{organizationId}/flagged-agents:
+    get:
+      responses:
+        '200':
+          description: List of flagged agents
+        '404':
+          description: Feature not enabled
+      description: List flagged agents for an organization
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
+      parameters:
+      - name: status
+        in: query
+        required: false
+        description: Filter flagged agents by status.
+        schema:
+          type: string
+      - name: agentId
+        in: query
+        required: false
+        description: Filter flagged agents by agent identifier.
+        schema:
+          type: string
+      - name: signalKind
+        in: query
+        required: false
+        description: Filter flagged agents by the kind of detection signal.
+        schema:
+          type: string
+      - name: apiInstanceId
+        in: query
+        required: false
+        description: Filter flagged agents by the associated API instance identifier.
+        schema:
+          type: string
+      - name: environmentId
+        in: query
+        required: false
+        description: Filter flagged agents by environment identifier.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of results to return.
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        required: false
+        description: Number of results to skip for pagination.
+        schema:
+          type: integer
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: List flagged agents
+      operationId: listFlaggedAgents
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/flagged-agents/{flaggedAgentId}:
+    get:
+      responses:
+        '200':
+          description: Flagged agent
+        '404':
+          description: Not found
+      description: Get a flagged agent by ID
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: Get a flagged agent
+      operationId: getFlaggedAgent
+    patch:
+      responses:
+        '200':
+          description: Patched flagged agent
+        '400':
+          description: Validation error
+        '404':
+          description: Not found
+      description: Partially update a flagged agent (mutable fields only)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update a flagged agent
+      operationId: updateFlaggedAgent
+    delete:
+      responses:
+        '204':
+          description: Flagged agent deleted
+        '404':
+          description: Not found
+      description: Delete a flagged agent
+      summary: Delete a flagged agent
+      operationId: deleteFlaggedAgent
+    parameters:
+    - name: flaggedAgentId
+      in: path
+      required: true
+      description: The flagged agent identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/flagged-agents/{flaggedAgentId}/events:
+    get:
+      responses:
+        '200':
+          description: Detection event timeline
+        '404':
+          description: Not found
+      description: List detection events for a flagged agent
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: List flagged agent events
+      operationId: listFlaggedAgentEvents
+    parameters:
+    - name: flaggedAgentId
+      in: path
+      required: true
+      description: The flagged agent identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/flagged-agents/{flaggedAgentId}/events/{eventId}:
+    get:
+      responses:
+        '200':
+          description: Detection event
+        '404':
+          description: Not found
+      description: Get a single detection event by ID
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: Get a flagged agent event
+      operationId: getFlaggedAgentEvent
+    parameters:
+    - name: eventId
+      in: path
+      required: true
+      description: The detection event identifier.
+      schema:
+        type: string
+    - name: flaggedAgentId
+      in: path
+      required: true
+      description: The flagged agent identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/flagged-agents/{flaggedAgentId}/status:
+    patch:
+      responses:
+        '200':
+          description: Flagged agent status updated
+        '400':
+          description: Validation error
+        '404':
+          description: Not found
+      description: Set flagged agent status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/enum/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Set flagged agent status
+      operationId: setFlaggedAgentStatus
+    parameters:
+    - name: flaggedAgentId
+      in: path
+      required: true
+      description: The flagged agent identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/flagged-agents/{flaggedAgentId}/kill:
+    post:
+      responses:
+        '200':
+          description: Flagged agent killed
+        '400':
+          description: Validation error
+        '404':
+          description: Not found
+        '409':
+          description: Already killed
+      description: Kill a flagged agent — creates the corresponding KillSwitch and pushes enforcement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', optional body, no properties/example); not inferred.
+        required: false
+        description: Request body containing the data needed for this operation.
+      summary: Kill a flagged agent
+      operationId: killFlaggedAgent
+    parameters:
+    - name: flaggedAgentId
+      in: path
+      required: true
+      description: The flagged agent identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- KILL SWITCHES -----
+  # REVIEWER: only the publicly-routed read operations plus the status PATCH are documented
+  # here. In api-platform-api the public V1 router (apiManagerV1Router.js) deliberately does
+  # NOT wire POST /kill-switches, nor PUT/PATCH/DELETE on /kill-switches/{killSwitchId}
+  # (router comments: "No public POST — a KillSwitch is only created by
+  # POST /flagged-agents/:id/kill" and "No public DELETE — expose on xAPI only"). Those
+  # write operations are therefore intentionally excluded from this public doc.
+  /organizations/{organizationId}/kill-switches:
+    get:
+      responses:
+        '200':
+          description: List of kill switches
+        '404':
+          description: Feature not enabled
+      description: List kill switches for an organization
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
+      parameters:
+      - name: status
+        in: query
+        required: false
+        description: Filter kill switches by status.
+        schema:
+          type: string
+      - name: sourceAlertId
+        in: query
+        required: false
+        description: Filter kill switches by the source alert identifier that triggered them.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of results to return.
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        required: false
+        description: Number of results to skip for pagination.
+        schema:
+          type: integer
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: List kill switches
+      operationId: listKillSwitches
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/kill-switches/agent-status:
+    get:
+      responses:
+        '200':
+          description: Agent kill status (killed true/false)
+        '400':
+          description: Validation error
+        '404':
+          description: Feature not enabled
+      description: Whether an agent instance is currently killed in an environment
+      # REVIEWER (W-24079456): the implementation spec declares these query params with no
+      # description; the descriptions below are authored for the doc, not taken from the spec.
+      parameters:
+      - name: agentId
+        in: query
+        required: true
+        description: The agent identifier to check kill status for.
+        schema:
+          type: string
+      - name: environmentId
+        in: query
+        required: true
+        description: The environment identifier in which to check the agent's kill status.
+        schema:
+          type: string
+      # REVIEWER: response schema not defined in implementation (description hints at a boolean 'killed' field, but no schema/example present); not inferred.
+      summary: Get agent kill status
+      operationId: getKillSwitchAgentStatus
+    parameters:
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/kill-switches/{killSwitchId}:
+    get:
+      responses:
+        '200':
+          description: Kill switch
+        '404':
+          description: Not found
+      description: Get a kill switch by ID
+      # REVIEWER: response schema not defined in implementation (description only, no content/schema/example).
+      summary: Get a kill switch
+      operationId: getKillSwitch
+    parameters:
+    - name: killSwitchId
+      in: path
+      required: true
+      description: The kill switch identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/kill-switches/{killSwitchId}/status:
+    patch:
+      responses:
+        '200':
+          description: Kill switch status updated
+        '400':
+          description: Validation error
+        '404':
+          description: Not found
+        '412':
+          description: Precondition failed
+      description: Set kill switch status (enabled/disabled/hold)
+      parameters:
+      - name: If-Match
+        in: header
+        required: false
+        description: Optional ETag for optimistic concurrency; the update is applied only if it matches the current resource version.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object'; description names enabled/disabled/hold in prose but no enum/property is declared); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Set kill switch status
+      operationId: setKillSwitchStatus
+    parameters:
+    - name: killSwitchId
+      in: path
+      required: true
+      description: The kill switch identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- MODEL WALLET -----
+  # REVIEWER: in the implementation the model-wallet base path is mounted behind a feature
+  # flag (LD flag CLIENT_KEYS_ENABLED). The underlying resource is named "Client Key"
+  # internally but "Model Wallet" publicly (ADR W-23268149 v3); the public path param is
+  # therefore modelWalletId. Feature-flag gating is not expressed in OpenAPI here.
+  /organizations/{organizationId}/environments/{environmentId}/model-wallet:
+    get:
+      responses:
+        '200':
+          description: List model wallets for an environment
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: List all model wallets (policy bags) in an environment
+      summary: List model wallets
+      operationId: listModelWallets
+    post:
+      responses:
+        '201':
+          description: Model wallet created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Create a model wallet (predicates -> token rate-limit actions)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Create a model wallet
+      operationId: createModelWallet
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/model-wallet/{modelWalletId}
+  : get:
+      responses:
+        '200':
+          description: Get a model wallet by ID
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Get a model wallet by ID
+      summary: Get a model wallet
+      operationId: getModelWallet
+    put:
+      responses:
+        '200':
+          description: Model wallet replaced
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Replace a model wallet (optimistic concurrency via If-Match)
+      # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Replace a model wallet
+      operationId: updateModelWallet
+    patch:
+      responses:
+        '200':
+          description: Model wallet updated
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Partially update a model wallet (optimistic concurrency via If-Match)
+      # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update a model wallet
+      operationId: patchModelWallet
+    delete:
+      responses:
+        '204':
+          description: Model wallet deleted
+      description: Delete a model wallet
+      summary: Delete a model wallet
+      operationId: deleteModelWallet
+    parameters:
+    - name: modelWalletId
+      in: path
+      required: true
+      description: The model wallet identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/model-wallet/{modelWalletId}/status
+  : patch:
+      responses:
+        '200':
+          description: Model wallet status changed
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Change a model wallet status (active|suspended|revoked)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object'; description names active|suspended|revoked in prose but no enum/property is declared); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Change model wallet status
+      operationId: setModelWalletStatus
+    parameters:
+    - name: modelWalletId
+      in: path
+      required: true
+      description: The model wallet identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- MODEL PROXIES / MODEL CATALOG -----
+  # REVIEWER: same feature-flag gate as model-wallet (CLIENT_KEYS_ENABLED). Create/delete
+  # are intentionally out of scope in the implementation (list / get / PUT / PATCH pricing
+  # only). Note the implementation router accepts a modelId that may embed a slash
+  # (composite wire id "{provider}:{modelId}"); the spec models modelId as a plain string.
+  /organizations/{organizationId}/environments/{environmentId}/modelproxies/models:
+    get:
+      responses:
+        '200':
+          description: List LLM models in the catalog overlay
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: List LLM models (per-tenant catalog overlay with pricing)
+      summary: List LLM models
+      operationId: listLlmModels
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/modelproxies/models/{modelId}
+  : get:
+      responses:
+        '200':
+          description: Get an LLM model by composite id
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Get an LLM model by composite wire id "{provider}:{modelId}"
+      summary: Get an LLM model
+      operationId: getLlmModel
+    put:
+      responses:
+        '200':
+          description: Model metadata + pricing updated
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Update model metadata and pricing (optimistic concurrency via If-Match)
+      # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object'; description says "metadata and pricing" but no fields are declared); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update an LLM model
+      operationId: updateLlmModel
+    parameters:
+    - name: modelId
+      in: path
+      required: true
+      description: Composite LLM model wire id, "{provider}:{modelId}" (may embed a slash).
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/modelproxies/models/{modelId}/pricing
+  : patch:
+      responses:
+        '200':
+          description: Model pricing updated
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Patch only the pricing fields of a model (optimistic concurrency via If-Match)
+      # REVIEWER: description mentions If-Match optimistic concurrency, but no If-Match header parameter is declared in the implementation spec.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object'; description says "pricing fields" but no fields are declared); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update LLM model pricing
+      operationId: updateLlmModelPricing
+    parameters:
+    - name: modelId
+      in: path
+      required: true
+      description: Composite LLM model wire id, "{provider}:{modelId}" (may embed a slash).
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- SEMANTIC CACHE CONFIGS -----
+  # REVIEWER: these routes are gated behind a feature flag (llmFeatureFlagMiddleware) in the
+  # implementation; feature-flag gating is not expressed in OpenAPI here.
+  /organizations/{organizationId}/environments/{environmentId}/semantic-cache-configs:
+    get:
+      responses:
+        '200':
+          description: List semantic cache configs
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: List all semantic cache configs for an environment
+      summary: List semantic cache configs
+      operationId: listSemanticCacheConfigs
+    post:
+      responses:
+        '201':
+          description: Semantic cache config created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Create a semantic cache config
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Create a semantic cache config
+      operationId: createSemanticCacheConfig
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/semantic-cache-configs/{semanticCacheConfigId}
+  : get:
+      responses:
+        '200':
+          description: Get semantic cache config
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Get a semantic cache config by ID
+      summary: Get a semantic cache config
+      operationId: getSemanticCacheConfig
+    patch:
+      responses:
+        '200':
+          description: Semantic cache config updated
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Update a semantic cache config
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update a semantic cache config
+      operationId: updateSemanticCacheConfig
+    delete:
+      responses:
+        '204':
+          description: Semantic cache config deleted
+      description: Delete a semantic cache config
+      summary: Delete a semantic cache config
+      operationId: deleteSemanticCacheConfig
+    parameters:
+    - name: semanticCacheConfigId
+      in: path
+      required: true
+      description: The semantic cache config identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/semantic-cache-configs/{semanticCacheConfigId}/llm-proxies
+  : get:
+      responses:
+        '200':
+          description: List LLM proxies linked to this cache config
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: Get LLM proxies by semantic cache config ID
+      summary: List semantic cache config LLM proxies
+      operationId: listSemanticCacheConfigLlmProxies
+    parameters:
+    - name: semanticCacheConfigId
+      in: path
+      required: true
+      description: The semantic cache config identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  ? /organizations/{organizationId}/environments/{environmentId}/semantic-cache-setup-script/semantic-cache-configs/{semanticCacheConfigId}
+  : get:
+      responses:
+        '200':
+          description: Semantic cache setup script for the specified semantic cache config
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+              # REVIEWER (W-24079456): the implementation returns the actual populated bash
+              # script (content varies per config). The example below is a minimal placeholder
+              # to convey the media type only; it is not sourced from the implementation.
+              example: |
+                #!/usr/bin/env bash
+                # Semantic cache setup script (populated with the semantic cache configuration)
+      description: Downloads a bash script populated with the semantic cache configuration
+      summary: Download semantic cache setup script
+      operationId: getSemanticCacheSetupScript
+    parameters:
+    - name: semanticCacheConfigId
+      in: path
+      required: true
+      description: The semantic cache config identifier.
+      schema:
+        type: string
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- LLM PROXIES -----
+  # REVIEWER: in the implementation these mirror the legacy xAPI LLM-proxy create/update
+  # flow (same controllers), wrapped with an extra feature-flag gate; parity is enforced by
+  # test/api/unit/llmProxyContractParity.test.js. That test pins the middleware chain, not
+  # the request/response body shape — so no concrete body schema exists in the source.
+  /organizations/{organizationId}/environments/{environmentId}/llm-proxies:
+    post:
+      responses:
+        '201':
+          description: LLM proxy API instance created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                message: Resource created successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        '409':
+          description: Conflict. The request conflicts with the current state of the resource.
+      description: "Creates a new LLM proxy API instance with deployment configuration.\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n  - Exchange Viewer\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Create an LLM proxy
+      operationId: createLlmProxy
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  /organizations/{organizationId}/environments/{environmentId}/llm-proxies/{environmentApiId}:
+    patch:
+      responses:
+        '200':
+          description: LLM proxy API instance updated
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                message: Resource updated successfully
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: "Updates an LLM proxy API instance, including deployment configuration.\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
+      parameters:
+      - name: updateApisInSamePort
+        in: query
+        description: For APIs deployed to Flex, if endpoint proxyUri or inbound TLS Contexts are being updated, apis in the same port are also updated
+        schema:
+          allOf:
+          - x-force-coercion-to: boolean
+          - type: boolean
+            default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        # REVIEWER: request schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+        required: true
+        description: Request body containing the data needed for this operation.
+      summary: Update an LLM proxy
+      operationId: updateLlmProxy
+    parameters:
+    - $ref: '#/components/parameters/param_environment_api_id'
+    - $ref: '#/components/parameters/param_environment_id'
+    - $ref: '#/components/parameters/param_organization_id'
+  #
+  # ----- LLM ROUTE CONFIGURATIONS -----
+  /llm-route-configurations:
+    get:
+      responses:
+        '200':
+          description: Successfully retrieved LLM route configurations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  routeConfigurations:
+                    type: array
+                    items:
+                      type: object
+                    # REVIEWER: the array item shape is not defined in the implementation (items is a bare 'type: object', no properties/example); not inferred.
+              example:
+                routeConfigurations: []
+      description: Get all available LLM route configurations
+      summary: List LLM route configurations
+      operationId: listLlmRouteConfigurations
+  #
+  # ----- BUDGET LINES -----
+  # REVIEWER: shares the Client Keys feature-flag gate in the implementation. The response
+  # field names (clientKeyName, provider, modelId, model, costLimit, tokenLimit, timeWindow)
+  # appear only in the operation's prose description in the source, NOT as schema properties;
+  # they were not inferred into a schema here.
+  /organizations/{organizationId}/environments/{environmentId}/budget-lines:
+    get:
+      responses:
+        '200':
+          description: List of budget lines (org/env cost-management listing)
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+          # REVIEWER: response schema not defined in implementation (bare 'type: object', no properties/example); not inferred.
+      description: List budget lines in the (org, env) scope, joined to the owning client key for its name. Returns clientKeyName, provider, modelId, model, costLimit, tokenLimit and timeWindow. The "Used"/consumption column is not included.
+      summary: List budget lines
+      operationId: listBudgetLines
+    parameters:
+    - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
 components:
   schemas: {}

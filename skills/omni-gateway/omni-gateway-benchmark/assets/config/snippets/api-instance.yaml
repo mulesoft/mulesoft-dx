@@ -1,0 +1,14 @@
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: api-${API_INDEX}
+  namespace: flex
+spec:
+  # address is the Flex (Envoy) listener URL, not a bare path: it needs a
+  # scheme + host + port. All APIs share the FLEX_LISTEN_PORT listener and are
+  # distinguished by path. The Service/FLEX_URL target this same port.
+  address: http://0.0.0.0:${FLEX_LISTEN_PORT}/api-${API_INDEX}/
+  services:
+    upstream:
+      address: http://${UPSTREAM_HOST}:${UPSTREAM_PORT}
+---

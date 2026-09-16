@@ -1,0 +1,41 @@
+# Verify keys against the actual Flex chart's values schema before deploy.
+# fullnameOverride pins the Service/Deployment name to `flex-gateway` so
+# wait-for-flex.sh, the ServiceMonitor selector, and FLEX_URL all line up
+# regardless of how the chart's fullname template handles release names.
+fullnameOverride: flex-gateway
+nameOverride: flex-gateway
+
+image:
+  repository: mulesoft/flex-gateway
+  tag: ""               # set via --set image.tag=$FLEX_VERSION at deploy time
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+resources:
+  requests: { cpu: "1",   memory: "512Mi" }
+  limits:   { cpu: "2",   memory: "1Gi" }
+
+nodeSelector:
+  node-role: workload
+
+# API config is delivered as Kubernetes custom resources (the chart enables the
+# k8s datasource), so there's no ConfigMap mount or FLEX_CONFIG_PATH here.
+# registration.secretName is supplied per-run by values-run.yaml.tpl.
+
+# Service ports follow the chart's schema (service.http / service.https /
+# service.extraPorts), NOT a generic `service.ports` list — that key is
+# ignored by this chart. Our ApiInstances open a Flex listener on 8080
+# (FLEX_LISTEN_PORT), so 8080 must be exposed here or k6 gets connection
+# refused / 404. 19000 exposes Envoy stats for Prometheus.
+service:
+  type: ClusterIP
+  extraPorts:
+    - name: bench-http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - name: prom-stats
+      port: 19000
+      targetPort: 19000
+      protocol: TCP

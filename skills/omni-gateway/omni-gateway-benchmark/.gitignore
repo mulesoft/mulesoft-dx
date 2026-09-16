@@ -1,0 +1,8 @@
+.run/
+reports/*
+!reports/README.md
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+.env

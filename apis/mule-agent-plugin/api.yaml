@@ -30,6 +30,7 @@ paths:
                     muleVersion: 3.9.2
                     agentVersion: 1.13.0
               example: {}
+      summary: Get agent status
       operationId: getAgent
     put:
       description: ' <p>Upgrades the Mule Agent plugin with the provided .jar file.</p> <p>Upgrading the Agent will only install the the jar passed in the request and won''t change any configuration</p> <p>Since v2.2.0 the configuration of Authentication Proxy and MCM endpoints was changed so in order to reconect the server further configuration would be needed</p>'
@@ -73,7 +74,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id003
-      operationId: updateAgent
+      summary: Upgrade Mule Agent plugin
+      operationId: upgradeAgent
   /agent/configuration:
     get:
       description: "Returns the full configuration of the Mule Agent. \n"
@@ -506,6 +508,7 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id004
+      summary: Get agent configuration
       operationId: getAgentConfiguration
   /agent/components:
     get:
@@ -641,7 +644,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id005
-      operationId: getAgentComponents
+      summary: List agent components
+      operationId: listAgentComponents
   /agent/{componentId}:
     get:
       description: "Returns a JSON representing the component's configuration. \n"
@@ -712,7 +716,8 @@ paths:
                     errorType: class java.util.NoSuchElementException
                     errorMessage: Component mule.agent.runtime.configuration.servicep does not exist.
               example: {}
-      operationId: getAgentByComponentid
+      summary: Get component configuration
+      operationId: getComponentById
     patch:
       description: 'Changes the configuration of the component by overriding the values of the properties passed
 
@@ -814,7 +819,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id013
-      operationId: patchAgentByComponentid
+      summary: Patch component configuration
+      operationId: patchComponent
     put:
       description: 'Changes the configuration of the component by overriding the full configuration with the
 
@@ -928,7 +934,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id021
-      operationId: updateAgentByComponentid
+      summary: Update component configuration
+      operationId: updateComponent
   /agent/{componentId}/enable:
     put:
       description: 'Enables a service.
@@ -1010,7 +1017,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id027
-      operationId: updateAgentByComponentidEnable
+      summary: Enable component
+      operationId: enableComponent
   /agent/{componentId}/disable:
     put:
       description: 'Disables a service.
@@ -1092,7 +1100,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id033
-      operationId: updateAgentByComponentidDisable
+      summary: Disable component
+      operationId: disableComponent
   /agent/{componentId}/{applicationName}:
     put:
       description: 'Completely changes the configuration of the service by overriding the configuration provided in the agent descriptor with the properties passed in the JSON. If the body is not sent in the request the service will respond with the current information.
@@ -1195,7 +1204,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id039
-      operationId: updateAgentByComponentidByApplicationname
+      summary: Update component config for application
+      operationId: updateComponentForApp
     patch:
       description: 'Partially changes the configuration of the service for a given application by overriding the configuration provided in the agent descriptor with the properties passed in the JSON. If the body is not sent in the request the service will respond with the current information.
 
@@ -1297,7 +1307,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id045
-      operationId: patchAgentByComponentidByApplicationname
+      summary: Patch component config for application
+      operationId: patchComponentForApp
   /actions:
     put:
       description: 'Performs the action described by the request on the Runtime where the Mule Agent is running on.
@@ -1439,7 +1450,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id051
-      operationId: updateActions
+      summary: Perform runtime action
+      operationId: performAction
   /domains:
     get:
       description: 'Returns all existing domains in Mule.
@@ -1502,7 +1514,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id052
-      operationId: getDomains
+      summary: List domains
+      operationId: listDomains
   /domains/{domainName}:
     get:
       description: 'Returns all the details of the domain requested.
@@ -1643,7 +1656,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id056
-      operationId: getDomainsByDomainname
+      summary: Get domain details
+      operationId: getDomain
     put:
       description: 'Deploys or redeploys a domain in Mule
 
@@ -1749,7 +1763,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id062
-      operationId: updateDomainsByDomainname
+      summary: Deploy or redeploy domain
+      operationId: deployDomain
     delete:
       description: 'Undeploys a domain from Mule.
 
@@ -1905,7 +1920,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id068
-      operationId: deleteDomainsByDomainname
+      summary: Undeploy domain
+      operationId: undeployDomain
   /domains/{domainName}/restart:
     put:
       description: 'Restarts a domain from Mule.
@@ -2062,7 +2078,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id074
-      operationId: updateDomainsByDomainnameRestart
+      summary: Restart domain
+      operationId: restartDomain
   /applications:
     get:
       description: 'Returns all existing applications in Mule.
@@ -2110,7 +2127,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id075
-      operationId: getApplications
+      summary: List applications
+      operationId: listApplications
   /applications/{applicationName}:
     get:
       description: 'Gets a particular application.
@@ -2193,7 +2211,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id079
-      operationId: getApplicationsByApplicationname
+      summary: Get application details
+      operationId: getApplication
     put:
       description: 'Redeploys/creates an application to Mule using the name and file passed in the POST body.
 
@@ -2313,7 +2332,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id082
-      operationId: updateApplicationsByApplicationname
+      summary: Deploy or redeploy application
+      operationId: deployApplication
     delete:
       description: 'Undeploys an application from Mule.
 
@@ -2370,7 +2390,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id085
-      operationId: deleteApplicationsByApplicationname
+      summary: Undeploy application
+      operationId: undeployApplication
   /applications/{applicationName}/stop:
     put:
       description: 'Stops an application.
@@ -2445,7 +2466,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id088
-      operationId: updateApplicationsByApplicationnameStop
+      summary: Stop application
+      operationId: stopApplication
   /applications/{applicationName}/start:
     put:
       description: 'Starts an application.
@@ -2520,7 +2542,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id091
-      operationId: updateApplicationsByApplicationnameStart
+      summary: Start application
+      operationId: startApplication
   /applications/{applicationName}/restart:
     put:
       description: 'Retarts an application.
@@ -2578,7 +2601,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id094
-      operationId: updateApplicationsByApplicationnameRestart
+      summary: Restart application
+      operationId: restartApplication
   /applications/{applicationName}/flows:
     get:
       description: 'Gets application flows.
@@ -2634,7 +2658,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id097
-      operationId: getApplicationsByApplicationnameFlows
+      summary: List application flows
+      operationId: listApplicationFlows
   /applications/{applicationName}/flows/{flowName}/stop:
     put:
       description: 'Stop an application flow.
@@ -2687,7 +2712,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id099
-      operationId: updateApplicationsByApplicationnameFlowsByFlownameStop
+      summary: Stop application flow
+      operationId: stopApplicationFlow
   /applications/{applicationName}/flows/{flowName}/start:
     put:
       description: 'Start an application flow.
@@ -2740,7 +2766,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id101
-      operationId: updateApplicationsByApplicationnameFlowsByFlownameStart
+      summary: Start application flow
+      operationId: startApplicationFlow
   /clusters:
     get:
       description: 'Retrieves the clustering information of this Mule instance.
@@ -2816,7 +2843,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id105
-      operationId: getClusters
+      summary: Get cluster info
+      operationId: getClusterInfo
     post:
       description: 'Adds this Mule instance to a cluster with the information provided in the request.
 
@@ -2875,7 +2903,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id107
-      operationId: createClusters
+      summary: Join cluster
+      operationId: joinCluster
     delete:
       description: 'Removes this Mule instance from the cluster it belongs to.
 
@@ -2903,7 +2932,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id109
-      operationId: deleteClusters
+      summary: Leave cluster
+      operationId: leaveCluster
   /clusters/members:
     get:
       description: 'Retrieves the members of the cluster this Mule instance belongs to.
@@ -2945,7 +2975,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id111
-      operationId: getClustersMembers
+      summary: List cluster members
+      operationId: listClusterMembers
   /healthcheck/applications/{applicationName}/ready:
     get:
       description: Health Check Endpoint to validate if an application is running or not.
@@ -2972,7 +3003,8 @@ paths:
                     errorType: errorType
                     errorMessage: 'Not ready. Status: [CREATED | INITIALISED | STARTED | STOPPED | DEPLOYMENT_FAILED | DESTROYED]'
               example: {}
-      operationId: getHealthcheckApplicationsByApplicationnameReady
+      summary: Check application readiness
+      operationId: checkApplicationReady
   /logging/domains/{domainName}/{scope}:
     get:
       description: "Retrieves the current log level that has the domain for a package scope. \n"
@@ -3040,7 +3072,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id114
-      operationId: getLoggingDomainsByDomainnameByScope
+      summary: Get domain log level
+      operationId: getDomainLogLevel
     post:
       description: 'Sets the log level on a package scope for the domain passed on the request.
 
@@ -3135,7 +3168,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id120
-      operationId: createLoggingDomainsByDomainnameByScope
+      summary: Set domain log level
+      operationId: setDomainLogLevel
   /logging/applications/{appName}/{packageScope}:
     get:
       description: 'Retrieves the current log level of a package scope in an application.
@@ -3204,7 +3238,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id124
-      operationId: getLoggingApplicationsByAppnameByPackagescope
+      summary: Get application log level
+      operationId: getApplicationLogLevel
     post:
       description: 'Sets the log level on a package scope for the application passed on the request.
 
@@ -3268,7 +3303,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id128
-      operationId: createLoggingApplicationsByAppnameByPackagescope
+      summary: Set application log level
+      operationId: setApplicationLogLevel
   /monitoring:
     get:
       description: 'Retrieves all the beans currently being tracked by the monitoring service. Not available on PCE.
@@ -3517,7 +3553,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id130
-      operationId: getMonitoring
+      summary: List monitored beans
+      operationId: listMonitoredBeans
     post:
       description: 'Adds a list of beans to those currently being tracked the monitoring service. Not available on PCE.
 
@@ -3592,7 +3629,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id134
-      operationId: createMonitoring
+      summary: Add monitored beans
+      operationId: addMonitoredBeans
     delete:
       description: 'Removes a list of beans of those currently being tracked the monitoring service. The beans to delete that are send in the json body must be identicaly the same as the registered ones. Not available on PCE.
 
@@ -3673,7 +3711,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id138
-      operationId: deleteMonitoring
+      summary: Remove monitored beans
+      operationId: removeMonitoredBeans
   /properties:
     get:
       description: 'Retrieves the server properties that are currently being set by the Mule Agent server properties.
@@ -3719,7 +3758,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id140
-      operationId: getProperties
+      summary: List server properties
+      operationId: listProperties
     post:
       description: 'Sets the given properties in the ${mule_home}/conf/wrapper.conf file.
 
@@ -3833,7 +3873,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id146
-      operationId: createProperties
+      summary: Set server properties
+      operationId: setProperties
   /properties/{propertyName}:
     get:
       description: 'Retrieves the property with the given name from the ${mule_home}/conf/wrapper.conf file.
@@ -3938,7 +3979,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id154
-      operationId: getPropertiesByPropertyname
+      summary: Get server property
+      operationId: getProperty
     put:
       description: 'Sets the given property in ${mule_home}/conf/wrapper.conf file.
 
@@ -4053,7 +4095,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id162
-      operationId: updatePropertiesByPropertyname
+      summary: Set server property
+      operationId: setProperty
     delete:
       description: 'Removes the property located in ${mule_home}/conf/wrapper.conf file.
 
@@ -4137,7 +4180,8 @@ paths:
                   errorType: errorType
                   errorMessage: Error Message
               example: *id170
-      operationId: deletePropertiesByPropertyname
+      summary: Delete server property
+      operationId: deleteProperty
 components:
   securitySchemes:
     bearerAuth:

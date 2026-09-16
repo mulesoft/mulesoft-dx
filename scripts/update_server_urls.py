@@ -38,7 +38,6 @@ APIS_TO_UPDATE = [
     'arm-monitoring-query',
     'arm-rest-services',
     'audit-log-query',
-    'analytics-event-export',
     'cloudhub',
     'cloudhub-20',
     'exchange-experience',

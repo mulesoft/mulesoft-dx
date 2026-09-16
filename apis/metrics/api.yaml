@@ -5,22 +5,24 @@ info:
   description: Search and describe metric types for the Anypoint Observability platform.
 servers:
 - url: https://anypoint.mulesoft.com/observability/api/v1
-- url: https://{region}.anypoint.mulesoft.com/observability/api/v1
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/observability/api/v1
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/observability/api/v1
+  description: EU
+- url: https://ca1.platform.mulesoft.com/observability/api/v1
+  description: CA
+- url: https://jp1.platform.mulesoft.com/observability/api/v1
+  description: JP
+- url: https://in1.platform.mulesoft.com/observability/api/v1
+  description: IN
+- url: https://au1.platform.mulesoft.com/observability/api/v1
+  description: AU
 security:
 - bearerAuth: []
 - clientAuth: []
 paths:
   /metric_types:
     get:
+      summary: List supported metric types
       operationId: getMetricTypes
       description: Get a list of all supported metric names and descriptions.
       parameters:
@@ -90,7 +92,8 @@ paths:
           description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
   "/metric_types/{metricTypeName}:describe":
     get:
-      operationId: getMetricTypesMetrictypenameDescribe
+      summary: Describe a metric type
+      operationId: describeMetricType
       description: Get the metric descriptor by a metric type name.
       parameters:
       - name: metricTypeName
@@ -198,7 +201,8 @@ paths:
           description: Exceeded service rate limit. Wait and try again.
         "500":
           description: An internal error occurred in the server. This error sometimes indicates an issue with server-side code.
-      operationId: createMetricsSearch
+      summary: Search metrics
+      operationId: searchMetrics
 components:
   securitySchemes:
     bearerAuth:

@@ -163,22 +163,24 @@
         <div class="auth-modal-body" id="authPanelBody">
             <!-- Server Selection Section -->
             <div class="auth-section server-section">
-                <h4>Server</h4>
-                <div class="server-select-wrapper">
-                    <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select Anypoint Platform Server">
-                        <option value="us">anypoint.mulesoft.com (US)</option>
+                <h4>Region</h4>
+                <div class="region-select-wrapper">
+                    <select id="regionSelect" onchange="onRegionSelectChange()" class="server-select" aria-label="Select Anypoint region">
+                        <option value="us">United States (Global)</option>
+                        <option value="eu1">Europe (eu1)</option>
+                        <option value="ca1">Canada (ca1)</option>
+                        <option value="jp1">Japan (jp1)</option>
+                        <option value="in1">India (in1)</option>
+                        <option value="au1">Australia (au1)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="custom-server-row" id="customServerRow" style="display:none">
+                    <select id="serverSelect" onchange="onServerChange()" class="server-select" aria-label="Select server domain for custom region">
                         <option value="eu">Regional (anypoint.mulesoft.com)</option>
                         <option value="platform">Regional (platform.mulesoft.com)</option>
                     </select>
-                </div>
-                <div class="server-region-row" id="serverRegionRow" style="display:none">
-                    <select id="regionPreset" onchange="onRegionPresetChange()" class="server-select region-preset-select" aria-label="Select region">
-                        <option id="regionDefaultOption" value="eu1">Europe (eu1)</option>
-                        <option value="jp1">Japan (jp1)</option>
-                        <option value="in1">India (in1)</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. eu1" style="display:none" aria-label="Custom region">
+                    <input type="text" id="regionCustomInput" class="server-var-input" placeholder="e.g. mytest" aria-label="Custom region">
                 </div>
             </div>
 

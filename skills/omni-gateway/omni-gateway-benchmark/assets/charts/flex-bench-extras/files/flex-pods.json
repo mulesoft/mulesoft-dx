@@ -1,0 +1,96 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"flex\"}[1m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU per Flex pod",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (pod) (container_memory_rss{namespace=\"flex\"})",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory RSS per Flex pod",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (pod) (rate(container_network_receive_bytes_total{namespace=\"flex\"}[1m]))",
+          "legendFormat": "rx {{pod}}",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{namespace=\"flex\"}[1m]))",
+          "legendFormat": "tx {{pod}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Network in/out per pod",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "kube_pod_container_status_restarts_total{namespace=\"flex\"}",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Restarts",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "tags": ["flex-bench"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Flex / Pods",
+  "uid": "flex-pods",
+  "version": 1,
+  "weekStart": ""
+}

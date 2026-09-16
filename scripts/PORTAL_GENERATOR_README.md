@@ -123,7 +123,7 @@ APIs are auto-categorized:
 | API Management | api-manager, api-platform |
 | Runtime | cloudhub, cloudhub-20, runtime-fabric |
 | Security | secrets-manager, anypoint-security-policies, tokenization-* |
-| Monitoring | metrics, arm-monitoring-query, analytics-event-export |
+| Monitoring | metrics, arm-monitoring-query, anypoint-monitoring-archive |
 | Access & Identity | access-management |
 | Gateway | flex-gateway-manager, proxies-xapi |
 | Messaging | anypoint-mq-* |

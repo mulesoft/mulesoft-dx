@@ -1,0 +1,99 @@
+# Schemas for AI Documentation Generation endpoint
+
+GenerateDocumentationSuccessResponse:
+  type: object
+  description: Successful documentation generation response
+  properties:
+    userId:
+      type: string
+      nullable: true
+      description: User ID who requested the documentation generation
+    requestId:
+      type: string
+      format: uuid
+      description: Unique identifier for the generation request
+    conversationId:
+      type: string
+      nullable: true
+      description: Conversation ID for tracking
+    type:
+      type: string
+      example: "EXCHANGE_DOC_GENERATION"
+      description: Type of generation request
+    generations:
+      type: array
+      description: List of generated documentation content
+      items:
+        $ref: '#/GeneratedDocumentation'
+    parameters:
+      type: object
+      description: Additional parameters for the request
+
+GeneratedDocumentation:
+  type: object
+  description: A single generated documentation item
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique identifier for the generated content
+    content:
+      type: string
+      description: The generated documentation in markdown format
+    explanation:
+      type: string
+      description: Explanation of the generated content
+    isGenerated:
+      type: boolean
+      nullable: true
+      description: Whether the content was AI-generated
+    isLiked:
+      type: boolean
+      nullable: true
+      description: User feedback on the generated content
+    createdOn:
+      type: string
+      format: date-time
+      nullable: true
+      description: Timestamp when the content was created
+    updatedOn:
+      type: string
+      format: date-time
+      nullable: true
+      description: Timestamp when the content was last updated
+    parameters:
+      type: object
+      description: Additional parameters for the generation
+
+GenerateDocumentationErrorResponse:
+  type: object
+  description: Error response for documentation generation
+  required:
+    - status
+    - message
+  properties:
+    status:
+      type: integer
+      description: HTTP status code
+    message:
+      type: string
+      description: Error message describing what went wrong
+
+GenerateDocumentationEinsteinErrorResponse:
+  type: object
+  description: Error response when Einstein is not enabled (409)
+  required:
+    - status
+    - message
+  properties:
+    status:
+      type: integer
+      example: 409
+    message:
+      type: string
+      example: "Documentation generation requires Einstein to be enabled. Contact your admin."
+    learnMoreUrl:
+      type: string
+      format: uri
+      description: URL to learn more about enabling Einstein
+      example: "https://help.salesforce.com/s/articleView?id=platform_einstein_connect.htm"

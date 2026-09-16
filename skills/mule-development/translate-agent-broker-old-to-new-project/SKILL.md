@@ -131,7 +131,8 @@ Mapping rules:
 - `kind: agent` (V1) → `kind: a2a` (V2). `kind: mcp` and `kind: llm` stay.
 - For LLM connections, move auth into a top-level `authentication` block: `kind: apiKey`, `apiKey: ${<llmName>.apiKey}`. Don't keep V1's `spec.configuration` shape.
 - Replace hardcoded URLs with `${<refName>.url}` variables. The actual URL value goes into `exchange.json`.
-- Connection identifiers and ref names should be camelCase in V2 (e.g. `workdayAgentConnection`, `workdayAgent`). Rename V1's PascalCase consistently.
+- **Connection IDs are not format-restricted by the V2 schema**: `context.connections.<id>` keys accept any valid YAML identifier (camelCase, snake_case, or kebab-case all validate). Convert V1 PascalCase like `WorkdayAgentTestConnection` into a readable id — this converter uses snake_case (`workday_agent_connection`) for consistency, but that's a convention, not a lint rule. The one hard requirement: the id must match the `.agent` target (`a2a://<id>`, `mcp://<id>`, `llm://<id>`) exactly.
+- Registry `ref.name` values (agents/mcps/llms) typically become camelCase in V2 (e.g. `workdayAgent`).
 
 #### Broker translation
 
@@ -166,7 +167,7 @@ brokers:
               outputModes: [application/json, text/plain]
 ```
 
-Use a kebab-case broker id derived from V1 (e.g. `CustomerOnboardingBrokerTest` → `customer-onboarding`).
+**Broker IDs are not format-restricted by the V2 schema**: the key under `brokers:` accepts any valid YAML identifier (snake_case, kebab-case, and camelCase all validate). Convert V1 PascalCase like `CustomerOnboardingBrokerTest` into a readable id — this converter uses snake_case (`customer_onboarding`) for consistency, but that's a convention, not a lint rule. The `.agent` *filename* is independent (e.g. `./brokers/customer-onboarding.agent`). The one hard rule: match the trigger `target: "brokers://<broker-id>/a2a"` to the YAML broker key **exactly**.
 
 ### 3b. Build the V2 `exchange.json`
 
@@ -231,4 +232,4 @@ Tell the user:
 - **Don't** add `inputs:` to MCP actions during V1→V2 conversion. V1 has no schemas, so any `inputs:` block is guessed from prose.
 - **Don't** emit `metadata.protocol` or flat `metadata.card` on registry agents — GA uses `metadata.interfaces.<branch>.card`. Place V1-converted agents under `a2a_v03` (back-compat); the broker itself uses `a2a` (v1.0).
 - **Don't** emit `kind: "a2a:response"` with a nested `task: a2a.task({...})` in echo nodes — GA uses `kind: "a2a:status_update_event"` (state + message) or `kind: "a2a:artifact_update_event"` (artifact + append/lastChunk). State values are `TASK_STATE_*` constants.
-- **Don't** emit `# @dialect: AGENTFABRIC=0.1-BETA` — use `# @dialect: AGENTFABRIC=0.1` for GA.
+- **Don't** emit `# @dialect: AGENTFABRIC=0.1-BETA` or `# @dialect: AGENTFABRIC=0.1` — use `# @dialect: AGENTFABRIC=1.0` for GA.

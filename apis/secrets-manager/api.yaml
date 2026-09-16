@@ -5,23 +5,38 @@ info:
   description: Manage keystores, truststores, certificates, TLS contexts, and shared secrets across environments in Anypoint Secrets Manager.
 servers:
 - url: https://anypoint.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: US
   variables:
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/secrets-manager/api/{version}/organizations
+- url: https://eu1.anypoint.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/secrets-manager/api/{version}/organizations
+- url: https://ca1.platform.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: JP
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://in1.platform.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: IN
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://au1.platform.mulesoft.com/secrets-manager/api/{version}/organizations
+  description: AU
+  variables:
     version:
       default: unknown
       description: API version identifier.
@@ -53,7 +68,8 @@ paths:
       responses:
         '204':
           description: Successful. Returns zero length body.
-      operationId: deleteByOrganizationid
+      summary: Delete organization
+      operationId: deleteOrganization
   /{organizationId}/environments/{environmentId}:
     delete:
       description: Deletes the environment
@@ -63,7 +79,8 @@ paths:
       responses:
         '204':
           description: Successful. Returns zero length body.
-      operationId: deleteByOrganizationidEnvironmentsByEnvironmentid
+      summary: Delete environment
+      operationId: deleteEnvironment
   /{organizationId}/environments/{environmentId}/operations:
     description: To check the status of running operations
     get:
@@ -102,7 +119,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidOperations
+      summary: List operation statuses
+      operationId: listOperations
       description: Retrieves a operations.
   /{organizationId}/environments/{environmentId}/secretGroups:
     description: Secret group is a logical grouping of secrets. Secrets belonging to a group can refer to other secrets from that group only.
@@ -171,7 +189,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroups
+      summary: List secret groups
+      operationId: listSecretGroups
     post:
       description: 'Create a new secretGroup.
 
@@ -264,7 +283,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroups
+      summary: Create secret group
+      operationId: createSecretGroup
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}:
     description: Get an entity representing a secretGroup
     get:
@@ -334,7 +354,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupid
+      summary: Get secret group by ID
+      operationId: getSecretGroupById
     patch:
       description: Operation to update name of this secret group.
       parameters:
@@ -461,7 +482,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupid
+      summary: Update secret group
+      operationId: patchSecretGroup
     delete:
       description: 'Deletes the secret group.
 
@@ -521,7 +543,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: deleteByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupid
+      summary: Delete secret group
+      operationId: deleteSecretGroup
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/lock:
     description: '[Deprecated] From this release and on, the lock mechanism on secret groups is deprecated. For compatibility purpose, the endpoint will still exist, but you can think it is a no-op endpoint.'
     put:
@@ -538,7 +561,8 @@ paths:
               description: Presence of this header with value 'true', implies that the user making this api call already held the lock on this secret group.
               schema:
                 type: boolean
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidLock
+      summary: Acquire secret group lock (deprecated)
+      operationId: acquireSecretGroupLock
     delete:
       description: '[Deprecated] For compatibility purpose, it always returns successful response.'
       parameters:
@@ -568,7 +592,8 @@ paths:
       responses:
         '204':
           description: Response to indicate operation completed successfully.
-      operationId: deleteByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidLock
+      summary: Release secret group lock (deprecated)
+      operationId: releaseSecretGroupLock
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/clone:
     post:
       description: Request to clone this secret group.
@@ -633,7 +658,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidClone
+      summary: Clone secret group
+      operationId: cloneSecretGroup
     delete:
       description: To cancel the in-progress clone operation on the secret group, This can be performed on either source or target secret group.
       parameters:
@@ -676,7 +702,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: deleteByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidClone
+      summary: Cancel secret group clone
+      operationId: cancelSecretGroupClone
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/grants:
     post:
       description: Returns an access grant for each of the secrets, along with corresponding secret path from the request body
@@ -730,7 +757,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidGrants
+      summary: Create secret access grants
+      operationId: createSecretGrants
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificates:
     description: X509 certificate. Type supported - PEM
     get:
@@ -795,7 +823,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificates
+      summary: List certificates
+      operationId: listCertificates
     post:
       description: 'Create a new certificate.
 
@@ -892,7 +921,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificates
+      summary: Create certificate
+      operationId: createCertificate
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificates/{secretId}:
     description: Get an entity representing a certificate
     put:
@@ -973,7 +1003,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatesBySecretid
+      summary: Replace certificate
+      operationId: updateCertificate
       description: Replaces a certificates.
     patch:
       parameters:
@@ -1046,7 +1077,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatesBySecretid
+      summary: Update certificate
+      operationId: patchCertificate
       description: Updates a certificates.
     get:
       description: 'Get the certificate
@@ -1153,7 +1185,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatesBySecretid
+      summary: Get certificate by ID
+      operationId: getCertificateById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/truststores:
     description: Collection of trusted certificates. Types supported - PEM, JKS, JCEKS, PKCS12
     get:
@@ -1224,7 +1257,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststores
+      summary: List truststores
+      operationId: listTruststores
     post:
       description: 'Create a new truststore.
 
@@ -1321,7 +1355,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststores
+      summary: Create truststore
+      operationId: createTruststore
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/truststores/{secretId}:
     description: Get an entity representing a truststore
     put:
@@ -1402,7 +1437,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststoresBySecretid
+      summary: Replace truststore
+      operationId: updateTruststore
       description: Replaces a truststores.
     patch:
       parameters:
@@ -1475,7 +1511,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststoresBySecretid
+      summary: Update truststore
+      operationId: patchTruststore
       description: Updates a truststores.
     get:
       description: 'Get the truststore
@@ -1612,7 +1649,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststoresBySecretid
+      summary: Get truststore by ID
+      operationId: getTruststoreById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/keystores:
     description: This secret represents combination of a private key, corresponding public certificate, and CAPath till the root CA. The private key is required to be encrypted. Types supported - PEM, JKS, JCEKS, PKCS12
     get:
@@ -1683,7 +1721,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystores
+      summary: List keystores
+      operationId: listKeystores
     post:
       description: 'Create a new keystore.
 
@@ -1780,7 +1819,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystores
+      summary: Create keystore
+      operationId: createKeystore
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/keystores/{secretId}:
     description: Get an entity representing a keystore
     put:
@@ -1861,7 +1901,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystoresBySecretid
+      summary: Replace keystore
+      operationId: updateKeystore
       description: Replaces a keystores.
     patch:
       parameters:
@@ -1934,7 +1975,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystoresBySecretid
+      summary: Update keystore
+      operationId: patchKeystore
       description: Updates a keystores.
     get:
       description: 'Get the keystore
@@ -2095,7 +2137,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystoresBySecretid
+      summary: Get keystore by ID
+      operationId: getKeystoreById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificatePinsets:
     description: Collection of trusted certificates, in concatenated PEM format.
     get:
@@ -2159,7 +2202,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsets
+      summary: List certificate pinsets
+      operationId: listCertificatePinsets
     post:
       description: 'Create a new certificatePinset.
 
@@ -2256,7 +2300,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsets
+      summary: Create certificate pinset
+      operationId: createCertificatePinset
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificatePinsets/{secretId}:
     description: Get an entity representing a certificatePinset
     put:
@@ -2337,7 +2382,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsetsBySecretid
+      summary: Replace certificate pinset
+      operationId: updateCertificatePinset
       description: Replaces a certificatePinsets.
     patch:
       parameters:
@@ -2410,7 +2456,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsetsBySecretid
+      summary: Update certificate pinset
+      operationId: patchCertificatePinset
       description: Updates a certificatePinsets.
     get:
       description: 'Get the certificatePinset
@@ -2516,7 +2563,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsetsBySecretid
+      summary: Get certificate pinset by ID
+      operationId: getCertificatePinsetById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/sharedSecrets:
     description: The shared secret as defined in cryptography. Supported shared secret types - UsernamePassword, SymmetricKey, S3Credential, Blob and VDPContext.
     get:
@@ -2601,7 +2649,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecrets
+      summary: List shared secrets
+      operationId: listSharedSecrets
     post:
       description: 'Create a new sharedSecret.
 
@@ -2710,7 +2759,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecrets
+      summary: Create shared secret
+      operationId: createSharedSecret
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/sharedSecrets/{secretId}:
     description: Get an entity representing a sharedSecret
     put:
@@ -2800,7 +2850,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecretsBySecretid
+      summary: Replace shared secret
+      operationId: updateSharedSecret
     patch:
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -2872,7 +2923,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecretsBySecretid
+      summary: Update shared secret
+      operationId: patchSharedSecret
       description: Updates a sharedSecrets.
     get:
       description: 'Get the sharedSecret
@@ -2958,7 +3010,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecretsBySecretid
+      summary: Get shared secret by ID
+      operationId: getSharedSecretById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/tlsContexts:
     description: Defines the SSL security policy.
     get:
@@ -3029,7 +3082,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontexts
+      summary: List TLS contexts
+      operationId: listTlsContexts
     post:
       description: 'Create a new tlsContext.
 
@@ -3233,7 +3287,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontexts
+      summary: Create TLS context
+      operationId: createTlsContext
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/tlsContexts/{secretId}:
     description: Get an entity representing a tlsContext
     put:
@@ -3421,7 +3476,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontextsBySecretid
+      summary: Replace TLS context
+      operationId: updateTlsContext
       description: Replaces a tlsContexts.
     patch:
       parameters:
@@ -3494,7 +3550,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontextsBySecretid
+      summary: Update TLS context
+      operationId: patchTlsContext
       description: Updates a tlsContexts.
     get:
       description: 'Get the tlsContext
@@ -3711,7 +3768,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontextsBySecretid
+      summary: Get TLS context by ID
+      operationId: getTlsContextById
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/crlDistributorConfigs:
     description: Defines the CRL Distributor configuration used to check revocation of certificates
     get:
@@ -3775,7 +3833,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigs
+      summary: List CRL distributor configs
+      operationId: listCrlDistributorConfigs
     post:
       description: 'Create a new crlDistributorConfig.
 
@@ -3865,7 +3924,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigs
+      summary: Create CRL distributor config
+      operationId: createCrlDistributorConfig
   /{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/crlDistributorConfigs/{secretId}:
     description: Get an entity representing a crlDistributorConfig
     put:
@@ -3939,7 +3999,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: updateByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigsBySecretid
+      summary: Replace CRL distributor config
+      operationId: updateCrlDistributorConfig
       description: Replaces a crlDistributorConfigs.
     patch:
       parameters:
@@ -4012,7 +4073,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: patchByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigsBySecretid
+      summary: Update CRL distributor config
+      operationId: patchCrlDistributorConfig
       description: Updates a crlDistributorConfigs.
     get:
       description: 'Get the crlDistributorConfig
@@ -4099,7 +4161,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigsBySecretid
+      summary: Get CRL distributor config by ID
+      operationId: getCrlDistributorConfigById
   /{organizationId}/environments/{environmentId}/details:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -4187,7 +4250,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidDetailsCertificates
+      summary: Parse certificate file details
+      operationId: parseCertificateDetails
       description: Creates a certificates.
   /{organizationId}/environments/{environmentId}/details/store:
     description: 'Consumes keystore (or truststore) file, containing one or more entries, each identified by an alias, and returns the details for each of the entries
@@ -4269,7 +4333,8 @@ paths:
                 - code: PT-1001
                   message: string
                   field: string
-      operationId: createByOrganizationidEnvironmentsByEnvironmentidDetailsStore
+      summary: Parse keystore or truststore details
+      operationId: parseStoreDetails
       description: Creates a store.
 components:
   securitySchemes:
@@ -7007,7 +7072,7 @@ components:
         maxLength: 50
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroups
+        operation: listSecretGroups
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups` in this API; use `[].meta.id` values as `secretGroupId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7020,7 +7085,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificates
+        operation: listCertificates
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificates` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7034,7 +7099,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTruststores
+        operation: listTruststores
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/truststores` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7048,7 +7113,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidKeystores
+        operation: listKeystores
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/keystores` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7062,7 +7127,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCertificatepinsets
+        operation: listCertificatePinsets
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/certificatePinsets` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7076,7 +7141,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidSharedsecrets
+        operation: listSharedSecrets
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/sharedSecrets` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7090,7 +7155,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidTlscontexts
+        operation: listTlsContexts
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/tlsContexts` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name
@@ -7104,7 +7169,7 @@ components:
         pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       x-origin:
       - api: urn:api:secrets-manager
-        operation: getByOrganizationidEnvironmentsByEnvironmentidSecretgroupsBySecretgroupidCrldistributorconfigs
+        operation: listCrlDistributorConfigs
         description: GET `/{organizationId}/environments/{environmentId}/secretGroups/{secretGroupId}/crlDistributorConfigs` in this API; use `[].meta.id` values as `secretId`.
         values: $[*].meta.id
         labels: $[*].meta.name

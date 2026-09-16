@@ -105,7 +105,7 @@
     <div class="operation-title-row">
         <span class="method {{ method_class }}">{{ kind_label }}</span>
         {% if server_url %}
-        <code class="operation-url-bar">{{ server_url }}</code>
+        <code class="operation-url-bar" data-mcp="1"></code>
         {% else %}
         <code class="operation-url-bar">{{ invocable_name }}</code>
         {% endif %}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: flex-bench-extras
+description: |
+  Benchmark-side observability extras: ServiceMonitor for Flex, PodMonitor for
+  k6, and a Grafana dashboards ConfigMap. Installed alongside
+  kube-prometheus-stack into the monitoring namespace.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

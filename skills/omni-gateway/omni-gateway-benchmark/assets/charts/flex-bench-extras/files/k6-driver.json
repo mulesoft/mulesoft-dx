@@ -1,0 +1,102 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "k6_vus",
+          "refId": "A"
+        }
+      ],
+      "title": "VUs",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "iops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(k6_iterations_total[1m])",
+          "refId": "A"
+        }
+      ],
+      "title": "Iteration rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(k6_http_reqs_total[1m])",
+          "refId": "A"
+        }
+      ],
+      "title": "Request rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum by (le)(rate(k6_http_req_duration_seconds_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "title": "Driver-side p95 latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "k6_dropped_iterations",
+          "refId": "A"
+        }
+      ],
+      "title": "Dropped iterations",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "tags": ["flex-bench"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "k6 / Driver",
+  "uid": "k6-driver",
+  "version": 1,
+  "weekStart": ""
+}

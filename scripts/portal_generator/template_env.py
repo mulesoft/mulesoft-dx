@@ -120,9 +120,14 @@ def _titleize_operation(value):
 
             # Add space before uppercase if:
             # - Previous char was lowercase (camelCase boundary), OR
+            # - Previous char was a digit (e.g., "V1Authorize" -> "V1 Authorize"), OR
             # - Previous char was uppercase AND next char is lowercase (e.g., "APIInstance" -> "API Instance")
             #   But NOT if we're at the end or followed by another uppercase (e.g., "listAPIs" stays "APIs")
-            if prev_char.islower() or (prev_char.isupper() and next_char and next_char.islower()):
+            if (
+                prev_char.islower()
+                or prev_char.isdigit()
+                or (prev_char.isupper() and next_char and next_char.islower())
+            ):
                 result.append(' ')
 
         result.append(char)

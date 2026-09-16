@@ -7,16 +7,17 @@ info:
 
 servers:
   - url: https://anypoint.mulesoft.com/governance/xapi/api/v1
-    description: Anypoint URL
+    description: US
   - url: https://eu1.anypoint.mulesoft.com/governance/xapi/api/v1/
-    description: Regional Anypoint URL
-  - url: https://{region}.platform.mulesoft.com/governance/xapi/api/v1/
-
-    description: Regional Anypoint URL
-    variables:
-      region:
-        default: ca1
-        description: Region identifier for the service endpoint.
+    description: EU
+  - url: https://ca1.platform.mulesoft.com/governance/xapi/api/v1/
+    description: CA
+  - url: https://jp1.platform.mulesoft.com/governance/xapi/api/v1/
+    description: JP
+  - url: https://in1.platform.mulesoft.com/governance/xapi/api/v1/
+    description: IN
+  - url: https://au1.platform.mulesoft.com/governance/xapi/api/v1/
+    description: AU
 
 paths:
   # --- Governance (reporting) paths ---

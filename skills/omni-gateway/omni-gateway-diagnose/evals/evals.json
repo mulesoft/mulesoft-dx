@@ -1,0 +1,18 @@
+{
+  "skill": "omni-gateway-diagnose",
+  "description": "Trigger and behavior evals for the omni-gateway-diagnose skill. See README.md for methodology.",
+  "cases": [
+    {
+      "id": "diagnose-503-symptom-only",
+      "prompt": "The gateway is throwing 503s on one of our APIs since this morning. Help me figure out why.",
+      "should_trigger": true,
+      "context": null,
+      "assertions": [
+        "Triages the 5xx symptom end-to-end across logs and config",
+        "Points to omni-gateway-logs or omni-gateway-config as the evidence narrows the cause",
+        "States when escalation to the gateway team is warranted"
+      ],
+      "anti_assertions": []
+    }
+  ]
+}

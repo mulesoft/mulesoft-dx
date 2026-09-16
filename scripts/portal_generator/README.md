@@ -27,7 +27,7 @@ No region exists in both domains. The portal uses this matrix to filter region/d
 1. Edit `DOMAIN_REGIONS` in `scripts/portal_generator/assets/portal.js`. Add the region code to either the `anypoint` array or the `platform` array, whichever matches the domain where it is deployed.
 2. Regenerate the portal (`python3 scripts/generate_portal.py`, or whatever command the project uses for portal generation).
 3. Confirm the new region appears in the auth modal's region preset dropdown when the matching server type is selected.
-4. Optionally extend the existing tests in `scripts/tests/portal.test.js` — the `isServerValidForRegion`, `filterServersForRegion`, and `getValidRegionsForServerType` describe blocks already cover the region × domain invariant; new regions slot in naturally there.
+4. Optionally extend the existing tests in `scripts/tests/portal.test.js` — the `isServerValidForRegion`, `filterServersForRegion`, and `getServerTypeForRegion` describe blocks already cover the region × domain invariant; new regions slot in naturally there.
 
 No spec edits under `apis/` are required. The constant is authoritative.
 
@@ -39,12 +39,10 @@ OpenAPI 3.0 forbids `$ref` inside `servers[].variables.<var>`, so a shared `regi
 
 The following functions in `assets/portal.js` read `DOMAIN_REGIONS`:
 
-- `getValidRegionsForServerType(type)` — returns the region list for a given server type (`'eu'` or `'platform'`), used by the auth-modal region preset population.
+- `getServerTypeForRegion(region)` — returns the server type (`'us' | 'eu' | 'platform' | null`) for a given region, used to auto-complete the server domain from the region-led auth modal (`onRegionSelectChange` in `portal.js`).
 - `filterServersForRegion(servers, region)` — narrows an API's `servers[]` array to those that match the selected region.
 - `isServerValidForRegion(server, region)` — predicate behind `filterServersForRegion`; also used directly when the portal needs to decide whether a single template URL is reachable for the active region.
 - `pickServerTemplate(servers)` — chooses the server template that matches the current server type (uses `DOMAIN_REGIONS` transitively via the above).
-
-The auth-modal wiring (`onServerChange` in `portal.js`) calls `getValidRegionsForServerType` to rebuild the region preset's `<option>` list every time the user switches server type.
 
 ### Test coverage
 
@@ -52,7 +50,7 @@ The contract is verified by three describe blocks in `scripts/tests/portal.test.
 
 - `describe('isServerValidForRegion', ...)` — covers `eu1`, `ca1`, `jp1`, `in1` against anypoint-domain and platform-domain templates, plus legacy hardcoded URLs and unknown regions.
 - `describe('filterServersForRegion', ...)` — asserts that each region narrows the server set to the matching domain.
-- `describe('getValidRegionsForServerType', ...)` — asserts the exact region lists returned for each server type (including the order in which they appear in `DOMAIN_REGIONS`).
+- `describe('getServerTypeForRegion', ...)` — asserts the region → server-type mapping (`us`, `eu1`→`eu`, `ca1|jp1|in1`→`platform`, unknown→`null`).
 
 Run them with:
 

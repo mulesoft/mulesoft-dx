@@ -1,0 +1,17 @@
+{
+  "skill": "omni-gateway-config",
+  "description": "Trigger and behavior evals for the omni-gateway-config skill. See README.md for methodology.",
+  "cases": [
+    {
+      "id": "validate-config-silent-policy",
+      "prompt": "I added a PolicyBinding to conf.d but it's silently not taking effect. Can you check my config?",
+      "should_trigger": true,
+      "context": "A conf.d directory with an ApiInstance and a PolicyBinding YAML is available.",
+      "assertions": [
+        "Reads the conf.d YAML files and validates them",
+        "Checks that the PolicyBinding targetRef matches an existing ApiInstance"
+      ],
+      "anti_assertions": []
+    }
+  ]
+}

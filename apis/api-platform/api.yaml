@@ -5,23 +5,38 @@ info:
   description: Manage APIs, applications, alerts, and classifications in the Anypoint API Platform repository.
 servers:
 - url: https://anypoint.mulesoft.com/apiplatform/repository/{version}
+  description: US
   variables:
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/apiplatform/repository/{version}
+- url: https://eu1.anypoint.mulesoft.com/apiplatform/repository/{version}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/apiplatform/repository/{version}
+- url: https://ca1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: JP
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://in1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: IN
+  variables:
+    version:
+      default: unknown
+      description: API version identifier.
+- url: https://au1.platform.mulesoft.com/apiplatform/repository/{version}
+  description: AU
+  variables:
     version:
       default: unknown
       description: API version identifier.
@@ -79,7 +94,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getPublicApis
+      summary: List public APIs
+      operationId: listPublicApisRoot
   /organizations:
     description: Organizations are the container entity for all API Portal-related resources.
   /organizations/active:
@@ -88,7 +104,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsActive
+      summary: Get the active organization
+      operationId: getActiveOrganization
   /organizations/{organizationId}:
     description: The organization's data.
     get:
@@ -114,7 +131,8 @@ paths:
           description: Bad Request.
         '500':
           description: An unknown error occurred.
-      operationId: getOrganizationsByOrganizationid
+      summary: Get an organization
+      operationId: getOrganization
     put:
       description: Update the organization.
       parameters:
@@ -129,7 +147,8 @@ paths:
           description: Bad Request.
         '500':
           description: An unknown error occurred.
-      operationId: updateOrganizationsByOrganizationid
+      summary: Update an organization
+      operationId: updateOrganization
     delete:
       description: Delete the organization.
       parameters:
@@ -137,7 +156,8 @@ paths:
       responses:
         '204':
           description: Organization deleted.
-      operationId: deleteOrganizationsByOrganizationid
+      summary: Delete an organization
+      operationId: deleteOrganization
   /organizations/{organizationId}/migration-mapping:
     get:
       description: Get all api version migration mappings in CSV format. This is for setting up the Crowd upgrade.
@@ -146,7 +166,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidMigrationMapping
+      summary: Export migration mappings as CSV
+      operationId: exportMigrationMappings
   /organizations/{organizationId}/permissions:
     description: A list of available permissions.
     get:
@@ -156,7 +177,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPermissions
+      summary: List organization permissions
+      operationId: listOrgPermissions
   /organizations/{organizationId}/alerts:
     get:
       description: Gets a collection of alerts.
@@ -310,7 +332,8 @@ paths:
                         operator: GREATER_THAN
                         value: 1000
               example: *id001
-      operationId: getOrganizationsByOrganizationidAlerts
+      summary: List organization alerts
+      operationId: listOrgAlerts
     post:
       description: Creates a new element.
       parameters:
@@ -321,7 +344,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidAlerts
+      summary: Create an organization alert
+      operationId: createOrgAlert
   /organizations/{organizationId}/environments:
     description: A list of available environments to deploy to.
     get:
@@ -345,7 +369,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidEnvironments
+      summary: List environments
+      operationId: listEnvironments
   /organizations/{organizationId}/environments/default:
     description: The default environment. This is defined in core services per organization.
     get:
@@ -364,7 +389,8 @@ paths:
                   organizationId: f0c9b011-980e-4928-9430-e60e3a97c043
                   isProduction: false
               example: *id002
-      operationId: getOrganizationsByOrganizationidEnvironmentsDefault
+      summary: Get the default environment
+      operationId: getDefaultEnvironment
       description: Retrieves a default.
   /organizations/{organizationId}/environments/{environmentId}/apis/{apiId}/versions/{apiVersionId}/alerts:
     post:
@@ -583,7 +609,8 @@ paths:
           description: Successfully created alert definition.
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlerts
+      summary: Create an API version alert
+      operationId: createApiVersionAlert
     get:
       description: Returns a list of elements.
       parameters:
@@ -604,7 +631,8 @@ paths:
       responses:
         '200':
           description: Successfully retrieved an API Version's alert definitions.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlerts
+      summary: List API version alerts
+      operationId: listApiVersionAlerts
   /organizations/{organizationId}/environments/{environmentId}/apis/{apiId}/versions/{apiVersionId}/alerts/{alertId}:
     description: An alert Item
     get:
@@ -832,7 +860,8 @@ paths:
           description: Insufficient permissions.
         '404':
           description: Specified alert not found.
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+      summary: Get an API version alert
+      operationId: getApiVersionAlert
     patch:
       description: Updates a alert.
       parameters:
@@ -978,7 +1007,8 @@ paths:
           description: Insufficient permissions.
         '404':
           description: Specified alert not found.
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+      summary: Patch an API version alert
+      operationId: patchApiVersionAlert
     delete:
       description: Deletes the specified alert definition.
       parameters:
@@ -1011,7 +1041,8 @@ paths:
           description: Insufficient permissions.
         '404':
           description: alert not found.
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidApisByApiidVersionsByApiversionidAlertsByAlertid
+      summary: Delete an API version alert
+      operationId: deleteApiVersionAlert
   /organizations/{organizationId}/theme:
     put:
       description: Update the organization theme.
@@ -1023,7 +1054,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidTheme
+      summary: Update organization theme
+      operationId: updateOrgTheme
   /organizations/{organizationId}/theme/default:
     get:
       description: Get the default theme for an organization.
@@ -1032,7 +1064,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidThemeDefault
+      summary: Get default organization theme
+      operationId: getDefaultOrgTheme
   /organizations/{organizationId}/portals/terms:
     get:
       description: Gets portal terms set for the organization.
@@ -1041,7 +1074,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPortalsTerms
+      summary: Get organization portal terms
+      operationId: getPortalTerms
     put:
       description: Create portal terms for the organization.
       parameters:
@@ -1052,7 +1086,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidPortalsTerms
+      summary: Create organization portal terms
+      operationId: createPortalTerms
     delete:
       description: Deletes portal terms for the organization.
       parameters:
@@ -1060,7 +1095,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidPortalsTerms
+      summary: Delete organization portal terms
+      operationId: deletePortalTerms
   /organizations/{organizationId}/portals/redirectUri:
     put:
       description: Update redirect uri of the list of portals for the organization
@@ -1072,7 +1108,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidPortalsRedirecturi
+      summary: Update portals redirect URI
+      operationId: updatePortalsRedirectUri
   /organizations/{organizationId}/apis:
     description: A collection of APIs.
     get:
@@ -1130,7 +1167,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApis
+      summary: List APIs
+      operationId: listApis
     post:
       description: Creates an API.
       parameters:
@@ -1144,7 +1182,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApis
+      summary: Create an API
+      operationId: createApi
   /organizations/{organizationId}/apis/by-name:
     get:
       description: 'Returns a single API that matches the passed-in API name.
@@ -1163,7 +1202,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByName
+      summary: Get an API by name
+      operationId: getApiByName
   /organizations/{organizationId}/apis/versions:
     post:
       description: Create an API Version from an Exchange Spec. Only available after the Crowd upgrade.
@@ -1235,7 +1275,8 @@ paths:
                   tags: []
                   terms:
               example: *id004
-      operationId: createOrganizationsByOrganizationidApisVersions
+      summary: Create API version from Exchange spec
+      operationId: createApiVersionFromExchange
   /organizations/{organizationId}/apis/versions/by-endpoint:
     get:
       description: Returns a list of API versions for a given list of endpoints.
@@ -1254,7 +1295,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisVersionsByEndpoint
+      summary: List API versions by endpoint
+      operationId: listApiVersionsByEndpoint
   /organizations/{organizationId}/apis/versions/by-name:
     get:
       description: 'Returns a single API that matches the passed-in API name
@@ -1279,7 +1321,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisVersionsByName
+      summary: Get an API version by name
+      operationId: getApiVersionByName
   /organizations/{organizationId}/apis/versions/tiers:
     get:
       description: 'Returns permitted SLA tiers within an organization.
@@ -1292,7 +1335,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisVersionsTiers
+      summary: List permitted SLA tiers
+      operationId: listPermittedTiers
   /organizations/{organizationId}/apis/versions/contracts/applications:
     get:
       description: 'Returns permitted applications within an organization.
@@ -1305,7 +1349,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisVersionsContractsApplications
+      summary: List applications with API contracts
+      operationId: listContractedApplications
   /organizations/{organizationId}/apis/{apiId}:
     description: An API.
     get:
@@ -1316,7 +1361,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiid
+      summary: Get an API and its versions
+      operationId: getApi
     patch:
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -1327,7 +1373,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiid
+      summary: Patch an API
+      operationId: patchApi
       description: Updates a apis.
     delete:
       parameters:
@@ -1336,7 +1383,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiid
+      summary: Delete an API
+      operationId: deleteApi
       description: Deletes a apis.
   /organizations/{organizationId}/apis/{apiId}/portals:
     description: A collection of API portals.
@@ -1348,7 +1396,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidPortals
+      summary: List API portals
+      operationId: listApiPortals
   /organizations/{organizationId}/apis/{apiId}/permissions:
     post:
       description: Grant a user view access to this API.
@@ -1361,7 +1410,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidPermissions
+      summary: Grant view access to an API
+      operationId: grantApiPermission
   /organizations/{organizationId}/apis/{apiId}/versions:
     description: A collection of API versions.
     post:
@@ -1378,7 +1428,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersions
+      summary: Create an API version
+      operationId: createApiVersion
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}:
     description: An API version.
     get:
@@ -1397,7 +1448,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+      summary: Get an API version
+      operationId: getApiVersion
     put:
       description: Updates a single element.
       parameters:
@@ -1417,7 +1469,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+      summary: Update an API version
+      operationId: updateApiVersion
     patch:
       description: Patches a single element.
       parameters:
@@ -1437,7 +1490,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+      summary: Patch an API version
+      operationId: patchApiVersion
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -1454,7 +1508,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionid
+      summary: Delete an API version
+      operationId: deleteApiVersion
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/classify:
     post:
       description: (Only avaliable after the Crowd upgrade) Moves an API Version from the unclassified environment into a specified environment.
@@ -1544,7 +1599,8 @@ paths:
           description: Bad request. The request was malformed or contains invalid parameters.
         '409':
           description: Conflict. The request conflicts with the current state of the resource.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidClassify
+      summary: Classify an API version
+      operationId: classifyApiVersion
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/export:
     get:
       description: Exports an API Version.
@@ -1604,7 +1660,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidExport
+      summary: Export an API version
+      operationId: exportApiVersion
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users:
     description: Proxy for core services that return users, with exception of API OWNER role and the current user.
     get:
@@ -1649,7 +1706,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsers
+      summary: Search API version users
+      operationId: listApiVersionUsers
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users/by-roles:
     description: 'Proxy for core services that return users for a given set of roles and context parameters.
 
@@ -1684,7 +1742,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsersByRoles
+      summary: List API version users by role
+      operationId: listApiVersionUsersByRole
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/users/owners:
     get:
       description: Return all owners of an API version.
@@ -1702,7 +1761,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidUsersOwners
+      summary: List API version owners
+      operationId: listApiVersionOwners
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/permissions:
     post:
       description: Grant a user admin access to this API version.
@@ -1723,7 +1783,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPermissions
+      summary: Grant admin access to API version
+      operationId: grantApiVersionAccess
     delete:
       description: Revoke a user's admin access to this API version.
       parameters:
@@ -1746,7 +1807,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPermissions
+      summary: Revoke admin access to API version
+      operationId: revokeApiVersionAccess
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/migration-mapping:
     description: This is for setting up for the Crowd upgrade.
     get:
@@ -1785,7 +1847,8 @@ paths:
                   migratePortal: true
                   crowdOneAccount: false
               example: *id006
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+      summary: Get API version migration mapping
+      operationId: getApiVersionMigration
     post:
       description: Create a migration mapping for an API version
       parameters:
@@ -1805,7 +1868,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+      summary: Create API version migration mapping
+      operationId: createApiVersionMigration
     put:
       description: Update a migration mapping of an API version
       parameters:
@@ -1825,7 +1889,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidMigrationMapping
+      summary: Update API version migration mapping
+      operationId: updateApiVersionMigration
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal:
     get:
       description: Obtain the portal associated with the API version.
@@ -1849,7 +1914,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+      summary: Get API version portal
+      operationId: getApiVersionPortal
     post:
       description: Create a portal and associates it with an API version.
       parameters:
@@ -1869,7 +1935,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+      summary: Create API version portal
+      operationId: createApiVersionPortal
     patch:
       description: Create a portal and associates it with an API version.
       parameters:
@@ -1889,7 +1956,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortal
+      summary: Patch API version portal
+      operationId: patchApiVersionPortal
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/permissions:
     post:
       description: Grant a user view access to this portal.
@@ -1910,7 +1978,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPermissions
+      summary: Grant view access to API portal
+      operationId: grantApiPortalAccess
     delete:
       description: Revoke a user's view access to portal.
       parameters:
@@ -1933,7 +2002,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPermissions
+      summary: Revoke view access to API portal
+      operationId: revokeApiPortalAccess
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/redirectUri:
     put:
       description: Update redirec uri for a portal
@@ -1954,7 +2024,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalRedirecturi
+      summary: Update API portal redirect URI
+      operationId: updateApiPortalRedirectUri
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages:
     description: A collection of portal pages.
     post:
@@ -1976,7 +2047,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPages
+      summary: Create an API portal page
+      operationId: createApiPortalPage
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}:
     put:
       description: Update an existing page.
@@ -2005,7 +2077,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageid
+      summary: Update an API portal page
+      operationId: updateApiPortalPage
     delete:
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -2029,7 +2102,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageid
+      summary: Delete an API portal page
+      operationId: deleteApiPortalPage
       description: Deletes a pages.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}/widgets:
     get:
@@ -2056,7 +2130,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+      summary: List API portal page widgets
+      operationId: listApiPortalPageWidgets
     patch:
       description: Updates the collection of widgets.
       parameters:
@@ -2084,7 +2159,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+      summary: Patch API portal page widgets
+      operationId: patchApiPortalPageWidgets
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/theme:
     put:
       description: Update the portal theme.
@@ -2105,7 +2181,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalTheme
+      summary: Update API portal theme
+      operationId: updateApiPortalTheme
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files:
     description: A collection of portal files.
     post:
@@ -2127,7 +2204,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFiles
+      summary: Upload an API portal file
+      operationId: uploadApiPortalFile
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}:
     get:
       description: Gets the portal file.
@@ -2151,7 +2229,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileid
+      summary: Get an API portal file
+      operationId: getApiPortalFile
     delete:
       description: Removes the Portal file.
       parameters:
@@ -2174,7 +2253,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileid
+      summary: Delete an API portal file
+      operationId: deleteApiPortalFile
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}/{fileName}:
     get:
       description: Same as parent get but allows to set a file name in the content-disposition header for downloading in a browser environment.
@@ -2204,7 +2284,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPortalFilesByFileidByFilename
+      summary: Download an API portal file
+      operationId: downloadApiPortalFile
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/addRootRaml:
     post:
       description: Adds the root RAML for this API version.
@@ -2225,7 +2306,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidAddrootraml
+      summary: Add root RAML for API version
+      operationId: addApiVersionRootRaml
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/definition:
     description: The fully resolved RAML spec for this version of the API.
     get:
@@ -2244,7 +2326,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidDefinition
+      summary: Get API version RAML spec
+      operationId: getApiVersionSpec
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/endpoint:
     description: The endpoint associated with the API version.
     get:
@@ -2267,7 +2350,8 @@ paths:
           description: Bad request.
         '404':
           description: No endpoint found for this API version.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+      summary: Get API version endpoint
+      operationId: getApiVersionEndpoint
     post:
       description: Creates an endpoint for the API version.
       parameters:
@@ -2291,7 +2375,8 @@ paths:
           description: Bad request.
         '409':
           description: The endpoint URL already exists.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+      summary: Create API version endpoint
+      operationId: createApiVersionEndpoint
     put:
       description: Updates the endpoint associated with the API version.
       parameters:
@@ -2313,7 +2398,8 @@ paths:
           description: The endpoint has been updated.
         '409':
           description: The endpoint URL already exists.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+      summary: Update API version endpoint
+      operationId: updateApiVersionEndpoint
     patch:
       description: Updates the endpoint associated with the API version.
       parameters:
@@ -2333,7 +2419,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+      summary: Patch API version endpoint
+      operationId: patchApiVersionEndpoint
     delete:
       description: Deletes the endpoint associated with the API version.
       parameters:
@@ -2350,7 +2437,8 @@ paths:
       responses:
         '204':
           description: The endpoint has been succesfully deleted.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpoint
+      summary: Delete API version endpoint
+      operationId: deleteApiVersionEndpoint
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/endpoint/active:
     post:
       description: Records activity for an API version.
@@ -2368,7 +2456,8 @@ paths:
       responses:
         '201':
           description: The API version activity has been recorded.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidEndpointActive
+      summary: Record API version endpoint activity
+      operationId: recordEndpointActivity
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files:
     description: A collection of API version RAML files and directories.
     post:
@@ -2390,7 +2479,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFiles
+      summary: Create an API version file
+      operationId: createApiVersionFile
     get:
       description: Returns a list of elements.
       parameters:
@@ -2407,7 +2497,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFiles
+      summary: List API version files
+      operationId: listApiVersionFiles
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files/export:
     get:
       description: Exports all files in the filesystem as a ZIP file.
@@ -2431,7 +2522,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesExport
+      summary: Export API version files as ZIP
+      operationId: exportApiVersionFiles
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/files/{apiVersionFileId}:
     description: An API version RAML file (or directory).
     get:
@@ -2458,7 +2550,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+      summary: Get an API version file
+      operationId: getApiVersionFile
     put:
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -2485,7 +2578,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+      summary: Replace an API version file
+      operationId: updateApiVersionFile
       description: Replaces a files.
     delete:
       parameters:
@@ -2510,7 +2604,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidFilesByApiversionfileid
+      summary: Delete an API version file
+      operationId: deleteApiVersionFile
       description: Deletes a files.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies:
     description: A collection of API version policies.
@@ -2559,7 +2654,8 @@ paths:
           description: Successful operation.
         '304':
           description: Resource has not been modified since the last request.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+      summary: List API version policies
+      operationId: listApiVersionPolicies
     post:
       description: Creates a new element.
       parameters:
@@ -2579,7 +2675,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+      summary: Apply a policy to API version
+      operationId: applyApiVersionPolicy
     patch:
       description: Updates multiple policies. Currently, only updates in order field are supported.
       parameters:
@@ -2609,7 +2706,8 @@ paths:
           description: Successful operation.
         '400':
           description: Bad request. The request was malformed or contains invalid parameters.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPolicies
+      summary: Reorder API version policies
+      operationId: reorderApiVersionPolicies
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}:
     description: An API version policy.
     patch:
@@ -2631,7 +2729,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyid
+      summary: Patch an API version policy
+      operationId: patchApiVersionPolicy
       description: Updates a policies.
     delete:
       description: Unapplies a policy.
@@ -2650,7 +2749,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyid
+      summary: Unapply an API version policy
+      operationId: unapplyApiVersionPolicy
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}/disable:
     description: Disables an API version policy.
     post:
@@ -2673,7 +2773,8 @@ paths:
           description: Bad request. The request was malformed or contains invalid parameters.
         '404':
           description: Not found. The requested resource does not exist.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyidDisable
+      summary: Disable an API version policy
+      operationId: disableApiVersionPolicy
       description: Creates a disable.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/policies/{policyId}/enable:
     description: Enables an API version policy.
@@ -2697,7 +2798,8 @@ paths:
           description: Bad request. The request was malformed or contains invalid parameters.
         '404':
           description: Not found. The requested resource does not exist.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidPoliciesByPolicyidEnable
+      summary: Enable an API version policy
+      operationId: enableApiVersionPolicy
       description: Creates a enable.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tags:
     description: Manages an API version tags.
@@ -2736,7 +2838,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTagsByTag
+      summary: Add a tag to an API version
+      operationId: addApiVersionTag
     delete:
       description: Removes a tag from an API version.
       parameters:
@@ -2760,7 +2863,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTagsByTag
+      summary: Remove a tag from an API version
+      operationId: removeApiVersionTag
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers:
     description: Manages API version tiers.
     get:
@@ -2821,7 +2925,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+      summary: List API version SLA tiers
+      operationId: listApiVersionTiers
     post:
       description: Creates a sla tier for the API version.
       parameters:
@@ -2841,7 +2946,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiers
+      summary: Create an API version SLA tier
+      operationId: createApiVersionTier
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/tiers/{tierId}:
     description: A particular tier associated with the API version.
     put:
@@ -2864,7 +2970,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiersByTierid
+      summary: Update an API version SLA tier
+      operationId: updateApiVersionTier
     delete:
       description: Delete a tier that has no active applications.
       parameters:
@@ -2882,7 +2989,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidTiersByTierid
+      summary: Delete an API version SLA tier
+      operationId: deleteApiVersionTier
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts:
     description: Contracts associated with the API version.
     get:
@@ -2961,7 +3069,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContracts
+      summary: List API version contracts
+      operationId: listApiVersionContracts
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}:
     description: A particular contract associated with the API version.
     get:
@@ -2981,7 +3090,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+      summary: Get an API version contract
+      operationId: getApiVersionContract
     patch:
       description: Patches contract conditions.
       parameters:
@@ -3002,7 +3112,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+      summary: Patch an API version contract
+      operationId: patchApiVersionContract
     delete:
       description: Deletes the contract.
       parameters:
@@ -3020,7 +3131,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractid
+      summary: Delete an API version contract
+      operationId: deleteApiVersionContract
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/approveTierChange:
     description: Approves contract tier change request.
     post:
@@ -3039,7 +3151,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidApprovetierchange
+      summary: Approve contract tier change
+      operationId: approveContractTierChange
       description: Creates a approveTierChange.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/approve:
     description: Approves the contract.
@@ -3059,7 +3172,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidApprove
+      summary: Approve a contract
+      operationId: approveContract
       description: Creates a approve.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/reject:
     description: Rejects the contract.
@@ -3079,7 +3193,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidReject
+      summary: Reject a contract
+      operationId: rejectContract
       description: Creates a reject.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/rejectTierChange:
     description: Rejects contract tier change request.
@@ -3099,7 +3214,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRejecttierchange
+      summary: Reject contract tier change
+      operationId: rejectContractTierChange
       description: Creates a rejectTierChange.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/restore:
     description: Restores contract.
@@ -3119,7 +3235,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRestore
+      summary: Restore a contract
+      operationId: restoreContract
       description: Creates a restore.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/contracts/{contractId}/revoke:
     description: Revokes contract.
@@ -3139,7 +3256,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidContractsByContractidRevoke
+      summary: Revoke a contract
+      operationId: revokeContract
       description: Creates a revoke.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy:
     description: Gets a proxy.
@@ -3172,7 +3290,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxy
+      summary: Get API version proxy
+      operationId: getApiVersionProxy
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy/deployment:
     post:
       parameters:
@@ -3192,7 +3311,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeployment
+      summary: Create proxy deployment
+      operationId: createProxyDeployment
       description: Creates a deployment.
     patch:
       parameters:
@@ -3212,7 +3332,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeployment
+      summary: Patch proxy deployment
+      operationId: patchProxyDeployment
       description: Updates a deployment.
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/proxy/deployment/status:
     get:
@@ -3231,7 +3352,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidProxyDeploymentStatus
+      summary: Get proxy deployment status
+      operationId: getProxyDeploymentStatus
   /organizations/{organizationId}/apis/{apiId}/versions/{apiVersionId}/gateway-versions:
     description: Gets the gateway versions compatible for the API version, based on the RAML version tag specified on the root RAML file.
     get:
@@ -3250,7 +3372,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApisByApiidVersionsByApiversionidGatewayVersions
+      summary: List compatible gateway versions
+      operationId: listCompatibleGateways
   /organizations/{organizationId}/policy-templates:
     description: 'Policy Templates are the basis for creating new policies.
 
@@ -3279,7 +3402,8 @@ paths:
           description: The requested accept type is not supported.
         '500':
           description: An unknown error occurred.
-      operationId: getOrganizationsByOrganizationidPolicyTemplates
+      summary: List policy templates
+      operationId: listPolicyTemplates
   /organizations/{organizationId}/policy-templates/{policyTemplateId}:
     get:
       description: 'Retrieve specific details from the policy template, including the full
@@ -3318,7 +3442,8 @@ paths:
           description: The requested accept type is not supported.
         '500':
           description: An unknown error occurred.
-      operationId: getOrganizationsByOrganizationidPolicyTemplatesByPolicytemplateid
+      summary: Get a policy template
+      operationId: getPolicyTemplate
   /organizations/{organizationId}/custom-policy-templates:
     description: 'Custom Policy Templates are the basis for creating new policies.
 
@@ -3370,7 +3495,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidCustomPolicyTemplates
+      summary: List custom policy templates
+      operationId: listCustomPolicyTemplates
     post:
       description: Creates a new custom policy.
       parameters:
@@ -3381,7 +3507,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidCustomPolicyTemplates
+      summary: Create a custom policy template
+      operationId: createCustomPolicyTemplate
   /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}:
     description: A custom policy template.
     get:
@@ -3392,7 +3519,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+      summary: Get a custom policy template
+      operationId: getCustomPolicyTemplate
     put:
       description: Updates a single element.
       parameters:
@@ -3404,7 +3532,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+      summary: Update a custom policy template
+      operationId: updateCustomPolicyTemplate
     patch:
       description: Patches a single element.
       parameters:
@@ -3416,7 +3545,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+      summary: Patch a custom policy template
+      operationId: patchCustomPolicyTemplate
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -3425,7 +3555,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateid
+      summary: Delete a custom policy template
+      operationId: deleteCustomPolicyTemplate
   /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/configuration:
     get:
       description: The XML configuration for the custom policy template.
@@ -3441,7 +3572,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateidConfiguration
+      summary: Get custom policy XML configuration
+      operationId: getCustomPolicyConfig
   /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}/definition:
     get:
       description: The YAML definition for the custom policy template.
@@ -3457,7 +3589,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidCustomPolicyTemplatesByCustompolicytemplateidDefinition
+      summary: Get custom policy YAML definition
+      operationId: getCustomPolicyDefinition
   /organizations/{organizationId}/portals:
     description: A collection of API portals within organization.
     get:
@@ -3467,7 +3600,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPortals
+      summary: List portals
+      operationId: listPortals
     post:
       description: Creates a new element.
       parameters:
@@ -3478,7 +3612,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidPortals
+      summary: Create a portal
+      operationId: createPortal
   /organizations/{organizationId}/users:
     description: 'Proxy for core services that return organization users.
 
@@ -3522,7 +3657,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: getOrganizationsByOrganizationidUsers
+      summary: Search organization users
+      operationId: listOrgUsers
   /organizations/{organizationId}/applications:
     description: A collection of applications that consume APIs via contracts.
     get:
@@ -3580,7 +3716,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApplications
+      summary: List applications
+      operationId: listApplications
     post:
       description: Creates a new application.
       parameters:
@@ -3647,7 +3784,8 @@ paths:
           description: The organization is federated and the apiVersionId query parameter is missing.
         '409':
           description: Conflict. The request conflicts with the current state of the resource.
-      operationId: createOrganizationsByOrganizationidApplications
+      summary: Create an application
+      operationId: createApplication
   /organizations/{organizationId}/applications/{applicationId}:
     description: An application.
     get:
@@ -3664,7 +3802,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApplicationsByApplicationid
+      summary: Get an application
+      operationId: getApplication
     put:
       description: Updates a single element.
       parameters:
@@ -3676,7 +3815,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidApplicationsByApplicationid
+      summary: Update an application
+      operationId: updateApplication
     patch:
       description: Patches a single element.
       parameters:
@@ -3688,7 +3828,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApplicationsByApplicationid
+      summary: Patch an application
+      operationId: patchApplication
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -3697,7 +3838,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidApplicationsByApplicationid
+      summary: Delete an application
+      operationId: deleteApplication
   /organizations/{organizationId}/applications/{applicationId}/secret/reset:
     description: Resets client secret for application.
     post:
@@ -3707,7 +3849,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidSecretReset
+      summary: Reset application client secret
+      operationId: resetApplicationSecret
       description: Creates a reset.
   /organizations/{organizationId}/applications/{applicationId}/party-ids:
     description: Party Ids associated with the application.
@@ -3725,7 +3868,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApplicationsByApplicationidPartyIds
+      summary: List application party IDs
+      operationId: listApplicationPartyIds
   /organizations/{organizationId}/applications/{applicationId}/owners:
     post:
       description: Adds an owner to an existing application.
@@ -3745,7 +3889,8 @@ paths:
           description: Resource created successfully.
         '404':
           description: The application cannot be found.
-      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidOwners
+      summary: Add an application owner
+      operationId: addApplicationOwner
   /organizations/{organizationId}/applications/{applicationId}/owners/{userId}:
     delete:
       description: Removes an owner from an existing application.
@@ -3763,7 +3908,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '404':
           description: The application cannot be found.
-      operationId: deleteOrganizationsByOrganizationidApplicationsByApplicationidOwnersByUserid
+      summary: Remove an application owner
+      operationId: removeApplicationOwner
   /organizations/{organizationId}/applications/{applicationId}/contracts:
     description: Contracts associated with the application.
     get:
@@ -3810,7 +3956,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidApplicationsByApplicationidContracts
+      summary: List application contracts
+      operationId: listApplicationContracts
     post:
       description: Creates new contract between an API version and the application.
       parameters:
@@ -3822,7 +3969,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidApplicationsByApplicationidContracts
+      summary: Create an application contract
+      operationId: createApplicationContract
   /organizations/{organizationId}/applications/{applicationId}/contracts/{contractId}:
     description: A particular contract associated with the application.
     patch:
@@ -3847,7 +3995,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidApplicationsByApplicationidContractsByContractid
+      summary: Patch an application contract
+      operationId: patchApplicationContract
   /organizations/{organizationId}/contracts:
     get:
       parameters:
@@ -3867,7 +4016,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidContracts
+      summary: List organization contracts
+      operationId: listOrgContracts
       description: Retrieves a contracts.
   /organizations/{organizationId}/deployment-targets:
     description: A collection of deploy targets for Hybrid deploymentTargets.
@@ -3878,7 +4028,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidDeploymentTargets
+      summary: List deployment targets
+      operationId: listDeploymentTargets
       description: Retrieves a deployment targets.
   /organizations/{organizationId}/bundles:
     post:
@@ -3898,7 +4049,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidBundles
+      summary: Create a bundle
+      operationId: createBundle
       description: Creates a bundles.
   /organizations/{organizationId}/public:
     parameters:
@@ -3913,7 +4065,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicThemeLogo
+      summary: Get public organization logo
+      operationId: getPublicOrgLogo
       description: Retrieves a logo.
   /organizations/{organizationId}/public/theme/favicon:
     get:
@@ -3922,7 +4075,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicThemeFavicon
+      summary: Get public organization favicon
+      operationId: getPublicOrgFavicon
       description: Retrieves a favicon.
   /organizations/{organizationId}/public/permissions:
     description: A list of available permissions.
@@ -3932,7 +4086,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPermissions
+      summary: List public permissions
+      operationId: listPublicPermissions
       description: Retrieves a permissions.
   /organizations/{organizationId}/public/portals:
     description: 'A collection of API portals within organization.
@@ -4064,7 +4219,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPortals
+      summary: List public portals
+      operationId: listPublicPortals
     post:
       description: Creates a new element.
       parameters:
@@ -4075,7 +4231,8 @@ paths:
       responses:
         '201':
           description: The new element has been successfully created.
-      operationId: createOrganizationsByOrganizationidPublicPortals
+      summary: Create a public portal
+      operationId: createPublicPortal
   /organizations/{organizationId}/public/portals/{portalId}:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -4113,7 +4270,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPortalsByPortalidThemeLogo
+      summary: Get public portal logo
+      operationId: getPublicPortalLogo
       description: Retrieves a logo.
   /organizations/{organizationId}/public/portals/{portalId}/theme/favicon:
     get:
@@ -4130,7 +4288,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPortalsByPortalidThemeFavicon
+      summary: Get public portal favicon
+      operationId: getPublicPortalFavicon
       description: Retrieves a favicon.
   /organizations/{organizationId}/public/portals/terms:
     description: Portal terms for the organization.
@@ -4140,7 +4299,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPortalsTerms
+      summary: Get public portal terms
+      operationId: getPublicPortalTerms
       description: Retrieves a terms.
   /organizations/{organizationId}/public/portals/terms/acceptance:
     description: Accepted portal terms for current user.
@@ -4150,7 +4310,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicPortalsTermsAcceptance
+      summary: Get portal terms acceptance
+      operationId: getPortalTermsAcceptance
       description: Retrieves a acceptance.
   /organizations/{organizationId}/public/portals/terms/{portalTermsId}/acceptance:
     post:
@@ -4167,7 +4328,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createOrganizationsByOrganizationidPublicPortalsTermsByPortaltermsidAcceptance
+      summary: Accept portal terms
+      operationId: acceptPortalTerms
       description: Creates a acceptance.
   /organizations/{organizationId}/public/apis/{apiId}:
     description: An API.
@@ -4186,7 +4348,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiid
+      summary: Get a public API
+      operationId: getPublicApi
     put:
       description: Updates a single element.
       parameters:
@@ -4205,7 +4368,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidPublicApisByApiid
+      summary: Update a public API
+      operationId: updatePublicApi
     patch:
       description: Patches a single element.
       parameters:
@@ -4224,7 +4388,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidPublicApisByApiid
+      summary: Patch a public API
+      operationId: patchPublicApi
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -4240,7 +4405,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidPublicApisByApiid
+      summary: Delete a public API
+      operationId: deletePublicApi
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}:
     description: An API version.
     get:
@@ -4266,7 +4432,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+      summary: Get a public API version
+      operationId: getPublicApiVersion
     put:
       description: Updates a single element.
       parameters:
@@ -4293,7 +4460,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+      summary: Update a public API version
+      operationId: updatePublicApiVersion
     patch:
       description: Patches a single element.
       parameters:
@@ -4320,7 +4488,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+      summary: Patch a public API version
+      operationId: patchPublicApiVersion
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -4344,7 +4513,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionid
+      summary: Delete a public API version
+      operationId: deletePublicApiVersion
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal:
     get:
       parameters:
@@ -4368,7 +4538,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortal
+      summary: Get public API portal
+      operationId: getPublicApiPortal
       description: Retrieves a portal.
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/pages/{pageId}/widgets:
     get:
@@ -4399,7 +4570,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalPagesByPageidWidgets
+      summary: List public portal page widgets
+      operationId: listPublicPortalWidgets
       description: Retrieves a widgets.
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}:
     get:
@@ -4433,7 +4605,8 @@ paths:
           description: Successful.
         '404':
           description: Not Found.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalFilesByFileid
+      summary: Get a public portal file
+      operationId: getPublicPortalFile
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/portal/files/{fileId}/{fileName}:
     get:
       description: Same as parent get but allows to set a file name in the content-disposition header for downloading in a browser environment.
@@ -4470,7 +4643,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidPortalFilesByFileidByFilename
+      summary: Download a public portal file
+      operationId: downloadPublicPortalFile
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/tiers:
     get:
       parameters:
@@ -4494,7 +4668,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidTiers
+      summary: List public API SLA tiers
+      operationId: listPublicApiTiers
       description: Retrieves a tiers.
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/definition:
     description: The fully resolved RAML spec for this version of the API.
@@ -4521,7 +4696,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+      summary: Get public API version spec
+      operationId: getPublicApiSpec
     put:
       description: Updates a single element.
       parameters:
@@ -4548,7 +4724,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+      summary: Update public API version spec
+      operationId: updatePublicApiSpec
     patch:
       description: Patches a single element.
       parameters:
@@ -4575,7 +4752,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: patchOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+      summary: Patch public API version spec
+      operationId: patchPublicApiSpec
     delete:
       description: Deletes the instance of the element specified.
       parameters:
@@ -4599,7 +4777,8 @@ paths:
       responses:
         '204':
           description: The element has been deleted successfully.
-      operationId: deleteOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidDefinition
+      summary: Delete public API version spec
+      operationId: deletePublicApiSpec
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files:
     description: Serves RAML files for the portal.
     get:
@@ -4627,7 +4806,8 @@ paths:
           description: Temporary redirect to the root RAML file.
         '404':
           description: No RAML file found.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFiles
+      summary: Redirect to public API root RAML
+      operationId: redirectPublicApiRoot
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files/root:
     get:
       description: Retrieve the root RAML file contents.
@@ -4654,7 +4834,8 @@ paths:
           description: Temporary redirect to the root RAML file.
         '404':
           description: Not Found.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFilesRoot
+      summary: Get public API root RAML file
+      operationId: getPublicApiRootFile
   /organizations/{organizationId}/public/apis/{apiId}/versions/{apiVersionId}/files/{+fileName}:
     get:
       description: Retrieve the RAML contents by file name.
@@ -4687,7 +4868,8 @@ paths:
           description: Successful.
         '404':
           description: Not Found.
-      operationId: getOrganizationsByOrganizationidPublicApisByApiidVersionsByApiversionidFilesByFilename
+      summary: Get public API file by name
+      operationId: getPublicApiFile
   /policies: {}
   /policies/{policyId}:
     description: A policy.
@@ -4704,7 +4886,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getPoliciesByPolicyid
+      summary: Get a policy
+      operationId: getPolicy
       description: Retrieves a policies.
   /ch-domains/{domainName}:
     description: Returns information about the availability desired CH domain.
@@ -4719,7 +4902,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getChDomainsByDomainname
+      summary: Get a CloudHub domain
+      operationId: getCloudhubDomain
       description: Retrieves a ch domains.
   /gateway-versions:
     description: A collection of supported gateway versions.
@@ -4728,7 +4912,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: getGatewayVersions
+      summary: List gateway versions
+      operationId: listGatewayVersions
 components:
   securitySchemes:
     bearerAuth:
@@ -4783,7 +4968,7 @@ components:
         maximum: 2147483647
       x-origin:
       - api: urn:api:api-platform
-        operation: getOrganizationsByOrganizationidApis
+        operation: listApis
         description: GET `/organizations/{organizationId}/apis` in this API; use `id` values as `apiId`.
         values: $.id
       description: The api ID to identify the target resource.

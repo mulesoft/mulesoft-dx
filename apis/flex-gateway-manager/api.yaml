@@ -5,23 +5,25 @@ info:
   description: Register, manage, and monitor Omni Gateway instances. Configure runtime settings and track gateway status.
 servers:
 - url: https://anypoint.mulesoft.com/gatewaymanager/api/v1
-- url: https://{region}.anypoint.mulesoft.com/gatewaymanager/api/v1
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/gatewaymanager/api/v1
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/gatewaymanager/api/v1
+  description: EU
+- url: https://ca1.platform.mulesoft.com/gatewaymanager/api/v1
+  description: CA
+- url: https://jp1.platform.mulesoft.com/gatewaymanager/api/v1
+  description: JP
+- url: https://in1.platform.mulesoft.com/gatewaymanager/api/v1
+  description: IN
+- url: https://au1.platform.mulesoft.com/gatewaymanager/api/v1
+  description: AU
 security:
 - bearerAuth: []
 - clientAuth: []
 paths:
   /organizations/{organizationId}/usage/managed-gateways:
     get:
-      operationId: getOrganizationsByOrganizationidUsageManagedGateways
+      summary: Get managed gateway usage
+      operationId: getManagedGatewayUsage
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - name: size
@@ -66,7 +68,8 @@ paths:
       description: Retrieves a managed gateways.
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/runtime-configuration:
     get:
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
+      summary: Get gateway runtime configuration
+      operationId: getGatewayRuntimeConfig
       description: Get the runtime configuration of a Managed or Self-Managed Omni Gateway
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -93,7 +96,8 @@ paths:
                 id: string
                 type: string
     put:
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRuntimeConfiguration
+      summary: Update gateway runtime configuration
+      operationId: updateGatewayRuntimeConfig
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -128,7 +132,8 @@ paths:
       description: Replaces a runtime configuration.
   /organizations/{organizationId}/environments/{environmentId}/gateways:
     get:
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+      summary: List gateways
+      operationId: listGateways
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -187,7 +192,8 @@ paths:
                 type: string
       description: Retrieves a gateways.
     post:
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+      summary: Create gateway
+      operationId: createGateway
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -220,7 +226,8 @@ paths:
       description: Creates a gateways.
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}:
     get:
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      summary: Get gateway by ID
+      operationId: getGatewayById
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -246,7 +253,8 @@ paths:
                 type: string
       description: Retrieves a gateways.
     put:
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      summary: Update gateway
+      operationId: updateGateway
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -279,7 +287,8 @@ paths:
                 type: string
       description: Replaces a gateways.
     delete:
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      summary: Delete gateway
+      operationId: deleteGateway
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -300,7 +309,8 @@ paths:
       description: Deletes a gateways.
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/registration:
     get:
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidRegistration
+      summary: Get gateway registration
+      operationId: getGatewayRegistration
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -332,7 +342,8 @@ paths:
       description: Retrieves a registration.
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/status:
     get:
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidStatus
+      summary: Get gateway status
+      operationId: getGatewayStatus
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -372,7 +383,8 @@ paths:
       description: Retrieves a status.
   /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}/desiredstatus:
     patch:
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayidDesiredstatus
+      summary: Update gateway desired status
+      operationId: updateGatewayDesiredStatus
       parameters:
       - $ref: '#/components/parameters/XOrigin_organizationId_Path'
       - $ref: '#/components/parameters/XOrigin_environmentId_Path'
@@ -486,7 +498,7 @@ components:
         format: uuid
       x-origin:
       - api: urn:api:flex-gateway-manager
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGateways
+        operation: listGateways
         description: GET `/organizations/{organizationId}/environments/{environmentId}/gateways` in this API; use `id` values as `gatewayId`.
         values: $.id
         labels: $.name

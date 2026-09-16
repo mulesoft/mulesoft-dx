@@ -1,0 +1,42 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: flex-bench-${RUN_SLUG}
+  namespace: k6-operator-system
+spec:
+  parallelism: 1
+  arguments: -o experimental-prometheus-rw --tag testid=${RUN_ID}
+  script:
+    configMap:
+      name: k6-script-${RUN_SLUG}
+      file: scenario.js
+  runner:
+    nodeSelector:
+      node-role: workload
+    env:
+      - name: K6_PROMETHEUS_RW_SERVER_URL
+        value: "http://kps-kube-prometheus-stack-prometheus.monitoring.svc:9090/api/v1/write"
+      - name: K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM
+        value: "true"
+      - name: N_APIS
+        value: "${N_APIS}"
+      - name: FLEX_URL
+        value: "${FLEX_URL}"
+      - name: CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: bench-client-creds-${RUN_SLUG}
+            key: client_id
+            optional: true
+      - name: CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: bench-client-creds-${RUN_SLUG}
+            key: client_secret
+            optional: true
+      - name: RPS
+        value: "${RPS}"
+      - name: VUS
+        value: "${VUS}"
+      - name: DURATION
+        value: "${DURATION}"

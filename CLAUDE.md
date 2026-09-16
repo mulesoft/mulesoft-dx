@@ -147,11 +147,13 @@ Markdown format that combines:
 
 Located in the top-level `skills/` directory.
 
-Template: `docs/job-template.md`
+Template: `docs/job-template.md` (the `jtbd` skill type; for `prose` tool/workflow
+skills use `docs/prose-template.md`)
+Authoring standard + submission rules: `docs/skill-checklist.md`
 Schema: `docs/x-jobs-to-be-done-schema.md`
 Examples: `skills/*/SKILL.md`
 
-Validation: `python3 scripts/build/validate_jtbd.py` verifies structure, API references, step dependencies.
+Validation: `python3 scripts/build/validate_jtbd.py` verifies JTBD structure, API references, and step dependencies; `make validate-skills` applies rules R1–R7 to all skills of both types.
 
 #### MCP Server Specs
 
@@ -253,12 +255,27 @@ Enabled in `.claude/settings.json`.
 4. Commit only when validation passes
 5. Create PR - validation will run in CI/CD
 
-### Creating a JTBD Skill
+### Creating a Skill
 
-1. Copy template: `mkdir -p skills/<job-name> && cp docs/job-template.md skills/<job-name>/SKILL.md`
-2. Fill in all `[placeholders]`
-3. Validate: `python3 scripts/build/validate_jtbd.py skills/<job-name>/SKILL.md .`
-4. Fix errors until valid
+Read `docs/skill-checklist.md` first — it is the authoring standard (frontmatter,
+`description`/discovery rules, required structure) plus the submission rules R1–R7
+enforced by `scripts/build/validate_skills.py`. There are two skill types:
+
+- **`jtbd`** — a sequential job of chained Anypoint API operations. Inherits
+  `type: jtbd` from `skills/skills-metadata.yaml` (declare nothing).
+  1. Copy template: `mkdir -p skills/<name> && cp docs/job-template.md skills/<name>/SKILL.md`
+  2. Fill in all `[placeholders]`, delete HTML comments.
+  3. Validate: `python3 scripts/build/validate_jtbd.py skills/<name>/SKILL.md .`
+
+- **`prose`** — a tool/workflow (DX) skill that explores, runs tools/scripts, and
+  edits files. Must resolve to `type: prose` via a `skills-metadata.yaml` (already
+  inherited under `mule-development/` and `platform-assistant/`; add one declaring
+  `type: prose` otherwise).
+  1. Copy template: `mkdir -p skills/<name> && cp docs/prose-template.md skills/<name>/SKILL.md`
+  2. Fill in all `[placeholders]`, delete HTML comments.
+
+Then validate all skills and their submission rules: `make validate-skills`
+(or `python3 scripts/build/validate_skills.py --repo-root .`). Fix errors until valid.
 
 ### Working with x-origin Annotations
 
@@ -385,7 +402,10 @@ The portal uses a semantic token system with CSS custom properties. **Always use
 - `docs/schemas/x-origin.schema.json`: JSON Schema for x-origin extension (source of truth)
 - `docs/x-origin-schema.md`: Complete x-origin documentation with examples
 - `docs/jobs-readme.md`: JTBD documentation and usage guide
-- `docs/job-template.md`: Template for creating new JTBD files
+- `docs/skill-checklist.md`: Skill authoring standard + submission rules R1–R7 (both skill types)
+- `docs/job-template.md`: Copy-template for `jtbd` (sequential API job) skills
+- `docs/prose-template.md`: Copy-template for `prose` (tool/workflow DX) skills
+- `scripts/build/validate_skills.py`: Validates R1–R7 across all `skills/**/SKILL.md` (run via `make validate-skills`)
 
 ## Governance Rules
 

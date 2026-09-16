@@ -26,13 +26,13 @@
     <div class="overview-section">
         <h3>Servers</h3>
         <ul class="servers-list">
-            {% for server in api.servers[:3] %}
+            {% for server in api.servers %}
             {% if server is mapping %}
             <li>
-                <span class="server-url-row"><code>{{ server.url|default('') }}</code></span>
                 {% if server.description %}
                 <span class="server-desc">{{ server.description }}</span>
                 {% endif %}
+                <span class="server-url-row"><code>{{ server.url|default('') }}</code></span>
             </li>
             {% endif %}
             {% endfor %}

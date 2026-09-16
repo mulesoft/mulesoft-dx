@@ -49,6 +49,7 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
+      summary: List organizations with archived data
       operationId: getOrganizations
   /organizations/{organization}/environments:
     get:
@@ -88,7 +89,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironments
+      summary: List archived environments for organization
+      operationId: listOrgEnvironments
   /organizations/{organization}/environments/{environment}:
     get:
       description: 'Returns a list of entity type identifiers for the entity types that have archived data.  If this path contains no
@@ -127,7 +129,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironment
+      summary: List archived entity types in environment
+      operationId: listEntityTypes
   /organizations/{organization}/environments/{environment}/{entityType}:
     get:
       description: 'Returns a list of entity identifiers for the entities that have archived data.  If this path contains no
@@ -177,7 +180,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytype
+      summary: List archived entities by entity type
+      operationId: listEntitiesByType
   /organizations/{organization}/environments/{environment}/{entityType}/{entityID}:
     get:
       description: 'Returns a list of file type identifiers for the file types that have archived data.  If this path contains no
@@ -228,7 +232,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityid
+      summary: List archived file types for entity
+      operationId: listEntityFileTypes
   /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}:
     get:
       description: 'Returns a list of year identifiers for the years that have archived data.  If this path contains no
@@ -291,7 +296,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletype
+      summary: List archive years for entity file type
+      operationId: listArchiveYears
   /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}:
     get:
       description: 'Returns a list of month identifiers for the months that have archived data.  If this path contains no
@@ -363,7 +369,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYear
+      summary: List archive months for year
+      operationId: listArchiveMonths
   /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}:
     get:
       description: 'Returns a list of day identifiers for the days that have archived data.  If this path contains no
@@ -444,7 +451,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonth
+      summary: List archive days for month
+      operationId: listArchiveDays
   /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}/{dayOfMonth}:
     get:
       description: 'Returns a list of data files under this node with each file containing archived metric data.
@@ -531,7 +539,8 @@ paths:
           description: The client is sending more than the allowed number of requests per unit time
         '504':
           description: The API service is temporarily unreachable.  Please try again later.  Contact support if problem persists.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonthByDayofmonth
+      summary: List archive data files for day
+      operationId: listArchiveDataFiles
   ? /organizations/{organization}/environments/{environment}/{entityType}/{entityID}/{fileType}/{year}/{month}/{dayOfMonth}/{fileName}
   : get:
       description: Retrieve the contents of the given data file.  A data file contains either metric data.
@@ -604,7 +613,8 @@ paths:
               example: string
         '404':
           description: The given file is not found.
-      operationId: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytypeByEntityidByFiletypeByYearByMonthByDayofmonthByFilename
+      summary: Get archive data file contents
+      operationId: getArchiveDataFile
 components:
   securitySchemes:
     bearerAuth:
@@ -724,7 +734,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:anypoint-monitoring-archive
-        operation: getOrganizationsByOrganizationEnvironmentsByEnvironmentByEntitytype
+        operation: listEntitiesByType
         description: GET `/organizations/{organization}/environments/{environment}/{entityType}` in this API; use `resources[].id` values as `entityID`.
         values: $.resources[*].id
         labels: $.resources[*].name

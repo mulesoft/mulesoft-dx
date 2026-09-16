@@ -166,6 +166,33 @@ class TestDetailPageStructure:
         link = self.soup.find('a', href=lambda h: h and 'skills/deploy-app.html' in h)
         assert link is not None
 
+    def test_api_page_has_no_combobox_or_dropdown_classes(self, generated_portal):
+        """W-23196976: the per-op server combobox was removed. The generated
+        HTML must not contain .url-combobox* or .server-dropdown* markup — those
+        classes only lived inside the removed JS branch, and their absence is
+        a strong signal that the refactor is complete."""
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+
+        for cls in ['url-combobox', 'url-combobox-text', 'url-combobox-chevron',
+                    'server-dropdown', 'server-dropdown-option']:
+            elements = soup.find_all(class_=cls)
+            assert not elements, (
+                f'W-23196976 regression: found <{elements[0].name} class="{cls}"> '
+                f'in generated HTML for apis/test-api.html')
+
+    def test_region_notice_absent_pre_hydration(self, generated_portal):
+        """W-23196976: the region-mismatch notice is a JS-injected runtime
+        element. It must NOT appear in the server-generated HTML, because at
+        generate-time we don't know the user's region."""
+        api_html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        mcp_html = (generated_portal / 'mcps' / 'test-mcp.html').read_text(encoding='utf-8')
+        for label, html in [('API', api_html), ('MCP', mcp_html)]:
+            soup = BeautifulSoup(html, 'html.parser')
+            assert not soup.find_all(class_='operation-region-notice'), (
+                f'W-23196976: .operation-region-notice must not be present in '
+                f'server-side HTML for {label} pages — JS injects it at load')
+
 
 class TestSkillPageStructure:
     @pytest.fixture(autouse=True)
@@ -703,6 +730,25 @@ class TestMcpDetailPage:
         assert section is not None
         assert section.get('data-mcp-kind') == 'tool'
 
+    def test_mcp_url_bars_use_data_mcp_marker(self):
+        """W-23196976: MCP URL bars are populated by JS at page load so they
+        react to region changes. The generated HTML must emit
+        <code class="operation-url-bar" data-mcp="1"></code> — an empty element
+        with the marker attribute — not the pre-refactor
+        <code class="operation-url-bar">https://...</code>."""
+        url_bars = self.soup.select('code.operation-url-bar')
+        assert len(url_bars) >= 1, 'MCP page should render at least one URL bar'
+
+        # Every URL bar that used to inline server_url must now be marker-only.
+        marker_bars = [b for b in url_bars if b.get('data-mcp') == '1']
+        assert marker_bars, (
+            'W-23196976: expected at least one <code class="operation-url-bar" '
+            'data-mcp="1"> element on the MCP detail page')
+        for bar in marker_bars:
+            assert bar.get_text(strip=True) == '', (
+                f'MCP URL bar with data-mcp="1" must be empty at generate time '
+                f'(JS populates it at page load); got: {bar!r}')
+
     def test_mcp_page_has_auth_panel(self):
         header = self.soup.find('div', class_='auth-panel-header-bar')
         assert header is not None
@@ -1031,7 +1077,9 @@ class TestMaliciousTerraformSmokeRawHtml:
         setup_schema_docs(repo)
 
         output = tmp_path / 'output'
-        PortalGenerator(output).generate(repo)
+        # Disable GTM so its legitimate <noscript><iframe> does not fool the
+        # "no iframes from malicious markdown" assertion below.
+        PortalGenerator(output, gtm_container_id='').generate(repo)
         return output
 
     @pytest.fixture
@@ -1148,6 +1196,137 @@ def test_homepage_terraform_card_links_to_index(generated_portal):
     assert soup.select_one(".tf-card-version") is None
 
 
+class TestNoPromptInjectionTriggers:
+    """W-23515831: the base template must not emit imperative,
+    agent-directed text that trips LLM prompt-injection heuristics.
+
+    The former `<nav aria-label="machine-readable" class="visually-hidden">`
+    block in `base.html` contained a `<p>STOP...</p>` paragraph and
+    imperative descriptive text after each anchor. These triggered a
+    prompt-injection warning in Claude Code (automode) when browsing the
+    Dev Portal. The fix strips the paragraph and reduces each anchor to
+    the raw filename ("AGENTS.md", "registry.json", "llms.txt").
+    """
+
+    FORBIDDEN_PHRASES = [
+        'STOP.',
+        'MANDATORY first read',
+        'If you are an AI agent',
+        'Do NOT use summarizer',
+        'read AGENTS.md FIRST',
+    ]
+
+    def _all_generated_html(self, portal_root):
+        return list(portal_root.rglob('*.html'))
+
+    def test_no_forbidden_phrases_on_homepage(self, generated_portal):
+        """AC1: homepage HTML must not contain any of the injection-trigger
+        phrases that were embedded in the base template's machine-readable nav."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in index.html — base.html machine-readable nav was not "
+                f"neutralized."
+            )
+
+    def test_no_forbidden_phrases_on_api_detail_page(self, generated_portal):
+        """AC1: API detail pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in apis/test-api.html."
+            )
+
+    def test_no_forbidden_phrases_on_mcp_detail_page(self, generated_portal):
+        """AC1: MCP detail pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'mcps' / 'test-mcp.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in mcps/test-mcp.html."
+            )
+
+    def test_no_forbidden_phrases_on_skill_page(self, generated_portal):
+        """AC1: skill pages inherit base.html and must be clean too."""
+        html = (generated_portal / 'skills' / 'deploy-app.html').read_text(encoding='utf-8')
+        for phrase in self.FORBIDDEN_PHRASES:
+            assert phrase not in html, (
+                f"AC1 regression: forbidden phrase {phrase!r} still present "
+                f"in skills/deploy-app.html."
+            )
+
+    def test_no_forbidden_phrases_on_any_generated_html(self, generated_portal):
+        """AC1: because base.html is the shared base for every generated
+        page, no generated HTML file anywhere in the portal should contain
+        any of the forbidden phrases. This catches new page types added
+        later that also extend base.html."""
+        for html_file in self._all_generated_html(generated_portal):
+            content = html_file.read_text(encoding='utf-8')
+            for phrase in self.FORBIDDEN_PHRASES:
+                assert phrase not in content, (
+                    f"AC1 regression: forbidden phrase {phrase!r} present "
+                    f"in {html_file.relative_to(generated_portal)}."
+                )
+
+    def test_machine_readable_nav_has_three_anchors(self, generated_portal):
+        """AC3: the visually-hidden machine-readable nav in <body> must
+        contain three anchors pointing to /AGENTS.md, /registry.json,
+        /llms.txt. Anchor text starts with the filename; descriptive
+        text is allowed only if it stays declarative (no imperatives)."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        nav = soup.find('nav', attrs={'aria-label': 'machine-readable'})
+        assert nav is not None, (
+            "AC3: <nav aria-label='machine-readable'> must exist in <body>"
+        )
+        # Wrapper must be visually-hidden — preserves the semantic role
+        # without exposing the block to sighted users.
+        classes = nav.get('class', [])
+        assert 'visually-hidden' in classes, (
+            f"AC3: machine-readable nav must keep class='visually-hidden', got {classes!r}"
+        )
+
+        anchors = nav.find_all('a')
+        assert len(anchors) == 3, (
+            f"AC3: expected exactly three anchors inside machine-readable "
+            f"nav, got {len(anchors)}"
+        )
+
+        # Each anchor text must START with its filename (descriptive
+        # suffix after "— ..." is allowed as long as it is declarative,
+        # which is enforced separately by the forbidden-phrases sweep).
+        anchor_texts = [a.get_text(strip=True) for a in anchors]
+        assert anchor_texts[0].startswith('AGENTS.md'), anchor_texts
+        assert anchor_texts[1].startswith('registry.json'), anchor_texts
+        assert anchor_texts[2].startswith('llms.txt'), anchor_texts
+
+        # And each anchor must still resolve to the well-known path.
+        hrefs = [a.get('href', '') for a in anchors]
+        assert any(h.endswith('/AGENTS.md') for h in hrefs)
+        assert any(h.endswith('/registry.json') for h in hrefs)
+        assert any(h.endswith('/llms.txt') for h in hrefs)
+
+    def test_machine_readable_nav_paragraph_is_declarative(self, generated_portal):
+        """AC1/AC3: the machine-readable nav may contain a descriptive
+        <p>, but it must be declarative — no imperatives, no LLM-targeted
+        second-person addressing. The forbidden-phrases sweep on the
+        whole HTML covers the specific triggers; here we just ensure the
+        <p>, if present, is a single element (not a list of instructions)."""
+        html = (generated_portal / 'index.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        nav = soup.find('nav', attrs={'aria-label': 'machine-readable'})
+        assert nav is not None
+        paragraphs = nav.find_all('p')
+        assert len(paragraphs) <= 1, (
+            f"AC1/AC3: machine-readable nav must contain at most one <p> "
+            f"element (a single declarative description). Got "
+            f"{len(paragraphs)}: "
+            f"{[p.get_text(strip=True) for p in paragraphs]}"
+        )
+
+
 class TestErrorPages:
     @pytest.fixture(autouse=True)
     def _parse_404(self, generated_portal):
@@ -1178,8 +1357,10 @@ class TestErrorPages:
         )
 
     def test_404_has_go_home_link(self):
-        links = self.soup.find_all('a')
-        assert any('index.html' in (l.get('href', '')) for l in links)
+        links = self.soup.find_all('a', class_='btn-send')
+        assert links, "404 page missing Browse all services link"
+        href = links[0].get('href', '')
+        assert href.endswith('/'), f"Browse all services link should point to site root, got {href!r}"
 
     def test_404_has_main_element(self):
         assert self.soup.find('main') is not None
@@ -1220,6 +1401,235 @@ class TestErrorPages:
         assert link is not None
         assert hashed_name in link['href'], (
             f"error.html references unhashed CSS; expected {hashed_name} in href"
+        )
+
+
+class TestTryItParamDependencyOrder:
+    """W-22956955: Try It parameters must render in dependency order.
+
+    Concretely: on an operation whose environmentId x-origin references an
+    operation whose path takes organizationId, the generated Try It block
+    must place the organizationId input BEFORE the environmentId input in
+    document order. A control operation with no x-origin dependencies must
+    keep its OAS declaration order (no cosmetic regressions).
+    """
+
+    @pytest.fixture
+    def portal_with_dependent_params(self, tmp_path):
+        """Portal built from two fixture APIs:
+
+        1. `param-order-target`: exposes an operation whose path is
+           `/organizations/{organizationId}/environments/{environmentId}/apis`.
+           OAS declares `environmentId` BEFORE `organizationId` at the path
+           level — this reproduces the reported bug's raw pre-sort order,
+           so a passing test guarantees the sort actually kicked in.
+           Also exposes a control operation
+           `/status/{statusId}/things/{thingId}` where OAS declaration
+           order is `statusId` then `thingId` and NEITHER has x-origin —
+           the sort must not touch them.
+
+        2. `access-management-mini`: exposes `listEnvironments`, whose
+           path is `/organizations/{organizationId}/environments` and
+           whose single path param is `organizationId`. This is the
+           x-origin target for environmentId above.
+        """
+        import textwrap
+
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        # Target API: env has x-origin depending on org; OAS declares env
+        # BEFORE org so an unmodified parser hands the template the wrong
+        # order (env, org). The sort must flip that back to (org, env).
+        target_dir = apis_dir / 'param-order-target'
+        target_dir.mkdir()
+        (target_dir / 'api.yaml').write_text(textwrap.dedent("""\
+            openapi: 3.0.3
+            info:
+              title: Param Order Target API
+              version: 1.0.0
+              description: Reproduces the org/env parameter-order bug.
+            paths:
+              /organizations/{organizationId}/environments/{environmentId}/apis:
+                parameters:
+                  - $ref: '#/components/parameters/environmentId_Path'
+                  - $ref: '#/components/parameters/organizationId_Path'
+                get:
+                  operationId: listApisInEnvironment
+                  description: List APIs registered in the given environment.
+                  responses:
+                    '200':
+                      description: OK
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                          example:
+                            data: []
+              /status/{statusId}/things/{thingId}:
+                parameters:
+                  - name: statusId
+                    in: path
+                    required: true
+                    description: Status ID (control param, no x-origin).
+                    schema:
+                      type: string
+                  - name: thingId
+                    in: path
+                    required: true
+                    description: Thing ID (control param, no x-origin).
+                    schema:
+                      type: string
+                get:
+                  operationId: getControlThing
+                  description: Control operation with no dependency links.
+                  responses:
+                    '200':
+                      description: OK
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                          example:
+                            id: 'x'
+            components:
+              parameters:
+                organizationId_Path:
+                  name: organizationId
+                  in: path
+                  required: true
+                  description: The organization ID.
+                  schema:
+                    type: string
+                environmentId_Path:
+                  name: environmentId
+                  in: path
+                  required: true
+                  description: The environment ID.
+                  schema:
+                    type: string
+                  x-origin:
+                    - api: urn:api:access-management-mini
+                      operation: listEnvironments
+                      values: $.data[*].id
+                      labels: $.data[*].name
+            """))
+        (target_dir / 'exchange.json').write_text(json.dumps({
+            'main': 'api.yaml',
+            'name': 'Param Order Target API',
+            'groupId': 'com.example.anypoint-platform',
+            'assetId': 'param-order-target',
+            'version': '1.0.0',
+            'apiVersion': 'v1',
+            'organizationId': '00000000-0000-0000-0000-000000000000',
+        }))
+
+        # x-origin target API: listEnvironments has organizationId as a
+        # PATH parameter (not query/header), so the resolver reports it
+        # as a dependency of environmentId in the target API above.
+        am_dir = apis_dir / 'access-management-mini'
+        am_dir.mkdir()
+        (am_dir / 'api.yaml').write_text(textwrap.dedent("""\
+            openapi: 3.0.3
+            info:
+              title: Access Management Mini API
+              version: 1.0.0
+              description: Supplies listEnvironments as an x-origin target.
+            paths:
+              /organizations/{organizationId}/environments:
+                get:
+                  operationId: listEnvironments
+                  description: List environments for an organization.
+                  parameters:
+                    - name: organizationId
+                      in: path
+                      required: true
+                      description: Organization ID.
+                      schema:
+                        type: string
+                  responses:
+                    '200':
+                      description: OK
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                          example:
+                            data: []
+            """))
+        (am_dir / 'exchange.json').write_text(json.dumps({
+            'main': 'api.yaml',
+            'name': 'Access Management Mini API',
+            'groupId': 'com.example.anypoint-platform',
+            'assetId': 'access-management-mini',
+            'version': '1.0.0',
+            'apiVersion': 'v1',
+            'organizationId': '00000000-0000-0000-0000-000000000000',
+        }))
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'portal_output'
+        generator = PortalGenerator(output, base_url='https://test.example.com')
+        generator.generate(repo)
+        return output
+
+    def _param_dom_index(self, try_block, param_name):
+        """Return the descendant index of the first input/select in a Try It
+        block whose `data-param` attribute matches `param_name`, or None."""
+        idx = 0
+        for el in try_block.descendants:
+            if getattr(el, 'name', None) not in ('input', 'select'):
+                continue
+            if el.get('data-param') == param_name:
+                return idx
+            idx += 1
+        return None
+
+    def test_org_input_precedes_env_input(self, portal_with_dependent_params):
+        """AC1: on an operation whose environmentId depends on
+        organizationId via x-origin, the organizationId input must appear
+        BEFORE the environmentId input in DOM order.
+        """
+        api_page = portal_with_dependent_params / 'apis' / 'param-order-target.html'
+        assert api_page.exists(), f"Expected {api_page} to be generated"
+
+        soup = BeautifulSoup(api_page.read_text(encoding='utf-8'), 'html.parser')
+        try_block = soup.select_one('#try-listApisInEnvironment')
+        assert try_block is not None, (
+            "Try It block #try-listApisInEnvironment not found — sort cannot "
+            "be verified because the operation was not rendered")
+
+        org_idx = self._param_dom_index(try_block, 'organizationId')
+        env_idx = self._param_dom_index(try_block, 'environmentId')
+        assert org_idx is not None, "organizationId input not rendered"
+        assert env_idx is not None, "environmentId input not rendered"
+
+        assert org_idx < env_idx, (
+            f"Expected organizationId (index {org_idx}) to appear before "
+            f"environmentId (index {env_idx}) in the Try It DOM. "
+            f"The dependency-order sort did not run or did not fix the order."
+        )
+
+    def test_control_op_preserves_declaration_order(self, portal_with_dependent_params):
+        """AC3 + non-regression: on a control operation where neither
+        parameter has x-origin, OAS declaration order must be preserved.
+        Ensures the sort does not silently reorder unrelated parameters.
+        """
+        api_page = portal_with_dependent_params / 'apis' / 'param-order-target.html'
+        soup = BeautifulSoup(api_page.read_text(encoding='utf-8'), 'html.parser')
+        try_block = soup.select_one('#try-getControlThing')
+        assert try_block is not None, "Control Try It block not found"
+
+        status_idx = self._param_dom_index(try_block, 'statusId')
+        thing_idx = self._param_dom_index(try_block, 'thingId')
+        assert status_idx is not None and thing_idx is not None
+        assert status_idx < thing_idx, (
+            f"Control operation lost its OAS declaration order — the sort "
+            f"is reordering parameters that have no dependency edge "
+            f"(statusId at {status_idx}, thingId at {thing_idx})."
         )
 
 

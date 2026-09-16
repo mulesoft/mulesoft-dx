@@ -5,16 +5,17 @@ info:
   description: Retrieve policy templates from Exchange and manage gateway targets across organizations and environments within the Anypoint Platform API Manager experience layer.
 servers:
 - url: https://anypoint.mulesoft.com
-- url: https://{region}.anypoint.mulesoft.com
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com
+  description: EU
+- url: https://ca1.platform.mulesoft.com
+  description: CA
+- url: https://jp1.platform.mulesoft.com
+  description: JP
+- url: https://in1.platform.mulesoft.com
+  description: IN
+- url: https://au1.platform.mulesoft.com
+  description: AU
 security:
 - bearerAuth: []
 - clientAuth: []
@@ -22,6 +23,7 @@ paths:
   /apimanager/xapi/v1/organizations/{organizationId}/exchange-policy-templates:
     get:
       description: Retrieve all policy templates (OOTB or custom) stored in Exchange for a given organization. Optionally filter by environment, API instance, Mule runtime version, or automation scope.
+      summary: List exchange policy templates
       operationId: getExchangePolicyTemplates
       parameters:
       - name: apiInstanceId
@@ -81,6 +83,7 @@ paths:
   /apimanager/xapi/v1/organizations/{organizationId}/environments/{environmentId}/gateway-targets:
     get:
       description: Retrieve a paged list of gateway targets registered in a given environment. Optionally filter by gateway name, kind, or status.
+      summary: List gateway targets
       operationId: getGatewayTargets
       responses:
         '200':

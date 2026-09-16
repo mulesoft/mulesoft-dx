@@ -1,0 +1,59 @@
+alertmanager:
+  enabled: false
+
+grafana:
+  defaultDashboardsEnabled: true
+  adminPassword: admin
+  # Anonymous Viewer access — bench cluster is ephemeral and ClusterIP-only,
+  # so anyone with kubeconfig can already reach Grafana via port-forward.
+  # This drops the login + forced-password-change page so `make watch` URLs
+  # open straight to the dashboard.
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: Viewer
+    auth:
+      disable_login_form: false
+    users:
+      viewers_can_edit: false
+  service:
+    type: ClusterIP
+    port: 80
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+  nodeSelector:
+    node-role: system
+  tolerations:
+    - { key: node-role, operator: Equal, value: system, effect: NoSchedule }
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    # k6 pushes metrics via experimental-prometheus-rw to /api/v1/write;
+    # without this flag Prometheus 404s every write and the run dashboard is empty.
+    enableRemoteWriteReceiver: true
+    # The k6 TestRun sets K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true, so the
+    # remote-write payload carries native histograms. Without this feature flag
+    # Prometheus rejects every write with HTTP 500 "native histograms are
+    # disabled" and the run dashboard stays empty.
+    enableFeatures:
+      - native-histograms
+    retention: 6h
+    nodeSelector:
+      node-role: system
+    tolerations:
+      - { key: node-role, operator: Equal, value: system, effect: NoSchedule }
+
+kube-state-metrics:
+  nodeSelector:
+    node-role: system
+  tolerations:
+    - { key: node-role, operator: Equal, value: system, effect: NoSchedule }
+
+prometheus-node-exporter:
+  hostNetwork: true

@@ -150,27 +150,27 @@ registry:
         platform: OpenAI
 context:
   connections:
-    helpCenterAgentConnection:
+    help_center_agent_connection:
       kind: a2a
       ref:
         name: helpCenterAgent
       url: ${helpCenterAgent.url}
-    licenseProcurementAgentConnection:
+    license_procurement_agent_connection:
       kind: a2a
       ref:
         name: licenseProcurementAgent
       url: ${licenseProcurementAgent.url}
-    escalationMcpConnection:
+    escalation_mcp_connection:
       kind: mcp
       ref:
         name: escalationMcp
       url: ${escalationMcp.url}
-    jiraMcpConnection:
+    jira_mcp_connection:
       kind: mcp
       ref:
         name: jiraMcp
       url: ${jiraMcp.url}
-    openAiMiniConnection:
+    openai_mini_connection:
       kind: llm
       ref:
         name: openAiMini
@@ -179,7 +179,7 @@ context:
         kind: apiKey
         apiKey: ${openai.apiKey}
 brokers:
-  it-help-investigation:
+  it_help_investigation:
     kind: AgentScript
     implementation: ./brokers/it-help-investigation.agent
     interfaces:
@@ -236,7 +236,7 @@ brokers:
 ## `brokers/it-help-investigation.agent`
 
 ```text
-# @dialect: AGENTFABRIC=0.1
+# @dialect: AGENTFABRIC=1.0
 
 system:
   instructions: "You are an IT Help Desk agent. You triage incoming support tickets, classify their severity, and either escalate, investigate, or request more information."
@@ -247,7 +247,7 @@ config:
 
 llm:
   openai_mini:
-    target: "llm://openAiMiniConnection"
+    target: "llm://openai_mini_connection"
     kind: "OpenAI"
     model: "gpt-5-mini"
 
@@ -256,20 +256,20 @@ llm:
 
 actions:
   help_center_agent:
-    target: "a2a://helpCenterAgentConnection"
+    target: "a2a://help_center_agent_connection"
     kind: "a2a:send_message"
 
   license_procurement_agent:
-    target: "a2a://licenseProcurementAgentConnection"
+    target: "a2a://license_procurement_agent_connection"
     kind: "a2a:send_message"
 
   escalate:
-    target: "mcp://escalationMcpConnection"
+    target: "mcp://escalation_mcp_connection"
     kind: "mcp:tool"
     tool_name: "escalate"
 
   updateIssue:
-    target: "mcp://jiraMcpConnection"
+    target: "mcp://jira_mcp_connection"
     kind: "mcp:tool"
     tool_name: "updateIssue"
 
@@ -278,7 +278,7 @@ actions:
 
 trigger ticketTrigger:
   kind: "a2a"
-  target: "brokers://it-help-investigation/a2a"
+  target: "brokers://it_help_investigation/a2a"
   on_message: ->
     transition to @generator.classifySeverity
 
@@ -459,6 +459,7 @@ echo unresolvedResponse:
 
 These are the things the published docs don't make obvious — read the docs for everything else.
 
+0. **Connection and broker IDs are not restricted to `[a-z0-9_]`.** `context.connections.<id>` keys and `brokers.<id>` keys accept any valid YAML identifier — camelCase, snake_case, and kebab-case all validate. This example uses snake_case (`help_center_agent_connection`, `it_help_investigation`) purely for readability. Registry asset ids (agents/mcps/llms) typically use camelCase (`helpCenterAgent`). The only hard rule: `.agent` targets (`a2a://`, `mcp://`, `llm://`, `brokers://`) must match the corresponding YAML key **exactly**. The `.agent` file *filename* is independent (kebab-case is fine — `it-help-investigation.agent`).
 1. **`info.version: v1`** is valid — non-semver strings are accepted.
 2. **`exchange.json` `"groupId": "${organizationId}"`** is the templated convention. `dependencies: []` is fine when all assets are inline.
 3. **A2A v1.0 broker card** in this example omits `url` and `protocolVersion` — the broker IS the endpoint and serves itself. Per the spec these fields are required on a v1.0 card; broker cards are the practical exception. **Registry agent cards** (external agents) DO include `url`. For agents still on legacy A2A v0.3, place the card under `metadata.interfaces.a2a_v03.card` (kept for backward compatibility) — that branch keeps the old shape including `protocolVersion: 0.3.0` and `url`.
@@ -469,5 +470,5 @@ These are the things the published docs don't make obvious — read the docs for
 8. **`outputs:` placement** — generator at node top level (see `classifySeverity`), orchestrator/subagent nested inside `reasoning:` (see `crossPlatformTriage`).
 9. **Echo node uses A2A v1.0 update events** — `kind: "a2a:status_update_event"` (state + message) or `kind: "a2a:artifact_update_event"` (artifact + append/lastChunk). The state value uses `TASK_STATE_*` constants (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, etc.).
 10. **One echo per terminal path** — this example uses 4 separate echo nodes. Inside `a2a.message()` / `a2a.textPart()`, references are direct (`@generator.classifySeverity.output.ticket_id + " escalated"`). The `{!@...}` template form does NOT apply inside echo helpers.
-11. **Dialect `# @dialect: AGENTFABRIC=0.1`** — pinned to GA dialect 0.1.
+11. **Dialect `# @dialect: AGENTFABRIC=1.0`** — pinned to GA dialect 1.0.
 12. **`policies` shape (GA)** — when used, `policies` is an object with `inbound` and `outbound` arrays, not a flat list of policy ids.

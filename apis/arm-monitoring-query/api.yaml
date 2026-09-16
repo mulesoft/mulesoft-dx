@@ -6,6 +6,7 @@ info:
 
 servers:
 - url: https://anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: US
   variables:
     version:
       default: unknown
@@ -13,23 +14,27 @@ servers:
       default: unknown
     envId:
       default: unknown
-- url: https://{region}.anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+- url: https://eu1.anypoint.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
     organizationId:
       default: unknown
     envId:
       default: unknown
-
-- url: https://{region}.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+- url: https://ca1.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+    organizationId:
+      default: unknown
+    envId:
+      default: unknown
+- url: https://jp1.platform.mulesoft.com/monitoring/query/api/v{version}/organizations/{organizationId}/environments/{envId}
+  description: JP
+  variables:
     version:
       default: unknown
     organizationId:
@@ -40,6 +45,8 @@ servers:
 paths:
   /applications:
     get:
+      summary: List application metrics
+      operationId: listApplicationMetrics
       description: |
         Returns a list of application metrics with aggregated values.
       parameters:
@@ -2213,6 +2220,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List application metrics by IDs
+      operationId: listApplicationMetricsByIds
       description: >
         Returns a list of application metrics with aggregated values
         corresponding with the provided ids.      
@@ -4380,6 +4389,8 @@ paths:
             organization/environment.  
   "/applications/{id}":
     get:
+      summary: Get application metrics by ID
+      operationId: getApplicationMetricsById
       description: |
         Returns a list of application metrics with the aggregated values.
       parameters:
@@ -6564,6 +6575,8 @@ paths:
                     type: string
   "/applications/{id}/flows":
     get:
+      summary: List application flow metrics
+      operationId: listApplicationFlowMetrics
       description: |
         Returns a list of flow metrics with aggregated values.
       parameters:
@@ -6861,6 +6874,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List application flow metrics by IDs
+      operationId: listApplicationFlowMetricsByIds
       description: >
         Returns a list of flow metrics with aggregated values corresponding with
         the provided ids.      
@@ -7152,6 +7167,8 @@ paths:
             organization/environment.  
   /targets:
     get:
+      summary: List target metrics
+      operationId: listTargetMetrics
       description: |
         Returns a list of target metrics with aggregated values.
       parameters:
@@ -42152,6 +42169,8 @@ paths:
             The user is not authorized to request the resource metric on the
             organization/environment.  
     post:
+      summary: List target metrics by IDs
+      operationId: listTargetMetricsByIds
       description: >
         Returns a list of target metrics with aggregated values corresponding
         with the provided ids.      
@@ -77146,6 +77165,8 @@ paths:
             organization/environment.  
   "/targets/{id}":
     get:
+      summary: Get target metrics by ID
+      operationId: getTargetMetricsById
       description: |
         Returns a list of target metrics with the aggregated values.
       parameters:

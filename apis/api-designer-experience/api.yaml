@@ -5,16 +5,9 @@ info:
   version: 1.0.0
 servers:
 - url: https://anypoint.mulesoft.com/designcenter/api-designer
-- url: https://{region}.anypoint.mulesoft.com/designcenter/api-designer
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/designcenter/api-designer
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/designcenter/api-designer
+  description: EU
 security:
 - bearerAuth: []
 - clientAuth: []
@@ -25,6 +18,7 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Check service health
       operationId: getPing
   /status:
     get:
@@ -32,7 +26,342 @@ paths:
       responses:
         '200':
           description: Successful operation.
+      summary: Get service status
       operationId: getStatus
+  /health:
+    get:
+      description: to check if service is up
+      responses:
+        '200':
+          description: Successful operation.
+      summary: Get service health status
+      operationId: getHealth
+  /ready:
+    get:
+      description: Readiness check, reports status of dependent services (e.g. redis)
+      responses:
+        '200':
+          description: Successful operation.
+      summary: Check service readiness
+      operationId: getReady
+  /config:
+    get:
+      description: Returns client configuration such as currentDate, expirationTime, muleOrganizationId, retryTimes, retryTimeout and feature flags
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema: {}
+        '401':
+          description: Authorization failed
+      summary: Get client configuration
+      operationId: getConfig
+  /features:
+    post:
+      description: Resolves a set of feature flags by name for the current user
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              example:
+              - design-center-pkce-ready
+              - api-designer-ui-pkce-ready
+        x-amf-mediaType: application/json
+        description: The names of the feature flags to resolve.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: boolean
+              example:
+                design-center-pkce-ready: true
+                api-designer-ui-pkce-ready: false
+        '401':
+          description: Authorization failed
+      summary: Resolve feature flags
+      operationId: resolveFeatures
+  /organizations:
+    get:
+      description: Retrieves the organizations the current user is a member of
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: List organizations the user belongs to
+      operationId: listOrganizations
+  /organizations/{organizationId}/settings:
+    get:
+      description: Retrieves settings for organization
+      parameters:
+      - name: organizationId
+        description: The organizationId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: x-all-settings
+        description: When true, retrieves both the default branch setting and the Github integration setting, nested under defaultBranchSetting/githubIntegrationSetting. When absent or false, retrieves only the default branch setting as a flat object.
+        in: header
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgSettings'
+        '401':
+          description: Authorization failed
+      summary: Get organization settings
+      operationId: getOrganizationSettings
+    post:
+      description: Changes settings for organization
+      parameters:
+      - name: organizationId
+        description: The organizationId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: x-all-settings
+        description: When true, the request body must use branchName/githubIntegration (either or both) and the response is nested under defaultBranchSetting/githubIntegrationSetting. When absent or false, only the default branch setting can be changed, using branchName in the request body.
+        in: header
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrgSettings'
+        x-amf-mediaType: application/json
+        description: The settings data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgSettings'
+        '401':
+          description: Authorization failed
+      summary: Update organization settings
+      operationId: updateOrganizationSettings
+  /organizations/{organizationId}/access/permissions:
+    get:
+      description: Retrieves admin permissions
+      parameters:
+      - name: organizationId
+        description: The organizationId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPermissions'
+        '401':
+          description: Authorization failed
+      summary: Get organization admin permissions
+      operationId: getOrganizationPermissions
+  /organizations/{organizationId}/exchange/facets:
+    get:
+      description: Retrieves Exchange facets for the given organization
+      parameters:
+      - name: organizationId
+        description: The organizationId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeFacets'
+        '401':
+          description: Authorization failed
+      summary: Get organization Exchange facets
+      operationId: getOrganizationExchangeFacets
+  /organizations/{organizationId}/identities:
+    get:
+      description: Retrieves identities (users/teams) belonging to the given organization, optionally filtered by search term
+      parameters:
+      - name: organizationId
+        description: The organizationId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: search
+        description: Search term to filter identities by
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: List organization identities
+      operationId: listOrganizationIdentities
+  /documentation:
+    get:
+      description: Retrieves documentation content for the given language
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: language
+        description: Language of the documentation to retrieve. Although the query parameter itself is optional, omitting it results in a 400 response
+        in: query
+        schema:
+          enum:
+          - RAML1.0
+          - RAML0.8
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: '"Invalid language {language}" if language is provided but not supported, or "Required parameter language not provided" if language is omitted'
+        '401':
+          description: Authorization failed
+        '404':
+          description: No documentation URL was provided
+      summary: Get documentation content
+      operationId: getDocumentation
   /projects:
     post:
       description: Creates a new project
@@ -78,14 +407,14 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
           description: Authorization failed
         '409':
           description: Project {type}-{name} already exists
-      operationId: createProjects
+      summary: Create project
+      operationId: createProject
     get:
       description: Gets all the projects that the user has access
       parameters:
@@ -124,7 +453,69 @@ paths:
                 type: string
         '401':
           description: Authorization failed
-      operationId: getProjects
+      summary: List projects the user can access
+      operationId: listProjects
+  /projects/credentials:
+    get:
+      description: Retrieve VCS credentials associated to the given user. Used for Github sync
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Get VCS credentials for Github sync
+      operationId: getProjectCredentials
+    delete:
+      description: Delete VCS credentials associated to the given user. Used for Github sync
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Operation completed successfully with no content returned.
+        '401':
+          description: Authorization failed
+      summary: Delete VCS credentials for Github sync
+      operationId: deleteProjectCredentials
   /projects/import:
     post:
       description: Creates a project from a zip file containing files
@@ -170,7 +561,6 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '400':
@@ -179,7 +569,44 @@ paths:
           description: Authorization failed
         '409':
           description: Project {type}-{name} already exists
-      operationId: createProjectsImport
+      summary: Import project from zip file
+      operationId: importProject
+  /projects/access/permissions:
+    get:
+      description: Gets design center general permissions. eg Create projects
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralPermissions'
+        '401':
+          description: Authorization failed
+      summary: Get Design Center general permissions
+      operationId: getDesignCenterPermissions
   /projects/{projectId}:
     get:
       description: Get project data
@@ -219,12 +646,12 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectid
+      summary: Get project by ID
+      operationId: getProjectById
     patch:
       description: 'Patches project metadata.
 
@@ -274,12 +701,12 @@ paths:
                 name: string
                 description: string
                 type: string
-                vcsType: string
                 createdBy: string
                 createdDate: 0
         '401':
           description: Authorization failed
-      operationId: patchProjectsByProjectid
+      summary: Patch project metadata
+      operationId: patchProject
     delete:
       description: Deletes the given project
       parameters:
@@ -309,7 +736,331 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectid
+      summary: Delete project
+      operationId: deleteProject
+  /projects/{projectId}/files:
+    delete:
+      description: Deletes all project files, except reserved ones (exchange modules, exchange.json, designer.json, .gitignore)
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: x-if-match
+        description: etag to check for concurrency conflicts
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Delete all project files
+      operationId: deleteProjectFiles
+  /projects/{projectId}/rename:
+    put:
+      description: Renames the given project
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The rename data to update.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+              example:
+                organizationId: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
+                id: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
+                name: string
+                description: string
+                type: string
+                createdBy: string
+                createdDate: 0
+        '401':
+          description: Authorization failed
+      summary: Rename project
+      operationId: renameProject
+  /projects/{projectId}/clone:
+    post:
+      description: Clones the given project into a new one
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                branch:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The clone data to create.
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+              example:
+                organizationId: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
+                id: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
+                name: string
+                description: string
+                type: string
+                createdBy: string
+                createdDate: 0
+        '401':
+          description: Authorization failed
+      summary: Clone project
+      operationId: cloneProject
+  /projects/{projectId}/settings:
+    patch:
+      description: Sets project settings, e.g. defaultBranch
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                defaultBranch:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The settings data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Patch project settings
+      operationId: patchProjectSettings
+  /projects/{projectId}/changes:
+    get:
+      description: Lists all changes (commits) of the project
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: pageSize
+        description: Number of changes to retrieve per page
+        in: query
+        schema:
+          type: number
+      - name: pageIndex
+        description: Page index of results to retrieve
+        in: query
+        schema:
+          type: number
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: List project changes
+      operationId: listProjectChanges
+  /projects/{projectId}/changes/{commitId}:
+    get:
+      description: Gets the list of files involved in the given commit
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: commitId
+        description: The commitId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: List files changed in a commit
+      operationId: listCommitFiles
+  /projects/{projectId}/changes/{commitId}/{filePath}:
+    get:
+      description: Gets the given file at the given commit id. filePath must be uri compliant, / must be escaped
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: commitId
+        description: The commitId to identify the target resource.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: filePath
+        description: File Path to retrieve. Must be URI complain and escape '/' characters
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: '*/*'
+          content:
+            '*/*':
+              schema: {}
+        '401':
+          description: Authorization failed
+      summary: Get file content at a specific commit
+      operationId: getCommitFile
   /projects/{projectId}/branches:
     post:
       description: Creates new branch
@@ -353,6 +1104,9 @@ paths:
                   description: Commit ID
                   example: 734713bc0
                   type: string
+                baseBranch:
+                  description: Base branch used when creating the new branch. If this value is provided, it has precedence over commitId
+                  type: string
         x-amf-mediaType: application/json
         description: The branches data to create.
       responses:
@@ -381,7 +1135,8 @@ paths:
                 commitId: 734713bc0
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranches
+      summary: Create branch
+      operationId: createBranch
     get:
       description: List branches
       parameters:
@@ -406,6 +1161,16 @@ paths:
         in: header
         schema:
           type: string
+      - name: local
+        description: When true, it retrieves branches from local copy instead of git bare repository
+        in: query
+        schema:
+          type: boolean
+      - name: metadata
+        description: When true, it retrieves extra branches metadata such as lastPublishedVersion
+        in: query
+        schema:
+          type: boolean
       responses:
         '200':
           description: List of existing branches
@@ -421,7 +1186,8 @@ paths:
                 type: string
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranches
+      summary: List branches
+      operationId: listBranches
   /projects/{projectId}/branches/{branch}:
     delete:
       description: Deletes a branch
@@ -458,9 +1224,246 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranch
-  /projects/{projectId}/branches/{branch}/open:
+      summary: Delete branch
+      operationId: deleteBranch
+    put:
+      description: Changes a branch's name
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenameBranch'
+        x-amf-mediaType: application/json
+        description: The branch data to update.
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Rename branch
+      operationId: renameBranch
+  /projects/{projectId}/branches/{branch}/commits:
+    get:
+      description: Returns the list of commits for a project branch
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: offset
+        description: Obtains paginated results with provided offset
+        in: query
+        schema:
+          type: number
+      - name: limit
+        description: Limits the amount of commits retrieved
+        in: query
+        schema:
+          type: number
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+              example:
+              - id: id
+                message: commit message
+                authorName: test
+                authorEmail: test@mulesoft.com
+                committerName: test
+                committerEmail: test@mulesoft.com
+                dateCreated: 1601480399000
+        '401':
+          description: Authorization failed
+      summary: List branch commits
+      operationId: listBranchCommits
+  /projects/{projectId}/branches/{branch}/merge:
     post:
+      description: Merge this branch with a source branch
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchMerge'
+        x-amf-mediaType: application/json
+        description: The merge data to create.
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+        '409':
+          description: Merge was aborted due to conflicts when trying to merge
+      summary: Merge branch
+      operationId: mergeBranch
+  /projects/{projectId}/branches/{branch}/conformance:
+    get:
+      description: Returns conformance report for the latest published version
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Report returned successfully
+        '401':
+          description: Authorization failed
+      summary: Get branch conformance report
+      operationId: getBranchConformance
+  /projects/{projectId}/branches/{branch}/conformance/plan:
+    get:
+      description: Returns conformance plan for the latest published version
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: criteria
+        description: Criteria to consider when calculating the conformance plan
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Report returned successfully
+        '401':
+          description: Authorization failed
+      summary: Get branch conformance plan
+      operationId: getBranchConformancePlan
+  /projects/{projectId}/branches/{branch}/events:
+    post:
+      description: Report event to MDAS Metrics service
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventPayload'
+        x-amf-mediaType: application/json
+        description: The event data to create.
+      responses:
+        '200':
+          description: Successful operation.
+      summary: Report branch event to metrics service
+      operationId: reportBranchEvent
+  /projects/{projectId}/branches/{branch}/open:
+    get:
       description: List project files. If user's workingDir does not exists, it creates one.
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
@@ -511,7 +1514,8 @@ paths:
                 type: FILE
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchOpen
+      summary: Open branch and list project files
+      operationId: openBranch
   /projects/{projectId}/branches/{branch}/clean:
     post:
       description: cleans uncommited files from users workingDir
@@ -548,9 +1552,10 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchClean
+      summary: Clean uncommitted files from working dir
+      operationId: cleanBranch
   /projects/{projectId}/branches/{branch}/status:
-    get:
+    post:
       description: list WorkingDir status
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
@@ -585,7 +1590,8 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchStatus
+      summary: Get branch working directory status
+      operationId: getBranchStatus
   /projects/{projectId}/branches/{branch}/save:
     post:
       description: save listed files (save and save All)
@@ -637,7 +1643,8 @@ paths:
           description: Authorization failed
         '409':
           description: Could not save changes
-      operationId: createProjectsByProjectidBranchesByBranchSave
+      summary: Save branch files
+      operationId: saveBranchFiles
   /projects/{projectId}/branches/{branch}/save/v2:
     post:
       description: 'Save listed files (save and save All).
@@ -673,6 +1680,16 @@ paths:
         in: header
         schema:
           type: string
+      - name: x-if-match
+        description: etag to check for concurrency conflicts
+        in: header
+        schema:
+          type: string
+      - name: metadata
+        description: When true, it retrieves extra file metadata such as lastPublishedVersion
+        in: query
+        schema:
+          type: boolean
       requestBody:
         content:
           multipart/form-data:
@@ -700,7 +1717,8 @@ paths:
           description: Authorization failed
         '409':
           description: Could not save changes
-      operationId: createProjectsByProjectidBranchesByBranchSaveV2
+      summary: Save branch files (v2 multipart)
+      operationId: saveBranchFilesV2
   /projects/{projectId}/branches/{branch}/files:
     get:
       description: Gets a list of the structure of the file system (open project)
@@ -743,7 +1761,8 @@ paths:
               example: *id001
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFiles
+      summary: List branch files
+      operationId: listBranchFiles
   /projects/{projectId}/branches/{branch}/files/v2/{filePath}:
     get:
       description: Returns the given file (getFile) with content-type according to file's content
@@ -781,6 +1800,11 @@ paths:
         in: header
         schema:
           type: string
+      - name: local
+        description: When true, reads the file from the local working directory copy instead of the git bare repository
+        in: query
+        schema:
+          type: boolean
       responses:
         '200':
           description: Successful operation.
@@ -790,7 +1814,8 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFilesV2ByFilepath
+      summary: Get branch file content (v2)
+      operationId: getBranchFileV2
   /projects/{projectId}/branches/{branch}/files/{filePath}:
     description: Operations over a specific file path
     get:
@@ -838,7 +1863,8 @@ paths:
               schema: {}
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidBranchesByBranchFilesByFilepath
+      summary: Get branch file as JSON
+      operationId: getBranchFile
     delete:
       description: Deletes the given file or folder and commit changes (deleteFile)
       parameters:
@@ -880,7 +1906,8 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranchFilesByFilepath
+      summary: Delete branch file or folder
+      operationId: deleteBranchFile
   /projects/{projectId}/branches/{branch}/files/{filePath}/move:
     post:
       description: renames the file or folder (move or rename)
@@ -936,7 +1963,8 @@ paths:
           description: File not found
         '409':
           description: The file or folder already exists
-      operationId: createProjectsByProjectidBranchesByBranchFilesByFilepathMove
+      summary: Move or rename branch file
+      operationId: moveBranchFile
   /projects/{projectId}/branches/{branch}/acquireLock:
     post:
       description: Acquire lock for given project
@@ -969,8 +1997,11 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The acquireLock data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
@@ -984,7 +2015,8 @@ paths:
                 name: demo-username
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchAcquirelock
+      summary: Acquire branch lock
+      operationId: acquireBranchLock
   /projects/{projectId}/branches/{branch}/releaseLock:
     post:
       description: Release lock for given project
@@ -1017,17 +2049,21 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
         description: The releaseLock data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchReleaselock
-  /projects/{projectId}/branches/{branch}/publish/platform:
+      summary: Release branch lock
+      operationId: releaseBranchLock
+  /projects/{projectId}/branches/{branch}/keepAlive:
     post:
-      description: Publish project to Api Platform
+      description: Mantain lock for given project
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
       - name: branch
@@ -1057,14 +2093,18 @@ paths:
         schema:
           type: string
       requestBody:
-        $ref: '#/components/requestBodies/Generated'
-        description: The platform data to create.
+        description: The keepAlive data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
       responses:
         '200':
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchPublishPlatform
+      summary: Keep branch lock alive
+      operationId: renewBranchLock
   /projects/{projectId}/branches/{branch}/publish/exchange:
     post:
       description: Publish project to Exchange. As a result, an Exchange asset is created.
@@ -1097,12 +2137,148 @@ paths:
         schema:
           type: string
       requestBody:
+        description: The exchange data to create.
+        content:
+          application/json:
+            schema: {}
+        x-amf-mediaType: application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Publish branch to Exchange
+      operationId: publishBranchToExchange
+  /projects/{projectId}/branches/{branch}/exchange:
+    get:
+      description: Retrieve Exchange metadata for a project's branch
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Get branch Exchange metadata
+      operationId: getBranchExchangeMetadata
+  /projects/{projectId}/branches/{branch}/exchange/assets:
+    post:
+      description: Publish new Exchange Asset through Exchange xAPI v2
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PublishExchange'
+              $ref: '#/components/schemas/ProjectPublish'
         x-amf-mediaType: application/json
-        description: The exchange data to create.
+        description: The asset data to create.
+      responses:
+        '201':
+          description: Asset created successfully
+        '401':
+          description: Authorization failed
+      summary: Publish Exchange asset via xAPI v2
+      operationId: publishBranchAssetV2
+  /projects/{projectId}/branches/{branch}/import:
+    put:
+      description: Replaces branch contents from a zip file
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: x-if-match
+        description: etag to check for concurrency conflicts
+        in: header
+        schema:
+          type: string
+      - name: message
+        description: Commit message for the import
+        in: query
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/zip:
+            schema: {}
+        x-amf-mediaType: application/zip
+        description: The zip file to import.
       responses:
         '200':
           description: Successful operation.
@@ -1110,22 +2286,55 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublishResponse'
-              example:
-                organizationId: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
-                groupId: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
-                assetId: new-raml-specification
-                version: 1.0.0
-                apiVersion: v1
-                dependencies:
-                - string
-                main: api.raml
-                versionGroup: v1
-                classifier: raml
-                metadata: {}
-        '401':
-          description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchPublishExchange
+                $ref: '#/components/schemas/Files'
+              example: *id001
+        '400':
+          description: No files were uploaded. Use content-type:application/zip
+      summary: Replace branch contents from zip archive
+      operationId: importBranchArchive
+  /projects/{projectId}/branches/{branch}/archive:
+    get:
+      description: Gets an archive file (zip) of the full project in the given branch
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/zip
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+              example: PK\x03\x04...(zip archive binary contents)
+      summary: Download branch archive as zip
+      operationId: getBranchArchive
   /projects/{projectId}/branches/{branch}/exchange/dependencies:
     put:
       description: Add new dependencies in exchange.json
@@ -1181,9 +2390,80 @@ paths:
               example: *id001
         '401':
           description: Authorization failed
-      operationId: updateProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Add Exchange dependencies
+      operationId: addExchangeDependencies
     post:
       description: Updates exchange.json file, with given dependencies
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: removeInvalidDependencies
+        description: When true, removes invalid dependencies found while updating exchange.json
+        in: query
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                add:
+                - groupId: gid
+                  assetId: aid
+                  version: 1.0.1
+                remove:
+                - groupId: gid
+                  assetId: aid
+                  version: 1.0.0
+              type: object
+              required:
+              - add
+              - remove
+              properties:
+                add:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExchangeAssetGAV'
+                remove:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExchangeAssetGAV'
+        x-amf-mediaType: application/json
+        description: The dependencies data to create.
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Update Exchange dependencies
+      operationId: updateExchangeDependencies
+    patch:
+      description: Reload and update the dependencies listed in exchange.json
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
       - name: branch
@@ -1239,13 +2519,51 @@ paths:
                   items:
                     $ref: '#/components/schemas/ExchangeAssetGAV'
         x-amf-mediaType: application/json
-        description: The dependencies data to create.
+        description: The dependencies data to update.
       responses:
         '200':
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidBranchesByBranchExchangeDependencies
+      summary: Reload Exchange dependencies metadata
+      operationId: reloadExchangeDependencies
+    get:
+      description: Retrieve the dependencies listed in exchange.json, along with their asset metadata
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: List Exchange dependencies
+      operationId: listExchangeDependencies
     delete:
       description: Removes dependencies in exchange.json
       parameters:
@@ -1294,43 +2612,90 @@ paths:
           description: Operation completed successfully with no content returned.
         '401':
           description: Authorization failed
-      operationId: deleteProjectsByProjectidBranchesByBranchExchangeDependencies
-  /projects/{projectId}/api/{name}:
-    get:
-      description: Get api data, from Api Platform, for given {name}
-      parameters:
-      - $ref: '#/components/parameters/XOrigin_projectId_Path'
-      - name: name
-        required: true
-        in: path
-        schema:
-          type: string
-        description: The name to identify the target resource.
-      responses:
-        '200':
-          description: Successful operation.
-      operationId: getProjectsByProjectidApiByName
-  /projects/{projectId}/api/{name}/{version}:
+      summary: Remove Exchange dependencies
+      operationId: removeExchangeDependencies
+  /projects/{projectId}/branches/{branch}/exchange/dependencies/job:
     post:
-      description: Publish project to Api Platform (Deprecated)
+      description: Triggers an asynchronous dependency resolution job for the project's exchange.json
       parameters:
       - $ref: '#/components/parameters/XOrigin_projectId_Path'
-      - name: name
+      - name: branch
+        description: Branch name to which apply a given operation
         required: true
         in: path
         schema:
           type: string
-        description: The name to identify the target resource.
-      - name: version
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
         required: true
-        in: path
+        in: header
         schema:
           type: string
-        description: The version to identify the target resource.
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
       responses:
         '200':
           description: Successful operation.
-      operationId: createProjectsByProjectidApiByNameByVersion
+      summary: Trigger Exchange dependency resolution job
+      operationId: resolveExchangeDependencies
+    get:
+      description: Retrieves the status of the dependency resolution job
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: branch
+        description: Branch name to which apply a given operation
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+              example:
+                status: running
+        '404':
+          description: No dependency resolver job found
+      summary: Get dependency resolution job status
+      operationId: getExchangeDependenciesJobStatus
   /projects/{projectId}/sync/github:
     description: Endpoint to manage project's Github sync
     post:
@@ -1347,7 +2712,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createProjectsByProjectidSyncGithub
+      summary: Sync project with Github repository
+      operationId: syncProjectGithub
     delete:
       description: Remove sync with Github repository
       parameters:
@@ -1355,7 +2721,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: deleteProjectsByProjectidSyncGithub
+      summary: Remove Github repository sync
+      operationId: removeGithubSync
   /projects/{projectId}/access/permissions:
     get:
       description: Gets permissions for a project
@@ -1396,8 +2763,45 @@ paths:
                 canRename: true
         '401':
           description: Authorization failed
-      operationId: getProjectsByProjectidAccessPermissions
+      summary: Get project permissions
+      operationId: getProjectPermissions
   /projects/{projectId}/access/permissions/share:
+    get:
+      description: Get the identities (users and teams) with access to the project, along with their granted permission role
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_projectId_Path'
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedWithIdentities'
+        '401':
+          description: Authorization failed
+      summary: List identities with project access
+      operationId: listProjectSharedIdentities
     post:
       description: Grants or Revokes permissions on a [user | role] matrix for a project.
       parameters:
@@ -1448,7 +2852,208 @@ paths:
                   result: string
         '401':
           description: Authorization failed
-      operationId: createProjectsByProjectidAccessPermissionsShare
+      summary: Share or revoke project permissions
+      operationId: shareProjectPermissions
+  /github:
+    get:
+      description: Returns a redirect to start Github installation
+      parameters:
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: token
+        description: Token used to authenticate against github
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: origin
+        description: Origin of the request being made in order to build the redirect URL
+        required: true
+        in: query
+        schema:
+          type: string
+      responses:
+        '302':
+          description: Redirection response
+          headers:
+            Location:
+              description: URL to redirect the client to in order to complete the Github authorization workflow.
+              schema:
+                type: string
+        '401':
+          description: Authorization failed
+      summary: Start Github installation
+      operationId: getGithub
+  /github/callback:
+    get:
+      description: Endpoint requested after installation by the Github App
+      parameters:
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Handle Github installation callback
+      operationId: getGithubCallback
+  /github/oauth:
+    post:
+      description: Sends the Github OAuth code and state to VCS to finish the Github OAuth authorization workflow
+      parameters:
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - code
+              - state
+              properties:
+                code:
+                  type: string
+                state:
+                  type: string
+        x-amf-mediaType: application/json
+        description: The Github OAuth code and state to complete the authorization workflow.
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Missing code or state in the request body
+        '401':
+          description: Authorization failed
+      summary: Complete Github OAuth authorization
+      operationId: completeGithubOauth
+  /github/oauth/callback:
+    get:
+      description: Redirects the response received from Github (code and state query params) back to the Design Center UI
+      parameters:
+      - name: code
+        description: Github OAuth authorization code returned by Github after the user grants access.
+        in: query
+        schema:
+          type: string
+      - name: state
+        description: Opaque value echoed back by Github, used to correlate this callback with the originating request.
+        in: query
+        schema:
+          type: string
+      responses:
+        '302':
+          description: Redirection response
+          headers:
+            Location:
+              description: URL of the Design Center UI to redirect the client to after completing the Github OAuth workflow.
+              schema:
+                type: string
+      summary: Handle Github OAuth callback
+      operationId: getGithubOauthCallback
+  /exchange/assets:
+    get:
+      description: Searches Exchange assets (RAML fragments, REST APIs, evented APIs) visible to the current user
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: visual
+        description: When true, restricts the search to visual designer assets
+        in: query
+        schema:
+          type: boolean
+      - name: searchTerm
+        description: Free-text term to filter Exchange assets by name or description.
+        in: query
+        schema:
+          type: string
+      - name: businessId
+        description: Restricts the search to assets belonging to the given business group.
+        in: query
+        schema:
+          type: string
+      - name: pageOffset
+        description: Number of assets to skip, used for pagination.
+        in: query
+        schema:
+          type: number
+      - name: status
+        description: Restricts the search to assets in the given publish status.
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Search Exchange assets
+      operationId: searchExchangeAssets
+  /exchange/assets/{groupId}/{assetId}/{version}:
+    get:
+      description: Returns Exchange asset metadata
+      parameters:
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: groupId
+        description: Exchange group identifier that owns the asset, typically the organization id.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: assetId
+        description: Exchange asset identifier of the asset to retrieve metadata for.
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: version
+        description: Version of the Exchange asset to retrieve metadata for.
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+        '401':
+          description: Authorization failed
+      summary: Get Exchange asset metadata
+      operationId: getExchangeAssetMetadata
   /exchange/graphql:
     post:
       description: Executes GQL queries against exchange GraphQL service
@@ -1474,53 +3079,284 @@ paths:
           description: Successful operation.
         '401':
           description: Authorization failed
-      operationId: createExchangeGraphql
+      summary: Execute Exchange GraphQL query
+      operationId: executeExchangeGraphql
+  /external/check_access:
+    get:
+      description: Checks if the provided user has access to the provided git repository type
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: vcsStorageType
+        description: Type of external git repository storage to check access against.
+        in: query
+        schema:
+          enum:
+          - GIT_EXTERNAL
+          - GIT_INTERNAL
+          type: string
+          default: GIT_EXTERNAL
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_token_authorized:
+                    type: boolean
+        '401':
+          description: Authorization failed
+      summary: Check external repository access
+      operationId: checkExternalAccess
+  /external/repositories:
+    get:
+      description: Retrieves external repositories associated with the provided user and organization
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      - name: vcsStorageType
+        description: Type of external git repository storage to list repositories from.
+        in: query
+        schema:
+          enum:
+          - GIT_EXTERNAL
+          - GIT_INTERNAL
+          type: string
+          default: GIT_EXTERNAL
+      - name: page
+        description: Page number to retrieve, used for pagination.
+        in: query
+        schema:
+          type: number
+      - name: externalOrg
+        description: Name of the external git organization to list repositories from.
+        in: query
+        schema:
+          type: string
+      - name: externalOrgType
+        description: Type of the external git organization (e.g. user or organization account).
+        in: query
+        schema:
+          type: string
+      - name: name
+        description: Search term to filter repositories by name.
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalRepository'
+        '401':
+          description: Authorization failed
+      summary: List external repositories
+      operationId: listExternalRepositories
+  /external/repositories/{repositoryId}:
+    get:
+      description: Retrieves metadata of the repository represented with the provided ID
+      parameters:
+      - name: repositoryId
+        description: ID of the repository to retrieve
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalRepository'
+              example:
+                name: my-repo
+                owner:
+                  name: my-org
+                  type: Organization
+                private: false
+                imported: false
+                description: An example external repository.
+        '401':
+          description: Authorization failed
+      summary: Get external repository by ID
+      operationId: getExternalRepositoryById
+  /external/organizations:
+    get:
+      description: Retrieves all external organizations associated with the provided user
+      parameters:
+      - name: x-owner-id
+        description: "User's ownerId, which identifies the user performing the operation. \nThis is NOT the username, but an UUID that can be found in the users page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: x-organization-id
+        description: "OrganizationId, which identifies the organization to which perform the operation. \nThis can be found in the organizations page by the organization administrator.\n"
+        required: true
+        in: header
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
+      - name: authorization
+        description: Bearer Access Token
+        required: true
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          x-amf-mediaType: application/json
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalOrganization'
+        '401':
+          description: Authorization failed
+      summary: List external organizations
+      operationId: listExternalOrganizations
 components:
   securitySchemes:
     bearerAuth:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
     clientAuth:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
-  requestBodies:
-    Generated:
-      content:
-        application/json:
-          schema: {}
-      x-amf-mediaType: application/json
-      description: Request payload for Generated operations.
   schemas:
     ProjectCreate:
       example:
         name: ProjectName
         description: Project Description
         classifier: raml
-        type: raml
+        format: yaml
+        version: '1.0'
       type: object
       required:
       - name
-      - type
+      - classifier
+      - format
+      - version
       properties:
         name:
+          description: Project name. Required, max 100 characters
           type: string
+          maxLength: 100
         description:
           type: string
-        format:
-          enum:
-          - json
-          - yaml
-          type: string
         classifier:
+          description: Type of asset this project represents. Required
           enum:
           - raml
           - raml-fragment
           - oas
+          - oas-components
+          - evented-api
+          - json-schema
           type: string
-        type:
-          description: Project type
+        subType:
+          description: Fragment subtype (e.g. library, trait, resourceType). Required when classifier is a fragment classifier (raml-fragment, oas-components), forbidden otherwise
+          type: string
+        format:
+          description: 'File format for the project. Allowed values depend on classifier: raml -> yaml; oas / evented-api -> yaml or json; json-schema -> json'
           enum:
-          - raml
-          - raml-fragment
+          - yaml
+          - json
           type: string
+        version:
+          description: 'Spec version for the project. Allowed values depend on classifier: raml (non-fragment) -> 1.0, 0.8; raml-fragment -> 1.0; oas (non-fragment) -> 2.0, 3.0; oas-components -> 3.0; evented-api -> 2.0, 2.6; json-schema -> draft-07, draft/2019-09, draft-04, draft-03'
+          type: string
+        visualDesignerMode:
+          description: Whether the project is created in Visual Designer mode. Not allowed when classifier is a fragment classifier
+          type: boolean
+        vcsStorageType:
+          description: Storage backend for the project. Defaults to GIT_INTERNAL when omitted
+          enum:
+          - GIT_EXTERNAL
+          - GIT_INTERNAL
+          type: string
+        externalUri:
+          description: URI of the external git repository. Required when vcsStorageType is GIT_EXTERNAL
+          type: string
+        externalUriSchema:
+          description: Schema of the external URI (e.g. FILE, HTTPS). Required when vcsStorageType is GIT_EXTERNAL
+          type: string
+        externalOrgName:
+          description: Name of the external git organization/owner hosting the repository
+          type: string
+        externalOrgType:
+          description: Type of the external git organization (e.g. USER, ORGANIZATION)
+          type: string
+        clone:
+          description: Whether this creation request is cloning an existing project
+          type: boolean
     Project:
       example:
         id: a1048809-64eb-4830-9974-9dc673b92013
@@ -1529,17 +3365,24 @@ components:
         type: raml
         createdBy: 54bf6b94-d209-44fa-b13a-cb6991ec6fb8
         description: Project description
-        vcsType: GIT
+        vcsStorageType: GIT_INTERNAL
         createdDate: 1702669593404
+        lastUpdatedDate: 1702669593404
+        defaultBranch: master
+        deleted: false
       type: object
       required:
       - organizationId
       - id
       - name
+      - description
       - type
-      - vcsType
       - createdBy
       - createdDate
+      - lastUpdatedDate
+      - defaultBranch
+      - deleted
+      - vcsStorageType
       properties:
         organizationId:
           description: Organization ID to which the project corresponds
@@ -1560,8 +3403,8 @@ components:
         type:
           description: Project type
           type: string
-        vcsType:
-          description: VCS Project type
+        externalUri:
+          description: URI of the external git repository
           type: string
         createdBy:
           description: Name of the user that created the project
@@ -1570,7 +3413,54 @@ components:
           description: Creation date of the project
           type: integer
           format: long
+        lastUpdatedDate:
+          description: Last update date of the project
+          type: integer
+          format: long
+        defaultBranch:
+          description: Name of the default branch of the project
+          type: string
+        deleted:
+          description: Whether the project has been deleted
+          type: boolean
+        vcsStorageType:
+          description: Storage backend for the project
+          enum:
+          - GIT_EXTERNAL
+          - GIT_INTERNAL
+          type: string
+        initialWorkingDirectory:
+          description: Initial working directory metadata for the project
+          type: object
+          properties:
+            id:
+              type: string
+            projectId:
+              type: string
+            branch:
+              type: string
+            ownerId:
+              type: string
+            ownerUsername:
+              type: string
+            ownerEmail:
+              type: string
+            vcsType:
+              type: string
+            vcsStorageType:
+              enum:
+              - GIT_EXTERNAL
+              - GIT_INTERNAL
+              type: string
+            externalUriSchema:
+              type: string
+            createdDate:
+              type: integer
+              format: long
+            deleted:
+              type: boolean
     ProjectImport:
+      description: 'Multipart/form-data request. Accepts the same classifier/format/version fields as project creation (see ProjectCreate), plus the fields below'
       example:
         name: ProjectName
         description: Project Description
@@ -1581,25 +3471,53 @@ components:
       type: object
       required:
       - name
-      - description
-      - type
       - zipFile
       properties:
         name:
           type: string
         description:
           type: string
-        type:
+        classifier:
+          description: Type of asset this project represents. Falls back to the deprecated `type` field when omitted
           enum:
           - raml
           - raml-fragment
+          - oas
+          - oas-components
+          - evented-api
+          - json-schema
+          type: string
+        type:
+          description: Deprecated alias for classifier, kept for backwards compatibility
+          enum:
+          - raml
+          - raml-fragment
+          - oas
+          - oas-components
+          - evented-api
+          - json-schema
+          type: string
+        subType:
+          description: Fragment subtype. Required when classifier is a fragment classifier (raml-fragment, oas-components), forbidden otherwise
+          type: string
+        format:
+          description: File format. Defaults based on classifier when omitted
+          enum:
+          - yaml
+          - json
+          type: string
+        version:
+          description: Spec version for the project. Defaults based on classifier when omitted
           type: string
         mainFile:
+          description: Path, within the zip file, of the project's main/entry file
           type: string
         zipFile:
+          description: Zip file (application/zip or application/x-zip-compressed) containing the project's files
           type: string
           format: binary
         dependencies:
+          description: 'JSON-stringified array of dependencies, e.g. [{"groupId":"gid","assetId":"aid","version":"1.0.0"}]'
           type: string
     ProjectPatch:
       type: object
@@ -1624,6 +3542,50 @@ components:
           description: Commit ID
           example: 734713bc0
           type: string
+    RenameBranch:
+      description: Rename branch payload
+      type: object
+      required:
+      - branchName
+      properties:
+        branchName:
+          description: Name of the new branch name
+          type: string
+    Commit:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+        authorName:
+          type: string
+        authorEmail:
+          type: string
+        committerName:
+          type: string
+        committerEmail:
+          type: string
+        dateCreated:
+          type: number
+    BranchMerge:
+      type: object
+      required:
+      - sourceBranch
+      properties:
+        sourceBranch:
+          type: string
+        squashCommits:
+          type: boolean
+          default: false
+        commitMessage:
+          type: string
+        conflictsResolutionStrategy:
+          enum:
+          - OURS
+          - THEIRS
+          - NONE
+          type: string
     Files:
       example: *id001
       type: array
@@ -1643,13 +3605,12 @@ components:
         fileExample.txt: Content of fileExample file in text/plain
         file.json: "{\n    \"type\": \"FOLDER\",\n    \"path\": \"/folder\"\n}\n"
       type: object
-      patternProperties:
-        ^.+$:
-          description: File to save, where the property name is the file path
-          type: string
-          x-amf-fileTypes:
-          - '*/*'
-          format: binary
+      additionalProperties:
+        description: File to save, where the property name is the file path
+        type: string
+        x-amf-fileTypes:
+        - '*/*'
+        format: binary
     FilePath:
       example:
         type: FOLDER
@@ -1680,172 +3641,53 @@ components:
           description: Name of the user
           example: demo-username
           type: string
-    PublishExchange:
+    ProjectPublish:
       type: object
       required:
-      - name
-      - apiVersion
-      - version
-      - tags
-      - main
-      - assetId
-      - groupId
-      - classifier
-      - isVisual
-      - status
-      properties:
-        name:
-          description: Project name
-          example: new-raml-specification
-          type: string
-        apiVersion:
-          description: Version of the API, which corresponds to the specification's version property
-          example: v1
-          type: string
-        version:
-          description: Version of the Exchange Asset to be published (must follow Semver syntax)
-          example: 1.0.0
-          type: string
-        tags:
-          description: An array of strings to be saved as asset's tags
-          example:
-          - raml
-          - specification
-          type: array
-          items: {}
-        main:
-          description: Main file of the project to be published
-          example: api.raml
-          type: string
-        assetId:
-          description: Exchange Asset ID
-          example: new-raml-specification
-          type: string
-        groupId:
-          description: Business group ID to which the project is going to be published
-          example: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
-          type: string
-          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
-        classifier:
-          description: Classifier of the project being published which is related to the asset's language
-          enum:
-          - oas
-          - raml
-          - raml-fragment
-          example: raml
-          type: string
-        isVisual:
-          description: True when the project is visual mode
-          example: false
-          type: boolean
-        metadata:
-          description: A design center object describing asset projectId and branchId
-          type: object
-          required:
-          - projectId
-          - branchId
-          properties:
-            projectId:
-              description: Unique ID that identifies the project
-              example: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
-              type: string
-              pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
-            branchId:
-              description: Name of the branch
-              example: master
-              type: string
-        publishList:
-          description: Project files that are not being referenced from the root file to include in the asset
-          example:
-          - api.raml
-          - exchange.json
-          type: array
-          items: {}
-        originalFormatVersion:
-          description: The version of the format of the API specification
-          example: '1.0'
-          type: string
-        status:
-          description: Exchange asset lifecycle state
-          enum:
-          - development
-          - published
-          example: published
-          type: string
-    PublishResponse:
-      type: object
-      required:
-      - organizationId
       - groupId
       - assetId
       - version
-      - apiVersion
-      - dependencies
-      - main
-      - versionGroup
       - classifier
-      - metadata
-      - originalFormatVersion
-      - name
-      - type
       properties:
-        organizationId:
-          description: Organization ID identifying the organization to which the asset was published
-          example: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
-          type: string
-          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
         groupId:
-          description: Group ID of the published asset. Identifies the business group to which the asset was published
-          example: 6a2f41a3-c54c-fce8-32d2-0324e1c32e22
+          description: Business group where the Exchange asset will be published
+          example: 1da12ec1-7614-43a3-bf24-ff754cab8ddf
           type: string
-          pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
         assetId:
-          description: AssetID of the published asset
-          example: new-raml-specification
+          description: ID that will identify the asset in Exchange
+          example: products-api
           type: string
         version:
-          description: Asset version of the published asset
+          description: Version that will identify the asset in Exchange
           example: 1.0.0
           type: string
-        apiVersion:
-          description: The API version of the API specification
-          example: v1
-          type: string
-        dependencies:
-          description: All the project dependencies included in the publication
-          type: array
-          items:
-            type: string
-        main:
-          description: The main file of the asset
-          example: api.raml
-          type: string
-        versionGroup:
-          description: The Exchange asset version group
-          example: v1
+        name:
+          description: The visible name of the asset. Default to the project name
           type: string
         classifier:
-          description: The language identifier of the asset to be created
+          description: Classifier of the asset
           enum:
-          - oas
           - raml
           - raml-fragment
-          example: raml
+          - oas
+          - oas-components
+          - evented-api
+          - json-schema
           type: string
-        metadata:
-          description: A design center object describing the projectId and branchId of the published project
-          type: object
-        originalFormatVersion:
-          description: The version of the format of the API specification
-          example: '1.0'
-          type: string
-        name:
-          description: The visible name of the asset
-          example: new-raml-specification
+        description:
+          description: The description of the asset being created
           type: string
         type:
-          description: Type of the created asset
+          description: The type of the asset to be created, if none has been specified it will be inferred by the file's classifier
           example: rest-api
+          type: string
+        dependencies:
+          description: 'A string of comma-separated dependencies. The dependencies field must respect the following convention: dependencies=GROUP_ID:ASSET_ID:VERSION,GROUP_ID:ASSET_ID:VERSION'
+          example: 1da12ec1-7614-43a3-bf24-ff754cab8ddf:american-flights:1.0.0,org.mule.examples:salesforce-fragment:2.1.0
+          type: string
+        keywords:
+          description: A string of comma-separated values that represents the values to be saved as asset's attributes. Used to facilitate to find the asset by these keywords in the search
+          example: api,raml,auth,jwt,token
           type: string
     ExchangeAssetGAV:
       type: object
@@ -1869,26 +3711,21 @@ components:
     ProjectSync:
       type: object
       required:
-      - name
-      - description
-      - type
-      - zipFile
+      - domain
+      - domainType
+      - repositoryName
       properties:
-        name:
+        domain:
+          description: Domain value where the repo will be created
           type: string
-        description:
-          type: string
-        type:
+        domainType:
+          description: Domain type where the repo will be created, can be in a given user or organization
           enum:
-          - raml
-          - raml-fragment
+          - USER
+          - ORGANIZATION
           type: string
-        mainFile:
-          type: string
-        zipFile:
-          type: string
-          format: binary
-        dependencies:
+        repositoryName:
+          description: Name of the repository to be created
           type: string
     ProjectPermissions:
       type: object
@@ -1906,48 +3743,57 @@ components:
           type: boolean
         canRename:
           type: boolean
+        canPublish:
+          type: boolean
+        canShare:
+          type: boolean
+        canOwn:
+          type: boolean
     SharedWith:
+      description: At least one of sharedWith/revoked must be provided, with a combined maximum of 20 entries (configurable via MAX_CONCURRENT_PERMISSION_CHANGES)
       type: object
-      required:
-      - sharedWith
-      - revoke
-      - previousSharedWith
       properties:
         sharedWith:
+          description: Identities to grant (or change) a role on the project
           type: array
           items:
             type: object
-            required:
-            - role
-            - id
             properties:
-              role:
-                type: string
               id:
                 type: string
-        revoke:
+              role:
+                enum:
+                - VIEWER
+                - COMMENTER
+                - EDITOR
+                - ADMIN
+                type: string
+              type:
+                enum:
+                - user
+                - team
+                - organization
+                type: string
+        revoked:
+          description: Identities to revoke all access from
           type: array
           items:
             type: object
-            required:
-            - role
-            - id
             properties:
-              role:
-                type: string
               id:
                 type: string
-        previousSharedWith:
-          type: array
-          items:
-            type: object
-            required:
-            - role
-            - id
-            properties:
               role:
+                enum:
+                - VIEWER
+                - COMMENTER
+                - EDITOR
+                - ADMIN
                 type: string
-              id:
+              type:
+                enum:
+                - user
+                - team
+                - organization
                 type: string
     SharedWithResult:
       type: object
@@ -1959,32 +3805,251 @@ components:
           type: array
           items:
             type: object
-            required:
-            - role
-            - id
-            - result
             properties:
-              role:
-                type: string
               id:
                 type: string
+              role:
+                enum:
+                - VIEWER
+                - COMMENTER
+                - EDITOR
+                - ADMIN
+                type: string
+              type:
+                enum:
+                - user
+                - team
+                - organization
+                type: string
               result:
+                enum:
+                - ok
+                - failed
                 type: string
         revoked:
           type: array
           items:
             type: object
-            required:
-            - role
-            - id
-            - result
             properties:
-              role:
-                type: string
               id:
                 type: string
-              result:
+              role:
+                enum:
+                - VIEWER
+                - COMMENTER
+                - EDITOR
+                - ADMIN
                 type: string
+              type:
+                enum:
+                - user
+                - team
+                - organization
+                type: string
+              result:
+                enum:
+                - ok
+                - failed
+                type: string
+    SharedWithIdentities:
+      type: object
+      required:
+      - sharedWith
+      properties:
+        sharedWith:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - username
+            - role
+            - type
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              email:
+                type: string
+              username:
+                type: string
+              role:
+                type: string
+              type:
+                type: string
+    EventPayload:
+      type: object
+      required:
+      - id
+      - payload
+      properties:
+        id:
+          type: string
+        payload:
+          type: object
+    OrgSettings:
+      description: |-
+        Org Settings payload. The shape of this object depends on the x-all-settings request header:
+        - When x-all-settings is absent or false, only the default branch setting is read/written and the
+          body/response is a flat object with branchName/defaultBranch and lastUpdatedDate/organizationId/updatedBy.
+        - When x-all-settings is true, both the default branch setting and the Github integration setting are
+          read/written together, nested under defaultBranchSetting and githubIntegrationSetting.
+      type: object
+      properties:
+        branchName:
+          description: Name of the default branch. Used in request bodies (and in the response when x-all-settings is not true)
+          type: string
+        defaultBranch:
+          description: Name of the default branch, as returned in the response when x-all-settings is not true
+          type: string
+        githubIntegration:
+          description: Whether Github integration is enabled for the organization. Used in request bodies when x-all-settings is true
+          type: boolean
+        defaultBranchSetting:
+          description: Default branch setting, returned when x-all-settings is true
+          type: object
+          required:
+          - defaultBranch
+          properties:
+            defaultBranch:
+              type: string
+            organizationId:
+              type: string
+            lastUpdatedDate:
+              type: number
+            updatedBy:
+              type: string
+        githubIntegrationSetting:
+          description: Github integration setting, returned when x-all-settings is true
+          type: object
+          required:
+          - githubIntegration
+          properties:
+            githubIntegration:
+              type: boolean
+            organizationId:
+              type: string
+            lastUpdatedDate:
+              type: number
+            updatedBy:
+              type: string
+            projectsUnsynced:
+              type: array
+              items:
+                type: string
+            projectsWithError:
+              type: array
+              items:
+                type: string
+        organizationId:
+          type: string
+        lastUpdatedDate:
+          type: number
+        updatedBy:
+          type: string
+    AdminPermissions:
+      description: Organization-level admin permissions for the current user
+      type: object
+      required:
+      - isAdmin
+      properties:
+        isAdmin:
+          description: Whether the current user is an administrator of the organization
+          type: boolean
+    ExchangeFacets:
+      description: Exchange facets metadata
+      type: object
+      required:
+      - types
+      - categories
+      - organizations
+      - tags
+      - status
+      - fields
+      properties:
+        types:
+          description: Supported Exchange Asset types
+          type: array
+          items:
+            type: string
+        categories:
+          description: Exchange Categories used in the given organization
+          type: array
+          items:
+            type: object
+        organizations:
+          description: Organizations that have published Exchange assets visible to the current user
+          type: array
+          items:
+            type: object
+        tags:
+          description: Exchange tags used in the given organization
+          type: array
+          items:
+            type: string
+        status:
+          description: Exchange asset statuses used in the given organization
+          type: array
+          items:
+            type: string
+        fields:
+          description: Additional searchable fields available for Exchange assets
+          type: array
+          items:
+            type: object
+    GeneralPermissions:
+      description: Design Center general (org-level) permissions for the current user
+      type: object
+      required:
+      - canCreate
+      - canPublish
+      - canAdministrate
+      properties:
+        canCreate:
+          type: boolean
+        canPublish:
+          type: boolean
+        canAdministrate:
+          type: boolean
+    ExternalRepository:
+      type: object
+      required:
+      - name
+      - owner
+      - private
+      - imported
+      - description
+      properties:
+        name:
+          type: string
+        owner:
+          type: object
+          required:
+          - name
+          - type
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+        private:
+          type: boolean
+        imported:
+          type: boolean
+        description:
+          type: string
+    ExternalOrganization:
+      type: object
+      required:
+      - name
+      - type
+      properties:
+        name:
+          type: string
+        type:
+          type: string
     items:
       example:
         type: FOLDER
@@ -2022,7 +4087,7 @@ components:
         pattern: ^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$
       x-origin:
       - api: urn:api:api-designer-experience
-        operation: getProjects
+        operation: listProjects
         description: GET `/projects` in this API; use `[].id` values as `projectId`.
         values: $[*].id
         labels: $[*].name

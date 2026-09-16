@@ -1,0 +1,17 @@
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: api-${API_INDEX}-rate-limit
+  namespace: flex
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: api-${API_INDEX}
+  policyRef:
+    kind: Extension
+    name: rate-limiting-flex
+  config:
+    rateLimits:
+      - maximumRequests: ${RATE_LIMIT_RPS}
+        timePeriodInMilliseconds: 1000
+---

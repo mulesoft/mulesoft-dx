@@ -5,16 +5,17 @@ info:
   description: Manage APIs, policies, contracts, and SLA tiers within Anypoint Platform. Create, configure, deploy, and monitor APIs across organizations and environments, including API policies, client application contracts, automated policies, API groups, upstream configurations, and TLS contexts.
 servers:
 - url: https://anypoint.mulesoft.com/apimanager/api/v1
-- url: https://{region}.anypoint.mulesoft.com/apimanager/api/v1
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/apimanager/api/v1
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/apimanager/api/v1
+  description: EU
+- url: https://ca1.platform.mulesoft.com/apimanager/api/v1
+  description: CA
+- url: https://jp1.platform.mulesoft.com/apimanager/api/v1
+  description: JP
+- url: https://in1.platform.mulesoft.com/apimanager/api/v1
+  description: IN
+- url: https://au1.platform.mulesoft.com/apimanager/api/v1
+  description: AU
 security:
 - bearerAuth: []
 - clientAuth: []
@@ -59,7 +60,8 @@ paths:
             example: apimanager/examples/responses/application-import.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsApplications
+      summary: Import a client application
+      operationId: importApplication
     parameters:
     - $ref: '#/components/parameters/param_organization_id'
   /organizations/{organizationId}/environments/{environmentId}/apis:
@@ -155,7 +157,8 @@ paths:
           allOf:
           - x-force-coercion-to: boolean
           - type: boolean
-      operationId: listOrganizationsEnvironmentsApis
+      summary: List APIs
+      operationId: listApiInstances
     post:
       responses:
         '201':
@@ -221,7 +224,8 @@ paths:
               required: []
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApis
+      summary: Create an API
+      operationId: createApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -263,7 +267,8 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
             default: false
-      operationId: getOrganizationsEnvironmentsApis
+      summary: Get an API
+      operationId: getApiInstance
     put:
       responses:
         '201':
@@ -286,7 +291,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApis
+      summary: Update an API
+      operationId: updateApiInstance
     patch:
       responses:
         '200':
@@ -326,13 +332,15 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
             default: false
-      operationId: patchOrganizationsEnvironmentsApis
+      summary: Update an API
+      operationId: patchApiInstance
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes an API\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
-      operationId: deleteOrganizationsEnvironmentsApis
+      summary: Delete an API
+      operationId: deleteApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -348,13 +356,15 @@ paths:
                 id: 550e8400-e29b-41d4-a716-446655440000
                 message: Resource created successfully
       description: "Pins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
-      operationId: updateOrganizationsEnvironmentsApisPin
+      summary: Pin an API version
+      operationId: pinApiInstance
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Unpins an environment API version\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
-      operationId: deleteOrganizationsEnvironmentsApisPin
+      summary: Unpin an API version
+      operationId: unpinApiInstance
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -380,7 +390,8 @@ paths:
               $ref: ./apimanager/schemas/upstreamPOST-oas.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisUpstreams
+      summary: Create an API upstream
+      operationId: createApiInstanceUpstream
     get:
       responses:
         '200':
@@ -393,7 +404,8 @@ paths:
                 Upstreams:
                   $ref: ./apimanager/examples/responses/upstreams.json
       description: "Get API version upstreams\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
-      operationId: listOrganizationsEnvironmentsApisUpstreams
+      summary: List API upstreams
+      operationId: listApiInstanceUpstreams
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -411,7 +423,8 @@ paths:
                 Upstream:
                   $ref: ./apimanager/examples/responses/upstream.json
       description: "Get an upstream\n\nConnected Apps require the following scopes:\n  - View APIs Configuration\n"
-      operationId: getOrganizationsEnvironmentsApisUpstreams
+      summary: Get an API upstream
+      operationId: getApiInstanceUpstream
     patch:
       responses:
         '200':
@@ -434,7 +447,8 @@ paths:
               $ref: ./apimanager/schemas/upstreamPATCH-oas.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisUpstreams
+      summary: Update an API upstream
+      operationId: updateApiInstanceUpstream
     delete:
       responses:
         default:
@@ -444,7 +458,8 @@ paths:
               example:
                 message: Success
       description: "Delete an upstream\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
-      operationId: deleteOrganizationsEnvironmentsApisUpstreams
+      summary: Delete an API upstream
+      operationId: deleteApiInstanceUpstream
     parameters:
     - $ref: '#/components/parameters/param_upstream_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -495,7 +510,8 @@ paths:
           allOf:
           - x-force-coercion-to: boolean
           - type: boolean
-      operationId: listOrganizationsEnvironmentsApisPolicies
+      summary: List API policies
+      operationId: listApiInstancePolicies
     post:
       responses:
         '201':
@@ -516,7 +532,8 @@ paths:
               description: Example description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisPolicies
+      summary: Apply a new API policy
+      operationId: applyApiInstancePolicy
     patch:
       responses:
         '200':
@@ -547,7 +564,8 @@ paths:
                 type: object
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisPoliciesBulk
+      summary: Reorder API policies
+      operationId: reorderApiInstancePolicies
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -565,7 +583,8 @@ paths:
                 Policies:
                   $ref: ./apimanager/examples/responses/policies.json
       description: "Retrieves a specific policy for the API\n\nConnected Apps require the following scopes:\n  - View Policies\n"
-      operationId: getOrganizationsEnvironmentsApisPolicies
+      summary: Get an API policy
+      operationId: getApiInstancePolicy
     patch:
       responses:
         '200':
@@ -585,13 +604,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsEnvironmentsApisPolicy
+      summary: Update an API policy
+      operationId: updateApiInstancePolicy
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Unapplies a policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
-      operationId: deleteOrganizationsEnvironmentsApisPolicies
+      summary: Unapply an API policy
+      operationId: unapplyApiInstancePolicy
     parameters:
     - $ref: '#/components/parameters/param_policy_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -624,7 +645,8 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
             default: false
-      operationId: createOrganizationsEnvironmentsApisPoliciesImplementationasset
+      summary: Update policy implementation asset
+      operationId: updateApiInstancePolicyImplementationAsset
     parameters:
     - $ref: '#/components/parameters/param_policy_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -657,7 +679,8 @@ paths:
       - $ref: '#/components/parameters/trait_searchable_sort'
       - $ref: '#/components/parameters/trait_searchable_ascending'
       - $ref: '#/components/parameters/trait_searchable_query'
-      operationId: listOrganizationsEnvironmentsApisTiers
+      summary: List API tiers
+      operationId: listApiInstanceTiers
     post:
       responses:
         '201':
@@ -694,13 +717,15 @@ paths:
                 $ref: ./apimanager/examples/requests/tier.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisTiers
+      summary: Create an SLA tier for the API
+      operationId: createApiInstanceTier
     head:
       responses:
         '200':
           description: Success. Returns the requested resource.
       description: Retrieves a count tiers of the API version
-      operationId: checkOrganizationsEnvironmentsApisTiers
+      summary: Count API tiers
+      operationId: checkApiInstanceTiers
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -742,13 +767,15 @@ paths:
                 $ref: ./apimanager/examples/requests/tier.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisTiers
+      summary: Update an API tier
+      operationId: updateApiInstanceTier
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes a tier that has no active applications\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
-      operationId: deleteOrganizationsEnvironmentsApisTiers
+      summary: Delete an API tier
+      operationId: deleteApiInstanceTier
     parameters:
     - $ref: '#/components/parameters/param_tier_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -760,7 +787,8 @@ paths:
         '200':
           description: Success. Returns the requested resource.
       description: Retrieves a count group tiers of the API version
-      operationId: checkOrganizationsEnvironmentsApisGrouptiers
+      summary: Count API group tiers
+      operationId: checkApiInstanceGroupTiers
     get:
       responses:
         '200':
@@ -771,7 +799,8 @@ paths:
                 total: 0
                 data: []
       description: Returns a list of elements.
-      operationId: listOrganizationsEnvironmentsApisGrouptiers
+      summary: List API group tiers
+      operationId: listApiInstanceGroupTiers
     post:
       responses:
         '201':
@@ -792,7 +821,8 @@ paths:
               description: Example description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisGrouptiers
+      summary: Create an API group tier
+      operationId: createApiInstanceGroupTier
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -810,7 +840,8 @@ paths:
                 Contracts:
                   $ref: ./apimanager/examples/responses/contracts.json
       description: "Retrieves a list of group contracts of the API version\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
-      operationId: listOrganizationsEnvironmentsApisGroupcontracts
+      summary: List API group contracts
+      operationId: listApiInstanceGroupContracts
     post:
       responses:
         '201':
@@ -831,7 +862,8 @@ paths:
               description: Example description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisGroupcontracts
+      summary: Create an API group contract
+      operationId: createApiInstanceGroupContract
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -866,7 +898,8 @@ paths:
                 $ref: ./apimanager/examples/requests/contractThroughApi.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisContracts
+      summary: Create an API contract
+      operationId: createApiInstanceContract
     get:
       responses:
         '200':
@@ -912,7 +945,8 @@ paths:
       - $ref: '#/components/parameters/trait_searchable_sort'
       - $ref: '#/components/parameters/trait_searchable_ascending'
       - $ref: '#/components/parameters/trait_searchable_query'
-      operationId: listOrganizationsEnvironmentsApisContracts
+      summary: List API contracts
+      operationId: listApiInstanceContracts
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -930,7 +964,8 @@ paths:
                 Contracts:
                   $ref: ./apimanager/examples/responses/contracts.json
       description: "Retrieves a specific contract for the API\n\nConnected Apps require the following scopes:\n  - View Contracts\n"
-      operationId: getOrganizationsEnvironmentsApisContracts
+      summary: Get an API contract
+      operationId: getApiInstanceContract
     patch:
       responses:
         '200':
@@ -953,13 +988,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisContracts
+      summary: Update API contract conditions
+      operationId: updateApiInstanceContract
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes the contract\n\nConnected Apps require the following scopes:\n  - Manage Contracts\n"
-      operationId: deleteOrganizationsEnvironmentsApisContracts
+      summary: Delete an API contract
+      operationId: deleteApiInstanceContract
     parameters:
     - $ref: '#/components/parameters/param_contract_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -978,7 +1015,8 @@ paths:
                 Contract:
                   $ref: ./apimanager/examples/responses/alerts.json
       description: "Retrieves a list of API alerts\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
-      operationId: listOrganizationsEnvironmentsApisAlerts
+      summary: List API alerts
+      operationId: listApiInstanceAlerts
     post:
       responses:
         '201':
@@ -1001,7 +1039,8 @@ paths:
                 $ref: ./apimanager/examples/requests/alert.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisAlerts
+      summary: Create an API alert
+      operationId: createApiInstanceAlert
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1038,7 +1077,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Retrieves an API alert\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
-      operationId: getOrganizationsEnvironmentsApisAlerts
+      summary: Get an API alert
+      operationId: getApiInstanceAlert
     patch:
       responses:
         '200':
@@ -1087,7 +1127,8 @@ paths:
                 $ref: ./apimanager/examples/requests/alert.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisAlerts
+      summary: Update an API alert
+      operationId: updateApiInstanceAlert
     delete:
       responses:
         '204':
@@ -1112,7 +1153,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Deletes the specified alert definition\n\nConnected Apps require the following scopes:\n  - Manage API Alerts\n"
-      operationId: deleteOrganizationsEnvironmentsApisAlerts
+      summary: Delete an API alert
+      operationId: deleteApiInstanceAlert
     parameters:
     - $ref: '#/components/parameters/param_alert_id'
     - $ref: '#/components/parameters/param_environment_api_id'
@@ -1157,7 +1199,8 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
             default: false
-      operationId: listOrganizationsEnvironmentsApisBundle
+      summary: Export the API bundle
+      operationId: exportApiInstanceBundle
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1173,13 +1216,15 @@ paths:
                 id: 550e8400-e29b-41d4-a716-446655440000
                 message: Resource created successfully
       description: "Adds a new API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
-      operationId: updateOrganizationsEnvironmentsApisTags
+      summary: Add a new API tag
+      operationId: addApiInstanceTag
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes an API tag\n\nConnected Apps require the following scopes:\n  - Manage APIs Configuration\n"
-      operationId: deleteOrganizationsEnvironmentsApisTags
+      summary: Delete an API tag
+      operationId: deleteApiInstanceTag
     parameters:
     - name: tag
       in: path
@@ -1209,7 +1254,8 @@ paths:
         description: The version of the gateway that will use the autodiscovery properties to track this API, written in semver.
         schema:
           type: string
-      operationId: listOrganizationsEnvironmentsApisAutodiscoveryproperties
+      summary: Get API autodiscovery properties
+      operationId: getApiInstanceAutodiscoveryProperties
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1241,7 +1287,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: Retrieves TLS Contexts configuration for a given API endpoint
-      operationId: listOrganizationsEnvironmentsApisTlscontexts
+      summary: Get API TLS context configuration
+      operationId: getApiInstanceTlsContexts
     post:
       responses:
         '201':
@@ -1276,7 +1323,8 @@ paths:
                 $ref: ./apimanager/examples/tlsContextsRequest.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsApisTlscontexts
+      summary: Create API TLS context configuration
+      operationId: createApiInstanceTlsContexts
     put:
       responses:
         '200':
@@ -1296,13 +1344,15 @@ paths:
                 $ref: ./apimanager/examples/tlsContextsRequest.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsApisTlscontexts
+      summary: Update API TLS context configuration
+      operationId: updateApiInstanceTlsContexts
     delete:
       responses:
         '204':
           description: TLS Contexts successfully deleted
       description: Deletes TLS Contexts configuration
-      operationId: deleteOrganizationsEnvironmentsApisTlscontexts
+      summary: Delete API TLS context configuration
+      operationId: deleteApiInstanceTlsContexts
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1335,7 +1385,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupInstanceCreation.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsGroupinstances
+      summary: Create a group instance
+      operationId: createGroupInstance
     get:
       responses:
         '200':
@@ -1346,7 +1397,8 @@ paths:
                 total: 0
                 data: []
       description: "Gets a list of group istances by environmentId\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsEnvironmentsGroupinstances
+      summary: List group instances
+      operationId: listGroupInstances
     parameters:
     - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -1368,7 +1420,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Gets a group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: getOrganizationsEnvironmentsGroupinstances
+      summary: Get a group instance
+      operationId: getGroupInstance
     patch:
       responses:
         '200':
@@ -1388,7 +1441,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsGroupinstances
+      summary: Update a group instance
+      operationId: updateGroupInstance
     delete:
       responses:
         '201':
@@ -1399,7 +1453,8 @@ paths:
                 id: 550e8400-e29b-41d4-a716-446655440000
                 message: Resource created successfully
       description: "Deletes a group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: deleteOrganizationsEnvironmentsGroupinstances
+      summary: Delete a group instance
+      operationId: deleteGroupInstance
     parameters:
     - $ref: '#/components/parameters/param_group_instance_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1434,7 +1489,8 @@ paths:
                 $ref: ./apimanager/examples/requests/contractThroughApi.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsGroupinstancesContracts
+      summary: Create a group instance contract
+      operationId: createGroupInstanceContract
     get:
       responses:
         '200':
@@ -1447,13 +1503,15 @@ paths:
                 GroupContract:
                   $ref: ./apimanager/examples/responses/apiGroups/groupInstanceContractsRetrieve.json
       description: "Retrieves the list of contracts of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsEnvironmentsGroupinstancesContracts
+      summary: List group instance contracts
+      operationId: listGroupInstanceContracts
     head:
       responses:
         '200':
           description: Success. Returns the requested resource.
       description: "Retrieves the count of contracts of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: checkOrganizationsEnvironmentsGroupinstancesContracts
+      summary: Count group instance contracts
+      operationId: checkGroupInstanceContracts
     parameters:
     - $ref: '#/components/parameters/param_group_instance_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1471,13 +1529,15 @@ paths:
                 GroupContract:
                   $ref: ./apimanager/examples/responses/apiGroups/groupInstanceContractsRetrieve.json
       description: "Retrieves a specific contract for the group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: getOrganizationsEnvironmentsGroupinstancesContracts
+      summary: Get a group instance contract
+      operationId: getGroupInstanceContract
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: "Deletes a group instance contract that is not currently applied\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: deleteOrganizationsEnvironmentsGroupinstancesContracts
+      summary: Delete a group instance contract
+      operationId: deleteGroupInstanceContract
     patch:
       responses:
         '200':
@@ -1487,7 +1547,8 @@ paths:
               example:
                 message: Resource updated successfully
       description: "Updates a group instance contract\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: updateOrganizationsEnvironmentsGroupinstancesContracts
+      summary: Update a group instance contract
+      operationId: updateGroupInstanceContract
     parameters:
     - $ref: '#/components/parameters/param_contract_id_string'
     - $ref: '#/components/parameters/param_group_instance_id'
@@ -1506,7 +1567,8 @@ paths:
                 GroupTier:
                   $ref: ./apimanager/examples/responses/apiGroups/groupInstanceTiersRetrieve.json
       description: "Retrieves the tiers of a Group instance\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsEnvironmentsGroupinstancesTiers
+      summary: List group instance tiers
+      operationId: listGroupInstanceTiers
     post:
       responses:
         '201':
@@ -1536,7 +1598,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupInstanceTierCreation.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsGroupinstancesTiers
+      summary: Create a group instance tier
+      operationId: createGroupInstanceTier
     parameters:
     - $ref: '#/components/parameters/param_group_instance_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1561,13 +1624,15 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Retrieves a group instance tier\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: getOrganizationsEnvironmentsGroupinstancesTiers
+      summary: Get a group instance tier
+      operationId: getGroupInstanceTier
     delete:
       responses:
         '204':
           description: The element has been deleted successfully.
       description: "Deletes a tier that has no active applications\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: deleteOrganizationsEnvironmentsGroupinstancesTiers
+      summary: Delete a group instance tier
+      operationId: deleteGroupInstanceTier
     put:
       responses:
         '200':
@@ -1611,7 +1676,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsGroupinstancesTiers
+      summary: Replace a group instance tier
+      operationId: updateGroupInstanceTier
     patch:
       responses:
         '200':
@@ -1631,7 +1697,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsEnvironmentsGroupinstancesTiers
+      summary: Update a group instance tier
+      operationId: patchGroupInstanceTier
     parameters:
     - $ref: '#/components/parameters/param_tier_id'
     - $ref: '#/components/parameters/param_group_instance_id'
@@ -1648,7 +1715,8 @@ paths:
                 total: 0
                 data: []
       description: "Gets API instances of a group instances\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsEnvironmentsGroupinstancesApiinstances
+      summary: List group instance APIs
+      operationId: listGroupInstanceApiInstances
     parameters:
     - $ref: '#/components/parameters/param_group_instance_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1672,7 +1740,8 @@ paths:
               examples:
                 ApiList:
                   $ref: ./apimanager/examples/responses/managedServices/apiList.json
-      operationId: listOrganizationsEnvironmentsManagedserviceapis
+      summary: List managed service APIs
+      operationId: listManagedServiceApis
     parameters:
     - $ref: '#/components/parameters/param_environment_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -1689,7 +1758,8 @@ paths:
                 Api:
                   $ref: ./apimanager/examples/responses/managedServices/managedServiceApiGet.json
       description: Retrieve a specific Managed Service API
-      operationId: getOrganizationsEnvironmentsManagedserviceapis
+      summary: Get a managed service API
+      operationId: getManagedServiceApi
     patch:
       responses:
         '200':
@@ -1712,7 +1782,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsManagedserviceapis
+      summary: Update managed service API details
+      operationId: updateManagedServiceApi
     parameters:
     - $ref: '#/components/parameters/param_managed_service_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1740,7 +1811,8 @@ paths:
               description: Example description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsManagedserviceapisPolicies
+      summary: Create a managed service API policy
+      operationId: createManagedServiceApiPolicy
     get:
       description: 'Retrieves all policies applied to a specific Managed Service API.
 
@@ -1775,7 +1847,8 @@ paths:
           - x-force-coercion-to: boolean
           - type: boolean
         description: The fullInfo query parameter.
-      operationId: listOrganizationsEnvironmentsManagedserviceapisPolicies
+      summary: List managed service API policies
+      operationId: listManagedServiceApiPolicies
     parameters:
     - $ref: '#/components/parameters/param_managed_service_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1799,7 +1872,8 @@ paths:
               examples:
                 Policy:
                   $ref: ./apimanager/examples/responses/managedServices/policy.json
-      operationId: getOrganizationsEnvironmentsManagedserviceapisPolicies
+      summary: Get a managed service API policy
+      operationId: getManagedServiceApiPolicy
     patch:
       responses:
         '200':
@@ -1822,13 +1896,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsManagedserviceapisPolicies
+      summary: Update a managed service API policy
+      operationId: updateManagedServiceApiPolicy
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: Unapplies a policy.
-      operationId: deleteOrganizationsEnvironmentsManagedserviceapisPolicies
+      summary: Unapply a managed service API policy
+      operationId: unapplyManagedServiceApiPolicy
     parameters:
     - $ref: '#/components/parameters/param_policy_id'
     - $ref: '#/components/parameters/param_managed_service_api_id'
@@ -1847,7 +1923,8 @@ paths:
                 Tiers:
                   $ref: ./apimanager/examples/responses/managedServices/managedServiceApiTiersRetrieve.json
       description: Retrieves the tiers of a Managed Service API
-      operationId: listOrganizationsEnvironmentsManagedserviceapisTiers
+      summary: List managed service API tiers
+      operationId: listManagedServiceApiTiers
     post:
       responses:
         '201':
@@ -1870,7 +1947,8 @@ paths:
                 $ref: ./apimanager/examples/requests/managedServices/managedServiceApiTier.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsManagedserviceapisTiers
+      summary: Create a managed service API tier
+      operationId: createManagedServiceApiTier
     parameters:
     - $ref: '#/components/parameters/param_managed_service_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1898,13 +1976,15 @@ paths:
                 $ref: ./apimanager/examples/requests/managedServices/managedServiceApiTier.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsManagedserviceapisTiers
+      summary: Edit a managed service API tier
+      operationId: updateManagedServiceApiTier
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: Delete a tier of a Managed Service API
-      operationId: deleteOrganizationsEnvironmentsManagedserviceapisTiers
+      summary: Delete a managed service API tier
+      operationId: deleteManagedServiceApiTier
     parameters:
     - $ref: '#/components/parameters/param_tier_id_managed_service'
     - $ref: '#/components/parameters/param_managed_service_api_id'
@@ -1923,7 +2003,8 @@ paths:
                 Contracts:
                   $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContractsRetrieve.json
       description: Retrieves the contracts of a Managed Service API
-      operationId: listOrganizationsEnvironmentsManagedserviceapisContracts
+      summary: List managed service API contracts
+      operationId: listManagedServiceApiContracts
     post:
       responses:
         '201':
@@ -1946,7 +2027,8 @@ paths:
                 $ref: ./apimanager/examples/requests/managedServices/managedServiceApiContract.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsEnvironmentsManagedserviceapisContracts
+      summary: Create a managed service API contract
+      operationId: createManagedServiceApiContract
     parameters:
     - $ref: '#/components/parameters/param_managed_service_api_id'
     - $ref: '#/components/parameters/param_environment_id'
@@ -1964,7 +2046,8 @@ paths:
                 Contract:
                   $ref: ./apimanager/examples/responses/managedServices/managedServiceApiContractRetrieve.json
       description: Retrieves a contract of a Managed Service API
-      operationId: getOrganizationsEnvironmentsManagedserviceapisContracts
+      summary: Get a managed service API contract
+      operationId: getManagedServiceApiContract
     patch:
       responses:
         '201':
@@ -1987,13 +2070,15 @@ paths:
                 $ref: ./apimanager/examples/requests/managedServices/managedServiceApiContractPatch.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsEnvironmentsManagedserviceapisContracts
+      summary: Edit a managed service API contract
+      operationId: updateManagedServiceApiContract
     delete:
       responses:
         '204':
           description: No Content. The operation completed successfully with no response body.
       description: Delete a contract of a Managed Service API
-      operationId: deleteOrganizationsEnvironmentsManagedserviceapisContracts
+      summary: Delete a managed service API contract
+      operationId: deleteManagedServiceApiContract
     parameters:
     - $ref: '#/components/parameters/param_contract_id_string'
     - $ref: '#/components/parameters/param_managed_service_api_id'
@@ -2016,7 +2101,8 @@ paths:
       - $ref: '#/components/parameters/trait_searchable_sort'
       - $ref: '#/components/parameters/trait_searchable_ascending'
       - $ref: '#/components/parameters/trait_searchable_query'
-      operationId: listOrganizationsCustompolicytemplates
+      summary: List custom policy templates
+      operationId: listCustomPolicyTemplates
     post:
       responses:
         '201':
@@ -2057,7 +2143,8 @@ paths:
               required: []
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsCustompolicytemplates
+      summary: Create a custom policy template
+      operationId: createCustomPolicyTemplate
     parameters:
     - $ref: '#/components/parameters/param_organization_id'
   /organizations/{organizationId}/custom-policy-templates/{customPolicyTemplateId}:
@@ -2071,7 +2158,8 @@ paths:
                 id: 550e8400-e29b-41d4-a716-446655440000
                 name: Example Resource
       description: Returns an instance of a single element.
-      operationId: getOrganizationsCustompolicytemplates
+      summary: Get a custom policy template
+      operationId: getCustomPolicyTemplate
     put:
       responses:
         '201':
@@ -2092,7 +2180,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsCustompolicytemplates
+      summary: Replace a custom policy template
+      operationId: updateCustomPolicyTemplate
     patch:
       responses:
         '200':
@@ -2112,13 +2201,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsCustompolicytemplates
+      summary: Update a custom policy template
+      operationId: patchCustomPolicyTemplate
     delete:
       responses:
         '204':
           description: The element has been deleted successfully.
       description: Deletes the instance of the element specified.
-      operationId: deleteOrganizationsCustompolicytemplates
+      summary: Delete a custom policy template
+      operationId: deleteCustomPolicyTemplate
     parameters:
     - $ref: '#/components/parameters/param_custom_policy_template_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2133,7 +2224,8 @@ paths:
                 total: 0
                 data: []
       description: The XML configuration for the custom policy template.
-      operationId: listOrganizationsCustompolicytemplatesConfiguration
+      summary: Get custom policy template configuration
+      operationId: getCustomPolicyTemplateConfiguration
     parameters:
     - $ref: '#/components/parameters/param_custom_policy_template_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2148,7 +2240,8 @@ paths:
                 total: 0
                 data: []
       description: The YAML definition for the custom policy template.
-      operationId: listOrganizationsCustompolicytemplatesDefinition
+      summary: Get custom policy template definition
+      operationId: getCustomPolicyTemplateDefinition
     parameters:
     - $ref: '#/components/parameters/param_custom_policy_template_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2197,7 +2290,8 @@ paths:
           pattern: ^v\d+(.\d+)?(.\d+)?$
           type: string
         description: The version query parameter.
-      operationId: listOrganizationsPolicytemplates
+      summary: List policy templates
+      operationId: listPolicyTemplates
     parameters:
     - $ref: '#/components/parameters/param_organization_id'
   /organizations/{organizationId}/policy-templates/{policyTemplateId}:
@@ -2249,7 +2343,8 @@ paths:
           pattern: ^v\d+(.\d+)?(.\d+)?$
           type: string
         description: The version query parameter.
-      operationId: getOrganizationsPolicytemplates
+      summary: Get a policy template
+      operationId: getPolicyTemplate
     parameters:
     - $ref: '#/components/parameters/param_policy_template_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2267,7 +2362,8 @@ paths:
         description: A semver string that will be checked for an exact match of Runtime Version
         schema:
           type: string
-      operationId: checkOrganizationsAutomatedpolicies
+      summary: Count automated policies
+      operationId: checkAutomatedPolicies
     get:
       responses:
         '200':
@@ -2295,7 +2391,8 @@ paths:
         description: A semver string that will be checked for an exact match of Runtime Version
         schema:
           type: string
-      operationId: listOrganizationsAutomatedpolicies
+      summary: List automated policies
+      operationId: listAutomatedPolicies
     post:
       responses:
         '201':
@@ -2330,7 +2427,8 @@ paths:
                 $ref: ./apimanager/examples/requests/automatedPolicy.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsAutomatedpolicies
+      summary: Create an automated policy
+      operationId: createAutomatedPolicy
     parameters:
     - $ref: '#/components/parameters/param_organization_id'
   /organizations/{organizationId}/automated-policies/{automatedPolicyId}:
@@ -2346,7 +2444,8 @@ paths:
                 AutomatedPolicies:
                   $ref: ./apimanager/examples/responses/automatedPolicies/automatedPoliciesRetrieve.json
       description: "Retrieves an Automated Policy.\n\nConnected Apps require the following scopes:\n  - View Policies\n"
-      operationId: getOrganizationsAutomatedpolicies
+      summary: Get an automated policy
+      operationId: getAutomatedPolicy
     patch:
       responses:
         '200':
@@ -2373,7 +2472,8 @@ paths:
                 $ref: ./apimanager/examples/requests/automatedPolicy.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsAutomatedpolicies
+      summary: Update an automated policy
+      operationId: patchAutomatedPolicy
     delete:
       responses:
         '204':
@@ -2386,7 +2486,8 @@ paths:
                 error: Bad Request
                 message: Invalid request parameters
       description: "Deletes an Automated Policy\n\nConnected Apps require the following scopes:\n  - Manage Policies\n"
-      operationId: deleteOrganizationsAutomatedpolicies
+      summary: Delete an automated policy
+      operationId: deleteAutomatedPolicy
     put:
       responses:
         '201':
@@ -2407,7 +2508,8 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsAutomatedpolicies
+      summary: Replace an automated policy
+      operationId: updateAutomatedPolicy
     parameters:
     - $ref: '#/components/parameters/param_automated_policy_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2462,7 +2564,8 @@ paths:
         schema:
           default: 100
           type: integer
-      operationId: listOrganizationsAutomatedpoliciesApis
+      summary: List APIs affected by policy
+      operationId: listAutomatedPolicyApis
     parameters:
     - $ref: '#/components/parameters/param_automated_policy_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2481,7 +2584,8 @@ paths:
       description: Delete Automated Policy coverage over the apiVersion specified due to incompatible implementation for the proxy version.
       parameters:
       - $ref: '#/components/parameters/XOrigin_environmentId_Query'
-      operationId: deleteOrganizationsAutomatedpoliciesIncompatibleapis
+      summary: Remove incompatible API from policy
+      operationId: deleteAutomatedPolicyIncompatibleApi
     parameters:
     - $ref: '#/components/parameters/param_environment_api_id'
     - $ref: '#/components/parameters/param_automated_policy_id'
@@ -2513,7 +2617,8 @@ paths:
           allOf:
           - x-force-coercion-to: boolean
           - type: boolean
-      operationId: createOrganizationsAutomatedpoliciesImplementationassets
+      summary: Update policy implementation assets
+      operationId: setAutomatedPolicyImplementationAssets
     parameters:
     - $ref: '#/components/parameters/param_automated_policy_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2544,7 +2649,8 @@ paths:
         description: Search groups by name
         schema:
           type: string
-      operationId: listOrganizationsGroups
+      summary: List groups
+      operationId: listGroups
     post:
       responses:
         '201':
@@ -2574,7 +2680,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupCreation.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsGroups
+      summary: Create a group
+      operationId: createGroup
     parameters:
     - $ref: '#/components/parameters/param_organization_id'
   /organizations/{organizationId}/groups/{groupId}:
@@ -2597,7 +2704,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Retrieves a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: getOrganizationsGroups
+      summary: Get a group
+      operationId: getGroup
     patch:
       responses:
         '200':
@@ -2624,7 +2732,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupUpdate.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsGroups
+      summary: Update a group
+      operationId: patchGroup
     put:
       responses:
         '201':
@@ -2645,13 +2754,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsGroups
+      summary: Replace a group
+      operationId: updateGroup
     delete:
       responses:
         '204':
           description: The element has been deleted successfully.
       description: Deletes the instance of the element specified.
-      operationId: deleteOrganizationsGroups
+      summary: Delete a group
+      operationId: deleteGroup
     parameters:
     - $ref: '#/components/parameters/param_api_group_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2683,7 +2794,8 @@ paths:
               description: Example description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsGroupsAssets
+      summary: Create a group asset
+      operationId: createGroupAsset
     parameters:
     - $ref: '#/components/parameters/param_api_group_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2717,7 +2829,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupVersionCreation.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: createOrganizationsGroupsVersions
+      summary: Create a group version
+      operationId: createGroupVersion
     get:
       responses:
         '200':
@@ -2730,7 +2843,8 @@ paths:
                 Group:
                   $ref: ./apimanager/examples/responses/apiGroups/groupVersionsRetrieve.json
       description: "Retrieves all versions of a Group\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsGroupsVersions
+      summary: List group versions
+      operationId: listGroupVersions
     parameters:
     - $ref: '#/components/parameters/param_api_group_id'
     - $ref: '#/components/parameters/param_organization_id'
@@ -2754,7 +2868,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Retrieves a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: getOrganizationsGroupsVersions
+      summary: Get a group version
+      operationId: getGroupVersion
     patch:
       responses:
         '200':
@@ -2788,7 +2903,8 @@ paths:
                 $ref: ./apimanager/examples/requests/apiGroups/groupVersionUpdate.json
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: patchOrganizationsGroupsVersions
+      summary: Update a group version
+      operationId: patchGroupVersion
     put:
       responses:
         '201':
@@ -2809,13 +2925,15 @@ paths:
               description: Updated description
         required: true
         description: Request body containing the data needed for this operation.
-      operationId: updateOrganizationsGroupsVersions
+      summary: Replace a group version
+      operationId: updateGroupVersion
     delete:
       responses:
         '204':
           description: The element has been deleted successfully.
       description: Deletes the instance of the element specified.
-      operationId: deleteOrganizationsGroupsVersions
+      summary: Delete a group version
+      operationId: deleteGroupVersion
     parameters:
     - $ref: '#/components/parameters/param_group_version_id'
     - $ref: '#/components/parameters/param_api_group_id'
@@ -2840,7 +2958,8 @@ paths:
                 error: Not Found
                 message: Resource not found
       description: "Retrieves the instances contained in a Group Version\n\nConnected Apps require the following scopes:\n  - API Group Administrator\n"
-      operationId: listOrganizationsGroupsVersionsInstances
+      summary: List group version instances
+      operationId: listGroupVersionInstances
     parameters:
     - $ref: '#/components/parameters/param_group_version_id'
     - $ref: '#/components/parameters/param_api_group_id'
@@ -2904,7 +3023,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         name: getAssetsAssetId
         values: $[*].assetId
         labels: $[*].name
@@ -2916,7 +3035,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         name: getAssetsGroupId
         values: $[*].groupId
         labels: $[*].name
@@ -2929,7 +3048,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         description: Align with Exchange asset version for the same assetId + groupId; exact response shape depends on search results.
         values: $[*].version
         labels: $[*].name
@@ -2943,7 +3062,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApisUpstreams
+        operation: listApiInstanceUpstreams
         values: $.id
         labels: $.name
     param_policy_id:
@@ -2965,7 +3084,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsApisAlerts
+        operation: listApiInstanceAlerts
         values: $.id
         labels: $.name
     param_group_instance_id:
@@ -2979,7 +3098,7 @@ components:
         type: integer
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsGroupinstances
+        operation: listGroupInstances
         values: $.id
         labels: $.name
     param_managed_service_api_id:
@@ -2993,7 +3112,7 @@ components:
         type: integer
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsEnvironmentsManagedserviceapis
+        operation: listManagedServiceApis
         values: $.id
         labels: $.name
     param_custom_policy_template_id:
@@ -3007,7 +3126,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsPolicytemplates
+        operation: listPolicyTemplates
         values: $.id
         labels: $.name
     param_automated_policy_id:
@@ -3021,7 +3140,7 @@ components:
         type: integer
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsAutomatedpolicies
+        operation: listAutomatedPolicies
         values: $.id
         labels: $.name
     param_api_group_id:
@@ -3037,7 +3156,7 @@ components:
         type: integer
       x-origin:
       - api: urn:api:api-manager
-        operation: listOrganizationsGroupsVersions
+        operation: listGroupVersions
         values: $.id
         labels: $.name
     XOrigin_environmentId_Query:

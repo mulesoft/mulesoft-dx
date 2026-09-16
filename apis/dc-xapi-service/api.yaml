@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: Design Center Experience API
+  description: Experience API that powers Design Center. Retrieves environment configuration and feature flags, resolves the authenticated user's profile, lists and paginates projects within an organization, and reports usage events to the metrics service.
+  version: 2.0.0
+servers:
+- url: https://anypoint.mulesoft.com/designcenter/api/v2
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/designcenter/api/v2
+  description: EU
+security:
+- bearerAuth: []
+- clientAuth: []
+paths:
+  /status:
+    get:
+      description: Check whether the xAPI is up.
+      operationId: getStatus
+      security: []
+      responses:
+        '200':
+          description: Successful operation.
+  /status/apis:
+    get:
+      description: List the downstream APIs the xAPI depends on, including whether each is mocked.
+      operationId: getStatusApis
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    url:
+                      type: string
+                    isMock:
+                      type: boolean
+              example:
+              - name: project-manager
+                url: https://project-manager.msap.svc.mesh.sfdc.net
+                isMock: false
+  /features:
+    post:
+      description: Get the enabled/disabled status for a list of feature flag names.
+      operationId: getFeatures
+      requestBody:
+        description: List of feature flag names to check.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+            example:
+            - fstFeature
+            - sndFeature
+      responses:
+        '200':
+          description: Successful operation. Returns a map of feature flag name to enabled status.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: boolean
+              example:
+                fstFeature: true
+                sndFeature: false
+  /configuration:
+    get:
+      description: Get the runtime configuration for the current environment (feature flags, downstream service URLs, and related settings consumed by the Design Center UI).
+      operationId: getConfiguration
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                anypointEnv: qax
+                features:
+                  eastwood-design-services: true
+                  project-sharing: true
+                  externalVcs: false
+  /oauth-callback:
+    get:
+      description: Exchange an OAuth2 authorization code and redirect the browser back to the originating URL.
+      operationId: getOauthCallback
+      security: []
+      parameters:
+      - name: code
+        in: query
+        description: Authorization code issued by the identity provider.
+        required: true
+        schema:
+          type: string
+      - name: state
+        in: query
+        description: Opaque state value containing the redirectUrl as a JSON object.
+        required: false
+        schema:
+          type: string
+      responses:
+        '302':
+          description: Redirects the browser back to the original application URL.
+  /auth/profile:
+    get:
+      description: Get the authenticated Core Services user's profile.
+      operationId: getAuthProfile
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 63409c62-0824-4d21-84dc-40531be0ea78
+                username: jdoe
+                firstName: Jane
+                lastName: Doe
+                email: jdoe@example.com
+  /auth/me:
+    get:
+      description: Get the authenticated Core Services user's identity, including organization membership.
+      operationId: getAuthMe
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                user:
+                  id: 63409c62-0824-4d21-84dc-40531be0ea78
+                  username: jdoe
+                  organization:
+                    id: 63409c62-0824-4d21-84dc-40531be0ea78
+                    name: Example Org
+  /organizations/{organizationId}/environments:
+    get:
+      description: List the environments available to the authenticated user within an organization.
+      operationId: getEnvironments
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+              - id: 4e07af9d-4d76-407e-a0d5-2f5c8d1e6f6d
+                name: Sandbox
+                isProduction: false
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /organizations/{organizationId}/projects:
+    get:
+      description: List Design Center projects that the authenticated user has access to within an organization. Supports pagination, free-text search, filtering, and sorting.
+      operationId: getProjects
+      parameters:
+      - name: pageIndex
+        in: query
+        description: Index of the page in a paginated project query.
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: pageSize
+        in: query
+        description: Size of each page in a paginated project query.
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: searchTerm
+        in: query
+        description: Search term used to filter projects by name.
+        required: false
+        schema:
+          type: string
+      - name: orderBy
+        in: query
+        description: "Column to order projects by. Prefix with `+` or `-` to indicate ascending or descending order (e.g. `+name`)."
+        required: false
+        schema:
+          type: string
+      - name: createdBy
+        in: query
+        description: Filter projects by the createdBy field.
+        required: false
+        schema:
+          type: string
+      - name: lastUpdateFrom
+        in: query
+        description: "Filter projects last updated on or after this timestamp (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`)."
+        required: false
+        schema:
+          type: string
+      - name: lastUpdateTo
+        in: query
+        description: "Filter projects last updated on or before this timestamp (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`)."
+        required: false
+        schema:
+          type: string
+      - name: projectType
+        in: query
+        description: Filter projects by a single project type.
+        required: false
+        schema:
+          type: string
+      - name: validProjectTypes
+        in: query
+        description: Filter projects by a comma-separated list of valid project types.
+        required: false
+        schema:
+          type: string
+      - name: shared
+        in: query
+        description: When true, return only projects that were shared with the authenticated user.
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation. Returns a page of projects.
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                total: 42
+                items:
+                - id: 8f14e45f-ceea-467e-8b0b-d6b6a6c6e6f6
+                  name: My API Project
+                  projectType: api
+                  createdBy: jdoe
+                  lastUpdated: "2026-06-15T10:30:00.000Z"
+        '400':
+          description: Invalid query parameters.
+        '401':
+          description: Authorization failed.
+        '403':
+          description: The authenticated user does not have access to the requested organization.
+        '429':
+          description: Too many requests.
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              example:
+                $ref: ./examples/responses/serverError.json
+    parameters:
+    - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+  /events:
+    post:
+      description: Report a product usage event to the MDAS Metrics service.
+      operationId: postEvent
+      requestBody:
+        description: Usage event payload to record against the MDAS Metrics service.
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: api_designer-design_center
+              payload:
+                org_id: 63409c62-0824-4d21-84dc-40531be0ea78
+                action_type: test
+                product_source: Design Center
+                group_id: 63409c62-0824-4d21-84dc-40531be0ea78
+                asset_id: testbusinessgroup_3742045289154
+                version: 1.0.0
+                classifier: raml
+                type: rest-api
+      responses:
+        '204':
+          description: Event accepted. No content is returned.
+components:
+  schemas: {}
+  responses: {}
+  parameters:
+    XOrigin_organizationId_Path:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    bearerAuth:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
+    clientAuth:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
+  links: {}
+  callbacks: {}

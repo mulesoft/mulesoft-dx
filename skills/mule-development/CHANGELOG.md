@@ -4,7 +4,7 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-06-26
+## [1.9.2] - 2026-09-16
 
 ### Changed
 
@@ -21,6 +21,78 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`build-mule-integration`** — all `scripts/*.sh` bash helpers (`build_deps`, `build_gav`, `commit_connectors`, `describe_connector`, `get_latest_connector`, `maybe_add_http_connector`, `pick_connector`, `search_templates`, `validate_before_build`, `validate_prerequisites`) and `scripts/write_mule_artifact_env.sh`, superseded by the `.mjs` equivalents.
 - **`build-mule-integration`** — `scripts/_suggest_nearest.py`, the Python fuzzy nearest-match helper. Its only consumer (`validate_before_build`) now uses `lib/nearest.mjs`, so the Python dependency is gone.
+
+## [1.9.1] - 2026-09-08
+
+### Changed
+
+- **`upgrade-mule-app`** — Step 1 now enforces a minimum DX Mule plugin version. `validate_prerequisites.mjs` reads the installed `@salesforce/anypoint-cli-dx-mule-plugin` version from `anypoint-cli-v4 plugins` and hard-fails (exit 1) when it is below **1.3.0**, the floor at which `dx mule jdk download` exists — the subcommand the skill uses to auto-provision the source and target JDKs (Steps 3b/13). An older plugin previously passed the `dx --help` presence check and only failed later at JDK-download time; it now stops up front with the fix command (`npm install -g @salesforce/anypoint-cli-dx-mule-plugin@latest`). New output fields `dxPluginVersion` and `dxPluginInRange` in `tmp/upgrade-prereqs.json`.
+
+## [1.9.0] - 2026-08-27
+
+### Added
+
+- **`upgrade-mule-app`** — new skill that upgrades a Mule application's Java and Mule Runtime version end to end. Detects the current versions, resolves a compatible target (runtime, JDK, and connector versions from live Maven metadata), and updates `pom.xml`, `mule-artifact.json`, and inherited parent POMs. Beyond bumping versions it remediates the source impact of newer connectors — renamed or removed operations, changed attributes, and error-type changes — across flow XML, DataWeave, MUnit tests, and custom-Java (`.java`) sources.
+
+## [1.8.4] - 2026-08-10
+
+### Fixed
+
+- **`build-agent-broker-project`** and **`translate-agent-broker-old-to-new-project`** — Removed the incorrect claim that connection ids (`context.connections.<id>`) and broker ids (keys under `brokers:`) are restricted by the V2 schema to `^[a-z0-9_]+$` (lowercase/digits/non-trailing-underscore only) and that camelCase or kebab-case "fails lint." The schema does not enforce a snake_case-only format on these keys — any valid YAML identifier validates. The skills now frame snake_case as a readability convention and preserve the one genuine invariant: an `.agent` target (`a2a://`, `mcp://`, `llm://`, `brokers://`) must match its corresponding `agent-network.yaml` key exactly. Affects `canonical-example.md` item 0, `gotchas.md` naming conventions, and the converter's connection/broker translation notes, template comments, and example annotations.
+
+### Changed
+
+- **`build-agent-broker-project`** — Updated the Step 9 deploy/gateway guidance to the current Anypoint CLI Agent Fabric plugin (v1.2.10) gateway model: single-gateway mode (`-g/--gateway`, default `agent-network-gw`) is the recommended path, with separate ingress/egress (`-i/--ingress-gw` + `-e/--egress-gw`) as the alternate mode. Replaces the stale separate-gateway-only defaults (`agent-network-ingress-gw` / `agent-network-egress-gw`).
+
+## [1.8.3] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — Step 9's rescaffold (`mvn clean package -DskipTests`) required a manual approval click in the VS Code Vibes/Agentforce UI even when the exact command was allowlisted, because the model was emitting it as `cd <projectDir> && mvn clean package -DskipTests 2>&1`. The `2>&1` stream redirection is flagged as an unsafe operator by the extension's command-approval layer (`A4dSafeCommandsController.containsUnsafeOperators()`), which forces manual approval unconditionally, before any allowlist pattern is even consulted. Step 9 now explicitly instructs the agent never to append `2>&1` or any other redirection/pipe to the `mvn` invocation — the tool call already captures full stdout/stderr, so the redirection was redundant as well as harmful. Also made explicit that this rescaffold step must run immediately with no user confirmation prompt, matching the real Anypoint Studio behavior where rescaffolding fires automatically on a `pom.xml` change or a Project Properties → API Specs tab edit and is never a user-facing decision.
+
+### Changed
+
+- Added `cd ...` and an exact-match `mvn clean package -DskipTests` line to the local `a4d_safe_commands` allowlist (developer machine config, not part of this repo) so the two sub-commands produced by Step 9 — split independently by the extension's `parseMultiCommand()` — both auto-approve once the `2>&1` redirection is removed.
+
+## [1.8.2] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — Step 7c ("present available versions and handle selection") told the agent to display the version list and prompt as plain narrated chat text, then separately invoke the `AskUserQuestion` tool for the actual interactive selection — producing two renderings of the same question in the VS Code Vibes/Agentforce UI (one plain-text, one interactive). Step 7c is rewritten so the version list and prompt are presented *only* via a single `AskUserQuestion` tool call per API, with the version list as the tool's `options`; the skill no longer narrates the same content as chat text before or after the tool call.
+
+## [1.8.1] - 2026-07-13
+
+### Fixed
+
+- **`manage-api-version`** — fixed a false-negative bug in version discovery (Steps 5, 6, 7b). The skill previously relied solely on `anypoint-cli-v4 exchange asset describe <groupId>/<artifactId>/<currentVersion>` and its `otherVersions` field to enumerate an asset's available versions. That field is anchored to the queried version and has been observed to return empty when the queried version is not the latest published version on Exchange — exactly the case CHECK ALL/CHECK SPECIFIC/CHANGE hit every time, since they query from whatever version is currently pinned in `pom.xml`. This caused the skill to report "no updates available" or "only one version published" even when newer versions genuinely existed. Version discovery now uses `anypoint-cli-v4 exchange asset list <artifactId> --output json` filtered to the target `groupId`/`assetId` as the primary lookup — an asset-identity-scoped query with no version-anchoring failure mode, matching the pattern already used by `build-mule-integration/scripts/search_templates.sh` and `manage-global-configurations/scripts/get_latest_connector.sh`. The old `describe`-based lookup is retained only as a degraded fallback when `list` itself fails, with an explicit caveat surfaced to the user that the resulting list may be incomplete.
+
+### Changed
+
+- **`manage-api-version`** — added a bundled `scripts/fetch_versions.sh` helper and rewired the Version Discovery procedure (Steps 5, 6, 7b) to call it once per operation instead of looping and invoking `anypoint-cli-v4` once per API dependency. Each direct CLI invocation pays a full Node cold start plus a network round trip; the new script fires the Exchange lookup for every target API **in parallel** and returns a single JSON array, cutting wall-clock time roughly N-fold on projects with multiple API dependencies. Same pattern already used by `build-mule-integration/scripts/search_templates.sh` and `manage-global-configurations/scripts/get_latest_connector.sh`.
+
+## [1.8.0] - 2026-06-30
+
+### Added
+
+- **`manage-api-version`** — new skill for reading, checking, and updating API spec dependency versions in a Mule project. Reads `<{artifactId}.version>` properties from `pom.xml`, queries Anypoint Exchange for available versions via `anypoint-cli-v4 exchange asset describe`, and applies version changes followed by an automatic `mvn clean package -DskipTests` rescaffold. Supports four paths: display all versions, display specific versions, check all APIs for newer versions, and a full interactive change flow with semver-sorted version selection, pom.xml backup/restore on failure, and batched multi-API updates in a single Maven pass.
+
+## [1.7.0] - 2026-07-16
+
+### Added
+
+- **`author-governance-ruleset`** — new skill that authors valid Anypoint API Governance rulesets (Validation Profile 1.0 YAML) using the `anypoint-cli-v4 governance:ruleset` CLI for model discovery, validation, and simplification. Force-installs the latest governance plugin, resolves domain language to canonical target classes, discovers classes/properties/constraints per domain, then writes, validates (`validate-authoring`), and simplifies the ruleset before presenting it. Covers OpenAPI, RAML, AsyncAPI, MCP servers, Anypoint API instances, and API projects; enforces the single-specKind rule and never guesses class/property names or constraint compatibility.
+
+## 1.6.1 — 2026-07-15
+
+### Changed
+
+- **`build-agent-broker-project`** and **`translate-agent-broker-old-to-new-project`** — enforce snake_case for connection IDs and broker IDs in skill code examples per the V2 schema (`^[a-z0-9_]+$`). Prior examples emitted camelCase / kebab-case which the ACB linter rejects. Also loosens the `agent_name` rule to "optional, conventionally kebab-case" since the docs mark it optional and the field has no strict format. Verified against the authoritative docs at `mulesoft/docs-code-builder@latest/agent-network/2.0/modules/ROOT`.
+
+## [1.6.0] - 2026-07-02
+
+### Added
+
+- **`generate-bat-tests`** — new skill that generates a runnable BAT (Blackbox API Testing) BDD suite — DataWeave `.dwl` files plus a `bat.yaml` manifest — from a Mule app's source (OpenAPI contract + Mule flow XML), organized by quality dimensions (Accuracy / Robustness / Security / Coverage) and validated by running it against the live HTTP endpoint. BAT is black-box and out-of-process (it hits the deployed API, never imports flows) and has no XSD, so the workflow's gate is "the suite parses AND passes against the running app" rather than a build-time compile. Two-phase workflow with a hard approval gate: Phase 1 reads the source, anchors an endpoint/raise-error allowlist, and drafts a dimension-tagged test inventory for the user to approve; Phase 2 scaffolds the suite, writes the `.dwl` files, statically validates the BAT DSL, and runs `./run-bat.sh` against the endpoint. Bundles four scripts (`validate_prerequisites.sh`, `extract_endpoints.sh`, `scaffold_suite.sh`, `validate_bat_suite.sh`) and reference material (BAT authoring rules, the quality-dimension taxonomy, and canonical `.dwl` + `bat.yaml` examples). Can also extend an existing hand-written BAT baseline as a strict superset. Complements MUnit generation (build-time, in-process, XML) by covering deployed-endpoint functional testing.
 
 ## [1.5.0] - 2026-06-25
 

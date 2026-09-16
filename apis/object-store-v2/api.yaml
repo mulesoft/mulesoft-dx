@@ -65,7 +65,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStores
+      summary: List object stores
+      operationId: listStores
   /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}:
     description: Manage an object store.
     get:
@@ -95,7 +96,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+      summary: Get object store
+      operationId: getStore
     put:
       description: Create an object store. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
       parameters:
@@ -113,7 +115,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+      summary: Create object store
+      operationId: createStore
     patch:
       description: Modify object store attributes. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
       parameters:
@@ -131,7 +134,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+      summary: Update object store
+      operationId: updateStore
     delete:
       description: Delete the object store. If you are using connected app, either of "Manage Stores / Manage Store Data" scopes  are needed.
       parameters:
@@ -149,7 +153,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreid
+      summary: Delete object store
+      operationId: deleteStore
   /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions:
     description: Get list of keys in an object store
     get:
@@ -191,7 +196,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitions
+      summary: List object store partitions
+      operationId: listStorePartitions
   /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}:
     description: Change object store values
     head:
@@ -214,7 +220,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: headOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+      summary: Check partition existence
+      operationId: checkPartitionExists
     get:
       description: Retrieve the values stored for the given key. If you are using connected app, you need "Manage Store Data" scope.
       parameters:
@@ -271,7 +278,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+      summary: Retrieve values for a partition
+      operationId: getPartitionValues
     delete:
       description: Remove the object and all the values in the contained list. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -301,7 +309,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionid
+      summary: Delete partition and its values
+      operationId: deletePartition
   /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys:
     get:
       description: Retrieve the given object. If you are using connected app, "Manage Store Data" scope is needed.
@@ -328,7 +337,8 @@ paths:
           description: 'There has been an unexpected error performing this request.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeys
+      summary: List keys in a partition
+      operationId: listPartitionKeys
   /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys/{keyId}:
     description: Create, modify, or delete an object.
     get:
@@ -357,7 +367,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+      summary: Retrieve object by key
+      operationId: getObject
     head:
       description: Check if the object exists. "Manage Store Data" scope is needed.
       parameters:
@@ -388,7 +399,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: headOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+      summary: Check if object exists
+      operationId: checkObjectExists
     put:
       description: Create/Modify the given object. Total object size must be 10MB or less, and metadata must be 4KB or less. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -428,7 +440,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+      summary: Create or modify object
+      operationId: upsertObject
     post:
       description: Alter the object in a non-idempotent fashion. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -452,7 +465,8 @@ paths:
           description: 'There has been an unexpected error performing this request.
 
             '
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+      summary: Alter object non-idempotently
+      operationId: alterObject
     delete:
       description: Remove the object with the given ID. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -483,7 +497,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyid
+      summary: Delete object by key
+      operationId: deleteObject
   ? /organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys/{keyId}/confirmations/{confirmationId}
   : description: Change operation settings. If you are using connected app, "Manage Store Data" scope is needed.
     post:
@@ -513,7 +528,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+      summary: Acknowledge object operation
+      operationId: ackObjectOperation
     patch:
       description: Extend the operation's time to live. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -549,7 +565,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+      summary: Extend operation time to live
+      operationId: extendOperationTtl
     delete:
       description: Nack the operation. If you are using connected app, "Manage Store Data" scope is needed.
       parameters:
@@ -577,7 +594,8 @@ paths:
           description: 'This request is not implemented on this service.
 
             '
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeysByKeyidConfirmationsByConfirmationid
+      summary: Reject object operation
+      operationId: nackObjectOperation
   /organizations/{organizationId}/regions:
     description: Get list of object store regions
     get:
@@ -599,7 +617,8 @@ paths:
                   name: Mars West (Oxia Palus)
                   url: http://object-store.mars-west-1.cloudhub.com
               example: *id005
-      operationId: getOrganizationsByOrganizationidRegions
+      summary: List available object store regions
+      operationId: listRegions
 components:
   securitySchemes:
     bearerAuth:
@@ -619,7 +638,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:object-store-v2
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStores
+        operation: listStores
         description: GET `/organizations/{organizationId}/environments/{environmentId}/stores` in this API; use `id` values as `storeId`.
         values: $.id
         labels: $.name
@@ -632,7 +651,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:object-store-v2
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitions
+        operation: listStorePartitions
         description: GET `/organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions` in this API; use `id` values as `partitionId`.
         values: $.id
         labels: $.name
@@ -645,7 +664,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:object-store-v2
-        operation: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidStoresByStoreidPartitionsByPartitionidKeys
+        operation: listPartitionKeys
         description: GET `/organizations/{organizationId}/environments/{environmentId}/stores/{storeId}/partitions/{partitionId}/keys` in this API; use `id` values as `keyId`.
         values: $.id
       description: The key ID to identify the target resource.

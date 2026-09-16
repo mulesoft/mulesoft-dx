@@ -6,6 +6,33 @@ description: |
   AI agent select this job].
 ---
 
+<!--
+============================================================================
+ JTBD SKILL TEMPLATE (type: jtbd)
+============================================================================
+ Use this template when the whole job is "call these Anypoint Platform APIs in
+ this order." Each step is a machine-validatable YAML block (api + operationId)
+ that scripts/build/validate_jtbd.py checks against the real API specs.
+
+ TYPE RESOLUTION (checklist rule R6): do NOT declare a type for a JTBD skill.
+ Omit skills-metadata.yaml entirely and this skill inherits `type: jtbd` from the
+ top-level skills/skills-metadata.yaml default. (Only prose skills declare
+ `type: prose`.)
+ COHERENCE (checklist rule R7): a jtbd skill MUST contain at least one YAML block
+ with an `api:` key.
+
+ Read docs/skill-checklist.md (authoring guidance + rules R1-R7) first.
+ Gold-standard reference: skills/secure-mcp-server/SKILL.md.
+ For tool/workflow (DX) skills that run tools and edit files, use the prose
+ template instead: docs/prose-template.md.
+
+ Delete every HTML comment and fill every [placeholder] before publishing.
+ Validate with:
+   make validate-skills
+   python3 scripts/build/validate_jtbd.py skills/<skill-name>/SKILL.md .
+============================================================================
+-->
+
 # Job To Be Done Title
 
 ## Overview
@@ -225,9 +252,12 @@ Now that your [thing] is [state]:
 
 ## Related Jobs
 
-- **[jtbd-name]**: [One-line description of what it does and when to use it]
-- **[another-jtbd]**: [One-line description]
-- **[third-jtbd]**: [One-line description]
+<!-- Use the literal form "skill <slug>" so checklist rule R5 can resolve the
+     inter-skill link, e.g. "skill apply-policy-to-api-instance". -->
+
+- **skill related-skill-name**: [One-line description of what it does and when to use it]
+- **skill another-related-skill**: [One-line description]
+- **skill third-related-skill**: [One-line description]
 
 ## Additional Resources
 

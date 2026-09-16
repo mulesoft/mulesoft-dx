@@ -1,4 +1,4 @@
-# @dialect: AGENTFABRIC=0.1
+# @dialect: AGENTFABRIC=1.0
 
 system:
   instructions: "<one-line summary of the broker's role, derived from V1 broker description>"
@@ -11,29 +11,35 @@ config:
 
 # -- LLM ----------------------------------------------------------------------
 llm:
-  <llm-id>:
-    target: "llm://<llmConnectionName>"
+  <llm_id>:
+    target: "llm://<llm_connection_name_snake_case>"
     kind: "<Gemini|OpenAI>"
     model: "<model from V1 spec.llm.configuration.model>"
 
 # -- ACTION DEFINITIONS -------------------------------------------------------
+# Connection ids in `a2a://...` and `mcp://...` targets MUST match the
+# connection keys declared in agent-network.yaml exactly (any valid identifier;
+# this converter uses snake_case by convention, not because the schema requires it).
 actions:
   <agent_action_id>:
-    target: "a2a://<agentConnectionName>"
+    target: "a2a://<agent_connection_name_snake_case>"
     kind: "a2a:send_message"
   # ... one per V1 linked agent
 
   <mcp_tool_action_id>:
-    target: "mcp://<mcpConnectionName>"
+    target: "mcp://<mcp_connection_name_snake_case>"
     kind: "mcp:tool"
     tool_name: "<exact V1 tool name from brokers.tools[*].mcp.allowed>"
     # Do NOT add `inputs:` here. V1 has no input schemas, and the V2 runtime
     # auto-discovers tool arguments from the MCP server.
 
 # -- TRIGGER ------------------------------------------------------------------
-trigger <broker-id-camelCase>Trigger:
+# <broker_id> MUST match the YAML broker key exactly (any valid identifier; this
+# converter uses snake_case by convention, not because the schema requires it).
+# The .agent filename is independent and may be kebab-case for readability.
+trigger <triggerNameCamelCase>:
   kind: "a2a"
-  target: "brokers://<broker-id>/a2a"
+  target: "brokers://<broker_id_snake_case>/a2a"
   on_message: ->
     transition to @orchestrator.<orchestratorId>
 

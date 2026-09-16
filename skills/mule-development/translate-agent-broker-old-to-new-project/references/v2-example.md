@@ -268,47 +268,47 @@ registry:
 
 context:
   connections:
-    workdayAgentConnection:
+    workday_agent_connection:
       kind: a2a
       ref:
         name: workdayAgent
       url: ${workdayAgent.url}
-    salesforceAgentConnection:
+    salesforce_agent_connection:
       kind: a2a
       ref:
         name: salesforceAgent
       url: ${salesforceAgent.url}
-    zendeskAgentConnection:
+    zendesk_agent_connection:
       kind: a2a
       ref:
         name: zendeskAgent
       url: ${zendeskAgent.url}
-    badgingAgentConnection:
+    badging_agent_connection:
       kind: a2a
       ref:
         name: badgingAgent
       url: ${badgingAgent.url}
-    itAgentConnection:
+    it_agent_connection:
       kind: a2a
       ref:
         name: itAgent
       url: ${itAgent.url}
-    licenseProcurementAgentConnection:
+    license_procurement_agent_connection:
       kind: a2a
       ref:
         name: licenseProcurementAgent
       url: ${licenseProcurementAgent.url}
-    talentPoolMcpConnection:
+    talent_pool_mcp_connection:
       kind: mcp
       ref:
         name: talentPoolMcp
       url: ${talentPoolMcp.url}
-    slackMcpConnection:
+    slack_mcp_connection:
       kind: mcp
       ref:
         name: slackMcp
       url: ${slackMcp.url}
-    geminiConnection:
+    gemini_connection:
       kind: llm
       ref:
         name: gemini
@@ -318,7 +318,7 @@ context:
         apiKey: ${gemini.apiKey}
 
 brokers:
-  customer-onboarding:
+  customer_onboarding:
     kind: AgentScript
     implementation: ./brokers/customer-onboarding.agent
     interfaces:
@@ -441,7 +441,7 @@ brokers:
 ## brokers/customer-onboarding.agent
 
 ```text
-# @dialect: AGENTFABRIC=0.1
+# @dialect: AGENTFABRIC=1.0
 
 system:
   instructions: "You are the Customer Onboarding Orchestrator. You coordinate onboarding of a new customer across Workday, Salesforce, Zendesk, Badging, License Procurement, and IT systems."
@@ -457,7 +457,7 @@ config:
 
 llm:
   gemini_flash:
-    target: "llm://geminiConnection"
+    target: "llm://gemini_connection"
     kind: "Gemini"
     model: "gemini-2.5-flash"
 
@@ -466,36 +466,36 @@ llm:
 
 actions:
   workday_agent:
-    target: "a2a://workdayAgentConnection"
+    target: "a2a://workday_agent_connection"
     kind: "a2a:send_message"
 
   salesforce_agent:
-    target: "a2a://salesforceAgentConnection"
+    target: "a2a://salesforce_agent_connection"
     kind: "a2a:send_message"
 
   zendesk_agent:
-    target: "a2a://zendeskAgentConnection"
+    target: "a2a://zendesk_agent_connection"
     kind: "a2a:send_message"
 
   badging_agent:
-    target: "a2a://badgingAgentConnection"
+    target: "a2a://badging_agent_connection"
     kind: "a2a:send_message"
 
   it_agent:
-    target: "a2a://itAgentConnection"
+    target: "a2a://it_agent_connection"
     kind: "a2a:send_message"
 
   license_procurement_agent:
-    target: "a2a://licenseProcurementAgentConnection"
+    target: "a2a://license_procurement_agent_connection"
     kind: "a2a:send_message"
 
   match_email_to_address:
-    target: "mcp://talentPoolMcpConnection"
+    target: "mcp://talent_pool_mcp_connection"
     kind: "mcp:tool"
     tool_name: "TalentPoolMcpServer.match_email_to_address"
 
   send_slack_status_update:
-    target: "mcp://slackMcpConnection"
+    target: "mcp://slack_mcp_connection"
     kind: "mcp:tool"
     tool_name: "SlackMcpServer.send_status_update"
 
@@ -504,7 +504,7 @@ actions:
 
 trigger customerOnboardingTrigger:
   kind: "a2a"
-  target: "brokers://customer-onboarding/a2a"
+  target: "brokers://customer_onboarding/a2a"
   on_message: ->
     transition to @orchestrator.onboardCustomer
 
@@ -582,17 +582,17 @@ echo onboardingResponse:
 
 These are the specific decisions reflected in the V2 example, encoded so the conversion is reproducible:
 
-1. **Identifier renaming**: V1's PascalCase agent ids (`WorkdayAgentTest`) became camelCase (`workdayAgent`). The `Test` suffix was dropped because the V2 example treats this as the canonical project.
-2. **Connection rename**: V1 `WorkdayAgentTestConnection` → V2 `workdayAgentConnection`. Connection refs match their underlying registry id.
+1. **Identifier renaming**: V1's PascalCase agent ids (`WorkdayAgentTest`) became camelCase (`workdayAgent`) in the registry. The `Test` suffix was dropped because the V2 example treats this as the canonical project. Registry ids are unrestricted (`^[a-zA-Z_][a-zA-Z0-9_.-]*$`).
+2. **Connection rename**: V1 `WorkdayAgentTestConnection` → V2 `workday_agent_connection`. Connection *keys* under `context.connections:` accept any valid YAML identifier (no snake_case-only schema restriction); this converter uses snake_case by convention. Their `ref.name` still points at the camelCase registry id (`workdayAgent`). The one hard rule: the key must match the `.agent` target exactly.
 3. **`kind: agent` → `kind: a2a`**: V1's `agent` connection kind is V2's `a2a`.
 4. **Registry agent shape — `a2a_v03` branch**: V1 agents were A2A v0.3-based, so they convert into `metadata.interfaces.a2a_v03.card` (the GA back-compat path) preserving `protocolVersion: 0.3.0` and `url`. The Beta `metadata.protocol: a2a` + flat `metadata.card.a2a` shape is removed. Move an agent to `metadata.interfaces.a2a` only after the agent owner upgrades it to A2A v1.0.
 5. **Broker card uses `interfaces.a2a` (v1.0)**: the broker emits A2A v1.0 (the GA default). Backward compatibility is on the *consuming* side — clients on v0.3 still work because the runtime translates.
 6. **URLs parameterized**: every external URL becomes `${<refName>.url}` in YAML and lives in `exchange.json` `metadata.variables`.
-7. **Auth on connections**: the Gemini API key auth that V1 stuffed in `spec.configuration.apiKey` is now `context.connections.geminiConnection.authentication.{kind: apiKey, apiKey: ${gemini.apiKey}}`. Authentication is required on `kind: llm` connections in GA.
-8. **Broker id**: `CustomerOnboardingBrokerTest` → `customer-onboarding` (kebab-case, used as both the broker id and the `.agent` filename stem).
+7. **Auth on connections**: the Gemini API key auth that V1 stuffed in `spec.configuration.apiKey` is now `context.connections.gemini_connection.authentication.{kind: apiKey, apiKey: ${gemini.apiKey}}`. Authentication is required on `kind: llm` connections in GA.
+8. **Broker id**: `CustomerOnboardingBrokerTest` → `customer_onboarding` (snake_case by convention — `brokers.<id>` keys accept any valid YAML identifier, so kebab-case or camelCase would also validate). The `.agent` *filename* is independent and stays `customer-onboarding.agent` for readability. The one hard rule: the trigger `target: "brokers://customer_onboarding/a2a"` must match the YAML broker key exactly.
 9. **MCP tool actions**: each tool listed in V1 `brokers.tools[*].mcp.allowed` got its own action in the `.agent` file. Action ids are descriptive (`match_email_to_address`, `send_slack_status_update`) but the `tool_name` is preserved exactly. **No `inputs:` block** — V1 doesn't declare tool input schemas, and the V2 runtime auto-discovers arguments from the MCP server.
 10. **Reasoning action aliases**: inside `orchestrator.reasoning.actions`, short readable aliases (e.g. `workday`, `slack_update`) point at the longer action ids.
 11. **Prompt preservation**: the V1 `spec.instructions` were copied into the orchestrator's `system.instructions` with only minor cleanup (e.g. fixing "this a long running task" → "this is a long running task", and replacing the dotted MCP tool name with the new alias). Bullets and ordering were preserved.
 12. **One orchestrator only**: even though V1's prompt has multiple steps, the V2 conversion keeps everything in a single `orchestrator` node. No router/executor/generator was introduced.
 13. **Echo node (GA)**: response uses `kind: "a2a:status_update_event"` with `state: "TASK_STATE_COMPLETED"` and a `message` built via `a2a.message(...)`. The Beta `kind: "a2a:response"` wrapping `task: a2a.task({...})` is gone.
-14. **Dialect line**: `# @dialect: AGENTFABRIC=0.1` pins to GA dialect 0.1.
+14. **Dialect line**: `# @dialect: AGENTFABRIC=1.0` pins to GA dialect 1.0.

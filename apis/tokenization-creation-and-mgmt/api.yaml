@@ -8,6 +8,7 @@ info:
   description: Manage tokenization services, formats, and deployments for data tokenization within Anypoint Security.
 servers:
 - url: https://anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: US
   variables:
     version:
       default: unknown
@@ -15,22 +16,27 @@ servers:
     organizationId:
       default: unknown
       description: The organization ID for the Anypoint Platform account.
-- url: https://{region}.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+- url: https://eu1.anypoint.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: unknown
       description: API version identifier.
     organizationId:
       default: unknown
       description: The organization ID for the Anypoint Platform account.
-- url: https://{region}.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+- url: https://ca1.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: unknown
+      description: API version identifier.
+    organizationId:
+      default: unknown
+      description: The organization ID for the Anypoint Platform account.
+- url: https://jp1.platform.mulesoft.com/tokenization/api/{version}/organizations/{organizationId}
+  description: JP
+  variables:
     version:
       default: unknown
       description: API version identifier.
@@ -149,7 +155,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: createFormats
+      summary: Create tokenization format
+      operationId: createFormat
     get:
       description: Get a list of formats.
       parameters:
@@ -285,6 +292,7 @@ paths:
                 - code: 0
                   field: string
                   message: string
+      summary: List tokenization formats
       operationId: getFormats
   /formats/{formatId}:
     description: Get an entity representing a format
@@ -388,7 +396,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getFormatsByFormatid
+      summary: Get tokenization format
+      operationId: getFormatById
     put:
       parameters:
       - name: formatId
@@ -496,7 +505,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: updateFormatsByFormatid
+      summary: Update tokenization format
+      operationId: updateFormatById
       description: Replaces a formats.
     delete:
       parameters:
@@ -566,7 +576,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: deleteFormatsByFormatid
+      summary: Delete tokenization format
+      operationId: deleteFormatById
       description: Deletes a formats.
   /services:
     description: The collection of services
@@ -646,6 +657,7 @@ paths:
                 - code: 0
                   field: string
                   message: string
+      summary: List tokenization services
       operationId: getServices
   /environments/{envId}:
     parameters:
@@ -810,7 +822,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: createEnvironmentsByEnvidServices
+      summary: Create tokenization service
+      operationId: createService
     get:
       description: Get a list of services.
       parameters:
@@ -1033,7 +1046,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getEnvironmentsByEnvidServices
+      summary: List services in environment
+      operationId: getEnvironmentServices
   /environments/{envId}/services/{serviceId}:
     description: Get an entity representing a service
     get:
@@ -1177,7 +1191,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getEnvironmentsByEnvidServicesByServiceid
+      summary: Get service by ID
+      operationId: getServiceById
     patch:
       description: To perform rekey of a VDP table associated with a service.
       parameters:
@@ -1311,7 +1326,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: patchEnvironmentsByEnvidServicesByServiceid
+      summary: Rekey service VDP table
+      operationId: rekeyService
     put:
       parameters:
       - name: desiredStatus
@@ -1505,7 +1521,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: updateEnvironmentsByEnvidServicesByServiceid
+      summary: Update tokenization service
+      operationId: updateService
       description: Replaces a services.
     delete:
       parameters:
@@ -1576,7 +1593,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: deleteEnvironmentsByEnvidServicesByServiceid
+      summary: Delete tokenization service
+      operationId: deleteService
       description: Deletes a services.
   /environments/{envId}/deployments:
     get:
@@ -1722,7 +1740,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getEnvironmentsByEnvidDeployments
+      summary: List tokenization deployments
+      operationId: listDeployments
   /environments/{envId}/deployments/{deploymentId}:
     description: 'Access detailed operations of a particular deployment.
 
@@ -1847,7 +1866,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getEnvironmentsByEnvidDeploymentsByDeploymentid
+      summary: Get deployment by ID
+      operationId: getDeploymentById
   /environments/{envId}/deployments/{deploymentId}/specs:
     description: Get an entity representing a spec
     get:
@@ -1954,7 +1974,8 @@ paths:
                 - code: 0
                   field: string
                   message: string
-      operationId: getEnvironmentsByEnvidDeploymentsByDeploymentidSpecs
+      summary: List deployment specs
+      operationId: listDeploymentSpecs
 components:
   securitySchemes:
     bearerAuth:

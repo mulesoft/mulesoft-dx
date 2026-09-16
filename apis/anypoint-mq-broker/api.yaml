@@ -188,7 +188,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+      summary: Receive messages from destination
+      operationId: receiveMessages
     put:
       description: 'Publishes a batch of messages to the destination. Batch size must be at least 1 and at most 10.
 
@@ -270,7 +271,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+      summary: Send message batch
+      operationId: sendMessageBatch
     delete:
       description: 'Acknowledge a batch of messages. If you are using connected app, "Destination subscriber for given environment" scope is needed.
 
@@ -330,7 +332,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessages
+      summary: Acknowledge message batch
+      operationId: acknowledgeMessageBatch
   /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/locks:
     patch:
       description: 'Modifies the lock TTL of a batch of messages. If you are using connected app, "Destination publisher for given environment" scope is needed.
@@ -393,7 +396,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesLocks
+      summary: Update message lock TTL batch
+      operationId: updateMessageLockTtlBatch
     delete:
       description: 'Performs a batch negative acknowledge of messages. These are available again for this or other consumers.
 
@@ -451,7 +455,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesLocks
+      summary: Nack message batch
+      operationId: nackMessageBatch
   /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/{messageId}:
     put:
       description: 'Sends the message to the specified destination.
@@ -552,7 +557,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageid
+      summary: Send message
+      operationId: sendMessage
     delete:
       description: 'Performs an acknowledge of the message, effectively deleting it from the destination.
 
@@ -627,7 +633,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageid
+      summary: Acknowledge message
+      operationId: acknowledgeMessage
   /organizations/{organizationId}/environments/{environmentId}/destinations/{destinationId}/messages/{messageId}/locks:
     parameters:
     - $ref: '#/components/parameters/XOrigin_organizationId_Path'
@@ -736,7 +743,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageidLocksByLockid
+      summary: Update message lock TTL
+      operationId: updateMessageLockTtl
     delete:
       description: 'Performs a negative acknowledge of the message. The message is available again for this or other consumers.
 
@@ -810,7 +818,8 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDestinationsByDestinationidMessagesByMessageidLocksByLockid
+      summary: Nack message
+      operationId: nackMessage
   /authorize:
     post:
       description: 'Obtains an access token using client credentials of the OAuth grant type.
@@ -849,6 +858,7 @@ paths:
       - bearerAuth: []
       - clientAuth: []
       - {}
+      summary: Authorize with client credentials
       operationId: createAuthorize
 components:
   requestBodies:

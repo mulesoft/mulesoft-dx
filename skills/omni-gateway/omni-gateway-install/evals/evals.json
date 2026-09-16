@@ -1,0 +1,74 @@
+{
+  "skill": "omni-gateway-install",
+  "description": "Trigger and behavior evals for the omni-gateway-install skill. See README.md for methodology.",
+  "cases": [
+    {
+      "id": "install-linux-apt",
+      "prompt": "I need to install Omni Gateway on an Ubuntu 22.04 server and register it with Anypoint. Walk me through it.",
+      "should_trigger": true,
+      "context": null,
+      "assertions": [
+        "Routes to the Linux path and reads references/linux.md rather than inlining all platforms",
+        "Adds the MuleSoft APT repo and installs the flex-gateway package",
+        "Collects org ID and a registration token before running flexctl registration create",
+        "Notes the registration token expires after 24 hours",
+        "Verifies the gateway shows STARTED in Anypoint Runtime Manager"
+      ],
+      "anti_assertions": [
+        "Tells the user to use the APT repo on a RHEL/CentOS/Amazon Linux host",
+        "Commits or echoes the full registration.yaml contents as if it were safe to share"
+      ]
+    },
+    {
+      "id": "install-docker-compose",
+      "prompt": "How do I run Flex Gateway with Docker Compose locally, in local mode (no Anypoint connection)?",
+      "should_trigger": true,
+      "context": null,
+      "assertions": [
+        "Reads references/docker.md for the Docker path",
+        "Skips the registration step because the user asked for local mode",
+        "Bind-mounts a conf.d directory into the container",
+        "Warns that a UID/permissions mismatch on conf.d is a common startup failure"
+      ],
+      "anti_assertions": [
+        "Forces connected-mode registration despite the user requesting local mode"
+      ]
+    },
+    {
+      "id": "install-k8s-openshift",
+      "prompt": "Deploy Omni Gateway on our OpenShift cluster via Helm.",
+      "should_trigger": true,
+      "context": null,
+      "assertions": [
+        "Reads references/kubernetes.md and follows the OpenShift variant",
+        "Adds the flex-gateway Helm repo before installing",
+        "Adds the OpenShift SCC / podSecurityContext settings to values.yaml"
+      ],
+      "anti_assertions": []
+    },
+    {
+      "id": "negative-unrelated-mule-app",
+      "prompt": "How do I write a DataWeave transform to flatten a nested JSON array in a Mule application?",
+      "should_trigger": false,
+      "context": null,
+      "assertions": [
+        "Does not activate omni-gateway-install (this is a Mule app / DataWeave question, not a gateway install task)"
+      ],
+      "anti_assertions": [
+        "Walks through gateway installation steps"
+      ]
+    },
+    {
+      "id": "negative-cloudhub-managed",
+      "prompt": "Deploy a MuleSoft-managed gateway on CloudHub 2.0 for me.",
+      "should_trigger": false,
+      "context": null,
+      "assertions": [
+        "Clarifies that this skill covers self-managed installs (Linux/Docker/Kubernetes), not CloudHub 2.0 managed deployments"
+      ],
+      "anti_assertions": [
+        "Walks through the self-managed install steps as if they applied to CloudHub 2.0"
+      ]
+    }
+  ]
+}

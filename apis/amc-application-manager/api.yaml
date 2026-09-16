@@ -5,19 +5,17 @@ info:
   description: Manage alerts, deployments, diagnostics, logs, and schedulers for Runtime Fabric and CloudHub 2.0 applications.
 servers:
 - url: https://anypoint.mulesoft.com/amc/application-manager/api/v2
-  description: AMC Application Manager API
-- url: https://{region}.anypoint.mulesoft.com/amc/application-manager/api/v2
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-  description: Regional AMC Application Manager API
-- url: https://{region}.platform.mulesoft.com/amc/application-manager/api/v2
-  description: Regional AMC Application Manager API
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/amc/application-manager/api/v2
+  description: EU
+- url: https://ca1.platform.mulesoft.com/amc/application-manager/api/v2
+  description: CA
+- url: https://jp1.platform.mulesoft.com/amc/application-manager/api/v2
+  description: JP
+- url: https://in1.platform.mulesoft.com/amc/application-manager/api/v2
+  description: IN
+- url: https://au1.platform.mulesoft.com/amc/application-manager/api/v2
+  description: AU
 tags:
 - name: Schedulers
   description: Manage RTF and Cloudhub 2.0 schedulers.
@@ -97,7 +95,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSchedulersByFlowname
+      summary: Update scheduler configuration
+      operationId: updateScheduler
     delete:
       tags:
       - Schedulers
@@ -152,7 +151,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSchedulersByFlowname
+      summary: Reset scheduler to default
+      operationId: resetScheduler
   /organizations/{organizationId}/environments/{environmentId}/deployments:
     get:
       tags:
@@ -193,7 +193,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+      summary: List deployments
+      operationId: listDeployments
     post:
       tags:
       - Deployments
@@ -252,7 +253,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeployments
+      summary: Deploy a new application
+      operationId: createDeployment
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/schedulers/{flowName}/run:
     post:
       tags:
@@ -307,12 +309,13 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSchedulersByFlownameRun
+      summary: Run scheduler immediately
+      operationId: runScheduler
   /organizations/{organizationId}/environments/{environmentId}/alerts:
     get:
       tags:
       - Alerts
-      summary: Retrieves Cloudhub 2.0 alerts
+      summary: List CloudHub 2.0 alerts
       parameters:
       - name: Authorization
         in: header
@@ -353,12 +356,12 @@ paths:
                 data:
                 - id: string
                   type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlerts
+      operationId: listAlerts
       description: Retrieves Cloudhub 2.0 alerts
     post:
       tags:
       - Alerts
-      summary: Creates a Cloudhub 2.0 alert
+      summary: Create CloudHub 2.0 alert
       parameters:
       - name: Authorization
         in: header
@@ -430,7 +433,7 @@ paths:
                 createdAt: 0
                 isSystem: true
                 productName: string
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlerts
+      operationId: createAlert
       description: Creates a Cloudhub 2.0 alert
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}:
     get:
@@ -514,7 +517,8 @@ paths:
                 - id: string
                   type: string
                 lastSuccessfulVersion: 0ef171b6-aad1-459b-8720-10c405b05ed1
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentid
+      summary: Get deployment by ID
+      operationId: getDeploymentById
     delete:
       tags:
       - Deployments
@@ -554,7 +558,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentid
+      summary: Delete deployment
+      operationId: deleteDeployment
     patch:
       tags:
       - Deployments
@@ -686,7 +691,8 @@ paths:
                 - id: string
                   type: string
                 lastSuccessfulVersion: string
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentid
+      summary: Update deployment
+      operationId: patchDeployment
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/schedulers:
     get:
       tags:
@@ -736,7 +742,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSchedulers
+      summary: List deployment schedulers
+      operationId: listSchedulers
     patch:
       tags:
       - Schedulers
@@ -794,12 +801,13 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSchedulers
+      summary: Enable or disable schedulers
+      operationId: patchSchedulers
   /organizations/{organizationId}/environments/{environmentId}/alerts/{alertId}:
     get:
       tags:
       - Alerts
-      summary: Retrieves a single Cloudhub 2.0 alert
+      summary: Get CloudHub 2.0 alert by ID
       parameters:
       - name: Authorization
         in: header
@@ -878,12 +886,12 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlertsByAlertid
+      operationId: getAlertById
       description: Retrieves a single Cloudhub 2.0 alert
     delete:
       tags:
       - Alerts
-      summary: Deletes a Cloudhub 2.0 alert
+      summary: Delete CloudHub 2.0 alert
       parameters:
       - name: Authorization
         in: header
@@ -932,12 +940,12 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: deleteOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlertsByAlertid
+      operationId: deleteAlert
       description: Deletes a Cloudhub 2.0 alert
     patch:
       tags:
       - Alerts
-      summary: Updates a Cloudhub 2.0 alert
+      summary: Update CloudHub 2.0 alert
       parameters:
       - name: Authorization
         in: header
@@ -1038,7 +1046,7 @@ paths:
                 createdAt: 0
                 isSystem: true
                 productName: string
-      operationId: patchOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlertsByAlertid
+      operationId: patchAlert
       description: Updates a Cloudhub 2.0 alert
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/specs:
     get:
@@ -1083,12 +1091,13 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSpecs
+      summary: List deployment version specs
+      operationId: listDeploymentSpecs
   /organizations/{organizationId}/environments/{environmentId}/alerts/{alertId}/history:
     get:
       tags:
       - Alerts
-      summary: Retrieves a Cloudhub 2.0 alert history record
+      summary: Get CloudHub 2.0 alert history
       parameters:
       - name: Authorization
         in: header
@@ -1147,7 +1156,7 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidAlertsByAlertidHistory
+      operationId: getAlertHistory
       description: Retrieves a Cloudhub 2.0 alert history record
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/replicas/{replicaId}/diagnostics:
     post:
@@ -1182,12 +1191,13 @@ paths:
                   id: string
                   type: string
                 detail: string
-      operationId: createOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidReplicasByReplicaidDiagnostics
+      summary: Trigger replica thread dump diagnostic
+      operationId: triggerReplicaDiagnostic
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/specs/{specificationId}/logs:
     get:
       tags:
       - Logs
-      summary: Fetch logs from the Log Aggregator V2 API.
+      summary: Fetch deployment logs
       parameters:
       - $ref: '#/components/parameters/XOrigin_anotherContextOrganizationId_Path'
       - $ref: '#/components/parameters/XOrigin_anotherContextEnvironmentId_Path'
@@ -1227,13 +1237,13 @@ paths:
                   id: string
                   type: string
                 detail: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSpecsBySpecificationidLogs
+      operationId: getDeploymentLogs
       description: Fetch logs from the Log Aggregator V2 API.
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/specs/{specificationId}/logs/file:
     get:
       tags:
       - Logs
-      summary: Download log entries matching the search as text attachment, without pagination.
+      summary: Download log entries as text
       parameters:
       - $ref: '#/components/parameters/XOrigin_anotherContextOrganizationId_Path'
       - $ref: '#/components/parameters/XOrigin_anotherContextEnvironmentId_Path'
@@ -1273,7 +1283,7 @@ paths:
                   id: string
                   type: string
                 detail: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidSpecsBySpecificationidLogsFile
+      operationId: downloadLogs
       description: Download log entries matching the search as text attachment, without pagination.
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/diagnostics:
     get:
@@ -1311,7 +1321,8 @@ paths:
                   id: string
                   type: string
                 detail: string
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidDiagnostics
+      summary: List deployment diagnostics
+      operationId: listDeploymentDiagnostics
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/diagnostics/{actionId}/file:
     get:
       tags:
@@ -1357,7 +1368,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/StreamingResponseBody'
               example: {}
-      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidDiagnosticsByActionidFile
+      summary: Get diagnostic thread dump report
+      operationId: getDiagnosticReport
   /organizations/{organizationId}/environments/{environmentId}/deployments/{deploymentId}/upgradedata/trafficswitching:
     put:
       tags:
@@ -1415,7 +1427,8 @@ paths:
               style: simple
               schema:
                 type: string
-      operationId: updateOrganizationsByOrganizationidEnvironmentsByEnvironmentidDeploymentsByDeploymentidUpgradedataTrafficswitching
+      summary: Update traffic switching percentage
+      operationId: updateTrafficSwitching
 components:
   securitySchemes:
     bearerAuth:

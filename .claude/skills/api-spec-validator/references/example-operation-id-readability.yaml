@@ -1,0 +1,352 @@
+openapi: 3.0.2
+info:
+  title: Operation ID Readability Fixture API
+  version: 1.0.0
+  description: >
+    Dedicated fixture for the operation-id-max-length and
+    operation-id-no-path-repetition rules (W-23131067). Every operation below
+    is minimally valid against the rest of the ruleset (camelCase id,
+    description, response example, request-body description when present) so
+    that the ONLY rule(s) it can trip are the two under test. Inline comments
+    tag each path with which of the two new rules is expected to fire.
+
+paths:
+
+  # ------------------------------------------------------------------
+  # BOUNDARY: operation-id-max-length threshold
+  # ------------------------------------------------------------------
+
+  /boundary/exactly-forty:
+    # operationId is EXACTLY 40 characters (length "abcdefghij" x4 = 40).
+    # Rule pattern is ^.{1,40}$ so this must PASS both new rules.
+    # Expected new-rule warnings: NONE
+    get:
+      operationId: abcdefghijabcdefghijabcdefghijabcdefghij
+      description: Boundary case — operationId length equal to the 40-char limit.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                properties:
+                  ok:
+                    type: boolean
+                    description: Sentinel field
+              examples:
+                default:
+                  value:
+                    ok: true
+
+  /boundary/forty-one:
+    # operationId is 41 characters — one over the threshold.
+    # Expected new-rule warnings: operation-id-max-length (only)
+    get:
+      operationId: abcdefghijabcdefghijabcdefghijabcdefghijk
+      description: Boundary case — operationId one character over the limit.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                properties:
+                  ok:
+                    type: boolean
+                    description: Sentinel field
+              examples:
+                default:
+                  value:
+                    ok: true
+
+  # ------------------------------------------------------------------
+  # NEGATIVE: single "ById" suffix must NOT trip path-repetition
+  # ------------------------------------------------------------------
+
+  /users/{userId}:
+    # A single By<Var>id suffix is the canonical readable shape.
+    # Expected new-rule warnings: NONE
+    get:
+      operationId: getUserById
+      description: Retrieves a user by identifier. Single ById suffix is fine.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: User identifier
+              examples:
+                default:
+                  value:
+                    id: USR-1
+
+  # ------------------------------------------------------------------
+  # POSITIVE: three-plus By<Var>id stack — mirrors the W-23130518 offender
+  # ------------------------------------------------------------------
+
+  /organizations/{organizationId}/environments/{environmentId}/gateways/{gatewayId}:
+    # 3 By...id chunks + > 40 chars — must trip BOTH new rules,
+    # and continues to be flagged by operation-id-camel-case? No,
+    # the id is camelCase, so camel-case is silent — this isolates
+    # the two new rules firing together.
+    # Expected new-rule warnings: operation-id-max-length AND
+    #                              operation-id-no-path-repetition
+    get:
+      operationId: getOrganizationsByOrganizationidEnvironmentsByEnvironmentidGatewaysByGatewayid
+      description: Path-mirrored operationId — the W-23130518 shape.
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          description: Organization identifier
+          schema:
+            type: string
+        - name: environmentId
+          in: path
+          required: true
+          description: Environment identifier
+          schema:
+            type: string
+        - name: gatewayId
+          in: path
+          required: true
+          description: Gateway identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Gateway identifier
+              examples:
+                default:
+                  value:
+                    id: GW-1
+
+  # ------------------------------------------------------------------
+  # CASE VARIANT: lowercase "id" segment (pattern uses [Ii]d)
+  # ------------------------------------------------------------------
+
+  /accounts/{accountId}/tokens/{tokenId}:
+    # Two path-derived chunks but with lowercase "id" —
+    # AMF pattern is By[A-Z][a-zA-Z0-9]*[Ii]d so this must match too.
+    # 37 chars, so length rule is silent — isolates path-repetition
+    # against the [Ii]d case variant.
+    # Expected new-rule warnings: operation-id-no-path-repetition (only)
+    get:
+      operationId: getAccountsByAccountidTokensByTokenid
+      description: Case variant — lowercase "id" segment tail.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Account identifier
+          schema:
+            type: string
+        - name: tokenId
+          in: path
+          required: true
+          description: Token identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Token identifier
+              examples:
+                default:
+                  value:
+                    id: TOK-1
+
+  # ------------------------------------------------------------------
+  # NEGATIVE: acronym / compound name under threshold
+  # ------------------------------------------------------------------
+
+  /soql/templates:
+    # 26 chars, no By<Var>id — spec edge case: acronyms and domain
+    # terms must pass both rules.
+    # Expected new-rule warnings: NONE
+    post:
+      operationId: provisionSOQLQueryTemplate
+      description: Provisions a SOQL query template. Acronyms are allowed.
+      requestBody:
+        description: Template definition
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Template name
+            examples:
+              default:
+                value:
+                  name: HighValueAccounts
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Template identifier
+              examples:
+                default:
+                  value:
+                    id: TPL-1
+
+  # ------------------------------------------------------------------
+  # POSITIVE: long but NOT path-repeating — isolates the length rule
+  # ------------------------------------------------------------------
+
+  /reports/marketing-attribution:
+    # 56 chars, zero By<Var>id chunks — long compound legitimate name.
+    # Expected new-rule warnings: operation-id-max-length (only)
+    get:
+      operationId: generateComprehensiveMarketingAttributionAnalyticsReport
+      description: Long compound name without path repetition — length only.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - reportId
+                properties:
+                  reportId:
+                    type: string
+                    description: Report identifier
+              examples:
+                default:
+                  value:
+                    reportId: RPT-1
+
+  # ------------------------------------------------------------------
+  # POSITIVE: interaction with operation-id-camel-case
+  # ------------------------------------------------------------------
+
+  /legacy/pipelines/{pipelineId}/stages/{stageId}:
+    # snake_case id AND long (54 chars) — exercises the
+    # "rules fire independently of operation-id-camel-case"
+    # acceptance criterion (spec Edge cases §"Camel-case interaction").
+    # snake_case has no `By[A-Z]` capital-B chunks, so the path-repetition
+    # regex `By[A-Z][a-zA-Z0-9]*[Ii]d` does NOT match — path-repetition
+    # rule stays silent, isolating the length rule from it while the
+    # existing camelCase rule still fires on the snake_case shape.
+    # Expected new-rule warnings: operation-id-max-length (only)
+    # Expected pre-existing violation: operation-id-camel-case
+    get:
+      operationId: get_pipelines_by_pipelineid_stages_by_stageid_detailed
+      description: Multi-rule offender — camel-case + length + path repetition.
+      parameters:
+        - name: pipelineId
+          in: path
+          required: true
+          description: Pipeline identifier
+          schema:
+            type: string
+        - name: stageId
+          in: path
+          required: true
+          description: Stage identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Stage identifier
+              examples:
+                default:
+                  value:
+                    id: STG-1
+
+# ------------------------------------------------------------------
+# Manual verification (documented here so a human/agent can re-run
+# the fixture check without re-reading the plan):
+#
+#   tmp=$(mktemp -d)
+#   cp .claude/skills/api-spec-validator/references/example-operation-id-readability.yaml "$tmp/api.yaml"
+#   cat > "$tmp/exchange.json" <<'EOF'
+#   { "main": "api.yaml", "name": "fixture-op-id-readability",
+#     "assetId": "fixture-op-id-readability", "version": "1.0.0",
+#     "apiVersion": "v1", "classifier": "oas",
+#     "originalFormatVersion": "3.0" }
+#   EOF
+#   anypoint-cli-v4 api-project validate \
+#     --location="$tmp" \
+#     --local-ruleset=./.claude/skills/api-spec-validator/scripts/ruleset.yaml
+#   rm -rf "$tmp"
+#
+# Expected report:
+#   operation-id-max-length          — fires on:
+#     /boundary/forty-one GET
+#     /organizations/.../gateways/{gatewayId} GET
+#     /reports/marketing-attribution GET
+#     /legacy/pipelines/{pipelineId}/stages/{stageId} GET
+#   operation-id-no-path-repetition  — fires on:
+#     /organizations/.../gateways/{gatewayId} GET
+#     /accounts/{accountId}/tokens/{tokenId} GET
+#   operation-id-camel-case (existing, violation) — fires on:
+#     /legacy/pipelines/{pipelineId}/stages/{stageId} GET
+#   Neither new rule fires on:
+#     /boundary/exactly-forty GET
+#     /users/{userId} GET
+#     /soql/templates POST
+# ------------------------------------------------------------------

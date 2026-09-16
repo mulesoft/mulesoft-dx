@@ -1,0 +1,104 @@
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: Service
+metadata:
+  name: upstream
+  namespace: flex
+spec:
+  address: http://upstream.default.svc.cluster.local:80
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: api-1
+  namespace: flex
+spec:
+  # address is the Flex (Envoy) listener URL, not a bare path: it needs a
+  # scheme + host + port. All APIs share the FLEX_LISTEN_PORT listener and are
+  # distinguished by path. The Service/FLEX_URL target this same port.
+  address: http://0.0.0.0:8080/api-1/
+  services:
+    upstream:
+      address: http://upstream.default.svc.cluster.local:80
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: api-1-rate-limit
+  namespace: flex
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: api-1
+  policyRef:
+    kind: Extension
+    name: rate-limiting-flex
+  config:
+    rateLimits:
+      - maximumRequests: 1000
+        timePeriodInMilliseconds: 1000
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: api-1-client-id
+  namespace: flex
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: api-1
+  policyRef:
+    kind: Extension
+    name: client-id-enforcement
+  config:
+    credentialsOriginHasHttpBasicAuthenticationHeader: false
+    clientIdExpression: "#[attributes.headers['client_id']]"
+    clientSecretExpression: "#[attributes.headers['client_secret']]"
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: ApiInstance
+metadata:
+  name: api-2
+  namespace: flex
+spec:
+  # address is the Flex (Envoy) listener URL, not a bare path: it needs a
+  # scheme + host + port. All APIs share the FLEX_LISTEN_PORT listener and are
+  # distinguished by path. The Service/FLEX_URL target this same port.
+  address: http://0.0.0.0:8080/api-2/
+  services:
+    upstream:
+      address: http://upstream.default.svc.cluster.local:80
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: api-2-rate-limit
+  namespace: flex
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: api-2
+  policyRef:
+    kind: Extension
+    name: rate-limiting-flex
+  config:
+    rateLimits:
+      - maximumRequests: 1000
+        timePeriodInMilliseconds: 1000
+---
+apiVersion: gateway.mulesoft.com/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: api-2-client-id
+  namespace: flex
+spec:
+  targetRef:
+    kind: ApiInstance
+    name: api-2
+  policyRef:
+    kind: Extension
+    name: client-id-enforcement
+  config:
+    credentialsOriginHasHttpBasicAuthenticationHeader: false
+    clientIdExpression: "#[attributes.headers['client_id']]"
+    clientSecretExpression: "#[attributes.headers['client_secret']]"
+---

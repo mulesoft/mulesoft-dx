@@ -444,6 +444,43 @@ class TestExtractOperations:
         methods = {op['method'] for op in ops}
         assert methods == {'GET', 'POST', 'DELETE'}
 
+    def test_operations_grouped_by_first_path_appearance_then_http_method(self):
+        paths = {
+            '/zebra': {
+                'delete': {'operationId': 'deleteZebra', 'responses': {}},
+                'get': {'operationId': 'getZebra', 'responses': {}},
+            },
+            '/animals/{animalId}': {
+                'patch': {'operationId': 'updateAnimal', 'responses': {}},
+                'post': {'operationId': 'createAnimal', 'responses': {}},
+                'get': {'operationId': 'getAnimal', 'responses': {}},
+                'put': {'operationId': 'replaceAnimal', 'responses': {}},
+                'delete': {'operationId': 'deleteAnimal', 'responses': {}},
+            },
+        }
+
+        ops = extract_operations(paths)
+
+        assert [(op['path'], op['method']) for op in ops] == [
+            ('/zebra', 'GET'),
+            ('/zebra', 'DELETE'),
+            ('/animals/{animalId}', 'GET'),
+            ('/animals/{animalId}', 'POST'),
+            ('/animals/{animalId}', 'PUT'),
+            ('/animals/{animalId}', 'PATCH'),
+            ('/animals/{animalId}', 'DELETE'),
+        ]
+
+    def test_single_operation_paths_keep_spec_order(self):
+        paths = {
+            '/zebra': {'get': {'operationId': 'getZebra', 'responses': {}}},
+            '/animals': {'get': {'operationId': 'getAnimals', 'responses': {}}},
+        }
+
+        ops = extract_operations(paths)
+
+        assert [op['path'] for op in ops] == ['/zebra', '/animals']
+
     def test_path_level_parameters_merged(self):
         paths = {
             '/orgs/{orgId}/items': {

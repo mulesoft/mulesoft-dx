@@ -5,16 +5,9 @@ info:
   description: Manage CloudHub applications, domains, deployments, alerts, and autoscale policies. Monitor dashboard statistics and diagnostics.
 servers:
 - url: https://anypoint.mulesoft.com/cloudhub/api
-- url: https://{region}.anypoint.mulesoft.com/cloudhub/api
-  variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
-- url: https://{region}.platform.mulesoft.com/cloudhub/api
-  variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+  description: US
+- url: https://eu1.anypoint.mulesoft.com/cloudhub/api
+  description: EU
 security:
 - bearerAuth: []
 - clientAuth: []
@@ -103,7 +96,8 @@ paths:
                 lastModified: 1458115909470
                 isSystem: false
                 createdAt: 1458115909470
-      operationId: getV2Alerts
+      summary: List alerts
+      operationId: listV2Alerts
     post:
       description: 'Create an alert
 
@@ -143,7 +137,8 @@ paths:
                 lastModified: 1458115909470
                 isSystem: false
                 createdAt: 1458115909470
-      operationId: createV2Alerts
+      summary: Create alert
+      operationId: createV2Alert
   /v2/alerts/{id}:
     put:
       description: 'Update an existing alert
@@ -168,7 +163,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetAlertResponse'
               example: *id001
-      operationId: updateV2AlertsById
+      summary: Update alert by ID
+      operationId: updateV2AlertById
     get:
       description: 'Retrieve a single alert
 
@@ -189,7 +185,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetAlertResponse'
               example: *id001
-      operationId: getV2AlertsById
+      summary: Get alert by ID
+      operationId: getV2AlertById
     delete:
       description: 'Delete a single alert
 
@@ -206,7 +203,8 @@ paths:
           description: 'Alert deleted
 
             '
-      operationId: deleteV2AlertsById
+      summary: Delete alert by ID
+      operationId: deleteV2AlertById
   /v2/alerts/{id}/history:
     get:
       description: 'Retrieve the history describing when this alert was triggered
@@ -250,7 +248,8 @@ paths:
                   - state: failed
                     type: email
                 total: 2
-      operationId: getV2AlertsByIdHistory
+      summary: Get alert trigger history
+      operationId: getV2AlertHistory
   /v2/applications:
     description: 'Applications resource
 
@@ -364,7 +363,8 @@ paths:
                   logLevels: []
                   ipAddresses: []
               example: *id002
-      operationId: getV2Applications
+      summary: List applications (v2)
+      operationId: listV2Applications
     post:
       description: 'Create a new application.
 
@@ -480,7 +480,8 @@ paths:
                   logLevels: []
                   ipAddresses: []
               example: *id003
-      operationId: createV2Applications
+      summary: Create application (v2)
+      operationId: createV2Application
     put:
       description: 'Bulk Action (UPDATE, START, STOP, RESTART, DELETE) for Applications.
 
@@ -524,7 +525,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateV2Applications
+      summary: Run bulk action on applications
+      operationId: bulkActionV2Applications
   /v2/applications/{domain}:
     description: 'A single application
 
@@ -612,7 +614,8 @@ paths:
                   logLevels: []
                   ipAddresses: []
               example: *id004
-      operationId: getV2ApplicationsByDomain
+      summary: Get application by domain (v2)
+      operationId: getV2ApplicationByDomain
     delete:
       description: 'Delete a single application
 
@@ -628,7 +631,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteV2ApplicationsByDomain
+      summary: Delete application by domain (v2)
+      operationId: deleteV2ApplicationByDomain
     put:
       description: 'Update a single application.
 
@@ -1071,7 +1075,8 @@ paths:
                   logLevels: []
                   ipAddresses: []
               example: *id005
-      operationId: updateV2ApplicationsByDomain
+      summary: Update application by domain (v2)
+      operationId: updateV2ApplicationByDomain
   /v2/applications/{domain}/dashboardStats:
     description: 'Dashboard statistics
 
@@ -1219,7 +1224,8 @@ paths:
                         '1431145680000': 344
                         '1431146580000': 344
               example: *id006
-      operationId: getV2ApplicationsByDomainDashboardstats
+      summary: Get application dashboard stats
+      operationId: getV2ApplicationDashboardStats
   /v2/applications/{domain}/files:
     description: 'Deploy or re-deploy an application with the specified application file.
 
@@ -1265,7 +1271,8 @@ paths:
           description: 'Application deployment queued successfully.
 
             '
-      operationId: createV2ApplicationsByDomainFiles
+      summary: Deploy application file
+      operationId: deployV2ApplicationFile
   /v2/applications/{domain}/queueStatistics:
     description: Retrieve statistics for persistent queues.
     get:
@@ -1372,7 +1379,8 @@ paths:
                       dequeued: {}
                   total: 1
               example: *id007
-      operationId: getV2ApplicationsByDomainQueuestatistics
+      summary: Get application queue statistics
+      operationId: getV2ApplicationQueueStats
   /v2/applications/{domain}/staticips:
     description: Manage the static Ips
     get:
@@ -1408,7 +1416,8 @@ paths:
                     address: 0.0.0.0
                     state: ASSIGNED
               example: *id008
-      operationId: getV2ApplicationsByDomainStaticips
+      summary: List application static IPs
+      operationId: listV2ApplicationStaticIps
     post:
       description: 'Request a static IP for the application.
 
@@ -1445,7 +1454,8 @@ paths:
           description: 'A static IP is already reserved for the app
 
             '
-      operationId: createV2ApplicationsByDomainStaticips
+      summary: Request application static IP
+      operationId: requestV2ApplicationStaticIp
   /v2/applications/{domain}/staticips/{region}:
     delete:
       description: Release any unused static IP address(es) assigned to the application for that region back to the pool.
@@ -1480,7 +1490,8 @@ paths:
           description: 'A concurrent request has modified the status of the IP before freeing.
 
             '
-      operationId: deleteV2ApplicationsByDomainStaticipsByRegion
+      summary: Release static IPs in region
+      operationId: releaseV2StaticIpsByRegion
   /v2/applications/{domain}/deployments:
     get:
       description: 'description: Retrieve deploymentIds and InstanceIds using this API. These Ids are useful for downloading mule application and worker logs.
@@ -1576,7 +1587,8 @@ paths:
                     instances: []
                   total: 5
               example: *id009
-      operationId: getV2ApplicationsByDomainDeployments
+      summary: List application deployments
+      operationId: listV2ApplicationDeployments
   /v2/applications/{domain}/deployments/{deploymentId}/logs:
     get:
       description: 'Retrieve deployment log for a specific depoymentId. May be subject of rate limit.
@@ -1644,7 +1656,8 @@ paths:
               example: *id010
         '429':
           description: Rejected due to rate limit.
-      operationId: getV2ApplicationsByDomainDeploymentsByDeploymentidLogs
+      summary: Get deployment logs
+      operationId: getV2DeploymentLogs
   /v2/applications/{domain}/instances:
     parameters:
     - name: domain
@@ -1850,7 +1863,8 @@ paths:
               example: *id011
         '429':
           description: Rejected due to rate limit.
-      operationId: getV2ApplicationsByDomainInstancesByInstanceidLogs
+      summary: Get instance logs
+      operationId: getV2InstanceLogs
   /v2/applications/{domain}/instances/{instanceId}/diagnostics:
     get:
       description: 'description: Retrieve thread dump of a worker.
@@ -1903,7 +1917,8 @@ paths:
                 \n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"qtp1864616119-30\" #30 prio=5 os_prio=0 tid=0x00007f9cc1a10000 nid=0xace waiting on condition [0x00007f9cab48d000]\n   java.lang.Thread.State: TIMED_WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\t- parking to wait for  <0x00000000eca0aac0> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:2078)\n\n\n\n\n\n\n\tat org.eclipse.jetty.util.BlockingArrayQueue.poll(BlockingArrayQueue.java:390)\n\n\n\n\n\n\n\tat org.eclipse.jetty.util.thread.QueuedThreadPool.idleJobPoll(QueuedThreadPool.java:509)\n\n\n\n\n\n\n\tat org.eclipse.jetty.util.thread.QueuedThreadPool.access$700(QueuedThreadPool.java:48)\n\n\n\n\n\n\n\tat org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:563)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"DateCache\" #29 daemon prio=5 os_prio=0 tid=0x00007f9cc19a8800 nid=0xacd in Object.wait() [0x00007f9cab58e000]\n   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n\tat java.lang.Object.wait(Native Method)\n\n\n\n\n\n\n\tat java.util.TimerThread.mainLoop(Timer.java:552)\n\n\n\n\n\n\n\t- locked <0x00000000ecb0d9b0> (a java.util.TaskQueue)\n\n\n\n\n\n\n\tat java.util.TimerThread.run(Timer.java:505)\n\n\n\n\n\n\n\n\"[.agent].processing.time.monitor\" #27 daemon prio=5 os_prio=0 tid=0x00007f9cc1880000 nid=0xacc in Object.wait() [0x00007f9cab88f000]\n   java.lang.Thread.State: WAITING (on object monitor)\n\tat java.lang.Object.wait(Native Method)\n\n\n\n\n\n\n\t- waiting on <0x00000000eca01d30> (a java.lang.ref.ReferenceQueue$Lock)\n\n\n\n\n\n\n\tat java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)\n\n\n\n\n\n\n\t- locked <0x00000000eca01d30> (a java.lang.ref.ReferenceQueue$Lock)\n\n\n\n\n\n\n\tat java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:164)\n\n\n\n\n\n\n\tat org.mule.management.stats.DefaultProcessingTimeWatcher$ProcessingTimeChecker.run(DefaultProcessingTimeWatcher.java:76)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"Thread-3\" #26 prio=5 os_prio=0 tid=0x00007f9cc1197800 nid=0xacb waiting on condition [0x00007f9cab990000]\n   java.lang.Thread.State: TIMED_WAITING (sleeping)\n\tat java.lang.Thread.sleep(Native Method)\n\n\n\n\n\n\n\tat org.apache.commons.io.monitor.FileAlterationMonitor.run(FileAlterationMonitor.java:188)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"MapDB writer #2\" #24 daemon prio=5 os_prio=0 tid=0x00007f9cc19e1800 nid=0xaca waiting on condition [0x00007f9cabbfd000]\n   java.lang.Thread.State: TIMED_WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)\n\n\n\n\n\n\n\tat org.mapdb.AsyncWriteEngine$WriterRunnable.run(AsyncWriteEngine.java:165)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"MapDB writer #1\" #22 daemon prio=5 os_prio=0 tid=0x00007f9cc19ce000 nid=0xac9 waiting on condition [0x00007f9cabefe000]\n   java.lang.Thread.State: TIMED_WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)\n\n\n\n\n\n\n\tat org.mapdb.AsyncWriteEngine$WriterRunnable.run(AsyncWriteEngine.java:165)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"[.agent].Mule.01\" #20 prio=5 os_prio=0 tid=0x00007f9cc1412800 nid=0xac8 waiting on condition [0x00007f9cb8ac1000]\n   java.lang.Thread.State: TIMED_WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\t- parking to wait for  <0x00000000ec7de190> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:2078)\n\
                 \n\n\n\n\n\n\tat java.util.concurrent.LinkedBlockingDeque.pollFirst(LinkedBlockingDeque.java:522)\n\n\n\n\n\n\n\tat java.util.concurrent.LinkedBlockingDeque.poll(LinkedBlockingDeque.java:684)\n\n\n\n\n\n\n\tat org.mule.context.notification.ServerNotificationManager.run(ServerNotificationManager.java:270)\n\n\n\n\n\n\n\tat org.mule.work.WorkerContext.run(WorkerContext.java:286)\n\n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n\n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"Log4j2-AsyncLoggerConfig-2\" #18 daemon prio=5 os_prio=0 tid=0x00007f9cc1351800 nid=0xac7 waiting on condition [0x00007f9cb8dc2000]\n   java.lang.Thread.State: WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\t- parking to wait for  <0x00000000ec4344e0> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)\n\n\n\n\n\n\n\tat com.lmax.disruptor.BlockingWaitStrategy.waitFor(BlockingWaitStrategy.java:45)\n\n\n\n\n\n\n\tat com.lmax.disruptor.ProcessingSequenceBarrier.waitFor(ProcessingSequenceBarrier.java:55)\n\n\n\n\n\n\n\tat com.lmax.disruptor.BatchEventProcessor.run(BatchEventProcessor.java:123)\n\n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n\n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"DestroyJavaVM\" #15 prio=5 os_prio=0 tid=0x00007f9cdc00b000 nid=0xab8 waiting on condition [0x0000000000000000]\n   java.lang.Thread.State: RUNNABLE\n\n\"Wrapper-Connection\" #14 daemon prio=10 os_prio=0 tid=0x00007f9cdc3f5000 nid=0xac5 runnable [0x00007f9ccc324000]\n   java.lang.Thread.State: RUNNABLE\n\tat java.net.SocketInputStream.socketRead0(Native Method)\n\n\n\n\n\n\n\tat java.net.SocketInputStream.socketRead(SocketInputStream.java:116)\n\n\n\n\n\n\n\tat java.net.SocketInputStream.read(SocketInputStream.java:170)\n\n\n\n\n\n\n\tat java.net.SocketInputStream.read(SocketInputStream.java:141)\n\n\n\n\n\n\n\tat java.net.SocketInputStream.read(SocketInputStream.java:223)\n\n\n\n\n\n\n\tat java.io.DataInputStream.readByte(DataInputStream.java:265)\n\n\n\n\n\n\n\tat org.tanukisoftware.wrapper.WrapperManager.handleBackend(WrapperManager.java:5505)\n\n\n\n\n\n\n\tat org.tanukisoftware.wrapper.WrapperManager.run(WrapperManager.java:5889)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"Wrapper-Control-Event-Monitor\" #12 daemon prio=5 os_prio=0 tid=0x00007f9cdc440800 nid=0xac3 waiting on condition [0x00007f9ccc526000]\n   java.lang.Thread.State: TIMED_WAITING (sleeping)\n\tat java.lang.Thread.sleep(Native Method)\n\n\n\n\n\n\n\tat org.tanukisoftware.wrapper.WrapperManager$3.run(WrapperManager.java:1040)\n\n\n\n\n\n\n\n\"Log4j2-AsyncLoggerConfig-1\" #9 daemon prio=5 os_prio=0 tid=0x00007f9cdc34b000 nid=0xac2 waiting on condition [0x00007f9ce0199000]\n   java.lang.Thread.State: WAITING (parking)\n\tat sun.misc.Unsafe.park(Native Method)\n\n\n\n\n\n\n\t- parking to wait for  <0x00000000eb551618> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)\n\n\n\n\n\n\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)\n\n\n\n\n\n\n\tat com.lmax.disruptor.BlockingWaitStrategy.waitFor(BlockingWaitStrategy.java:45)\n\n\n\n\n\n\n\tat com.lmax.disruptor.ProcessingSequenceBarrier.waitFor(ProcessingSequenceBarrier.java:55)\n\n\n\n\n\n\n\tat com.lmax.disruptor.BatchEventProcessor.run(BatchEventProcessor.java:123)\n\n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n\
                 \n\n\n\n\n\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n\n\n\n\n\n\n\tat java.lang.Thread.run(Thread.java:745)\n\n\n\n\n\n\n\n\"Service Thread\" #7 daemon prio=9 os_prio=0 tid=0x00007f9cdc0c8000 nid=0xac0 runnable [0x0000000000000000]\n   java.lang.Thread.State: RUNNABLE\n\n\"C1 CompilerThread1\" #6 daemon prio=9 os_prio=0 tid=0x00007f9cdc0c3000 nid=0xabf waiting on condition [0x0000000000000000]\n   java.lang.Thread.State: RUNNABLE\n\n\"C2 CompilerThread0\" #5 daemon prio=9 os_prio=0 tid=0x00007f9cdc0c0800 nid=0xabe waiting on condition [0x0000000000000000]\n   java.lang.Thread.State: RUNNABLE\n\n\"Signal Dispatcher\" #4 daemon prio=9 os_prio=0 tid=0x00007f9cdc0bf000 nid=0xabd runnable [0x0000000000000000]\n   java.lang.Thread.State: RUNNABLE\n\n\"Finalizer\" #3 daemon prio=8 os_prio=0 tid=0x00007f9cdc087000 nid=0xabc in Object.wait() [0x00007f9ce0c46000]\n   java.lang.Thread.State: WAITING (on object monitor)\n\tat java.lang.Object.wait(Native Method)\n\n\n\n\n\n\n\tat java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)\n\n\n\n\n\n\n\t- locked <0x00000000eb415da8> (a java.lang.ref.ReferenceQueue$Lock)\n\n\n\n\n\n\n\tat java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:164)\n\n\n\n\n\n\n\tat java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)\n\n\n\n\n\n\n\n\"Reference Handler\" #2 daemon prio=10 os_prio=0 tid=0x00007f9cdc085000 nid=0xabb in Object.wait() [0x00007f9ce0d47000]\n   java.lang.Thread.State: WAITING (on object monitor)\n\tat java.lang.Object.wait(Native Method)\n\n\n\n\n\n\n\tat java.lang.Object.wait(Object.java:502)\n\n\n\n\n\n\n\tat java.lang.ref.Reference$ReferenceHandler.run(Reference.java:157)\n\n\n\n\n\n\n\t- locked <0x00000000eb497a60> (a java.lang.ref.Reference$Lock)\n\n\n\n\n\n\n\n\"VM Thread\" os_prio=0 tid=0x00007f9cdc080000 nid=0xaba runnable \n\n\"Gang worker#0 (Parallel GC Threads)\" os_prio=0 tid=0x00007f9cdc01c800 nid=0xab9 runnable \n\n\"VM Periodic Task Thread\" os_prio=0 tid=0x00007f9cdc0cb000 nid=0xac1 waiting on condition \n\nJNI global references: 331\n\n"
-      operationId: getV2ApplicationsByDomainInstancesByInstanceidDiagnostics
+      summary: Get instance diagnostics
+      operationId: getV2InstanceDiagnostics
   /v2/applications/{domain}/instances/{instanceId}/log-file:
     get:
       description: 'Download the log file associated with your application
@@ -1945,7 +1960,8 @@ paths:
                 * Application: test-test                                             *\n* OS encoding: /, Mule encoding: UTF-8                               *\n*                                                                    *\n* Agents Running:                                                    *\n*   DevKit Extension Information                                     *\n*   JMX Agent                                                        *\n*   Batch module default engine                                      *\n*   Wrapper Manager                                                  *\n**********************************************************************\n[2015-12-14 17:54:02.865] INFO    org.mule.api.processor.LoggerMessageProcessor [[test-test].Copy_of_echoFlow.stage1.02]: (t:null) \norg.mule.DefaultMuleMessage\n{\n  id=a93bf1a0-a28b-11e5-9d9b-0e4b77f24b53\n  payload=org.glassfish.grizzly.utils.BufferInputStream\n  correlationId=<not set>\n  correlationGroup=-1\n  correlationSeq=-1\n  encoding=UTF-8\n  exceptionPayload=<not set>\n\nMessage properties:\n  INVOCATION scoped properties:\n    pollingFrequency=1000\n  INBOUND scoped properties:\n    MULE_ORIGINATING_ENDPOINT=endpoint.polling.1912630717\n    cache-control=public, no-cache=\"Set-Cookie\", max-age=59\n    cf-ray=254bc58d3e052390-IAD\n    connection=keep-alive\n    content-type=text/html; charset=utf-8\n    date=Mon, 14 Dec 2015 17:54:02 GMT\n    expires=Mon, 14 Dec 2015 17:55:01 GMT\n    http.reason=OK\n    http.status=200\n    last-modified=Mon, 14 Dec 2015 17:54:01 GMT\n    server=cloudflare-nginx\n    set-cookie=[__cfduid=dc3171fe8e760735d044f568ddc7fa1f61450115642; expires=Tue, 13-Dec-16 17:54:02 GMT; path=/; domain=.stackoverflow.com; HttpOnly, prov=7f585e15-49e0-41cb-b57f-ffa557f4d075; domain=.stackoverflow.com; expires=Fri, 01-Jan-2055 00:00:00 GMT; path=/; HttpOnly]\n    transfer-encoding=chunked\n    vary=*\n    x-frame-options=SAMEORIGIN\n    x-request-guid=6deef0ce-64d0-4dc9-b6a0-a40a6b22ce08\n  OUTBOUND scoped properties:\n  SESSION scoped properties:\n}\n[2015-12-14 17:54:02.867] INFO    org.mule.api.processor.LoggerMessageProcessor [[test-test].echoFlow.stage1.02]: (t:null) \norg.mule.DefaultMuleMessage\n{\n  id=a93ba380-a28b-11e5-9d9b-0e4b77f24b53\n  payload=org.glassfish.grizzly.utils.BufferInputStream\n  correlationId=<not set>\n  correlationGroup=-1\n  correlationSeq=-1\n  encoding=UTF-8\n  exceptionPayload=<not set>\n\nMessage properties:\n  INVOCATION scoped properties:\n    pollingFrequency=1000\n  INBOUND scoped properties:\n    MULE_ORIGINATING_ENDPOINT=endpoint.polling.1912630717\n    cache-control=public, no-cache=\"Set-Cookie\", max-age=59\n    cf-ray=254bc58d2f4723fc-IAD\n    connection=keep-alive\n    content-type=text/html; charset=utf-8\n    date=Mon, 14 Dec 2015 17:54:02 GMT\n    expires=Mon, 14 Dec 2015 17:55:01 GMT\n    http.reason=OK\n    http.status=200\n    last-modified=Mon, 14 Dec 2015 17:54:01 GMT\n    server=cloudflare-nginx\n    set-cookie=[__cfduid=dd5351ad84577c9a97c84f87d6c5fe1f41450115642; expires=Tue, 13-Dec-16 17:54:02 GMT; path=/; domain=.stackoverflow.com; HttpOnly, prov=36c7d2b8-01d1-4f3f-abea-4a4d0a563034; domain=.stackoverflow.com; expires=Fri, 01-Jan-2055 00:00:00 GMT; path=/; HttpOnly]\n    transfer-encoding=chunked\n    vary=*\n    x-frame-options=SAMEORIGIN\n    x-request-guid=74d2f249-e609-4369-b631-bd116b129291\n  OUTBOUND scoped properties:\n  SESSION scoped properties:\n}\n[2015-12-14 17:54:23.248] INFO    org.mule.api.processor.LoggerMessageProcessor [[test-test].Copy_of_echoFlow.stage1.02]: (t:null) \norg.mule.DefaultMuleMessage\n{\n  id=b5681800-a28b-11e5-9d9b-0e4b77f24b53\n  payload=org.glassfish.grizzly.utils.BufferInputStream\n  correlationId=<not set>\n  correlationGroup=-1\n  correlationSeq=-1\n  encoding=UTF-8\n  exceptionPayload=<not set>\""
         '429':
           description: Rejected due to rate limit.
-      operationId: getV2ApplicationsByDomainInstancesByInstanceidLogFile
+      summary: Download instance log file
+      operationId: downloadV2InstanceLogFile
   /v2/applications/{domain}/insight:
     parameters:
     - name: domain
@@ -1975,7 +1991,8 @@ paths:
       responses:
         '204':
           description: Replay Data deleted successfully
-      operationId: deleteV2ApplicationsByDomainInsightTransactionsReplays
+      summary: Delete replay data
+      operationId: deleteV2ReplayData
   /v2/applications/{domain}/insight/transactions/hasReplays:
     get:
       description: Checks if Replay Data Exists on Amazon S3 for the given application
@@ -1996,7 +2013,8 @@ paths:
                 example: &id012
                   objectsExist: true
               example: *id012
-      operationId: getV2ApplicationsByDomainInsightTransactionsHasreplays
+      summary: Check replay data exists
+      operationId: checkV2ReplayDataExists
   /v2/applications/{domain}/autoscalepolicies:
     get:
       description: Retrieve auto-scaling policies
@@ -2035,7 +2053,8 @@ paths:
                       periodMins: 1
                       periodCount: 10
               example: *id013
-      operationId: getV2ApplicationsByDomainAutoscalepolicies
+      summary: List auto-scaling policies
+      operationId: listV2AutoscalePolicies
     post:
       description: Create new Auto-scaling Policy
       parameters:
@@ -2080,7 +2099,8 @@ paths:
                       periodMins: 1
                       periodCount: 10
               example: *id014
-      operationId: createV2ApplicationsByDomainAutoscalepolicies
+      summary: Create auto-scaling policy
+      operationId: createV2AutoscalePolicy
   /v2/applications/{domain}/autoscalepolicies/{policyId}:
     get:
       description: Retrieve specified auto scaling policy
@@ -2122,7 +2142,8 @@ paths:
               example: *id015
         '404':
           description: Specified auto scaling policy does not exist
-      operationId: getV2ApplicationsByDomainAutoscalepoliciesByPolicyid
+      summary: Get auto-scaling policy
+      operationId: getV2AutoscalePolicy
     put:
       description: Update specified auto scaling policy
       parameters:
@@ -2179,7 +2200,8 @@ paths:
               example: *id017
         '404':
           description: Specified auto scaling policy does not exist
-      operationId: updateV2ApplicationsByDomainAutoscalepoliciesByPolicyid
+      summary: Update auto-scaling policy
+      operationId: updateV2AutoscalePolicy
     delete:
       description: Delete auto-scaling policy
       parameters:
@@ -2194,7 +2216,8 @@ paths:
       responses:
         '204':
           description: Auto-scaling Policy deleted
-      operationId: deleteV2ApplicationsByDomainAutoscalepoliciesByPolicyid
+      summary: Delete auto-scaling policy
+      operationId: deleteV2AutoscalePolicy
   /v2/applications/{domain}/logs:
     post:
       description: 'Search logs for the application.
@@ -2244,7 +2267,8 @@ paths:
               example: *id018
         '429':
           description: Rejected due to rate limit.
-      operationId: createV2ApplicationsByDomainLogs
+      summary: Search application logs
+      operationId: searchV2ApplicationLogs
   /account:
     description: 'User account
 
@@ -2348,6 +2372,7 @@ paths:
                     production: true
                   activeEnvironment: 54f7ed78e4b0d48f31a30892
               example: *id019
+      summary: Get current user account
       operationId: getAccount
   /applications:
     description: 'Applications resource (V1) - deprecated, use V2 equivalents instead
@@ -2424,7 +2449,8 @@ paths:
                   secureDataGatewayEnabled: false
                   vpnEnabled: false
               example: *id020
-      operationId: getApplications
+      summary: List applications
+      operationId: listApplications
     post:
       description: 'Create a new application.
 
@@ -2491,7 +2517,8 @@ paths:
                   secureDataGatewayEnabled: false
                   vpnEnabled: false
               example: *id021
-      operationId: createApplications
+      summary: Create application
+      operationId: createApplication
   /applications/domains/{domain}:
     description: 'Domain name availability
 
@@ -2521,7 +2548,8 @@ paths:
               example: *id022
         '400':
           description: Domain name is invalid.
-      operationId: getApplicationsDomainsByDomain
+      summary: Check domain availability
+      operationId: checkDomainAvailability
   /applications/{domain}:
     description: 'A single application (V1), deprecated, use V2 equivalents instead
 
@@ -2582,7 +2610,8 @@ paths:
                   secureDataGatewayEnabled: false
                   vpnEnabled: false
               example: *id023
-      operationId: getApplicationsByDomain
+      summary: Get application by domain
+      operationId: getApplicationByDomain
     put:
       description: 'Update a single application.
 
@@ -2659,7 +2688,8 @@ paths:
                   secureDataGatewayEnabled: false
                   vpnEnabled: false
               example: *id024
-      operationId: updateApplicationsByDomain
+      summary: Update application by domain
+      operationId: updateApplicationByDomain
     delete:
       description: 'Delete a single application.
 
@@ -2677,7 +2707,8 @@ paths:
       responses:
         '200':
           description: Application deleted successfully.
-      operationId: deleteApplicationsByDomain
+      summary: Delete application by domain
+      operationId: deleteApplicationByDomain
   /applications/{domain}/download/{filename}:
     description: 'Retrieve the Mule package file for the application.
 
@@ -2708,7 +2739,8 @@ paths:
             application/octet-stream:
               schema: {}
               example: (binary data)
-      operationId: getApplicationsByDomainDownloadByFilename
+      summary: Download application file
+      operationId: downloadApplicationFile
   /applications/{domain}/logs/levels:
     description: 'Log levels for java packages
 
@@ -2734,7 +2766,8 @@ paths:
                 - packageName: com.mulesoft
                   level: INFO
               example: *id025
-      operationId: getApplicationsByDomainLogsLevels
+      summary: List application log levels
+      operationId: listApplicationLogLevels
     put:
       description: Add/Update log levels for current application
       parameters:
@@ -2757,7 +2790,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateApplicationsByDomainLogsLevels
+      summary: Update application log levels
+      operationId: updateApplicationLogLevels
   /applications/{domain}/logs/levels/{name}:
     get:
       description: Get single log level with name
@@ -2785,7 +2819,8 @@ paths:
                   packageName: com.mulesoft
                   level: INFO
               example: *id026
-      operationId: getApplicationsByDomainLogsLevelsByName
+      summary: Get application log level
+      operationId: getApplicationLogLevel
     delete:
       description: Delete single log level with name
       parameters:
@@ -2804,7 +2839,8 @@ paths:
       responses:
         '200':
           description: Log Level deleted succesfully
-      operationId: deleteApplicationsByDomainLogsLevelsByName
+      summary: Delete application log level
+      operationId: deleteApplicationLogLevel
   /applications/{domain}/notifications:
     description: 'Retrieve notifications for the applications
 
@@ -2862,7 +2898,8 @@ paths:
                     read: false
                     href: http://anypoint.mulesoft.com:8080/api/notifications/5553812ee4b0a1b2e9faf2f9
               example: *id027
-      operationId: getApplicationsByDomainNotifications
+      summary: List application notifications
+      operationId: listApplicationNotifications
   /applications/{domain}/schedules:
     description: Application schedules
     get:
@@ -2915,7 +2952,8 @@ paths:
                     period: 30
                   run-href: http://qa.anypoint.mulesoft.com:8080/api/applications/poll-test/schedules/565f7691e4b0365bb4f4d774_echoFlow_polling_echoFlow_1/run
               example: *id028
-      operationId: getApplicationsByDomainSchedules
+      summary: List application schedules
+      operationId: listApplicationSchedules
       description: Retrieves a schedules.
     put:
       description: 'Batch update of the schedules. Enable/Disable or run all or subset of schedules.
@@ -2986,7 +3024,8 @@ paths:
                     period: 30
                   run-href: http://qa.anypoint.mulesoft.com:8080/api/applications/poll-test/schedules/565f7691e4b0365bb4f4d774_echoFlow_polling_echoFlow_1/run
               example: *id029
-      operationId: updateApplicationsByDomainSchedules
+      summary: Update application schedules
+      operationId: updateApplicationSchedules
   /applications/{domain}/schedules/{jobId}:
     get:
       parameters:
@@ -3022,7 +3061,8 @@ paths:
                     period: 10
                   run-href: http://anypoint.mulesoft.com:8080/api/applications/polltest/schedules/566a0359e4b0dc517fef5bbb_echoFlow_polling_echoFlow_1/run
               example: *id030
-      operationId: getApplicationsByDomainSchedulesByJobid
+      summary: Get application schedule
+      operationId: getApplicationSchedule
       description: Retrieves a schedules.
     put:
       parameters:
@@ -3060,7 +3100,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateApplicationsByDomainSchedulesByJobid
+      summary: Replace application schedule
+      operationId: replaceApplicationSchedule
       description: Replaces a schedules.
   /applications/{domain}/schedules/{jobId}/run:
     post:
@@ -3086,7 +3127,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: createApplicationsByDomainSchedulesByJobidRun
+      summary: Run application schedule
+      operationId: runApplicationSchedule
       description: Creates a run.
   /applications/{domain}/settings:
     parameters:
@@ -3115,7 +3157,8 @@ paths:
                 example: &id031
                   trackingLevel: METADATA_AND_REPLAY
               example: *id031
-      operationId: getApplicationsByDomainSettingsTracking
+      summary: Get tracking settings
+      operationId: getApplicationTrackingSettings
       description: Retrieves a tracking.
     put:
       description: 'Possible values are ''DISABLED'' , ''METADATA'' and ''METADATA_AND_REPLAY''.
@@ -3143,7 +3186,8 @@ paths:
           description: 'The insight replay feature is not supported for mule 4 applications and for free and trial users.
 
             '
-      operationId: updateApplicationsByDomainSettingsTracking
+      summary: Update tracking settings
+      operationId: updateApplicationTrackingSettings
   /applications/{domain}/statistics:
     description: 'Retrieve application statistics. Defaults to a week long search.
 
@@ -3203,7 +3247,8 @@ paths:
                   '1430903299087': 2
                   '1430915395087': 0
               example: *id032
-      operationId: getApplicationsByDomainStatistics
+      summary: Get application statistics
+      operationId: getApplicationStatistics
   /applications/{domain}/status:
     description: 'Application status
 
@@ -3234,7 +3279,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createApplicationsByDomainStatus
+      summary: Update application status
+      operationId: updateApplicationStatus
     get:
       description: 'Retrieve status of the application.
 
@@ -3270,7 +3316,8 @@ paths:
               schema:
                 example: STARTED
               example: STARTED
-      operationId: getApplicationsByDomainStatus
+      summary: Get application status
+      operationId: getApplicationStatus
   /applications/{domain}/tracking:
     parameters:
     - name: domain
@@ -3302,7 +3349,8 @@ paths:
                 - customkey-2
                 - customkey-3
               example: *id033
-      operationId: getApplicationsByDomainTrackingCustomKeys
+      summary: List tracking custom keys
+      operationId: listTrackingCustomKeys
   /applications/{domain}/tracking/searches:
     get:
       description: To use a non-default environment, set this header
@@ -3327,7 +3375,8 @@ paths:
                   startDate: 2012-08-12 04:00:00+00:00
                   endDate: 2012-08-13 04:00:00+00:00
               example: *id034
-      operationId: getApplicationsByDomainTrackingSearches
+      summary: List tracking searches
+      operationId: listTrackingSearches
   /applications/{domain}/tracking/searches/{name}:
     post:
       description: To use a non-default environment, set this header
@@ -3351,7 +3400,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: createApplicationsByDomainTrackingSearchesByName
+      summary: Create tracking search
+      operationId: createTrackingSearch
     put:
       description: To use a non-default environment, set this header
       parameters:
@@ -3374,7 +3424,8 @@ paths:
       responses:
         '200':
           description: Successful operation.
-      operationId: updateApplicationsByDomainTrackingSearchesByName
+      summary: Update tracking search
+      operationId: updateTrackingSearch
     delete:
       description: To use a non-default environment, set this header
       parameters:
@@ -3397,7 +3448,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: deleteApplicationsByDomainTrackingSearchesByName
+      summary: Delete tracking search
+      operationId: deleteTrackingSearch
   /applications/{domain}/tracking/statistics:
     post:
       description: 'Retrieve a list of application statistics, filtered by parameters passed in the request body.
@@ -3430,7 +3482,8 @@ paths:
                   - 2015-03-07 00:46:59.376000+00:00: 3
                   total: 1
               example: *id035
-      operationId: createApplicationsByDomainTrackingStatistics
+      summary: Search tracking statistics
+      operationId: searchTrackingStatistics
     get:
       description: 'Retrieve a list of application statistics.
 
@@ -3459,7 +3512,8 @@ paths:
                   - 2015-03-07 00:46:59.376000+00:00: 3
                   total: 1
               example: *id036
-      operationId: getApplicationsByDomainTrackingStatistics
+      summary: List tracking statistics
+      operationId: listTrackingStatistics
   /applications/{domain}/tracking/transactions:
     description: 'Application transactions
 
@@ -3525,7 +3579,8 @@ paths:
                     fields: {}
                   totalTranscations: 1
               example: *id037
-      operationId: createApplicationsByDomainTrackingTransactions
+      summary: Search tracking transactions
+      operationId: searchTrackingTransactions
   /applications/{domain}/tracking/transactions/{transactionId}:
     description: A single transaction
     get:
@@ -3572,7 +3627,8 @@ paths:
                   name: Flow Returned
                   flow: helloworldFlow
               example: *id038
-      operationId: getApplicationsByDomainTrackingTransactionsByTransactionid
+      summary: Get tracking transaction
+      operationId: getTrackingTransaction
   /applications/{domain}/tracking/transactions/{transactionId}/{flowName}/replay:
     description: Replay transaction
     get:
@@ -3609,7 +3665,8 @@ paths:
                 example: &id039
                   id: flow-id
               example: *id039
-      operationId: getApplicationsByDomainTrackingTransactionsByTransactionidByFlownameReplay
+      summary: Replay tracking transaction
+      operationId: replayTrackingTransaction
   /applications/{domain}/workers:
     description: Application workers
     get:
@@ -3640,7 +3697,8 @@ paths:
                   status: STARTED
                   staticIPEnabled: false
               example: *id040
-      operationId: getApplicationsByDomainWorkers
+      summary: List application workers
+      operationId: listApplicationWorkers
   /mule-versions:
     description: Mule runtimes
     get:
@@ -3735,7 +3793,8 @@ paths:
                     default: false
                   total: 16
               example: *id041
-      operationId: getMuleVersions
+      summary: List Mule versions
+      operationId: listMuleVersions
   /mule-versions/{version}:
     get:
       description: 'Retrieve specified Mule Version
@@ -3781,7 +3840,8 @@ paths:
                   javaVersion: '8'
                   default: false
               example: *id042
-      operationId: getMuleVersionsByVersion
+      summary: Get Mule version
+      operationId: getMuleVersion
   /mule-versions/{version}/updates/{updateId}:
     get:
       description: 'Retrieve a single update for a muleVersion
@@ -3823,7 +3883,8 @@ paths:
                     diagnosticsSupported: true
                     persistentQueuesSupported: true
               example: *id043
-      operationId: getMuleVersionsByVersionUpdatesByUpdateid
+      summary: Get Mule version update
+      operationId: getMuleVersionUpdate
   /notifications:
     description: Application notifications
     post:
@@ -3848,7 +3909,8 @@ paths:
       responses:
         '201':
           description: Resource created successfully.
-      operationId: createNotifications
+      summary: Create notification
+      operationId: createNotification
     get:
       description: 'Retrieve notifications.
 
@@ -3916,7 +3978,8 @@ paths:
                     read: false
                     href: http://anypoint.mulesoft.com:8080/api/notifications/5553812ee4b0a1b2e9faf2f9
               example: *id044
-      operationId: getNotifications
+      summary: List notifications
+      operationId: listNotifications
     put:
       description: 'Mark all notifications for this application as read or unread.
 
@@ -3939,7 +4002,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: updateNotifications
+      summary: Mark all notifications read
+      operationId: markAllNotifications
   /notifications/{id}:
     description: A single notification
     get:
@@ -3972,7 +4036,8 @@ paths:
                   readOn: 2015-05-13 17:10:15.619000+00:00
                   href: http://anypoint.mulesoft.com:8080/api/notifications/5553812ee4b0a1b2e9faf2f9
               example: *id045
-      operationId: getNotificationsById
+      summary: Get notification by ID
+      operationId: getNotificationById
     put:
       description: 'Mark a single notification  as read or unread.
 
@@ -3993,7 +4058,8 @@ paths:
       responses:
         '204':
           description: Operation completed successfully with no content returned.
-      operationId: updateNotificationsById
+      summary: Mark notification by ID
+      operationId: markNotificationById
   /organization:
     description: Organization resource
     get:
@@ -4077,6 +4143,7 @@ paths:
                     productionWorkers: 1
                     sandboxWorkers: 0
               example: *id046
+      summary: Get current organization
       operationId: getOrganization
   /organization/plan:
     description: Subscription plan
@@ -4133,6 +4200,7 @@ paths:
                   globalCloud: false
                   directVpn: false
               example: *id047
+      summary: Get organization plan
       operationId: getOrganizationPlan
   /organization/usage:
     description: Usage details
@@ -4163,6 +4231,7 @@ paths:
                   productionWorkers: 1
                   sandboxWorkers: 0
               example: *id048
+      summary: Get organization usage
       operationId: getOrganizationUsage
   /organization/{orgid}:
     description: A single organization
@@ -4248,7 +4317,8 @@ paths:
                     productionWorkers: 1
                     sandboxWorkers: 0
               example: *id049
-      operationId: getOrganizationByOrgid
+      summary: Get organization by ID
+      operationId: getOrganizationById
   /organizations:
     description: Organizations resource
   /organizations/{orgid}:
@@ -4277,7 +4347,8 @@ paths:
                 productionVCoresConsumed: 4
                 sandboxVCoresConsumed: 1
                 staticIpsConsumed: 10
-      operationId: getOrganizationsByOrgidUsage
+      summary: Get organization usage by ID
+      operationId: getOrganizationUsageById
   /organizations/{orgid}/logs:
     parameters:
     - $ref: '#/components/parameters/XOrigin_orgid_Path'
@@ -4323,7 +4394,8 @@ paths:
           description: Forbidden - Insufficient permissions or feature disabled
         '404':
           description: Resource not found
-      operationId: createOrganizationsByOrgidLogsDownload
+      summary: Request log download
+      operationId: requestLogDownload
   /organizations/{orgid}/logs/download/status:
     get:
       description: 'Check the status of a log download execution.
@@ -4369,7 +4441,8 @@ paths:
           description: A download request is already in progress for this resource
         '500':
           description: Log download execution failed
-      operationId: getOrganizationsByOrgidLogsDownloadStatus
+      summary: Get log download status
+      operationId: getLogDownloadStatus
   /organizations/{orgid}/loadbalancers:
     get:
       description: List existing Load balancers for the organization
@@ -4453,7 +4526,8 @@ paths:
                         appUri: /
                   total: 1
               example: *id050
-      operationId: getOrganizationsByOrgidLoadbalancers
+      summary: List load balancers
+      operationId: listOrgLoadBalancers
   /organizations/{orgid}/loadbalancers/testcerts:
     post:
       description: Test if LB certificates, keys, crls and their combinations are valid
@@ -4591,7 +4665,8 @@ paths:
               example: *id051
         '400':
           description: invalid certificate, key, clr or their combination
-      operationId: createOrganizationsByOrgidLoadbalancersTestcerts
+      summary: Test load balancer certificates
+      operationId: testLoadBalancerCerts
   /organizations/{orgid}/tgws:
     get:
       description: Get a list of all Transit Gateways belonging to the master organization
@@ -4626,7 +4701,8 @@ paths:
                     lastModifiedTime: 1623368877614
                   total: 1
               example: *id052
-      operationId: getOrganizationsByOrgidTgws
+      summary: List transit gateways
+      operationId: listTransitGateways
     post:
       description: Create a new Transit Gateway
       parameters:
@@ -4660,7 +4736,8 @@ paths:
           description: Wrong Request
         '404':
           description: Resource Not Found
-      operationId: createOrganizationsByOrgidTgws
+      summary: Create transit gateway
+      operationId: createTransitGateway
   /organizations/{orgid}/tgws/{id}:
     put:
       description: Add a new TGW-VPC attachment, modify VPC routes or update the TGW name
@@ -4739,7 +4816,8 @@ paths:
           description: Wrong Request
         '404':
           description: Resource Not Found
-      operationId: updateOrganizationsByOrgidTgwsById
+      summary: Update transit gateway
+      operationId: updateTransitGateway
     delete:
       description: Delete a TGW-VPC attachment or a TGW Resource Share
       parameters:
@@ -4763,7 +4841,8 @@ paths:
           description: Wrong Request
         '404':
           description: Resource Not Found
-      operationId: deleteOrganizationsByOrgidTgwsById
+      summary: Delete transit gateway
+      operationId: deleteTransitGateway
   /organizations/{orgid}/vpcs:
     post:
       description: Create new VPC
@@ -4811,7 +4890,8 @@ paths:
           description: wrong request
         '404':
           description: organization is not found
-      operationId: createOrganizationsByOrgidVpcs
+      summary: Create VPC
+      operationId: createVpc
     get:
       description: Get a list of existing VPCs
       parameters:
@@ -4867,7 +4947,8 @@ paths:
                       toPort: 8092
                   total: 1
               example: *id055
-      operationId: getOrganizationsByOrgidVpcs
+      summary: List VPCs
+      operationId: listVpcs
   /organizations/{orgid}/vpcs/{vpcId}:
     get:
       description: Obtain VPC information by its id
@@ -4911,7 +4992,8 @@ paths:
               example: *id056
         '404':
           description: VPC is not found
-      operationId: getOrganizationsByOrgidVpcsByVpcid
+      summary: Get VPC by ID
+      operationId: getVpcById
     delete:
       description: Remove VPC by its id
       parameters:
@@ -4922,7 +5004,8 @@ paths:
           description: Deleted successfully
         '404':
           description: VPC cannot be found
-      operationId: deleteOrganizationsByOrgidVpcsByVpcid
+      summary: Delete VPC by ID
+      operationId: deleteVpcById
     put:
       description: 'Changes the configuration of the VPC by overriding the values of the properties passed in the JSON. ownerId, region and cidrBlock cannot be overriden.
 
@@ -4968,7 +5051,8 @@ paths:
               example: *id057
         '404':
           description: VPC is not found
-      operationId: updateOrganizationsByOrgidVpcsByVpcid
+      summary: Update VPC by ID
+      operationId: updateVpcById
   /organizations/{orgid}/vpcs/{vpcId}/loadbalancers:
     post:
       description: Create new Load balancer
@@ -5036,7 +5120,8 @@ paths:
           description: wrong request
         '404':
           description: Load balancer is not found
-      operationId: createOrganizationsByOrgidVpcsByVpcidLoadbalancers
+      summary: Create VPC load balancer
+      operationId: createVpcLoadBalancer
     get:
       description: Get list of existing Load balancers
       parameters:
@@ -5113,7 +5198,8 @@ paths:
                         appUri: /
                   total: 1
               example: *id059
-      operationId: getOrganizationsByOrgidVpcsByVpcidLoadbalancers
+      summary: List VPC load balancers
+      operationId: listVpcLoadBalancers
   /organizations/{orgid}/vpcs/{vpcId}/loadbalancers/{lbId}:
     get:
       description: returns load balancer by its ID
@@ -5153,7 +5239,8 @@ paths:
                 httpMode: true
         '404':
           description: there is no load balancer with this lbId or there is no VPC with such vpcId
-      operationId: getOrganizationsByOrgidVpcsByVpcidLoadbalancersByLbid
+      summary: Get VPC load balancer
+      operationId: getVpcLoadBalancer
     delete:
       description: deletes load balancer by its ID
       parameters:
@@ -5170,7 +5257,8 @@ paths:
           description: the load balancer was deleted successfully
         '404':
           description: there is no load balancer with this lbId or there is no VPC with such vpcId
-      operationId: deleteOrganizationsByOrgidVpcsByVpcidLoadbalancersByLbid
+      summary: Delete VPC load balancer
+      operationId: deleteVpcLoadBalancer
     patch:
       description: updates a load balancer
       parameters:
@@ -5265,7 +5353,8 @@ paths:
               example: *id060
         '404':
           description: there is no load balancer with this lbId or there is no VPC with such vpcId
-      operationId: patchOrganizationsByOrgidVpcsByVpcidLoadbalancersByLbid
+      summary: Patch VPC load balancer
+      operationId: patchVpcLoadBalancer
   /organizations/{orgid}/vpcs/{vpcId}/loadbalancers/{lbId}/deployments:
     get:
       description: returns all the deployments
@@ -5335,7 +5424,8 @@ paths:
               example: *id061
         '404':
           description: there is no load balancer with this lbId or there is no VPC with such vpcId
-      operationId: getOrganizationsByOrgidVpcsByVpcidLoadbalancersByLbidDeployments
+      summary: List load balancer deployments
+      operationId: listLoadBalancerDeployments
   /organizations/{orgid}/vpcs/{vpcId}/loadbalancers/{lbId}/testmapping:
     get:
       description: makes a test call to the load balancer rules and returns a response with the rule number which will be applied to the input.
@@ -5369,7 +5459,8 @@ paths:
               example: *id062
         '404':
           description: there is no load balancer with this lbId or there is no VPC with such vpcId
-      operationId: getOrganizationsByOrgidVpcsByVpcidLoadbalancersByLbidTestmapping
+      summary: Test load balancer mapping
+      operationId: testLoadBalancerMapping
   /organizations/{orgid}/vpcs/{vpcId}/ipsec:
     post:
       description: Create a VPN connection from a VPC, up to a limit of 10 total VPN Connections per VPC
@@ -5390,7 +5481,8 @@ paths:
           description: bad request
         '404':
           description: there is no org or VPC with this id
-      operationId: createOrganizationsByOrgidVpcsByVpcidIpsec
+      summary: Create VPC IPsec connection
+      operationId: createVpcIpsec
     get:
       description: get the configuration and state of a <<resourcePathName|!pluralize>>
       parameters:
@@ -5443,7 +5535,8 @@ paths:
                       status: DOWN
                       statusMessage: ''
                 total: 1
-      operationId: getOrganizationsByOrgidVpcsByVpcidIpsec
+      summary: List VPC IPsec connections
+      operationId: listVpcIpsec
   /organizations/{orgid}/vpcs/{vpcId}/ipsec/ipsec/{vpnId}:
     description: A single VPN endpoint
     get:
@@ -5499,7 +5592,8 @@ paths:
                     statusMessage: ''
         '404':
           description: The orgId, vpcId or vpnId was not found
-      operationId: getOrganizationsByOrgidVpcsByVpcidIpsecIpsecByVpnid
+      summary: Get VPC IPsec connection
+      operationId: getVpcIpsecConnection
     delete:
       description: Delete a VPN connection
       parameters:
@@ -5514,7 +5608,8 @@ paths:
       responses:
         '204':
           description: Deleted successfully
-      operationId: deleteOrganizationsByOrgidVpcsByVpcidIpsecIpsecByVpnid
+      summary: Delete VPC IPsec connection
+      operationId: deleteVpcIpsecConnection
   /ping:
     description: Endpoint to test connectivity.
     get:
@@ -5527,6 +5622,7 @@ paths:
               schema:
                 example: pong
               example: pong
+      summary: Ping the service
       operationId: getPing
       description: Lists ping.
   /queues: {}
@@ -5559,7 +5655,8 @@ paths:
               schema: {}
               example:
                 message: Operation completed successfully.
-      operationId: updateQueuesByQueueidClear
+      summary: Clear queue messages
+      operationId: clearQueueMessages
       description: Replaces a clear.
   /queues/{queueId}/statistics:
     description: 'returns queue statistic types.
@@ -5594,7 +5691,8 @@ paths:
                   functions:
                   - COUNT
               example: *id063
-      operationId: getQueuesByQueueidStatistics
+      summary: Get queue statistics
+      operationId: getQueueStatistics
       description: Retrieves a statistics.
   /queues/{queueId}/statistics/{statistic}:
     get:
@@ -5643,7 +5741,8 @@ paths:
                     inFlight: {}
                     dequeued: {}
               example: *id064
-      operationId: getQueuesByQueueidStatisticsByStatistic
+      summary: Get queue statistic
+      operationId: getQueueStatistic
       description: Retrieves a statistics.
   /regions:
     description: 'Retrieve all CloudHub worker regions
@@ -5677,7 +5776,8 @@ paths:
                   name: US West (N. California)
                   default: false
               example: *id065
-      operationId: getRegions
+      summary: List regions
+      operationId: listRegions
       description: Lists regions.
   /users/current/permissions:
     description: User permissions
@@ -5753,7 +5853,8 @@ paths:
                     dashboard:
                       read: true
               example: *id066
-      operationId: getUsersCurrentPermissions
+      summary: Get current user permissions
+      operationId: getCurrentUserPermissions
 components:
   requestBodies:
     PostPutAlert:
@@ -8195,7 +8296,7 @@ components:
         type: string
       x-origin:
       - api: urn:api:cloudhub
-        operation: getOrganizationsByOrgidVpcs
+        operation: listVpcs
         description: GET `/organizations/{orgid}/vpcs` in this API; use `id` values as `vpcId`.
         values: $.id
         labels: $.name

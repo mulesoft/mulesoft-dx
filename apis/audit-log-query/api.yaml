@@ -5,23 +5,38 @@ info:
   description: Query audit log events, actions, and object types for organizations on the Anypoint Platform. Configure log retention settings.
 servers:
 - url: https://anypoint.mulesoft.com/audit/{version}
+  description: US
   variables:
     version:
       default: v2
       description: API version identifier.
-- url: https://{region}.anypoint.mulesoft.com/audit/{version}
+- url: https://eu1.anypoint.mulesoft.com/audit/{version}
+  description: EU
   variables:
-    region:
-      default: eu1
-      description: Region identifier for the service endpoint.
     version:
       default: v2
       description: API version identifier.
-- url: https://{region}.platform.mulesoft.com/audit/{version}
+- url: https://ca1.platform.mulesoft.com/audit/{version}
+  description: CA
   variables:
-    region:
-      default: ca1
-      description: Region identifier for the service endpoint.
+    version:
+      default: v2
+      description: API version identifier.
+- url: https://jp1.platform.mulesoft.com/audit/{version}
+  description: JP
+  variables:
+    version:
+      default: v2
+      description: API version identifier.
+- url: https://in1.platform.mulesoft.com/audit/{version}
+  description: IN
+  variables:
+    version:
+      default: v2
+      description: API version identifier.
+- url: https://au1.platform.mulesoft.com/audit/{version}
+  description: AU
+  variables:
     version:
       default: v2
       description: API version identifier.
@@ -461,7 +476,8 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
-      operationId: createOrganizationsByIdQueryMediatypeextension
+      summary: Query audit logs as CSV export
+      operationId: queryAuditLogsCsv
   "/organizations/{id}/platforms":
     get:
       description: |
@@ -490,6 +506,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization platforms
       operationId: getOrganizationsByIdPlatforms
   "/organizations/{id}/objectTypes":
     get:
@@ -530,6 +547,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization object types
       operationId: getOrganizationsByIdObjecttypes
   "/organizations/{id}/objects":
     get:
@@ -617,6 +635,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Search organization audit objects
       operationId: getOrganizationsByIdObjects
   "/organizations/{id}/actions":
     get:
@@ -658,6 +677,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: List organization audit actions
       operationId: getOrganizationsByIdActions
   "/organizations/{id}/retentionSettings":
     get:
@@ -687,6 +707,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Get organization retention settings
       operationId: getOrganizationsByIdRetentionsettings
     put:
       description: >
@@ -741,6 +762,7 @@ paths:
           description: |
             The client reached the maximum number of requests per minute per IP.
             The client should retry the request later.
+      summary: Update organization retention settings
       operationId: updateOrganizationsByIdRetentionsettings
 components:
   securitySchemes:

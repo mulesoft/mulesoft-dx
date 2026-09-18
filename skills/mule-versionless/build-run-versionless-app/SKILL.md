@@ -275,13 +275,17 @@ host is absent, build the three binaries from the `mule-versionless` repo and
 drop them in:
 
 ```bash
-# in a mule-versionless checkout:
-cargo build --release -p mule_descriptor_gen --bin descriptor-gen
-cargo build --release -p cli                 --bin mule-ast
-cargo build --release -p mule_server         --bin mule-server
+# in a mule-versionless checkout (workspace vendors crates → build offline):
+cargo build --offline --release -p mule_descriptor_gen --bin descriptor-gen
+cargo build --offline --release -p cli                 --bin mule-ast
+cargo build --offline --release -p mule_server         --bin mule-server
 # then copy target/release/{descriptor-gen,mule-ast,mule-server}
 #   into this skill's bin/<os>-<arch>/  (e.g. bin/linux-x86_64/)
 ```
+
+> **`descriptor-gen` is not on `master`** — build it from
+> `feat/versionless-descriptor-generation`; `mule-ast` and `mule-server` come from
+> `master`. Full runbook: [`docs/UPDATING-BINARIES.md`](docs/UPDATING-BINARIES.md).
 
 Re-run `setup.sh`; its smoke test will confirm the new binaries run.
 

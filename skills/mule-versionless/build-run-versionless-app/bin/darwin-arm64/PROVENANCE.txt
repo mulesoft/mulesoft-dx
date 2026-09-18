@@ -1,0 +1,7 @@
+Source each bundled binary was built from. The binaries carry no version string,
+so this is not otherwise recoverable. How to refresh: ../../docs/UPDATING-BINARIES.md
+
+mule-ast       built from origin/master @ 95e7b201                       2026-09-18
+mule-server    built from origin/master @ 95e7b201                       2026-09-18
+descriptor-gen built from origin/worktree-versionless-runtime-consume-ast 2026-09-04
+               (not on master; refresh from origin/feat/versionless-descriptor-generation)

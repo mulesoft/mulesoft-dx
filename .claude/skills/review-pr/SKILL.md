@@ -58,7 +58,8 @@ Also check manually for each changed `api.yaml`:
 - Every operation has a non-empty `description`
 - Request bodies and response schemas have `description` and `examples`
 - No naked strings where enums should be (status, type, state fields)
-- No credentials, tokens, or internal URLs hardcoded
+- No internal URLs hardcoded (see Step 4 bucket 6 for the secret/org-ID
+  heuristic, which applies repo-wide, not just to API specs)
 
 #### JTBD files changed
 ```bash
@@ -147,12 +148,36 @@ An issue qualifies only if it falls into one of these buckets:
 3. **Breaking change to a public API** — field removed, `operationId` renamed,
    required parameter added, enum value removed, response schema shape changed
    in a way existing clients depend on.
-4. **Security** — credentials, tokens, internal URLs, PII, or private keys
-   hardcoded anywhere in the diff.
+4. **Security** — internal URLs, PII, or private keys hardcoded anywhere in
+   the diff.
 5. **Required template/structure violation** — a JTBD skill missing an
    `operationId` reference, a prose skill missing `## Workflow` or `## When to
    Use This Skill`, a `description` with neither `TRIGGER when:` nor `DO NOT
    TRIGGER when:` — anything already called out as **[BLOCKER]** in Step 3.
+6. **Possible real secret, credential, or org ID** — a value **added or
+   modified** in the diff (only `+` lines — ignore unchanged pre-existing
+   code) that matches a credential-like pattern and is not obviously a
+   placeholder. Patterns that qualify:
+   - AWS access key (`AKIA[0-9A-Z]{16}`)
+   - A PEM private key block (`-----BEGIN ... PRIVATE KEY-----`)
+   - A JWT (three base64url segments separated by `.`)
+   - A non-trivial value assigned to a sensitive-looking field:
+     `organizationId`, `clientSecret`, `apiKey`, `access_token`, `password`,
+     `token`, `secret`
+   - Any GUID/UUID appearing in the diff
+
+   Does **not** qualify — skip silently, do not emit anything — when the value
+   contains a placeholder marker (`example`, `sample`, `test`, `demo`, `xxx`,
+   `changeme`, `your-`, angle brackets `<...>`, `REDACTED`, `fake`, `dummy`,
+   `placeholder`) or is a trivial GUID (all zeros, all one repeated digit, or
+   sequential like `11111111-1111-1111-1111-111111111111` /
+   `12345678-1234-1234-1234-123456789012`).
+
+   This bucket exists because this repo's specs and skills legitimately
+   contain realistic-looking example credentials and org IDs — only the
+   author knows whether a given value is synthetic or real. Ask them to
+   confirm it's a placeholder and, if it's real, replace it with a documented
+   placeholder value.
 
 Everything else (nice-to-have consistency tweaks, minor doc rephrases, "consider
 also X") is dropped silently. When in doubt, drop it.
@@ -162,7 +187,9 @@ Severity:
 - **SUGGESTION** — a real bug or clear inconsistency that does not block
   approval (e.g. an existing `SKIPPED` validator would have caught it but
   wasn't relevant to this PR). Use sparingly. If the only "issue" you can find
-  is a suggestion, prefer emitting no issues.
+  is a suggestion, prefer emitting no issues. Bucket 6 (possible real
+  secret/org ID) always lands here — it is **never** a BLOCKER, no matter how
+  unambiguous the pattern looks.
 
 ### Step 5 — Restore repo
 

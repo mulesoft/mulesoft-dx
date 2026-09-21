@@ -5,11 +5,6 @@
 // For full license text, see the LICENSE.txt file
 //
 // Part of switch-classic-mule-to-versionless skill.
-//
-// Standalone translation of DefaultProjectPropertiesService.upgradeProjectToVersionless
-// + writeProjectManifest (mule-dx-mule-dev-plugin). Runs with no IDE, no registry,
-// no network — pure filesystem.
-//
 // What it does, in order:
 //   1. Reads the project's pom.xml (and its local parent chain) and collects every
 //      Mule-plugin dependency (<classifier>mule-plugin</classifier>, non-test scope).
@@ -55,6 +50,15 @@ import {
 const MULE_PLUGIN_CLASSIFIER = "mule-plugin";
 const MANIFEST_FILE_NAME = "project-manifest.json";
 const MANIFEST_VERSION = "1.0.0";
+
+// A versionless app is not just a manifest: the pom must declare the versionless
+// packaging AND a mule-maven-plugin version that understands it. The classic
+// `mule-application` packaging plus a pre-versionless plugin (e.g. 4.10.0) fails the
+// build with "Unknown packaging: mule-application-versionless", so the switch flips
+// both here. Bump VERSIONLESS_PLUGIN_VERSION when versionless ships in a newer plugin.
+const CLASSIC_PACKAGING = "mule-application";
+const VERSIONLESS_PACKAGING = "mule-application-versionless";
+const VERSIONLESS_PLUGIN_VERSION = "4.11.0-SNAPSHOT";
 
 // XML namespaces that are the Mule runtime / tooling core, NOT connectors. Their
 // prefixes must never be treated as a migratable connector.
@@ -209,6 +213,84 @@ function commentOutDeps(raw, migratedKeys) {
   return { text: result, edits, warnings };
 }
 
+// Escape a string for safe use as a literal inside a RegExp (property names can
+// contain "." and other metacharacters).
+function escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+// Make the child pom's raw text declare a versionless app: flip <packaging> from
+// mule-application to mule-application-versionless, and raise the mule-maven-plugin
+// version to one that understands the versionless build path. Both are required — the
+// packaging is meaningless to a pre-versionless plugin. Returns { text, changes[],
+// warnings[] }. Idempotent: an already-versionless pom yields no changes. Only the
+// mule-maven-plugin coordinate is touched; other plugins/properties are left alone.
+function applyVersionlessPomChanges(raw) {
+  const changes = [];
+  const warnings = [];
+  let text = raw;
+
+  // 1) Packaging. Match the project-level <packaging> (there is only one per pom).
+  const pkgRe = /(<packaging>\s*)([^<]*?)(\s*<\/packaging>)/;
+  const pkgMatch = text.match(pkgRe);
+  if (!pkgMatch) {
+    warnings.push(`No <packaging> element found in pom.xml — add <packaging>${VERSIONLESS_PACKAGING}</packaging> manually.`);
+  } else {
+    const current = pkgMatch[2].trim();
+    if (current === VERSIONLESS_PACKAGING) {
+      /* already versionless — no-op */
+    } else if (current === CLASSIC_PACKAGING) {
+      text = text.replace(pkgRe, `$1${VERSIONLESS_PACKAGING}$3`);
+      changes.push(`packaging: ${CLASSIC_PACKAGING} -> ${VERSIONLESS_PACKAGING}`);
+    } else {
+      warnings.push(`<packaging>${current}</packaging> is not ${CLASSIC_PACKAGING}; left unchanged. If this is a Mule app, set it to ${VERSIONLESS_PACKAGING} manually.`);
+    }
+  }
+
+  // 2) mule-maven-plugin version. Locate its <plugin> block, then bump the version —
+  //    whether it is inlined or carried by a ${property}.
+  const pluginRe = /<plugin\b[\s\S]*?<\/plugin>/g;
+  let pluginBlock = null;
+  let pluginStart = -1;
+  let pm;
+  while ((pm = pluginRe.exec(text)) !== null) {
+    if (/<artifactId>\s*mule-maven-plugin\s*<\/artifactId>/.test(pm[0])) {
+      pluginBlock = pm[0]; pluginStart = pm.index; break;
+    }
+  }
+  if (!pluginBlock) {
+    warnings.push(`No mule-maven-plugin <plugin> block found — ensure a versionless-capable mule-maven-plugin (>= ${VERSIONLESS_PLUGIN_VERSION}) is configured.`);
+    return { text, changes, warnings };
+  }
+  const verMatch = pluginBlock.match(/<version>\s*([^<]*?)\s*<\/version>/);
+  if (!verMatch) {
+    warnings.push(`mule-maven-plugin has no <version>; set it to ${VERSIONLESS_PLUGIN_VERSION}.`);
+    return { text, changes, warnings };
+  }
+  const verVal = verMatch[1].trim();
+  const propRef = verVal.match(/^\$\{([\w.-]+)\}$/);
+  if (propRef) {
+    // Version comes from a property — update the property definition, not the plugin block.
+    const propName = propRef[1];
+    const propRe = new RegExp(`(<${escapeRe(propName)}>\\s*)([^<]*?)(\\s*</${escapeRe(propName)}>)`);
+    const propMatch = text.match(propRe);
+    if (!propMatch) {
+      warnings.push(`mule-maven-plugin version is \${${propName}} but that property is not defined in this pom (likely inherited from a parent). Set ${propName} to ${VERSIONLESS_PLUGIN_VERSION} where it is defined.`);
+    } else if (propMatch[2].trim() === VERSIONLESS_PLUGIN_VERSION) {
+      /* already correct — no-op */
+    } else {
+      text = text.replace(propRe, `$1${VERSIONLESS_PLUGIN_VERSION}$3`);
+      changes.push(`${propName}: ${propMatch[2].trim()} -> ${VERSIONLESS_PLUGIN_VERSION}`);
+    }
+  } else if (verVal === VERSIONLESS_PLUGIN_VERSION) {
+    /* already correct — no-op */
+  } else {
+    // Inline version — replace it only within the plugin block.
+    const newBlock = pluginBlock.replace(/(<version>\s*)([^<]*?)(\s*<\/version>)/, `$1${VERSIONLESS_PLUGIN_VERSION}$3`);
+    text = text.slice(0, pluginStart) + newBlock + text.slice(pluginStart + pluginBlock.length);
+    changes.push(`mule-maven-plugin version: ${verVal} -> ${VERSIONLESS_PLUGIN_VERSION}`);
+  }
+  return { text, changes, warnings };
+}
+
 // Read the connector names already declared in an existing project-manifest.json,
 // in order. Returns { names: string[], parseError: string|null }. A missing file is
 // { names: [] , parseError: null }. A malformed/unexpected file returns an empty
@@ -252,6 +334,7 @@ function main() {
     skipped: [],
     xmlPrefixes: [],
     pomEdits: [],
+    pomVersionlessChanges: [],  // packaging + mule-maven-plugin version edits applied to the child pom
     warnings: [],
     dryRun,
     wrote: false,
@@ -382,11 +465,16 @@ function main() {
     connectors: report.connectors,
   };
 
-  // Comment out the child-pom connector deps.
+  // Comment out the child-pom connector deps, then make the pom itself versionless
+  // (packaging + mule-maven-plugin version). Both passes operate on the raw pom text.
   const rawPom = readFileSync(childPomPath, "utf8");
-  const { text: newPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys);
+  const { text: commentedPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys);
   report.pomEdits = edits;
   report.warnings.push(...pomWarnings);
+  const { text: newPom, changes: versionlessChanges, warnings: versionlessWarnings } = applyVersionlessPomChanges(commentedPom);
+  report.pomVersionlessChanges = versionlessChanges;
+  report.warnings.push(...versionlessWarnings);
+  const pomChanged = newPom !== rawPom;
 
   if (dryRun) {
     log(JSON.stringify({ ...report, manifestPreview: manifestDoc }, null, 2));
@@ -408,7 +496,10 @@ function main() {
     process.exit(1);
   }
   try {
-    if (edits.length) writeFileSync(childPomPath, newPom, "utf8");
+    // Write the pom when anything changed: connector deps commented out AND/OR the
+    // versionless packaging / plugin-version edits. A core-only app has no dep edits
+    // but still needs the packaging flip, so this must not gate on edits.length alone.
+    if (pomChanged) writeFileSync(childPomPath, newPom, "utf8");
   } catch (e) {
     report.warnings.push(`Manifest written, but failed to update ${childPomPath}: ${e.message}`);
     log(JSON.stringify(report, null, 2));

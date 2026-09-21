@@ -20,7 +20,7 @@ metadata:
 
 # Switch a Classic Mule App to Versionless
 
-You are a MuleSoft tooling specialist converting a classic (versioned) Mule 4
+You are a MuleSoft tooling specialist converting a classic (versioned connector usage) Mule 4
 application into a **versionless** application.
 
 Switching to versionless means the app no longer pins each connector to a Maven
@@ -33,10 +33,10 @@ skill performs that switch standalone — no IDE, no platform connection, no net
 **Use this skill when the user asks to:**
 
 - "Switch this Mule app to versionless"
-- "Convert my classic Mule project to a versionless app"
+- "Migrate my classic Mule project to a versionless app"
 - "Create the project-manifest.json and move my connectors into it"
 
-**Trigger keywords:** switch · convert · versionless · project-manifest.json · classic-to-versionless.
+**Trigger keywords:** switch · migrate · versionless · project-manifest.json · classic-to-versionless.
 
 **Do NOT use this skill when:** the user wants to upgrade connector or runtime
 **versions** or fix Java compatibility → use **skill upgrade-mule-app**; or to
@@ -76,6 +76,14 @@ Given a Mule project root (the directory containing `pom.xml`), it:
    `pom.xml`, so the coordinates are no longer active but stay recoverable. Connectors
    inherited from a parent pom are added to the manifest but their dependency is left
    in place (the script never edits a parent pom).
+5. **Makes the child pom itself versionless**: flips
+   `<packaging>mule-application</packaging>` to
+   `<packaging>mule-application-versionless</packaging>` and raises the
+   `mule-maven-plugin` version (inline or via its `${property}`) to one that
+   understands the versionless build path (`4.11.0-SNAPSHOT`). Both are required — a
+   versionless `<packaging>` is unknown to a pre-versionless plugin and the build fails
+   with `Unknown packaging: mule-application-versionless`. This is why a core-only app
+   still has its pom rewritten even though no connector deps are commented out.
 
 This design is **idempotent and incremental**: because the commented-out blocks are
 invisible to the pom parser, re-running only ever picks up connectors added since the
@@ -98,7 +106,7 @@ given in the "skill is now active" message — do not construct relative
 
 | Script | Purpose | Output |
 | --- | --- | --- |
-| `scripts/switch_to_versionless.mjs [projectDir] [--dry-run]` | The whole switch: reads pom + Mule XML, writes `project-manifest.json`, comments out connector deps. `--dry-run` plans only, writes nothing. | JSON report on stdout (and, unless `--dry-run`, the manifest + edited pom on disk) |
+| `scripts/switch_to_versionless.mjs [projectDir] [--dry-run]` | The whole switch: reads pom + Mule XML, writes `project-manifest.json`, comments out connector deps, and sets versionless packaging + mule-maven-plugin version. `--dry-run` plans only, writes nothing. | JSON report on stdout (and, unless `--dry-run`, the manifest + edited pom on disk) |
 
 ## Workflow
 
@@ -140,7 +148,8 @@ Read the JSON report:
 - **`skipped[]`** — test-scoped mule-plugins that are intentionally excluded.
 - **`xmlPrefixes[]`** — the connector namespaces actually used in the app's Mule XML (the "used in code" set).
 - **`pomEdits[]`** — the child-pom dependency blocks that will be commented out.
-- **`warnings[]`** — unresolved versions, parent-declared connectors, unused deps.
+- **`pomVersionlessChanges[]`** — the packaging + mule-maven-plugin version edits that will be applied to the child pom (empty if it is already versionless).
+- **`warnings[]`** — unresolved versions, parent-declared connectors, unused deps, or a packaging/plugin edit that must be done manually (e.g. the plugin version lives in a parent pom).
 
 Review **`declaredButUnused[]`**: an entry there is either genuinely unused (correctly
 dropped) or a connector whose real XML prefix differs from what was derived from its
@@ -150,8 +159,9 @@ IS used, add its correct name to the manifest manually rather than guessing.
 ### Step 3: Get confirmation, then apply
 
 **[GATE] Show the user the plan from Step 2 — the connectors to migrate, the manifest
-that will be written, and the pom dependencies that will be commented out — and WAIT
-for explicit approval before writing anything.**
+that will be written, the pom dependencies that will be commented out, and the
+packaging / plugin-version edits (`pomVersionlessChanges[]`) — and WAIT for explicit
+approval before writing anything.**
 
 On approval, run the script for real:
 
@@ -159,20 +169,24 @@ On approval, run the script for real:
 node <skill-dir>/scripts/switch_to_versionless.mjs <projectDir>
 ```
 
-This merges into (or creates) `project-manifest.json` and comments out the
-newly-migrated connector `<dependency>` blocks in the child `pom.xml`. Those are the
-only two files it ever writes.
+This merges into (or creates) `project-manifest.json` and edits the child `pom.xml`:
+it comments out the newly-migrated connector `<dependency>` blocks, flips
+`<packaging>` to `mule-application-versionless`, and bumps the `mule-maven-plugin`
+version. The manifest and the child pom are the only two files it ever writes.
 
 ### Step 4: Verify and report
 
 Confirm the result:
 
 - Read `project-manifest.json` and check it matches the planned connectors.
-- Read `pom.xml` and confirm each migrated connector block is wrapped in
-  `<!-- [versionless] moved to project-manifest.json ... -->`.
-- Re-run the script; on the second run `newlyAdded[]` and `pomEdits[]` are empty and
-  the manifest is unchanged (idempotent). Adding another connector to the pom later and
-  re-running appends just that one — existing entries are retained.
+- Read `pom.xml` and confirm: each migrated connector block is wrapped in
+  `<!-- [versionless] moved to project-manifest.json ... -->`, `<packaging>` is
+  `mule-application-versionless`, and the `mule-maven-plugin` version is
+  `4.11.0-SNAPSHOT`.
+- Re-run the script; on the second run `newlyAdded[]`, `pomEdits[]`, and
+  `pomVersionlessChanges[]` are all empty and the manifest is unchanged (idempotent).
+  Adding another connector to the pom later and re-running appends just that one —
+  existing entries are retained.
 
 Report concisely: how many connectors were moved, which were skipped and why, any
 connector whose version could not be resolved (written as `version: null`), and any
@@ -209,6 +223,18 @@ the correct name to the manifest manually.
 **A connector dependency was not commented out:** it is declared in a parent POM
 (the script only edits the child pom) or the block contained a nested comment — check
 `warnings[]`. Comment it out manually in that case.
+
+**Packaging or plugin version was not changed (a warning says so):** the child pom has
+no `<packaging>` element, its packaging is something other than `mule-application`, or
+the `mule-maven-plugin` version is carried by a property defined in a **parent** pom
+(the script only edits the child). Apply the change by hand where it lives:
+`<packaging>mule-application-versionless</packaging>` and `mule-maven-plugin`
+`4.11.0-SNAPSHOT`.
+
+**Build fails `Unknown packaging: mule-application-versionless`:** the pom now declares
+versionless packaging but the resolved `mule-maven-plugin` is a pre-versionless version
+(e.g. `4.10.0`) — the version bump landed in a parent pom the script didn't edit, or was
+skipped. Set the plugin to `4.11.0-SNAPSHOT` and rebuild.
 
 **"refusing to overwrite" and the script exits:** a file named `project-manifest.json`
 exists but isn't a valid manifest (bad JSON, or no `connectors` array). The script will

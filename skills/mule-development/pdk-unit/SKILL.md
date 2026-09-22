@@ -1,6 +1,6 @@
 ---
 name: pdk-unit
-description: Write and run unit tests for custom Flex Gateway policies built with the Policy Development Kit (PDK) — wire up `src/tests/`, build a first `UnitTestBuilder` test, mock HTTP/gRPC upstreams with closures or `TraceBackend`, factor reusable `TestConfig` helpers, assert on responses / headers / violations, run with `make test` or `cargo test`, troubleshoot init-sleep races, authority mismatches, and feature-gate skew. Use whenever the user mentions "PDK unit test", "pdk-unit", "UnitTestBuilder", "test my policy", "cargo test PDK", "mock backend PDK", "Flex Gateway policy unit testing", `with_http_upstream_from_authority`, `with_entrypoint`, `TraceBackend`, or asks "how do I test a Flex Gateway policy", "how do I mock an upstream in pdk-unit", "why is my policy timer not firing in tests". For full `pdk-unit` API reference see `pdk-templates/templates/unit_testing.md`. For scaffolding / build / publish see `develop-pdk-policy`.
+description: Write and run unit tests for custom Omni Gateway policies built with the Policy Development Kit (PDK) — wire up `src/tests/`, build a first `UnitTestBuilder` test, mock HTTP/gRPC upstreams with closures or `TraceBackend`, factor reusable `TestConfig` helpers, assert on responses / headers / violations, run with `make test` or `cargo test`, troubleshoot init-sleep races, authority mismatches, and feature-gate skew. Use whenever the user mentions "PDK unit test", "pdk-unit", "UnitTestBuilder", "test my policy", "cargo test PDK", "mock backend PDK", "Omni Gateway policy unit testing", `with_http_upstream_from_authority`, `with_entrypoint`, `TraceBackend`, or asks "how do I test an Omni Gateway policy", "how do I mock an upstream in pdk-unit", "why is my policy timer not firing in tests". For full `pdk-unit` API reference see `pdk-templates/templates/unit_testing.md`. For scaffolding / build / publish see `develop-pdk-policy`.
 license: Apache-2.0
 compatibility: Requires `pdk-unit` 1.8.0+ as a `[dev-dependencies]` entry (the scaffold from `anypoint-cli-v4 pdk policy-project create` adds it automatically). Some patterns require feature gates that vary by PDK version — `experimental` and `experimental_local_mode` for advanced fixtures, `enable_stop_iteration` for policies using `into_headers_body_state` / `into_body_state` (PDK 1.8.0+). The `pdk-unit` crate must enable the same feature flags as the matching `pdk` dependency.
 metadata:
@@ -9,7 +9,7 @@ metadata:
 allowed-tools: Bash Read Write Edit AskUserQuestion
 ---
 
-You are a Flex Gateway PDK unit-testing specialist helping a developer add fast, in-process unit tests to their custom policy using `pdk-unit`.
+You are an Omni Gateway PDK unit-testing specialist helping a developer add fast, in-process unit tests to their custom policy using `pdk-unit`.
 
 ## Your Task
 
@@ -20,7 +20,7 @@ Drive the developer from "I have a policy crate but no tests" to "`make test` is
 ## When to use this skill vs alternatives
 
 - **`pdk-unit` (this skill)** — in-process, fast (milliseconds), uses `#[test]` + `UnitTestBuilder`, lives in `src/tests/`. Mocks upstreams with closures. Covers the bulk of policy logic: header manipulation, body transforms, JWT/OAuth flows with mocked introspection, rate-limit decisions, validation rejections.
-- **`pdk-test` (out of scope here)** — integration framework using `#[pdk_test]` + `TestComposite` over Docker Compose. Slow (tens of seconds), real Flex routing. The scaffold ships an example at `tests/requests.rs`. Use when behavior depends on real Flex plumbing (TLS termination, multi-policy chains, listener config). Not owned by this skill.
+- **`pdk-test` (out of scope here)** — integration framework using `#[pdk_test]` + `TestComposite` over Docker Compose. Slow (tens of seconds), real Omni routing. The scaffold ships an example at `tests/requests.rs`. Use when behavior depends on real Omni plumbing (TLS termination, multi-policy chains, listener config). Not owned by this skill.
 - **`develop-pdk-policy`** — scaffold, build, playground, publish, release lifecycle. Start there if no project exists yet.
 
 ## Step 1: Decide unit vs integration
@@ -28,7 +28,7 @@ Drive the developer from "I have a policy crate but no tests" to "`make test` is
 Most policy logic is unit-testable. Quick decision tree:
 
 - Logic operates on request/response and any external dependency can be mocked → **`pdk-unit`** (this skill).
-- Behavior depends on real Flex routing, TLS termination, listener config, or chains of real policies → **graduate to `pdk-test`** (the scaffold's `tests/requests.rs` is the entry point).
+- Behavior depends on real Omni routing, TLS termination, listener config, or chains of real policies → **graduate to `pdk-test`** (the scaffold's `tests/requests.rs` is the entry point).
 - Both — write `pdk-unit` first (cheap, fast feedback), add a single `pdk-test` smoke later if you need it.
 
 This is a sanity gate, not a blocker. Most policies stay in `pdk-unit`.
@@ -174,7 +174,7 @@ cargo test                                 # ALL tests (unit AND integration)
 
 ## When to graduate to `pdk-test`
 
-Some behaviors `pdk-unit` cannot honestly cover: TLS termination, real listener wiring, mTLS, real connector chains, version-skew between policy WASM and Flex runtime. For those, the scaffold ships `tests/requests.rs` using `#[pdk_test]` + `TestComposite` (Docker Compose with a real Flex container). That's the integration framework. This skill does not own that workflow — it just notes that `pdk-test` exists and lives in `tests/`, separately from the `src/tests/` you wrote here.
+Some behaviors `pdk-unit` cannot honestly cover: TLS termination, real listener wiring, mTLS, real connector chains, version-skew between policy WASM and Omni runtime. For those, the scaffold ships `tests/requests.rs` using `#[pdk_test]` + `TestComposite` (Docker Compose with a real Omni container). That's the integration framework. This skill does not own that workflow — it just notes that `pdk-test` exists and lives in `tests/`, separately from the `src/tests/` you wrote here.
 
 ## Full `pdk-unit` API reference
 

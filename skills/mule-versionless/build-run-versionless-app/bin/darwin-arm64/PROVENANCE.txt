@@ -1,0 +1,31 @@
+Bundled native binaries — darwin-arm64
+(binaries carry no version string; this file records their source)
+
+mule-ast
+  repo:    mule-versionless
+  branch:  master
+  commit:  4ac239ac  (@W-24226324 | Add source lifecycle ABI support (#158))
+  crate:   cli  --bin mule-ast
+  built:   2026-09-21 (cargo build --offline --release)
+
+mule-server
+  repo:    mule-versionless
+  branch:  master
+  commit:  4ac239ac  (@W-24226324 | Add source lifecycle ABI support (#158))
+  crate:   mule_server  --bin mule-server
+  built:   2026-09-21 (cargo build --offline --release)
+
+descriptor-gen
+  repo:    mule-versionless
+  branch:  feat/versionless-descriptor-generation
+  commit:  76635d44  (Merge branch 'master' into feat/versionless-descriptor-generation)
+  crate:   mule_descriptor_gen  --bin descriptor-gen
+  built:   2026-09-21 (cargo build --offline --release)
+
+connectors/  (runtime connector libraries, dlopened by mule-server)
+  branch:  master  (built from the same ref as mule-server so the ABI matches)
+  commit:  4ac239ac  (@W-24226324 | Add source lifecycle ABI support (#158))
+  built:   2026-09-21 (cargo build --offline --release)
+  - libmule_connector_http.dylib   (crate mule_connector_http)
+
+Recorded by update-runtime-binaries on 2026-09-21.

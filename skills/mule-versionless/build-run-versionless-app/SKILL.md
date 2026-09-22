@@ -68,8 +68,10 @@ Given a versionless Mule project root (a `pom.xml` with
    connector `extension-model.json` fetched from the bundled `file://` exchange
    stub. Output: a `*-mule-application-versionless.jar`.
 3. **Deploys and runs** the jar on the bundled `mule-server`: the runtime reads
-   only `META-INF/mule-artifact/artifact.ast` from the jar, builds the flows, and
-   registers one HTTP route per flow at `/<app>/<flow>`.
+   only `META-INF/mule-artifact/artifact.ast` from the jar, `dlopen`s each connector
+   the app's `project-manifest.json` declares from the bundled
+   `bin/<os>-<arch>/connectors/` directory, builds the flows, and registers one
+   HTTP route per flow at `/<app>/<flow>`.
 
 The three phases correspond to the three bundled scripts (`setup.sh`,
 `build.sh`, `deploy-run.sh`).
@@ -79,6 +81,7 @@ The three phases correspond to the three bundled scripts (`setup.sh`,
 | Path | What | Why |
 | --- | --- | --- |
 | `bin/<os>-<arch>/{descriptor-gen,mule-ast,mule-server}` | native build + runtime binaries | the build and runtime cannot run without them; they are not on any package registry |
+| `bin/<os>-<arch>/connectors/*.dylib` (`.so` on Linux) | native runtime connector libraries (e.g. `libmule_connector_http`) | `mule-server` `dlopen`s connectors at deploy time from `MULE_CONNECTOR_DIR`; `deploy-run.sh` points that here. Without it, any app that declares a connector fails to deploy. Must be ABI-compatible with the bundled `mule-server` (build both from the same ref) |
 | `m2-plugin/org/mule/tools/maven/**` | `mule-maven-plugin:4.11.0-SNAPSHOT` (5 modules, jar+pom) | the versionless build path lives in this snapshot, published to no remote repo (see "Why bundle the plugin") |
 | `exchange-stub/assets/{http,salesforce,twilio}-1.0.0.zip` | connector `extension-model.json` bundles | the build fetches connector schemas from here via `file://`; shipping the zips removes the go-runtime-sibling dependency |
 | `example-app/` | a ready-to-build versionless demo app | a self-contained target to prove the loop end-to-end |
@@ -134,6 +137,11 @@ location, so they work from any CWD.
    The app name (and thus the route prefix) is the jar's file stem, so
    `foo-1.0.0-SNAPSHOT-mule-application-versionless.jar` yields a long
    `/foo-1.0.0-SNAPSHOT-mule-application-versionless/<flow>` route.
+5. **Connector names in `project-manifest.json` are matched case-sensitively.**
+   Each name must equal the connector's canonical extension name — `HTTP`, not
+   `http`. The runtime does an exact-name lookup against the loaded library, so a
+   case mismatch deploys as `app requires connectors not installed on this host`
+   even when the connector is bundled.
 
 ### Step 1: Confirm the project and set up the toolchain
 
@@ -183,8 +191,11 @@ the check fails, deploy will fail; see [Troubleshooting](#troubleshooting).
 Starts `mule-server` in the background: **control** server on `127.0.0.1:9090`
 (deploy/undeploy/list, localhost-only) and **app** server on `0.0.0.0:8081`
 (flow traffic). If either port is taken, set `MULE_CONTROL_PORT` /
-`MULE_APP_PORT` (the script and server both honor them) and re-run. The server
-keeps running until `deploy-run.sh stop`.
+`MULE_APP_PORT` (the script and server both honor them) and re-run. On start it
+also prints the `connectors:` directory it will `dlopen` native connector
+libraries from — the bundled `bin/<os>-<arch>/connectors/` by default; override
+it with `MULE_CONNECTOR_DIR` to point at a different set. The server keeps
+running until `deploy-run.sh stop`.
 
 ### Step 4: Deploy and run
 
@@ -258,6 +269,15 @@ Rebuild with `build.sh` and confirm the `✓` line.
 **Deploy `400`, `artifact contains no flows`:** the AST has only configs/sources
 (e.g. just an `<http:listener-config>`), no `<flow>`. Add a named flow.
 
+**Deploy `400`, `app requires connectors not installed on this host: <name>`:** the
+runtime could not load a connector the app's `project-manifest.json` declares. Either
+(a) the connector library is missing from `bin/<os>-<arch>/connectors/` — rebuild it
+per [Unsupported platform](#unsupported-platform) or run **skill
+update-runtime-binaries**; (b) the manifest name's **case** is wrong (use `HTTP`, not
+`http` — see Rule 5); or (c) the connector library and `mule-server` were built from
+different refs, so their ABI versions differ — the server log shows
+`'mule_extension' library version mismatch`. Rebuild both from the same ref.
+
 **Deploy `409`, `already deployed`:** that app name is live. `undeploy <name>`
 first, or deploy from a differently-named jar copy.
 
@@ -281,16 +301,28 @@ cargo build --offline --release -p cli                 --bin mule-ast
 cargo build --offline --release -p mule_server         --bin mule-server
 # then copy target/release/{descriptor-gen,mule-ast,mule-server}
 #   into this skill's bin/<os>-<arch>/  (e.g. bin/linux-x86_64/)
+
+# Runtime connector libraries load separately — build one cdylib per connector the
+# runtime must serve, FROM THE SAME REF AS mule-server so the ABI matches:
+cargo build --offline --release -p mule_connector_http   # -> target/release/libmule_connector_http.{dylib,so}
+# then copy the library into this skill's bin/<os>-<arch>/connectors/
 ```
 
 > **`descriptor-gen` is not on `master`** — build it from
 > `feat/versionless-descriptor-generation`; `mule-ast` and `mule-server` come from
-> `master`. Full runbook: [`docs/UPDATING-BINARIES.md`](docs/UPDATING-BINARIES.md).
+> `master`. Full runbook: **skill update-runtime-binaries**.
+
+> **Prefer the automated path:** **skill update-runtime-binaries** does this whole
+> runbook in one self-contained run (builds from the right branches, backs up,
+> swaps into this skill's `bin/`, writes provenance, and verifies end-to-end). Use
+> it instead of the manual `cargo` steps above whenever you have a
+> `mule-versionless` checkout.
 
 Re-run `setup.sh`; its smoke test will confirm the new binaries run.
 
 ## Related Skills
 
+- **skill update-runtime-binaries**: rebuild and refresh the native binaries (`descriptor-gen`, `mule-ast`, `mule-server`) this skill ships in `bin/` — use it when they're stale or missing for your platform.
 - **skill switch-classic-mule-to-versionless**: convert a classic Mule app to versionless (writes `project-manifest.json`, moves connectors) — run it *before* this skill if the app is still classic.
 - **skill upgrade-mule-app**: upgrade connector/runtime versions and Java compatibility.
 - **skill build-mule-integration**: scaffold a new Mule integration from scratch.

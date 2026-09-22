@@ -240,6 +240,14 @@ skipped. Set the plugin to `4.11.0-SNAPSHOT` and rebuild.
 exists but isn't a valid manifest (bad JSON, or no `connectors` array). The script will
 not clobber it. Inspect and fix or remove the file, then re-run.
 
+**Later, deploy fails `app requires connectors not installed on this host: <name>`:**
+this script writes each connector's `name` as its **XML namespace prefix** (e.g.
+`http`), but the versionless runtime matches a connector by its **canonical extension
+name**, case-sensitively (e.g. `HTTP`). If a converted app fails to deploy on the
+runtime with this error even though the connector is present, correct the case of that
+connector's `name` in `project-manifest.json` to the extension's canonical name and
+rebuild. See **skill build-run-versionless-app** (Rule 5) for the runtime-side detail.
+
 ## Related Skills
 
 - **skill upgrade-mule-app**: upgrade connector/runtime versions and Java compatibility for a Mule app — use it for version bumps, not for the versionless switch.

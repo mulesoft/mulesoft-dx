@@ -1,0 +1,29 @@
+{
+  "topicName": "Finance",
+  "utterances": {
+    "data": [
+      {
+        "utterance": "* Calculate compound interest",
+        "embedding": "AMCTOgBA3rsA4K08AICOvAAg/bwAQE48AODwPACA8jwAgB49AGDIvAAgSz0AoKS8AMC9vADACrwAgD48...(truncated; live blobs are ~5KB of base64-ish per utterance)..."
+      },
+      {
+        "utterance": "* Explain stock fundamentals",
+        "embedding": "ACD/uwAgKjwAwFU8AIADPACgZj0AAIG8AGAzvAAgPz0A4Ig8AEC5PADAqT0AgHo8AMCOvABAnbwAYEQ9...(truncated)..."
+      },
+      {
+        "utterance": "* What is a 401k",
+        "embedding": "ACBvvQDgJrwAYPW8AECAPQDgaDwA4Ja7AMCFvACAgj0AgMw6ACBtPQBghD0AwGw9AIByvADgOjwAIE09...(truncated)..."
+      }
+    ]
+  },
+  "usedForDenyList": false,
+  "semanticServiceConfigId": "2707e9eb-05d8-4624-82c8-ab1504041894",
+  "environmentId": "5b95f627-c070-46f8-b9a0-c8345cf2509a",
+  "audit": {
+    "created": { "date": "2026-04-30T10:24:28.457Z" },
+    "updated": { "date": "2026-04-30T10:24:28.457Z" }
+  },
+  "id": "7ad22a5a-19e2-4029-a0f3-77481b5eba40",
+  "masterOrganizationId": "48acd226-e53a-42d5-aa7b-f4cc9dd86428",
+  "organizationId": "48acd226-e53a-42d5-aa7b-f4cc9dd86428"
+}

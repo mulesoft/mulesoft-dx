@@ -55,6 +55,16 @@ for bin in descriptor-gen mule-ast mule-server; do
     exit 1
   fi
 done
+# The runtime dlopens connectors from bin/<os>-<arch>/connectors/ at deploy time (deploy-run.sh
+# points MULE_CONNECTOR_DIR here). An app that declares a connector fails to deploy without it.
+CONNECTOR_DIR="${BIN_DIR}/connectors"
+if [ ! -d "${CONNECTOR_DIR}" ] || [ -z "$(ls -A "${CONNECTOR_DIR}" 2>/dev/null)" ]; then
+  echo "WARNING: no bundled runtime connectors in ${CONNECTOR_DIR}." >&2
+  echo "         Apps that declare a connector (e.g. HTTP) will fail to deploy with" >&2
+  echo "         'app requires connectors not installed on this host'. Rebuild them per" >&2
+  echo "         SKILL.md 'Unsupported platform', or use skill update-runtime-binaries." >&2
+fi
+
 # descriptor-gen core needs no input — the cheapest end-to-end proof a binary runs on this host.
 smoke="$(mktemp -d)"
 trap 'rm -rf "${smoke}"' EXIT

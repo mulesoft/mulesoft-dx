@@ -18,12 +18,20 @@
 #   undeploy <app>                DELETE /apps/<app>
 #
 # Env: MULE_CONTROL_PORT (9090), MULE_APP_PORT (8081) are honored by both this script and the server.
+#      MULE_CONNECTOR_DIR — where the runtime dlopens connector libraries from. If unset, this
+#      script points the server at the skill's bundled bin/<os>-<arch>/connectors/ so a versionless
+#      app that declares connectors (e.g. http) deploys offline. The runtime's own default is
+#      /opt/mule/connectors, which the skill does not populate — hence this override.
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"; case "${arch}" in arm64|aarch64) arch="arm64";; x86_64|amd64) arch="x86_64";; esac
-SERVER="${SKILL_DIR}/bin/${os}-${arch}/mule-server"
+BIN_DIR="${SKILL_DIR}/bin/${os}-${arch}"
+SERVER="${BIN_DIR}/mule-server"
+# The runtime loads connectors as native libraries from this directory at deploy time. Honor a
+# caller-provided MULE_CONNECTOR_DIR; otherwise default to the bundled set shipped with the skill.
+CONNECTOR_DIR="${MULE_CONNECTOR_DIR:-${BIN_DIR}/connectors}"
 CONTROL_PORT="${MULE_CONTROL_PORT:-9090}"
 APP_PORT="${MULE_APP_PORT:-8081}"
 CONTROL="http://127.0.0.1:${CONTROL_PORT}"
@@ -38,12 +46,14 @@ case "${cmd}" in
       echo "mule-server already running (pid $(cat "${PIDFILE}"))."; exit 0
     fi
     [ -x "${SERVER}" ] || { echo "ERROR: ${SERVER} missing — run scripts/setup.sh first." >&2; exit 1; }
-    MULE_CONTROL_PORT="${CONTROL_PORT}" MULE_APP_PORT="${APP_PORT}" "${SERVER}" >"${LOGFILE}" 2>&1 &
+    MULE_CONTROL_PORT="${CONTROL_PORT}" MULE_APP_PORT="${APP_PORT}" MULE_CONNECTOR_DIR="${CONNECTOR_DIR}" \
+      "${SERVER}" >"${LOGFILE}" 2>&1 &
     echo $! > "${PIDFILE}"
     # Poll /health rather than sleep — the server binds in well under a second, but be robust.
     for _ in $(seq 1 20); do
       if curl -fsS "${CONTROL}/health" >/dev/null 2>&1; then
         echo "mule-server up (pid $(cat "${PIDFILE}"))  control :${CONTROL_PORT}  app :${APP_PORT}"
+        echo "connectors: ${CONNECTOR_DIR}"
         echo "log: ${LOGFILE}"; exit 0
       fi
       sleep 0.25

@@ -1,28 +1,28 @@
 ---
 name: pdk-test
-description: Write and run integration tests for custom Flex Gateway policies using the `pdk-test` framework — Docker-based, real Flex Gateway routing, `#[pdk_test]` macro, `TestComposite` orchestration, `HttpMock` / `GrpcBin` backends, `reqwest` assertions. Use whenever the user mentions "PDK integration test", "pdk-test", "functional test PDK", "#[pdk_test]", "TestComposite", "FlexConfig", "tests/requests.rs", "make test", or asks "how do I test my policy against real Flex", "how do I set up Docker-based tests for PDK", "why does my pdk-test timeout", "how do I mock a backend in integration tests".
+description: Write and run integration tests for custom Omni Gateway policies using the `pdk-test` framework — Docker-based, real Omni Gateway routing, `#[pdk_test]` macro, `TestComposite` orchestration, `HttpMock` / `GrpcBin` backends, `reqwest` assertions. Use whenever the user mentions "PDK integration test", "pdk-test", "functional test PDK", "#[pdk_test]", "TestComposite", "FlexConfig", "tests/requests.rs", "make test", or asks "how do I test my policy against real Omni", "how do I set up Docker-based tests for PDK", "why does my pdk-test timeout", "how do I mock a backend in integration tests".
 license: Apache-2.0
-compatibility: Requires `pdk-test` 1.8.0 as a `[dev-dependencies]` entry, Docker running locally, the policy WASM built (`make build` first), and a `tests/config/registration.yaml` for Flex Gateway local-mode registration (this file is gitignored and must NOT be committed — it contains private keys).
+compatibility: Requires `pdk-test` 1.8.0 as a `[dev-dependencies]` entry, Docker running locally, the policy WASM built (`make build` first), and a `tests/config/registration.yaml` for Omni Gateway local-mode registration (this file is gitignored and must NOT be committed — it contains private keys).
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
 allowed-tools: Bash Read Write Edit AskUserQuestion
 ---
 
-You are a Flex Gateway PDK integration-testing specialist helping a developer write and run Docker-based functional tests for their custom policy using `pdk-test`.
+You are an Omni Gateway PDK integration-testing specialist helping a developer write and run Docker-based functional tests for their custom policy using `pdk-test`.
 
 ## Your Task
 
-Drive the developer from "I have a policy that compiles to WASM but no integration tests" to "my tests spin up a real Flex Gateway in Docker, apply the policy, send HTTP traffic, and assert on behavior end-to-end." Surface failures honestly — if Docker is not running, the WASM is not built, or registration.yaml is missing, name the root cause and stop.
+Drive the developer from "I have a policy that compiles to WASM but no integration tests" to "my tests spin up a real Omni Gateway in Docker, apply the policy, send HTTP traffic, and assert on behavior end-to-end." Surface failures honestly — if Docker is not running, the WASM is not built, or registration.yaml is missing, name the root cause and stop.
 
 ## When to use this skill vs alternatives
 
-- **`pdk-test` (this skill)** — Docker-based integration tests using `#[pdk_test]` + `TestComposite`. Slow (tens of seconds per test), but exercises real Flex Gateway routing, TLS, listener config, and multi-policy chains. Lives in `tests/requests.rs`.
+- **`pdk-test` (this skill)** — Docker-based integration tests using `#[pdk_test]` + `TestComposite`. Slow (tens of seconds per test), but exercises real Omni Gateway routing, TLS, listener config, and multi-policy chains. Lives in `tests/requests.rs`.
 - **`pdk-unit`** — in-process unit tests using `#[test]` + `UnitTestBuilder`. Fast (milliseconds), mocks the proxy-wasm host. Use for most policy logic. Supports debugging.
 - **`develop-pdk-policy`** — scaffold, build, playground, publish and release lifecycle.
 
 Decision tree:
-- Behavior depends on real Flex routing, TLS termination, multi-policy chains, or listener config → **`pdk-test`** (this skill).
+- Behavior depends on real Omni routing, TLS termination, multi-policy chains, or listener config → **`pdk-test`** (this skill).
 - Logic operates on request/response and all dependencies can be mocked → **`pdk-unit`** (separate skill).
 - Need both → write `pdk-unit` first for fast feedback, then add a `pdk-test` smoke test here.
 
@@ -73,9 +73,9 @@ Integration tests require configuration files under `tests/config/`:
 
 ### registration.yaml (required, gitignored)
 
-This tells Flex Gateway how to register in local (disconnected) mode. Generate it once:
+This tells Omni Gateway how to register in local (disconnected) mode. Generate it once:
 
-1. Go to Anypoint Platform → Runtime Manager → Flex Gateway.
+1. Go to Anypoint Platform → Runtime Manager → Omni Gateway.
 2. Click **Add Gateway** → select **Docker**.
 3. Copy the registration command, change `--connected=true` to `--connected=false`.
 4. Run it from inside `tests/config/`. It writes `registration.yaml` there.
@@ -86,7 +86,7 @@ Alternatively, copy an existing `registration.yaml` from another PDK project or 
 
 ### logging.yaml (optional but recommended)
 
-Enables debug-level Flex logs in tests for easier troubleshooting:
+Enables debug-level Omni logs in tests for easier troubleshooting:
 
 ```yaml
 ---
@@ -110,7 +110,7 @@ This module defines shared constants used across all test files:
 pub const POLICY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/wasm32-wasip1/release");
 pub const COMMON_CONFIG_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/config");
 
-// The policy reference name used by Flex to identify the WASM artifact.
+// The policy reference name used by Omni to identify the WASM artifact.
 // Run `make show-policy-ref-name` or read `target/policy-ref-name.txt` after building.
 pub const POLICY_NAME: &str = "<policy-ref-name>";
 ```
@@ -156,7 +156,7 @@ async fn test_request_passes_through() -> anyhow::Result<()> {
         }))
         .build();
 
-    // 3. Configure the API that Flex will serve
+    // 3. Configure the API that Omni will serve
     let api_config = ApiConfig::builder()
         .name("ingress-http")
         .upstream(&backend_config)
@@ -165,7 +165,7 @@ async fn test_request_passes_through() -> anyhow::Result<()> {
         .policies([policy_config])
         .build();
 
-    // 4. Configure Flex Gateway
+    // 4. Configure Omni Gateway
     let flex_config = FlexConfig::builder()
         .version("1.10.0")
         .hostname("local-flex")
@@ -194,7 +194,7 @@ async fn test_request_passes_through() -> anyhow::Result<()> {
         })
         .await;
 
-    // 8. Send request through Flex and assert
+    // 8. Send request through Omni and assert
     let response = reqwest::Client::new()
         .get(format!("{flex_url}/hello"))
         .send()
@@ -225,7 +225,7 @@ make test
 
 This runs `cargo test -- --nocapture`.
 
-Integration tests are slow (~30-60s per test) because they spin up Docker containers. Use `--nocapture` to see Flex Gateway logs during debugging.
+Integration tests are slow (~30-60s per test) because they spin up Docker containers. Use `--nocapture` to see Omni Gateway logs during debugging.
 
 **Note:** Tests run sequentially — the framework acquires a global mutex so only one test executes at a time. This avoids Docker resource contention and cleanup races.
 
@@ -245,11 +245,11 @@ async fn my_test() -> anyhow::Result<()> {
 
 ### TestComposite
 
-Orchestrates multiple Docker services (Flex + backends). Builder pattern:
+Orchestrates multiple Docker services (Omni + backends). Builder pattern:
 
 ```rust
 let composite = TestComposite::builder()
-    .with_service(flex_config)      // Flex Gateway
+    .with_service(flex_config)      // Omni Gateway
     .with_service(backend_config)   // HTTP mock backend
     .build()
     .await?;
@@ -268,33 +268,33 @@ let upstream: HttpMock = composite.service()?;
 
 ### FlexConfig
 
-Configures the Flex Gateway container:
+Configures the Omni Gateway container:
 
 | Method | Purpose |
 |--------|---------|
-| `.version("1.10.0")` | Flex Gateway Docker image version |
+| `.version("1.10.0")` | Omni Gateway Docker image version |
 | `.hostname("local-flex")` | Container hostname |
 | `.image_name("custom/image")` | Override Docker image (default: `mulesoft/flex-gateway`) |
 | `.with_api(api_config)` | Add an API configuration (also registers its port) |
 | `.config_mounts([(host_path, flex_subdir)])` | Mount config directories into the container |
 | `.timeout(Duration::from_secs(90))` | Readiness timeout (default: 60s) |
 
-Readiness is determined by watching for the `"cds: added/updated"` log message from Flex. Once seen, the composite resolves and the test can send traffic.
+Readiness is determined by watching for the `"cds: added/updated"` log message from Omni. Once seen, the composite resolves and the test can send traffic.
 
 ### ApiConfig
 
-Configures a virtual API that Flex will serve:
+Configures a virtual API that Omni will serve:
 
 | Method | Purpose |
 |--------|---------|
 | `.name("ingress-http")` | API instance name |
 | `.upstream(&backend_config)` | Backend service to forward traffic to |
 | `.path("/anything/echo/")` | `destinationPath` — the base path on the backend where requests are forwarded |
-| `.port(8081)` | Listener port (Flex listens on all paths on this port) |
+| `.port(8081)` | Listener port (Omni listens on all paths on this port) |
 | `.policies([policy_config])` | Inbound policies to apply (evaluated in array order) |
 | `.outbound_policies([policy_config])` | Outbound policies applied on the upstream route |
 
-**How routing works:** Flex listens on `http://0.0.0.0:{port}` for ALL incoming paths. It forwards requests to the upstream service. The `.path()` value becomes `destinationPath` in the generated Flex YAML — it controls where the backend receives the request, not which incoming paths match.
+**How routing works:** Omni listens on `http://0.0.0.0:{port}` for ALL incoming paths. It forwards requests to the upstream service. The `.path()` value becomes `destinationPath` in the generated Omni YAML — it controls where the backend receives the request, not which incoming paths match.
 
 ### PolicyConfig
 
@@ -340,7 +340,7 @@ mock.assert();
 mock.assert_hits(1);
 ```
 
-### Flex handle
+### Omni handle
 
 ```rust
 let flex: Flex = composite.service()?;
@@ -369,8 +369,8 @@ use pdk_test::services::httpbin::{HttpBin, HttpBinConfig};
 
 | Variable | Purpose |
 |----------|---------|
-| `PDK_TEST_FLEX_IMAGE_NAME` | Override Flex Docker image name |
-| `PDK_TEST_FLEX_IMAGE_VERSION` | Override Flex Docker image version |
+| `PDK_TEST_FLEX_IMAGE_NAME` | Override Omni Docker image name |
+| `PDK_TEST_FLEX_IMAGE_VERSION` | Override Omni Docker image version |
 
 ## Test Patterns
 
@@ -488,7 +488,7 @@ let api_config = ApiConfig::builder()
 
 ### Pattern: Retry for policies with async initialization
 
-Some policies use `Clock` in their `configure` function for periodic tasks (e.g., contract polling, cache refresh). These may need a brief delay after Flex readiness before the policy logic is fully operational. This is NOT needed for most policies — only when the policy has async work during `configure`.
+Some policies use `Clock` in their `configure` function for periodic tasks (e.g., contract polling, cache refresh). These may need a brief delay after Omni readiness before the policy logic is fully operational. This is NOT needed for most policies — only when the policy has async work during `configure`.
 
 ```rust
 use tokio::time::{sleep, Duration};
@@ -526,13 +526,13 @@ cargo test --test requests
 # Run a specific test
 cargo test --test requests test_clean_request_passes
 
-# With output (see Flex logs)
+# With output (see Omni logs)
 cargo test --test requests -- --nocapture
 
 # Via Makefile (standard scaffold target)
 make test
 
-# Override Flex version
+# Override Omni version
 PDK_TEST_FLEX_IMAGE_VERSION=1.9.0 cargo test --test requests
 ```
 
@@ -542,13 +542,13 @@ PDK_TEST_FLEX_IMAGE_VERSION=1.9.0 cargo test --test requests
 
 Start Docker Desktop or the Docker daemon. `pdk-test` uses the Docker API via bollard.
 
-### Test times out waiting for Flex readiness
+### Test times out waiting for Omni readiness
 
-The framework waits for Flex to emit `"cds: added/updated"` in stdout. If this message never appears:
+The framework waits for Omni to emit `"cds: added/updated"` in stdout. If this message never appears:
 
 - Check Docker has enough resources (CPU/memory)
-- Verify the Flex image version exists: `docker pull mulesoft/flex-gateway:1.10.0`
-- Check `registration.yaml` is valid — an invalid registration causes Flex to exit immediately
+- Verify the Omni image version exists: `docker pull mulesoft/flex-gateway:1.10.0`
+- Check `registration.yaml` is valid — an invalid registration causes Omni to exit immediately
 - Increase timeout: `.timeout(Duration::from_secs(120))`
 
 ### "WASM not found" / policy doesn't apply
@@ -559,13 +559,13 @@ The framework waits for Flex to emit `"cds: added/updated"` in stdout. If this m
 
 ### Mock not hit / unexpected 404
 
-- Remember that Flex listens on ALL paths on the configured port. The `.path()` in `ApiConfig` is the `destinationPath` on the backend, not an incoming path filter.
-- Verify the mock `when` conditions match what Flex actually forwards to the backend.
-- Use `--nocapture` to see Flex logs and confirm the policy is loaded.
+- Remember that Omni listens on ALL paths on the configured port. The `.path()` in `ApiConfig` is the `destinationPath` on the backend, not an incoming path filter.
+- Verify the mock `when` conditions match what Omni actually forwards to the backend.
+- Use `--nocapture` to see Omni logs and confirm the policy is loaded.
 
 ### "No such image" error
 
-Pull the Flex image first:
+Pull the Omni image first:
 
 ```bash
 docker pull mulesoft/flex-gateway:1.10.0

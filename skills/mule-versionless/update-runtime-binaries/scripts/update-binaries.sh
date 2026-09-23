@@ -264,9 +264,6 @@ for crate in "${CONNECTOR_CRATES[@]}"; do
   install_connector "lib${crate}.${LIB_EXT}" "${WT_MASTER}/target/release/lib${crate}.${LIB_EXT}"
 done
 
-# macOS: strip the quarantine flag so Gatekeeper doesn't block a swapped binary/library.
-if [ "${OS}" = "darwin" ]; then xattr -d com.apple.quarantine "${BIN}"/* "${CONN_BIN}"/* 2>/dev/null || true; fi
-
 echo "==> updated: ${UPDATED[*]}   (backup: ${BACKUP})"
 
 # ---------------------------------------------------------------------------

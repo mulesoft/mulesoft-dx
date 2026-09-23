@@ -94,7 +94,7 @@ simplify this skill (drop the feature-branch special case).
 4. Backs up the current binaries to a timestamped `/tmp` dir, copies the new ones
    into `bin/<os>-<arch>/` (and the connector libraries into
    `bin/<os>-<arch>/connectors/`, built from the same master worktree), marks them
-   executable, strips the macOS quarantine flag.
+   executable.
 5. Writes `bin/<os>-<arch>/PROVENANCE.txt` (branch + commit + date per binary).
 6. **Verifies** end-to-end on isolated ports: `setup.sh` → build the bundled
    `example-app` → start `mule-server` → deploy → run a flow (expects

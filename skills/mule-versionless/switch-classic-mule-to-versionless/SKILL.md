@@ -52,7 +52,11 @@ Given a Mule project root (the directory containing `pom.xml`), it:
    (their XML namespace appears in `src/main/mule`). A connector declared as a
    dependency (in the child pom or an inherited parent) but never referenced in a
    flow is dropped from the manifest. Test-scoped mule-plugins (MUnit tooling) are
-   skipped.
+   skipped. **Runtime-provided modules** — currently
+   `org.mule.modules:mule-apikit-module` (APIkit) — are a special case: their
+   `<dependency>` is commented out of the child pom like a migrated connector, but they
+   are deliberately **not** written to the manifest, because the versionless runtime
+   supplies them itself.
 2. Derives each connector's versionless **name** — its Mule XML namespace / prefix
    (the identity the versionless runtime resolves against, e.g. `http`, `salesforce`,
    `os`) — cross-checking the namespaces actually declared in the app's Mule XML.
@@ -73,9 +77,12 @@ Given a Mule project root (the directory containing `pom.xml`), it:
    connectors) still becomes versionless — the manifest is written with an empty
    `connectors` array.
 4. **Comments out** each newly-migrated connector `<dependency>` block in the child
-   `pom.xml`, so the coordinates are no longer active but stay recoverable. Connectors
-   inherited from a parent pom are added to the manifest but their dependency is left
-   in place (the script never edits a parent pom).
+   `pom.xml`, so the coordinates are no longer active but stay recoverable
+   (`<!-- [versionless] moved to project-manifest.json ... -->`). Runtime-provided
+   modules that are excluded from the manifest get a distinct note instead
+   (`<!-- [versionless] removed (runtime-provided; not in project-manifest.json) ... -->`).
+   Connectors inherited from a parent pom are added to the manifest but their dependency
+   is left in place (the script never edits a parent pom).
 5. **Makes the child pom itself versionless**: flips
    `<packaging>mule-application</packaging>` to
    `<packaging>mule-application-versionless</packaging>` and raises the
@@ -145,6 +152,7 @@ Read the JSON report:
 - **`existingRetained[]`** — connector names carried over from a pre-existing manifest.
 - **`newlyAdded[]`** — connectors migrated on this run (declared **and** used in code); empty means nothing new to do.
 - **`declaredButUnused[]`** — mule-plugin deps whose namespace is not used in `src/main/mule`; excluded from the manifest and left in the pom.
+- **`manifestExcluded[]`** — runtime-provided modules (e.g. `mule-apikit-module`) that are commented out of the child pom but intentionally **not** written to the manifest.
 - **`skipped[]`** — test-scoped mule-plugins that are intentionally excluded.
 - **`xmlPrefixes[]`** — the connector namespaces actually used in the app's Mule XML (the "used in code" set).
 - **`pomEdits[]`** — the child-pom dependency blocks that will be commented out.
@@ -215,10 +223,12 @@ what matters), but make the parent available and re-run if you want the version 
 
 **A connector is missing from the manifest:** first confirm it is declared with
 `<classifier>mule-plugin</classifier>` and is not `<scope>test</scope>` (test-scoped
-plugins are intentionally skipped). Otherwise check `declaredButUnused[]` — the
-connector's namespace was not found in `src/main/mule`, so it was treated as unused. If
-it really is used, its XML prefix differs from the name derived from its artifactId; add
-the correct name to the manifest manually.
+plugins are intentionally skipped). Check `manifestExcluded[]` — runtime-provided
+modules such as `mule-apikit-module` are commented out of the pom but intentionally kept
+out of the manifest (the runtime supplies them), so this is expected. Otherwise check
+`declaredButUnused[]` — the connector's namespace was not found in `src/main/mule`, so it
+was treated as unused. If it really is used, its XML prefix differs from the name derived
+from its artifactId; add the correct name to the manifest manually.
 
 **A connector dependency was not commented out:** it is declared in a parent POM
 (the script only edits the child pom) or the block contained a nested comment — check

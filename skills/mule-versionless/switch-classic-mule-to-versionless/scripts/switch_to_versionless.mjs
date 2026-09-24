@@ -14,6 +14,9 @@
 //      identity the versionless runtime resolves against) and keeps ONLY the ones
 //      whose prefix actually appears in the app's Mule XML (the "used in code" gate).
 //      Declared-but-unused deps are dropped from the manifest and left in the pom.
+//      Runtime-provided modules in MANIFEST_EXCLUDED (e.g. org.mule.modules:mule-apikit-module)
+//      are a special case: their child-pom dependency IS commented out, but they are
+//      NOT written to the manifest — the versionless runtime supplies them itself.
 //   3. MERGES the surviving connectors into project-manifest.json next to pom.xml
 //      (creating it if absent): existing connector names are retained, new ones are
 //      appended. A same-named file that is not a valid manifest is never clobbered.
@@ -74,6 +77,16 @@ const CORE_NAMESPACES = new Set([
 const NAME_ALIASES = {
   objectstore: "os",
 };
+
+// groupId:artifactId of mule-plugin dependencies that must be COMMENTED OUT of the
+// child pom like any migrated connector, but must NOT be written into
+// project-manifest.json. These are runtime-provided modules (e.g. APIkit) that the
+// versionless runtime supplies itself — recording them as manifest connectors would
+// make the runtime try to resolve a connector that isn't one. Keyed on the exact
+// groupId:artifactId so a same-named connector from another group is unaffected.
+const MANIFEST_EXCLUDED = new Set([
+  "org.mule.modules:mule-apikit-module",
+]);
 
 function log(msg) { process.stdout.write(msg + "\n"); }
 
@@ -164,9 +177,12 @@ function deriveName(artifactId, xmlPrefixes) {
 
 // Comment out the migrated connector <dependency> blocks in the child pom's raw
 // text. Only blocks whose groupId:artifactId is in `migratedKeys` are wrapped.
-// Idempotent (skips already-commented blocks) and safe (skips blocks containing a
-// nested comment, which would break XML). Returns { text, edits[], warnings[] }.
-function commentOutDeps(raw, migratedKeys) {
+// Blocks whose GA is also in `excludedKeys` get a "runtime-provided; not in manifest"
+// note instead of the "moved to project-manifest.json" note, since they are not
+// recorded as manifest connectors. Idempotent (skips already-commented blocks) and
+// safe (skips blocks containing a nested comment, which would break XML). Returns
+// { text, edits[], warnings[] }.
+function commentOutDeps(raw, migratedKeys, excludedKeys = new Set()) {
   const edits = [];
   const warnings = [];
 
@@ -204,8 +220,11 @@ function commentOutDeps(raw, migratedKeys) {
       warnings.push(`Skipped commenting ${ga}: block contains "--" (would break XML comment). Comment it out manually.`);
       continue;
     }
+    const note = excludedKeys.has(ga)
+      ? `[versionless] removed (runtime-provided; not in ${MANIFEST_FILE_NAME})`
+      : `[versionless] moved to ${MANIFEST_FILE_NAME}`;
     result += raw.slice(cursor, start);
-    result += `<!-- [versionless] moved to ${MANIFEST_FILE_NAME}\n${stripped}\n-->`;
+    result += `<!-- ${note}\n${stripped}\n-->`;
     cursor = start + block.length;
     edits.push(ga);
   }
@@ -331,6 +350,7 @@ function main() {
     existingRetained: [],  // connector names carried over from a pre-existing manifest
     newlyAdded: [],         // connectors migrated on THIS run (detailed), from uncommented pom deps
     declaredButUnused: [],  // mule-plugin deps whose namespace is NOT used in src/main/mule — excluded from the manifest, left in the pom
+    manifestExcluded: [],   // runtime-provided modules (e.g. APIkit) commented out of the child pom but intentionally NOT written to the manifest
     skipped: [],
     xmlPrefixes: [],
     pomEdits: [],
@@ -410,6 +430,16 @@ function main() {
       report.skipped.push({ groupId: d.groupId, artifactId: d.artifactId, reason: "test-scoped mule-plugin (e.g. MUnit tooling)" });
       continue;
     }
+    const ga = `${d.groupId}:${d.artifactId}`;
+    if (MANIFEST_EXCLUDED.has(ga)) {
+      // Runtime-provided module (e.g. APIkit): comment its dependency out of the child
+      // pom like a migrated connector, but keep it OUT of the manifest — the versionless
+      // runtime provides it, so recording it as a manifest connector would be wrong.
+      report.manifestExcluded.push({ groupId: d.groupId, artifactId: d.artifactId, resolvedFrom: d.resolvedFrom });
+      if (d.resolvedFrom === "child") migratedKeys.add(ga);
+      else report.warnings.push(`${ga} is excluded from the manifest (runtime-provided) but declared in a parent POM (${d.resolvedFrom}); the dependency is left in place — comment it out in the parent manually if desired.`);
+      continue;
+    }
     const { name, nameConfirmed } = deriveName(d.artifactId, xmlPrefixes);
     if (!nameConfirmed) {
       // Declared as a dependency but its namespace is not used anywhere in
@@ -468,7 +498,10 @@ function main() {
   // Comment out the child-pom connector deps, then make the pom itself versionless
   // (packaging + mule-maven-plugin version). Both passes operate on the raw pom text.
   const rawPom = readFileSync(childPomPath, "utf8");
-  const { text: commentedPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys);
+  const excludedChildKeys = new Set(
+    report.manifestExcluded.filter((e) => e.resolvedFrom === "child").map((e) => `${e.groupId}:${e.artifactId}`)
+  );
+  const { text: commentedPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys, excludedChildKeys);
   report.pomEdits = edits;
   report.warnings.push(...pomWarnings);
   const { text: newPom, changes: versionlessChanges, warnings: versionlessWarnings } = applyVersionlessPomChanges(commentedPom);

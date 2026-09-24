@@ -3,17 +3,25 @@ Bundled native binaries — darwin-arm64
 
 mule-ast
   repo:    mule-versionless
-  branch:  master
-  commit:  482c1520  (@W-24134249 Support sources when building ArtifactRegistry (#178))
+  branch:  feature/apikit-listener-mount  (never merged to master)
+  commit:  9c6a4219  (Merge branch 'master' into feature/apikit-listener-mount)
   crate:   cli  --bin mule-ast
-  built:   2026-09-23 (cargo build --offline --release)
+  built:   2026-09-24 (cargo build --release)
+  note:    Master mule-ast (482c1520) cannot decorate the HTTP listener's
+           connection model, so an <http:listener-connection> node ships with
+           model=None and the runtime rejects the deploy ("connector node
+           reached its builder without a decorated model identity"). The
+           listener-mount branch adds that decoration. Required for any apikit /
+           HTTP-listener app.
 
 mule-server
   repo:    mule-versionless
-  branch:  master
-  commit:  482c1520  (@W-24134249 Support sources when building ArtifactRegistry (#178))
+  branch:  feature/apikit-listener-mount  (never merged to master)
+  commit:  9c6a4219  (Merge branch 'master' into feature/apikit-listener-mount)
   crate:   mule_server  --bin mule-server
-  built:   2026-09-23 (cargo build --offline --release)
+  built:   2026-09-24 (cargo build --release)
+  note:    Built from the same ref as mule-ast + connectors so the AST model
+           decoration, the ABI, and the listener mount (/api/* route) all agree.
 
 descriptor-gen
   repo:    mule-versionless
@@ -28,9 +36,19 @@ descriptor-gen
            deploys with an undecorated model identity and fails to build.
 
 connectors/  (runtime connector libraries, dlopened by mule-server)
-  branch:  master  (built from the same ref as mule-server so the ABI matches)
-  commit:  482c1520  (@W-24134249 Support sources when building ArtifactRegistry (#178))
-  built:   2026-09-23 (cargo build --offline --release)
+  branch:  feature/apikit-listener-mount  (built from the same ref as mule-server so the ABI matches)
+  commit:  9c6a4219  (Merge branch 'master' into feature/apikit-listener-mount)
+  built:   2026-09-24 (cargo build --release)
   - libmule_connector_http.dylib   (crate mule_connector_http)
+  note:    Registers the request connection provider as "request"
+           (element <http:request-connection>), matching the app XML and the
+           descriptor-gen dsl.json. An older dylib registered
+           "basic-auth-connection" and made <http:request-connection> resolve
+           to Unresolved ("expected Connection, got Unresolved").
 
-Recorded by update-runtime-binaries on 2026-09-23.
+Recorded manually on 2026-09-24. NOTE: mule-ast / mule-server / connectors here
+come from the unmerged feature/apikit-listener-mount ref (listener + apikit
+support), NOT master — the update-runtime-binaries skill builds those from
+master and would regress listener apps. descriptor-gen stays on its own fix
+branch (see above); it is format-compatible with this mule-ast (verified
+end-to-end: books-inventory-api-demo deploys and GET /api/books returns 200).

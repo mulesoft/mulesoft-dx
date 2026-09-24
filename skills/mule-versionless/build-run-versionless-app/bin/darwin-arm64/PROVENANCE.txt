@@ -17,11 +17,15 @@ mule-server
 
 descriptor-gen
   repo:    mule-versionless
-  branch:  feat/versionless-descriptor-generation  (never merged to master)
+  branch:  fix/dslgen-connection-hyphenize  (off origin/feat/versionless-descriptor-generation @ 76635d44; never merged to master)
+  commit:  d9d818bb  (@W-24295259: Hyphenize connection-provider element name in dslgen; PR #196)
   crate:   mule_descriptor_gen  --bin descriptor-gen
-  built:   reused — NOT rebuilt this run (it changes rarely).
-           origin/feat/versionless-descriptor-generation is currently 76635d44  (Merge branch 'master' into feat/versionless-descriptor-generation),
-           but the bundled artifact may predate that.
+  built:   2026-09-24 (cargo build --release)
+  note:    Rebuilt to carry the dslgen fix that hyphenizes a connection
+           provider's element name (BasicAuth -> basic-auth-connection), so
+           the connector-schemas element matches the AST and model decoration
+           resolves it. Without this, an <http:basic-auth-connection> node
+           deploys with an undecorated model identity and fails to build.
 
 connectors/  (runtime connector libraries, dlopened by mule-server)
   branch:  master  (built from the same ref as mule-server so the ABI matches)

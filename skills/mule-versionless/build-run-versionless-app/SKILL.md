@@ -133,10 +133,18 @@ location, so they work from any CWD.
 3. **Never mutate the user's app to make it build.** The binaries and exchange
    base are passed to Maven as `-D` flags by `build.sh`; do not edit the pom to
    hardcode paths.
-4. **Copy the jar to a short name before deploying** if you care about the route.
-   The app name (and thus the route prefix) is the jar's file stem, so
-   `foo-1.0.0-SNAPSHOT-mule-application-versionless.jar` yields a long
-   `/foo-1.0.0-SNAPSHOT-mule-application-versionless/<flow>` route.
+4. **Deploy the jar in-tree — never copy it out of the project.** At deploy time
+   the runtime discovers the app's `project-manifest.json` by walking up from the
+   jar's location to an ancestor `pom.xml`; only then does it load the connectors
+   the app declares (e.g. HTTP). Deploy
+   `<project-dir>/target/*-mule-application-versionless.jar` by its **absolute
+   path**. Copying the jar to `/tmp` (or any directory with no ancestor `pom.xml`)
+   severs that discovery — the connectors never load and a connector-dependent app
+   silently falls back to builtin behavior (e.g. an APIkit
+   `<http:listener path="/api/*">` fails to mount at `/api/*`), with no deploy
+   error to warn you. The route prefix is the jar's file stem, so an in-tree
+   deploy yields a long `/<artifact-name>/<flow>` route — that is expected; copy
+   the exact route from the deploy response rather than shortening the jar name.
 5. **Connector names in `project-manifest.json` are matched case-sensitively.**
    Each name must equal the connector's canonical extension name — `HTTP`, not
    `http`. The runtime does an exact-name lookup against the loaded library, so a
@@ -199,29 +207,37 @@ running until `deploy-run.sh stop`.
 
 ### Step 4: Deploy and run
 
-Copy the jar to a short name for a clean route, then deploy:
+Deploy the jar straight from `target/` — **in-tree, by absolute path** — so the
+runtime can discover `project-manifest.json` and load the app's connectors (see
+Rule 4). Do **not** copy it to `/tmp` first:
 
 ```bash
-cp <project-dir>/target/*-mule-application-versionless.jar /tmp/demo.jar
-<skill-dir>/scripts/deploy-run.sh deploy /tmp/demo.jar
-# → {"name":"demo","flow_count":1,"routes":["/demo/flowtotestpayload"],"status":"deployed"}
+JAR="$(ls <project-dir>/target/*-mule-application-versionless.jar)"
+<skill-dir>/scripts/deploy-run.sh deploy "$JAR"
+# → {"name":"…-mule-application-versionless","flow_count":1,"routes":["/…-mule-application-versionless/flowtotestpayload"],"status":"deployed"}
 ```
 
-Invoke a flow at `/<app>/<flow>` (the app is the jar stem). The request body
-becomes the message payload; pass JSON to exercise expression-driven flows:
+The route prefix is the jar's file stem, so an in-tree deploy yields a long
+`/<artifact-name>/<flow>` route — expected. Capture the exact route from the
+deploy response and reuse it. The request body becomes the message payload; pass
+JSON to exercise expression-driven flows:
 
 ```bash
-<skill-dir>/scripts/deploy-run.sh run demo/flowtotestpayload '{"msg":"hi"}'
+ROUTE="<artifact-name>/flowtotestpayload"   # copy from the deploy response's routes[]
+<skill-dir>/scripts/deploy-run.sh run "$ROUTE" '{"msg":"hi"}'
 # → Versionless is ready to rock!
-<skill-dir>/scripts/deploy-run.sh run demo/flowtotestpayload '{}'
+<skill-dir>/scripts/deploy-run.sh run "$ROUTE" '{}'
 # → Are you sure you want to build your integration with Classic Mule?
 ```
 
-Use the exact route from the deploy response. List and clean up as needed:
+For an APIkit-style app the registered routes are the listener paths themselves
+(e.g. `/api/*`), not `/<app>/<flow>` — hit them directly (e.g.
+`curl http://localhost:8081/api/books`). Always use the exact routes from the
+deploy response. List and clean up as needed:
 
 ```bash
 <skill-dir>/scripts/deploy-run.sh list
-<skill-dir>/scripts/deploy-run.sh undeploy demo
+<skill-dir>/scripts/deploy-run.sh undeploy <app-name>   # the "name" from the deploy response
 <skill-dir>/scripts/deploy-run.sh stop
 ```
 
@@ -235,9 +251,12 @@ follow-up (a port override, a platform rebuild), state it plainly.
 
 - **Set up once, build many.** ✅ Run `setup.sh` a single time per machine, then
   iterate with `build.sh`. ❌ Don't re-install the plugin before every build.
-- **Deploy from a short-named copy.** ✅ `cp … /tmp/demo.jar` keeps routes
-  readable. ❌ Deploying the raw `target/` jar gives a route named after the full
-  artifact filename.
+- **Deploy in-tree, never from `/tmp`.** ✅ Deploy
+  `target/*-mule-application-versionless.jar` by absolute path so
+  `project-manifest.json` stays discoverable and connectors load. ❌ Copying the
+  jar to `/tmp` (or anywhere with no ancestor `pom.xml`) stops connectors from
+  loading and silently masks connector-dependent routing (e.g. APIkit `/api/*`).
+  The long route name is the price of a correct deploy.
 - **One app name at a time.** ✅ `undeploy` before redeploying the same app —
   the runtime rejects a duplicate name with `409`. ❌ Don't expect a second
   `deploy` of the same name to replace the first.
@@ -277,6 +296,17 @@ update-runtime-binaries**; (b) the manifest name's **case** is wrong (use `HTTP`
 `http` — see Rule 5); or (c) the connector library and `mule-server` were built from
 different refs, so their ABI versions differ — the server log shows
 `'mule_extension' library version mismatch`. Rebuild both from the same ref.
+
+**Connector-dependent routing misbehaves but deploy returned `201` (no error):**
+you deployed the jar from `/tmp` or another directory with no ancestor `pom.xml`.
+The runtime then can't discover `project-manifest.json`, the declared connectors
+never load, and the app silently falls back to builtin behavior — e.g. an APIkit
+`<http:listener path="/api/*">` fails to mount at `/api/*` and only name-based
+routes appear, or requests hit the server's `no route matches path` 404 instead
+of the connector's routing. Deploy the in-tree `target/` jar by absolute path
+(Rule 4, Step 4); confirm the server log shows the connector loaded (e.g.
+`loaded extension "HTTP"`) and the expected paths appear in the deploy response's
+`routes[]`.
 
 **Deploy `409`, `already deployed`:** that app name is live. `undeploy <name>`
 first, or deploy from a differently-named jar copy.

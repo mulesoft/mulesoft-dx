@@ -1,14 +1,23 @@
 {
   "name": "@salesforce/mulesoft-vibes-skills",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "MuleSoft DX skills to enhance Mule development",
   "license": "SEE LICENSE IN LICENSE.txt",
+  "scripts": {
+    "prepack": "node pack-skills-layout.mjs build",
+    "postpack": "node pack-skills-layout.mjs clean"
+  },
   "files": [
     "*/SKILL.md",
     "*/scripts/**",
     "*/lib/**",
     "*/references/**",
     "*/templates/**",
+    "skills/*/SKILL.md",
+    "skills/*/scripts/**",
+    "skills/*/lib/**",
+    "skills/*/references/**",
+    "skills/*/templates/**",
     "LICENSE.txt"
   ],
   "publishConfig": {

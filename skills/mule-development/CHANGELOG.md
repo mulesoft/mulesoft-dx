@@ -4,6 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.3] - Unreleased
+
+### Added
+
+- The published tarball now also ships every skill under `skills/<skill>/`, alongside the existing flat `<skill>/` layout. MuleSoft Vibes 2.0's npm skills updater requires `<package>/skills/`, while MuleSoft Vibes 1.0 reads the flat package root, so both layouts ship until Vibes 1.0 is retired. The nested copy is generated at pack time by `pack-skills-layout.mjs` (npm `prepack`) and removed afterwards (`postpack`); skill folders in the repo are unchanged. Unpacked size roughly doubles (~1.4 MB → ~2.8 MB).
+
 ## [1.9.2] - 2026-09-16
 
 ### Changed

@@ -15,3 +15,6 @@ docs/superpowers/
 
 # Runtime scratch dirs written by skill helper scripts. Never commit.
 skills/**/tmp/
+
+# Generated at npm pack time by pack-skills-layout.mjs; ignored so a leftover copy isn't committed.
+skills/mule-development/skills/

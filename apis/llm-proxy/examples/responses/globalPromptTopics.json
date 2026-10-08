@@ -1,0 +1,12 @@
+[
+  {
+    "id": "faa51ec0-b9e5-4b87-9bbc-dfdc4b843575",
+    "topicName": "Code",
+    "utterances": "* Write a Python function to sort a list\n* Debug this JavaScript error\n* Help me with SQL query optimization\n* How to implement binary search in Java\n* Refactor my React component\n* Fix the null pointer exception in my code\n* How to use async await in TypeScript\n* Create a REST API endpoint in Node.js\n* Explain recursion with a code example\n* Convert this for loop to a map function"
+  },
+  {
+    "id": "e258974c-9eab-456d-a267-2bcb329a8e34",
+    "topicName": "Finance",
+    "utterances": "* Calculate compound interest\n* Explain stock market fundamentals\n* How to file taxes\n* Investment portfolio strategies\n* Mortgage calculation formula\n* What is the difference between stocks and bonds\n* How to create a monthly budget\n* Explain cryptocurrency trading basics\n* Best savings account interest rates\n* How to reduce credit card debt"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "instances": [
+    {
+      "id": 4292323,
+      "port": "8081",
+      "path": "/aditi-adv-semantic"
+    }
+  ],
+  "targetAllowsPortSharing": true
+}

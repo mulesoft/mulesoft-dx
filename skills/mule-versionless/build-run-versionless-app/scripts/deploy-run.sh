@@ -13,7 +13,7 @@
 #   start                         start mule-server in the background (control :9090, app :8081)
 #   stop                          stop a mule-server started by `start`
 #   deploy <jar>                  POST /apps {"path": <abs jar>} — registers one route per flow
-#   run <app>/<flow> [body]       POST http://:8081/<app>/<flow> with an optional JSON body
+#   run <path> [body]       POST http://:8081/<path> with an optional JSON body
 #   list                          GET /apps
 #   undeploy <app>                DELETE /apps/<app>
 #
@@ -75,7 +75,7 @@ case "${cmd}" in
     echo
     ;;
   run)
-    route="${1:?usage: run <app>/<flow> [body]}"; body="${2:-{\}}"
+    route="${1:?usage: run <path> [body]}"; body="${2:-{\}}"
     curl -fsS -XPOST "http://127.0.0.1:${APP_PORT}/${route}" \
       -H 'content-type: application/json' -d "${body}"
     echo
@@ -87,7 +87,7 @@ case "${cmd}" in
     curl -fsS -XDELETE "${CONTROL}/apps/${1:?usage: undeploy <app>}"; echo
     ;;
   *)
-    echo "usage: deploy-run.sh {start|stop|deploy <jar>|run <app>/<flow> [body]|list|undeploy <app>}" >&2
+    echo "usage: deploy-run.sh {start|stop|deploy <jar>|run <path> [body]|list|undeploy <app>}" >&2
     exit 1
     ;;
 esac

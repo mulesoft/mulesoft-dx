@@ -36,9 +36,10 @@ echo "==> Packaging ${PROJECT_DIR}"
 echo "    binaries:     ${BIN_DIR}"
 echo "    exchange stub: file://${EXCHANGE}"
 
+# -DskipTests: the MUnit plugin does not know the versionless packaging type.
 # The plugin resolves the two build-time CLIs by absolute path (-D) and fetches connector
 # extension-model.json from the bundled file:// exchange stub — no PATH mutation, no network.
-( cd "${PROJECT_DIR}" && mvn clean package \
+( cd "${PROJECT_DIR}" && mvn clean package -DskipTests \
     -DdescriptorGenBinary="${BIN_DIR}/descriptor-gen" \
     -DmuleAstBinary="${BIN_DIR}/mule-ast" \
     -DconnectorExchangeBase="file://${EXCHANGE}" )

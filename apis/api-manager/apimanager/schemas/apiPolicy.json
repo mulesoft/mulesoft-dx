@@ -36,6 +36,11 @@
     },
     "policyTemplateId": {
       "type": "string"
+    },
+    "label": {
+      "type": "string",
+      "nullable": true,
+      "maxLength": 255
     }
   }
 }

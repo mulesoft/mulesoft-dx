@@ -1,0 +1,530 @@
+openapi: 3.0.0
+info:
+  title: API Catalog API
+  version: 1.0.0
+  description: >-
+    Publish and govern API specifications and related assets into Anypoint
+    Exchange, and run reachability health checks against published assets. Use
+    this API to submit an asset publication job (an OpenAPI, RAML, or
+    evented-API specification packaged with optional documentation), poll that
+    job until it completes, and verify that a published asset's endpoint is live
+    and returns the expected status. Asset publication is asynchronous: submit a
+    job, then poll it by `jobId` until its status is terminal.
+servers:
+  - url: https://anypoint.mulesoft.com/api-catalog/api/v1
+security:
+  - bearerAuth: []
+  - clientAuth: []
+paths:
+  /organizations/{organizationId}/assets/jobs:
+    parameters:
+      - $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
+    post:
+      summary: Create asset publish job
+      description: >-
+        Submit an asynchronous job that publishes an API specification asset to
+        Anypoint Exchange for the given organization. The request is a multipart
+        upload containing the asset metadata, the specification file, and an
+        optional documentation package. The response returns the created job
+        with a `jobId` and an initial `status`; poll `GET
+        /organizations/{organizationId}/assets/jobs/{jobId}` until the status is
+        terminal (`SUCCESS`, `SKIPPED`, or `FAILED`).
+      operationId: createAssetPublishJob
+      requestBody:
+        description: >-
+          Multipart payload with the asset metadata, the specification file, and
+          an optional documentation package.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - metadata
+                - asset
+              properties:
+                metadata:
+                  description: >-
+                    Asset metadata describing where and how to publish the
+                    specification in Exchange.
+                  $ref: '#/components/schemas/AssetMetadata'
+                asset:
+                  type: string
+                  format: binary
+                  description: >-
+                    The API specification file to publish. Accepts a single spec
+                    file (JSON or YAML) or a zipped specification project.
+                docs:
+                  type: string
+                  format: binary
+                  description: >-
+                    Optional zipped documentation package containing Markdown
+                    pages referenced by `metadata.docs`.
+            encoding:
+              metadata:
+                contentType: application/json
+              asset:
+                contentType: application/zip, application/octet-stream, application/json, application/yaml
+              docs:
+                contentType: application/zip
+      responses:
+        '202':
+          description: >-
+            The publication job was accepted for asynchronous processing. Use
+            the returned `jobId` to poll for completion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+              example:
+                jobId: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88
+                status: PENDING
+                organizationId: 8bfc8bbf-5508-419e-aadc-77dfe18a8172
+                groupId: f1e97bc6-315a-4490-82a7-23abe036327a
+                assetId: orders-experience-api
+                version: 1.0.0
+        '400':
+          description: >-
+            The request was malformed, for example missing required metadata or
+            an unsupported asset file type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: INVALID_REQUEST
+                message: The 'metadata' part is missing required field 'assetId'.
+                details:
+                  - assetId must not be blank
+        '500':
+          description: An unexpected error occurred while accepting the publication job.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: INTERNAL_ERROR
+                message: Unable to accept the publication job. Try again later.
+  /organizations/{organizationId}/assets/jobs/{jobId}:
+    parameters:
+      - $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
+      - name: jobId
+        in: path
+        required: true
+        description: >-
+          Identifier of the asset publication job to retrieve, as returned by
+          `createAssetPublishJob`.
+        schema:
+          type: string
+        x-origin:
+          - api: urn:api:api-catalog
+            operation: createAssetPublishJob
+            description: >-
+              POST `/organizations/{organizationId}/assets/jobs` in this API;
+              use the `jobId` value from the response as `jobId`.
+            values: $.jobId
+    get:
+      summary: Get asset publish job
+      description: >-
+        Retrieve the current state of an asset publication job by its `jobId`.
+        While processing, the `status` is `PENDING`; when finished it is one of
+        `SUCCESS`, `SKIPPED`, or `FAILED`. For non-successful terminal statuses
+        the `cause` field explains why.
+      operationId: getAssetPublishJob
+      responses:
+        '200':
+          description: The current state of the requested publication job.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+              example:
+                jobId: 3f2b9c1a-8d5e-4a71-9b0c-2e6f1a7d4c88
+                status: SUCCESS
+                organizationId: 8bfc8bbf-5508-419e-aadc-77dfe18a8172
+                groupId: f1e97bc6-315a-4490-82a7-23abe036327a
+                assetId: orders-experience-api
+                baseVersion: 1.0.0
+                version: 1.0.1
+        '404':
+          description: No publication job exists for the supplied `jobId`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: JOB_NOT_FOUND
+                message: No job was found for the supplied jobId.
+        '500':
+          description: An unexpected error occurred while retrieving the job.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: INTERNAL_ERROR
+                message: Unable to retrieve the publication job. Try again later.
+  /organizations/{organizationId}/health-checks:
+    parameters:
+      - $ref: ../../fragments/anypoint_fragment.yaml#/components/parameters/organizationId_Path
+    post:
+      summary: Run asset health check
+      description: >-
+        Run a reachability health check for a published Exchange asset. The
+        service issues the configured HTTP request against the asset's endpoint
+        and compares the response against the expected status. Use this to
+        confirm that a published API is live and reachable, as required for
+        Developer Hub listings.
+      operationId: runAssetHealthCheck
+      requestBody:
+        description: The asset and endpoint details to health check.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthCheckRequest'
+            example:
+              groupId: f1e97bc6-315a-4490-82a7-23abe036327a
+              assetId: orders-experience-api
+              url: https://orders.example.com/health
+              expectedStatus: 200
+              method: GET
+      responses:
+        '200':
+          description: The health check completed; `status` reflects the outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResult'
+              example:
+                status: SUCCESS
+                healthCheck:
+                  organizationId: 8bfc8bbf-5508-419e-aadc-77dfe18a8172
+                  groupId: f1e97bc6-315a-4490-82a7-23abe036327a
+                  assetId: orders-experience-api
+                  version: 1.0.1
+                  scheduled: true
+        '400':
+          description: The health check request was malformed or missing required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: INVALID_REQUEST
+                message: Field 'url' must be a valid absolute URL.
+        '500':
+          description: An unexpected error occurred while running the health check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cause'
+              example:
+                code: INTERNAL_ERROR
+                message: Unable to run the health check. Try again later.
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth
+    clientAuth:
+      $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/clientAuth
+  schemas:
+    AssetMetadata:
+      type: object
+      description: >-
+        Metadata that describes how a specification asset is published to
+        Anypoint Exchange.
+      required:
+        - organizationId
+        - groupId
+        - assetId
+        - mainFile
+        - name
+        - apiVersion
+        - classifier
+      properties:
+        organizationId:
+          type: string
+          description: GUID of the organization (Business Group) that owns the asset.
+        groupId:
+          type: string
+          description: Exchange Maven group ID under which the asset is published.
+        assetId:
+          type: string
+          description: Unique Exchange asset identifier.
+        mainFile:
+          type: string
+          description: Name of the main specification file within the uploaded asset.
+        name:
+          type: string
+          description: Human-readable display name of the asset in Exchange.
+        apiVersion:
+          type: string
+          description: The API version label for the asset (for example `v1`).
+        classifier:
+          type: string
+          description: The specification format of the asset.
+          enum:
+            - oas
+            - raml
+            - evented-api
+        forcedPublish:
+          type: boolean
+          description: >-
+            Publish a new version even when the content is unchanged from the
+            base version.
+        forcedUpdateMetadata:
+          type: boolean
+          description: Overwrite existing Exchange metadata for the asset version.
+        versioning:
+          type: object
+          description: Controls how the effective asset version is selected.
+          properties:
+            selector:
+              type: string
+              description: Version selector expression.
+              example: 3.x.x
+            strategy:
+              type: string
+              description: Semantic version bump strategy when computing the new version.
+              enum:
+                - PATCH
+                - MINOR
+                - MAJOR
+        contact:
+          type: object
+          description: Owner contact information surfaced on the Exchange asset page.
+          required:
+            - name
+            - email
+          properties:
+            name:
+              type: string
+              description: Contact name for the asset owner.
+            email:
+              type: string
+              format: email
+              description: Contact email for the asset owner.
+        healthCheck:
+          type: object
+          description: >-
+            Optional health-check configuration registered alongside the asset.
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              description: Absolute URL of the endpoint to health check.
+            expectedStatus:
+              type: integer
+              description: HTTP status code expected from a healthy endpoint.
+            method:
+              type: string
+              description: HTTP method used to perform the health check.
+              enum:
+                - GET
+                - HEAD
+                - POST
+                - PUT
+                - DELETE
+                - CONNECT
+                - OPTIONS
+                - TRACE
+                - PATCH
+            overwrite:
+              type: boolean
+              description: Replace any existing health-check configuration for the asset.
+        categories:
+          type: array
+          description: Exchange categories applied to the asset.
+          items:
+            type: object
+            required:
+              - key
+              - values
+            properties:
+              key:
+                type: string
+                description: Category name.
+              values:
+                type: array
+                description: Values assigned to the category.
+                items:
+                  type: string
+        customFields:
+          type: array
+          description: Custom key/value fields applied to the asset.
+          items:
+            type: object
+            required:
+              - key
+              - value
+            properties:
+              key:
+                type: string
+                description: Custom field name.
+              value:
+                type: string
+                description: Custom field value.
+        tags:
+          type: array
+          description: Free-form tags used for Exchange search and filtering.
+          items:
+            type: string
+        docs:
+          type: array
+          description: >-
+            Documentation pages to attach, mapping a display name to the
+            Markdown file path inside the documentation package.
+          items:
+            type: object
+            required:
+              - name
+              - path
+            properties:
+              name:
+                type: string
+                description: Display name of the documentation page.
+              path:
+                type: string
+                description: Path to the Markdown file within the documentation package.
+                pattern: (.*)\.(md|MD)
+    Asset:
+      type: object
+      description: The state of an asynchronous asset publication job.
+      required:
+        - jobId
+        - status
+      properties:
+        jobId:
+          type: string
+          description: Unique identifier of the publication job.
+        status:
+          type: string
+          description: Current status of the asset publication.
+          enum:
+            - PENDING
+            - SUCCESS
+            - SKIPPED
+            - FAILED
+        organizationId:
+          type: string
+          description: GUID of the organization that owns the asset.
+        groupId:
+          type: string
+          description: Exchange Maven group ID of the published asset.
+        assetId:
+          type: string
+          description: Exchange asset identifier of the published asset.
+        baseVersion:
+          type: string
+          description: The base version of the asset that was processed.
+          example: 1.2.2
+        version:
+          type: string
+          description: The effective version of the processed asset.
+          example: 1.2.3
+        cause:
+          description: >-
+            Processing details such as a result message and errors. Present only
+            for `SKIPPED` or `FAILED` jobs.
+          $ref: '#/components/schemas/Cause'
+    HealthCheckRequest:
+      type: object
+      description: Request to run a reachability health check against a published asset.
+      required:
+        - groupId
+        - assetId
+        - url
+      properties:
+        groupId:
+          type: string
+          description: Exchange Maven group ID of the asset to check.
+        assetId:
+          type: string
+          description: Exchange asset identifier of the asset to check.
+        url:
+          type: string
+          description: Absolute URL of the endpoint to health check.
+        expectedStatus:
+          type: integer
+          description: HTTP status code expected from a healthy endpoint.
+        method:
+          type: string
+          description: HTTP method used to perform the health check.
+          enum:
+            - GET
+            - HEAD
+            - POST
+            - PUT
+            - DELETE
+            - CONNECT
+            - OPTIONS
+            - TRACE
+            - PATCH
+        overwrite:
+          type: boolean
+          description: Replace any existing health-check configuration for the asset.
+    HealthCheckResult:
+      type: object
+      description: The outcome of a reachability health check.
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: Status of the health check.
+          enum:
+            - SUCCESS
+            - SKIPPED
+            - FAILED
+        healthCheck:
+          type: object
+          description: The health-check configuration that was evaluated.
+          required:
+            - organizationId
+            - groupId
+            - assetId
+            - version
+            - scheduled
+          properties:
+            organizationId:
+              type: string
+              description: GUID of the organization that owns the asset.
+            groupId:
+              type: string
+              description: Exchange Maven group ID of the asset.
+            assetId:
+              type: string
+              description: Exchange asset identifier of the asset.
+            version:
+              type: string
+              description: Version of the asset that was checked.
+            scheduled:
+              type: boolean
+              description: Whether a recurring scheduled health check was registered.
+        cause:
+          description: >-
+            Processing details such as a result message and errors. Present only
+            when `status` is not `SUCCESS`.
+          $ref: '#/components/schemas/Cause'
+    Cause:
+      type: object
+      description: >-
+        Details of a business event (an error or an expected unsuccessful result
+        such as a skip).
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Internal code representing the business event.
+        message:
+          type: string
+          description: Human-readable description of the event.
+        details:
+          type: array
+          description: Additional messages describing the event in more detail.
+          items:
+            type: string

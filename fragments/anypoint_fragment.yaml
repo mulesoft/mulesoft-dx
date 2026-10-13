@@ -200,11 +200,6 @@ components:
         values: $[*].id
         labels: $[*].name
         description: "GET /connectivity/connections; use [*].id as the connection ID."
-      - api: urn:api:citizen-platform-experience
-        operation: getOrganizationsByOrganizationidConnections
-        description: GET `/organizations/{organizationId}/connections` in this API; use `id` values as `connectionId`.
-        values: $.id
-        labels: $.name
       - api: urn:api:cloudhub-20
         operation: getOrganizationsByOrganizationidPrivatespacesByPrivatespaceidConnections
         description: GET `/organizations/{organizationId}/privatespaces/{privateSpaceId}/connections` in this API; use `id` values as `connectionId`.
@@ -301,11 +296,6 @@ components:
       - api: urn:api:arm-rest-services
         operation: getApplicationsByApplicationidFlows
         description: GET `/applications/{applicationId}/flows` in this API; use `id` values as `flowId`.
-        values: $.id
-        labels: $.name
-      - api: urn:api:citizen-platform-experience
-        operation: getOrganizationsByOrganizationidFlows
-        description: GET `/organizations/{organizationId}/flows` in this API; use `id` values as `flowId`.
         values: $.id
         labels: $.name
       description: The flow ID to identify the target resource.

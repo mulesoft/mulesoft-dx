@@ -4,6 +4,42 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.3] - Unreleased
+
+### Added
+
+- The published tarball now also ships every skill under `skills/<skill>/`, alongside the existing flat `<skill>/` layout. MuleSoft Vibes 2.0's npm skills updater requires `<package>/skills/`, while MuleSoft Vibes 1.0 reads the flat package root, so both layouts ship until Vibes 1.0 is retired. The nested copy is generated at pack time by `pack-skills-layout.mjs` (npm `prepack`) and removed afterwards (`postpack`); skill folders in the repo are unchanged. Unpacked size roughly doubles (~1.4 MB → ~2.8 MB).
+
+## [1.9.2] - 2026-09-16
+
+### Changed
+
+- **`build-mule-integration`** — **BREAKING: the bundled helper scripts are now Node (`*.mjs`, ESM, zero npm deps) instead of bash.** All eleven scripts move from `scripts/*.sh` to `scripts/*.mjs` and are invoked as `node scripts/<name>.mjs ...` rather than `bash scripts/<name>.sh ...` — any automation or muscle-memory that called the `.sh` files directly must update. The port is OS-agnostic (no bash/`jq`/coreutils dependency) and behavior-preserving: each Node script produces byte-identical output to the bash original it replaces, verified by a `.sh`↔`.mjs` parity suite in the agent-evaluation lab. Shared logic extracted into a new `lib/*.mjs` (Exchange ranking, template ranking, POM editing, nearest-match, platform/anypoint helpers, fs utilities).
+- **`build-mule-integration`** — the template-search path is ported to Node along with everything else: `scripts/search_templates.sh` → `scripts/search_templates.mjs`, and `references/template-project-creation.md` now documents `node scripts/search_templates.mjs ...` (its Step 1b / Exchange / Local template flows are otherwise unchanged). Template functionality is preserved end-to-end — only the implementation language changed.
+- **`build-mule-integration`** — SKILL.md body refreshed to the current lab version: all script invocations use the `node scripts/<name>.mjs` form, and the update-mode + Step-8 `mule-artifact.json` alignment guidance (`write_mule_artifact_env`) is included.
+
+### Added
+
+- **`build-mule-integration`** — `lib/template-rank.mjs` (Node port of the `search_templates` jq ranking pipeline: `type==template` filter, highest-version dedup, private-first ordering, token-overlap scoring) and `scripts/write_mule_artifact_env.mjs` (writes the validated `minMuleVersion` / `javaSpecificationVersions` into the generated project's `mule-artifact.json` right after `dx mule project create`).
+- `package.json` `files` array now includes `*/lib/**` so the shared `lib/*.mjs` modules ship in the published tarball (the Node scripts `import` from `../lib/*.mjs`).
+
+### Removed
+
+- **`build-mule-integration`** — all `scripts/*.sh` bash helpers (`build_deps`, `build_gav`, `commit_connectors`, `describe_connector`, `get_latest_connector`, `maybe_add_http_connector`, `pick_connector`, `search_templates`, `validate_before_build`, `validate_prerequisites`) and `scripts/write_mule_artifact_env.sh`, superseded by the `.mjs` equivalents.
+- **`build-mule-integration`** — `scripts/_suggest_nearest.py`, the Python fuzzy nearest-match helper. Its only consumer (`validate_before_build`) now uses `lib/nearest.mjs`, so the Python dependency is gone.
+
+## [1.9.1] - 2026-09-08
+
+### Changed
+
+- **`upgrade-mule-app`** — Step 1 now enforces a minimum DX Mule plugin version. `validate_prerequisites.mjs` reads the installed `@salesforce/anypoint-cli-dx-mule-plugin` version from `anypoint-cli-v4 plugins` and hard-fails (exit 1) when it is below **1.3.0**, the floor at which `dx mule jdk download` exists — the subcommand the skill uses to auto-provision the source and target JDKs (Steps 3b/13). An older plugin previously passed the `dx --help` presence check and only failed later at JDK-download time; it now stops up front with the fix command (`npm install -g @salesforce/anypoint-cli-dx-mule-plugin@latest`). New output fields `dxPluginVersion` and `dxPluginInRange` in `tmp/upgrade-prereqs.json`.
+
+## [1.9.0] - 2026-08-27
+
+### Added
+
+- **`upgrade-mule-app`** — new skill that upgrades a Mule application's Java and Mule Runtime version end to end. Detects the current versions, resolves a compatible target (runtime, JDK, and connector versions from live Maven metadata), and updates `pom.xml`, `mule-artifact.json`, and inherited parent POMs. Beyond bumping versions it remediates the source impact of newer connectors — renamed or removed operations, changed attributes, and error-type changes — across flow XML, DataWeave, MUnit tests, and custom-Java (`.java`) sources.
+
 ## [1.8.4] - 2026-08-10
 
 ### Fixed

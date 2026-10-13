@@ -16,7 +16,7 @@ async fn response_filter(_response_state: ResponseState, _metadata: &Metadata) {
 // inject the Metadata on the configure function.
 async fn configure(launcher: Launcher, metadata: Metadata) -> Result<()> {
 
-    // FlexMetadata includes information regarding the flex replica
+    // FlexMetadata includes information regarding the omni replica
     let flex_metadata: &FlexMetadata = &metadata.flex_metadata;
     let _flex_name: &String = &flex_metadata.flex_name;
     let _flex_version: &String = &flex_metadata.flex_version;

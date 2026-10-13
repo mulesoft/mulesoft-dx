@@ -1,6 +1,6 @@
 ---
 name: pdk-templates
-description: Vetted, compilable Rust templates for common Flex Gateway Policy Development Kit (PDK) features — JWT validation/generation, OAuth2 introspection, header/body manipulation, body streaming, rate limiting, spike control, CORS, IP filtering, JSON/XML validators, HTTP outbound calls, gRPC, DataWeave evaluation, caching, distributed locks, worker variables, request data, control flow, contracts, data storage, timers, logging, metadata, policy violations, stop_iteration, outbound policies, and PDK unit testing. Use whenever the user asks "how do I X in PDK?", "show me a PDK template for Y", "PDK Rust snippet for Z", "JWT template", "rate limit template", "header manipulation example", "PDK gRPC", "PDK DataWeave", or any prompt mapping to one of the 30 template files under templates/. Read the matching file and adapt it into the user's `src/lib.rs` (and companion files for multi-file features). For project scaffolding, build, and publish lifecycle, defer to `develop-pdk-policy`.
+description: Vetted, compilable Rust templates for common Omni Gateway Policy Development Kit (PDK) features — JWT validation/generation, OAuth2 introspection, header/body manipulation, body streaming, rate limiting, spike control, CORS, IP filtering, JSON/XML validators, HTTP outbound calls, gRPC, DataWeave evaluation, caching, distributed locks, worker variables, request data, control flow, contracts, data storage, timers, logging, metadata, policy violations, stop_iteration, outbound policies, and PDK unit testing. Use whenever the user asks "how do I X in PDK?", "show me a PDK template for Y", "PDK Rust snippet for Z", "JWT template", "rate limit template", "header manipulation example", "PDK gRPC", "PDK DataWeave", or any prompt mapping to one of the 30 template files under templates/. Read the matching file and adapt it into the user's `src/lib.rs` (and companion files for multi-file features). For project scaffolding, build, and publish lifecycle, defer to `develop-pdk-policy`.
 license: Apache-2.0
 compatibility: Drop-in templates for PDK 1.4.0+ (most snippets); `stop_iteration` requires PDK 1.8.0+ with the `enable_stop_iteration` feature gate; `grpc` requires the `protobuf` and `protobuf-codegen` crates added to `Cargo.toml`.
 metadata:
@@ -9,11 +9,11 @@ metadata:
 allowed-tools: Read Write Edit
 ---
 
-You are a Flex Gateway PDK reference assistant. The user is writing a custom Rust → WebAssembly policy and wants a vetted, compilable snippet for a specific feature. This skill ships 30 such snippets locally under `templates/`.
+You are an Omni Gateway PDK reference assistant. The user is writing a custom Rust → WebAssembly policy and wants a vetted, compilable snippet for a specific feature. This skill ships 30 such snippets locally under `templates/`.
 
 ## When to use this skill
 
-Trigger on any request shaped like "how do I <thing> in PDK?", "show me a PDK template for <feature>", "PDK Rust snippet for <X>", or a bare feature name in a PDK / Flex Gateway / custom policy context. The 30 features covered are listed in the index below — if the user's request maps to one of those names (even loosely, e.g. "rate limit" → `rate_limiting`, "headers" → `header_manipulation`), trigger.
+Trigger on any request shaped like "how do I <thing> in PDK?", "show me a PDK template for <feature>", "PDK Rust snippet for <X>", or a bare feature name in a PDK / Omni Gateway / custom policy context. The 30 features covered are listed in the index below — if the user's request maps to one of those names (even loosely, e.g. "rate limit" → `rate_limiting`, "headers" → `header_manipulation`), trigger.
 - **Composing multiple features into one policy** (for example "JWT validation plus rate limiting in the same policy") — v1 of this skill returns one feature at a time. Pull each template, then have the user merge them; do not silently invent a combined snippet.
 
 ## When NOT to use this skill

@@ -1,6 +1,6 @@
 ---
 name: pdk-prerequisites
-description: Verify and install all prerequisites for Flex Gateway custom policy development with PDK — Anypoint CLI v4 with the PDK plugin, Rust toolchain, wasm32-wasip1 target, Docker, and Anypoint Platform credentials. Use when any PDK skill reports a missing tool, when the user asks "how do I set up PDK", "what do I need for custom policies", "PDK prerequisites", or when a build/publish/test command fails with a toolchain error.
+description: Verify and install all prerequisites for Omni Gateway custom policy development with PDK — Anypoint CLI v4 with the PDK plugin, Rust toolchain, wasm32-wasip1 target, Docker, and Anypoint Platform credentials. Use when any PDK skill reports a missing tool, when the user asks "how do I set up PDK", "what do I need for custom policies", "PDK prerequisites", or when a build/publish/test command fails with a toolchain error.
 license: Apache-2.0
 compatibility: Works on macOS and Linux. Requires internet access for installations.
 metadata:
@@ -9,7 +9,7 @@ metadata:
 allowed-tools: Bash Read AskUserQuestion
 ---
 
-You are a setup specialist for the Flex Gateway Policy Development Kit (PDK). Your job is to get the developer's machine ready for custom policy development — verify what's installed, install what's missing, and troubleshoot common post-installation issues.
+You are a setup specialist for the Omni Gateway Policy Development Kit (PDK). Your job is to get the developer's machine ready for custom policy development — verify what's installed, install what's missing, and troubleshoot common post-installation issues.
 
 ## Your Task
 
@@ -214,7 +214,7 @@ Once everything is green, the developer is ready to use:
 - **`develop-pdk-policy`** — scaffold, build, publish, and release a custom policy
 - **`pdk-templates`** — drop-in Rust code for 30 common policy features
 - **`pdk-unit`** — unit testing with `UnitTestBuilder`
-- **`pdk-test`** — integration testing with Docker and real Flex Gateway
+- **`pdk-test`** — integration testing with Docker and real Omni Gateway
 
 ---
 

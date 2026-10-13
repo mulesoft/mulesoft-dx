@@ -56,7 +56,7 @@ async fn configure(launcher: Launcher,
         requests: 2,
         period_in_millis: 5000,
     });
-    // You can make the rate limit to share state across flex instances by uncomenting the following line
+    // You can make the rate limit to share state across omni instances by uncomenting the following line
     // builder = builder.clustered(Rc::new(clock.period(Duration::from_millis(100))));
     builder = builder.buckets(vec![("default".to_string(), tiers)]);
     let rate_limit = builder.build().map_err(|e| {

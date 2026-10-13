@@ -262,7 +262,7 @@ The most critical check. Bugs like skills living in nested subdirectories (`skil
 
 ## Discovered APIs
 
-The Makefile automatically discovers all API directories by looking for `exchange.json` files. Currently discovering **31 APIs**:
+The Makefile automatically discovers all API directories by looking for `exchange.json` files. Currently discovering **30 APIs**:
 
 - access-management
 - amc-application-manager
@@ -277,7 +277,6 @@ The Makefile automatically discovers all API directories by looking for `exchang
 - arm-monitoring-query
 - arm-rest-services
 - audit-log-query
-- citizen-platform-experience
 - cloudhub
 - cloudhub-20
 - exchange-experience

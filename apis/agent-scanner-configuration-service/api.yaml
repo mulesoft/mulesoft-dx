@@ -28,6 +28,8 @@ tags:
   description: Endpoints for organization information
 - name: Scanner Configuration
   description: Endpoints for managing scanner configuration
+- name: Push Workspace
+  description: Customer-upload workspace for a self-managed scanner configuration
 paths:
   /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}:
     put:
@@ -527,6 +529,163 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/TargetSystemResponse"
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/workspace:
+    get:
+      tags:
+      - Push Workspace
+      summary: Get current push workspace state
+      description: Returns the current intake run for a self-managed scanner configuration, including workspaceRunId, staged asset count, and remaining capacity.
+      operationId: getPushWorkspace
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
+      responses:
+        "200":
+          description: Current push workspace state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushWorkspaceStateResponse"
+              example:
+                workspaceRunId: 123e4567-e89b-12d3-a456-426614174000
+                generation: 0
+                stagedAssetCount: 2
+                assetCap: 500
+                remainingCapacity: 498
+                hitAssetCap: false
+                commitAcceptedNotStarted: false
+                scanRunId: 123e4567-e89b-12d3-a456-426614174000
+        "401":
+          description: If user is not authorized
+        "403":
+          description: Caller cannot write this asset type
+        "404":
+          description: Scanner configuration not found or is not a self-managed scanner
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/push:
+    post:
+      tags:
+      - Push Workspace
+      summary: Upload one asset archive into the push workspace
+      description: Upload one ZIP as multipart part file. The ZIP has one top-level directory named by the asset external id, containing specification/config.json and the type artifact. Returns 202 with assetId, action, and workspaceRunId. Do not send JSON.
+      operationId: pushWorkspaceAsset
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
+      requestBody:
+        required: true
+        description: Multipart form with exactly one part named file. Filename is {externalId}.zip. Part Content-Type is application/zip.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: ZIP archive for one asset. Filename {externalId}.zip.
+            encoding:
+              file:
+                contentType: application/zip
+      responses:
+        "202":
+          description: Archive staged into the workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushWorkspaceUploadResponse"
+              example:
+                assetId: orders-agent
+                action: created
+                workspaceRunId: 123e4567-e89b-12d3-a456-426614174000
+        "400":
+          description: Invalid archive or request
+        "401":
+          description: If user is not authorized
+        "403":
+          description: Caller cannot write this asset type
+        "404":
+          description: Scanner configuration not found or is not a self-managed scanner
+        "409":
+          description: Workspace is not accepting uploads
+        "413":
+          description: Archive exceeds the size cap
+        "415":
+          description: Body was not a ZIP as multipart part file
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/push/{externalId}:
+    delete:
+      tags:
+      - Push Workspace
+      summary: Remove one staged asset from the push workspace
+      description: Unstages one asset from the current intake run before commit. Idempotent if the identifier is already absent.
+      operationId: unstagePushWorkspaceAsset
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
+      - $ref: '#/components/parameters/XOrigin_externalId_Path'
+      responses:
+        "200":
+          description: Asset unstaged, or already absent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushWorkspaceUnstageResponse"
+              example:
+                workspaceRunId: 123e4567-e89b-12d3-a456-426614174000
+        "401":
+          description: If user is not authorized
+        "403":
+          description: Caller cannot write this asset type
+        "404":
+          description: Scanner configuration not found or is not a self-managed scanner
+        "500":
+          description: Internal server error
+  /api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/commit:
+    post:
+      tags:
+      - Push Workspace
+      summary: Commit the current push workspace snapshot
+      description: Starts publishing from the current workspace snapshot. Both workspaceRunId and complete are required. complete true asserts a full inventory so missing assets may be retired. complete false is upsert only. Returns 202 with scanRunId equal to the committed workspaceRunId.
+      operationId: commitPushWorkspace
+      parameters:
+      - $ref: '#/components/parameters/XOrigin_organizationId_Path'
+      - $ref: '#/components/parameters/XOrigin_scannerConfigurationId_Path'
+      requestBody:
+        required: true
+        description: Workspace run identifier from POST /push plus the completeness flag.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushCommitRequest"
+            example:
+              workspaceRunId: 123e4567-e89b-12d3-a456-426614174000
+              complete: true
+      responses:
+        "202":
+          description: Commit accepted and publishing started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushCommitResponse"
+              example:
+                scanRunId: 123e4567-e89b-12d3-a456-426614174000
+        "400":
+          description: Missing workspaceRunId or complete
+        "401":
+          description: If user is not authorized
+        "403":
+          description: Caller cannot write this asset type
+        "404":
+          description: Scanner configuration not found or is not a self-managed scanner
+        "409":
+          description: workspaceRunId is stale
+        "500":
+          description: Internal server error
 components:
   parameters:
     XOrigin_organizationId_Path:
@@ -559,6 +718,20 @@ components:
         values: $.content[*].id
         labels: $.content[*].name
         description: "GET /scanner-configurations; use content[*].id as the scanner ID."
+    XOrigin_externalId_Path:
+      name: externalId
+      description: Stable provider identifier. Same as the ZIP top-level directory name and the POST /push filename without .zip.
+      required: true
+      in: path
+      schema:
+        type: string
+        maxLength: 255
+      x-origin:
+      - api: urn:api:agent-scanner-configuration-service
+        operation: pushWorkspaceAsset
+        values: $.assetId
+        labels: $.assetId
+        description: "POST /push; use assetId as the externalId (ZIP filename without .zip)."
     XOrigin_scanRunId_Path:
       name: scanRunId
       description: The scan run identifier.
@@ -982,6 +1155,9 @@ components:
           - geminimcp
           - googleapigee
           - godaddyans
+          - pushagent
+          - pushmcp
+          - pushapi
           example: bedrock
         provider:
           type: string
@@ -991,6 +1167,7 @@ components:
           - microsoft
           - google
           - godaddy
+          - self-managed
           example: aws
         platform:
           type: string
@@ -1007,6 +1184,7 @@ components:
           - gemini
           - apigee
           - godaddy_ans
+          - customer_upload
           example: bedrock_agents
         assetType:
           type: string
@@ -1359,6 +1537,9 @@ components:
           - geminimcp
           - googleapigee
           - godaddyans
+          - pushagent
+          - pushmcp
+          - pushapi
           example: bedrock
         provider:
           type: string
@@ -1368,6 +1549,7 @@ components:
           - microsoft
           - google
           - godaddy
+          - self-managed
           example: aws
         platform:
           type: string
@@ -1384,6 +1566,7 @@ components:
           - gemini
           - apigee
           - godaddy_ans
+          - customer_upload
           example: bedrock_agents
         assetType:
           type: string
@@ -1398,6 +1581,95 @@ components:
           description: Auth Scheme Form Fields
           items:
             $ref: "#/components/schemas/AuthSchemeFormDescriptor"
+    PushWorkspaceStateResponse:
+      type: object
+      description: Current state of a self-managed scanner intake run
+      properties:
+        workspaceRunId:
+          type: string
+          format: uuid
+          description: Current workspace run identifier
+        generation:
+          type: integer
+          format: int64
+          description: Deprecated compatibility field; always 0
+        stagedAssetCount:
+          type: integer
+          format: int64
+          description: Distinct staged assets in the current intake run
+        assetCap:
+          type: integer
+          format: int32
+          description: Intake cap for this run
+        remainingCapacity:
+          type: integer
+          format: int64
+          description: Slots remaining before a net-new upload is refused
+        hitAssetCap:
+          type: boolean
+          description: Whether this intake run has recorded hitting the asset cap
+        commitAcceptedNotStarted:
+          type: boolean
+          description: Deprecated compatibility field; always false
+        scanRunId:
+          type: string
+          format: uuid
+          description: Current RUNNING scan run identifier; equals workspaceRunId
+    PushWorkspaceUploadResponse:
+      type: object
+      description: 202 body after staging one uploaded archive
+      properties:
+        assetId:
+          type: string
+          description: Stable asset id. The ZIP top-level directory name.
+          example: orders-agent
+        action:
+          type: string
+          description: created for a new identifier; replaced on last-write-wins upsert
+          enum:
+          - created
+          - replaced
+          example: created
+        workspaceRunId:
+          type: string
+          format: uuid
+          description: Current workspace run identifier
+      required:
+      - assetId
+      - action
+      - workspaceRunId
+    PushWorkspaceUnstageResponse:
+      type: object
+      description: 200 body after unstaging one workspace asset
+      properties:
+        workspaceRunId:
+          type: string
+          format: uuid
+          description: Current workspace run identifier
+    PushCommitRequest:
+      type: object
+      description: Commit the current push workspace snapshot
+      properties:
+        workspaceRunId:
+          type: string
+          format: uuid
+          description: Current workspace run identifier from POST /push. Required.
+        complete:
+          type: boolean
+          description: true asserts a full inventory; false is upsert-only. Required. No default.
+      required:
+      - workspaceRunId
+      - complete
+    PushCommitResponse:
+      type: object
+      description: 202 body after Temporal accepts a push commit
+      properties:
+        scanRunId:
+          type: string
+          format: uuid
+          description: Scan run id; equals the committed workspaceRunId
+      required:
+      - scanRunId
   securitySchemes:
     bearerAuth:
       $ref: ../../fragments/anypoint_fragment.yaml#/components/securitySchemes/bearerAuth

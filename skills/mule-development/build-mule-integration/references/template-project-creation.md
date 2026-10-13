@@ -5,7 +5,7 @@
 >
 > **Available from the main workflow:**
 > - `tmp/mule-dev-env.json` — contains `mule_version` (use for `--mule-version`)
-> - `scripts/search_templates.sh` — Exchange template search
+> - `scripts/search_templates.mjs` — Exchange template search
 >
 > **Note:** Connector dependencies are NOT available yet (discovery happens in Steps 2-7).
 > The template project will get dependencies added later during Step 8.
@@ -27,7 +27,7 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 ### Operational Requirements
 
 - **No direct `dx:mule:project:create`:** Do not call `dx:mule:project:create` until this workflow has completed discovery and the user has approved (Confirmation checkpoint 2). Never invoke it directly in response to a project-creation request. Call it only at the designated project-creation step in the chosen flow (Exchange E4 or Local L4).
-- MUST present the `scripts/search_templates.sh` output for user selection of template
+- MUST present the `scripts/search_templates.mjs` output for user selection of template
 - MUST present results from both private and public groupIds per **Search Completeness Rule**
 - MUST follow **Confirmation Checkpoints** (below) for template selection and project creation
 - MUST follow **Validation Standard** (below) after any project generation
@@ -73,11 +73,11 @@ Your behavior should be deliberate and confirmation-driven. Take time to underst
 
 ## Bundled Scripts
 
-This skill ships small bash helpers under `scripts/`. Invoke them with the `Bash` tool at the absolute path you were given in the "skill is now active" message (the directory containing the main `SKILL.md`). Do **not** use relative paths — Cline's working directory shifts across turns and relative paths break.
+This skill ships small Node scripts (`*.mjs`, ESM, zero npm deps) under `scripts/`. Invoke them with the `Bash` tool by running `node <skill-dir>/scripts/<name>.mjs ...` at the absolute path you were given in the "skill is now active" message (the directory containing the main `SKILL.md`). Do **not** use relative paths — Cline's working directory shifts across turns and relative paths break.
 
 | Script | Purpose | Output |
 | --- | --- | --- |
-| `scripts/search_templates.sh <search-term>` | Search Anypoint Exchange for `type == "template"` assets via two parallel `exchange asset list` calls (one unscoped, one `--organizationId <my-org>`), dedup, rank by token overlap with `<search-term>`, then enrich the top 10 with `description`, `minMuleVersion`, and `sourceLocation` (`"private"` for org-scoped hits, `"public"` otherwise). | Single JSON array on stdout (max 10 rows), sorted private-first. Exits 1 with an error on stderr when no templates match. |
+| `scripts/search_templates.mjs <search-term>` | Search Anypoint Exchange for `type == "template"` assets via two parallel `exchange asset list` calls (one unscoped, one `--organizationId <my-org>`), dedup, rank by token overlap with `<search-term>`, then enrich the top 10 with `description`, `minMuleVersion`, and `sourceLocation` (`"private"` for org-scoped hits, `"public"` otherwise). | Single JSON array on stdout (max 10 rows), sorted private-first. Exits 1 with an error on stderr when no templates match. |
 
 The script wraps `anypoint-cli-v4 exchange asset list` (paginated) plus `anypoint-cli-v4 exchange asset describe` (top-N enrichment). It auto-resolves a real environment from `anypoint-cli-v4 account environment list` so it works regardless of how `ANYPOINT_ENV` is set in the shell.
 
@@ -87,7 +87,7 @@ The script wraps `anypoint-cli-v4 exchange asset list` (paginated) plus `anypoin
 
 ### Step E1: Required Project Context Investigation
 
-Before running `scripts/search_templates.sh`, you MUST complete these investigation steps in order.
+Before running `scripts/search_templates.mjs`, you MUST complete these investigation steps in order.
 
 #### E1a. Analyze prompt and prepare search
 
@@ -97,7 +97,7 @@ Analyze the user's prompt and prepare search parameters.
 
 **Strategy:** Specific systems → include names in the search query. Generic need → pattern keywords (sync, API, batch). Industry/compliance → include domain. No details → ask the clarifying question below.
 
-**Build the search query:** `[System1] + [System2] + [Pattern/Action]`. Examples: `"Salesforce database sync"`; `"REST API order"`; `"SAP Anypoint MQ integration"`. This string is what you will pass as the first argument to `scripts/search_templates.sh` in Step E2a.
+**Build the search query:** `[System1] + [System2] + [Pattern/Action]`. Examples: `"Salesforce database sync"`; `"REST API order"`; `"SAP Anypoint MQ integration"`. This string is what you will pass as the first argument to `scripts/search_templates.mjs` in Step E2a.
 
 **If requirements are unclear,** prompt via `AskUserQuestion`:
 
@@ -119,7 +119,7 @@ Analyze the user's prompt and prepare search parameters.
 Run the bundled search script with the `Bash` tool, passing the query you built in Step E1a. The script handles **pagination, dedup-by-latest-version, ranking, and the public/private label** internally — there is no need to make two separate calls per the Search Completeness Rule; one invocation searches everything visible to the authenticated user.
 
 ```bash
-<skill-dir>/scripts/search_templates.sh "<search-query-from-E1a>"
+node <skill-dir>/scripts/search_templates.mjs "<search-query-from-E1a>"
 ```
 
 The script returns at most 10 ranked results (private-first), each enriched with `description` and `minMuleVersion` via `exchange asset describe`.
@@ -187,8 +187,8 @@ Present results to the user with full asset details:
 - `groupId` — Group identifier
 - `assetId` — Asset identifier
 - `version` — Selected version
-- `minMuleVersion` — Minimum Mule version (from `search_templates.sh` output)
-- `sourceLocation` — `"private"` or `"public"` (from `search_templates.sh` output)
+- `minMuleVersion` — Minimum Mule version (from `search_templates.mjs` output)
+- `sourceLocation` — `"private"` or `"public"` (from `search_templates.mjs` output)
 
 ---
 
@@ -477,12 +477,12 @@ anypoint-cli-v4 dx:mule:project:create <projectName> [flags]
 - From Exchange: `dx:mule:project:create <name> --template-asset "<groupId>:<assetId>:<version>" --mule-version <ver> --output json --environment ""`
 - From Local file: `dx:mule:project:create <name> --template-file "<path-to-jar-or-zip>" --mule-version <ver> --output json --environment ""`
 
-### `scripts/search_templates.sh` Reference
+### `scripts/search_templates.mjs` Reference
 
 **Invocation:**
 
 ```bash
-<skill-dir>/scripts/search_templates.sh "<search-query>"
+node <skill-dir>/scripts/search_templates.mjs "<search-query>"
 ```
 
 | Argument | Required | Description |

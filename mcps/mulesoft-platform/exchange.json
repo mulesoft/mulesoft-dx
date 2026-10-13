@@ -1,14 +1,16 @@
 {
-  "main": "mcp.yaml",
+  "main": "server.json",
   "name": "MuleSoft Platform MCP Server",
   "organizationId": "8bfc8bbf-5508-419e-aadc-77dfe18a8172",
   "groupId": "f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform",
   "assetId": "mulesoft-platform",
-  "version": "2.4.5",
+  "version": "2.5.0",
   "apiVersion": "v2",
   "classifier": "mcp-metadata",
   "dependencies": [],
-  "tags": ["MuleSoft Platform"],
+  "tags": [
+    "MuleSoft Platform"
+  ],
   "originalFormatVersion": "3.0",
   "install": {
     "docs_url": "https://docs.mulesoft.com/mulesoft-mcp-server/using-mulesoft-platform-mcp-server"

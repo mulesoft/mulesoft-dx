@@ -1,0 +1,39 @@
+Provenance of the bundled validator assets. The jars carry no app version string,
+so this is not otherwise recoverable. How to refresh: docs/UPDATING.md
+
+=== Validator classpath (lib/) ===
+mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build-changes,
+                                  shaded jar built 2026-08-19 (3.32.0-SNAPSHOT-all).
+                                  Supplies: lemminx, commons-text, the Scala-namespaced
+                                  weave classes, the baseline dataweave+flow axes, and the
+                                  rds/dwx-capabilities.json capability manifest resource.
+mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider, and (being
+                                  itself shaded) gson/lsp4j/maven-model. Provided scope.
+tooling-api-2.14.0-SNAPSHOT.jar   org.mule.weave.v2.api.tooling.location.ResourceIdentifier —
+                                  the DataWeave axis's Scala parser needs it; the plugin's
+                                  shadowJar excludes it ("bundled by DW Plugin").
+scala-library-2.12.20.jar         scala.Product etc. — Scala stdlib, excluded from the fat jar.
+gson-2.10.1.jar                   report serialization + manifest parse (also inside platform
+                                  jar; pinned here so the cp is self-sufficient).
+org.eclipse.lsp4j-0.12.0.jar      Position / lsp4j types the axes use for findings.
+maven-model-3.9.16.jar            pom model types referenced on the project-shape path.
+slf4j-api-1.7.36.jar              logging facade (no backend bundled → no-op logger; harmless
+                                  "StaticLoggerBinder" warning at startup).
+
+=== Overlay classes (classes/) ===
+Compiled with JDK 17 from mule-dx-mule-dev-component @ chore/maven-build-changes
+(plugin HEAD d7d278e9) with the five new switch axes applied on top:
+  internal/project/VersionlessValidator.java            (edited: fans into all 7 axes)
+  internal/project/configcompat/   ConfigSecretsCompatibilityChecker   (+ NPE null-guard fix)
+  internal/project/shapecompat/    ProjectShapeCompatibilityChecker
+  internal/project/securitycompat/ SecurityPolicyCompatibilityChecker
+  internal/project/devxcompat/     DevExperienceCompatibilityChecker
+  internal/project/statecompat/    DataIntegrityCompatibilityChecker
+  internal/project/flowcompat/     FlowExecutionCompatibilityChecker (baseline, recompiled)
+  VersionlessValidatorCli          (src/VersionlessValidatorCli.java — the headless entry point)
+Placed FIRST on the classpath so these win over the baseline axes inside the Aug-19 fat jar.
+
+=== Connector descriptors (dsl/) ===
+http, salesforce, twilio, mule-core dsl.json — byte-identical copies of
+go-runtime @ f7fb6dd0 connectors/<name>/descriptor/dsl.json (the runtime's own
+ground truth). The flow axis reads only name + dslJson, so model/xsd are null.

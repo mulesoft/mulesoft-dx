@@ -1,0 +1,852 @@
+{
+  "operations": {
+    "flow-ref": {
+      "attributeName": "",
+      "elementName": "flow-ref",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "target": {
+          "attributeName": "target",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "targetValue": {
+          "attributeName": "targetValue",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "logger": {
+      "attributeName": "",
+      "elementName": "logger",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "category": {
+          "attributeName": "category",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "level": {
+          "attributeName": "level",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "message": {
+          "attributeName": "message",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "raise-error": {
+      "attributeName": "",
+      "elementName": "raise-error",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "description": {
+          "attributeName": "description",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "type": {
+          "attributeName": "type",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "remove-variable": {
+      "attributeName": "",
+      "elementName": "remove-variable",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "variableName": {
+          "attributeName": "variableName",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "set-payload": {
+      "attributeName": "",
+      "elementName": "set-payload",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "encoding": {
+          "attributeName": "encoding",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "mimeType": {
+          "attributeName": "mimeType",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "value": {
+          "attributeName": "value",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "set-variable": {
+      "attributeName": "",
+      "elementName": "set-variable",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "value": {
+          "attributeName": "value",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "variableName": {
+          "attributeName": "variableName",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  },
+  "sources": {
+    "scheduler": {
+      "attributeName": "",
+      "elementName": "scheduler",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "disallowConcurrentExecution": {
+          "attributeName": "disallowConcurrentExecution",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "schedulingStrategy": {
+          "attributeName": "schedulingStrategy",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  },
+  "constructs": {
+    "async": {
+      "attributeName": "",
+      "elementName": "async",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "maxConcurrency": {
+          "attributeName": "maxConcurrency",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "choice": {
+      "attributeName": "",
+      "elementName": "choice",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "childs": {
+        "otherwise": {
+          "attributeName": "",
+          "elementName": "otherwise",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "when": {
+          "attributeName": "",
+          "elementName": "when",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false,
+          "attributes": {
+            "expression": {
+              "attributeName": "expression",
+              "elementName": "",
+              "prefix": "mule",
+              "namespace": "http://www.mulesoft.org/schema/mule/core",
+              "isWrapped": false,
+              "supportsAttributeDeclaration": true,
+              "supportsChildDeclaration": false,
+              "supportsTopLevelDeclaration": false,
+              "requiresConfig": false
+            }
+          }
+        }
+      }
+    },
+    "error-handler": {
+      "attributeName": "",
+      "elementName": "error-handler",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": true,
+      "requiresConfig": false,
+      "attributes": {
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      },
+      "childs": {
+        "on-error-continue": {
+          "attributeName": "",
+          "elementName": "on-error-continue",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false,
+          "attributes": {
+            "type": {
+              "attributeName": "type",
+              "elementName": "",
+              "prefix": "mule",
+              "namespace": "http://www.mulesoft.org/schema/mule/core",
+              "isWrapped": false,
+              "supportsAttributeDeclaration": true,
+              "supportsChildDeclaration": false,
+              "supportsTopLevelDeclaration": false,
+              "requiresConfig": false
+            },
+            "when": {
+              "attributeName": "when",
+              "elementName": "",
+              "prefix": "mule",
+              "namespace": "http://www.mulesoft.org/schema/mule/core",
+              "isWrapped": false,
+              "supportsAttributeDeclaration": true,
+              "supportsChildDeclaration": false,
+              "supportsTopLevelDeclaration": false,
+              "requiresConfig": false
+            }
+          }
+        },
+        "on-error-propagate": {
+          "attributeName": "",
+          "elementName": "on-error-propagate",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false,
+          "attributes": {
+            "type": {
+              "attributeName": "type",
+              "elementName": "",
+              "prefix": "mule",
+              "namespace": "http://www.mulesoft.org/schema/mule/core",
+              "isWrapped": false,
+              "supportsAttributeDeclaration": true,
+              "supportsChildDeclaration": false,
+              "supportsTopLevelDeclaration": false,
+              "requiresConfig": false
+            },
+            "when": {
+              "attributeName": "when",
+              "elementName": "",
+              "prefix": "mule",
+              "namespace": "http://www.mulesoft.org/schema/mule/core",
+              "isWrapped": false,
+              "supportsAttributeDeclaration": true,
+              "supportsChildDeclaration": false,
+              "supportsTopLevelDeclaration": false,
+              "requiresConfig": false
+            }
+          }
+        }
+      }
+    },
+    "first-successful": {
+      "attributeName": "",
+      "elementName": "first-successful",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "childs": {
+        "route": {
+          "attributeName": "",
+          "elementName": "route",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "flow": {
+      "attributeName": "",
+      "elementName": "flow",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": true,
+      "requiresConfig": false,
+      "attributes": {
+        "maxConcurrency": {
+          "attributeName": "maxConcurrency",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      },
+      "childs": {
+        "error-handler": {
+          "attributeName": "",
+          "elementName": "error-handler",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "source": {
+          "attributeName": "",
+          "elementName": "source",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "foreach": {
+      "attributeName": "",
+      "elementName": "foreach",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "batchSize": {
+          "attributeName": "batchSize",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "collection": {
+          "attributeName": "collection",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "counterVariableName": {
+          "attributeName": "counterVariableName",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "rootMessageVariableName": {
+          "attributeName": "rootMessageVariableName",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "parallel-foreach": {
+      "attributeName": "",
+      "elementName": "parallel-foreach",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "collection": {
+          "attributeName": "collection",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "maxConcurrency": {
+          "attributeName": "maxConcurrency",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "target": {
+          "attributeName": "target",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "targetValue": {
+          "attributeName": "targetValue",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "timeout": {
+          "attributeName": "timeout",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "round-robin": {
+      "attributeName": "",
+      "elementName": "round-robin",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "childs": {
+        "route": {
+          "attributeName": "",
+          "elementName": "route",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "scatter-gather": {
+      "attributeName": "",
+      "elementName": "scatter-gather",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "collectList": {
+          "attributeName": "collectList",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "maxConcurrency": {
+          "attributeName": "maxConcurrency",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "target": {
+          "attributeName": "target",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "targetValue": {
+          "attributeName": "targetValue",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "timeout": {
+          "attributeName": "timeout",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      },
+      "childs": {
+        "route": {
+          "attributeName": "",
+          "elementName": "route",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "sub-flow": {
+      "attributeName": "",
+      "elementName": "sub-flow",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": true,
+      "requiresConfig": false,
+      "attributes": {
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "try": {
+      "attributeName": "",
+      "elementName": "try",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "transactionalAction": {
+          "attributeName": "transactionalAction",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      },
+      "childs": {
+        "error-handler": {
+          "attributeName": "",
+          "elementName": "error-handler",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": true,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "until-successful": {
+      "attributeName": "",
+      "elementName": "until-successful",
+      "prefix": "mule",
+      "namespace": "http://www.mulesoft.org/schema/mule/core",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "maxRetries": {
+          "attributeName": "maxRetries",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "millisBetweenRetries": {
+          "attributeName": "millisBetweenRetries",
+          "elementName": "",
+          "prefix": "mule",
+          "namespace": "http://www.mulesoft.org/schema/mule/core",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  }
+}

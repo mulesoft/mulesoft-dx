@@ -1,12 +1,24 @@
 Provenance of the bundled validator assets. The jars carry no app version string,
 so this is not otherwise recoverable. How to refresh: docs/UPDATING.md
 
-=== Validator classpath (lib/) — 4 jars, the proven-minimal set ===
-mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build-changes,
-                                  shaded jar built 2026-08-19 (3.32.0-SNAPSHOT-all).
-                                  Supplies: lemminx, commons-text, the Scala-namespaced
-                                  weave classes, the baseline dataweave+flow axes, and the
-                                  rds/dwx-capabilities.json capability manifest resource.
+=== Validator classpath (lib/) — 5 jars, the proven-minimal set ===
+mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build-changes
+                                  (plugin HEAD d7d278e9), shaded jar built 2026-10-15
+                                  (3.32.0-SNAPSHOT-all) via `gradlew :mule-dx-mule-dev-plugin:shadowJar`.
+                                  Supplies: lemminx, commons-text, the Scala-namespaced weave
+                                  classes, the rds/dwx-capabilities.json capability manifest, AND
+                                  all seven switch axes shaded in (dwcompat/flowcompat/configcompat/
+                                  shapecompat/securitycompat/statecompat + the VersionlessValidator
+                                  orchestrator). This replaces the stale 2026-08-19 jar that predated
+                                  five of the axes; there is no longer a loose-class overlay.
+                                  CAVEAT: the axis sources were still uncommitted in the plugin working
+                                  tree at build time (VersionlessValidator.java modified; the five
+                                  *compat/ dirs untracked). Regenerating this exact jar requires that
+                                  working-tree state until the axis branch lands upstream.
+versionless-validator-cli.jar     the headless entry point (VersionlessValidatorCli), compiled from
+                                  src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
+                                  above and packaged as its own jar. First-party skill code — not part
+                                  of the plugin — so it ships separately. Rebuild recipe: docs/UPDATING.md.
 mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider,
                                   EmbeddedContentExtractor (the DataWeave axis's ctor needs it),
                                   AND, being itself shaded, gson + lsp4j + maven-model + slf4j.
@@ -27,18 +39,14 @@ these, re-add that standalone jar. Dropping slf4j-api also removed the harmless 
 NoClassDefFoundError for EmbeddedContentExtractor (platform), scala/Product (scala-library),
 or ResourceIdentifier (tooling-api).
 
-=== Overlay classes (classes/) ===
-Compiled with JDK 17 from mule-dx-mule-dev-component @ chore/maven-build-changes
-(plugin HEAD d7d278e9) with the five new switch axes applied on top:
-  internal/project/VersionlessValidator.java            (edited: fans into all 7 axes)
-  internal/project/configcompat/   ConfigSecretsCompatibilityChecker   (+ NPE null-guard fix)
-  internal/project/shapecompat/    ProjectShapeCompatibilityChecker
-  internal/project/securitycompat/ SecurityPolicyCompatibilityChecker
-  internal/project/devxcompat/     DevExperienceCompatibilityChecker
-  internal/project/statecompat/    DataIntegrityCompatibilityChecker
-  internal/project/flowcompat/     FlowExecutionCompatibilityChecker (baseline, recompiled)
-  VersionlessValidatorCli          (src/VersionlessValidatorCli.java — the headless entry point)
-Placed FIRST on the classpath so these win over the baseline axes inside the Aug-19 fat jar.
+=== No loose-class overlay ===
+Earlier bundles carried a classes/ overlay (the seven axes compiled loose, placed first on the
+classpath) because the then-current plugin jar was the 2026-08-19 build that predated five axes.
+That overlay has been REMOVED: the 2026-10-15 plugin jar shades the axes directly, so lib/*.jar is
+the whole classpath. Equivalence was verified before removal — a jar-only run produced byte-identical
+ValidationResult JSON (every field of every finding) to the overlay run, on both a 3-blocker/90-DW app
+and a clean app. If you ever need the overlay approach again (e.g. to patch one axis without a full
+plugin rebuild), the recipe is in docs/UPDATING.md, but the shaded jar is the preferred shape.
 
 === Connector descriptors (dsl/) ===
 http, salesforce, twilio, mule-core dsl.json — byte-identical copies of

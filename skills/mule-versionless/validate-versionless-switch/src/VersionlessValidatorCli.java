@@ -51,11 +51,22 @@ public final class VersionlessValidatorCli {
         Path projectRoot = Path.of(args[0]).toAbsolutePath().normalize();
         Path dslDir = null;
         Path out = null;
-        for (int i = 1; i < args.length - 1; i++) {
-            if ("--dsl-dir".equals(args[i])) {
-                dslDir = Path.of(args[++i]).toAbsolutePath().normalize();
-            } else if ("--out".equals(args[i])) {
-                out = Path.of(args[++i]).toAbsolutePath().normalize();
+        for (int i = 1; i < args.length; i++) {
+            switch (args[i]) {
+                case "--dsl-dir":
+                    if (++i >= args.length) {
+                        fail("--dsl-dir requires a value");
+                    }
+                    dslDir = Path.of(args[i]).toAbsolutePath().normalize();
+                    break;
+                case "--out":
+                    if (++i >= args.length) {
+                        fail("--out requires a value");
+                    }
+                    out = Path.of(args[i]).toAbsolutePath().normalize();
+                    break;
+                default:
+                    fail("unknown argument: " + args[i]);
             }
         }
         if (dslDir == null) {

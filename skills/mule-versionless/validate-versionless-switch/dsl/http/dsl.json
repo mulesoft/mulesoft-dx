@@ -1,0 +1,1293 @@
+{
+  "operations": {
+    "basicSecurityFilter": {
+      "attributeName": "",
+      "elementName": "basic-security-filter",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "attributes": {
+          "attributeName": "attributes",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "errorMappings": {
+          "attributeName": "errorMappings",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "realm": {
+          "attributeName": "realm",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "securityProviders": {
+          "attributeName": "securityProviders",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "loadStaticResource": {
+      "attributeName": "",
+      "elementName": "load-static-resource",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "attributes": {
+          "attributeName": "attributes",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "defaultFile": {
+          "attributeName": "defaultFile",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "errorMappings": {
+          "attributeName": "errorMappings",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputEncoding": {
+          "attributeName": "outputEncoding",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputMimeType": {
+          "attributeName": "outputMimeType",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "resourceBasePath": {
+          "attributeName": "resourceBasePath",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "target": {
+          "attributeName": "target",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "targetValue": {
+          "attributeName": "targetValue",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "request": {
+      "attributeName": "",
+      "elementName": "request",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "body": {
+          "attributeName": "body",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "config-ref": {
+          "attributeName": "config-ref",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "correlationId": {
+          "attributeName": "correlationId",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "errorMappings": {
+          "attributeName": "errorMappings",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "followRedirects": {
+          "attributeName": "followRedirects",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "headers": {
+          "attributeName": "headers",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "method": {
+          "attributeName": "method",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputEncoding": {
+          "attributeName": "outputEncoding",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputMimeType": {
+          "attributeName": "outputMimeType",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "path": {
+          "attributeName": "path",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "queryParams": {
+          "attributeName": "queryParams",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "reconnectionStrategy": {
+          "attributeName": "reconnectionStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "requestStreamingMode": {
+          "attributeName": "requestStreamingMode",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseTimeout": {
+          "attributeName": "responseTimeout",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseValidator": {
+          "attributeName": "responseValidator",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "sendBodyMode": {
+          "attributeName": "sendBodyMode",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "sendCorrelationId": {
+          "attributeName": "sendCorrelationId",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "streamingStrategy": {
+          "attributeName": "streamingStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "target": {
+          "attributeName": "target",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "targetValue": {
+          "attributeName": "targetValue",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "uriParams": {
+          "attributeName": "uriParams",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "url": {
+          "attributeName": "url",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  },
+  "sources": {
+    "listener": {
+      "attributeName": "",
+      "elementName": "listener",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "allowedMethods": {
+          "attributeName": "allowedMethods",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "config-ref": {
+          "attributeName": "config-ref",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "deferredResponse": {
+          "attributeName": "deferredResponse",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputEncoding": {
+          "attributeName": "outputEncoding",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputMimeType": {
+          "attributeName": "outputMimeType",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "path": {
+          "attributeName": "path",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "primaryNodeOnly": {
+          "attributeName": "primaryNodeOnly",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "reconnectionStrategy": {
+          "attributeName": "reconnectionStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "redeliveryPolicy": {
+          "attributeName": "redeliveryPolicy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseStreamingMode": {
+          "attributeName": "responseStreamingMode",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "streamingStrategy": {
+          "attributeName": "streamingStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "pollingSource": {
+      "attributeName": "",
+      "elementName": "polling-source",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": true,
+      "attributes": {
+        "config-ref": {
+          "attributeName": "config-ref",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "idExpression": {
+          "attributeName": "idExpression",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "method": {
+          "attributeName": "method",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "onCapacityOverload": {
+          "attributeName": "onCapacityOverload",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "outputMimeType": {
+          "attributeName": "outputMimeType",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "path": {
+          "attributeName": "path",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "pollingRequestBody": {
+          "attributeName": "pollingRequestBody",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "pollingRequestHeaders": {
+          "attributeName": "pollingRequestHeaders",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "pollingRequestQueryParams": {
+          "attributeName": "pollingRequestQueryParams",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "pollingRequestUriParams": {
+          "attributeName": "pollingRequestUriParams",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "primaryNodeOnly": {
+          "attributeName": "primaryNodeOnly",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "reconnectionStrategy": {
+          "attributeName": "reconnectionStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "redeliveryPolicy": {
+          "attributeName": "redeliveryPolicy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseValidator": {
+          "attributeName": "responseValidator",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "schedulingStrategy": {
+          "attributeName": "schedulingStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "splitExpression": {
+          "attributeName": "splitExpression",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "streamingStrategy": {
+          "attributeName": "streamingStrategy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "watermarkExpression": {
+          "attributeName": "watermarkExpression",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  },
+  "configurations": {
+    "listenerConfig": {
+      "attributeName": "",
+      "elementName": "listener-config",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": true,
+      "requiresConfig": false,
+      "attributes": {
+        "basePath": {
+          "attributeName": "basePath",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "listenerInterceptors": {
+          "attributeName": "listenerInterceptors",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "rejectInvalidTransferEncoding": {
+          "attributeName": "rejectInvalidTransferEncoding",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "requestConfig": {
+      "attributeName": "",
+      "elementName": "request-config",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": true,
+      "requiresConfig": false,
+      "attributes": {
+        "basePath": {
+          "attributeName": "basePath",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "defaultHeaders": {
+          "attributeName": "defaultHeaders",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "defaultQueryParams": {
+          "attributeName": "defaultQueryParams",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "enableCookies": {
+          "attributeName": "enableCookies",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "expirationPolicy": {
+          "attributeName": "expirationPolicy",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "followRedirects": {
+          "attributeName": "followRedirects",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "name": {
+          "attributeName": "name",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "preserveHeadersCase": {
+          "attributeName": "preserveHeadersCase",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "requestStreamingMode": {
+          "attributeName": "requestStreamingMode",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseTimeout": {
+          "attributeName": "responseTimeout",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseValidator": {
+          "attributeName": "responseValidator",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "sendBodyMode": {
+          "attributeName": "sendBodyMode",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "sendCorrelationId": {
+          "attributeName": "sendCorrelationId",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  },
+  "connectionProviders": {
+    "listener": {
+      "attributeName": "",
+      "elementName": "listener-connection",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "connectionIdleTimeout": {
+          "attributeName": "connectionIdleTimeout",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "host": {
+          "attributeName": "host",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "http1Support": {
+          "attributeName": "http1Support",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "http2Support": {
+          "attributeName": "http2Support",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "port": {
+          "attributeName": "port",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "protocol": {
+          "attributeName": "protocol",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "readTimeout": {
+          "attributeName": "readTimeout",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "reconnection": {
+          "attributeName": "reconnection",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "tlsContext": {
+          "attributeName": "tlsContext",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "usePersistentConnections": {
+          "attributeName": "usePersistentConnections",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    },
+    "request": {
+      "attributeName": "",
+      "elementName": "request-connection",
+      "prefix": "http",
+      "namespace": "http://www.mulesoft.org/schema/mule/http",
+      "isWrapped": false,
+      "supportsAttributeDeclaration": true,
+      "supportsChildDeclaration": true,
+      "supportsTopLevelDeclaration": false,
+      "requiresConfig": false,
+      "attributes": {
+        "authentication": {
+          "attributeName": "authentication",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "clientSocketProperties": {
+          "attributeName": "clientSocketProperties",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "connectionIdleTimeout": {
+          "attributeName": "connectionIdleTimeout",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "connectivityTest": {
+          "attributeName": "connectivityTest",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "host": {
+          "attributeName": "host",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "http1Support": {
+          "attributeName": "http1Support",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "http2Support": {
+          "attributeName": "http2Support",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "maxConnections": {
+          "attributeName": "maxConnections",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "port": {
+          "attributeName": "port",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "protocol": {
+          "attributeName": "protocol",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "proxyConfig": {
+          "attributeName": "proxyConfig",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "reconnection": {
+          "attributeName": "reconnection",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "responseBufferSize": {
+          "attributeName": "responseBufferSize",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "streamResponse": {
+          "attributeName": "streamResponse",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "tlsContext": {
+          "attributeName": "tlsContext",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        },
+        "usePersistentConnections": {
+          "attributeName": "usePersistentConnections",
+          "elementName": "",
+          "prefix": "http",
+          "namespace": "http://www.mulesoft.org/schema/mule/http",
+          "isWrapped": false,
+          "supportsAttributeDeclaration": true,
+          "supportsChildDeclaration": false,
+          "supportsTopLevelDeclaration": false,
+          "requiresConfig": false
+        }
+      }
+    }
+  }
+}

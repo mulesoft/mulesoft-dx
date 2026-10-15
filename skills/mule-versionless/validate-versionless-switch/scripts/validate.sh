@@ -35,8 +35,16 @@ OUT=""
 EXTRA_ARGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --out)     OUT="$2"; shift 2 ;;
-    --dsl-dir) DSL_DIR="$2"; shift 2 ;;
+    --out|--dsl-dir)
+      if [ "$#" -lt 2 ]; then
+        echo "ERROR: $1 requires a value" >&2
+        exit 2
+      fi
+      case "$1" in
+        --out)     OUT="$2" ;;
+        --dsl-dir) DSL_DIR="$2" ;;
+      esac
+      shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 2 ;;
   esac
 done

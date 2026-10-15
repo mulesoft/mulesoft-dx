@@ -79,7 +79,7 @@ Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 
 | Path | What | Why |
 | --- | --- | --- |
-| `lib/*.jar` | the validator runtime classpath (8 jars, ~123 MB) | the validator and its DataWeave parser cannot run without them; several are provided-scope in the LSP host and not on any public registry |
+| `lib/*.jar` | the validator runtime classpath (4 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
 | `classes/` | compiled `VersionlessValidatorCli` + the seven axis classes (overlay) | the thin headless entry point plus the current axis code, placed ahead of the fat jar so edited axes win |
 | `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth) |
 | `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input (see `docs/UPDATING.md`) |
@@ -91,6 +91,9 @@ this validator is the JVM LSP plugin's own code. The bundle is therefore pure JV
 the same `lib/` + `classes/` works on any OS with a JDK 17. The DataWeave axis
 invokes a Scala parser, so the Scala stdlib and the DW tooling-api jar (both
 excluded from the plugin's shaded jar as provided-scope) are bundled explicitly.
+The lib set is kept to the four jars a leave-one-out sweep proves load-bearing;
+gson/lsp4j/maven-model/slf4j are omitted because `mule-dx-platform-…-all.jar`
+already shades them (see `PROVENANCE.txt` / `docs/UPDATING.md`).
 
 ## Prerequisites
 
@@ -233,8 +236,10 @@ descriptors are older/newer than the runtime you are targeting. Refresh them fro
 the go-runtime connector descriptors (`docs/UPDATING.md`), or point `--dsl-dir` at a
 current staged-cache dir (`<name>/dsl.json`).
 
-**`SLF4J: Failed to load class … StaticLoggerBinder`:** harmless — no logging
-backend is bundled, so SLF4J uses a no-op logger. It does not affect the result.
+**`SLF4J: Failed to load class … StaticLoggerBinder`:** harmless if it appears — no
+logging backend is bundled, so SLF4J falls back to a no-op logger; the result is
+unaffected. (The current 4-jar bundle normally does *not* print this, since the only
+SLF4J on the classpath is the copy shaded into the platform jar.)
 
 ## Related Skills
 

@@ -59,11 +59,30 @@ pass `--dsl-dir <ACB-cache>/.cache/versionless` to `validate.sh`.
 ## 3. Refresh the classpath jars (`lib/`)
 
 Rarely needed — only when the plugin fat jar or a provided-scope dep is rebuilt.
-The proven minimal set is the 8 jars in `lib/`; see `PROVENANCE.txt` for what each
+The proven minimal set is the **4 jars** in `lib/`; see `PROVENANCE.txt` for what each
 supplies and where it came from. The two large fat jars
 (`mule-dx-mule-dev-plugin-all.jar`, `mule-dx-platform-5.10.1-all.jar`) come from the
-respective repos' `build/libs`; the rest are standard Maven artifacts resolvable by
-coordinate.
+respective repos' `build/libs`; `scala-library` and `tooling-api` are standard Maven
+artifacts resolvable by coordinate.
+
+**Coupling to watch when refreshing `mule-dx-platform-5.10.1-all.jar`:** that fat jar
+shades gson, lsp4j, maven-model, and slf4j, which is why those four standalone jars are
+*not* bundled. If you refresh platform and its shading changes, re-run the leave-one-out
+check below; if the result degrades or a `NoClassDefFoundError` appears for one of those
+(`com/google/gson/*`, `org/eclipse/lsp4j/*`, `org/apache/maven/model/*`, `org/slf4j/*`),
+re-add that standalone jar to `lib/`:
+
+```bash
+# resolve a standalone jar into lib/ by Maven coordinate, e.g. gson:
+mvn -q dependency:copy \
+  -Dartifact=com.google.code.gson:gson:2.10.1 \
+  -DoutputDirectory="$SKILL/lib"
+```
+
+Verify any `lib/` change with the leave-one-out sweep: drop each jar in turn, re-run against
+a multi-axis app (one with many DataWeave expressions and a TLS/config blocker, e.g. a classic
+`aaa-template`-shaped app), and confirm the finding set is byte-identical. A redundant jar
+changes nothing; a load-bearing one fails fast with `NoClassDefFoundError`.
 
 ## Verify after any change
 

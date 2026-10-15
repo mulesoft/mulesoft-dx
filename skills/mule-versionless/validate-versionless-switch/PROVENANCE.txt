@@ -1,24 +1,31 @@
 Provenance of the bundled validator assets. The jars carry no app version string,
 so this is not otherwise recoverable. How to refresh: docs/UPDATING.md
 
-=== Validator classpath (lib/) ===
+=== Validator classpath (lib/) — 4 jars, the proven-minimal set ===
 mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build-changes,
                                   shaded jar built 2026-08-19 (3.32.0-SNAPSHOT-all).
                                   Supplies: lemminx, commons-text, the Scala-namespaced
                                   weave classes, the baseline dataweave+flow axes, and the
                                   rds/dwx-capabilities.json capability manifest resource.
-mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider, and (being
-                                  itself shaded) gson/lsp4j/maven-model. Provided scope.
+mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider,
+                                  EmbeddedContentExtractor (the DataWeave axis's ctor needs it),
+                                  AND, being itself shaded, gson + lsp4j + maven-model + slf4j.
+                                  Provided scope.
 tooling-api-2.14.0-SNAPSHOT.jar   org.mule.weave.v2.api.tooling.location.ResourceIdentifier —
                                   the DataWeave axis's Scala parser needs it; the plugin's
                                   shadowJar excludes it ("bundled by DW Plugin").
 scala-library-2.12.20.jar         scala.Product etc. — Scala stdlib, excluded from the fat jar.
-gson-2.10.1.jar                   report serialization + manifest parse (also inside platform
-                                  jar; pinned here so the cp is self-sufficient).
-org.eclipse.lsp4j-0.12.0.jar      Position / lsp4j types the axes use for findings.
-maven-model-3.9.16.jar            pom model types referenced on the project-shape path.
-slf4j-api-1.7.36.jar              logging facade (no backend bundled → no-op logger; harmless
-                                  "StaticLoggerBinder" warning at startup).
+
+Trimmed (2026-10-15): gson, org.eclipse.lsp4j, maven-model, slf4j-api were REMOVED. A
+leave-one-out sweep against a 4-axis app (90 DW expressions) proved each one redundant —
+mule-dx-platform-5.10.1-all.jar shades all four (verified: com/google/gson/Gson,
+org/eclipse/lsp4j/Position, org/apache/maven/model/Model, org/slf4j/Logger are inside it),
+so the result is byte-identical without them. CAVEAT (see docs/UPDATING.md): this couples
+the bundle to platform's shading. If a future mule-dx-platform build stops shading any of
+these, re-add that standalone jar. Dropping slf4j-api also removed the harmless startup
+"StaticLoggerBinder" warning. Load-bearing jars, by contrast, fail fast if removed:
+NoClassDefFoundError for EmbeddedContentExtractor (platform), scala/Product (scala-library),
+or ResourceIdentifier (tooling-api).
 
 === Overlay classes (classes/) ===
 Compiled with JDK 17 from mule-dx-mule-dev-component @ chore/maven-build-changes

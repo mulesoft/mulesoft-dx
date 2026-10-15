@@ -22,7 +22,6 @@ set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB="${SKILL_DIR}/lib"
-CLASSES="${SKILL_DIR}/classes"
 DSL_DIR="${SKILL_DIR}/dsl"
 
 if [ "$#" -eq 0 ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
@@ -91,13 +90,13 @@ if [ -z "${JAVA_BIN}" ]; then
   exit 1
 fi
 
-if [ ! -f "${CLASSES}/VersionlessValidatorCli.class" ]; then
-  echo "ERROR: bundled validator classes missing at ${CLASSES} — skill is incomplete." >&2
+if [ ! -f "${LIB}/versionless-validator-cli.jar" ]; then
+  echo "ERROR: bundled CLI jar missing at ${LIB}/versionless-validator-cli.jar — skill is incomplete." >&2
   exit 1
 fi
 
-# Overlay classes FIRST so the edited axes win over the baseline axes in the fat jar.
-CP="${CLASSES}:${LIB}/*"
+# Literal lib/* — the JVM expands the classpath wildcard, so it must NOT be shell-globbed.
+CP="${LIB}/*"
 
 CMD=("${JAVA_BIN}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
 if [ -n "${OUT}" ]; then

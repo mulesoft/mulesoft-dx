@@ -79,21 +79,22 @@ Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 
 | Path | What | Why |
 | --- | --- | --- |
-| `lib/*.jar` | the validator runtime classpath (4 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
-| `classes/` | compiled `VersionlessValidatorCli` + the seven axis classes (overlay) | the thin headless entry point plus the current axis code, placed ahead of the fat jar so edited axes win |
+| `lib/*.jar` | the validator runtime classpath (5 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. The plugin jar shades all seven switch axes; the CLI jar is the headless entry point. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
 | `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth) |
-| `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input (see `docs/UPDATING.md`) |
+| `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input for `versionless-validator-cli.jar` (see `docs/UPDATING.md`) |
 
 ### Why bundle jars instead of a native binary
 
 Unlike the sibling **build-run-versionless-app** skill (per-OS/arch Rust binaries),
 this validator is the JVM LSP plugin's own code. The bundle is therefore pure JVM —
-the same `lib/` + `classes/` works on any OS with a JDK 17. The DataWeave axis
-invokes a Scala parser, so the Scala stdlib and the DW tooling-api jar (both
-excluded from the plugin's shaded jar as provided-scope) are bundled explicitly.
-The lib set is kept to the four jars a leave-one-out sweep proves load-bearing;
-gson/lsp4j/maven-model/slf4j are omitted because `mule-dx-platform-…-all.jar`
-already shades them (see `PROVENANCE.txt` / `docs/UPDATING.md`).
+the same `lib/` works on any OS with a JDK 17. The plugin jar shades all seven switch
+axes directly (there is no loose-class overlay), and the headless CLI ships as its own
+small jar built from the bundled `src/`. The DataWeave axis invokes a Scala parser, so
+the Scala stdlib and the DW tooling-api jar (both excluded from the plugin's shaded jar
+as provided-scope) are bundled explicitly. The lib set is kept to the five jars a
+leave-one-out sweep proves load-bearing; gson/lsp4j/maven-model/slf4j are omitted
+because `mule-dx-platform-…-all.jar` already shades them (see `PROVENANCE.txt` /
+`docs/UPDATING.md`).
 
 ## Prerequisites
 
@@ -110,8 +111,8 @@ directly via LemMinX, it does not invoke Maven.
 
 Invoke it by the **absolute path** given in the "skill is now active" message — do
 not construct relative `../scripts/...` paths (the working directory shifts between
-turns). The script locates the bundled `lib/`, `classes/`, and `dsl/` relative to
-its own location, so it works from any CWD.
+turns). The script locates the bundled `lib/` and `dsl/` relative to its own
+location, so it works from any CWD.
 
 | Script | Purpose |
 | --- | --- |
@@ -238,8 +239,9 @@ current staged-cache dir (`<name>/dsl.json`).
 
 **`SLF4J: Failed to load class … StaticLoggerBinder`:** harmless if it appears — no
 logging backend is bundled, so SLF4J falls back to a no-op logger; the result is
-unaffected. (The current 4-jar bundle normally does *not* print this, since the only
-SLF4J on the classpath is the copy shaded into the platform jar.)
+unaffected. The current 5-jar bundle does *not* print this (the only SLF4J on the
+classpath is the copy shaded into the platform jar); earlier bundles that carried a
+standalone `slf4j-api` jar could.
 
 ## Related Skills
 

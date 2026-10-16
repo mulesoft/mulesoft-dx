@@ -1,6 +1,6 @@
 ---
 name: build-agent-broker-project
-description: "Build, edit, validate, publish, and deploy a MuleSoft Agent Broker (Agent Network V2) project end-to-end. Use whenever the user asks to build, create, scaffold, configure, edit, validate, publish, or deploy an Agent Broker, agent network V2, AgentScript, `.agent` file, or `agentNetwork: 2.0.0` project. Do NOT trigger for V1→V2 migration (use the converter skill)."
+description: "Build, edit, validate, publish, deploy, and troubleshoot a MuleSoft Agent Broker (Agent Network V2) project end-to-end. Use whenever the user asks to build, create, scaffold, configure, edit, validate, publish, deploy, or debug (CLI error codes, deploy/runtime failures) an Agent Broker, agent network V2, AgentScript, `.agent` file, or `agentNetwork: 2.0.0` project. Do NOT trigger for V1→V2 migration (use the converter skill)."
 license: Apache-2.0
 metadata:
   author: mulesoft-agent-broker-team
@@ -74,7 +74,8 @@ If the YAML has `schemaVersion: 1.0.0`, this is V1 — stop and route to the con
 ## References (read on demand)
 
 - **`references/canonical-example.md`** — A complete, working Agent Network V2 (GA, A2A v1.0) project. The structural template — when in doubt, copy it.
-- **`references/gotchas.md`** — GA syntax rules, compile-error rules, RULE-ASSET-MODE (inline vs Exchange), subagent-vs-orchestrator decision, auth casing, CLI + MCP tooling integration, graceful degradation.
+- **`references/gotchas.md`** — GA syntax rules, compile-error rules, RULE-ASSET-MODE (inline vs Exchange), subagent-vs-orchestrator decision, auth casing, CLI + MCP tooling integration, publish versioning, deploy targets/gateways, broker resources, conversational memory, graceful degradation.
+- **`references/troubleshooting.md`** — Runtime symptoms → fixes, broker logging + message-logging policy, the full CLI error-code catalog, and dependent-service (Exchange / API Manager / AMC / Gateway Manager / Access Management) failures.
 
 The MuleSoft Agent Network GA docs (Anypoint Code Builder section) are the authoritative reference. The references above cover the gotchas and worked example.
 
@@ -131,7 +132,7 @@ The 6 phases below structure the build experience. Each phase ends with a stop p
 4. **Collect scaffold inputs** (ask before invoking CLI):
    - **Project name** (kebab-case, e.g. `it-help-investigation`) — also becomes the default `assetId`.
    - **Output directory** (default: current working dir).
-   - **Asset version** (default `0.0.0` while in development; user can bump on first publish).
+   - **Version group** (`--api-version`, default `v1`). This is the Exchange version group: Exchange auto-increments the semantic version on publish, and renaming the group bumps the major version. Don't ask the user for a semver per publish.
 5. **Scaffold via CLI.** Run the create command from the parent directory:
    ```
    anypoint-cli-agent-fabric-plugin agent-network project create \
@@ -139,9 +140,9 @@ The 6 phases below structure the build experience. Each phase ends with a stop p
      --output-dir <parent-dir> \
      --create-dir
    ```
-   This produces `<project-name>/agent-network.yaml` + `exchange.json` + `brokers/` with the correct `groupId`/`organizationId` (pulled from `ANYPOINT_ORG`) and starter template. Skill then edits the generated files in place.
+   This produces `<project-name>/agent-network.yaml` + `exchange.json` + `brokers/` with `groupId` set from your authenticated org (or `--group-id`) and a starter template. Use `--empty-project` for a bare `agent-network.yaml` + `exchange.json` with no `brokers/` example content. Skill then edits the generated files in place.
    - If CLI is unavailable AND `mcp__mulesoft__create_agent_network_project` is present, call the MCP tool with the same inputs.
-   - If neither is available, fall back to writing the canonical scaffold structure directly (`agent-network.yaml` with `agentNetwork: 2.0.0`, `exchange.json` with `"classifier": "agentic-network"`, empty `brokers/`) and tell the user the `groupId`/`organizationId` placeholder needs to be filled in before publish.
+   - If neither is available, fall back to writing the canonical scaffold structure directly (`agent-network.yaml` with `agentNetwork: 2.0.0`, `exchange.json` with `"classifier": "agentic-network"`, empty `brokers/`) and tell the user the `groupId` placeholder needs to be filled in before publish.
 6. **Capture network `info`** for `agent-network.yaml`: ask for `info.label` (required) and `info.description` (optional). Default `info.version` to `1.0.0` unless user provides one. Apply to the scaffold immediately.
 
 ## Step 2: Functional Requirements (Phase 1)
@@ -186,7 +187,7 @@ Per-type schema notes:
 
 - **LLM** — Inline: `info.label`, `metadata.platform: Gemini | OpenAI | AzureOpenai`. Connection: `kind: llm` + `url` + `authentication`.
 - **MCP** — Inline: `info.label`, `metadata.transport.kind` (`streamableHttp` | `sse` | `stdio`). After registering, ask the user **what `tool_name`** to call (required for the action). Ask if they know the input parameters. If yes, declare in action `inputs:`. If no, omit `inputs:` — runtime auto-discovers. **Never fabricate tool names or input schemas.**
-- **A2A** — Inline: `info.label` + interfaces branch. Use `a2a` for current A2A v1.0 agents, `a2a_v03` for legacy A2A v0.3 (Agent Broker stays backward-compatible). Card under `metadata.interfaces.<branch>.card` includes `name`, `description`, `url`, `protocolVersion`, `version`, `capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`. See `references/gotchas.md` § "Registry agents" for the per-branch shape.
+- **A2A** — Inline: `info.label` + interfaces branch. Use `a2a` for current A2A v1.0 agents, `a2a_v03` for legacy A2A v0.3 (Agent Broker stays backward-compatible). Card under `metadata.interfaces.<branch>.card` includes `name`, `description`, `version`, `capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`. On the **`a2a_v03`** branch the card also carries top-level `url` and `protocolVersion`. On the **`a2a`** (v1.0) branch those are **not allowed at top level** (the schema rejects them) and go in `supportedInterfaces` — an array of `{url, protocolBinding (JSONRPC | GRPC | HTTP+JSON), protocolVersion, tenant}` objects. When the user asks to support both HTTP+JSON and JSONRPC, write **exactly two objects** (one per binding) — don't iterate. `protocolVersion` is a quoted string and **must match the agent's real runtime version** (a mismatch surfaces as a runtime `401`, not a version error). See `references/gotchas.md` § "Registry agents" (`supportedInterfaces` subsection) for the exact shape.
 
 ## Step 4: Technical Graph Definition (Phase 3 — Agent Script)
 
@@ -196,7 +197,7 @@ Per-type schema notes:
 
 Write the first version of the graph:
 
-1. **Configuration.** Pick `agent_name` from the user's requirements (kebab-case; also the `.agent` filename stem and broker id, e.g. `it-help-investigation`).
+1. **Configuration.** Pick `agent_name` from the user's requirements (kebab-case, e.g. `it-help-investigation`; also the `.agent` filename stem). The **broker ID** (`brokers.<id>` key, used in `brokers://<broker-id>/a2a`) is the lowercase snake_case form, e.g. `it_help_investigation`.
 2. **Trigger (entrypoint).** Each broker has exactly one trigger per declared interface. `kind: "a2a"`, `target: "brokers://<broker-id>/a2a"`, `on_message:` is a fixed `transition to`. Conditionals in the trigger are a compile error — use a router downstream.
 3. **LLM-powered nodes** (pick the right type per stage):
    - **Reasoning node** (`subagent` keyword) — LLM-with-tools. Default LLM-powered type. Has built-in HITL.
@@ -220,8 +221,8 @@ Update the `brokers` entry in `agent-network.yaml` to reference the new `.agent`
 
 - **Specialize each LLM-powered node in one domain.** Lump similar assets into the same node rather than spreading them.
 - **Reasoning vs. Orchestrator** — pick by what's connected:
-  - **Only MCP assets** on the node → **Reasoning node** (`subagent`).
-  - **Any A2A assets** on the node → **Orchestrator node** (`orchestrator`).
+  - **Single task / one action** (any protocol) → **Reasoning node** (`subagent`).
+  - **Two or more actions whose sequencing needs judgment toward one goal** → **Orchestrator node** (`orchestrator`). Docs: *"If the node coordinates multiple agents or tools toward a shared goal, use `orchestrator`. If it reasons about a single task (even if it uses one action), use `subagent`."*
 - **≤ 4 total assets per LLM-powered node** (A2A + MCP combined). More than that → hallucinations. Split the node.
 - **Principle of Least Privilege.** One node gets read-only tools; another gets write-access tools. Never combine.
 - **Irreversible mutations (escalate, delete, send-to-customer, etc.) MUST be in `executor` nodes gated by `router`.** Never put them on a reasoning/orchestrator node — the LLM could invoke them bypassing the router. Idempotent updates (status updates, ticket updates) MAY live on an orchestrator if part of the compound goal.
@@ -290,7 +291,7 @@ When clean: *"Project is validated and ready. Want to publish to Exchange and de
 
 ## Step 8: Publish (optional)
 
-Only if user wants to. Prereqs: authenticated CLI/MCP context; `exchange.json` has `assetVersion` and no empty `default: ""` for `secret: true` variables.
+Only if user wants to. Prereqs: authenticated CLI/MCP context; valid `exchange.json`. Exchange auto-increments the version within the `apiVersion` version group. Asset names (YAML keys) must be unique across the org (error 2006). Secret variables keep `"default": ""` and get real values at deploy via `--property`.
 
 Run the publish command (CLI preferred → MCP fallback → doc link). Surface published asset URLs from the output. Full command syntax is in `references/gotchas.md` § "Step 8 — Publish".
 
@@ -298,11 +299,19 @@ Run the publish command (CLI preferred → MCP fallback → doc link). Surface p
 
 Only if user wants to. Publish must have happened first.
 
-Ask the user: `environmentName`, `targetSpace` (private space), and any deployment properties for env-specific secrets (e.g., `--property openai.apiKey:STAGING_API_KEY`).
+Ask the user: `environmentName`; the target (CloudHub 2.0 **shared space**, **private space**, or **Runtime Fabric**; US/EU cloud only); the gateway (single gateway recommended); and any env-specific secrets (e.g., `--property openai.apiKey:$OPENAI_API_KEY`).
 
-**One-time setup per private space:** if the target space has no gateways yet, run the gateway setup command first.
+**One-time gateway setup per target:** every target, including the shared space, needs a Managed Omni Gateway. If none exists, run `agent-network setup gateways` first. For RTF, register an external ingress domain on the gateway first. Redeploying to a *different* target or gateway fails; delete the Runtime Manager app first.
 
 Run the deploy command (CLI preferred → MCP fallback → doc link). Surface deployment URL/ID. Full command syntax, gateway defaults, and CI flags are in `references/gotchas.md` § "Step 9 — Deploy".
+
+## Step 10: Undeploy (optional, reversible)
+
+Only on explicit request. Removes deployed runtime resources; leaves Exchange assets intact (you can redeploy). Requires `--environment`; resources are discovered from the project lock file (`--path`, default current dir) or remotely with `--gav`. Prefer `--dry-run` first. Run the undeploy command (CLI preferred → MCP fallback → doc link); surface what was removed. Full syntax in `references/gotchas.md` § "Step 10 — Undeploy". (ACB: *MuleSoft: Undeploy Agent Network*.)
+
+## Step 11: Unpublish (optional; destructive)
+
+Only on explicit request. Removes Exchange assets. **Undeploy first** (Step 10) to avoid orphaned runtime references. Default is a soft-delete (GAV stays reserved, not restorable; 7-day → next patch on republish); `--hard-delete` frees the GAV irreversibly and needs dependents removed first. **Prefer `--dry-run`, and confirm with the user before any non-dry-run — especially `--hard-delete`.** Run the unpublish command (CLI preferred → MCP fallback → doc link). Full syntax in `references/gotchas.md` § "Step 11 — Unpublish". (ACB: *MuleSoft: Unpublish Agent Network*.)
 
 ---
 
@@ -342,10 +351,17 @@ Edit `.agent` only. Apply Phase 5 contradiction tests. If user pastes a policy d
 
 ### B.4 — Add or change a connection policy
 
-Edit `agent-network.yaml`. The GA schema supports policies even though the build flow doesn't surface them.
+Edit the **source `agent-network.yaml`** — NEVER `target/`. The GA schema supports policies even though the build flow doesn't surface them. (A request like *"add a client-id enforcement policy to my broker"* is this workflow: edit the source YAML, not any `agent-network.yaml` that appears under `target/`. `target/` is Maven build output and is overwritten on the next build — editing it changes nothing. See `gotchas.md` § "Project file layout".)
 
 A policy has **two parts**:
 1. **Definition** — `context.policies.<policyId>`.
 2. **Binding** — referenced from `context.connections.<connId>.policies.outbound` or `brokers.<brokerId>.interfaces.a2a.policies.{inbound,outbound}`. Always reference by id.
 
 For Exchange-published policies: add to `exchange.json.dependencies` first, then bind. Run Step 7.
+
+### B.5 — Troubleshoot a failing build, publish, deploy, or runtime
+
+1. If the CLI printed an `errorCode`, look it up in `references/troubleshooting.md` § "CLI error catalog". For 1020–1024, match the **message**: these codes collide between broker-interface and MCP-introspection errors.
+2. With no code, match the symptom in § "Runtime symptoms". Common ones: CrashLoopBackOff/Exit 139, 404 agent card, 401 on a downstream call, *"issue accessing reasoning engine"*, the LLM not delegating, memory not engaging.
+3. Probe upstream connections before touching the graph. When you need visibility, enable `INFO` logging, `INSECURE-LOGGING` at `DEBUG` (PII; turn it off afterward), or the message-logging policy on the suspect connection.
+4. Fix the **source** files, then run a full build → publish → deploy. Deploy uses the last compiled `target/`.

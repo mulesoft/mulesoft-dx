@@ -4,6 +4,53 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.4] - Unreleased
+
+Refreshes the Agent Broker skills against the Agent Network 2.0 docs (`mulesoft/docs-code-builder`, branch `latest`) and Anypoint CLI Agent Fabric plugin **v1.4.0**.
+
+### Added
+
+- **`build-agent-broker-project`** — New `references/troubleshooting.md`, built from `af-troubleshoot-agent-networks` and `af-troubleshoot-errors`:
+  - runtime symptom → fix table (CrashLoopBackOff/Exit 139, Last-Mile Security, 404 agent card, 401 from a protocol-version mismatch, reasoning-engine errors, LLM not delegating, runtime limits, missing traces);
+  - broker logging (`INFO`, `INSECURE-LOGGING` at `DEBUG`) and the message-logging policy;
+  - the full CLI error-code catalog, with the 1020–1024 collision note;
+  - dependent-service failures (Exchange, API Manager, AMC, Gateway Manager, Access Management) and the retry/timeout engine.
+- **`build-agent-broker-project`** — Workflow B.5 (troubleshoot).
+- **`build-agent-broker-project`** — Conversational memory section: `contextId` reuse, the A2A v1.0 wire contract (`A2A-Version: 1.0`, `SendMessage`, `ROLE_USER`), Client ID Enforcement ordered before User Context Propagation, and the `OBJECT_STORE_DEFAULT_TTL_MS` retention setting.
+- **`build-agent-broker-project`** — Broker CPU/memory resources section (`--deployment-properties-file` / `--deployment-property`).
+- **`build-agent-broker-project`** — Documented the `undeploy` and `unpublish` lifecycle steps (public since plugin v1.3.0), `supportedInterfaces` guidance, and the never-edit-`target/` guardrail. These were carried over from the unmerged 1.8.5 entry of this PR.
+
+### Changed
+
+- **`build-agent-broker-project`** — A2A v1.0 registry cards: `url` and `protocolVersion` go in `supportedInterfaces[]`, because the schema rejects them at the top level. The Case C placeholder was fixed to match.
+- **`build-agent-broker-project`** — Publish: `apiVersion` is the Exchange version group. Exchange auto-increments the version, and renaming the group bumps major. Asset names must be unique org-wide. `secret: true` variables may keep `"default": ""`.
+- **`build-agent-broker-project`** — Deploy:
+  - targets are the shared space, private space, and RTF;
+  - default gateway names, including `agent-network-shared-gw`;
+  - `setup gateways --update`;
+  - the full v1.4.0 deploy flag set;
+  - no switching targets or gateways;
+  - auto-applied policies;
+  - Last-Mile Security;
+  - the RTF ingress-domain requirement.
+- **`build-agent-broker-project`** — Scaffold: `--empty-project`, `--group-id`, `project broker create`. The IT example's `exchange.json` omits `organizationId` and templates `groupId`, while the YAML reference's samples include it, so both forms are documented.
+- **`build-agent-broker-project`** — The canonical example is replaced verbatim with the docs' *IT Investigation Broker* (OAuth2 client-credentials, API key, OBO auth, `http_headers` forwarding).
+- **`build-agent-broker-project`** — Broker IDs are lowercase snake_case, per the docs.
+- **`build-agent-broker-project`** — Subagent vs orchestrator is chosen by coordination scope, per the docs' TIP.
+- **`build-agent-broker-project`** — Other rule updates:
+  - MCP action inputs are non-exhaustive;
+  - slot-fill is valid only in `reasoning.actions`;
+  - `http_headers` is implicit on MCP and A2A actions;
+  - both `outputs` placements are valid for subagent/orchestrator;
+  - `max_consecutive_errors`;
+  - LLM provider and endpoint table, plus LLM Proxy;
+  - CLI auth options.
+- **`translate-agent-broker-old-to-new-project`** — Never-edit-`target/` guardrail (carried over from 1.8.5).
+- **`translate-agent-broker-old-to-new-project`** — Broker IDs must be lowercase snake_case (YAML reference). Connection IDs follow the schema pattern `^[a-zA-Z][a-zA-Z0-9_.-]*[a-zA-Z0-9]$`. This replaces the earlier "any valid YAML identifier" wording.
+- **`translate-agent-broker-old-to-new-project`** — Converted `exchange.json` adds `apiVersion` (the Exchange version group). Secret variables get `"default": ""` instead of carrying a V1 placeholder, and `groupId`/`organizationId` carry over. Variables only V1 used are dropped.
+- **`translate-agent-broker-old-to-new-project`** — V1 LLM `spec.configuration` keys such as `timeout` are dropped, because the V2 LLM connection schema rejects extra keys. The V1 model is preserved exactly; the example now uses `gemini-3-flash-preview`, as in V1.
+- **`translate-agent-broker-old-to-new-project`** — Registry `metadata.tools` and `metadata.models` are optional and omitted by default, as in the docs example. The step that added a speculative sibling model is gone.
+
 ## [1.9.3] - Unreleased
 
 ### Added

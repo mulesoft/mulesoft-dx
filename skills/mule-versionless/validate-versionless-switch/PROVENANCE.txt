@@ -53,3 +53,29 @@ plugin rebuild), the recipe is in docs/UPDATING.md, but the shaded jar is the pr
 http, salesforce, twilio, mule-core dsl.json — byte-identical copies of
 go-runtime @ f7fb6dd0 connectors/<name>/descriptor/dsl.json (the runtime's own
 ground truth). The flow axis reads only name + dslJson, so model/xsd are null.
+
+NOTE: the on-disk mule-core/dsl.json is the go-runtime copy and lists constructs the
+*versionless* Rust runtime builder does not implement (async, try, scatter-gather,
+parallel-foreach, round-robin, first-successful, until-successful) plus the raise-error
+operation. The CLI prunes exactly those eight core-namespace entries from the mule-core
+bundle at load (VersionlessValidatorCli.pruneUnsupportedCoreElements), so the flow axis
+reports them as flow.element.unsupported. The deny-list is (mule-core descriptor elements
+reachable in a flow) minus (register_core/register_ee/register_apikit in mule-versionless
+runtime/builder/src/builders.rs). `scheduler` is excluded (a source, generic source path);
+`route`/`source` excluded (internal childs markers, never user-authored). Keep the on-disk
+file a verbatim go-runtime copy — the prune lives in code, so a `cp` refresh stays safe.
+
+=== DataWeave capability manifest override (rds-override/) ===
+rds-override/rds/dwx-capabilities.json — the ground-truth DataWeave capability manifest,
+copied verbatim from rust-runtime services/design-service/assets/dwx-capabilities.json
+(the versionless runtime's own manifest; writers.supported=20, writers.unsupported=18,
+application/java correctly in writers.unsupported). It overrides the STALE copy baked into
+mule-dx-mule-dev-plugin-all.jar, which wrongly lists application/java as a *supported*
+writer and so misses the `output application/java` BLOCKs the ACB wizard shows.
+
+The StubRemoteDesignServiceClient loads it by classloader resource name
+"rds/dwx-capabilities.json" (first-match-wins), so scripts/validate.sh prepends this dir to
+the classpath (CP="${SKILL_DIR}/rds-override:${LIB}/*") and it wins over the plugin jar.
+This is a loose-override to avoid a 91MB plugin rebuild; the right long-term fix is to
+refresh the manifest baked into the plugin jar and drop this dir. The manifest has no
+version field, so ValidationResult.manifestVersion is null (ground truth, not a defect).

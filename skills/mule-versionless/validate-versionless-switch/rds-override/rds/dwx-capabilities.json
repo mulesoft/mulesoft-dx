@@ -1,0 +1,540 @@
+{
+  "natives": [
+    {
+      "name": "++",
+      "systemSym": "system::LocalDateAppendLocalTimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::LocalDateAppendTimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::LocalDateAppendTimeZoneFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::LocalDateTimeAppendTimeZoneFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::LocalTimeAppendLocalDateFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::LocalTimeAppendTimeZoneFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::TimeAppendLocalDateFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::TimeZoneAppendLocalDateFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::TimeZoneAppendLocalDateTimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "++",
+      "systemSym": "system::TimeZoneValueAppendLocalTimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "--",
+      "systemSym": "system::ArrayRemoveFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "--",
+      "systemSym": "system::ObjectRemoveFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "arrayItem",
+      "systemSym": "system::ArrayItemTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfDay",
+      "systemSym": "system::AtBeginningOfDay",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfMonth",
+      "systemSym": "system::AtBeginningOfMonth",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfWeek",
+      "systemSym": "system::AtBeginningOfWeek",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfYear",
+      "systemSym": "system::AtBeginningOfYear",
+      "supported": false
+    },
+    {
+      "name": "baseTypeOf",
+      "systemSym": "system::BaseTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "dataFormatsDescriptor",
+      "systemSym": "system::DataFormatDescriptorsFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalAdd",
+      "systemSym": "system::BigDecimalAdditionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalDivide",
+      "systemSym": "system::BigDecimalDivisionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalMultiply",
+      "systemSym": "system::BigDecimalMultiplicationFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalPow",
+      "systemSym": "system::BigDecimalPowerFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalRound",
+      "systemSym": "system::BigDecimalRoundFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalSqrt",
+      "systemSym": "system::BigDecimalSqrtFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalSubtract",
+      "systemSym": "system::BigDecimalSubtractionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decodeURI",
+      "systemSym": "system::StringUrlDecodeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decodeURIComponent",
+      "systemSym": "system::StringUrlDecodeComponentFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "encodeURI",
+      "systemSym": "system::StringUrlEncodeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "encodeURIComponent",
+      "systemSym": "system::StringUrlEncodeComponentFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "envVars",
+      "systemSym": "system::env",
+      "supported": false
+    },
+    {
+      "name": "eval",
+      "systemSym": "system::EvalScriptFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "findDataFormatDescriptorByMime",
+      "systemSym": "system::FindDataFormatDescriptorByMimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "fromString",
+      "systemSym": "system::FromMimeTypeString",
+      "supported": false
+    },
+    {
+      "name": "functionParamTypes",
+      "systemSym": "system::FunctionParamTypesFunction",
+      "supported": false
+    },
+    {
+      "name": "functionReturnType",
+      "systemSym": "system::FunctionReturnTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "intersectionItems",
+      "systemSym": "system::IntersectionTypeItemsFunction",
+      "supported": false
+    },
+    {
+      "name": "isArrayType",
+      "systemSym": "system::IsArrayTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isFunctionType",
+      "systemSym": "system::IsFunctionTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isHandledBy",
+      "systemSym": "system::IsHandledBy",
+      "supported": false
+    },
+    {
+      "name": "isIntersectionType",
+      "systemSym": "system::IsIntersectionTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isLiteralType",
+      "systemSym": "system::IsLiteralTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isObjectType",
+      "systemSym": "system::IsObjectTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isReferenceType",
+      "systemSym": "system::IsReferenceTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "isUnionType",
+      "systemSym": "system::IsUnionTypeFunction",
+      "supported": false
+    },
+    {
+      "name": "literalValueOf",
+      "systemSym": "system::LiteralTypeValueFunction",
+      "supported": false
+    },
+    {
+      "name": "location",
+      "systemSym": "system::location",
+      "supported": false
+    },
+    {
+      "name": "metadataOf",
+      "systemSym": "system::MetadataOfFunction",
+      "supported": false
+    },
+    {
+      "name": "nameOf",
+      "systemSym": "system::NameOfFunction",
+      "supported": false
+    },
+    {
+      "name": "now",
+      "systemSym": "system::now",
+      "supported": false
+    },
+    {
+      "name": "objectFields",
+      "systemSym": "system::ObjectTypeFieldsFunction",
+      "supported": false
+    },
+    {
+      "name": "orderBy",
+      "systemSym": "system::ArrayOrderByFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "orderBy",
+      "systemSym": "system::ObjectOrderByFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "parseURI",
+      "systemSym": "system::StringParseUrlFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "props",
+      "systemSym": "system::props",
+      "supported": false
+    },
+    {
+      "name": "random",
+      "systemSym": "system::random",
+      "supported": false
+    },
+    {
+      "name": "read",
+      "systemSym": "system::read",
+      "supported": false
+    },
+    {
+      "name": "readLinesWith",
+      "systemSym": "system::ReadLinesFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "readUrl",
+      "systemSym": "system::readUrl",
+      "supported": false
+    },
+    {
+      "name": "run",
+      "systemSym": "system::RunScriptFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "toString",
+      "systemSym": "system::ToMimeTypeString",
+      "supported": false
+    },
+    {
+      "name": "unionItems",
+      "systemSym": "system::UnionTypeItemsFunction",
+      "supported": false
+    },
+    {
+      "name": "uuid",
+      "systemSym": "system::uuid",
+      "supported": false
+    },
+    {
+      "name": "version",
+      "systemSym": "system::version",
+      "supported": false
+    }
+  ],
+  "modules": {
+    "supported": [
+      "dw::Crypto",
+      "dw::core::Arrays",
+      "dw::core::Numbers",
+      "dw::core::Objects",
+      "dw::core::Periods",
+      "dw::core::Strings",
+      "dw::util::Coercions",
+      "dw::util::Diff",
+      "dw::util::Tree",
+      "dw::util::Values",
+      "dw::xml::Dtd"
+    ],
+    "unsupported": [
+      "dw",
+      "dw::Runtime",
+      "dw::System",
+      "dw::core::Binaries",
+      "dw::core::Dates",
+      "dw::core::Types",
+      "dw::core::URL",
+      "dw::extension::DataFormat",
+      "dw::meta::Component",
+      "dw::module::Mime",
+      "dw::module::Multipart",
+      "dw::util::Math",
+      "dw::util::Timer"
+    ]
+  },
+  "readers": {
+    "supported": [
+      "application/csv",
+      "application/dw",
+      "application/json",
+      "application/octet-stream",
+      "application/x-binary",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "binary",
+      "csv",
+      "dw",
+      "json",
+      "multipart",
+      "multipart/form-data",
+      "properties",
+      "text",
+      "text/plain",
+      "text/x-java-properties",
+      "text/xml",
+      "urlencoded",
+      "xml"
+    ],
+    "unsupported": [
+      "application/avro",
+      "application/dwb",
+      "application/flatfile",
+      "application/java",
+      "application/protobuf",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/x-protobuf",
+      "application/x-yaml",
+      "application/xlsx",
+      "application/yaml",
+      "avro",
+      "dwb",
+      "excel",
+      "flatfile",
+      "java",
+      "protobuf",
+      "text/yaml",
+      "yaml"
+    ]
+  },
+  "writers": {
+    "supported": [
+      "application/csv",
+      "application/dw",
+      "application/json",
+      "application/octet-stream",
+      "application/x-binary",
+      "application/x-www-form-urlencoded",
+      "application/xml",
+      "binary",
+      "csv",
+      "dw",
+      "json",
+      "multipart",
+      "multipart/form-data",
+      "properties",
+      "text",
+      "text/plain",
+      "text/x-java-properties",
+      "text/xml",
+      "urlencoded",
+      "xml"
+    ],
+    "unsupported": [
+      "application/avro",
+      "application/dwb",
+      "application/flatfile",
+      "application/java",
+      "application/protobuf",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/x-protobuf",
+      "application/x-yaml",
+      "application/xlsx",
+      "application/yaml",
+      "avro",
+      "dwb",
+      "excel",
+      "flatfile",
+      "java",
+      "protobuf",
+      "text/yaml",
+      "yaml"
+    ]
+  },
+  "unsupportedFunctions": [
+    "compose",
+    "currentMilliseconds",
+    "envVar",
+    "evalUrl",
+    "generateBoundary",
+    "isAnyType",
+    "isBinaryType",
+    "isBooleanType",
+    "isDateTimeType",
+    "isDateType",
+    "isKeyType",
+    "isLocalDateTimeType",
+    "isLocalTimeType",
+    "isNamespaceType",
+    "isNothingType",
+    "isNullType",
+    "isNumberType",
+    "isPeriodType",
+    "isRangeType",
+    "isRegexType",
+    "isStringType",
+    "isTimeType",
+    "isTimeZoneType",
+    "isTypeType",
+    "isUriType",
+    "log",
+    "logDebug",
+    "logError",
+    "logInfo",
+    "logWarn",
+    "logWith",
+    "prop",
+    "randomInt",
+    "runUrl",
+    "today",
+    "tomorrow",
+    "yesterday"
+  ],
+  "argumentConstraints": [
+    {
+      "function": "hashWith",
+      "values": {
+        "supported": [
+          "MD5",
+          "SHA-1",
+          "SHA-224",
+          "SHA-256",
+          "SHA-384",
+          "SHA-512",
+          "SHA1",
+          "SHA224",
+          "SHA256",
+          "SHA384",
+          "SHA512"
+        ],
+        "unsupported": [
+          "MD2",
+          "RIPEMD160",
+          "SHA3-256",
+          "SHA3-512",
+          "Whirlpool"
+        ]
+      }
+    },
+    {
+      "function": "HMACBinary",
+      "values": {
+        "supported": [
+          "HmacMD5",
+          "HmacSHA1",
+          "HmacSHA224",
+          "HmacSHA256",
+          "HmacSHA384",
+          "HmacSHA512"
+        ],
+        "unsupported": []
+      }
+    },
+    {
+      "function": "HMACWith",
+      "values": {
+        "supported": [
+          "HmacMD5",
+          "HmacSHA1",
+          "HmacSHA224",
+          "HmacSHA256",
+          "HmacSHA384",
+          "HmacSHA512"
+        ],
+        "unsupported": []
+      }
+    }
+  ],
+  "blockingConstructs": [
+    "range-to-infinity",
+    "unbounded-recursion"
+  ]
+}

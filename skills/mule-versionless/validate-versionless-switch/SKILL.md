@@ -61,26 +61,53 @@ build-run-versionless-app**; or to upgrade connector/runtime **versions** →
 Given a Mule 4 project root (a directory with `pom.xml` and `src/main/mule`), it
 runs all seven switch-compatibility axes and emits a report:
 
-| Axis | Category | Flags (examples) |
-| --- | --- | --- |
-| DataWeave | `dataweave` | DW script constructs the versionless engine's capability manifest does not support |
-| Flow / core | `flow` | connector operations/sources and core constructs absent from the versionless runtime descriptors |
-| Config & secrets | `config` | `${secure::…}` / `<secure-properties:config>`, `.properties` config files (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
-| Project shape | `project` | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
-| Security | `security` | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
-| DX notices | `devx` | MUnit, custom `log4j2.xml`, `<tracking:*>`, `<notifications>`, OpenTelemetry, explicit streaming (INFO-only, never blocks) |
-| Data & state | `state` | `<os:*>` object store, `<redelivery-policy>`, `<idempotent-message-validator>`, OAuth-managed configs |
+| Axis | Category | Default? | Flags (examples) |
+| --- | --- | --- | --- |
+| DataWeave | `dataweave` | ✅ | DW script constructs the versionless engine's capability manifest does not support |
+| Flow / core | `flow` | ✅ | connector operations/sources and core constructs absent from the versionless runtime descriptors |
+| Connector switchability | `connector` | ✅ | element namespaces with no bundled descriptor (switchability confirmable only against RDS at switch time) — INFO, never a BLOCK |
+| Config & secrets | `config` | `--extended` | `${secure::…}` / `<secure-properties:config>`, `.properties` config files (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
+| Project shape | `project` | `--extended` | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
+| Security | `security` | `--extended` | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
+| DX notices | `devx` | `--extended` | MUnit, custom `log4j2.xml`, `<tracking:*>`, `<notifications>`, OpenTelemetry, explicit streaming (INFO-only, never blocks) |
+| Data & state | `state` | `--extended` | `<os:*>` object store, `<redelivery-policy>`, `<idempotent-message-validator>`, OAuth-managed configs |
 
 Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 **INFO** (resolves differently but still runs). The switch is **safe only when
 `blockerCount` is 0**.
+
+**Default scope mirrors the wizard.** By default the report (and `blockerCount`)
+covers the three categories the ACB "Upgrade to Versionless" switch gate surfaces —
+`dataweave`, `flow`, and `connector`. Pass **`--extended`** to add the other five
+axes (`config`, `project`, `security`, `devx`, `state`) as advisory findings. The
+validator always runs all seven internally; `--extended` only widens what the CLI
+reports and counts.
+
+**Two signals the CLI adds on top of the raw axes:**
+
+- **Core constructs the runtime can't run (`flow`, BLOCK).** The versionless runtime
+  builder implements only a subset of mule-core (`flow`, `sub-flow`, `flow-ref`,
+  `set-payload`/`set-variable`/`remove-variable`, `logger`, `foreach`, `choice`/`when`/
+  `otherwise`, the error-handler family). Constructs/operations the mule-core descriptor
+  lists but the runtime does **not** implement — `async`, `try`, `scatter-gather`,
+  `parallel-foreach`, `round-robin`, `first-successful`, `until-successful`, and
+  `raise-error` — are flagged `flow.element.unsupported`. (The guided walk reports the
+  **outermost** unsupported element and does not descend into it, so a `raise-error`
+  nested in a flagged `try` is covered once the `try` is resolved.)
+- **Connector switchability (`connector`, INFO).** The versionless runtime has no
+  offline connector registry, so whether a non-bundled connector is switchable can only
+  be confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
+  that has no bundled descriptor and is not core/ee/apikit (runtime-supported without
+  one) nor owned by another axis (`tls`, `os`, `secure-properties`, …). It is **never a
+  BLOCK** — a missing descriptor is not proof of incompatibility.
 
 ## What's bundled
 
 | Path | What | Why |
 | --- | --- | --- |
 | `lib/*.jar` | the validator runtime classpath (5 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. The plugin jar shades all seven switch axes; the CLI jar is the headless entry point. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
-| `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth) |
+| `rds-override/rds/dwx-capabilities.json` | ground-truth DataWeave capability manifest, prepended to the classpath | the copy baked into the plugin jar is stale (it lists `application/java` as a *supported* writer); the override is the runtime's own manifest where `application/java` is correctly unsupported, so the DataWeave axis flags `output application/java` as the wizard does (see `PROVENANCE.txt`) |
+| `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth). The CLI prunes the mule-core constructs the versionless runtime does not implement before the flow axis runs |
 | `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input for `versionless-validator-cli.jar` (see `docs/UPDATING.md`) |
 
 ### Why bundle jars instead of a native binary
@@ -116,7 +143,7 @@ location, so it works from any CWD.
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/validate.sh <project-dir> [--out <report.json>] [--dsl-dir <dir>]` | Run all seven axes; write the JSON report; print the summary. |
+| `scripts/validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]` | Run the switch axes; write the JSON report; print the summary. Default scope = `dataweave` + `flow` + `connector` (what the wizard surfaces); `--extended` adds the other five axes. |
 
 ## Workflow
 
@@ -150,11 +177,20 @@ versionless, say so and stop.
 <skill-dir>/scripts/validate.sh <project-dir>
 ```
 
-By default the report is written to `<project-dir>/report.json`. Pass `--out
-<path>` to write elsewhere (e.g. outside the project tree):
+By default the report is written to
+`<project-dir>/<app>-versionless-switch-report.json` (named after the app dir so
+collected reports stay distinguishable). Pass `--out <path>` to write elsewhere
+(e.g. outside the project tree):
 
 ```bash
 <skill-dir>/scripts/validate.sh <project-dir> --out /tmp/<app>-switch-report.json
+```
+
+For the full seven-axis picture (config/project/security/devx/state as advisory
+findings on top of the default scope), add `--extended`:
+
+```bash
+<skill-dir>/scripts/validate.sh <project-dir> --extended
 ```
 
 The stdout summary shows files scanned, DW expressions scanned, BLOCK/INFO totals,
@@ -170,7 +206,7 @@ parsing JSON):
 
 ### Step 3: Read the report
 
-`report.json` mirrors the wizard's `ValidationResult`:
+The report file mirrors the wizard's `ValidationResult`:
 
 ```json
 {
@@ -228,9 +264,17 @@ When the user is ready to actually perform the switch, hand off to
 (`brew install openjdk@17`, or a temurin/openjdk 17 package on Linux), then re-run.
 The PATH `java` may be a wrapper stub on some corporate machines — `JAVA_HOME` wins.
 
-**`FAIL-CLOSED (DWX_MANIFEST_UNAVAILABLE)` (exit 1):** the bundled capability
-manifest (`rds/dwx-capabilities.json`, inside the plugin jar) could not be read —
-the `lib/` jar is corrupt or truncated. Re-copy the bundle (see `docs/UPDATING.md`).
+**`FAIL-CLOSED (DWX_MANIFEST_UNAVAILABLE)` (exit 1):** the capability manifest
+(`rds/dwx-capabilities.json`) could not be read. It is loaded first-match-wins from the
+classpath: the bundled `rds-override/` dir wins, falling back to the copy inside the
+plugin jar. Exit 1 means neither was readable — the override file is missing/corrupt
+*and* the `lib/` plugin jar is corrupt or truncated. Re-copy the bundle (see
+`docs/UPDATING.md`).
+
+**Expected `output application/java` BLOCKs don't appear:** the `rds-override/` dir is
+not first on the classpath, so the stub loaded the stale manifest baked into the plugin
+jar (which wrongly lists `application/java` as a supported writer). Confirm
+`scripts/validate.sh` sets `CP="${SKILL_DIR}/rds-override:${LIB}/*"` (override first).
 
 **Lots of unexpected `flow.element.unsupported` BLOCKs:** the bundled `dsl/`
 descriptors are older/newer than the runtime you are targeting. Refresh them from

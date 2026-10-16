@@ -1,9 +1,10 @@
 # Updating the bundled validator
 
-Three things can go stale: the **plugin jar** (`lib/mule-dx-mule-dev-plugin-all.jar`,
+Four things can go stale: the **plugin jar** (`lib/mule-dx-mule-dev-plugin-all.jar`,
 which now shades the seven axes) plus the **CLI jar** built against it, the
-**connector descriptors** (`dsl/`), and the other **classpath jars** (`lib/`).
-Refresh only what changed. All paths below are relative to this skill's root.
+**connector descriptors** (`dsl/`), the **DataWeave capability manifest override**
+(`rds-override/`), and the other **classpath jars** (`lib/`). Refresh only what
+changed. All paths below are relative to this skill's root.
 
 ## 1. Rebuild the plugin jar + CLI jar (`lib/`)
 
@@ -34,8 +35,11 @@ rm -rf "$SKILL/.cli-build"; mkdir -p "$SKILL/.cli-build"
 rm -rf "$SKILL/.cli-build"
 ```
 
-The classpath is simply `lib/*` (see `scripts/validate.sh`, `CP="${LIB}/*"`); order no
-longer matters because nothing overrides the jar. **Always re-run the equivalence check
+The classpath is `rds-override:lib/*` (see `scripts/validate.sh`,
+`CP="${SKILL_DIR}/rds-override:${LIB}/*"`). **Order matters:** `rds-override/` must come
+first so its `rds/dwx-capabilities.json` wins the stub's first-match-wins lookup over the
+stale copy inside the plugin jar (see section 2b). Nothing else overrides a jar, so the
+relative order of the jars themselves is irrelevant. **Always re-run the equivalence check
 below after rebuilding the plugin jar** — a shaded jar from a different plugin HEAD can
 silently change findings.
 
@@ -63,6 +67,33 @@ Add a connector by creating `dsl/<name>/dsl.json`; the CLI loads every
 
 To validate against a *specific* staged runtime instead of the bundled descriptors,
 pass `--dsl-dir <ACB-cache>/.cache/versionless` to `validate.sh`.
+
+**`mule-core/dsl.json` stays a verbatim go-runtime copy — do NOT hand-edit it.** It lists
+constructs the versionless Rust runtime does not implement (`async`, `try`,
+`scatter-gather`, `parallel-foreach`, `round-robin`, `first-successful`,
+`until-successful`) plus the `raise-error` operation. The CLI prunes exactly those eight
+core-namespace entries at load (`VersionlessValidatorCli.pruneUnsupportedCoreElements`), so
+the flow axis flags them. Keeping the prune in code (not in the file) means the blind `cp`
+above stays safe. If the versionless runtime builder (`register_core`/`register_ee`/
+`register_apikit` in mule-versionless `runtime/builder/src/builders.rs`) starts or stops
+supporting a core element, update `CORE_UNSUPPORTED_BY_RUNTIME` in the CLI and rebuild the
+CLI jar (section 1, step (b)).
+
+## 2b. Refresh the DataWeave capability manifest override (`rds-override/`)
+
+`rds-override/rds/dwx-capabilities.json` is the ground-truth DataWeave capability manifest,
+prepended to the classpath so it wins the stub's first-match-wins resource lookup over the
+stale copy baked into the plugin jar (which wrongly lists `application/java` as a
+*supported* writer). Refresh it from the versionless runtime's own manifest:
+
+```bash
+RUST=.../rust-runtime
+cp "$RUST/services/design-service/assets/dwx-capabilities.json" rds-override/rds/dwx-capabilities.json
+```
+
+Sanity-check after copying: `application/java` must be in `writers.unsupported`, not
+`writers.supported`. The right long-term fix is to refresh the manifest baked into the
+plugin jar (section 1) and delete `rds-override/`; until then this override is load-bearing.
 
 ## 3. Refresh the other classpath jars (`lib/`)
 
@@ -99,7 +130,7 @@ dropped with no change would be redundant and should not be bundled.
 ./scripts/validate.sh <a-real-mule-app>
 ```
 
-Expect a BLOCK/INFO summary and `report.json`. A clean app exits 0; an app with an
+Expect a BLOCK/INFO summary and a `<app>-versionless-switch-report.json`. A clean app exits 0; an app with an
 unsupported element exits 3; a corrupt bundle (manifest unreadable) exits 1.
 
 **Equivalence check after a plugin-jar rebuild (section 1).** Because a shaded jar from a

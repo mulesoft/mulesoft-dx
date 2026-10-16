@@ -11,10 +11,12 @@
 # (all seven compatibility axes, including the Scala DataWeave parser), invoked outside
 # the IDE/LSP. It writes a JSON report and prints a short summary.
 #
-# Usage:  validate.sh <project-dir> [--out <report.json>] [--dsl-dir <dir>]
+# Usage:  validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]
 #   <project-dir>   project root (the directory containing pom.xml and src/main/mule)
-#   --out           report path (default: <project-dir>/report.json)
+#   --out           report path (default: <project-dir>/<app>-versionless-switch-report.json)
 #   --dsl-dir       connector descriptor dir, <name>/dsl.json (default: bundled dsl/)
+#   --extended      report all seven axes (default: DataWeave + flow + connector only,
+#                   matching what the ACB switch wizard surfaces)
 #
 # Exit codes mirror the CLI: 0 switchable, 3 blockers present, 1 fail-closed
 # (capability manifest unavailable), 2 usage error.
@@ -25,13 +27,13 @@ LIB="${SKILL_DIR}/lib"
 DSL_DIR="${SKILL_DIR}/dsl"
 
 if [ "$#" -eq 0 ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
-  echo "usage: validate.sh <project-dir> [--out <report.json>] [--dsl-dir <dir>]" >&2
+  echo "usage: validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]" >&2
   exit 2
 fi
 
 PROJECT_DIR="$1"; shift
 OUT=""
-EXTRA_ARGS=()
+EXTENDED=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --out|--dsl-dir)
@@ -44,6 +46,7 @@ while [ "$#" -gt 0 ]; do
         --dsl-dir) DSL_DIR="$2" ;;
       esac
       shift 2 ;;
+    --extended) EXTENDED="1"; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -95,8 +98,11 @@ if [ ! -f "${LIB}/versionless-validator-cli.jar" ]; then
   exit 1
 fi
 
-# Literal lib/* — the JVM expands the classpath wildcard, so it must NOT be shell-globbed.
-CP="${LIB}/*"
+# rds-override/ first so its rds/dwx-capabilities.json wins the stub's first-match-wins
+# classloader lookup over the stale copy baked into the plugin jar (ground truth: application/java
+# is an UNSUPPORTED DataWeave writer — see PROVENANCE.txt). Literal lib/* — the JVM expands the
+# classpath wildcard, so it must NOT be shell-globbed.
+CP="${SKILL_DIR}/rds-override:${LIB}/*"
 
 # The plugin jar bundles a log4j2.xml whose File appender writes to
 # ${sys:mule.dx.logs.dir}/mule-dx-platform.log. Unset, log4j takes the property
@@ -108,6 +114,9 @@ mkdir -p "${LOGS_DIR}" 2>/dev/null || true
 CMD=("${JAVA_BIN}" -Dmule.dx.logs.dir="${LOGS_DIR}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
 if [ -n "${OUT}" ]; then
   CMD+=(--out "${OUT}")
+fi
+if [ -n "${EXTENDED}" ]; then
+  CMD+=(--extended)
 fi
 
 # The CLI's exit code is the gate (0/3/1); surface it to the caller verbatim.

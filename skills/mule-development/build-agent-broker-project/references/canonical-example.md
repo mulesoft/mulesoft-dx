@@ -1,8 +1,10 @@
 # Canonical Example: IT Help Investigation (GA)
 
-A complete, working Agent Network V2 (GA, A2A v1.0) project. When in doubt about a field name, value, or indentation, mirror this example exactly.
+A complete Agent Network V2 (GA, A2A v1.0) project, reproduced **verbatim** from the docs page *Example: Building an IT Investigation Broker* (`af-example-it-investigation-broker`, docs-code-builder `latest`). A runnable copy with mock endpoints is at `github.com/MuleSoft-AI-Chain-Project/example-mule-apps`, path `agent-network-2.0-examples/it-investigation-broker-example`. When in doubt about a field name, value, or indentation, mirror this example exactly.
 
-GA adopts **A2A v1.0**. Agent Broker is backward-compatible with A2A v0.3 clients via the `a2a_v03` registry branch (shown below for `helpCenterAgent` and `licenseProcurementAgent`, which haven't migrated).
+GA adopts **A2A v1.0**. Agent Broker stays backward-compatible with A2A v0.3 agents via the `a2a_v03` registry branch. That branch is shown below for `helpCenterAgent` and `licenseProcurementAgent`, which haven't migrated.
+
+> The docs narrative mentions GPT-5.4 for orchestration and Gemini 2.5 Flash for summaries, but the published project code uses a single OpenAI `gpt-5-mini` LLM for every node. This file mirrors the code.
 
 ## What it does
 
@@ -39,11 +41,11 @@ Deterministic nodes:
 ## Project structure
 
 ```
-it-help-investigation/
+it-help-network/
   agent-network.yaml
-  exchange.json
   brokers/
     it-help-investigation.agent
+  exchange.json
 ```
 
 ## `agent-network.yaml`
@@ -65,7 +67,7 @@ registry:
             card:
               name: Help Center Agent
               description: Searches the IT knowledge base for answers to common issues. Returns relevant articles with step-by-step instructions.
-              url: http://localhost:8080/helpCenterAgent
+              url: ${helpCenterAgent.url}
               protocolVersion: 0.3.0
               version: 1.0.0
               capabilities:
@@ -103,7 +105,7 @@ registry:
             card:
               name: License Procurement Agent
               description: Checks software license availability and provisions licenses for employees.
-              url: http://localhost:8080/licenseProcurementAgent
+              url: ${licenseProcurementAgent.url}
               protocolVersion: 0.3.0
               version: 1.0.0
               capabilities:
@@ -121,6 +123,10 @@ registry:
                   tags:
                     - licensing
                     - provisioning
+                  examples:
+                    - Provision a Figma license for jane.doe@company.com
+                    - Check if we have available GitHub Enterprise seats
+                    - I need access to Jira
                   inputModes:
                     - application/json
                     - text/plain
@@ -145,7 +151,7 @@ registry:
   llms:
     openAiMini:
       info:
-        label: GPT-5 Mini
+        label: GPT Mini
       metadata:
         platform: OpenAI
 context:
@@ -160,16 +166,31 @@ context:
       ref:
         name: licenseProcurementAgent
       url: ${licenseProcurementAgent.url}
+      authentication:
+        kind: oauth2-client-credentials
+        clientId: ${licenseProcurementAgent.clientId}
+        clientSecret: ${licenseProcurementAgent.clientSecret}
+        token:
+          url: ${licenseProcurementAgent.tokenUrl}
     escalation_mcp_connection:
       kind: mcp
       ref:
         name: escalationMcp
       url: ${escalationMcp.url}
+      authentication:
+        kind: apiKey
+        apiKey: ${escalationMcp.apiKey}
     jira_mcp_connection:
       kind: mcp
       ref:
         name: jiraMcp
       url: ${jiraMcp.url}
+      authentication:
+        kind: oauth2-obo
+        flow: oauth2-token-exchange
+        clientId: ${jiraMcp.clientId}
+        clientSecret: ${jiraMcp.clientSecret}
+        tokenEndpoint: ${jiraMcp.tokenUrl}
     openai_mini_connection:
       kind: llm
       ref:
@@ -209,35 +230,99 @@ brokers:
 ```json
 {
   "main": "agent-network.yaml",
-  "name": "it-help-investigation",
+  "name": "IT Help Investigation Agent Network",
   "classifier": "agentic-network",
-  "organizationId": "${organizationId}",
+  "groupId": "${organizationId}",
+  "assetId": "it-help-investigation-network",
+  "version": "1.0.0",
   "descriptorVersion": "1.0.0",
-  "tags": ["agentscript"],
+  "apiVersion": "v1.0",
+  "description": "Triages IT support tickets, escalates critical issues, and resolves common problems through cross-platform investigation with Help Center and License Procurement agents.",
+  "tags": [],
+  "dependencies": [],
   "metadata": {
     "variables": {
+      "helpCenterAgent": {
+        "url": {
+          "description": "Help Center Agent A2A URL",
+          "default": "",
+          "secret": false
+        }
+      },
+      "licenseProcurementAgent": {
+        "url": {
+          "description": "License Procurement Agent A2A URL",
+          "default": "",
+          "secret": false
+        },
+        "tokenUrl": {
+          "description": "OAuth2 token endpoint for the License Procurement agent (client credentials grant)",
+          "default": "",
+          "secret": false
+        },
+        "clientId": {
+          "description": "OAuth2 client ID the broker presents to the License Procurement agent",
+          "default": "",
+          "secret": false
+        },
+        "clientSecret": {
+          "description": "OAuth2 client secret -- inject at deploy time via --property, never commit a default value",
+          "default": "",
+          "secret": true
+        }
+      },
+      "escalationMcp": {
+        "url": {
+          "description": "Escalation MCP Server URL",
+          "default": "",
+          "secret": false
+        },
+        "apiKey": {
+          "description": "API key for the Escalation MCP server -- inject at deploy time, never commit a default value",
+          "default": "",
+          "secret": true
+        }
+      },
+      "jiraMcp": {
+        "url": {
+          "description": "Jira MCP Server URL (called on-behalf-of the inbound user)",
+          "default": "",
+          "secret": false
+        },
+        "tokenUrl": {
+          "description": "OAuth2 token endpoint Jira accepts for the OBO token exchange",
+          "default": "",
+          "secret": false
+        },
+        "clientId": {
+          "description": "OAuth2 client ID the broker uses to perform the OBO exchange with Jira",
+          "default": "",
+          "secret": false
+        },
+        "clientSecret": {
+          "description": "OAuth2 client secret for the Jira OBO exchange -- inject at deploy time, never commit a default value",
+          "default": "",
+          "secret": true
+        }
+      },
       "openai": {
         "apiKey": {
-          "description": "OpenAI API key",
+          "description": "OpenAI API key -- inject at deploy time, never commit a default value",
           "default": "",
           "secret": true
         }
       }
     }
-  },
-  "apiVersion": "v1.0",
-  "dependencies": [],
-  "groupId": "${organizationId}",
-  "assetId": "it-help-investigation",
-  "version": "1.0.0"
+  }
 }
 ```
+
+Real values for the empty `"default": ""` variables are injected at deploy time, e.g. `--property openai.apiKey:$OPENAI_API_KEY --property helpCenterAgent.url:https://…/`.
 
 ## `brokers/it-help-investigation.agent`
 
 ```text
 # @dialect: AGENTFABRIC=1.0
-
 system:
   instructions: "You are an IT Help Desk agent. You triage incoming support tickets, classify their severity, and either escalate, investigate, or request more information."
 
@@ -251,9 +336,7 @@ llm:
     kind: "OpenAI"
     model: "gpt-5-mini"
 
-
 # -- ACTION DEFINITIONS -------------------------------------------------------
-
 actions:
   help_center_agent:
     target: "a2a://help_center_agent_connection"
@@ -273,18 +356,14 @@ actions:
     kind: "mcp:tool"
     tool_name: "updateIssue"
 
-
-# -- TRIGGER ------------------------------------------------------------------
-
+# -- TRIGGER -------------------------------------------------------------------
 trigger ticketTrigger:
   kind: "a2a"
   target: "brokers://it_help_investigation/a2a"
   on_message: ->
     transition to @generator.classifySeverity
 
-
-# -- SEVERITY CLASSIFICATION --------------------------------------------------
-
+# -- SEVERITY CLASSIFICATION ---------------------------------------------------
 generator classifySeverity:
   description: "Classifies the severity of the support ticket."
   label: "Classify Severity"
@@ -294,13 +373,13 @@ generator classifySeverity:
       Classify the severity of the incoming IT support ticket and extract the Jira ticket ID.
 
       Classify as HIGH:
-      - System outages affecting multiple users
-      - Security incidents involving unauthorized access or suspicious activity
+      - System outages affecting multiple users (e.g. "VPN is down for the entire office", "Nobody in Building 3 can connect")
+      - Security incidents involving unauthorized access or suspicious activity (e.g. "unauthorized login attempts from an IP in another country")
       - Any blocking issue impacting a team, building, or department
 
       Classify as LOW:
-      - Password resets or connectivity help
-      - Software license or access requests
+      - Password resets or connectivity help (e.g. "I forgot my VPN password")
+      - Software license or access requests (e.g. "rate limited on my Figma MCP server", "I need access to Tableau")
       - Single-user issues with a clear description
 
       The ticket_id must always be a string value.
@@ -311,7 +390,7 @@ generator classifySeverity:
     properties:
       ticket_id:
         type: "string"
-        description: "The Jira ticket ID extracted from the input"
+        description: "The Jira ticket ID extracted from the input (e.g. '001' from 'Jira ticket ID 001')"
       severity:
         type: "string"
         description: "The severity level"
@@ -324,9 +403,7 @@ generator classifySeverity:
   on_exit: ->
     transition to @router.severityRouter
 
-
-# -- SEVERITY ROUTING ---------------------------------------------------------
-
+# -- SEVERITY ROUTING ----------------------------------------------------------
 router severityRouter:
   description: "Routes based on the classified severity."
   routes:
@@ -336,9 +413,7 @@ router severityRouter:
   otherwise:
     target: @orchestrator.crossPlatformTriage
 
-
-# -- HIGH: ESCALATION --------------------------------------------------------
-
+# -- HIGH: ESCALATION ---------------------------------------------------------
 executor escalateTicket:
   description: "Escalates the ticket using the Escalation MCP tool."
   do: ->
@@ -351,9 +426,7 @@ echo escalationResponse:
   state: "TASK_STATE_COMPLETED"
   message: a2a.message({messageId: uuid(), parts: [a2a.textPart("Ticket " + @generator.classifySeverity.output.ticket_id + " has been escalated to the on-call team due to high severity: " + @generator.classifySeverity.output.reason)]})
 
-
-# -- LOW: CROSS-PLATFORM TRIAGE ----------------------------------------------
-
+# -- LOW: CROSS-PLATFORM TRIAGE -----------------------------------------------
 orchestrator crossPlatformTriage:
   description: "Investigates the ticket using Help Center and License Procurement agents."
   label: "Cross-Platform Triage"
@@ -375,6 +448,7 @@ orchestrator crossPlatformTriage:
       search_help: @actions.help_center_agent
       check_license: @actions.license_procurement_agent
       update_ticket: @actions.updateIssue
+        with http_headers = {"Authorization": @request.headers["Authorization"]}
     outputs:
       properties:
         resolution:
@@ -390,9 +464,7 @@ orchestrator crossPlatformTriage:
   on_exit: ->
     transition to @router.resolutionRouter
 
-
-# -- RESOLUTION ROUTING -------------------------------------------------------
-
+# -- RESOLUTION ROUTING --------------------------------------------------------
 router resolutionRouter:
   description: "Routes based on the resolution type from triage."
   routes:
@@ -405,9 +477,7 @@ router resolutionRouter:
   otherwise:
     target: @generator.helpSummary
 
-
 # -- HELP GIVEN PATH ----------------------------------------------------------
-
 generator helpSummary:
   description: "Generates a summary of the help resolution."
   system:
@@ -422,9 +492,7 @@ echo helpResponse:
   state: "TASK_STATE_COMPLETED"
   message: a2a.message({messageId: uuid(), parts: [a2a.textPart(@generator.helpSummary.output)]})
 
-
-# -- LICENSE GIVEN PATH -------------------------------------------------------
-
+# -- LICENSE GIVEN PATH --------------------------------------------------------
 generator licenseSummary:
   description: "Generates a summary of the license provisioning."
   system:
@@ -439,9 +507,7 @@ echo licenseResponse:
   state: "TASK_STATE_COMPLETED"
   message: a2a.message({messageId: uuid(), parts: [a2a.textPart(@generator.licenseSummary.output)]})
 
-
-# -- UNRESOLVED PATH ----------------------------------------------------------
-
+# -- UNRESOLVED PATH -----------------------------------------------------------
 executor escalateUnresolved:
   description: "Escalates an unresolved low-severity ticket to a human agent."
   do: ->
@@ -457,18 +523,44 @@ echo unresolvedResponse:
 
 ## Non-obvious patterns this example confirms
 
-These are the things the published docs don't make obvious — read the docs for everything else.
+These are the things the published docs don't make obvious. Read the docs for everything else.
 
-0. **Connection and broker IDs are not restricted to `[a-z0-9_]`.** `context.connections.<id>` keys and `brokers.<id>` keys accept any valid YAML identifier — camelCase, snake_case, and kebab-case all validate. This example uses snake_case (`help_center_agent_connection`, `it_help_investigation`) purely for readability. Registry asset ids (agents/mcps/llms) typically use camelCase (`helpCenterAgent`). The only hard rule: `.agent` targets (`a2a://`, `mcp://`, `llm://`, `brokers://`) must match the corresponding YAML key **exactly**. The `.agent` file *filename* is independent (kebab-case is fine — `it-help-investigation.agent`).
-1. **`info.version: v1`** is valid — non-semver strings are accepted.
-2. **`exchange.json` `"groupId": "${organizationId}"`** is the templated convention. `dependencies: []` is fine when all assets are inline.
-3. **A2A v1.0 broker card** in this example omits `url` and `protocolVersion` — the broker IS the endpoint and serves itself. Per the spec these fields are required on a v1.0 card; broker cards are the practical exception. **Registry agent cards** (external agents) DO include `url`. For agents still on legacy A2A v0.3, place the card under `metadata.interfaces.a2a_v03.card` (kept for backward compatibility) — that branch keeps the old shape including `protocolVersion: 0.3.0` and `url`.
-4. **Registry agents use `metadata.interfaces.<branch>.card`** with `branch` = `a2a` (current A2A v1.0), `a2a_v03` (legacy), or `other`. The Beta-era `metadata.protocol` + flat `metadata.card` shape no longer applies.
-5. **Auth on connections** — `authentication` is REQUIRED for `kind: llm` connections. Optional for `a2a` and `mcp`. Auth kind `apiKey` (camelCase) is the canonical casing.
-6. **MCP actions** in this example omit `inputs:` — the runtime auto-discovers tool arguments. Declare `inputs:` only when you need to use `with` clauses to fix or default values.
-7. **A2A actions** in `reasoning.actions` are bare references — no `with message =`.
-8. **`outputs:` placement** — generator at node top level (see `classifySeverity`), orchestrator/subagent nested inside `reasoning:` (see `crossPlatformTriage`).
-9. **Echo node uses A2A v1.0 update events** — `kind: "a2a:status_update_event"` (state + message) or `kind: "a2a:artifact_update_event"` (artifact + append/lastChunk). The state value uses `TASK_STATE_*` constants (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, etc.).
-10. **One echo per terminal path** — this example uses 4 separate echo nodes. Inside `a2a.message()` / `a2a.textPart()`, references are direct (`@generator.classifySeverity.output.ticket_id + " escalated"`). The `{!@...}` template form does NOT apply inside echo helpers.
-11. **Dialect `# @dialect: AGENTFABRIC=1.0`** — pinned to GA dialect 1.0.
-12. **`policies` shape (GA)** — when used, `policies` is an object with `inbound` and `outbound` arrays, not a flat list of policy ids.
+0. **IDs and naming.**
+   - **Broker IDs** (`brokers.<id>`): use lowercase snake_case, e.g. `it_help_investigation`. The docs require it even though the schema is looser.
+   - **Connection IDs** (`context.connections.<id>`): no pattern is documented. Follow the docs' snake_case convention (`help_center_agent_connection`).
+   - **Registry asset IDs** (agents/mcps/llms): must match `^[a-zA-Z_][a-zA-Z0-9_.-]*$`. camelCase (`helpCenterAgent`) and kebab-case both work. Each becomes an Exchange asset name that must be unique across the org (error 2006).
+   - **Hard rule:** `.agent` targets (`a2a://`, `mcp://`, `llm://`, `brokers://`) must match the YAML key **exactly** (a trigger mismatch is error 1021).
+   - **Filename:** the `.agent` file's name is independent of the broker ID; kebab-case is fine (`it-help-investigation.agent`).
+1. **`info.version: v1`** is valid. Non-semver strings are accepted.
+2. **`exchange.json`**: this example omits `organizationId` and templates `"groupId": "${organizationId}"`. The YAML reference's own samples include a literal `organizationId`, so either form appears in the docs. `groupId` is the business group that owns the network; change it to publish to another business group. `assetId` is the network's own asset (`it-help-investigation-network`). `apiVersion` is the Exchange **version group**: Exchange auto-increments the semantic version, and renaming the group bumps the major version. `dependencies: []` is fine when all assets are inline. Every `${…}` placeholder in the YAML has a matching `metadata.variables` entry. Secrets carry `"secret": true` with `"default": ""`, and real values arrive via `--property`.
+3. **A2A v1.0 cards have no top-level `url` or `protocolVersion`.** Those live in `supportedInterfaces[]`, and the schema rejects them at the top level. The broker card here omits both because the broker is the endpoint and serves itself. The **`a2a_v03`** branch keeps the legacy flat shape with `url` (here a `${…url}` variable) and `protocolVersion: 0.3.0`.
+4. **Registry agents use `metadata.interfaces.<branch>.card`**, where `branch` is `a2a` (A2A v1.0), `a2a_v03` (legacy), or `other`. The Beta-era `metadata.protocol` + flat `metadata.card` shape no longer applies.
+5. **Auth on connections.** `authentication` is **required** for `kind: llm` and optional for `a2a`/`mcp`. This example shows the three common kinds:
+   - `apiKey` (camelCase): `escalation_mcp_connection` and the LLM.
+   - `oauth2-client-credentials`: `clientId`, `clientSecret`, `token.url` (`license_procurement_agent_connection`).
+   - `oauth2-obo`: `flow: oauth2-token-exchange`, `clientId`, `clientSecret`, `tokenEndpoint` (`jira_mcp_connection`), which calls Jira on behalf of the inbound user.
+6. **MCP actions omit `inputs:`**, and the runtime discovers tool arguments. Declared inputs are *"not exhaustive"*. Declare `inputs:` only when you need `with` to fix or default a value, and never invent parameter names.
+7. **A2A actions** in `reasoning.actions` are bare references (no `with message =`).
+8. **Forwarding the caller's token with `http_headers`.** `update_ticket: @actions.updateIssue` is followed by `with http_headers = {"Authorization": @request.headers["Authorization"]}`. `http_headers` is the one implicit parameter on both MCP and A2A actions. Here it passes the inbound user's `Authorization` header so the OBO exchange has a subject token.
+9. **`outputs:` placement.** The generator declares `outputs` at node top level (`classifySeverity`). The orchestrator declares them inside `reasoning:` (`crossPlatformTriage`). For subagent/orchestrator nodes both placements are valid; this skill's convention is `reasoning.outputs`, with one place per node.
+10. **Echo nodes use A2A v1.0 update events**: `kind: "a2a:status_update_event"` (state + message) or `kind: "a2a:artifact_update_event"` (artifact + append/lastChunk). State values are `TASK_STATE_*` constants (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, etc.).
+11. **One echo per terminal path.** This example has four echo nodes. Inside `a2a.message()` / `a2a.textPart()`, references are direct (`@generator.classifySeverity.output.ticket_id + " escalated"`). The `{!@...}` template form does NOT apply inside echo helpers.
+12. **Dialect `# @dialect: AGENTFABRIC=1.0`** pins the file to GA dialect 1.0.
+13. **`policies` shape (GA).** When used, `policies` is an object with `inbound` and `outbound` arrays, not a flat list of policy IDs.
+14. **`supportedInterfaces`: one object per transport binding.** A v1.0 card advertises its endpoint(s) via `card.supportedInterfaces`, an array.
+    - Each entry is `{url, protocolBinding, protocolVersion, tenant}`.
+    - `protocolBinding` is one of `JSONRPC`, `GRPC`, `HTTP+JSON` (literal `+`).
+    - `protocolVersion` is a **quoted string**.
+    - To support both HTTP+JSON and JSONRPC, write exactly two objects. Don't retry or improvise the key names:
+
+    ```yaml
+    supportedInterfaces:
+      - url: http://localhost:8001/itHelpInvestigationBroker/
+        protocolBinding: HTTP+JSON
+        protocolVersion: "1.0"
+      - url: http://localhost:8001/itHelpInvestigationBroker/
+        protocolBinding: JSONRPC
+        protocolVersion: "1.0"
+    ```
+
+    `protocolVersion` must match the agent's actual runtime A2A version. A mismatch makes the platform apply the wrong Agent Card policy and skip the egress-proxy URL rewrite, so the call fails at runtime with `401 Unauthorized`, not a version error.

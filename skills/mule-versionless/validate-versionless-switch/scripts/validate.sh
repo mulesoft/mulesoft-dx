@@ -98,7 +98,14 @@ fi
 # Literal lib/* — the JVM expands the classpath wildcard, so it must NOT be shell-globbed.
 CP="${LIB}/*"
 
-CMD=("${JAVA_BIN}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
+# The plugin jar bundles a log4j2.xml whose File appender writes to
+# ${sys:mule.dx.logs.dir}/mule-dx-platform.log. Unset, log4j takes the property
+# name literally and creates a "${sys:mule.dx.logs.dir}" directory in the CALLER's
+# CWD. Point it at a temp dir so the (empty) log lands out of the user's project.
+LOGS_DIR="${TMPDIR:-/tmp}/mule-dx-switch-logs"
+mkdir -p "${LOGS_DIR}" 2>/dev/null || true
+
+CMD=("${JAVA_BIN}" -Dmule.dx.logs.dir="${LOGS_DIR}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
 if [ -n "${OUT}" ]; then
   CMD+=(--out "${OUT}")
 fi

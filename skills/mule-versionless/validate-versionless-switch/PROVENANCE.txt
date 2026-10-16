@@ -11,10 +11,11 @@ mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build
                                   shapecompat/securitycompat/statecompat + the VersionlessValidator
                                   orchestrator). This replaces the stale 2026-08-19 jar that predated
                                   five of the axes; there is no longer a loose-class overlay.
-                                  CAVEAT: the axis sources were still uncommitted in the plugin working
-                                  tree at build time (VersionlessValidator.java modified; the five
-                                  *compat/ dirs untracked). Regenerating this exact jar requires that
-                                  working-tree state until the axis branch lands upstream.
+                                  The axis sources are committed at
+                                  e009aee2428b499f8e9040330ba9b1c9e4e99a6b on branch
+                                  feat/versionless-switch-compat-axes (VersionlessValidator orchestrator
+                                  + the five *compat/ dirs). Rebuild this jar from that SHA; the branch
+                                  is not yet merged upstream.
 versionless-validator-cli.jar     the headless entry point (VersionlessValidatorCli), compiled from
                                   src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
                                   above and packaged as its own jar. First-party skill code — not part

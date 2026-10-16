@@ -39,11 +39,11 @@ longer matters because nothing overrides the jar. **Always re-run the equivalenc
 below after rebuilding the plugin jar** — a shaded jar from a different plugin HEAD can
 silently change findings.
 
-> Reproducibility caveat: as of the 2026-10-15 build the axis sources were still
-> *uncommitted* in the plugin working tree (`VersionlessValidator.java` modified; the
-> five `*compat/` dirs untracked on `chore/maven-build-changes`). Until that work lands
-> upstream, regenerating the identical jar depends on that working-tree state — not on a
-> clean checkout of a committed SHA.
+> Reproducibility: the axis sources are committed at
+> `e009aee2428b499f8e9040330ba9b1c9e4e99a6b` on branch
+> `feat/versionless-switch-compat-axes` (the `VersionlessValidator` orchestrator plus the
+> five `*compat/` dirs). Build the plugin jar from that SHA. The branch is not yet merged
+> upstream, so check it out explicitly rather than relying on `main`.
 
 ## 2. Refresh the connector descriptors (`dsl/`)
 

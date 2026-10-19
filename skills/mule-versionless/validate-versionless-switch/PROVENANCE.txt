@@ -55,23 +55,36 @@ go-runtime @ f7fb6dd0 connectors/<name>/descriptor/dsl.json (the runtime's own
 ground truth). The flow axis reads only name + dslJson, so model/xsd are null.
 
 NOTE: the on-disk mule-core/dsl.json is the go-runtime copy and lists constructs the
-*versionless* Rust runtime builder does not implement (async, try, scatter-gather,
+*versionless* Rust runtime builder does not implement (try, scatter-gather,
 parallel-foreach, round-robin, first-successful, until-successful) plus the raise-error
-operation. The CLI prunes exactly those eight core-namespace entries from the mule-core
+operation. The CLI prunes exactly those seven core-namespace entries from the mule-core
 bundle at load (VersionlessValidatorCli.pruneUnsupportedCoreElements), so the flow axis
 reports them as flow.element.unsupported. The deny-list is (mule-core descriptor elements
 reachable in a flow) minus (register_core/register_ee/register_apikit in mule-versionless
 runtime/builder/src/builders.rs). `scheduler` is excluded (a source, generic source path);
-`route`/`source` excluded (internal childs markers, never user-authored). Keep the on-disk
-file a verbatim go-runtime copy — the prune lives in code, so a `cp` refresh stays safe.
+`route`/`source` excluded (internal childs markers, never user-authored). `async` was on
+this list until mule-versionless master registered it (build_async, PRs #253/#305); it is
+now runtime-supported and no longer pruned. Keep the on-disk file a verbatim go-runtime
+copy — the prune lives in code, so a `cp` refresh stays safe.
 
 === DataWeave capability manifest override (rds-override/) ===
 rds-override/rds/dwx-capabilities.json — the ground-truth DataWeave capability manifest,
-copied verbatim from rust-runtime services/design-service/assets/dwx-capabilities.json
-(the versionless runtime's own manifest; writers.supported=20, writers.unsupported=18,
-application/java correctly in writers.unsupported). It overrides the STALE copy baked into
-mule-dx-mule-dev-plugin-all.jar, which wrongly lists application/java as a *supported*
-writer and so misses the `output application/java` BLOCKs the ACB wizard shows.
+copied verbatim from mule-versionless origin/master
+dwx-rust/capabilities/capability-manifest.json (commit d982842b, "dwx vendored blob",
+2026-08-26) — the manifest the versionless Rust DW engine generates for itself, so the most
+authoritative source. writers.supported=30, writers.unsupported=11; readers 30/11;
+application/java correctly in writers.unsupported (the Rust engine has no application/java
+writer — confirmed absent from every branch of both mule-versionless and rust-runtime). It
+overrides the STALE copy baked into mule-dx-mule-dev-plugin-all.jar, which wrongly lists
+application/java as a *supported* writer and so misses the `output application/java` BLOCKs
+the ACB wizard shows. (Earlier this override came from rust-runtime
+services/design-service/assets/dwx-capabilities.json at 20/18 writers; mule-versionless
+master is newer — 30 supported writers — and is the engine's own output, so it supersedes
+the rust-runtime copy.)
+
+The Java deserializer (DwxCapabilityManifest) reads only natives/modules/readers/writers;
+the manifest's other keys (unsupportedFunctions/argumentConstraints/blockingConstructs) are
+ignored by Gson, so the richer master schema is drop-in compatible.
 
 The StubRemoteDesignServiceClient loads it by classloader resource name
 "rds/dwx-capabilities.json" (first-match-wins), so scripts/validate.sh prepends this dir to

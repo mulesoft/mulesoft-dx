@@ -16,13 +16,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import org.eclipse.lemminx.commons.BadLocationException;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMElement;
@@ -73,11 +72,12 @@ public final class VersionlessValidatorCli {
     /**
      * Core-namespace elements the mule-core descriptor lists but the versionless runtime builder does not register ({@code register_core}/{@code register_ee}/{@code register_apikit}
      * in mule-versionless {@code runtime/builder/src/builders.rs}). Pruning them from the mule-core bundle makes the flow axis flag them {@code BLOCK} instead of silently treating
-     * the descriptor as ground truth. The seven multi-route/scope constructs plus {@code raise-error} (a core operation with no runtime implementation). {@code scheduler} is
-     * excluded (it is a source, resolved by the generic source path) as are {@code route}/{@code source} (internal {@code childs} markers, never user-authored).
+     * the descriptor as ground truth. The six multi-route/scope constructs plus {@code raise-error} (a core operation with no runtime implementation). {@code scheduler} is
+     * excluded (it is a source, resolved by the generic source path) as are {@code route}/{@code source} (internal {@code childs} markers, never user-authored). {@code async} was
+     * dropped here once mule-versionless master registered it ({@code build_async}, PRs #253/#305) — the runtime now implements the fire-and-forget scope.
      */
     private static final Set<String> CORE_UNSUPPORTED_BY_RUNTIME = Set.of(
-            "async", "first-successful", "parallel-foreach", "round-robin", "scatter-gather", "try", "until-successful", "raise-error");
+            "first-successful", "parallel-foreach", "round-robin", "scatter-gather", "try", "until-successful", "raise-error");
 
     /**
      * Namespace URI fragments owned by one of the five extended axes. A namespace matching one of these already has a dedicated owner, so the connector-switchability walk must not
@@ -153,7 +153,7 @@ public final class VersionlessValidatorCli {
         Optional<DwxCapabilityManifest> manifest = new StubRemoteDesignServiceClient().fetchDwxCapabilities();
         if (manifest.isEmpty()) {
             writeFailClosed(out, "DWX_MANIFEST_UNAVAILABLE: capability manifest could not be loaded");
-            summarize(null, out, "DWX_MANIFEST_UNAVAILABLE");
+            summarize(null, out, projectRoot, "DWX_MANIFEST_UNAVAILABLE");
             System.exit(1);
             return;
         }
@@ -172,7 +172,7 @@ public final class VersionlessValidatorCli {
         String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(reported);
         Files.writeString(out, json, StandardCharsets.UTF_8);
 
-        summarize(reported, out, null);
+        summarize(reported, out, projectRoot, null);
         // The gate: nonzero blockers ⇒ the switch is not safe. Exit 3 so a wrapper can branch on it without parsing JSON.
         System.exit(reported.getBlockerCount() > 0 ? 3 : 0);
     }
@@ -401,37 +401,158 @@ public final class VersionlessValidatorCli {
         Files.writeString(out, json, StandardCharsets.UTF_8);
     }
 
-    private static void summarize(ValidationResult result, Path out, String failureReason) {
+    private static void summarize(ValidationResult result, Path out, Path projectRoot, String failureReason) {
         System.out.println("Versionless switch validation");
         System.out.println("  report: " + out);
         if (failureReason != null) {
             System.out.println("  status: FAIL-CLOSED (" + failureReason + ")");
             return;
         }
-        int blockers = result.getBlockerCount();
-        List<Finding> findings = result.getFindings();
-        long infos = findings.stream().filter(f -> "INFO".equals(f.getSeverity())).count();
         System.out.println("  files scanned: " + result.getFilesScanned());
         System.out.println("  DW expressions scanned: " + result.getExpressionsScanned());
-        System.out.println("  BLOCK findings: " + blockers);
-        System.out.println("  INFO findings:  " + infos);
+        System.out.println("  blockers: " + result.getBlockerCount());
 
-        Map<String, int[]> byCategory = new TreeMap<>();
-        for (Finding f : findings) {
-            int[] counts = byCategory.computeIfAbsent(f.getCategory(), k -> new int[2]);
+        List<Finding> blockers = new ArrayList<>();
+        for (Finding f : result.getFindings()) {
             if ("BLOCK".equals(f.getSeverity())) {
-                counts[0]++;
-            } else {
-                counts[1]++;
+                blockers.add(f);
             }
         }
-        if (!byCategory.isEmpty()) {
-            System.out.println("  by axis (BLOCK/INFO):");
-            byCategory.forEach((cat, c) -> System.out.println("    " + cat + ": " + c[0] + "/" + c[1]));
+        if (blockers.isEmpty()) {
+            return;
         }
-        System.out.println("  verdict: " + (blockers > 0
-                ? "NOT SWITCHABLE — " + blockers + " blocker(s) must be resolved first"
-                : "SWITCHABLE — no blockers (review INFO notices)"));
+        // Sort by axis, then file, then line, so related blockers sit together in the table.
+        blockers.sort(Comparator.comparing(Finding::getCategory)
+                .thenComparing(VersionlessValidatorCli::fileNameOf)
+                .thenComparingInt(Finding::getStartLine));
+        printBlockerTable(blockers, projectRoot);
+    }
+
+    /** Longest the CODE cell renders before it is truncated with an ellipsis — keeps a wide DataWeave snippet from blowing out the terminal. */
+    private static final int MAX_CODE_WIDTH = 44;
+
+    /** Zero-based index of the CODE column in {@link #printBlockerTable} — the only unbounded cell, so the only one truncated (LOCATION must stay whole to point at the right line:col). */
+    private static final int CODE_COLUMN = 3;
+
+    /**
+     * Renders the BLOCK findings as a bordered fixed-width table. Columns: AXIS, SYMBOL (the offending construct/format/module),
+     * RULE (which check fired — distinguishes an unsupported writer from an unsupported module from an unsupported flow element),
+     * CODE (the source snippet, so a user can eyeball the directive — {@code output application/java} vs {@code import …} — without
+     * opening the file), and LOCATION (project-relative {@code path:line:col}, editor-navigable). INFO notices are intentionally omitted.
+     */
+    private static void printBlockerTable(List<Finding> blockers, Path projectRoot) {
+        String[] headers = {"AXIS", "SYMBOL", "RULE", "CODE", "LOCATION"};
+        List<String[]> rows = new ArrayList<>();
+        for (Finding f : blockers) {
+            rows.add(new String[] {
+                    f.getCategory(),
+                    f.getSymbol(),
+                    f.getRuleId(),
+                    snippetOf(f),
+                    locationOf(f, projectRoot),
+            });
+        }
+        int[] width = new int[headers.length];
+        for (int c = 0; c < headers.length; c++) {
+            width[c] = headers[c].length();
+        }
+        for (String[] row : rows) {
+            row[CODE_COLUMN] = truncate(row[CODE_COLUMN]);
+            for (int c = 0; c < width.length; c++) {
+                width[c] = Math.max(width[c], row[c].length());
+            }
+        }
+        String border = buildBorder(width);
+        System.out.println();
+        System.out.println(border);
+        System.out.println(formatRow(headers, width));
+        System.out.println(border);
+        for (String[] row : rows) {
+            System.out.println(formatRow(row, width));
+        }
+        System.out.println(border);
+    }
+
+    private static String formatRow(String[] cells, int[] width) {
+        StringBuilder line = new StringBuilder("|");
+        for (int c = 0; c < width.length; c++) {
+            line.append(' ').append(padRight(cells[c], width[c])).append(" |");
+        }
+        return line.toString();
+    }
+
+    private static String buildBorder(int[] width) {
+        StringBuilder line = new StringBuilder("+");
+        for (int w : width) {
+            line.append("-".repeat(w + 2)).append('+');
+        }
+        return line.toString();
+    }
+
+    private static String padRight(String value, int width) {
+        String safe = value == null ? "" : value;
+        return safe.length() >= width ? safe : safe + " ".repeat(width - safe.length());
+    }
+
+    /** A finding's source snippet, collapsed to one line (DataWeave snippets can span lines) so it fits one table row. The full text stays in the JSON report. */
+    private static String snippetOf(Finding finding) {
+        String snippet = finding.getSnippet();
+        if (snippet == null) {
+            return "";
+        }
+        return snippet.strip().replaceAll("\\s+", " ");
+    }
+
+    /** Caps a cell at {@link #MAX_CODE_WIDTH}, ellipsising the overflow; the untruncated value is always in the JSON report. */
+    private static String truncate(String value) {
+        String safe = value == null ? "" : value;
+        return safe.length() <= MAX_CODE_WIDTH ? safe : safe.substring(0, MAX_CODE_WIDTH - 1) + "…";
+    }
+
+    /**
+     * A finding's location as an editor-navigable {@code path:line:col}, with the path relative to the project root
+     * ({@code src/main/mule/errors.xml:290:15}) so files in subfolders are unambiguous. Falls back to the bare file name
+     * if the URI cannot be relativized. The full absolute URI is always in the JSON report.
+     */
+    private static String locationOf(Finding finding, Path projectRoot) {
+        String path = relativePathOf(finding, projectRoot);
+        if (path.isEmpty()) {
+            return "";
+        }
+        String location = path + ":" + finding.getStartLine();
+        if (finding.getStartColumn() >= 0) {
+            location += ":" + finding.getStartColumn();
+        }
+        return location;
+    }
+
+    /** The project-relative path of a finding's file (POSIX separators), or the bare file name if it is outside the project root / unparseable. */
+    private static String relativePathOf(Finding finding, Path projectRoot) {
+        String uri = finding.getFileUri();
+        if (uri == null || uri.isBlank()) {
+            return "";
+        }
+        try {
+            Path file = Path.of(URI.create(uri)).toAbsolutePath().normalize();
+            Path rel = projectRoot.relativize(file);
+            // A path that climbs out of the project root (starts with "..") is less useful than the bare name.
+            if (!rel.startsWith("..")) {
+                return rel.toString().replace(File.separatorChar, '/');
+            }
+        } catch (IllegalArgumentException e) {
+            // Not a parseable file: URI — fall through to the bare file name.
+        }
+        return fileNameOf(finding);
+    }
+
+    /** The file name (last path segment) of a finding's URI — used for sorting and as the relativization fallback. */
+    private static String fileNameOf(Finding finding) {
+        String uri = finding.getFileUri();
+        if (uri == null || uri.isBlank()) {
+            return "";
+        }
+        int slash = uri.lastIndexOf('/');
+        return slash >= 0 ? uri.substring(slash + 1) : uri;
     }
 
     private static void fail(String message) {

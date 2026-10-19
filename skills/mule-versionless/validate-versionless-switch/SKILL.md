@@ -87,13 +87,14 @@ reports and counts.
 
 - **Core constructs the runtime can't run (`flow`, BLOCK).** The versionless runtime
   builder implements only a subset of mule-core (`flow`, `sub-flow`, `flow-ref`,
-  `set-payload`/`set-variable`/`remove-variable`, `logger`, `foreach`, `choice`/`when`/
-  `otherwise`, the error-handler family). Constructs/operations the mule-core descriptor
-  lists but the runtime does **not** implement — `async`, `try`, `scatter-gather`,
-  `parallel-foreach`, `round-robin`, `first-successful`, `until-successful`, and
-  `raise-error` — are flagged `flow.element.unsupported`. (The guided walk reports the
-  **outermost** unsupported element and does not descend into it, so a `raise-error`
-  nested in a flagged `try` is covered once the `try` is resolved.)
+  `set-payload`/`set-variable`/`remove-variable`, `logger`, `foreach`, `async`,
+  `choice`/`when`/`otherwise`, the error-handler family). Constructs/operations the
+  mule-core descriptor lists but the runtime does **not** implement — `try`,
+  `scatter-gather`, `parallel-foreach`, `round-robin`, `first-successful`,
+  `until-successful`, and `raise-error` — are flagged `flow.element.unsupported`. (The
+  guided walk reports the **outermost** unsupported element and does not descend into
+  it, so a `raise-error` nested in a flagged `try` is covered once the `try` is
+  resolved.)
 - **Connector switchability (`connector`, INFO).** The versionless runtime has no
   offline connector registry, so whether a non-bundled connector is switchable can only
   be confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
@@ -193,9 +194,13 @@ findings on top of the default scope), add `--extended`:
 <skill-dir>/scripts/validate.sh <project-dir> --extended
 ```
 
-The stdout summary shows files scanned, DW expressions scanned, BLOCK/INFO totals,
-a per-axis breakdown, and the verdict. **Exit codes** (branch on these without
-parsing JSON):
+The stdout summary shows files scanned, DW expressions scanned, the blocker count,
+and — when there are blockers — a table of each blocker with five columns: **axis**,
+**symbol** (the offending construct/format/module), **rule** (which check fired —
+e.g. `dwx.writer.unsupported` vs `flow.element.unsupported`), **code** (the source
+snippet, truncated), and **location** (project-relative `path:line:col`, e.g.
+`src/main/mule/errors.xml:290:15`). INFO notices are not printed to stdout; they
+remain in `report.json`. Branch on the **exit code**, not the text:
 
 | Exit | Meaning |
 | --- | --- |
@@ -234,11 +239,16 @@ findings.)
 
 ### Step 4: Report to the user
 
-Lead with the **verdict and blocker count**. Then, grouped by axis, list each
-**BLOCK** with its `symbol`, `file:line`, and the one-line reason — these are what
-must change before the switch. Summarize the **INFO** notices separately as
-"will resolve differently but won't block". If the run **failed closed** (exit 1),
-say the app could not be validated and why; do not imply it is switchable.
+Lead with the **blocker count** (switchable only when it is 0). Then, grouped by
+axis, list each **BLOCK** with its `symbol`, `ruleId`, source `snippet`, and
+project-relative `path:line:col` — these are what gate the switch. Match the CLI's
+stdout table (axis / symbol / rule / code / location): blockers only.
+
+**Report blockers only. Do not add an "INFO notices" section and do not add a
+"Bottom line" / remediation / next-steps section.** INFO findings stay in
+`report.json`; surface them only if the user explicitly asks for the "resolves
+differently but won't block" detail. If the run **failed closed** (exit 1), say the
+app could not be validated and why; do not imply it is switchable.
 
 When the user is ready to actually perform the switch, hand off to
 **skill switch-classic-mule-to-versionless**.

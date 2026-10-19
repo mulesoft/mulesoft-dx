@@ -93,7 +93,7 @@
     {
       "name": "now",
       "systemSym": "system::now",
-      "supported": false
+      "supported": true
     },
     {
       "name": "props",
@@ -150,6 +150,7 @@
       "dw::meta::Component",
       "dw::util::Coercions",
       "dw::util::Diff",
+      "dw::util::Timer",
       "dw::util::Tree",
       "dw::util::Values",
       "dw::xml::Dtd"
@@ -162,8 +163,7 @@
       "dw::core::Dates",
       "dw::module::Mime",
       "dw::module::Multipart",
-      "dw::util::Math",
-      "dw::util::Timer"
+      "dw::util::Math"
     ]
   },
   "readers": {
@@ -217,6 +217,7 @@
     "supported": [
       "application/csv",
       "application/dw",
+      "application/java",
       "application/json",
       "application/octet-stream",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -250,7 +251,6 @@
       "application/avro",
       "application/dwb",
       "application/flatfile",
-      "application/java",
       "application/protobuf",
       "application/x-protobuf",
       "avro",

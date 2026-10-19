@@ -68,19 +68,38 @@ now runtime-supported and no longer pruned. Keep the on-disk file a verbatim go-
 copy — the prune lives in code, so a `cp` refresh stays safe.
 
 === DataWeave capability manifest override (rds-override/) ===
-rds-override/rds/dwx-capabilities.json — the ground-truth DataWeave capability manifest,
-copied verbatim from mule-versionless origin/master
-dwx-rust/capabilities/capability-manifest.json (commit d982842b, "dwx vendored blob",
-2026-08-26) — the manifest the versionless Rust DW engine generates for itself, so the most
-authoritative source. writers.supported=30, writers.unsupported=11; readers 30/11;
-application/java correctly in writers.unsupported (the Rust engine has no application/java
-writer — confirmed absent from every branch of both mule-versionless and rust-runtime). It
-overrides the STALE copy baked into mule-dx-mule-dev-plugin-all.jar, which wrongly lists
-application/java as a *supported* writer and so misses the `output application/java` BLOCKs
-the ACB wizard shows. (Earlier this override came from rust-runtime
-services/design-service/assets/dwx-capabilities.json at 20/18 writers; mule-versionless
-master is newer — 30 supported writers — and is the engine's own output, so it supersedes
-the rust-runtime copy.)
+rds-override/rds/dwx-capabilities.json — the DataWeave capability manifest the classifier reads.
+Base: mule-versionless origin/master dwx-rust/capabilities/capability-manifest.json (commit
+d982842b, "dwx vendored blob", 2026-08-26) — the manifest the versionless Rust DW engine
+generates for itself. writers.supported=31, writers.unsupported=10; readers 30/11; modules 16/8
+(counts reflect the three corrections below). It overrides the copy baked into
+mule-dx-mule-dev-plugin-all.jar via first-match-wins resource lookup.
+
+The two manifests disagree in BOTH directions; the override is right on balance:
+  - The baked copy is stale on data FORMATS — marks yaml / excel+xlsx / properties /
+    octet-stream / binary unsupported though the engine implements them, and conversely marks
+    avro/protobuf supported though it does not. The override (engine output) gets these right,
+    which is why it's load-bearing (it surfaces the `output application/java`-adjacent format
+    BLOCKs the ACB wizard shows and the baked copy misses).
+  - The generated manifest is itself wrong on THREE entries that the baked copy gets right. We
+    correct those by hand after each refresh (recipe + idempotent re-apply: docs/UPDATING.md §2b):
+      (1) native system::now  false -> supported. It IS registered in the runtime
+          (dw-runtime .../natives/core.rs: `fn now` + `"system::now" => now`); the generated
+          manifest predates that wiring.
+      (2) module dw::util::Timer  unsupported -> supported. Pure cascade of (1): its only
+          non-Null leaf is now().
+      (3) writer application/java  unsupported -> supported. application/java is the in-memory
+          Mule value representation, not a serialization format; the runtime never serializes it
+          (uses_format_writer() in dwx/src/dwx_evaluator.rs returns false -> passthrough via
+          evaluate_value_with_metadata), so the engine's writer-probe reports a false
+          NotImplemented. The application/java READER stays unsupported (no such reader exists),
+          as does the short `java` writer token.
+Without (1)-(3) the aaa-template fixture regains two false-positive BLOCKs
+(dw::util::Timer, output application/java) and five `now` INFO findings.
+
+(Earlier this override came from rust-runtime services/design-service/assets/dwx-capabilities.json
+at 20/18 writers; mule-versionless master is newer and is the engine's own output, so it
+supersedes the rust-runtime copy.)
 
 The Java deserializer (DwxCapabilityManifest) reads only natives/modules/readers/writers;
 the manifest's other keys (unsupportedFunctions/argumentConstraints/blockingConstructs) are
@@ -89,6 +108,8 @@ ignored by Gson, so the richer master schema is drop-in compatible.
 The StubRemoteDesignServiceClient loads it by classloader resource name
 "rds/dwx-capabilities.json" (first-match-wins), so scripts/validate.sh prepends this dir to
 the classpath (CP="${SKILL_DIR}/rds-override:${LIB}/*") and it wins over the plugin jar.
-This is a loose-override to avoid a 91MB plugin rebuild; the right long-term fix is to
-refresh the manifest baked into the plugin jar and drop this dir. The manifest has no
+This is a loose-override to avoid a 91MB plugin rebuild; the right long-term fix is upstream —
+once the engine's generated manifest marks system::now supported (cascading to Timer) and treats
+the application/java writer as the passthrough it is, both the correction step and this whole dir
+can be dropped (the baked plugin manifest is already correct on those three). The manifest has no
 version field, so ValidationResult.manifestVersion is null (ground truth, not a defect).

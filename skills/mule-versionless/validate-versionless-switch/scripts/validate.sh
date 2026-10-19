@@ -99,9 +99,9 @@ if [ ! -f "${LIB}/versionless-validator-cli.jar" ]; then
 fi
 
 # rds-override/ first so its rds/dwx-capabilities.json wins the stub's first-match-wins
-# classloader lookup over the stale copy baked into the plugin jar (ground truth: application/java
-# is an UNSUPPORTED DataWeave writer — see PROVENANCE.txt). Literal lib/* — the JVM expands the
-# classpath wildcard, so it must NOT be shell-globbed.
+# classloader lookup over the copy baked into the plugin jar, which is stale on data formats
+# (yaml/excel/properties/binary/octet-stream) — see PROVENANCE.txt and docs/UPDATING.md §2b.
+# Literal lib/* — the JVM expands the classpath wildcard, so it must NOT be shell-globbed.
 CP="${SKILL_DIR}/rds-override:${LIB}/*"
 
 # The plugin jar bundles a log4j2.xml whose File appender writes to

@@ -281,10 +281,14 @@ plugin jar. Exit 1 means neither was readable — the override file is missing/c
 *and* the `lib/` plugin jar is corrupt or truncated. Re-copy the bundle (see
 `docs/UPDATING.md`).
 
-**Expected `output application/java` BLOCKs don't appear:** the `rds-override/` dir is
-not first on the classpath, so the stub loaded the stale manifest baked into the plugin
-jar (which wrongly lists `application/java` as a supported writer). Confirm
-`scripts/validate.sh` sets `CP="${SKILL_DIR}/rds-override:${LIB}/*"` (override first).
+**Expected data-format writer BLOCKs don't appear** (e.g. `output application/yaml`,
+`output application/xlsx`, `output text/x-java-properties`): the `rds-override/` dir is
+not first on the classpath, so the stub loaded the manifest baked into the plugin jar,
+which is stale on data formats (marks these writers supported though the versionless
+engine does not implement them). Confirm `scripts/validate.sh` sets
+`CP="${SKILL_DIR}/rds-override:${LIB}/*"` (override first). Note `output application/java`
+is *not* such a case — it is a passthrough value, not a serialized format, and correctly
+produces no BLOCK (see PROVENANCE.txt, override correction (3)).
 
 **Lots of unexpected `flow.element.unsupported` BLOCKs:** the bundled `dsl/`
 descriptors are older/newer than the runtime you are targeting. Refresh them from

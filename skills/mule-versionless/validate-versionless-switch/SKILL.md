@@ -304,7 +304,9 @@ standalone `slf4j-api` jar could.
 ## Related Skills
 
 - **skill switch-classic-mule-to-versionless**: perform the switch (writes
-  `project-manifest.json`, moves connectors) — run *after* this validator reports
-  zero blockers.
+  `project-manifest.json`, moves connectors). It runs *this* validator as its Step 2
+  switchability gate and refuses to switch while any blocker remains, so switching
+  implies validating. Use this validate skill on its own for a pre-check *without*
+  switching.
 - **skill build-run-versionless-app**: build and run a versionless app end-to-end.
 - **skill upgrade-mule-app**: upgrade connector/runtime versions and Java compatibility.

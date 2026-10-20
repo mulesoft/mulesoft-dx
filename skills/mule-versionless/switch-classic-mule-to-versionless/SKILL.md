@@ -149,8 +149,8 @@ given in the "skill is now active" message — do not construct relative
    never edit a parent POM automatically.
 4. **Confirm before writing** (see the gate in Step 4).
 5. **Validate before switching.** Never write the manifest or edit the pom while the
-   switch validator reports blockers (Step 2, run with `--extended`). Switching a
-   non-switchable app produces a versionless project that fails to build or deploys
+   switch validator reports blockers (Step 2, which gates on all seven axes). Switching
+   a non-switchable app produces a versionless project that fails to build or deploys
    broken. The only way past a blocker is to fix it in the app, or an explicit user
    override — never a silent skip.
 
@@ -164,11 +164,12 @@ not, tell the user this is not a Mule application root and stop.
 
 Before planning any change, run the read-only switch validator from the sibling
 `validate-versionless-switch` skill. It is the same seven-axis check the Anypoint
-Code Builder "Upgrade to Versionless" wizard runs, and it never edits the app. Gate
-on the **full** axis set with `--extended` (see the scope note below for why):
+Code Builder "Upgrade to Versionless" wizard runs, and it never edits the app. The
+validator reports and gates on the **full** seven-axis set by default (see the scope
+note below for why):
 
 ```bash
-<validate-skill-dir>/scripts/validate.sh <projectDir> --extended --out /tmp/<app>-switch-gate.json
+<validate-skill-dir>/scripts/validate.sh <projectDir> --out /tmp/<app>-switch-gate.json
 ```
 
 `<validate-skill-dir>` is the sibling skill folder (…/mule-versionless/`validate-versionless-switch`).
@@ -181,22 +182,28 @@ Branch on the **exit code** — do not parse the text:
 | `1` | FAIL-CLOSED — validator could not run (manifest unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
 | `2` | usage error (bad project dir) | Fix the path and re-run. |
 
-**Why `--extended` and not the wizard's default scope.** The ACB wizard gates on
+**Why gate on all seven axes, not the wizard's three.** The ACB wizard gates on
 `dataweave` + `flow` + `connector` only, treating `config`/`security`/`state`/`project`
 as *advisory* — because online it has platform fallbacks (RDS, the mesh/gateway that
 terminates TLS and runs policies). **This skill switches offline**, with no such
-fallback, so those four axes are genuine deploy/runtime failures here, not advisory:
+fallback, so those four axes are genuine deploy/runtime failures here, not advisory —
+empirically confirmed by driving each construct through the real versionless runtime
+builder:
 
 - An unsupported construct **inside a flow** fails the versionless build outright
-  (`collect_chain` rejects it — *"unexpected child: expected Processor"*).
-- An unsupported **top-level** config (`<tls:context>`, `<secure-properties:config>`)
-  is **silently dropped** by the builder — the capability just disappears, so mutual
-  TLS / secret decryption stops happening with no error.
+  (`BuildError::UnexpectedChild` — *"expected Source|Processor|ErrorHandler"*).
+- An unsupported **top-level** config (`<tls:context>`, `<secure-properties:config>`,
+  `<os:object-store>`) is **silently dropped** by the builder — the capability just
+  disappears, so mutual TLS / secret decryption / object-store writes stop happening
+  with no error.
 - A `${secure::…}` reference has no decryption subsystem; resolution fails with
-  *"property '…' was not found"*.
+  `PropertyError::Missing` (*"property '…' was not found"*).
 
-Gating on `--extended` therefore blocks an app that would compile-fail or deploy
-broken. This is deliberately **stricter than the ACB wizard**.
+The validator reports all seven axes by default, so a plain run blocks an app that
+would compile-fail or deploy broken. This is deliberately **stricter than the ACB
+wizard**. (The legacy `--extended` flag is still accepted but now a no-op — seven-axis
+scope is the default — so an older gate invocation that passes it still behaves
+identically.)
 
 **`.properties` config files do not block.** The versionless runtime loads both `.yaml`
 and `.properties` (full Java-properties parity, mule-versionless PR #124), so a

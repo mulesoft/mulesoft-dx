@@ -50,6 +50,21 @@ versionless-validator-cli.jar     the headless entry point (VersionlessValidator
                                   src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
                                   above and packaged as its own jar. First-party skill code — not part
                                   of the plugin — so it ships separately. Rebuild recipe: docs/UPDATING.md.
+                                  NOTE (2026-10-19): report scope collapsed to all seven axes by default.
+                                  The CLI no longer post-filters findings to a three-axis default
+                                  (dataweave/flow/connector) — assembleReport now reports every category and
+                                  counts blockerCount across all of them, deliberately stricter than the ACB
+                                  wizard (which gates on those three and treats config/project/security/state
+                                  as advisory via online platform fallbacks). Rationale is empirical: each
+                                  extended-axis BLOCK was confirmed a genuine versionless-runtime failure by
+                                  driving the ext-axis-probe fixture through the real builder
+                                  (parser::parse_str -> build_artifact with register_all) — in-flow unsupported
+                                  op -> BuildError::UnexpectedChild; top-level tls:context/secure-properties:config/
+                                  os:object-store -> silent capability drop; ${secure::...} -> PropertyError::Missing.
+                                  The --extended flag is retained (accepted, parsed) but is now a no-op; the
+                                  DEFAULT_CATEGORIES constant was removed. Rebuilt from src/ against the same
+                                  plugin jar (no plugin/axis change). Verified E2E: ext-axis-probe reports 4
+                                  blockers in default scope, byte-identical with --extended; a clean app exits 0.
 mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider,
                                   EmbeddedContentExtractor (the DataWeave axis's ctor needs it),
                                   AND, being itself shaded, gson + lsp4j + maven-model + slf4j.

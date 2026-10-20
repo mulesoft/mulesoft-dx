@@ -15,8 +15,8 @@
 #   <project-dir>   project root (the directory containing pom.xml and src/main/mule)
 #   --out           report path (default: <project-dir>/<app>-versionless-switch-report.json)
 #   --dsl-dir       connector descriptor dir, <name>/dsl.json (default: bundled dsl/)
-#   --extended      report all seven axes (default: DataWeave + flow + connector only,
-#                   matching what the ACB switch wizard surfaces)
+#   --extended      accepted but a no-op — all seven axes report by default now.
+#                   Retained so older callers/scripts that pass it don't error.
 #
 # Exit codes mirror the CLI: 0 switchable, 3 blockers present, 1 fail-closed
 # (capability manifest unavailable), 2 usage error.

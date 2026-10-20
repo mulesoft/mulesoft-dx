@@ -61,36 +61,42 @@ build-run-versionless-app**; or to upgrade connector/runtime **versions** →
 Given a Mule 4 project root (a directory with `pom.xml` and `src/main/mule`), it
 runs all seven switch-compatibility axes and emits a report:
 
-| Axis | Category | Default? | Flags (examples) |
+| Axis | Category | Can BLOCK? | Flags (examples) |
 | --- | --- | --- | --- |
 | DataWeave | `dataweave` | ✅ | DW script constructs the versionless engine's capability manifest does not support |
 | Flow / core | `flow` | ✅ | connector operations/sources and core constructs absent from the versionless runtime descriptors |
 | Connector switchability | `connector` | ✅ | `<os:*>` Object Store and OAuth authorization-code grants (BLOCK — store-backed connector state the versionless runtime silently drops); plus any non-bundled connector namespace whose switchability is confirmable only against RDS at switch time (INFO) |
-| Config & secrets | `config` | `--extended` | `${secure::…}` / `<secure-properties:config>` (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
-| Project shape | `project` | `--extended` | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
-| Security | `security` | `--extended` | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
-| DX notices | `devx` | `--extended` | MUnit, custom `log4j2.xml`, `<tracking:*>`, `<notifications>`, OpenTelemetry, explicit streaming (INFO-only, never blocks) |
-| Data & state | `state` | `--extended` | `<redelivery-policy>`, `<idempotent-message-validator>` (core-namespace store-backed constructs; `<os:*>` and OAuth-managed configs are connectors and report under the `connector` axis above) |
+| Config & secrets | `config` | ✅ | `${secure::…}` / `<secure-properties:config>` (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
+| Project shape | `project` | ✅ | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
+| Security | `security` | ✅ | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
+| DX notices | `devx` | INFO only | MUnit, custom `log4j2.xml`, `<tracking:*>`, `<notifications>`, OpenTelemetry, explicit streaming (never blocks) |
+| Data & state | `state` | ✅ | `<redelivery-policy>`, `<idempotent-message-validator>` (core-namespace store-backed constructs; `<os:*>` and OAuth-managed configs are connectors and report under the `connector` axis above) |
 
 Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 **INFO** (resolves differently but still runs). The switch is **safe only when
 `blockerCount` is 0**.
 
-**Default scope mirrors the wizard.** By default the report (and `blockerCount`)
-covers the three categories the ACB "Upgrade to Versionless" switch gate surfaces —
-`dataweave`, `flow`, and `connector`. Pass **`--extended`** to add the other five
-axes (`config`, `project`, `security`, `devx`, `state`). The validator always runs
-all seven internally; `--extended` only widens what the CLI reports and counts.
+**All seven axes report by default — stricter than the wizard, by design.** The CLI
+reports every category and counts `blockerCount` across all of them. This is
+deliberately stricter than the ACB "Upgrade to Versionless" wizard, which gates on
+`dataweave` + `flow` + `connector` only and treats `config`/`project`/`security`/`state`
+as *advisory* — because, running **online**, the wizard has platform fallbacks (RDS,
+the mesh/gateway that terminates TLS and runs policies). This skill validates an
+**offline** switch, where there is no such fallback, so those axes are genuine
+build/deploy failures and must gate.
 
-The wizard treats those five as *advisory* because, running **online**, it has
-platform fallbacks (RDS, the mesh/gateway that terminates TLS and runs policies). For
-an **offline** switch there is no such fallback, so the `config`/`security`/`state`/`project`
-BLOCKs are genuine build/deploy failures — an unsupported construct inside a flow
-fails the versionless build (`collect_chain` → *"unexpected child: expected Processor"*),
-and an unsupported top-level config (`<tls:context>`, `<secure-properties:config>`) is
-silently dropped so the capability just disappears. Run with `--extended` when the goal
-is to decide whether an app will actually deploy versionless (this is what the sibling
-switch skill's gate does).
+That the extended axes are real runtime failures (not advisory) is empirically
+confirmed against the versionless runtime builder: an unsupported construct **inside a
+flow** fails the build (`BuildError::UnexpectedChild` — *"expected Source|Processor|ErrorHandler"*),
+an unsupported **top-level** config (`<tls:context>`, `<secure-properties:config>`,
+`<os:object-store>`) is **silently dropped** so the capability just disappears, and a
+`${secure::…}` reference resolves to `PropertyError::Missing`. (`devx` is the lone
+INFO-only axis — it never blocks.)
+
+**`--extended` is accepted but is now a no-op.** It is retained for backward
+compatibility (older scripts/callers may still pass it); its former behavior —
+widening the report from three axes to seven — is now the default, so passing it
+changes nothing.
 
 **`.properties` config files are *not* flagged.** The versionless runtime loads both
 `.yaml` and `.properties` (full Java-properties parity, mule-versionless PR #124), so a
@@ -119,8 +125,7 @@ current bundle.)
     config) live in connector namespaces and depend on persistent state the versionless
     runtime does not yet provide — the store is a no-op, so the write/token silently
     vanishes. These are a *known* incompatibility, so they BLOCK and count toward
-    `blockerCount` (one owner: the data-integrity checker). Unlike the rest of the axis
-    they surface in **default** scope, not just `--extended`.
+    `blockerCount` (one owner: the data-integrity checker).
   - **Non-bundled connector namespaces (INFO).** The runtime has no offline connector
     registry, so whether any *other* non-bundled connector is switchable can only be
     confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
@@ -171,7 +176,7 @@ location, so it works from any CWD.
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]` | Run the switch axes; write the JSON report; print the summary. Default scope = `dataweave` + `flow` + `connector` (what the wizard surfaces); `--extended` adds the other five axes. |
+| `scripts/validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]` | Run all seven switch axes; write the JSON report; print the summary. `--extended` is accepted but a no-op (all axes report by default). |
 
 ## Workflow
 
@@ -214,13 +219,13 @@ collected reports stay distinguishable). Pass `--out <path>` to write elsewhere
 <skill-dir>/scripts/validate.sh <project-dir> --out /tmp/<app>-switch-report.json
 ```
 
-For the full seven-axis picture — adding config/project/security/devx/state, whose
-BLOCK findings the wizard treats as advisory but which are real build/deploy failures
-for an offline switch (see the scope note above; `devx` is INFO-only and never blocks) —
-add `--extended`:
+The report always covers all seven axes (config/project/security/devx/state included —
+the wizard treats their BLOCKs as advisory, but they are real build/deploy failures for
+an offline switch; see the scope note above; `devx` is INFO-only and never blocks). The
+legacy `--extended` flag is accepted for backward compatibility but has no effect:
 
 ```bash
-<skill-dir>/scripts/validate.sh <project-dir> --extended
+<skill-dir>/scripts/validate.sh <project-dir> --extended   # same result as without it
 ```
 
 The stdout summary shows files scanned, DW expressions scanned, the blocker count,

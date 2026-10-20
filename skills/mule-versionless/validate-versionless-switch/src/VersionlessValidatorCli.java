@@ -44,11 +44,15 @@ import org.mule.contribution.internal.project.VersionlessValidator;
  * This mirrors what {@code DefaultProjectPropertiesService.validate} does inside the LSP server, minus Guice/registry wiring: it is the headless form the skill invokes.
  *
  * <p>
- * Two things this CLI layers on top of the raw validator, both to match what the ACB "Upgrade to Versionless" wizard surfaces:
+ * Two things this CLI layers on top of the raw validator:
  * <ul>
- * <li><b>Default scope.</b> The wizard's switch gate shows DataWeave + flow findings only; the other five axes are advisory. Without {@code --extended} the CLI reports only the
- * {@code dataweave}, {@code flow}, and {@code connector} categories and recomputes {@code blockerCount} from them (the validator has no axis-selection API, so this is a
- * post-filter over an immutable {@link ValidationResult}).</li>
+ * <li><b>Report scope: all seven axes, always.</b> The CLI reports every category the validator produces ({@code dataweave}, {@code flow}, {@code connector}, {@code config},
+ * {@code security}, {@code project}, {@code devx}, {@code state}) and counts {@code blockerCount} across all of them. This is deliberately <em>stricter</em> than the ACB
+ * "Upgrade to Versionless" wizard, which gates on DataWeave + flow + connector only and treats the rest as advisory: online the wizard has platform fallbacks (RDS, the
+ * mesh/gateway that terminates TLS and runs policies), but this CLI validates an <em>offline</em> switch where those axes are genuine build/deploy failures. Empirically against
+ * the versionless runtime builder: an unsupported in-flow construct fails the build ({@code BuildError::UnexpectedChild}); an unsupported top-level config ({@code <tls:context>},
+ * {@code <secure-properties:config>}, {@code <os:object-store>}) is silently dropped so the capability vanishes; a {@code ${secure::…}} reference resolves to {@code PropertyError::Missing}.
+ * {@code --extended} is accepted for backward compatibility but is now a no-op — its former behavior (widening from three axes to seven) is the default.</li>
  * <li><b>Connector switchability ({@code connector}, INFO).</b> The versionless runtime has no offline connector registry, so whether a connector is switchable can only be
  * confirmed by RDS at switch time. Headlessly the CLI can only observe which element namespaces have no bundled descriptor and are not core/ee/apikit (runtime-supported without
  * one) nor owned by another axis — it emits one INFO per such namespace, never a fabricated BLOCK.</li>
@@ -63,9 +67,6 @@ import org.mule.contribution.internal.project.VersionlessValidator;
 public final class VersionlessValidatorCli {
 
     private static final String MULE_SOURCE_RELATIVE_PATH = "src/main/mule";
-
-    /** Categories the switch gate surfaces by default (what the ACB wizard shows); {@code --extended} keeps all seven. */
-    private static final Set<String> DEFAULT_CATEGORIES = Set.of("dataweave", "flow", "connector");
 
     private static final String CORE_NS_URI = "http://www.mulesoft.org/schema/mule/core";
 
@@ -112,7 +113,6 @@ public final class VersionlessValidatorCli {
         Path projectRoot = Path.of(args[0]).toAbsolutePath().normalize();
         Path dslDir = null;
         Path out = null;
-        boolean extended = false;
         for (int i = 1; i < args.length; i++) {
             switch (args[i]) {
                 case "--dsl-dir":
@@ -128,7 +128,8 @@ public final class VersionlessValidatorCli {
                     out = Path.of(args[i]).toAbsolutePath().normalize();
                     break;
                 case "--extended":
-                    extended = true;
+                    // Retained for backward compatibility (callers/scripts may still pass it); the CLI now
+                    // reports all seven axes unconditionally, so this is accepted but has no effect — see assembleReport.
                     break;
                 default:
                     fail("unknown argument: " + args[i]);
@@ -168,7 +169,7 @@ public final class VersionlessValidatorCli {
         // no bundled descriptor and no other axis owner. It is a `connector`-category finding, so it survives the default filter.
         List<Finding> connectorInfos = connectorSwitchabilityInfos(muleSourceRoot, knownNamespaces);
 
-        ValidationResult reported = assembleReport(result, connectorInfos, extended);
+        ValidationResult reported = assembleReport(result, connectorInfos);
 
         String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(reported);
         Files.writeString(out, json, StandardCharsets.UTF_8);
@@ -179,21 +180,15 @@ public final class VersionlessValidatorCli {
     }
 
     /**
-     * Builds the {@link ValidationResult} the CLI reports: the raw validator findings plus the connector INFOs, filtered to the default categories unless {@code --extended}, with
-     * {@code blockerCount} recomputed from the retained set (the validator's own count covers all seven axes).
+     * Builds the {@link ValidationResult} the CLI reports: the raw validator findings plus the connector INFOs, across all seven axes, with {@code blockerCount} recomputed from the
+     * full set. The validator's own {@code blockerCount} already covers all seven, but the connector INFOs are CLI-side additions, so the count is recomputed to include them.
      */
-    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorInfos, boolean extended) {
+    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorInfos) {
         List<Finding> all = new ArrayList<>(raw.getFindings());
         all.addAll(connectorInfos);
 
-        List<Finding> retained = new ArrayList<>();
-        for (Finding f : all) {
-            if (extended || DEFAULT_CATEGORIES.contains(f.getCategory())) {
-                retained.add(f);
-            }
-        }
-        int blockerCount = (int) retained.stream().filter(f -> "BLOCK".equals(f.getSeverity())).count();
-        return new ValidationResult(raw.isSuccess(), retained, raw.getFilesScanned(), raw.getExpressionsScanned(),
+        int blockerCount = (int) all.stream().filter(f -> "BLOCK".equals(f.getSeverity())).count();
+        return new ValidationResult(raw.isSuccess(), all, raw.getFilesScanned(), raw.getExpressionsScanned(),
                 blockerCount, raw.getManifestVersion(), raw.getFailureReason());
     }
 

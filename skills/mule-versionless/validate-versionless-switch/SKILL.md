@@ -65,12 +65,12 @@ runs all seven switch-compatibility axes and emits a report:
 | --- | --- | --- | --- |
 | DataWeave | `dataweave` | ✅ | DW script constructs the versionless engine's capability manifest does not support |
 | Flow / core | `flow` | ✅ | connector operations/sources and core constructs absent from the versionless runtime descriptors |
-| Connector switchability | `connector` | ✅ | element namespaces with no bundled descriptor (switchability confirmable only against RDS at switch time) — INFO, never a BLOCK |
-| Config & secrets | `config` | `--extended` | `${secure::…}` / `<secure-properties:config>`, `.properties` config files (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
+| Connector switchability | `connector` | ✅ | `<os:*>` Object Store and OAuth authorization-code grants (BLOCK — store-backed connector state the versionless runtime silently drops); plus any non-bundled connector namespace whose switchability is confirmable only against RDS at switch time (INFO) |
+| Config & secrets | `config` | `--extended` | `${secure::…}` / `<secure-properties:config>` (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
 | Project shape | `project` | `--extended` | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
 | Security | `security` | `--extended` | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
 | DX notices | `devx` | `--extended` | MUnit, custom `log4j2.xml`, `<tracking:*>`, `<notifications>`, OpenTelemetry, explicit streaming (INFO-only, never blocks) |
-| Data & state | `state` | `--extended` | `<os:*>` object store, `<redelivery-policy>`, `<idempotent-message-validator>`, OAuth-managed configs |
+| Data & state | `state` | `--extended` | `<redelivery-policy>`, `<idempotent-message-validator>` (core-namespace store-backed constructs; `<os:*>` and OAuth-managed configs are connectors and report under the `connector` axis above) |
 
 Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 **INFO** (resolves differently but still runs). The switch is **safe only when
@@ -79,9 +79,26 @@ Each finding is **BLOCK** (gates the switch — counts toward `blockerCount`) or
 **Default scope mirrors the wizard.** By default the report (and `blockerCount`)
 covers the three categories the ACB "Upgrade to Versionless" switch gate surfaces —
 `dataweave`, `flow`, and `connector`. Pass **`--extended`** to add the other five
-axes (`config`, `project`, `security`, `devx`, `state`) as advisory findings. The
-validator always runs all seven internally; `--extended` only widens what the CLI
-reports and counts.
+axes (`config`, `project`, `security`, `devx`, `state`). The validator always runs
+all seven internally; `--extended` only widens what the CLI reports and counts.
+
+The wizard treats those five as *advisory* because, running **online**, it has
+platform fallbacks (RDS, the mesh/gateway that terminates TLS and runs policies). For
+an **offline** switch there is no such fallback, so the `config`/`security`/`state`/`project`
+BLOCKs are genuine build/deploy failures — an unsupported construct inside a flow
+fails the versionless build (`collect_chain` → *"unexpected child: expected Processor"*),
+and an unsupported top-level config (`<tls:context>`, `<secure-properties:config>`) is
+silently dropped so the capability just disappears. Run with `--extended` when the goal
+is to decide whether an app will actually deploy versionless (this is what the sibling
+switch skill's gate does).
+
+**`.properties` config files are *not* flagged.** The versionless runtime loads both
+`.yaml` and `.properties` (full Java-properties parity, mule-versionless PR #124), so a
+`<configuration-properties file="…​.properties">` is fully supported and never blocks —
+it is treated identically to a `.yaml` file. (An earlier bundled jar carried a stale
+`config.properties.unsupported` BLOCK on the false premise the runtime "loads YAML only";
+that rule was removed upstream in `mule-dx-mule-dev-component` and is gone from the
+current bundle.)
 
 **Two signals the CLI adds on top of the raw axes:**
 
@@ -95,19 +112,29 @@ reports and counts.
   guided walk reports the **outermost** unsupported element and does not descend into
   it, so a `raise-error` nested in a flagged `try` is covered once the `try` is
   resolved.)
-- **Connector switchability (`connector`, INFO).** The versionless runtime has no
-  offline connector registry, so whether a non-bundled connector is switchable can only
-  be confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
-  that has no bundled descriptor and is not core/ee/apikit (runtime-supported without
-  one) nor owned by another axis (`tls`, `os`, `secure-properties`, …). It is **never a
-  BLOCK** — a missing descriptor is not proof of incompatibility.
+- **Connector switchability (`connector`).** Two kinds of connector finding share this
+  axis:
+  - **Store-backed connector state (BLOCK).** `<os:*>` Object Store elements and OAuth
+    authorization-code grants (`<oauth:*>` or a connector `*oauth*authorization-code`
+    config) live in connector namespaces and depend on persistent state the versionless
+    runtime does not yet provide — the store is a no-op, so the write/token silently
+    vanishes. These are a *known* incompatibility, so they BLOCK and count toward
+    `blockerCount` (one owner: the data-integrity checker). Unlike the rest of the axis
+    they surface in **default** scope, not just `--extended`.
+  - **Non-bundled connector namespaces (INFO).** The runtime has no offline connector
+    registry, so whether any *other* non-bundled connector is switchable can only be
+    confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
+    that has no bundled descriptor and is not core/ee/apikit (runtime-supported without
+    one), not owned by another axis (`tls`, `secure-properties`, …), and not already a
+    BLOCK above (`os`, `oauth`). A missing descriptor is *not* proof of incompatibility,
+    so these never BLOCK.
 
 ## What's bundled
 
 | Path | What | Why |
 | --- | --- | --- |
 | `lib/*.jar` | the validator runtime classpath (5 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. The plugin jar shades all seven switch axes; the CLI jar is the headless entry point. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
-| `rds-override/rds/dwx-capabilities.json` | ground-truth DataWeave capability manifest, prepended to the classpath | the copy baked into the plugin jar is stale (it lists `application/java` as a *supported* writer); the override is the runtime's own manifest where `application/java` is correctly unsupported, so the DataWeave axis flags `output application/java` as the wizard does (see `PROVENANCE.txt`) |
+| `rds-override/rds/dwx-capabilities.json` | DataWeave capability manifest, prepended to the classpath | the copy baked into the plugin jar is stale on data formats (marks `yaml`/`excel`/`properties`/`octet-stream`/`binary` writers unsupported though the engine implements them); the override is the engine's own generated manifest, corrected on three entries the generator gets wrong (`system::now`, `dw::util::Timer`, the `application/java` passthrough writer). See `PROVENANCE.txt` and `docs/UPDATING.md` §2b |
 | `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth). The CLI prunes the mule-core constructs the versionless runtime does not implement before the flow axis runs |
 | `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input for `versionless-validator-cli.jar` (see `docs/UPDATING.md`) |
 
@@ -187,8 +214,10 @@ collected reports stay distinguishable). Pass `--out <path>` to write elsewhere
 <skill-dir>/scripts/validate.sh <project-dir> --out /tmp/<app>-switch-report.json
 ```
 
-For the full seven-axis picture (config/project/security/devx/state as advisory
-findings on top of the default scope), add `--extended`:
+For the full seven-axis picture — adding config/project/security/devx/state, whose
+BLOCK findings the wizard treats as advisory but which are real build/deploy failures
+for an offline switch (see the scope note above; `devx` is INFO-only and never blocks) —
+add `--extended`:
 
 ```bash
 <skill-dir>/scripts/validate.sh <project-dir> --extended

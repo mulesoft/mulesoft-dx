@@ -80,16 +80,17 @@ public final class VersionlessValidatorCli {
             "first-successful", "parallel-foreach", "round-robin", "scatter-gather", "try", "until-successful", "raise-error");
 
     /**
-     * Namespace URI fragments owned by one of the five extended axes. A namespace matching one of these already has a dedicated owner, so the connector-switchability walk must not
-     * also report it (one owner per concern). core/ee/apikit are handled separately because they are runtime-supported with no bundled descriptor.
+     * Namespace URI fragments that already have a dedicated checker owner, so the connector-switchability walk must not also report them (one owner per concern). core/ee/apikit are
+     * handled separately because they are runtime-supported with no bundled descriptor. {@code os}/{@code oauth} are connector namespaces, but the data-integrity checker already
+     * emits a {@code connector}-category BLOCK for them (a known incompatibility, not an unverifiable one) — excluding them here keeps that single owner.
      */
     private static final List<String> EXTENDED_AXIS_NS_FRAGMENTS = List.of(
             "schema/mule/secure-properties", // config axis
             "schema/mule/tls",               // security axis
             "schema/mule/api-gateway",       // security axis
             "schema/mule/http-policy",       // security axis
-            "schema/mule/os",                // state axis
-            "schema/mule/oauth",             // state axis
+            "schema/mule/os",                // connector (data-integrity checker: connector.objectStore.unsupported BLOCK)
+            "schema/mule/oauth",             // connector (data-integrity checker: connector.oauth.unsupported BLOCK)
             "schema/mule/tracking",          // devx axis
             "schema/mule/opentelemetry");    // devx axis
 

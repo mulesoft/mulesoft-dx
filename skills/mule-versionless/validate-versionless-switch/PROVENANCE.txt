@@ -16,6 +16,36 @@ mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component @ chore/maven-build
                                   feat/versionless-switch-compat-axes (VersionlessValidator orchestrator
                                   + the five *compat/ dirs). Rebuild this jar from that SHA; the branch
                                   is not yet merged upstream.
+                                  NOTE (2026-10-19): the bundled jar (sha256 07c03ab2…,
+                                  91,366,082 bytes) is a genuine fresh
+                                  `gradlew :mule-dx-mule-dev-plugin:shadowJar` build — NOT a class
+                                  patch — carrying two fixes on top of e009aee:
+                                    (1) configcompat — ConfigSecretsCompatibilityChecker no longer flags
+                                        <configuration-properties file="x.properties"> (the versionless
+                                        runtime loads both .yaml and .properties since mule-versionless
+                                        PR #124; the old config.properties.unsupported BLOCK was a stale
+                                        false positive). Shaded rule ids: config.secure.unsupported,
+                                        config.prefix.dispatcher, config.properties.dynamicName,
+                                        config.properties.multiple, config.globalProperty.notice — and
+                                        no config.properties.unsupported.
+                                    (2) statecompat — DataIntegrityCompatibilityChecker now classifies
+                                        <os:*> Object Store and OAuth authorization-code grants under the
+                                        CONNECTOR category (rule ids connector.objectStore.unsupported,
+                                        connector.oauth.unsupported), since they live in connector
+                                        namespaces. They remain BLOCK and, because `connector` is in the
+                                        CLI's DEFAULT_CATEGORIES, now surface in default scope (no
+                                        --extended) — a deliberate divergence from the ACB wizard, which
+                                        treats these as advisory. redelivery-policy and
+                                        idempotent-message-validator are core-namespace constructs, not
+                                        connectors, so they keep the state category (state.redelivery.
+                                        unsupported, state.idempotent.unsupported) and stay
+                                        --extended-only.
+                                  The mule-dx-platform:5.19.0-SNAPSHOT the shadowJar bundles (runtimeOnly)
+                                  can no longer be re-resolved from Nexus (401 online, timestamp mapping
+                                  gone offline), so the already-cached platform jar+pom were installed into
+                                  mavenLocal() — which build.gradle lists as a repository — letting the
+                                  real shadowJar resolve it offline. All 8 tests pass via `gradlew :…:test`
+                                  (5 configcompat + 3 statecompat).
 versionless-validator-cli.jar     the headless entry point (VersionlessValidatorCli), compiled from
                                   src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
                                   above and packaged as its own jar. First-party skill code — not part

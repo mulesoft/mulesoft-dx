@@ -52,8 +52,12 @@ scaffold a new integration → use **skill build-mule-integration**.
 
 Given a Mule project root (the directory containing `pom.xml`), it **first gates on
 switchability** — it runs the switch validator (the sibling
-`validate-versionless-switch` skill) and will not switch while any blocker remains,
-so the switch never produces an app that fails at deploy. Once the gate passes, it:
+`validate-versionless-switch` skill) and, when blockers are found, stops before writing
+anything. This gate is an **agent-workflow safeguard enforced by this skill, not by the
+script**: `switch_to_versionless.mjs` performs no validation of its own, so a caller that
+invokes the script directly (bypassing this workflow) can still switch a non-switchable
+app. Run through this skill and the gate catches blockers before they reach a deploy.
+Once the gate passes, it:
 
 1. Reads `pom.xml` (and its local parent chain) and finds every **connector** —
    a `<dependency>` with `<classifier>mule-plugin</classifier>` that is **not**
@@ -145,9 +149,10 @@ given in the "skill is now active" message — do not construct relative
    never edit a parent POM automatically.
 4. **Confirm before writing** (see the gate in Step 4).
 5. **Validate before switching.** Never write the manifest or edit the pom while the
-   switch validator reports blockers (Step 2). Switching a non-switchable app produces
-   a versionless project that fails at deploy. The only way past a blocker is to fix
-   it in the app, or an explicit user override — never a silent skip.
+   switch validator reports blockers (Step 2, run with `--extended`). Switching a
+   non-switchable app produces a versionless project that fails to build or deploys
+   broken. The only way past a blocker is to fix it in the app, or an explicit user
+   override — never a silent skip.
 
 ### Step 1: Confirm the project root
 
@@ -159,10 +164,11 @@ not, tell the user this is not a Mule application root and stop.
 
 Before planning any change, run the read-only switch validator from the sibling
 `validate-versionless-switch` skill. It is the same seven-axis check the Anypoint
-Code Builder "Upgrade to Versionless" wizard runs, and it never edits the app.
+Code Builder "Upgrade to Versionless" wizard runs, and it never edits the app. Gate
+on the **full** axis set with `--extended` (see the scope note below for why):
 
 ```bash
-<validate-skill-dir>/scripts/validate.sh <projectDir> --out /tmp/<app>-switch-gate.json
+<validate-skill-dir>/scripts/validate.sh <projectDir> --extended --out /tmp/<app>-switch-gate.json
 ```
 
 `<validate-skill-dir>` is the sibling skill folder (…/mule-versionless/`validate-versionless-switch`).
@@ -175,9 +181,31 @@ Branch on the **exit code** — do not parse the text:
 | `1` | FAIL-CLOSED — validator could not run (manifest unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
 | `2` | usage error (bad project dir) | Fix the path and re-run. |
 
-Default scope mirrors the wizard (`dataweave` + `flow` + `connector`) — exactly the
-axes that gate the switch. Do not pass `--extended` here; its extra axes are advisory
-and must not block the switch.
+**Why `--extended` and not the wizard's default scope.** The ACB wizard gates on
+`dataweave` + `flow` + `connector` only, treating `config`/`security`/`state`/`project`
+as *advisory* — because online it has platform fallbacks (RDS, the mesh/gateway that
+terminates TLS and runs policies). **This skill switches offline**, with no such
+fallback, so those four axes are genuine deploy/runtime failures here, not advisory:
+
+- An unsupported construct **inside a flow** fails the versionless build outright
+  (`collect_chain` rejects it — *"unexpected child: expected Processor"*).
+- An unsupported **top-level** config (`<tls:context>`, `<secure-properties:config>`)
+  is **silently dropped** by the builder — the capability just disappears, so mutual
+  TLS / secret decryption stops happening with no error.
+- A `${secure::…}` reference has no decryption subsystem; resolution fails with
+  *"property '…' was not found"*.
+
+Gating on `--extended` therefore blocks an app that would compile-fail or deploy
+broken. This is deliberately **stricter than the ACB wizard**.
+
+**`.properties` config files do not block.** The versionless runtime loads both `.yaml`
+and `.properties` (full Java-properties parity, mule-versionless PR #124), so a
+`<configuration-properties file="x.properties">` is fully supported and the config axis
+treats it exactly like a `.yaml` file. (An earlier bundle raised a stale
+`config.properties.unsupported` BLOCK here on the false premise the runtime "loads YAML
+only"; that rule was removed upstream and is gone from the current validator.) Every
+extended-axis BLOCK the gate now reports is real — do not wave any through; the only path
+past one is to fix the app or an explicit user override.
 
 The gate report is a **transient artifact** written to `/tmp` (never into the project
 tree) so it can never be mistaken for the validate skill's own project-local report.

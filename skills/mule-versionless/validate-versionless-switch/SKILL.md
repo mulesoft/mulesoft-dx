@@ -284,6 +284,10 @@ stdout table (axis / symbol / rule / code / location): blockers only.
 differently but won't block" detail. If the run **failed closed** (exit 1), say the
 app could not be validated and why; do not imply it is switchable.
 
+**When you point the user at the full report file, reference it by path alone** — e.g.
+"Full report: `<path>`". Do not annotate it with the axis count or an INFO aside (not
+"Full report (all seven axes, including any INFO notices): …"); the path is enough.
+
 When the user is ready to actually perform the switch, hand off to
 **skill switch-classic-mule-to-versionless**.
 

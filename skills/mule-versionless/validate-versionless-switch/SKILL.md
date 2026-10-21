@@ -176,7 +176,7 @@ location, so it works from any CWD.
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]` | Run all seven switch axes; write the JSON report; print the summary. `--extended` is accepted but a no-op (all axes report by default). |
+| `scripts/validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--include-info] [--extended]` | Run all seven switch axes; write the JSON report; print the summary. `--include-info` serializes INFO notices into the report too (default: blockers only). `--extended` is accepted but a no-op (all axes report by default). |
 
 ## Workflow
 
@@ -228,17 +228,30 @@ legacy `--extended` flag is accepted for backward compatibility but has no effec
 <skill-dir>/scripts/validate.sh <project-dir> --extended   # same result as without it
 ```
 
+**INFO notices are behind `--include-info`.** By default the JSON report carries
+**blockers only** — INFO findings are advisory (they never gate the switch), so they are
+omitted to keep the report focused on what blocks. Pass `--include-info` to serialize the
+INFO notices into the report too:
+
+```bash
+<skill-dir>/scripts/validate.sh <project-dir> --include-info   # report also carries INFO
+```
+
+The flag changes **only** what is serialized. `blockerCount`, the exit code, and the
+stdout table are computed from the full finding set and are identical either way — INFO
+is never a blocker, so the gate does not move.
+
 The stdout summary shows files scanned, DW expressions scanned, the blocker count,
 and — when there are blockers — a table of each blocker with five columns: **axis**,
 **symbol** (the offending construct/format/module), **rule** (which check fired —
 e.g. `dwx.writer.unsupported` vs `flow.element.unsupported`), **code** (the source
 snippet, truncated), and **location** (project-relative `path:line:col`, e.g.
-`src/main/mule/errors.xml:290:15`). INFO notices are not printed to stdout; they
-remain in `report.json`. Branch on the **exit code**, not the text:
+`src/main/mule/errors.xml:290:15`). INFO notices are never printed to stdout; with
+`--include-info` they are in `report.json`. Branch on the **exit code**, not the text:
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | SWITCHABLE — no blockers (review INFO notices) |
+| `0` | SWITCHABLE — no blockers (run with `--include-info` to review the INFO notices) |
 | `3` | NOT SWITCHABLE — one or more BLOCK findings |
 | `1` | FAIL-CLOSED — capability manifest unavailable; could not validate |
 | `2` | usage error (bad/missing project dir) |
@@ -273,16 +286,38 @@ findings.)
 
 ### Step 4: Report to the user
 
-Lead with the **blocker count** (switchable only when it is 0). Then, grouped by
-axis, list each **BLOCK** with its `symbol`, `ruleId`, source `snippet`, and
-project-relative `path:line:col` — these are what gate the switch. Match the CLI's
-stdout table (axis / symbol / rule / code / location): blockers only.
+Lead with the **blocker count** (switchable only when it is 0). Then present the
+**BLOCK** findings **grouped by axis** — one section per axis, in the CLI's sort order
+(axis, then file, then line). Each section is an axis header with its blocker count,
+followed by a **Markdown table** of that axis's blockers:
+
+**flow — 6 blockers**
+
+| Symbol | Rule | Code | Location |
+| --- | --- | --- | --- |
+| `try` | `flow.element.unsupported` | `<try …>` | `src/main/mule/errors.xml:338:6` |
+| `raise-error` | `flow.element.unsupported` | `<raise-error …>` | `src/main/mule/errors.xml:475:3` |
+
+**security — 2 blockers**
+
+| Symbol | Rule | Code | Location |
+| --- | --- | --- | --- |
+| `tls:context` | `security.tls.unsupported` | `<tls:context …>` | `src/main/mule/config.xml:51:4` |
+
+- **Symbol** = `symbol`, **Rule** = `ruleId`, **Code** = the source `snippet` (one
+  line), **Location** = project-relative `path:line:col`. The axis is the section
+  header, so it is not a column.
+- **One table per axis**, rows sorted by file then line within it — same ordering as
+  the CLI's stdout table, just sectioned by axis.
+- Render each as a real Markdown table (pipe syntax), not the CLI's ASCII box and not
+  prose bullets.
 
 **Report blockers only. Do not add an "INFO notices" section and do not add a
-"Bottom line" / remediation / next-steps section.** INFO findings stay in
-`report.json`; surface them only if the user explicitly asks for the "resolves
-differently but won't block" detail. If the run **failed closed** (exit 1), say the
-app could not be validated and why; do not imply it is switchable.
+"Bottom line" / remediation / next-steps section.** INFO findings are omitted from the
+report by default; surface them only if the user explicitly asks for the "resolves
+differently but won't block" detail — re-run with `--include-info` to put them in
+`report.json`. If the run **failed closed** (exit 1), say the app could not be validated
+and why; do not imply it is switchable.
 
 **When you point the user at the full report file, reference it by path alone** — e.g.
 "Full report: `<path>`". Do not annotate it with the axis count or an INFO aside (not

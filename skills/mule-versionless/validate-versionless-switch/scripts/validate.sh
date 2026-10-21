@@ -11,10 +11,13 @@
 # (all seven compatibility axes, including the Scala DataWeave parser), invoked outside
 # the IDE/LSP. It writes a JSON report and prints a short summary.
 #
-# Usage:  validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]
+# Usage:  validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--include-info] [--extended]
 #   <project-dir>   project root (the directory containing pom.xml and src/main/mule)
 #   --out           report path (default: <project-dir>/<app>-versionless-switch-report.json)
 #   --dsl-dir       connector descriptor dir, <name>/dsl.json (default: bundled dsl/)
+#   --include-info  serialize INFO notices into the JSON report too. Default: the report
+#                   carries blockers only (INFO is advisory and never gates the switch).
+#                   The blocker count and exit code are identical either way.
 #   --extended      accepted but a no-op — all seven axes report by default now.
 #                   Retained so older callers/scripts that pass it don't error.
 #
@@ -34,6 +37,7 @@ fi
 PROJECT_DIR="$1"; shift
 OUT=""
 EXTENDED=""
+INCLUDE_INFO=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --out|--dsl-dir)
@@ -46,6 +50,7 @@ while [ "$#" -gt 0 ]; do
         --dsl-dir) DSL_DIR="$2" ;;
       esac
       shift 2 ;;
+    --include-info) INCLUDE_INFO="1"; shift ;;
     --extended) EXTENDED="1"; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -114,6 +119,9 @@ mkdir -p "${LOGS_DIR}" 2>/dev/null || true
 CMD=("${JAVA_BIN}" -Dmule.dx.logs.dir="${LOGS_DIR}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
 if [ -n "${OUT}" ]; then
   CMD+=(--out "${OUT}")
+fi
+if [ -n "${INCLUDE_INFO}" ]; then
+  CMD+=(--include-info)
 fi
 if [ -n "${EXTENDED}" ]; then
   CMD+=(--extended)

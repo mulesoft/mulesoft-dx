@@ -158,3 +158,57 @@ once the engine's generated manifest marks system::now supported (cascading to T
 the application/java writer as the passthrough it is, both the correction step and this whole dir
 can be dropped (the baked plugin manifest is already correct on those three). The manifest has no
 version field, so ValidationResult.manifestVersion is null (ground truth, not a defect).
+
+=== Partially-supported modules: the dw::Runtime false-positive fix (2026-10-20) ===
+Fourth standing correction, in the SAME hand-applied class as the three above, plus a schema
+addition and a matching code change in the plugin jar. Both jars above (plugin sha256 52a8b91d…,
+91,368,489 bytes; CLI sha256 12e2d4c0…, 10,037 bytes) carry it.
+
+The bug: `import try from dw::Runtime` was wrongly reported as a BLOCK. dw::Runtime LOADS on the
+versionless engine and all of try/fail/wait/location/props run; only `version` is unimplemented.
+Two layers each over-generalised from that one gap:
+  - Manifest (Rust dw-conform generate.rs): classified a module all-or-nothing, so one unregistered
+    native (`version`) tainted the WHOLE module to modules.unsupported.
+  - Java axis (dwcompat): collected any import as a whole-module reference and blocked the module
+    all-or-nothing, discarding which member was actually imported.
+Confirmed a validator BUG (not an app defect) by Dmitrii Popov + Shobana Ranganathan; the AAA app
+source must NOT be "cleaned up" — the fix is in the validator.
+
+Schema: `modules` gains a third partition alongside supported/unsupported —
+    "partiallySupported": [ { "module": "dw::Runtime", "unsupportedFunctions": ["version"] } ]
+A module is supported (every name resolves), unsupported (none resolve), or partiallySupported
+(some resolve, some don't — carrying the ones that don't). Nesting under `modules` keeps the
+seven top-level keys intact, so Gson stays drop-in compatible. A name counts unsupported only if
+EVERY overload fails.
+
+Reporting rule (DwxClassifier + SymbolCollector in the plugin jar): HOW you import decides
+granularity; WHAT is unsupported decides blocking.
+  - Bare (`import dw::Runtime`) / wildcard (`import * from dw::Runtime`) → one MODULE ref; blocks
+    if the module is unsupported OR partiallySupported (the whole surface, version included, comes in).
+    Rule id dwx.module.unsupported, BLOCK.
+  - Selected (`import try from dw::Runtime`) → one MODULE_MEMBER ref per member; blocks only if the
+    whole module is unsupported OR the named member is in that module's unsupportedFunctions. New
+    rule id dwx.module.function.unsupported, BLOCK. So `import try …` is clean while `import version …`
+    still blocks. Alias (`import try as t`) is keyed on the original name `try`, not the alias.
+  - The implicit `import * from dw::Core` every parse carries is unaffected: its FQN is dw::Core, not
+    the manifest's Core key `dw`, so it never matches and never flags.
+
+Fail-closed on a malformed partial entry (adversarial-review hardening): because the fix removes a
+partial module from modules.unsupported, a partiallySupported entry that names a module but omits
+unsupportedFunctions could otherwise slip through BOTH the MODULE and MODULE_MEMBER paths — a false
+negative hiding a real blocker. DwxClassifier.unsupportedModuleNames now folds any such entry back
+into the unsupported set, so an uninterpretable partial module blocks bare/wildcard AND every selected
+member (test: partialModuleWithoutUnsupportedFunctionsFailsClosed). A null module (nothing to key) is
+still skipped.
+
+Surgical, NOT regenerated: only dw::Runtime was moved unsupported -> partiallySupported[version].
+The committed golden manifest is ~8 weeks stale; a wholesale regenerate would drag in unrelated
+module-support growth and drift many perf-app findings, conflating the fix. Every other stale-baseline
+entry (including `dw`) is left untouched. Idempotent re-apply after a future refresh: move dw::Runtime
+out of modules.unsupported into modules.partiallySupported with unsupportedFunctions:["version"].
+
+Upstream: the real fix lives in mule-versionless dwx-rust (dw-conform capabilities/{mod,generate}.rs
+emit the partiallySupported partition) + the plugin's dwcompat axis (SymbolReference.MODULE_MEMBER,
+SymbolCollector per-member import collection, DwxClassifier per-member judging). When a future
+generated manifest already carries partiallySupported for dw::Runtime, this correction step drops out
+like the other three.

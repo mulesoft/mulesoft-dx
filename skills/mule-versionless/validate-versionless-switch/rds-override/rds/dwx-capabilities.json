@@ -157,13 +157,20 @@
     ],
     "unsupported": [
       "dw",
-      "dw::Runtime",
       "dw::System",
       "dw::core::Binaries",
       "dw::core::Dates",
       "dw::module::Mime",
       "dw::module::Multipart",
       "dw::util::Math"
+    ],
+    "partiallySupported": [
+      {
+        "module": "dw::Runtime",
+        "unsupportedFunctions": [
+          "version"
+        ]
+      }
     ]
   },
   "readers": {

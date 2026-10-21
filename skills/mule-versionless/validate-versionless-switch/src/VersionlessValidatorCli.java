@@ -105,7 +105,7 @@ public final class VersionlessValidatorCli {
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || "-h".equals(args[0]) || "--help".equals(args[0])) {
-            System.err.println("usage: VersionlessValidatorCli <projectRoot> [--dsl-dir <dir>] [--out <file>] [--extended]");
+            System.err.println("usage: VersionlessValidatorCli <projectRoot> [--dsl-dir <dir>] [--out <file>] [--include-info] [--extended]");
             System.exit(2);
             return;
         }
@@ -113,6 +113,7 @@ public final class VersionlessValidatorCli {
         Path projectRoot = Path.of(args[0]).toAbsolutePath().normalize();
         Path dslDir = null;
         Path out = null;
+        boolean includeInfo = false;
         for (int i = 1; i < args.length; i++) {
             switch (args[i]) {
                 case "--dsl-dir":
@@ -126,6 +127,11 @@ public final class VersionlessValidatorCli {
                         fail("--out requires a value");
                     }
                     out = Path.of(args[i]).toAbsolutePath().normalize();
+                    break;
+                case "--include-info":
+                    // INFO notices are advisory (they never gate the switch), so the report carries blockers only by
+                    // default; pass this to serialize the INFO findings into the JSON too. The gate is unaffected either way.
+                    includeInfo = true;
                     break;
                 case "--extended":
                     // Retained for backward compatibility (callers/scripts may still pass it); the CLI now
@@ -169,7 +175,7 @@ public final class VersionlessValidatorCli {
         // no bundled descriptor and no other axis owner. It is a `connector`-category finding, so it survives the default filter.
         List<Finding> connectorInfos = connectorSwitchabilityInfos(muleSourceRoot, knownNamespaces);
 
-        ValidationResult reported = assembleReport(result, connectorInfos);
+        ValidationResult reported = assembleReport(result, connectorInfos, includeInfo);
 
         String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(reported);
         Files.writeString(out, json, StandardCharsets.UTF_8);
@@ -182,13 +188,22 @@ public final class VersionlessValidatorCli {
     /**
      * Builds the {@link ValidationResult} the CLI reports: the raw validator findings plus the connector INFOs, across all seven axes, with {@code blockerCount} recomputed from the
      * full set. The validator's own {@code blockerCount} already covers all seven, but the connector INFOs are CLI-side additions, so the count is recomputed to include them.
+     *
+     * <p>
+     * {@code blockerCount} is always computed over the full finding set, before any INFO filtering, so the gate (and exit code) is identical whether or not INFO is serialized.
+     * When {@code includeInfo} is false the INFO notices are dropped from the serialized findings — they are advisory and never gate — leaving a blockers-only report; passing
+     * {@code --include-info} keeps them.
      */
-    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorInfos) {
+    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorInfos, boolean includeInfo) {
         List<Finding> all = new ArrayList<>(raw.getFindings());
         all.addAll(connectorInfos);
 
         int blockerCount = (int) all.stream().filter(f -> "BLOCK".equals(f.getSeverity())).count();
-        return new ValidationResult(raw.isSuccess(), all, raw.getFilesScanned(), raw.getExpressionsScanned(),
+
+        List<Finding> reported = includeInfo
+                ? all
+                : all.stream().filter(f -> !SEVERITY_INFO.equals(f.getSeverity())).toList();
+        return new ValidationResult(raw.isSuccess(), reported, raw.getFilesScanned(), raw.getExpressionsScanned(),
                 blockerCount, raw.getManifestVersion(), raw.getFailureReason());
     }
 

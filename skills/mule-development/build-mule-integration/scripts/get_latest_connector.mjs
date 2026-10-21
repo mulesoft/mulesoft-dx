@@ -66,7 +66,7 @@ function spawnPage(offset, pageFile, errFile) {
         {
             env: anypointEnv(),
             stdio: ['ignore', outFd, errFd],
-            shell: false,
+            shell: process.platform === 'win32',
         },
     );
 

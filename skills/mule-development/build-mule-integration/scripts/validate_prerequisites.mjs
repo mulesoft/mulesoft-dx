@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // validate_prerequisites — Step 1: validate the Mule dev environment
-// (anypoint-cli-v4, DX plugin, JAVA_HOME + Java 11+, Mule runtime) and write a
+// (anypoint-cli-v4, DX plugin, anypoint-cli-v4 logged in, JAVA_HOME + Java 11+, Mule runtime) and write a
 // JSON report. Validates only — never installs or modifies anything.
 // Output path: $MULE_DEV_ENV_FILE when set, otherwise tmp/mule-dev-env.json.
 // Output JSON shape:
@@ -52,7 +52,25 @@ if (anypointPresent) {
     }
 }
 
-// 3. JAVA_HOME + Java 11+
+// 3. anypoint-cli-v4 must be logged in (only checked when anypoint-cli-v4 is present)
+if (anypointPresent) {
+    const r = runProbe('anypoint-cli-v4', ['account:user:describe', '--output', 'json']);
+    if (r.status !== 0) {
+        console.log('❌ anypoint-cli-v4 is not logged in');
+        errors.push(
+            'anypoint-cli-v4 is not authenticated (not logged in). Fix: anypoint-cli-v4 login  (or set ANYPOINT_USERNAME / ANYPOINT_PASSWORD env vars, or run: anypoint-cli-v4 conf username <u> && anypoint-cli-v4 conf password <p>)'
+        );
+    } else {
+        let user = 'authenticated';
+        try {
+            const d = JSON.parse(r.stdout);
+            user = d.username || d.email || user;
+        } catch { /* keep generic label */ }
+        console.log(`✅ anypoint-cli-v4 logged in as: ${user}`);
+    }
+}
+
+// 4. JAVA_HOME + Java 11+
 const javaHome = process.env.JAVA_HOME || '';
 if (!javaHome) {
     console.log('❌ JAVA_HOME not set');
@@ -73,7 +91,7 @@ if (!javaHome) {
     }
 }
 
-// 4. Mule runtime — check configured path first, then default location
+// 5. Mule runtime — check configured path first, then default location
 const configFile = path.join(homedir(), '.mule-dx', 'config.json');
 if (isFile(configFile)) {
     const cfg = readJsonOrNull(configFile);

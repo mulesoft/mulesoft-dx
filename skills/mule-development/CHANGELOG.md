@@ -4,6 +4,16 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.4] - Unreleased
+
+### Added
+
+- **`build-mule-integration`** — Step 1 (`validate_prerequisites.mjs`) now verifies that `anypoint-cli-v4` is logged in (via `anypoint-cli-v4 account:user:describe`) and hard-fails (exit 1) when it is not, with explicit fix instructions (`anypoint-cli-v4 login`, `ANYPOINT_USERNAME` / `ANYPOINT_PASSWORD`, or `anypoint-cli-v4 conf username|password`). Previously an unauthenticated CLI passed the prerequisite check and only failed later at the first Exchange or `describe-connector` call. On success it prints the logged-in user.
+
+### Fixed
+
+- **`build-mule-integration`** — the helper scripts now spawn `anypoint-cli-v4` with `shell: process.platform === 'win32'` instead of `shell: false` (`lib/anypoint.mjs`, `describe_connector.mjs`, `get_latest_connector.mjs`, `search_templates.mjs`). On Windows the npm-installed CLI is a `.cmd` shim that cannot be launched without a shell, so every CLI call failed with `ENOENT`. Behavior on macOS/Linux is unchanged.
+
 ## [1.9.3] - Unreleased
 
 ### Added

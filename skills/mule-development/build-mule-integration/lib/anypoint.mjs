@@ -27,7 +27,7 @@ export function runProbe(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, {
     env: anypointEnv(opts.env),
     encoding: 'utf8',
-    shell: false,
+    shell: process.platform === 'win32',
   });
   return {
     status: r.status,

@@ -58,7 +58,7 @@ This skill ships small Node scripts (`*.mjs`, ESM, zero npm deps) under `scripts
 
 | Script | Purpose | Output location |
 | --- | --- | --- |
-| `scripts/validate_prerequisites.mjs` | Step 1 — validate toolchain (CLI, DX plugin, Java 11+, JAVA_HOME, Mule runtime presence). Validation-ONLY | `tmp/mule-dev-env.json` (workspace-relative; contains `mule_version`, `runtime_path`, `errors[]`, ...) |
+| `scripts/validate_prerequisites.mjs` | Step 1 — validate toolchain (CLI installed, DX plugin, CLI authenticated, Java 11+, JAVA_HOME, Mule runtime presence). Validation-ONLY | `tmp/mule-dev-env.json` (workspace-relative; contains `mule_version`, `runtime_path`, `errors[]`, ...) |
 | `scripts/get_latest_connector.mjs <search> [nickname]` | Step 3 — search Exchange and print ranked connector candidates (`groupId:assetId:version`, one per line, no score, no winner cue). Writes nothing. | stdout only |
 | `scripts/pick_connector.mjs <nickname> <gav>` | Step 3 — record the agent's chosen GAV (after reasoning or an `AskUserQuestion`) as a draft | `tmp/connector-choices/<nickname>.json` (`{groupId, assetId, version}`) |
 | `scripts/commit_connectors.mjs` | Step 8 (post-TDD-approval) — promote every draft under `tmp/connector-choices/` to the pinned `tmp/connector-versions/` directory that Phase 2 reads | `tmp/connector-versions/*.json` |
@@ -125,7 +125,7 @@ node scripts/validate_prerequisites.mjs
 
 If the script exits non-zero, STOP progressing any further in the skill and inform the user to act on the `errors` array in `tmp/mule-dev-env.json`. Do not invent a fallback Mule version — `mule_version` is empty when no runtime is detected.
 
-What `validate_prerequisites.mjs` checks: Anypoint CLI v4 installed · DX plugin available · `JAVA_HOME` set · Java 11+ · Mule runtime detected at `~/.mule-dx/config.json:.runtimePath` or under `~/AnypointCodeBuilder/runtime/mule-*`. If runtime or other tools are missing, the script reports the error and informs the user to run the necessary commands for proper installation.
+What `validate_prerequisites.mjs` checks: Anypoint CLI v4 installed · DX plugin available · `anypoint-cli-v4` logged in (verified via `anypoint-cli-v4 account:user:describe`) · `JAVA_HOME` set · Java 11+ · Mule runtime detected at `~/.mule-dx/config.json:.runtimePath` or under `~/AnypointCodeBuilder/runtime/mule-*`. If runtime or other tools are missing, the script reports the error and informs the user to run the necessary commands for proper installation.
 
 ---
 
@@ -1223,7 +1223,7 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 `<skill-dir>` below is the absolute path you were given in the "skill is now active" message. Use it consistently — do not construct relative `../scripts/...` paths.
 
 ```bash
-# Step 1: validate toolchain (CLI, DX plugin, Java 11+, Mule runtime presence) - Validation-only
+# Step 1: validate toolchain (CLI installed, DX plugin, CLI authenticated, Java 11+, Mule runtime presence) - Validation-only
 node <skill-dir>/scripts/validate_prerequisites.mjs
 
 # Step 3: connector search — list, decide, draft (one loop per system; search

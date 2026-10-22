@@ -103,7 +103,7 @@
     {
       "name": "random",
       "systemSym": "system::random",
-      "supported": false
+      "supported": true
     },
     {
       "name": "readLinesWith",
@@ -128,7 +128,7 @@
     {
       "name": "uuid",
       "systemSym": "system::uuid",
-      "supported": false
+      "supported": true
     },
     {
       "name": "version",

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__APP_NAME__ · Mule Flow Visualizer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --border: #b8c5d6;
+    --text: #2c3e50;
+    --muted: #6c757d;
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --accent: #0b5cad;
+    --sidebar-w: 300px;
+    --panel-w: 340px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: var(--text);
+    background: var(--bg);
+    height: 100vh;
+    overflow: hidden;
+  }
+  code { font-family: 'Courier New', Courier, monospace; }
+  #root, .app { height: 100vh; }
+  .app { display: flex; }
+
+  /* ---- Sidebar / file explorer ---- */
+  .sidebar {
+    width: var(--sidebar-w); min-width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border);
+    overflow-y: auto; display: flex; flex-direction: column;
+  }
+  .sidebar-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); }
+  .sidebar-head h1 { font-size: 15px; }
+  .sidebar-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tree { padding: 8px 0 24px; }
+  .file-row, .flow-row {
+    display: flex; align-items: center; gap: 7px; width: 100%;
+    border: 0; background: none; cursor: pointer; text-align: left;
+    font: inherit; color: var(--text);
+  }
+  .file-row { padding: 8px 16px; font-weight: 600; font-size: 13px; }
+  .file-row:hover { background: var(--bg); }
+  .file-row .ficon { color: var(--muted); display: flex; align-items: center; flex-shrink: 0; }
+  .file-row .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .flow-row { padding: 6px 16px 6px 36px; font-size: 13px; color: #374151; }
+  .flow-row:hover { background: var(--bg); }
+  .flow-row.active { background: #e8f1fb; color: var(--accent); font-weight: 600; }
+  .flow-row .ftype {
+    margin-left: auto; font-size: 10px; color: var(--muted);
+    text-transform: lowercase; letter-spacing: .04em; white-space: nowrap; flex-shrink: 0; padding-left: 8px;
+  }
+  .flow-row .fname-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .flow-row .dot { width: 5px; height: 5px; border-radius: 50%; background: #c2cdd9; flex-shrink: 0; }
+  .flow-row .dot.error-handler { background: #e6a4a4; }
+  .flow-row.active .dot { background: var(--accent); }
+
+  /* ---- Main ---- */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .flow-header { padding: 1.25rem 2rem 0.5rem; }
+  .flow-header h2 { font-size: 1.25rem; font-weight: 600; }
+  .flow-header p { color: var(--muted); font-size: 0.85rem; line-height: 1.4; margin-top: 0.35rem; max-width: 80ch; }
+  .flow-canvas { flex: 1; padding: 2rem; overflow: auto; display: flex; flex-direction: column; align-items: flex-start; }
+  .empty { margin: auto; color: var(--muted); font-size: 14px; }
+
+  /* ---- Flow step card ---- */
+  .flow-step {
+    min-width: 560px; max-width: 560px; background: var(--surface);
+    border-radius: 6px; border: 1px solid var(--border); transition: all 0.2s ease;
+  }
+  .flow-step:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); transform: translateY(-1px); }
+  .step-header { padding: 0.75rem 1rem; display: flex; gap: 0.75rem; cursor: pointer; user-select: none; }
+  .step-icon {
+    width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: #fff;
+  }
+  .step-content { flex: 1; min-width: 0; }
+  .step-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; gap: .5rem; }
+  .step-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+  .step-kind { font-size: 0.65rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); flex-shrink: 0; }
+  .step-description { font-size: 0.8rem; color: var(--muted); line-height: 1.4; word-break: break-word; }
+
+  /* ---- Connector ---- */
+  .flow-connector { display: flex; flex-direction: column; align-items: center; height: 28px; position: relative; }
+  .connector-line { width: 2px; height: 23px; background: #8897aa; }
+  .connector-arrow { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid #8897aa; margin-top: -1px; }
+
+  /* ---- Branch step ---- */
+  .branch-step { width: 860px; max-width: 100%; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .branch-step.nested-branch { width: 100%; min-width: 0; max-width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-radius: 5px; }
+  .branch-header { padding: 0.75rem 1rem; display: flex; gap: 0.75rem; cursor: pointer; user-select: none; }
+  .nested-branch .branch-header { padding: 0.65rem 0.85rem; }
+  .expand-button { background: none; border: none; cursor: pointer; color: var(--muted); padding: 0.2rem; display: flex; align-items: center; flex-shrink: 0; font-size: 12px; }
+  .branch-paths { padding: 1rem 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+  .nested-branch .branch-paths { padding: 0.75rem 1rem 1rem; gap: 0.75rem; }
+  .branch-path { display: flex; flex-direction: row; gap: 0.75rem; width: 100%; align-items: flex-start; min-width: 0; }
+  .branch-connector { display: flex; flex-direction: row; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .branch-line { width: 30px; height: 3px; background: #9C27B0; position: relative; }
+  .branch-line::after {
+    content: ''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%);
+    width: 0; height: 0; border-left: 6px solid #9C27B0; border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+  }
+  .branch-label {
+    padding: 0.5rem 0.75rem; border-radius: 5px; font-size: 0.8rem; font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 240px; cursor: pointer; background: var(--surface);
+    transition: box-shadow 0.2s; flex-shrink: 0;
+  }
+  .branch-label:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  /* Nested branches stack vertically (pill on top, full-width steps below) so
+     deep nesting never collapses the step column to one word per line. */
+  .nested-branch .branch-path { flex-direction: column; gap: 0.5rem; }
+  .nested-branch .branch-label { width: auto; max-width: 100%; align-self: flex-start; }
+  .nested-branch .branch-connector { flex-direction: row; align-items: center; }
+  .nested-branch .branch-line { width: 14px; }
+  .nested-branch .branch-steps { flex: 0 0 auto; width: 100%; margin-left: 0.4rem; }
+  .branch-label-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .branch-label-text { font-size: 0.8rem; }
+  .branch-expression { display: block; font-family: 'Courier New', monospace; font-size: 0.65rem; font-weight: 400; opacity: 0.85; margin: 0.3rem 0 0.2rem; word-break: break-word; }
+  .branch-description { font-size: 0.7rem; font-weight: 400; opacity: 0.9; line-height: 1.3; margin-top: 0.2rem; }
+  .branch-steps { display: flex; flex-direction: column; gap: 0; flex: 1 1 0; min-width: 0; padding: 0.25rem 0 0.25rem 1rem; border-left: 1px solid var(--border); margin-left: 0.4rem; min-height: 15px; }
+  .branch-steps:empty { border-left-style: dashed; min-height: 30px; }
+  .branch-steps .flow-step { min-width: 0; width: 100%; max-width: 100%; }
+  .branch-steps .flow-connector { align-self: flex-start; margin-left: 1.25rem; }
+
+  /* ---- Detail panel ---- */
+  .config-panel {
+    width: var(--panel-w); min-width: var(--panel-w); background: var(--surface);
+    border-left: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column;
+  }
+  .config-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .config-header-title { display: flex; align-items: center; gap: 10px; }
+  .config-header h3 { font-size: 15px; }
+  .config-step-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .close-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; }
+  .config-content { padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+  .config-kind { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .config-property label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
+  .config-property .val { font-size: 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; word-break: break-word; font-family: 'Courier New', monospace; }
+  .config-property .val.notes { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="flow-data" type="application/json">__FLOW_DATA__</script>
+__VENDOR_SCRIPTS__
+<script>
+const { useState, useMemo, useCallback } = React;
+const createRoot = ReactDOM.createRoot;
+
+const html = htm.bind(React.createElement);
+const MODEL = JSON.parse(document.getElementById("flow-data").textContent);
+
+// --- Inline icons (lucide-style), keyed by component category ---
+const ICON_PATHS = {
+  trigger: ["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20", "M2 12h20", "M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"],
+  connector: ["M3 5a9 3 0 0 0 18 0 9 3 0 0 0-18 0", "M3 5v14a9 3 0 0 0 18 0V5", "M3 12a9 3 0 0 0 18 0"],
+  transform: ["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"],
+  variable: ["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"],
+  logger: ["M4 4h16v12H5.2L4 18Z"],
+  ref: ["M14 3v4a1 1 0 0 0 1 1h4", "M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z", "M9 13h6", "M9 17h3"],
+  router: ["M6 3v12", "M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6", "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6", "M15 6a9 9 0 0 1-9 9"],
+  choice: ["M6 3v12", "M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6", "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6", "M15 6a9 9 0 0 1-9 9"],
+  scope: ["M6 3v12", "M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6", "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6", "M15 6a9 9 0 0 1-9 9"],
+  error: ["M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0", "M12 9v4", "M12 17h.01"],
+  default: ["M3 3h18v18H3Z"],
+};
+function Icon({ category, size = 20 }) {
+  const paths = ICON_PATHS[category] || ICON_PATHS.default;
+  return html`<svg width=${size} height=${size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    ${paths.map((d, i) => html`<path key=${i} d=${d} />`)}
+  </svg>`;
+}
+
+function FileIcon() {
+  return html`<svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M16 13H8" />
+    <path d="M16 17H8" />
+    <path d="M10 9H8" />
+  </svg>`;
+}
+
+function FlowStep({ step, onSelect }) {
+  return html`
+    <div class="flow-step ${step.type}">
+      <div class="step-header" onClick=${() => onSelect(step)}>
+        <div class="step-icon" style=${{ backgroundColor: step.color }}>
+          <${Icon} category=${step.category} />
+        </div>
+        <div class="step-content">
+          <div class="step-title-row">
+            <h3 class="step-title">${step.title}</h3>
+            <span class="step-kind">${step.kind}</span>
+          </div>
+          ${step.description ? html`<p class="step-description">${step.description}</p>` : null}
+        </div>
+      </div>
+    </div>`;
+}
+
+function Connector() {
+  return html`<div class="flow-connector"><div class="connector-line"></div><div class="connector-arrow"></div></div>`;
+}
+
+function Steps({ steps, onSelect }) {
+  return steps.map((s, i) => html`
+    <${React.Fragment} key=${s.id}>
+      ${i > 0 ? html`<${Connector} />` : null}
+      ${s.type === "branch"
+        ? html`<${BranchStep} step=${s} nested=${true} onSelect=${onSelect} />`
+        : html`<${FlowStep} step=${s} onSelect=${onSelect} />`}
+    <//>`);
+}
+
+function BranchStep({ step, nested, onSelect }) {
+  const [open, setOpen] = useState(true);
+  return html`
+    <div class="branch-step ${nested ? "nested-branch" : ""}">
+      <div class="branch-header" onClick=${(e) => {
+          if (e.target.closest(".expand-button")) setOpen(!open); else onSelect(step);
+        }}>
+        <div class="step-icon" style=${{ backgroundColor: step.color }}>
+          <${Icon} category=${step.category} size=${nested ? 18 : 20} />
+        </div>
+        <div class="step-content">
+          <div class="step-title-row">
+            <h3 class="step-title">${step.title}</h3>
+            <button class="expand-button">${open ? "▲" : "▼"}</button>
+          </div>
+          ${step.description ? html`<p class="step-description">${step.description}</p>` : null}
+        </div>
+      </div>
+      ${open ? html`
+        <div class="branch-paths">
+          ${step.branches.map((b) => html`
+            <div class="branch-path" key=${b.id}>
+              <div class="branch-connector">
+                <div class="branch-line"></div>
+                <div class="branch-label" style=${{ color: b.color, border: "1px solid " + b.color }}
+                     onClick=${() => onSelect({ title: b.label, kind: b.type, color: b.color,
+                        category: "scope", description: b.description,
+                        details: b.expression ? { Expression: b.expression } : {} })}>
+                  <div class="branch-label-header"><span class="branch-label-text">${b.label}</span></div>
+                  ${b.expression ? html`<code class="branch-expression">${b.expression}</code>` : null}
+                  ${b.description ? html`<p class="branch-description">${b.description}</p>` : null}
+                </div>
+              </div>
+              <div class="branch-steps">
+                <${Steps} steps=${b.steps} onSelect=${onSelect} />
+              </div>
+            </div>`)}
+        </div>` : null}
+    </div>`;
+}
+
+function Sidebar({ selected, onSelect }) {
+  const [open, setOpen] = useState(() => new Set(MODEL.files.map((_, i) => i)));
+  const toggle = (i) => { const n = new Set(open); n.has(i) ? n.delete(i) : n.add(i); setOpen(n); };
+  return html`
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h1>${MODEL.app}</h1>
+      </div>
+      <div class="tree">
+        ${MODEL.files.map((file, fi) => html`
+          <div key=${fi}>
+            <button class="file-row" onClick=${() => toggle(fi)}>
+              <span class="ficon"><${FileIcon} /></span>
+              <span class="fname">${file.path}</span>
+            </button>
+            ${open.has(fi) ? file.flows.map((fl, li) => {
+              const key = fi + ":" + li;
+              return html`<button key=${li}
+                  class=${"flow-row" + (selected === key ? " active" : "")}
+                  onClick=${() => onSelect(key)}>
+                <span class=${"dot " + fl.type}></span>
+                <span class="fname-txt">${fl.name}</span>
+                <span class="ftype">${fl.type}</span>
+              </button>`;
+            }) : null}
+          </div>`)}
+      </div>
+    </aside>`;
+}
+
+function ConfigPanel({ step, onClose }) {
+  if (!step) return null;
+  const entries = Object.entries(step.details || {});
+  return html`
+    <aside class="config-panel">
+      <div class="config-header">
+        <div class="config-header-title">
+          <div class="config-step-icon" style=${{ backgroundColor: step.color }}>
+            <${Icon} category=${step.category} size=${16} />
+          </div>
+          <h3>${step.title}</h3>
+        </div>
+        <button class="close-btn" onClick=${onClose}>×</button>
+      </div>
+      <div class="config-content">
+        ${step.kind ? html`<div class="config-kind">${step.kind}</div>` : null}
+        ${entries.map(([k, v]) => html`
+          <div class="config-property" key=${k}>
+            <label>${k}</label><div class="val">${v}</div>
+          </div>`)}
+        ${step.description ? html`
+          <div class="config-property">
+            <label>Notes</label><div class="val notes">${step.description}</div>
+          </div>` : null}
+      </div>
+    </aside>`;
+}
+
+function App() {
+  const first = MODEL.files.length ? "0:0" : null;
+  const [selected, setSelected] = useState(first);
+  const [detail, setDetail] = useState(null);
+
+  const flow = useMemo(() => {
+    if (!selected) return null;
+    const [fi, li] = selected.split(":").map(Number);
+    return MODEL.files[fi]?.flows[li] || null;
+  }, [selected]);
+
+  const selectFlow = useCallback((key) => { setSelected(key); setDetail(null); }, []);
+
+  return html`
+    <div class="app">
+      <${Sidebar} selected=${selected} onSelect=${selectFlow} />
+      <div class="main">
+        ${flow ? html`
+          <div class="flow-header">
+            <h2>${flow.name}</h2>
+            ${flow.description ? html`<p>${flow.description}</p>` : null}
+          </div>
+          <div class="flow-canvas">
+            <${Steps} steps=${flow.steps} onSelect=${setDetail} />
+          </div>` : html`<div class="empty">Select a flow from the explorer to visualize it.</div>`}
+      </div>
+      ${detail ? html`<${ConfigPanel} step=${detail} onClose=${() => setDetail(null)} />` : null}
+    </div>`;
+}
+
+createRoot(document.getElementById("root")).render(html`<${App} />`);
+</script>
+</body>
+</html>

@@ -140,6 +140,8 @@
     "supported": [
       "dw::Crypto",
       "dw::core::Arrays",
+      "dw::core::Binaries",
+      "dw::core::Dates",
       "dw::core::Numbers",
       "dw::core::Objects",
       "dw::core::Periods",
@@ -158,8 +160,6 @@
     "unsupported": [
       "dw",
       "dw::System",
-      "dw::core::Binaries",
-      "dw::core::Dates",
       "dw::module::Mime",
       "dw::module::Multipart",
       "dw::util::Math"

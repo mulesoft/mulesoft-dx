@@ -44,25 +44,57 @@ below after rebuilding the plugin jar** — a shaded jar from a different plugin
 silently change findings.
 
 > Reproducibility: the axis sources are committed at
-> `e009aee2428b499f8e9040330ba9b1c9e4e99a6b` on branch
-> `feat/versionless-switch-compat-axes` (the `VersionlessValidator` orchestrator plus the
-> five `*compat/` dirs). Build the plugin jar from that SHA. The branch is not yet merged
-> upstream, so check it out explicitly rather than relying on `main`.
+> `3bb467c3f934e1f63757cefa74ecbd30b91f1d9b` (tip of branch
+> `feat/versionless-switch-compat-axes` — the `VersionlessValidator` orchestrator plus the
+> five `*compat/` dirs). The pivoted dwcompat/rds files (nested-FQN `dw::Runtime` model, with
+> the two DW-axis fixes below) are disjoint — the axes branch touches none of them — so the
+> shipped jar is built by checking out the axes tip and overlaying the six pivot files from the
+> **merge of two fix branches**, both stacked on `309a560e1` ("Unwrap dw::Runtime into nested
+> member FQNs"):
+>
+> - `fix/dwx-runtime-wildcard-partial-info` @ `010cc58cf` — FIX 1: a bare/wildcard import of a
+>   partially-supported module (one with at least one supported member FQN) downgrades from
+>   BLOCK to INFO.
+> - `fix/dwx-java-writer-passthrough` @ `1273e8307` — FIX 2: an `application/java` output
+>   (a format with no byte serializer) is a passthrough INFO rather than a BLOCK.
+>
+> The six pivot files are `DwxCapabilityManifest`, `DwxClassifier`, `SymbolCollector`,
+> `SymbolReference`, the baked `rds/dwx-capabilities.json`, and the dwcompat test. The two
+> fixes are disjoint siblings (MODULE vs WRITER regions of `DwxClassifier`); their only merge
+> conflict is the class Javadoc — keep both narrative blocks. All three branches are unmerged
+> upstream, so check them out explicitly rather than relying on `main`.
 
 ## 2. Refresh the connector descriptors (`dsl/`)
 
-The flow axis decides element support against `dsl/<name>/dsl.json`. These are
-byte copies of the go-runtime descriptors (the runtime's ground truth).
+The flow axis decides element support against `dsl/<name>/dsl.json`. Refresh them
+with `scripts/regen-dsl.sh`, which **generates** `http`, `twilio`, and `mule-core`
+from each connector's `extension-model.json` via the versionless `descriptor-gen`
+CLI — the same CLI the Maven packager (`ConnectorSchemaResolver`) drives at build
+time — instead of hand-copying go-runtime's `dsl.json`. descriptor-gen reproduces
+those three byte-for-byte, so the script gates every run on an exact parity check.
 
 ```bash
-GO=.../go-runtime
-for n in http salesforce twilio mule-core; do
-  cp "$GO/connectors/$n/descriptor/dsl.json" "dsl/$n/dsl.json"
-done
+scripts/regen-dsl.sh           # regenerate dsl/ (writes)
+scripts/regen-dsl.sh --check   # parity gate only: verify, no writes (use in CI / pre-commit)
 ```
 
-Add a connector by creating `dsl/<name>/dsl.json`; the CLI loads every
-`<name>/dsl.json` under the dsl dir as a bundle. The flow axis reads only
+It resolves `descriptor-gen` from the sibling `build-run-versionless-app` skill's
+`bin/<os>-<arch>/` (override with `--descriptor-gen <path>`) and reads inputs from
+the workspace `go-runtime/` sibling (override with `--go <dir>`). Exit codes: 0
+clean/refreshed, 1 unexpected drift, 2 usage/missing-input.
+
+**`salesforce` is the one exception — it stays a verbatim go-runtime `cp`** (the
+script does this copy for you). descriptor-gen hyphenizes the operation element
+names (`describeSObject` → `describe-s-object`, `getUserInfo` → `get-user-info`),
+but the flow axis resolves an app's XML elements by exactly that `elementName`, and
+the connector's own `extension.xsd` and go golden use the camelCase form. The
+element name isn't stored in the extension model, so hyphenize can't recover it —
+generating salesforce would manufacture a flow-axis false-negative on those two
+ops. See `docs/OPEN-ITEMS.md` O8.
+
+Add a connector by listing it in `regen-dsl.sh` (in `GENERATED_CONNECTORS` once its
+descriptor-gen output is parity-verified, else `COPIED_CONNECTORS`); the CLI loads
+every `<name>/dsl.json` under the dsl dir as a bundle. The flow axis reads only
 `name` + `dslJson`, so no model/xsd is needed.
 
 To validate against a *specific* staged runtime instead of the bundled descriptors,
@@ -91,8 +123,9 @@ in both directions; the override is right on balance:
   `octet-stream`, and `binary` as *unsupported* writers even though the versionless engine
   implements them, and conversely marks `avro`/`protobuf` *supported* even though the engine does
   not. The override is the engine's own generated output, so it has these right.
-- The override, being generated, is in turn **wrong on three entries** that the baked copy gets
-  right. We correct those three by hand after each refresh (below).
+- The override, being generated, is in turn **wrong on four entries** that we correct by hand after
+  each refresh (below). Corrections (1)-(3) are stale-verdict flips the baked copy gets right;
+  correction (4) is the nested-FQN `dw::Runtime` shape paired with the shipped FIX 1.
 
 Base manifest — the versionless engine's own generated output, authoritative for the
 format/module/native sets:
@@ -109,10 +142,26 @@ writers — and is generated by the Rust DW engine itself, so it supersedes the 
 copy. Only `natives`/`modules`/`readers`/`writers` are read by the Java deserializer; the
 extra keys are ignored, so the richer schema is drop-in.)
 
+> **CAVEAT — the committed artifact lags the generator.** `git show origin/master:…
+> capability-manifest.json` fetches the *vendored blob*, which is regenerated by hand and can
+> be months behind the generator code. As of 2026-10-22 it was last written by `d982842b`
+> ("dwx vendored blob", **Aug 26 2026**), ~2 months before PR **#358** (`cda7b6fd`) rewrote the
+> generator to classify partially-supported modules. So this base manifest still lists
+> `dw::core::Dates`, `dw::core::Binaries`, and `dw::Runtime` flatly in `modules.unsupported`
+> with no nested member FQNs — i.e. a refresh here does **not** pick up #358's Dates/Binaries/
+> fromBase64 fixes. Those stay false positives until someone runs the generator and commits a
+> fresh `capability-manifest.json` upstream (or this step is changed to run the generator
+> rather than `git show` the blob). Verify freshness before trusting a refresh:
+> `git -C "$VL" log -1 --format='%ci %s' origin/master -- dwx-rust/capabilities/capability-manifest.json`
+> — if that date predates the DW capability work you expect, the blob is stale.
+
 **Re-apply the four corrections.** The generated manifest is wrong on exactly these, each a
 confirmed runtime capability — not a speculative flip. This step is idempotent; run it after
 every refresh, or the `aaa-template` / perf-repo false positives come back (`dw::util::Timer`
-module, `output application/java`, and `import try from dw::Runtime`):
+module, `output application/java`, and `import * from dw::Runtime`). Correction (4) is the
+override half of the shipped **FIX 1** (wildcard import of a partially-supported module →
+INFO); it must carry the nested-FQN shape the jar reads, and the jar + override must be
+refreshed together (see the FOOTGUN note in correction (4)):
 
 ```bash
 python3 - <<'PY'
@@ -120,11 +169,15 @@ import json, pathlib
 p = pathlib.Path("rds-override/rds/dwx-capabilities.json")
 m = json.loads(p.read_text())
 
-# (1) system::now is registered in the runtime (dw-runtime .../natives/core.rs: `fn now` plus
-#     `"system::now" => now` in the dispatch table). The generated manifest predates that wiring
-#     and still marks it unsupported.
+# (1) system::now/uuid/random are all registered in the runtime, in the same dw-runtime
+#     .../natives/core.rs dispatch table (`fn now`/`fn uuid`/`fn random` + the matching
+#     `"system::now" => now` / `"system::uuid" => uuid` / `"system::random" => random`
+#     arms, core.rs:~222/296). The generated manifest predates that wiring and still marks
+#     uuid/random unsupported (now was corrected earlier); the plugin's baked copy already
+#     has all three true. Flip all three here so dwx.native.unsupported stops false-firing
+#     on uuid()/random() (OPEN-ITEMS O1).
 for n in m["natives"]:
-    if n.get("systemSym") == "system::now":
+    if n.get("systemSym") in ("system::now", "system::uuid", "system::random"):
         n["supported"] = True
 
 def promote(bucket, name):
@@ -145,18 +198,41 @@ promote(m["modules"], "dw::util::Timer")
 #     NotImplemented -> unsupported, a false negative.
 promote(m["writers"], "application/java")
 
-# (4) dw::Runtime is PARTIALLY supported: it loads and try/fail/wait/location/props all run;
-#     only `version` is unimplemented. The generated manifest classifies modules all-or-nothing,
-#     so the one unregistered native taints the whole module to unsupported, making
-#     `import try from dw::Runtime` a false BLOCK. Move it to the partiallySupported partition
-#     carrying only the member that actually fails. Idempotent. (The matching per-member reporting
-#     lives in the plugin jar's dwcompat axis; rule id dwx.module.function.unsupported.)
+# (4) Model dw::Runtime in the NESTED-FQN shape the shipped jar reads: keep the bare module
+#     `dw::Runtime` in modules.unsupported AND list each runnable member FQN
+#     (dw::Runtime::{try,fail,props,wait}) in modules.supported. The only genuinely-unrunnable
+#     member is version() -> native("system::version"), NOT in any Rust dispatch table
+#     (capabilities_probe.rs:96 asserts this intentionally); every other member is registered and
+#     runs: try/fail/wait/run/eval (runtime.rs:1696/1697/1701/1702/1703) and props/location
+#     (core.rs:294/298). We list only try/fail/props/wait (the four the committed golden manifest
+#     carries); version has no member entry, so it inherits the module's unsupported verdict and a
+#     selected `import version from dw::Runtime` still BLOCKs. This shape matches the generator's
+#     nested-FQN output (mule-versionless `309a560e1` "Unwrap dw::Runtime into nested member FQNs")
+#     and the baked manifest in the shipped plugin jar. Idempotent.
+#
+#     The jar and this override MUST carry the SAME shape. FIX 1's isPartiallySupported(module)
+#     (DwxClassifier) keys off a nested member FQN (dw::Runtime::try) sitting in modules.supported
+#     while the bare module sits in modules.unsupported. With that pairing a bare/wildcard
+#     `import * from dw::Runtime` is INFO (dwx.module.unsupported, "only partially supported …
+#     verify … version"), and a selected `import version` still BLOCKs.
+#
+#     FOOTGUN — do NOT revert to the retired partition shape (a `partiallySupported` key with
+#     dw::Runtime removed from modules.unsupported). Against the shipped nested-FQN jar the
+#     DwxClassifier MODULE case only fires when the bare module is IN modules.unsupported; if
+#     dw::Runtime is absent from unsupported, a wildcard import matches nothing and produces NO
+#     finding at all — a silent false negative, strictly worse than either BLOCK or INFO. The jar
+#     reads supported/unsupported string lists only; the `partiallySupported` key is dead (Gson
+#     ignores it). Shape the override to the jar, not to the retired reader.
 mods = m["modules"]
-mods.setdefault("partiallySupported", [])
-if "dw::Runtime" in mods["unsupported"]:
-    mods["unsupported"].remove("dw::Runtime")
-if not any(e.get("module") == "dw::Runtime" for e in mods["partiallySupported"]):
-    mods["partiallySupported"].append({"module": "dw::Runtime", "unsupportedFunctions": ["version"]})
+# drop the retired partition key if a stale override still carries it
+mods.pop("partiallySupported", None)
+if "dw::Runtime" not in mods["unsupported"]:
+    mods["unsupported"].append("dw::Runtime")
+for member in ("dw::Runtime::try", "dw::Runtime::fail", "dw::Runtime::props", "dw::Runtime::wait"):
+    if member not in mods["supported"]:
+        mods["supported"].append(member)
+mods["supported"].sort()
+mods["unsupported"].sort()
 
 p.write_text(json.dumps(m, indent=2) + "\n")
 print("corrections applied")
@@ -177,27 +253,39 @@ Verify the post-conditions (this replaces the old "`application/java` must be in
 python3 - <<'PY'
 import json
 m = json.load(open("rds-override/rds/dwx-capabilities.json"))
-now = next(n for n in m["natives"] if n.get("systemSym") == "system::now")
-assert now["supported"] is True, "system::now is registered in the runtime"
+for sym in ("system::now", "system::uuid", "system::random"):
+    nat = next(n for n in m["natives"] if n.get("systemSym") == sym)
+    assert nat["supported"] is True, f"{sym} is registered in the runtime (core.rs dispatch table)"
 assert "dw::util::Timer" in m["modules"]["supported"]
 assert "dw::util::Timer" not in m["modules"]["unsupported"]
 assert "application/java" in m["writers"]["supported"]
 assert "application/java" not in m["writers"]["unsupported"]
 assert "application/java" in m["readers"]["unsupported"], "reader stays unsupported"
 assert "java" in m["writers"]["unsupported"], "short java token stays unsupported"
-rt = next((e for e in m["modules"].get("partiallySupported", []) if e["module"] == "dw::Runtime"), None)
-assert rt is not None, "dw::Runtime is partially supported"
-assert rt["unsupportedFunctions"] == ["version"], "only version is unsupported in dw::Runtime"
-assert "dw::Runtime" not in m["modules"]["unsupported"], "dw::Runtime no longer all-or-nothing unsupported"
+mods = m["modules"]
+# Nested-FQN shape the shipped jar reads: bare module unsupported + runnable members supported.
+assert "dw::Runtime" in mods["unsupported"], "bare dw::Runtime must stay unsupported (FIX 1 keys the MODULE case off it; absent => wildcard produces NO finding, a silent false negative)"
+members = {s for s in mods["supported"] if s.startswith("dw::Runtime::")}
+assert members == {"dw::Runtime::try", "dw::Runtime::fail", "dw::Runtime::props", "dw::Runtime::wait"}, \
+    "runnable members (try/fail/props/wait) must be listed supported; version is omitted so it inherits the module's BLOCK"
+assert "partiallySupported" not in mods, "the retired partition key is dead — the shipped jar ignores it; its presence signals a stale override"
 print("override post-conditions OK")
 PY
 ```
 
-The real long-term fix is upstream: once the versionless engine's generated manifest marks
-`system::now` supported (cascading to `dw::util::Timer`) and treats the `application/java` writer as
-the passthrough it is, the correction step and the whole override can be dropped — the baked plugin
-manifest is already correct on these three, and could then be refreshed (section 1) to pick up the
-data-format fixes too. Until then this override plus its corrections is load-bearing.
+The real long-term fix is upstream, and it has two halves. (1) The generator must emit the right
+classification — PR #358 (`cda7b6fd`) already did this: it marks `system::now` supported (cascading
+to `dw::util::Timer`), classifies Dates/Binaries as supported, and emits `dw::Runtime` members as
+nested FQNs. (2) Someone must then **run that generator and commit the regenerated
+`capability-manifest.json`** — #358 did NOT do this, so the vendored blob is still stale (see the
+CAVEAT above). Only once a *fresh* manifest is committed will refreshing this override pick up the
+Dates/Binaries/fromBase64 fixes and let the correction step shrink. The `application/java` writer
+passthrough is still a genuine generator gap even on #358, so correction (3) stays until that lands.
+Until both halves are true, this override plus its corrections is load-bearing. (Note: unlike the
+pre-FIX-1 bundle, `import * from dw::Runtime` is now INFO, not a BLOCK — the shipped jar carries FIX 1
+(`DwxClassifier.isPartiallySupported`), which pairs with correction (4)'s nested-FQN shape to downgrade
+a wildcard import of a partially-supported module. This is a coupled jar+override change; a mismatched
+pair re-blocks or, worse, silently hides the import — see correction (4)'s FOOTGUN.)
 
 ## 3. Refresh the other classpath jars (`lib/`)
 

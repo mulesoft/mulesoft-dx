@@ -281,7 +281,7 @@ public final class VersionlessValidatorCli {
         int line = position.getLine() + 1;
         int column = position.getCharacter() + 1;
         String message = "Connector namespace '" + namespace
-                + "' has no bundled versionless descriptor; its switchability can only be confirmed against RDS at switch time.";
+                + "' has no bundled versionless descriptor; its switchability can only be confirmed at switch time.";
         return new Finding(CONNECTOR_CATEGORY,
                 line, column, line, column,
                 -1, -1, -1, -1,

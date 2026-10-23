@@ -286,42 +286,26 @@ findings.)
 
 ### Step 4: Report to the user
 
-Lead with the **blocker count** (switchable only when it is 0). Then present the
-**BLOCK** findings **grouped by axis** — one section per axis, in the CLI's sort order
-(axis, then file, then line). Each section is an axis header with its blocker count,
-followed by a **Markdown table** of that axis's blockers:
+Report **three things only**, in prose — the verdict, the blocker count, and the report
+path:
 
-**flow — 6 blockers**
+> **Not switchable — 8 blockers.** Full report: `<path>/<app>-versionless-switch-report.json`
 
-| Symbol | Rule | Code | Location |
-| --- | --- | --- | --- |
-| `try` | `flow.element.unsupported` | `<try …>` | `src/main/mule/errors.xml:338:6` |
-| `raise-error` | `flow.element.unsupported` | `<raise-error …>` | `src/main/mule/errors.xml:475:3` |
+or, when clean:
 
-**security — 2 blockers**
+> **Switchable — 0 blockers.** Full report: `<path>/<app>-versionless-switch-report.json`
 
-| Symbol | Rule | Code | Location |
-| --- | --- | --- | --- |
-| `tls:context` | `security.tls.unsupported` | `<tls:context …>` | `src/main/mule/config.xml:51:4` |
-
-- **Symbol** = `symbol`, **Rule** = `ruleId`, **Code** = the source `snippet` (one
-  line), **Location** = project-relative `path:line:col`. The axis is the section
-  header, so it is not a column.
-- **One table per axis**, rows sorted by file then line within it — same ordering as
-  the CLI's stdout table, just sectioned by axis.
-- Render each as a real Markdown table (pipe syntax), not the CLI's ASCII box and not
-  prose bullets.
-
-**Report blockers only. Do not add an "INFO notices" section and do not add a
-"Bottom line" / remediation / next-steps section.** INFO findings are omitted from the
-report by default; surface them only if the user explicitly asks for the "resolves
-differently but won't block" detail — re-run with `--include-info` to put them in
-`report.json`. If the run **failed closed** (exit 1), say the app could not be validated
-and why; do not imply it is switchable.
-
-**When you point the user at the full report file, reference it by path alone** — e.g.
-"Full report: `<path>`". Do not annotate it with the axis count or an INFO aside (not
+**Do not render the findings in chat.** No per-axis tables, no per-finding bullets, no
+ASCII box, no "INFO notices" section, no "Bottom line" / remediation / next-steps
+section. The blockers live in the JSON report; the user reads them there. Reference the
+report by **path alone** — do not annotate it with the axis count or an INFO aside (not
 "Full report (all seven axes, including any INFO notices): …"); the path is enough.
+
+Surface finding detail in chat **only if the user explicitly asks** for it (e.g. "show
+me the blockers", "what's in the config axis"). INFO notices are omitted from the report
+by default — re-run with `--include-info` to put them in `report.json` if asked. If the
+run **failed closed** (exit 1), say the app could not be validated and why; do not imply
+it is switchable.
 
 When the user is ready to actually perform the switch, hand off to
 **skill switch-classic-mule-to-versionless**.
@@ -331,8 +315,10 @@ When the user is ready to actually perform the switch, hand off to
 - **Pre-check, then switch.** ✅ Run this validator, resolve the blockers, then run
   **switch-classic-mule-to-versionless**. ❌ Don't switch first and discover
   blockers at deploy time.
-- **Report blockers by axis with file:line.** ✅ "config: `${secure::db.pw}` at
-  app.xml:21 — no decryption subsystem." ❌ "Some config issues found."
+- **Report the verdict + count + path; let the JSON carry the detail.** ✅ "Not
+  switchable — 8 blockers. Full report: `<path>`." ❌ Rendering per-axis tables or a
+  "Bottom line" in chat. The report already pins each blocker to `symbol` / `ruleId` /
+  `path:line:col`.
 - **Treat fail-closed as unknown, not clean.** ✅ Exit 1 → "could not validate
   (manifest unavailable)." ❌ Exit 1 → "no blockers found."
 - **Leave the app untouched.** ✅ Read-only report. ❌ Don't edit flows or the pom

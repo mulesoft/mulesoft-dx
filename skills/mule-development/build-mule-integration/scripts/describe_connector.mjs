@@ -158,7 +158,7 @@ function describeOnce(gav) {
   if (TYPE) cmdArgs.push('--type', TYPE, '--name', NAME);
   return spawnSync('anypoint-cli-v4', cmdArgs, {
     env: buildChildEnv(),
-    shell: false,
+    shell: process.platform === 'win32',
     encoding: 'buffer',
     maxBuffer: Infinity,
   });
@@ -186,7 +186,7 @@ function tryPriorVersions(currentGav) {
   const listing = spawnSync(
     'anypoint-cli-v4',
     ['exchange', 'asset', 'list', assetId, '--limit', '200', '--offset', '0', '--output', 'json'],
-    { env: anypointEnv(), encoding: 'utf8', shell: false, maxBuffer: Infinity },
+    { env: anypointEnv(), encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: Infinity },
   );
   if (listing.status !== 0 || !listing.stdout) return null;
 

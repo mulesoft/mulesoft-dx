@@ -51,7 +51,7 @@ function runCli(cliArgs) {
         const child = spawn('anypoint-cli-v4', cliArgs, {
             env: templateEnv(),
             stdio: ['ignore', 'pipe', 'pipe'],
-            shell: false,
+            shell: process.platform === 'win32',
         });
         let out = '';
         let err = '';

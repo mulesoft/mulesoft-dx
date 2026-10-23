@@ -4,14 +4,15 @@ description: |
   Manage the lifecycle of API Experience Hub portal members and prospects.
   Use when an admin needs to approve or reject prospects (candidate users),
   list active members, inspect and update a member's user-group assignments,
-  or disable a member. Covers the full join → approve → assign → disable flow.
+  or disable a member. Also create prospects as an alternative to the portal's
+  built-in self-registration. Covers the join → approve → assign → disable flow.
 ---
 
 # Manage Portal Members and Prospects
 
 ## Overview
 
-Handles the membership lifecycle of an API Experience Hub (AEH) portal. Prospects are users who have requested access but are not yet portal members; members are active users with assigned user groups. This workflow lets portal administrators approve or reject prospects, audit the member list, adjust user-group assignments per member, and disable members who should no longer have access.
+Manage the membership lifecycle of an API Experience Hub (AEH) portal. Prospects normally request access through the portal's built-in self-registration and are not yet portal members; members are active users with assigned user groups. Review and approve or reject those prospects, audit the member list, adjust user-group assignments per member, and disable members who should no longer have access. When you do not want to use the built-in self-registration, optionally create prospects through the management API instead.
 
 **What you'll build:** A governed portal membership list with the right people assigned to the right user groups.
 
@@ -71,7 +72,48 @@ outputs:
     description: ID of the portal to manage
 ```
 
-## Step 3: List Pending Prospects
+## Step 3: Create a Prospect Instead of Using Self-Registration (Optional)
+
+Normally, users register through the portal's built-in self-registration. Skip this step and continue to Step 4 to review those registrations. When you do not want to use that self-registration flow, create a pending registration on behalf of a new user with `POST /api/v1/connections/{connectionId}/apiPortals/{portalId}/prospects`. API creation is an alternative registration path, not a prerequisite for approving or rejecting prospects. Also skip this step when managing existing members.
+
+**What you'll need:**
+
+- `connectionId`, `portalId` from Steps 1–2; use the portal's AEH `id`, not its Salesforce `targetPortalId`
+- `email`, `firstName`, `lastName`, and `username`, each up to 96 characters
+- An email-formatted username that does not already exist in the Salesforce organization
+
+```yaml
+api: urn:api:api-experience-hub-management
+operationId: createProspect
+inputs:
+  connectionId:
+    from:
+      variable: connectionId
+    description: Connection ID from Step 1
+  portalId:
+    from:
+      variable: portalId
+    description: AEH portal ID from Step 2
+  prospectRequest:
+    userProvided: true
+    description: JSON request body containing the new user's required registration details
+    example:
+      email: bob@example.com
+      firstName: Bob
+      lastName: Builder
+      username: bob@example.com
+outputs:
+  - name: createdProspectId
+    path: $.id
+    description: ID of the created prospect, usable as prospectId for approval or rejection
+  - name: createdProspectStatus
+    path: $.status
+    description: PENDING status of the newly created registration
+```
+
+**What happens next:** Expect `201 Created` with the prospect's `id` and `status: PENDING`. Creation does not approve the user. Continue to Step 4 to review pending prospects, or use `createdProspectId` as `prospectId` in Step 5 or Step 6 when the admin requests approval or rejection.
+
+## Step 4: List Pending Prospects
 
 Retrieve the list of users who have requested access to the portal but are not yet members.
 
@@ -92,17 +134,17 @@ inputs:
     description: Portal ID
 outputs:
   - name: prospects
-    path: $.prospects[*]
-    labels: $.prospects[*].email
+    path: $[*]
+    labels: $[*].email
     description: Pending prospects awaiting admin decision
   - name: prospectId
-    path: $.prospects[*].id
+    path: $[*].id
     description: Prospect ID used by the approve/reject operations
 ```
 
 **What happens next:** Present the prospect list and let the admin choose who to approve or reject.
 
-## Step 4: Approve a Prospect
+## Step 5: Approve a Prospect
 
 Promote a prospect to an active portal member and assign them to one or more user groups. Repeat per prospect the admin wants to approve.
 
@@ -140,7 +182,7 @@ outputs:
 
 **What happens next:** The prospect is now a portal member with the chosen group assignments.
 
-## Step 5: Reject a Prospect (Optional)
+## Step 6: Reject a Prospect (Optional)
 
 Reject prospects who should not be granted access.
 
@@ -171,7 +213,7 @@ outputs:
 
 **What happens next:** The prospect is removed from the queue. They can re-request access later.
 
-## Step 6: List Portal Members
+## Step 7: List Portal Members
 
 Retrieve active portal members to audit who currently has access.
 
@@ -200,7 +242,7 @@ outputs:
     description: Portal-member user ID used by per-member operations
 ```
 
-## Step 7: Inspect a Member's User-Group Assignments
+## Step 8: Inspect a Member's User-Group Assignments
 
 Fetch the specific group assignments of one member.
 
@@ -230,9 +272,9 @@ outputs:
     description: Current user groups assigned to the member
 ```
 
-**What happens next:** Present the current assignments; let the admin decide new memberships for Step 8.
+**What happens next:** Present the current assignments; let the admin decide new memberships for Step 9.
 
-## Step 8: Update a Member's User-Group Assignments
+## Step 9: Update a Member's User-Group Assignments
 
 Replace or extend the user groups assigned to a specific member.
 
@@ -271,7 +313,7 @@ outputs:
 
 **What happens next:** The member now has exactly the user groups you specified.
 
-## Step 9: Disable a Portal Member (Optional)
+## Step 10: Disable a Portal Member (Optional)
 
 Revoke a member's access without deleting their record — useful for offboarding.
 
@@ -305,6 +347,7 @@ outputs:
 ## Completion Checklist
 
 - [ ] Connection and portal selected
+- [ ] If using an alternative to built-in self-registration, prospect created through the API with status PENDING; otherwise, creation step skipped
 - [ ] Pending prospects reviewed
 - [ ] Approved prospects assigned to correct user groups
 - [ ] Unwanted prospects rejected
@@ -313,7 +356,13 @@ outputs:
 
 ## What You've Built
 
-✅ **Governed Portal Membership** — Prospects are triaged and approved members have the right user-group entitlements.
+✅ **Governed Portal Membership** — New prospects are registered when requested, prospects are triaged, and approved members have the right user-group entitlements.
+
+## Troubleshooting
+
+- **Create returns `400`:** Check that all four required fields are present and at most 96 characters, and that email and username have email format. If the username already exists in Salesforce, do not retry creation with the same username.
+- **Create returns `409`:** The portal's prospect limit has been reached. Review existing registrations before retrying.
+- **Portal listing returns `500`:** Record the response's `requestId` and investigate the connection. Continue only with a known valid connection and AEH portal ID.
 
 ## Next Steps
 
@@ -323,5 +372,5 @@ outputs:
 
 ## Related Jobs
 
-- **curate-portal-assets** — Control which APIs and minor versions portal members see
-- **manage-portal-user-groups** — Define and maintain the user groups assigned here
+- **skill curate-portal-assets** — Control which APIs and minor versions portal members see
+- **skill manage-portal-user-groups** — Define and maintain the user groups assigned here

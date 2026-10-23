@@ -14,7 +14,7 @@ info:
     - **Asset curation** — publish, search, update and remove the Exchange assets that
       appear in a portal's catalog, including version visibility.
     - **Members and prospects** — list portal users, enable or disable accounts, review
-      pending sign-ups, and approve or reject prospects.
+      pending sign-ups, and create, approve or reject prospects.
     - **User groups and access** — create user groups, manage their group mappings to
       external IdP groups, and assign or revoke user-group memberships.
 
@@ -1702,6 +1702,94 @@ paths:
                 anypointGroups:
                 - "API Developers"
   /api/v1/connections/{connectionId}/apiPortals/{portalId}/prospects:
+    post:
+      tags:
+      - User Management
+      summary: Create a prospect
+      description: >-
+        Creates a pending prospect registration on behalf of a new user. The username
+        must not already exist in the Salesforce organization. Use approveProspect
+        to approve the registration later.
+      operationId: createProspect
+      parameters:
+      - name: portalId
+        in: path
+        description: Unique identifier of the portal
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "55555555-5555-5555-5555-555555555555"
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getAllApiPortalByConnectionId
+          values: $[*].id
+          labels: $[*].name
+          description: Portal hosted under the selected connection
+      - name: connectionId
+        in: path
+        description: Unique identifier of the Salesforce connection
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+        x-origin:
+        - api: urn:api:api-experience-hub-management
+          operation: getConnections
+          values: $[*].id
+          labels: $[*].targetOrganizationDomain
+          description: Salesforce connection registered in API Experience Hub
+      requestBody:
+        description: Prospect details for the new user to register
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProspectCreateDTO"
+            example:
+              email: "bob@example.com"
+              firstName: "Bob"
+              lastName: "Builder"
+              username: "bob@example.com"
+      responses:
+        "201":
+          description: Pending prospect registration created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProspectDTO"
+              example:
+                id: "880e8400-e29b-41d4-a716-446655440003"
+                email: "bob@example.com"
+                firstName: "Bob"
+                lastName: "Builder"
+                username: "bob@example.com"
+                status: "PENDING"
+                portalId: "55555555-5555-5555-5555-555555555555"
+                createdDate: "2026-10-21T14:30:00Z"
+                updatedDate: "2026-10-21T14:30:00Z"
+        "400":
+          description: >-
+            Invalid prospect details. RECOVERY INSTRUCTIONS:
+            Correct validation errors before retrying. If the username already exists,
+            use a new user's username.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Unauthorized; provide a valid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: Prospect limit reached for the portal; resolve existing registrations before retrying
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
     get:
       tags:
       - User Management
@@ -2478,6 +2566,33 @@ components:
         provider_id:
           type: string
           description: Identity provider ID for this group mapping
+    ProspectCreateDTO:
+      description: Details used to create a pending prospect registration for a new user
+      type: object
+      required:
+      - email
+      - firstName
+      - lastName
+      - username
+      properties:
+        email:
+          type: string
+          description: Email address of the prospect, up to 96 characters
+          maxLength: 96
+          pattern: '.+@.+[.].+'
+        firstName:
+          type: string
+          description: First name of the prospect, up to 96 characters
+          maxLength: 96
+        lastName:
+          type: string
+          description: Last name of the prospect, up to 96 characters
+          maxLength: 96
+        username:
+          type: string
+          description: Username in email address form; must not already exist in the Salesforce organization
+          maxLength: 96
+          pattern: '.+@.+[.].+'
     ProspectDTO:
       required:
       - email

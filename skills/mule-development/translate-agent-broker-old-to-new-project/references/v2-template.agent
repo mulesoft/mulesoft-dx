@@ -4,7 +4,7 @@ system:
   instructions: "<one-line summary of the broker's role, derived from V1 broker description>"
 
 config:
-  agent_name: "<broker-id>"
+  agent_name: "<agent-name-kebab-case>"   # docs examples use kebab-case, e.g. "employee-onboarding"
   label: "<human-readable broker label>"
   description: "<one-line description>"
   default_llm: @llm.<llm-id>
@@ -14,12 +14,12 @@ llm:
   <llm_id>:
     target: "llm://<llm_connection_name_snake_case>"
     kind: "<Gemini|OpenAI>"
-    model: "<model from V1 spec.llm.configuration.model>"
+    model: "<model from V1 spec.llm.configuration.model, copied exactly>"
 
 # -- ACTION DEFINITIONS -------------------------------------------------------
 # Connection ids in `a2a://...` and `mcp://...` targets MUST match the
-# connection keys declared in agent-network.yaml exactly (any valid identifier;
-# this converter uses snake_case by convention, not because the schema requires it).
+# connection keys declared in agent-network.yaml exactly. The docs state no
+# format; the schema requires ^[a-zA-Z][a-zA-Z0-9_.-]*[a-zA-Z0-9]$. Use snake_case.
 actions:
   <agent_action_id>:
     target: "a2a://<agent_connection_name_snake_case>"
@@ -34,8 +34,8 @@ actions:
     # auto-discovers tool arguments from the MCP server.
 
 # -- TRIGGER ------------------------------------------------------------------
-# <broker_id> MUST match the YAML broker key exactly (any valid identifier; this
-# converter uses snake_case by convention, not because the schema requires it).
+# <broker_id> MUST match the YAML broker key exactly. Broker ids are lowercase
+# snake_case: only a-z, 0-9, and non-trailing underscores (YAML reference).
 # The .agent filename is independent and may be kebab-case for readability.
 trigger <triggerNameCamelCase>:
   kind: "a2a"

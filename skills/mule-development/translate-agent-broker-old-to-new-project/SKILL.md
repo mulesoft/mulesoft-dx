@@ -95,14 +95,15 @@ Don't invent capabilities V1 didn't claim. If V1 doesn't say `pushNotifications:
 For each V1 MCP server:
 - Lift `label` into `info.label`. Add a short `info.description` if you can derive one safely from the V1 broker's instructions.
 - Keep `metadata.transport` exactly as-is.
-- Add `metadata.tools` array. For each tool the V1 broker calls (look at `brokers.tools[*].mcp.allowed` for the canonical name), add an entry with `name`, `description`, and a minimal `inputSchema` (`type: object`, plus `properties` for arguments you can confidently infer from the broker's instructions). **If you can't determine the schema, leave `properties` empty rather than fabricate.**
+- **Omit `metadata.tools` by default.** It's optional in the schema, and the docs' IT Investigation example leaves it out. Tool arguments are discovered at runtime (AgentScript reference: *"Input arguments provided are not exhaustive. The tool will auto-discover additional arguments"*). If the user wants tools listed, add only the tools named in `brokers.tools[*].mcp.allowed` with `name` and `description`, and leave `inputSchema.properties` empty rather than fabricate.
 
 #### LLM translation (`llmProviders` → `registry.llms`)
 
 For each V1 LLM provider:
 - Lift `label` into `info.label` and `description` into `info.description`.
 - Keep `metadata.platform`.
-- Add `metadata.models` as a list. Include the model V1 actually uses (`spec.llm.configuration.model`) plus one obvious sibling. Don't pad speculatively.
+- `metadata.models` is optional (the docs example omits it). If you add it, list only the model V1 actually uses (`spec.llm.configuration.model`). Don't pad it with other models.
+- The model itself is set in the `.agent` `llm:` block. Copy V1's `spec.llm.configuration.model` there exactly. Don't swap in a different model.
 
 #### Connection translation (`connections` → `context.connections`)
 
@@ -120,7 +121,7 @@ WorkdayAgentTestConnection:
 becomes
 ```yaml
 # V2
-workdayAgentConnection:
+workday_agent_connection:
   kind: a2a            # V1 'agent' becomes V2 'a2a'
   ref:
     name: workdayAgent
@@ -129,9 +130,10 @@ workdayAgentConnection:
 
 Mapping rules:
 - `kind: agent` (V1) → `kind: a2a` (V2). `kind: mcp` and `kind: llm` stay.
-- For LLM connections, move auth into a top-level `authentication` block: `kind: apiKey`, `apiKey: ${<llmName>.apiKey}`. Don't keep V1's `spec.configuration` shape.
+- For LLM connections, move auth into a top-level `authentication` block: `kind: apiKey`, `apiKey: ${<llmName>.apiKey}`. `authentication` is required on `kind: llm` connections. Don't keep V1's `spec.configuration` shape.
+- Drop other V1 `spec.configuration` keys such as `timeout`. A V2 LLM connection accepts only `kind`, `ref`, `url`, `authentication`, `tlsContext`, `policies`, and `access`; the schema rejects anything else. Tell the user which keys you dropped.
 - Replace hardcoded URLs with `${<refName>.url}` variables. The actual URL value goes into `exchange.json`.
-- **Connection IDs are not format-restricted by the V2 schema**: `context.connections.<id>` keys accept any valid YAML identifier (camelCase, snake_case, or kebab-case all validate). Convert V1 PascalCase like `WorkdayAgentTestConnection` into a readable id — this converter uses snake_case (`workday_agent_connection`) for consistency, but that's a convention, not a lint rule. The one hard requirement: the id must match the `.agent` target (`a2a://<id>`, `mcp://<id>`, `llm://<id>`) exactly.
+- **Connection IDs**: the docs state no format for `context.connections.<id>` keys. The V2 JSON schema requires `^[a-zA-Z][a-zA-Z0-9_.-]*[a-zA-Z0-9]$`: start with a letter, end with a letter or digit, at least 2 characters. Convert V1 PascalCase like `WorkdayAgentTestConnection` to snake_case (`workday_agent_connection`), which is the convention the docs examples use. The one hard requirement: the id must match the `.agent` target (`a2a://<id>`, `mcp://<id>`, `llm://<id>`) exactly.
 - Registry `ref.name` values (agents/mcps/llms) typically become camelCase in V2 (e.g. `workdayAgent`).
 
 #### Broker translation
@@ -154,7 +156,7 @@ brokers:
           version: 1.0.0
           capabilities:
             streaming: false
-            pushNotifications: <copied from V1 card.capabilities.pushNotifications, default false>
+            pushNotifications: false   # always false on the broker card (CLI 1.5.0 error 1035)
           defaultInputModes: [application/json, text/plain]
           defaultOutputModes: [application/json, text/plain]
           skills:
@@ -167,17 +169,21 @@ brokers:
               outputModes: [application/json, text/plain]
 ```
 
-**Broker IDs are not format-restricted by the V2 schema**: the key under `brokers:` accepts any valid YAML identifier (snake_case, kebab-case, and camelCase all validate). Convert V1 PascalCase like `CustomerOnboardingBrokerTest` into a readable id — this converter uses snake_case (`customer_onboarding`) for consistency, but that's a convention, not a lint rule. The `.agent` *filename* is independent (e.g. `./brokers/customer-onboarding.agent`). The one hard rule: match the trigger `target: "brokers://<broker-id>/a2a"` to the YAML broker key **exactly**.
+**Broker card `pushNotifications` is always `false`.** CLI 1.5.0 `project build` fails with error 1035 `pushNotificationNotSupported` if a broker card sets `capabilities.pushNotifications: true`. If V1's broker card had `true`, write `false` and tell the user it was changed.
+
+**Broker IDs must be lowercase snake_case.** The YAML reference says broker keys are *"identifiers using only lowercase `a`–`z`, `0`–`9`, and non-trailing underscores (`_`)."* The JSON schema is looser and would accept camelCase or kebab-case, but follow the docs. So convert V1 PascalCase like `CustomerOnboardingBrokerTest` to `customer_onboarding`, and keep it short: long broker IDs fail the deployment-name length limit (CLI error 7014). The `.agent` *filename* is independent and may be kebab-case (e.g. `./brokers/customer-onboarding.agent`). Also match the trigger `target: "brokers://<broker-id>/a2a"` to the YAML broker key **exactly**. (One AgentScript reference snippet uses `brokers://employee-onboarding/a2a`; that conflicts with the YAML reference rule, so don't copy it.)
 
 ### 3b. Build the V2 `exchange.json`
 
 Take V1's `exchange.json` and:
 - Change `"classifier": "agent-network"` → `"classifier": "agentic-network"`.
-- Update `name`, `assetId`, `version` to reflect the V2 conversion (e.g. `-v2` suffix).
+- Update `name` and `assetId` to reflect the V2 conversion (e.g. `-v2` suffix). Keep V1's `groupId`: it's the business group that owns the network, and you change it only to publish to a different group. Keep `organizationId` if V1 has it; the YAML reference's samples include it.
+- Add `"apiVersion": "v1.0"`. This is the Exchange **version group** (publish docs: *"The `apiVersion` field in `exchange.json` is the version group"*). Set `version` to `1.0.0` for the new asset and don't hand-bump it later, because Exchange auto-increments it on each publish. Renaming `apiVersion` triggers a major version bump.
 - Add a `description` field.
 - For every connection that points to an external URL in V1, add `metadata.variables.<refName>.url` with the URL as `default`. This is what makes the `${<refName>.url}` references resolve.
-- Preserve any existing variables (e.g. `gemini.apiKey`).
-- Mark API keys `"secret": true`. Mark URLs `"secret": false`.
+- Preserve existing variables that the V2 project still references (e.g. `gemini.apiKey`). Drop ones only V1 used. For example, V1's `gemini.modelName` isn't needed, because the model now lives in the `.agent` `llm:` block.
+- Mark API keys and client secrets `"secret": true`, and mark URLs `"secret": false`.
+- **Secret variables get `"default": ""`.** Never carry a V1 secret default (real or placeholder) into V2; the docs say *"inject at deploy time via --property, never commit a default value."* If V1 had a non-empty secret default, tell the user it was blanked.
 
 ### 3c. Build the Agent Script `<broker-id>.agent`
 
@@ -209,7 +215,7 @@ Use **`references/v2-template.agent`** as the structural skeleton and fill in th
     └── <broker-id>.agent
 ```
 
-Use `mkdir -p` for directories and Write for files. Skip `.mvn`, `.vscode`, `.cursor`, `target/` and other IDE folders — they aren't part of the project spec. If the destination exists, ask before overwriting.
+Use `mkdir -p` for directories and Write for files. Skip `.mvn`, `.vscode`, `.cursor`, `target/` and other IDE/build folders — they aren't part of the project spec. **Never read from or write into `target/`**: it's Maven build output (regenerated by `agent-network project build` and overwritten each time), not source. All project edits — config, policies, cards — belong in the source `agent-network.yaml` / `brokers/*.agent`. If the destination exists, ask before overwriting.
 
 After writing, list the created files.
 
@@ -218,6 +224,8 @@ After writing, list the created files.
 Tell the user:
 - Full path to the new folder.
 - Broker name and orchestrator node id.
+- Anything dropped, blanked, or changed (e.g. LLM `timeout`, unused variables, secret defaults, broker `pushNotifications: true` → `false`).
+- Next step: validate with `agent-network project build` (see `build-agent-broker-project`), then supply secrets at deploy via `--property`.
 - One-line note: this is a simple V1→V2 translation with one orchestrator node; for a richer multi-node graph (router/generator/executor split), use `build-agent-broker-project`.
 
 ## Common mistakes to avoid
@@ -228,8 +236,14 @@ Tell the user:
 - **Don't** rewrite the user's prompt to "improve" it.
 - **Don't** hardcode URLs — parameterize via `${<name>.url}` and put the value in `exchange.json`.
 - **Don't** forget `info.version` (required in V2, absent in V1).
+- **Don't** forget `apiVersion` (the Exchange version group) in `exchange.json`.
+- **Don't** commit secret defaults. Secret variables use `"default": ""`.
+- **Don't** emit camelCase or kebab-case broker IDs. The docs require lowercase `a–z`, `0–9`, and non-trailing `_`.
+- **Don't** copy `pushNotifications: true` onto the V2 broker card. The CLI rejects it (error 1035).
+- **Don't** change the model V1 used, and don't carry V1-only LLM keys like `timeout` onto the V2 connection.
 - **Don't** put auth blocks inside the registry — auth lives on `context.connections.<name>.authentication`.
 - **Don't** add `inputs:` to MCP actions during V1→V2 conversion. V1 has no schemas, so any `inputs:` block is guessed from prose.
 - **Don't** emit `metadata.protocol` or flat `metadata.card` on registry agents — GA uses `metadata.interfaces.<branch>.card`. Place V1-converted agents under `a2a_v03` (back-compat); the broker itself uses `a2a` (v1.0).
 - **Don't** emit `kind: "a2a:response"` with a nested `task: a2a.task({...})` in echo nodes — GA uses `kind: "a2a:status_update_event"` (state + message) or `kind: "a2a:artifact_update_event"` (artifact + append/lastChunk). State values are `TASK_STATE_*` constants.
 - **Don't** emit `# @dialect: AGENTFABRIC=0.1-BETA` or `# @dialect: AGENTFABRIC=0.1` — use `# @dialect: AGENTFABRIC=1.0` for GA.
+- **Don't** read from or write into `target/` (or `.mvn`, `.vscode`, `.cursor`). It's build output — source edits go in `agent-network.yaml` / `brokers/*.agent`.

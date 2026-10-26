@@ -1,0 +1,344 @@
+{
+  "natives": [
+    {
+      "name": "atBeginningOfDay",
+      "systemSym": "system::AtBeginningOfDay",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfMonth",
+      "systemSym": "system::AtBeginningOfMonth",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfWeek",
+      "systemSym": "system::AtBeginningOfWeek",
+      "supported": false
+    },
+    {
+      "name": "atBeginningOfYear",
+      "systemSym": "system::AtBeginningOfYear",
+      "supported": false
+    },
+    {
+      "name": "dataFormatsDescriptor",
+      "systemSym": "system::DataFormatDescriptorsFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalAdd",
+      "systemSym": "system::BigDecimalAdditionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalDivide",
+      "systemSym": "system::BigDecimalDivisionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalMultiply",
+      "systemSym": "system::BigDecimalMultiplicationFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalPow",
+      "systemSym": "system::BigDecimalPowerFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalRound",
+      "systemSym": "system::BigDecimalRoundFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalSqrt",
+      "systemSym": "system::BigDecimalSqrtFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "decimalSubtract",
+      "systemSym": "system::BigDecimalSubtractionFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "envVars",
+      "systemSym": "system::env",
+      "supported": false
+    },
+    {
+      "name": "eval",
+      "systemSym": "system::EvalScriptFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "findDataFormatDescriptorByMime",
+      "systemSym": "system::FindDataFormatDescriptorByMimeFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "fromString",
+      "systemSym": "system::FromMimeTypeString",
+      "supported": false
+    },
+    {
+      "name": "isHandledBy",
+      "systemSym": "system::IsHandledBy",
+      "supported": false
+    },
+    {
+      "name": "location",
+      "systemSym": "system::location",
+      "supported": false
+    },
+    {
+      "name": "now",
+      "systemSym": "system::now",
+      "supported": true
+    },
+    {
+      "name": "props",
+      "systemSym": "system::props",
+      "supported": false
+    },
+    {
+      "name": "random",
+      "systemSym": "system::random",
+      "supported": true
+    },
+    {
+      "name": "readLinesWith",
+      "systemSym": "system::ReadLinesFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "readUrl",
+      "systemSym": "system::readUrl",
+      "supported": false
+    },
+    {
+      "name": "run",
+      "systemSym": "system::RunScriptFunctionValue",
+      "supported": false
+    },
+    {
+      "name": "toString",
+      "systemSym": "system::ToMimeTypeString",
+      "supported": false
+    },
+    {
+      "name": "uuid",
+      "systemSym": "system::uuid",
+      "supported": true
+    },
+    {
+      "name": "version",
+      "systemSym": "system::version",
+      "supported": false
+    }
+  ],
+  "modules": {
+    "supported": [
+      "dw::Crypto",
+      "dw::Runtime::fail",
+      "dw::Runtime::props",
+      "dw::Runtime::try",
+      "dw::Runtime::wait",
+      "dw::core::Arrays",
+      "dw::core::Binaries",
+      "dw::core::Dates",
+      "dw::core::Numbers",
+      "dw::core::Objects",
+      "dw::core::Periods",
+      "dw::core::Strings",
+      "dw::core::Types",
+      "dw::core::URL",
+      "dw::extension::DataFormat",
+      "dw::meta::Component",
+      "dw::util::Coercions",
+      "dw::util::Diff",
+      "dw::util::Timer",
+      "dw::util::Tree",
+      "dw::util::Values",
+      "dw::xml::Dtd"
+    ],
+    "unsupported": [
+      "dw",
+      "dw::Runtime",
+      "dw::System",
+      "dw::module::Mime",
+      "dw::module::Multipart",
+      "dw::util::Math"
+    ]
+  },
+  "readers": {
+    "supported": [
+      "application/csv",
+      "application/dw",
+      "application/json",
+      "application/octet-stream",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/x-binary",
+      "application/x-ldjson",
+      "application/x-ndjson",
+      "application/x-www-form-urlencoded",
+      "application/x-yaml",
+      "application/xlsx",
+      "application/xml",
+      "application/yaml",
+      "binary",
+      "csv",
+      "dw",
+      "excel",
+      "json",
+      "multipart",
+      "multipart/form-data",
+      "ndjson",
+      "properties",
+      "text",
+      "text/plain",
+      "text/x-java-properties",
+      "text/xml",
+      "text/yaml",
+      "urlencoded",
+      "xml",
+      "yaml"
+    ],
+    "unsupported": [
+      "application/avro",
+      "application/dwb",
+      "application/flatfile",
+      "application/java",
+      "application/protobuf",
+      "application/x-protobuf",
+      "avro",
+      "dwb",
+      "flatfile",
+      "java",
+      "protobuf"
+    ]
+  },
+  "writers": {
+    "supported": [
+      "application/csv",
+      "application/dw",
+      "application/java",
+      "application/json",
+      "application/octet-stream",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/x-binary",
+      "application/x-ldjson",
+      "application/x-ndjson",
+      "application/x-www-form-urlencoded",
+      "application/x-yaml",
+      "application/xlsx",
+      "application/xml",
+      "application/yaml",
+      "binary",
+      "csv",
+      "dw",
+      "excel",
+      "json",
+      "multipart",
+      "multipart/form-data",
+      "ndjson",
+      "properties",
+      "text",
+      "text/plain",
+      "text/x-java-properties",
+      "text/xml",
+      "text/yaml",
+      "urlencoded",
+      "xml",
+      "yaml"
+    ],
+    "unsupported": [
+      "application/avro",
+      "application/dwb",
+      "application/flatfile",
+      "application/protobuf",
+      "application/x-protobuf",
+      "avro",
+      "dwb",
+      "flatfile",
+      "java",
+      "protobuf"
+    ]
+  },
+  "unsupportedFunctions": [
+    "currentMilliseconds",
+    "envVar",
+    "evalUrl",
+    "generateBoundary",
+    "log",
+    "logDebug",
+    "logError",
+    "logInfo",
+    "logWarn",
+    "logWith",
+    "prop",
+    "randomInt",
+    "runUrl",
+    "today",
+    "tomorrow",
+    "yesterday"
+  ],
+  "argumentConstraints": [
+    {
+      "function": "hashWith",
+      "values": {
+        "supported": [
+          "MD5",
+          "SHA-1",
+          "SHA-224",
+          "SHA-256",
+          "SHA-384",
+          "SHA-512",
+          "SHA1",
+          "SHA224",
+          "SHA256",
+          "SHA384",
+          "SHA512"
+        ],
+        "unsupported": [
+          "MD2",
+          "RIPEMD160",
+          "SHA3-256",
+          "SHA3-512",
+          "Whirlpool"
+        ]
+      }
+    },
+    {
+      "function": "HMACBinary",
+      "values": {
+        "supported": [
+          "HmacMD5",
+          "HmacSHA1",
+          "HmacSHA224",
+          "HmacSHA256",
+          "HmacSHA384",
+          "HmacSHA512"
+        ],
+        "unsupported": []
+      }
+    },
+    {
+      "function": "HMACWith",
+      "values": {
+        "supported": [
+          "HmacMD5",
+          "HmacSHA1",
+          "HmacSHA224",
+          "HmacSHA256",
+          "HmacSHA384",
+          "HmacSHA512"
+        ],
+        "unsupported": []
+      }
+    }
+  ],
+  "blockingConstructs": [
+    "range-to-infinity",
+    "unbounded-recursion"
+  ]
+}

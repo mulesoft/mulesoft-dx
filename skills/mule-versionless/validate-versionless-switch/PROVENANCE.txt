@@ -1,0 +1,260 @@
+Provenance of the bundled validator assets. The jars carry no app version string,
+so this is not otherwise recoverable. How to refresh: docs/UPDATING.md
+
+=== Validator classpath (lib/) — 5 jars, the proven-minimal set ===
+mule-dx-mule-dev-plugin-all.jar   mule-dx-mule-dev-component, shaded jar (3.32.0-SNAPSHOT-all)
+                                  via `gradlew :mule-dx-mule-dev-plugin:shadowJar`.
+                                  sha256 f0682c0ec1…, 91,392,950 bytes (built 2026-10-23).
+                                  CONFIG+STATE AXIS REFRESH (2026-10-23): this jar carries two
+                                  previously-uncommitted checker edits on top of the FIX1+FIX2 base
+                                  below. (a) DataIntegrityCompatibilityChecker — Object Store flips
+                                  BLOCK→INFO (rule connector.objectStore.unsupported →
+                                  connector.objectStore.notice, SEVERITY_INFO): os:* runs on the
+                                  versionless in-memory default store; only persistent="true"
+                                  durability and named-store isolation are gaps. redelivery-policy /
+                                  idempotent-message-validator / oauth authorization-code STAY BLOCK.
+                                  (b) ConfigSecretsCompatibilityChecker — drops the
+                                  config.globalProperty.notice ("applied differently") and
+                                  config.properties.multiple INFO findings (+ the PropertyFileOccurrence
+                                  inner class): versionless runtime/properties applies global-property
+                                  defaults with JVM precedence and loads+merges every
+                                  <configuration-properties>. Verified: 9 config+state tests pass via
+                                  `gradlew :…:test`; corpus (17 apps) before/after shows the ONLY block
+                                  movement is -76 connector.objectStore.unsupported→notice (total
+                                  449→373), zero DW/other-axis drift, globalProperty 70→0, multi-file
+                                  14→0. Shipped by patching a COPY of the FIX1+FIX2 jar (zip -d the 5
+                                  configcompat/statecompat class entries, jar --update the 4 fresh
+                                  classes from build/classes/java/main) so the DW pivot overlay stays
+                                  byte-intact — a plain re-shade from the axes tip would silently revert
+                                  dw::Runtime wildcards INFO→BLOCK. The axes-tip source edits are
+                                  uncommitted on feat/versionless-switch-compat-axes @ 3bb467c3.
+                                  Supplies: lemminx, commons-text, the Scala-namespaced weave
+                                  classes, the rds/dwx-capabilities.json capability manifest, AND
+                                  all seven switch axes shaded in (dwcompat/flowcompat/configcompat/
+                                  shapecompat/securitycompat/statecompat + the VersionlessValidator
+                                  orchestrator). There is no loose-class overlay.
+                                  Built by checking out the axes tip and overlaying six DW-axis pivot
+                                  files (DwxCapabilityManifest, DwxClassifier, SymbolCollector,
+                                  SymbolReference, the baked rds/dwx-capabilities.json, the dwcompat
+                                  test); full recipe in docs/UPDATING.md §1. Three unmerged branches are
+                                  involved; check them out explicitly, not `main`:
+                                    - axes tip feat/versionless-switch-compat-axes @ 3bb467c3
+                                      (VersionlessValidator orchestrator + the five *compat/ dirs; its own
+                                      tip commit "Classify Object Store and OAuth findings as connectors
+                                      and stop flagging .properties config files" folds in the
+                                      configcompat/statecompat fixes that earlier bundles carried as a
+                                      separate 07c03ab2 build).
+                                    - fix/dwx-runtime-wildcard-partial-info @ 010cc58cf (FIX 1 — wildcard
+                                      import of a partially-supported module → INFO).
+                                    - fix/dwx-java-writer-passthrough @ 1273e8307 (FIX 2 — application/java
+                                      output → passthrough INFO).
+                                  The mule-dx-platform:5.19.0-SNAPSHOT the shadowJar bundles (runtimeOnly)
+                                  can no longer be re-resolved from Nexus (401 online, timestamp mapping
+                                  gone offline), so the already-cached platform jar+pom were installed into
+                                  mavenLocal() — which build.gradle lists as a repository — letting the
+                                  real shadowJar resolve it offline. All 15 dwcompat tests pass via
+                                  `gradlew :…:test` (incl. both fixes' regression tests).
+versionless-validator-cli.jar     the headless entry point (VersionlessValidatorCli), compiled from
+                                  src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
+                                  above and packaged as its own jar. First-party skill code — not part
+                                  of the plugin — so it ships separately. Rebuild recipe: docs/UPDATING.md.
+                                  sha256 9b5b07eb6c…, 10,410 bytes — recompiled 2026-10-26 against the
+                                  config+state-refreshed plugin jar above (a CLI rebuild is required
+                                  after any plugin-jar refresh so it links against the shipped classes).
+                                  Source change this build (reviewer Finding 2 — close the fail-open holes that
+                                  let incomplete coverage report a false "switchable"):
+                                  (a) connector.switchability.unverified promoted INFO -> BLOCK — an offline
+                                      switch cannot presume an unverifiable connector switchable, so incomplete
+                                      coverage gates rather than passes (connectorSwitchabilityBlocks/connectorBlock,
+                                      severity SEVERITY_BLOCK);
+                                  (b) fails closed (exit 1, DSL_BUNDLES_UNAVAILABLE) when the bundled connector
+                                      descriptors are absent (no mule-core bundle) instead of validating against
+                                      an empty descriptor set and reporting a false zero-blocker pass;
+                                  (c) fails closed (exit 1, SOURCE_UNREADABLE) if src/main/mule cannot be
+                                      enumerated for connector verification (IOException), and logs a [warn] on a
+                                      single unreadable file instead of silently dropping its connector signal;
+                                  (d) a missing/non-directory src/main/mule is now a usage error (exit 2) instead
+                                      of a 0-file, 0-blocker "switchable" pass (matches the documented contract).
+                                  NOTE (2026-10-19): report scope collapsed to all seven axes by default.
+                                  The CLI no longer post-filters findings to a three-axis default
+                                  (dataweave/flow/connector) — assembleReport now reports every category and
+                                  counts blockerCount across all of them, deliberately stricter than the ACB
+                                  wizard (which gates on those three and treats config/project/security/state
+                                  as advisory via online platform fallbacks). Rationale is empirical: each
+                                  extended-axis BLOCK was confirmed a genuine versionless-runtime failure by
+                                  driving the ext-axis-probe fixture through the real builder
+                                  (parser::parse_str -> build_artifact with register_all) — in-flow unsupported
+                                  op -> BuildError::UnexpectedChild; top-level tls:context/secure-properties:config/
+                                  os:object-store -> silent capability drop; ${secure::...} -> PropertyError::Missing.
+                                  The --extended flag is retained (accepted, parsed) but is now a no-op; the
+                                  DEFAULT_CATEGORIES constant was removed. Rebuilt from src/ against the same
+                                  plugin jar (no plugin/axis change). Verified E2E: ext-axis-probe reports 4
+                                  blockers in default scope, byte-identical with --extended; a clean app exits 0.
+mule-dx-platform-5.10.1-all.jar   platform fat jar — OffsetRange, guice Provider,
+                                  EmbeddedContentExtractor (the DataWeave axis's ctor needs it),
+                                  AND, being itself shaded, gson + lsp4j + maven-model + slf4j.
+                                  Provided scope.
+tooling-api-2.14.0-SNAPSHOT.jar   org.mule.weave.v2.api.tooling.location.ResourceIdentifier —
+                                  the DataWeave axis's Scala parser needs it; the plugin's
+                                  shadowJar excludes it ("bundled by DW Plugin").
+scala-library-2.12.20.jar         scala.Product etc. — Scala stdlib, excluded from the fat jar.
+
+Trimmed (2026-10-15): gson, org.eclipse.lsp4j, maven-model, slf4j-api were REMOVED. A
+leave-one-out sweep against a 4-axis app (90 DW expressions) proved each one redundant —
+mule-dx-platform-5.10.1-all.jar shades all four (verified: com/google/gson/Gson,
+org/eclipse/lsp4j/Position, org/apache/maven/model/Model, org/slf4j/Logger are inside it),
+so the result is byte-identical without them. CAVEAT (see docs/UPDATING.md): this couples
+the bundle to platform's shading. If a future mule-dx-platform build stops shading any of
+these, re-add that standalone jar. Dropping slf4j-api also removed the harmless startup
+"StaticLoggerBinder" warning. Load-bearing jars, by contrast, fail fast if removed:
+NoClassDefFoundError for EmbeddedContentExtractor (platform), scala/Product (scala-library),
+or ResourceIdentifier (tooling-api).
+
+=== No loose-class overlay ===
+Earlier bundles carried a classes/ overlay (the seven axes compiled loose, placed first on the
+classpath) because the then-current plugin jar was the 2026-08-19 build that predated five axes.
+That overlay has been REMOVED: the 2026-10-15 plugin jar shades the axes directly, so lib/*.jar is
+the whole classpath. Equivalence was verified before removal — a jar-only run produced byte-identical
+ValidationResult JSON (every field of every finding) to the overlay run, on both a 3-blocker/90-DW app
+and a clean app. If you ever need the overlay approach again (e.g. to patch one axis without a full
+plugin rebuild), the recipe is in docs/UPDATING.md, but the shaded jar is the preferred shape.
+
+=== Connector descriptors (dsl/) ===
+http, salesforce, twilio, mule-core dsl.json — byte-identical copies of
+go-runtime @ f7fb6dd0 connectors/<name>/descriptor/dsl.json (the runtime's own
+ground truth). The flow axis reads only name + dslJson, so model/xsd are null.
+
+NOTE: the on-disk mule-core/dsl.json is the go-runtime copy and lists constructs the
+*versionless* Rust runtime builder does not implement (try, scatter-gather,
+parallel-foreach, round-robin, first-successful, until-successful) plus the raise-error
+operation. The CLI prunes exactly those seven core-namespace entries from the mule-core
+bundle at load (VersionlessValidatorCli.pruneUnsupportedCoreElements), so the flow axis
+reports them as flow.element.unsupported. The deny-list is (mule-core descriptor elements
+reachable in a flow) minus (register_core/register_ee/register_apikit in mule-versionless
+runtime/builder/src/builders.rs). `scheduler` is excluded (a source, generic source path);
+`route`/`source` excluded (internal childs markers, never user-authored). `async` was on
+this list until mule-versionless master registered it (build_async, PRs #253/#305); it is
+now runtime-supported and no longer pruned. Keep the on-disk file a verbatim go-runtime
+copy — the prune lives in code, so a `cp` refresh stays safe.
+
+=== DataWeave capability manifest override (rds-override/) ===
+rds-override/rds/dwx-capabilities.json — the DataWeave capability manifest the classifier reads.
+Base: mule-versionless origin/master dwx-rust/capabilities/capability-manifest.json (commit
+d982842b, "dwx vendored blob", 2026-08-26) — the manifest the versionless Rust DW engine
+generates for itself. writers.supported=31, writers.unsupported=10; readers 30/11; modules 22/6
+(counts reflect the four corrections below — modules.supported includes the four nested
+dw::Runtime member FQNs from correction (4)). It overrides the copy baked into
+mule-dx-mule-dev-plugin-all.jar via first-match-wins resource lookup.
+
+The two manifests disagree in BOTH directions; the override is right on balance:
+  - The baked copy is stale on data FORMATS — marks yaml / excel+xlsx / properties /
+    octet-stream / binary unsupported though the engine implements them, and conversely marks
+    avro/protobuf supported though it does not. The override (engine output) gets these right,
+    which is why it's load-bearing (it surfaces the `output application/java`-adjacent format
+    BLOCKs the ACB wizard shows and the baked copy misses).
+  - The generated manifest is itself wrong on FOUR entries that we correct by hand after each
+    refresh (recipe + idempotent re-apply: docs/UPDATING.md §2b). Corrections (1)-(3) flip stale
+    FORMAT/native verdicts; correction (4) is the override half of the shipped FIX 1 and must
+    carry the nested-FQN shape the jar reads (see the dw::Runtime section below):
+      (1) native system::now/uuid/random  false -> supported. All three ARE registered in the
+          runtime (dw-runtime .../natives/core.rs: `fn now/uuid/random` + matching dispatch arms);
+          the generated manifest predates that wiring.
+      (2) module dw::util::Timer  unsupported -> supported. Pure cascade of (1): its only
+          non-Null leaf is now().
+      (3) writer application/java  unsupported -> supported. application/java is the in-memory
+          Mule value representation, not a serialization format; the runtime never serializes it
+          (uses_format_writer() in dwx/src/dwx_evaluator.rs returns false -> passthrough via
+          evaluate_value_with_metadata), so the engine's writer-probe reports a false
+          NotImplemented. The application/java READER stays unsupported (no such reader exists),
+          as does the short `java` writer token. (With the shipped FIX 2, the jar additionally
+          treats an application/java *writer* as a passthrough INFO; see the writer note below.)
+      (4) module dw::Runtime  -> nested-FQN shape (bare module unsupported + runnable member FQNs
+          supported). Detailed in the dw::Runtime section below.
+Without (1)-(3) the aaa-template fixture regains two false-positive BLOCKs
+(dw::util::Timer, output application/java) and five `now` INFO findings.
+
+(Earlier this override came from rust-runtime services/design-service/assets/dwx-capabilities.json
+at 20/18 writers; mule-versionless master is newer and is the engine's own output, so it
+supersedes the rust-runtime copy.)
+
+The Java deserializer (DwxCapabilityManifest) reads only natives/modules/readers/writers;
+the manifest's other keys (unsupportedFunctions/argumentConstraints/blockingConstructs) are
+ignored by Gson, so the richer master schema is drop-in compatible.
+
+The StubRemoteDesignServiceClient loads it by classloader resource name
+"rds/dwx-capabilities.json" (first-match-wins), so scripts/validate.sh prepends this dir to
+the classpath (CP="${SKILL_DIR}/rds-override:${LIB}/*") and it wins over the plugin jar.
+This is a loose-override to avoid a 91MB plugin rebuild; the right long-term fix is upstream —
+once the engine's generated manifest marks system::now/uuid/random supported (cascading to Timer),
+treats the application/java writer as the passthrough it is, and carries dw::Runtime's nested member
+FQNs (309a560e1), all four corrections and this whole dir can be dropped (the baked plugin manifest is
+already correct on corrections (1)-(3), and on (4) the shipped jar reads the nested-FQN shape directly).
+The manifest has no version field, so ValidationResult.manifestVersion is null (ground truth, not a
+defect).
+
+=== Partially-supported modules: the dw::Runtime fix (nested-FQN model, shipped 2026-10-23) ===
+Correction (4) above, paired with FIX 1 in the plugin jar. The shipped jar (sha256 e582673466…,
+91,367,840 bytes) and CLI (sha256 63fbb0bf…, 10,037 bytes) carry it. This SUPERSEDES the retired
+`partiallySupported`-partition model an earlier bundle shipped (plugin 52a8b91d…, 91,368,489 bytes);
+the schema and reporting rule are different — see "What changed from the retired model" below.
+
+The bug: `import try from dw::Runtime` and `import * from dw::Runtime` were wrongly reported as a
+BLOCK. dw::Runtime LOADS on the versionless engine and all of try/fail/wait/props run; only `version`
+is unimplemented (version() -> native("system::version"), in no Rust dispatch table). Two layers each
+over-generalised from that one gap: the manifest classified the module all-or-nothing, and the Java
+axis blocked any import of an unsupported module regardless of which member was imported. Confirmed a
+validator BUG (not an app defect) by Dmitrii Popov + Shobana Ranganathan; the AAA app source must NOT
+be "cleaned up" — the fix is in the validator.
+
+Schema (nested-FQN, NOT a partition key): the bare module `dw::Runtime` stays in modules.unsupported;
+each runnable member is listed as its own FQN in modules.supported —
+    "unsupported": [ ..., "dw::Runtime", ... ]
+    "supported":   [ ..., "dw::Runtime::try", "dw::Runtime::fail", "dw::Runtime::props",
+                          "dw::Runtime::wait", ... ]
+`version` has NO member entry, so it inherits the module's unsupported verdict. This keeps the top-
+level keys intact (Gson drop-in) and needs no new schema field. The jar reads supported/unsupported
+string lists only.
+
+Reporting rule (DwxClassifier + SymbolCollector in the plugin jar), as shipped with FIX 1:
+  - Bare (`import dw::Runtime`) / wildcard (`import * from dw::Runtime`) → one MODULE ref. The module
+    is in modules.unsupported, so the MODULE case fires; DwxClassifier.isPartiallySupported("dw::Runtime")
+    sees at least one nested member FQN (dw::Runtime::try) in modules.supported and downgrades the
+    finding from BLOCK to INFO (rule dwx.module.unsupported, severity INFO, message "only partially
+    supported … verify the script does not call an unsupported member such as version"). This is FIX 1.
+  - Selected (`import try from dw::Runtime`) → one MODULE_MEMBER ref per member; blocks only if the
+    member's own FQN (dw::Runtime::try) is NOT in modules.supported (rule dwx.module.function.unsupported,
+    BLOCK). So `import try …` is clean while `import version …` still BLOCKs. Alias (`import try as t`)
+    is keyed on the original name `try`, not the alias.
+  - The implicit `import * from dw::Core` every parse carries is unaffected: its FQN is dw::Core, not
+    the manifest's Core key `dw`, so it never matches and never flags.
+
+FIX 2 (writer passthrough), shipped in the SAME jar, disjoint from FIX 1: a WRITER whose format has
+no byte serializer (application/java) and is listed in writers.passthrough is reported INFO (rule
+dwx.writer.passthrough) rather than BLOCK. The shipped override carries NO writers.passthrough key, so
+FIX 2 is INERT in this bundle (application/java is instead handled by correction (3), which lists it in
+writers.supported). The code path is present and tested; it fires only if a future refreshed override
+adopts the writers.passthrough tier.
+
+FOOTGUN — the jar and the override MUST carry the same shape. FIX 1's MODULE case only fires when the
+bare module is IN modules.unsupported. If a stale override reverts to the retired partition shape
+(dw::Runtime REMOVED from unsupported + a `partiallySupported` key), the MODULE case matches nothing
+and the wildcard import produces NO finding at all — a silent false negative, strictly worse than BLOCK
+or INFO. docs/UPDATING.md §2b correction (4) enforces the nested-FQN shape and its post-conditions
+assert it. Refresh the jar and override together.
+
+What changed from the retired model: the earlier bundle shipped a `partiallySupported: [{module,
+unsupportedFunctions}]` partition read by a bespoke DwxClassifier.unsupportedModuleNames fold, and
+blocked bare/wildcard imports (dwx.module.unsupported, BLOCK). The shipped model drops that key
+entirely, models partial support as nested member FQNs (matching mule-versionless `309a560e1` "Unwrap
+dw::Runtime into nested member FQNs"), and downgrades the wildcard to INFO via FIX 1. The retired
+fail-closed test (partialModuleWithoutUnsupportedFunctionsFailsClosed) no longer applies; the
+nested-FQN model has no partition entry to malform.
+
+Surgical, NOT regenerated: only dw::Runtime's nested members were added to the override by hand. The
+committed golden base manifest is ~8 weeks stale; a wholesale regenerate would drag in unrelated
+module-support growth and drift many perf-app findings. Idempotent re-apply: docs/UPDATING.md §2b
+correction (4). Upstream, the real fix lives in mule-versionless dwx-rust (generator emits the nested
+member FQNs, `309a560e1`) + the plugin's dwcompat axis (SymbolReference.MODULE_MEMBER, SymbolCollector
+per-member collection, DwxClassifier per-member judging + isPartiallySupported). When a refreshed
+generated manifest already carries the nested dw::Runtime members, correction (4) drops out like the
+other three.

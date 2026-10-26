@@ -3,7 +3,8 @@ name: switch-classic-mule-to-versionless
 description: >
   Switch a classic (versioned) Mule application to a versionless app by writing a
   project-manifest.json next to pom.xml and moving the app's connector dependencies
-  into it. TRIGGER when: user asks to "switch/convert/upgrade/migrate a Mule app to
+  into it. First gates on switchability by running the switch validator and refuses
+  to switch while any blocker remains. TRIGGER when: user asks to "switch/convert/upgrade/migrate a Mule app to
   versionless", "make my Mule project versionless", "create a project-manifest.json",
   or "move connectors to the manifest"; the project has a pom.xml with
   mule-plugin connector dependencies. Trigger phrases include "switch to versionless",
@@ -11,7 +12,12 @@ description: >
   upgrade connector/runtime VERSIONS or Java compatibility (that is skill
   upgrade-mule-app), or to build a new integration (skill build-mule-integration).
 license: Apache-2.0
-compatibility: Requires Node.js 18+ and a Mule 4 application (a pom.xml with mule-application packaging).
+compatibility: >
+  Requires Node.js 18+ for the switch itself, and JDK 17 for the switchability gate
+  (the bundled validator in the sibling validate-versionless-switch skill). A Mule 4
+  application (a pom.xml with mule-application packaging). If JDK 17 or the validator
+  sibling is unavailable, the gate cannot run and the switch stops unless the user
+  explicitly opts to skip it.
 allowed-tools: Bash Read Write Edit AskUserQuestion
 metadata:
   author: mule-dx-tooling
@@ -44,7 +50,14 @@ scaffold a new integration → use **skill build-mule-integration**.
 
 ## What this skill does
 
-Given a Mule project root (the directory containing `pom.xml`), it:
+Given a Mule project root (the directory containing `pom.xml`), it **first gates on
+switchability** — it runs the switch validator (the sibling
+`validate-versionless-switch` skill) and, when blockers are found, stops before writing
+anything. This gate is an **agent-workflow safeguard enforced by this skill, not by the
+script**: `switch_to_versionless.mjs` performs no validation of its own, so a caller that
+invokes the script directly (bypassing this workflow) can still switch a non-switchable
+app. Run through this skill and the gate catches blockers before they reach a deploy.
+Once the gate passes, it:
 
 1. Reads `pom.xml` (and its local parent chain) and finds every **connector** —
    a `<dependency>` with `<classifier>mule-plugin</classifier>` that is **not**
@@ -99,11 +112,15 @@ last run, and re-running a fully-migrated project is a no-op.
 ## Prerequisites
 
 ```bash
-node --version    # needs 18+
+node --version    # needs 18+ (the switch itself)
+java -version     # needs JDK 17 (the switchability gate, Step 2) — or set JAVA_HOME
 ```
 
 The current working directory (or the path you pass) must be a Mule application
-root — it must contain a `pom.xml`.
+root — it must contain a `pom.xml`. The gate also needs the sibling
+`validate-versionless-switch` skill present alongside this one (it ships the
+validator). If either the JDK or the sibling is missing, the gate cannot run — see
+Step 2 for how that is handled.
 
 ## Bundled scripts
 
@@ -130,7 +147,12 @@ given in the "skill is now active" message — do not construct relative
 3. **Only the child pom is edited.** Connectors inherited from a parent POM are
    written to the manifest but left declared in the parent (the script warns);
    never edit a parent POM automatically.
-4. **Confirm before writing** (see the gate in Step 3).
+4. **Confirm before writing** (see the gate in Step 4).
+5. **Validate before switching.** Never write the manifest or edit the pom while the
+   switch validator reports blockers (Step 2, which gates on all seven axes). Switching
+   a non-switchable app produces a versionless project that fails to build or deploys
+   broken. The only way past a blocker is to fix it in the app, or an explicit user
+   override — never a silent skip.
 
 ### Step 1: Confirm the project root
 
@@ -138,7 +160,72 @@ Determine the Mule project root — the directory containing `pom.xml`. If the u
 did not name one, use the current working directory. Confirm `pom.xml` exists; if
 not, tell the user this is not a Mule application root and stop.
 
-### Step 2: Plan the switch (dry run)
+### Step 2: Gate on switchability (run the validator)
+
+Before planning any change, run the read-only switch validator from the sibling
+`validate-versionless-switch` skill. It is the same seven-axis check the Anypoint
+Code Builder "Upgrade to Versionless" wizard runs, and it never edits the app. The
+validator reports and gates on the **full** seven-axis set by default (see the scope
+note below for why):
+
+```bash
+<validate-skill-dir>/scripts/validate.sh <projectDir> --out /tmp/<app>-switch-gate.json
+```
+
+`<validate-skill-dir>` is the sibling skill folder (…/mule-versionless/`validate-versionless-switch`).
+Branch on the **exit code** — do not parse the text:
+
+| Exit | Meaning | Action |
+| --- | --- | --- |
+| `0` | SWITCHABLE — no blockers | Proceed to Step 3. |
+| `3` | NOT SWITCHABLE — one or more blockers | **STOP.** Print the blocker table (axis / symbol / rule / code / `path:line:col`) from the report and tell the user what to fix. Do **not** write the manifest or touch the pom. |
+| `1` | FAIL-CLOSED — validator could not run (manifest or connector descriptors unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
+| `2` | usage error (bad project dir) | Fix the path and re-run. |
+
+**Why gate on all seven axes, not the wizard's three.** The ACB wizard gates on
+`dataweave` + `flow` + `connector` only, treating `config`/`security`/`state`/`project`
+as *advisory* — because online it has platform fallbacks (RDS, the mesh/gateway that
+terminates TLS and runs policies). **This skill switches offline**, with no such
+fallback, so those four axes are genuine deploy/runtime failures here, not advisory —
+empirically confirmed by driving each construct through the real versionless runtime
+builder:
+
+- An unsupported construct **inside a flow** fails the versionless build outright
+  (`BuildError::UnexpectedChild` — *"expected Source|Processor|ErrorHandler"*).
+- An unsupported **top-level** config (`<tls:context>`, `<secure-properties:config>`,
+  `<os:object-store>`) is **silently dropped** by the builder — the capability just
+  disappears, so mutual TLS / secret decryption / object-store writes stop happening
+  with no error.
+- A `${secure::…}` reference has no decryption subsystem; resolution fails with
+  `PropertyError::Missing` (*"property '…' was not found"*).
+
+The validator reports all seven axes by default, so a plain run blocks an app that
+would compile-fail or deploy broken. This is deliberately **stricter than the ACB
+wizard**. (The legacy `--extended` flag is still accepted but now a no-op — seven-axis
+scope is the default — so an older gate invocation that passes it still behaves
+identically.)
+
+**`.properties` config files do not block.** The versionless runtime loads both `.yaml`
+and `.properties` (full Java-properties parity, mule-versionless PR #124), so a
+`<configuration-properties file="x.properties">` is fully supported and the config axis
+treats it exactly like a `.yaml` file. (An earlier bundle raised a stale
+`config.properties.unsupported` BLOCK here on the false premise the runtime "loads YAML
+only"; that rule was removed upstream and is gone from the current validator.) Every
+extended-axis BLOCK the gate now reports is real — do not wave any through; the only path
+past one is to fix the app or an explicit user override.
+
+The gate report is a **transient artifact** written to `/tmp` (never into the project
+tree) so it can never be mistaken for the validate skill's own project-local report.
+**Keep it when the gate blocks or fails closed** — the user needs its blocker detail to
+fix the app. It is removed only after a *successful* switch (Step 5).
+
+**If the validator sibling or a JDK 17 is absent**, the gate cannot run. State that
+plainly and stop — do not switch unvalidated. Proceed only if the user **explicitly**
+asks to skip the gate (e.g. "switch anyway, I know it fails to validate"); record that
+they overrode it, and continue at their risk. An explicit override is the *only* path
+past a blocker or a fail-closed gate.
+
+### Step 3: Plan the switch (dry run)
 
 Run the script in dry-run mode to see exactly what will change, writing nothing:
 
@@ -164,9 +251,9 @@ dropped) or a connector whose real XML prefix differs from what was derived from
 artifactId (a false drop). Cross-check against `xmlPrefixes[]`; if a listed connector
 IS used, add its correct name to the manifest manually rather than guessing.
 
-### Step 3: Get confirmation, then apply
+### Step 4: Get confirmation, then apply
 
-**[GATE] Show the user the plan from Step 2 — the connectors to migrate, the manifest
+**[GATE] Show the user the plan from Step 3 — the connectors to migrate, the manifest
 that will be written, the pom dependencies that will be commented out, and the
 packaging / plugin-version edits (`pomVersionlessChanges[]`) — and WAIT for explicit
 approval before writing anything.**
@@ -182,7 +269,7 @@ it comments out the newly-migrated connector `<dependency>` blocks, flips
 `<packaging>` to `mule-application-versionless`, and bumps the `mule-maven-plugin`
 version. The manifest and the child pom are the only two files it ever writes.
 
-### Step 4: Verify and report
+### Step 5: Verify and report
 
 Confirm the result:
 
@@ -200,6 +287,18 @@ Report concisely: how many connectors were moved, which were skipped and why, an
 connector whose version could not be resolved (written as `version: null`), and any
 parent-declared connectors left in place. State plainly if anything needs manual
 follow-up.
+
+Finally, **remove the transient gate report** from Step 2 — the switch succeeded, so it
+has served its purpose and only the manifest + pom are the real deliverables:
+
+```bash
+rm -f /tmp/<app>-switch-gate.json
+```
+
+Only delete this `/tmp` gate file, and only after a successful switch. Never delete the
+validate skill's own project-local report (`<app>-versionless-switch-report.json`), and
+never clean up if the switch was blocked (Step 2) or the user declined at the Step 4
+confirm — in those cases the report stays for the user to act on.
 
 ## Best Practices
 
@@ -260,6 +359,8 @@ rebuild. See **skill build-run-versionless-app** (Rule 5) for the runtime-side d
 
 ## Related Skills
 
+- **skill validate-versionless-switch**: the read-only switchability pre-check this skill
+  runs as its Step 2 gate. Invoke it directly to check an app *without* switching it.
 - **skill upgrade-mule-app**: upgrade connector/runtime versions and Java compatibility for a Mule app — use it for version bumps, not for the versionless switch.
 - **skill build-mule-integration**: scaffold a new Mule integration from scratch.
 - **skill secure-mule-app**: encrypt sensitive properties in a Mule app.

@@ -139,6 +139,10 @@
   "modules": {
     "supported": [
       "dw::Crypto",
+      "dw::Runtime::fail",
+      "dw::Runtime::props",
+      "dw::Runtime::try",
+      "dw::Runtime::wait",
       "dw::core::Arrays",
       "dw::core::Binaries",
       "dw::core::Dates",
@@ -159,18 +163,11 @@
     ],
     "unsupported": [
       "dw",
+      "dw::Runtime",
       "dw::System",
       "dw::module::Mime",
       "dw::module::Multipart",
       "dw::util::Math"
-    ],
-    "partiallySupported": [
-      {
-        "module": "dw::Runtime",
-        "unsupportedFunctions": [
-          "version"
-        ]
-      }
     ]
   },
   "readers": {

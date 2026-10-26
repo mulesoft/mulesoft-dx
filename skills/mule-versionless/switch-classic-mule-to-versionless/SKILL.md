@@ -179,7 +179,7 @@ Branch on the **exit code** — do not parse the text:
 | --- | --- | --- |
 | `0` | SWITCHABLE — no blockers | Proceed to Step 3. |
 | `3` | NOT SWITCHABLE — one or more blockers | **STOP.** Print the blocker table (axis / symbol / rule / code / `path:line:col`) from the report and tell the user what to fix. Do **not** write the manifest or touch the pom. |
-| `1` | FAIL-CLOSED — validator could not run (manifest unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
+| `1` | FAIL-CLOSED — validator could not run (manifest or connector descriptors unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
 | `2` | usage error (bad project dir) | Fix the path and re-run. |
 
 **Why gate on all seven axes, not the wizard's three.** The ACB wizard gates on

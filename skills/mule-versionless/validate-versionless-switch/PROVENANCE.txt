@@ -58,13 +58,23 @@ versionless-validator-cli.jar     the headless entry point (VersionlessValidator
                                   src/VersionlessValidatorCli.java with JDK 17 against the plugin jar
                                   above and packaged as its own jar. First-party skill code — not part
                                   of the plugin — so it ships separately. Rebuild recipe: docs/UPDATING.md.
-                                  sha256 5cf48f9e33…, 10,026 bytes — recompiled 2026-10-23 against the
+                                  sha256 9b5b07eb6c…, 10,410 bytes — recompiled 2026-10-26 against the
                                   config+state-refreshed plugin jar above (a CLI rebuild is required
                                   after any plugin-jar refresh so it links against the shipped classes).
-                                  Source change this build: the connector.switchability.unverified INFO
-                                  message dropped "against RDS" — now "…its switchability can only be
-                                  confirmed at switch time." (VersionlessValidatorCli.java:284). Verified
-                                  0 occurrences of "RDS" across all 17 corpus reports.
+                                  Source change this build (reviewer Finding 2 — close the fail-open holes that
+                                  let incomplete coverage report a false "switchable"):
+                                  (a) connector.switchability.unverified promoted INFO -> BLOCK — an offline
+                                      switch cannot presume an unverifiable connector switchable, so incomplete
+                                      coverage gates rather than passes (connectorSwitchabilityBlocks/connectorBlock,
+                                      severity SEVERITY_BLOCK);
+                                  (b) fails closed (exit 1, DSL_BUNDLES_UNAVAILABLE) when the bundled connector
+                                      descriptors are absent (no mule-core bundle) instead of validating against
+                                      an empty descriptor set and reporting a false zero-blocker pass;
+                                  (c) fails closed (exit 1, SOURCE_UNREADABLE) if src/main/mule cannot be
+                                      enumerated for connector verification (IOException), and logs a [warn] on a
+                                      single unreadable file instead of silently dropping its connector signal;
+                                  (d) a missing/non-directory src/main/mule is now a usage error (exit 2) instead
+                                      of a 0-file, 0-blocker "switchable" pass (matches the documented contract).
                                   NOTE (2026-10-19): report scope collapsed to all seven axes by default.
                                   The CLI no longer post-filters findings to a three-axis default
                                   (dataweave/flow/connector) — assembleReport now reports every category and

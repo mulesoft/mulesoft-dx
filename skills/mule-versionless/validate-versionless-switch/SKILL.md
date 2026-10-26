@@ -65,7 +65,7 @@ runs all seven switch-compatibility axes and emits a report:
 | --- | --- | --- | --- |
 | DataWeave | `dataweave` | ✅ | DW script constructs the versionless engine's capability manifest does not support |
 | Flow / core | `flow` | ✅ | connector operations/sources and core constructs absent from the versionless runtime descriptors |
-| Connector switchability | `connector` | ✅ | `<os:*>` Object Store and OAuth authorization-code grants (BLOCK — store-backed connector state the versionless runtime silently drops); plus any non-bundled connector namespace whose switchability is confirmable only against RDS at switch time (INFO) |
+| Connector switchability | `connector` | ✅ | `<os:*>` Object Store and OAuth authorization-code grants (BLOCK — store-backed connector state the versionless runtime silently drops); plus any non-bundled connector namespace whose switchability cannot be verified offline (BLOCK — only a runtime registry / RDS can confirm it at switch time, so offline it gates rather than passing) |
 | Config & secrets | `config` | ✅ | `${secure::…}` / `<secure-properties:config>` (BLOCK); prefix dispatchers, multiple/dynamic property files, `<global-property>` (INFO) |
 | Project shape | `project` | ✅ | multi-module reactor, `mule-domain`/`mule-policy` packaging, `<import>`-based multi-file app |
 | Security | `security` | ✅ | custom `<tls:context>` keystores, `<api-gateway:autodiscovery>`, `http-policy:*` |
@@ -126,13 +126,16 @@ current bundle.)
     runtime does not yet provide — the store is a no-op, so the write/token silently
     vanishes. These are a *known* incompatibility, so they BLOCK and count toward
     `blockerCount` (one owner: the data-integrity checker).
-  - **Non-bundled connector namespaces (INFO).** The runtime has no offline connector
+  - **Non-bundled connector namespaces (BLOCK).** The runtime has no offline connector
     registry, so whether any *other* non-bundled connector is switchable can only be
-    confirmed by RDS at switch time. The CLI emits one INFO per app element namespace
-    that has no bundled descriptor and is not core/ee/apikit (runtime-supported without
-    one), not owned by another axis (`tls`, `secure-properties`, …), and not already a
-    BLOCK above (`os`, `oauth`). A missing descriptor is *not* proof of incompatibility,
-    so these never BLOCK.
+    confirmed by RDS at switch time. For an **offline** switch there is no such fallback,
+    so a connector whose compatibility cannot be verified cannot yield an unqualified
+    switchable verdict — incomplete coverage gates rather than passes. The CLI emits one
+    BLOCK per app element namespace that has no bundled descriptor and is not core/ee/apikit
+    (runtime-supported without one), not owned by another axis (`tls`, `secure-properties`,
+    …), and not already a BLOCK above (`os`, `oauth`). To clear it, bundle the connector's
+    descriptor (`scripts/regen-dsl.sh`) so the flow axis can judge it, or confirm it against
+    RDS at switch time.
 
 ## What's bundled
 
@@ -188,8 +191,10 @@ location, so it works from any CWD.
    `src/main/mule` itself. The validator reads the pom (project-shape axis) and
    `src/main/mule/**/*.xml`.
 3. **A missing/blank-screen result is not "clean".** If the capability manifest
-   fails to load, the CLI **fails closed** (`success:false`, exit 1) — report that
-   as "could not validate", never as "switchable".
+   fails to load, or the bundled connector descriptors (`mule-core`) are absent, the
+   CLI **fails closed** (`success:false`, exit 1) — report that as "could not
+   validate", never as "switchable". Validating against no descriptors would let an
+   app full of unsupported core constructs report zero blockers, a false pass.
 
 ### Step 1: Confirm the project
 
@@ -253,7 +258,7 @@ snippet, truncated), and **location** (project-relative `path:line:col`, e.g.
 | --- | --- |
 | `0` | SWITCHABLE — no blockers (run with `--include-info` to review the INFO notices) |
 | `3` | NOT SWITCHABLE — one or more BLOCK findings |
-| `1` | FAIL-CLOSED — capability manifest unavailable; could not validate |
+| `1` | FAIL-CLOSED — capability manifest or connector descriptors unavailable; could not validate |
 | `2` | usage error (bad/missing project dir) |
 
 ### Step 3: Read the report

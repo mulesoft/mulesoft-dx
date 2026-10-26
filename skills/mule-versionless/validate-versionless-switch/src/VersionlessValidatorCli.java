@@ -53,9 +53,11 @@ import org.mule.contribution.internal.project.VersionlessValidator;
  * the versionless runtime builder: an unsupported in-flow construct fails the build ({@code BuildError::UnexpectedChild}); an unsupported top-level config ({@code <tls:context>},
  * {@code <secure-properties:config>}, {@code <os:object-store>}) is silently dropped so the capability vanishes; a {@code ${secure::…}} reference resolves to {@code PropertyError::Missing}.
  * {@code --extended} is accepted for backward compatibility but is now a no-op — its former behavior (widening from three axes to seven) is the default.</li>
- * <li><b>Connector switchability ({@code connector}, INFO).</b> The versionless runtime has no offline connector registry, so whether a connector is switchable can only be
- * confirmed by RDS at switch time. Headlessly the CLI can only observe which element namespaces have no bundled descriptor and are not core/ee/apikit (runtime-supported without
- * one) nor owned by another axis — it emits one INFO per such namespace, never a fabricated BLOCK.</li>
+ * <li><b>Connector switchability ({@code connector}, BLOCK).</b> The versionless runtime has no offline connector registry, so whether a connector is switchable can only be
+ * confirmed by RDS at switch time. Headlessly the CLI observes which element namespaces have no bundled descriptor and are not core/ee/apikit (runtime-supported without one) nor
+ * owned by another axis, and emits one BLOCK per such namespace: this is an <em>offline</em> switch gate, so a connector whose compatibility cannot be verified without a
+ * runtime registry cannot yield an unqualified switchable verdict — absence of a verified descriptor gates rather than passes. (Online the ACB wizard treats this as advisory
+ * because RDS resolves it at switch time; offline there is no such fallback.)</li>
  * </ul>
  * The core-construct gap (constructs/operations the versionless runtime builder does not implement even though the mule-core descriptor lists them) is handled upstream of the flow
  * axis by {@link #pruneUnsupportedCoreElements}, so the existing flow-element walker reports them with real positions.
@@ -102,6 +104,7 @@ public final class VersionlessValidatorCli {
     private static final String CONNECTOR_CATEGORY = "connector";
     private static final String CONNECTOR_RULE = "connector.switchability.unverified";
     private static final String SEVERITY_INFO = "INFO";
+    private static final String SEVERITY_BLOCK = "BLOCK";
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || "-h".equals(args[0]) || "--help".equals(args[0])) {
@@ -156,6 +159,11 @@ public final class VersionlessValidatorCli {
             fail("project root is not a directory: " + projectRoot);
         }
         Path muleSourceRoot = projectRoot.resolve(MULE_SOURCE_RELATIVE_PATH);
+        // No src/main/mule means there is nothing to validate — not a clean "0 blockers" pass. Treat it as a usage
+        // error (you pointed at the wrong directory), matching the documented exit-2 contract, rather than reporting switchable.
+        if (!Files.isDirectory(muleSourceRoot)) {
+            fail("no " + MULE_SOURCE_RELATIVE_PATH + " under project root (point at the dir containing pom.xml): " + projectRoot);
+        }
 
         // Fail closed on a missing manifest, exactly as DefaultProjectPropertiesService does.
         Optional<DwxCapabilityManifest> manifest = new StubRemoteDesignServiceClient().fetchDwxCapabilities();
@@ -167,15 +175,34 @@ public final class VersionlessValidatorCli {
         }
 
         List<JsonExtensionBundle> bundles = loadBundles(dslDir);
+        // Fail closed on missing connector coverage. The mule-core bundle is the baseline the flow axis
+        // prunes (pruneUnsupportedCoreElements) to flag try/scatter-gather/etc.; without it those core
+        // constructs go unflagged and an app full of them would report zero blockers — a false "switchable".
+        // An absent/empty dsl dir is therefore an inability to validate, not a clean result: exit 1, not 0.
+        if (bundles.stream().noneMatch(b -> "mule-core".equals(b.name()))) {
+            writeFailClosed(out, "DSL_BUNDLES_UNAVAILABLE: connector descriptors (mule-core) not found under " + dslDir);
+            summarize(null, out, projectRoot, "DSL_BUNDLES_UNAVAILABLE");
+            System.exit(1);
+            return;
+        }
         Set<String> knownNamespaces = collectKnownNamespaces(bundles);
 
         ValidationResult result = new VersionlessValidator(manifest.get(), bundles).validate(projectRoot, muleSourceRoot);
 
-        // The connector-switchability signal is CLI-side (no offline connector registry): one INFO per app namespace that has
-        // no bundled descriptor and no other axis owner. It is a `connector`-category finding, so it survives the default filter.
-        List<Finding> connectorInfos = connectorSwitchabilityInfos(muleSourceRoot, knownNamespaces);
+        // The connector-switchability signal is CLI-side (no offline connector registry): one BLOCK per app namespace that has
+        // no bundled descriptor and no other axis owner. Offline we cannot confirm the connector is switchable, so it gates.
+        // If the source tree cannot even be enumerated, the connectors are unverifiable — fail closed rather than pass.
+        List<Finding> connectorBlocks;
+        try {
+            connectorBlocks = connectorSwitchabilityBlocks(muleSourceRoot, knownNamespaces);
+        } catch (IOException e) {
+            writeFailClosed(out, "SOURCE_UNREADABLE: could not enumerate " + muleSourceRoot + " for connector verification: " + e.getMessage());
+            summarize(null, out, projectRoot, "SOURCE_UNREADABLE");
+            System.exit(1);
+            return;
+        }
 
-        ValidationResult reported = assembleReport(result, connectorInfos, includeInfo);
+        ValidationResult reported = assembleReport(result, connectorBlocks, includeInfo);
 
         String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(reported);
         Files.writeString(out, json, StandardCharsets.UTF_8);
@@ -186,19 +213,19 @@ public final class VersionlessValidatorCli {
     }
 
     /**
-     * Builds the {@link ValidationResult} the CLI reports: the raw validator findings plus the connector INFOs, across all seven axes, with {@code blockerCount} recomputed from the
-     * full set. The validator's own {@code blockerCount} already covers all seven, but the connector INFOs are CLI-side additions, so the count is recomputed to include them.
+     * Builds the {@link ValidationResult} the CLI reports: the raw validator findings plus the connector BLOCKs, across all seven axes, with {@code blockerCount} recomputed from the
+     * full set. The validator's own {@code blockerCount} already covers all seven, but the connector findings are CLI-side additions, so the count is recomputed to include them.
      *
      * <p>
      * {@code blockerCount} is always computed over the full finding set, before any INFO filtering, so the gate (and exit code) is identical whether or not INFO is serialized.
      * When {@code includeInfo} is false the INFO notices are dropped from the serialized findings — they are advisory and never gate — leaving a blockers-only report; passing
-     * {@code --include-info} keeps them.
+     * {@code --include-info} keeps them. Connector-switchability findings are BLOCK, so they are always serialized and always counted.
      */
-    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorInfos, boolean includeInfo) {
+    private static ValidationResult assembleReport(ValidationResult raw, List<Finding> connectorBlocks, boolean includeInfo) {
         List<Finding> all = new ArrayList<>(raw.getFindings());
-        all.addAll(connectorInfos);
+        all.addAll(connectorBlocks);
 
-        int blockerCount = (int) all.stream().filter(f -> "BLOCK".equals(f.getSeverity())).count();
+        int blockerCount = (int) all.stream().filter(f -> SEVERITY_BLOCK.equals(f.getSeverity())).count();
 
         List<Finding> reported = includeInfo
                 ? all
@@ -208,20 +235,18 @@ public final class VersionlessValidatorCli {
     }
 
     /**
-     * One INFO per app element namespace that (a) has no bundled connector descriptor, (b) is not core/ee/apikit (runtime-supported without one), and (c) is not owned by an
-     * extended axis. Switchability of a real connector can only be confirmed by RDS at switch time, so this is advisory — never a BLOCK.
+     * One BLOCK per app element namespace that (a) has no bundled connector descriptor, (b) is not core/ee/apikit (runtime-supported without one), and (c) is not owned by an
+     * extended axis. Switchability of a real connector can only be confirmed by RDS at switch time; offline there is no such fallback, so a connector we cannot verify gates the
+     * switch rather than passing it — incomplete coverage must not yield an unqualified switchable verdict.
      */
-    private static List<Finding> connectorSwitchabilityInfos(Path muleSourceRoot, Set<String> knownNamespaces) {
+    private static List<Finding> connectorSwitchabilityBlocks(Path muleSourceRoot, Set<String> knownNamespaces) throws IOException {
         List<Finding> findings = new ArrayList<>();
         if (muleSourceRoot == null || !Files.isDirectory(muleSourceRoot)) {
             return findings;
         }
-        List<URI> xmlFiles;
-        try {
-            xmlFiles = WorkspaceHelper.getAllFilesFrom(muleSourceRoot, ".xml");
-        } catch (IOException e) {
-            return findings;
-        }
+        // Let an enumeration failure propagate: if src/main/mule cannot be listed we cannot verify any connector,
+        // and since these findings gate, silently returning an empty list would be a false pass. main fails closed.
+        List<URI> xmlFiles = WorkspaceHelper.getAllFilesFrom(muleSourceRoot, ".xml");
         // Report each namespace once, at its first occurrence, so the signal is per-connector not per-element.
         Set<String> reported = new LinkedHashSet<>();
         for (URI uri : xmlFiles) {
@@ -229,6 +254,8 @@ public final class VersionlessValidatorCli {
             try {
                 document = WorkspaceHelper.getDocument(new File(uri));
             } catch (IOException e) {
+                // A single unreadable file must not silently drop its connector signal — surface it rather than pass.
+                System.err.println("[warn] could not read " + uri + " for connector verification: " + e.getMessage());
                 continue;
             }
             DOMElement root = document.getDocumentElement();
@@ -244,7 +271,7 @@ public final class VersionlessValidatorCli {
             Set<String> reported, List<Finding> findings) {
         String namespace = element.getNamespaceURI();
         if (isUnverifiableConnectorNamespace(namespace, knownNamespaces) && reported.add(namespace)) {
-            findings.add(connectorInfo(element, document, uri, namespace));
+            findings.add(connectorBlock(element, document, uri, namespace));
         }
         for (DOMNode child : element.getChildren()) {
             if (child.isElement()) {
@@ -276,16 +303,16 @@ public final class VersionlessValidatorCli {
         return true;
     }
 
-    private static Finding connectorInfo(DOMElement element, DOMDocument document, URI uri, String namespace) {
+    private static Finding connectorBlock(DOMElement element, DOMDocument document, URI uri, String namespace) {
         Position position = positionOf(element, document);
         int line = position.getLine() + 1;
         int column = position.getCharacter() + 1;
         String message = "Connector namespace '" + namespace
-                + "' has no bundled versionless descriptor; its switchability can only be confirmed at switch time.";
+                + "' has no bundled versionless descriptor; its switchability cannot be verified offline and must be confirmed against RDS at switch time.";
         return new Finding(CONNECTOR_CATEGORY,
                 line, column, line, column,
                 -1, -1, -1, -1,
-                uri.toString(), namespace, CONNECTOR_RULE, namespace, message, SEVERITY_INFO);
+                uri.toString(), namespace, CONNECTOR_RULE, namespace, message, SEVERITY_BLOCK);
     }
 
     private static Position positionOf(DOMElement element, DOMDocument document) {
@@ -303,7 +330,9 @@ public final class VersionlessValidatorCli {
     private static List<JsonExtensionBundle> loadBundles(Path dslDir) throws IOException {
         List<JsonExtensionBundle> bundles = new ArrayList<>();
         if (dslDir == null || !Files.isDirectory(dslDir)) {
-            System.err.println("[warn] dsl dir not found, flow axis will treat all connector namespaces as unknown: " + dslDir);
+            // No descriptors to load. The caller fails closed on absent mule-core coverage, so returning an
+            // empty list here is a validate-impossible signal, not a clean run that silently skips the flow axis.
+            System.err.println("[warn] dsl dir not found: " + dslDir);
             return bundles;
         }
         try (var entries = Files.list(dslDir)) {
@@ -425,7 +454,7 @@ public final class VersionlessValidatorCli {
 
         List<Finding> blockers = new ArrayList<>();
         for (Finding f : result.getFindings()) {
-            if ("BLOCK".equals(f.getSeverity())) {
+            if (SEVERITY_BLOCK.equals(f.getSeverity())) {
                 blockers.add(f);
             }
         }

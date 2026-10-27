@@ -119,11 +119,11 @@ If that document is missing a piece, ask only that piece. Whole message, fill on
 
 Use the authentication document they pasted. Do not open a catalog file from this skill. When they describe Salesforce connected-org (C2C) login or a MuleSoft-managed authorization-code flow, that is not customer-executable: ask for a request and response they can run from their machine. Until they provide one, do not write files. A pasted SigV4 access-key flow still uses the request and response they pasted. Do not copy pull-scanner-only fields such as Hub Role ARN, Spoke Role Name, External ID, Account IDs, or Target Regions into the script.
 
-### Step 4: Ask script language
+### Step 4: Ask programming language
 
 Once auth is known, the whole next message is:
 
-"Which script language should I use? Project conventions are optional. Any language you can run is acceptable. Named languages are examples, not a fixed list."
+"Which programming language should I use? Python, Java, Node.js, or any language you can run. Project conventions are optional. Named languages are examples, not a fixed list."
 
 Then stop. Do not default to a language. Writing a file before they answer is a failure. If they name a language and omit conventions, write a plain script in that language.
 
@@ -681,4 +681,3 @@ The zip **must** contain `{externalId}/specification/config.json` and `{external
 
 - **skill setup-service-scanner**: Create a pull scanner configuration that discovers assets from a connected cloud platform.
 - **skill run-service-scan-and-view-results**: Run a hosted scan and review discovered staging assets.
-

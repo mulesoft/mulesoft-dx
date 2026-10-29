@@ -1,0 +1,4 @@
+# This skill is a tool/workflow (DX) skill driven by the Omni MCP policy tools,
+# not a sequential job of urn:api operations, so it resolves to type: prose
+# (overriding the jtbd default declared in skills/skills-metadata.yaml).
+type: prose

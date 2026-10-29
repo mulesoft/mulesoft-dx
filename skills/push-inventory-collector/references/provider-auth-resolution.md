@@ -1,7 +1,10 @@
-# Provider bundle and authentication resolution
+# Provider authentication resolution
 
 Use this reference when selecting provider operations and runtime credential
-inputs for a generated script.
+inputs for a generated script. The customer's API specification and
+authentication documentation are the only sources. This skill is provider
+agnostic, language agnostic, auth agnostic, input-format agnostic, and asset
+type agnostic.
 
 ## Decision order
 
@@ -16,8 +19,7 @@ inputs for a generated script.
 4. After the inventory is usable, ask for authentication. Use the request and
    response they paste. If a piece is missing (token or signing request,
    response, which field is a secret, how the account is proven), ask only that
-   piece. If a pull-scanner connection form exists for the inferred provider,
-   match its field labels for the fields the script actually asks.
+   piece.
 5. Do not combine inventory and auth into one question. Do not skip either
    because they named a vendor or a language. Language comes after auth.
    Mapping confirmation comes after language. Files come after yes.
@@ -25,39 +27,33 @@ inputs for a generated script.
    for the missing callable API or executable authentication piece. Do not
    route by a similar vendor name.
 
-The bundle is an evidence index, not a generic provider implementation. AWS
-Bedrock agents, AWS AgentCore agents, AWS AgentCore MCP, and AWS API Gateway
-REST APIs are four different bundles because their operations and output types
-differ, even though their authentication profile is shared.
+## Derive fields from the customer's document
 
-## Pull-form parity
+Prompt labels, flags, input-file keys, and secret vs non-secret come from the
+authentication document they pasted. Use the names in that document.
 
-For an existing pull scanner, every logical provider input in the generated
-script must use the same field label, required/optional meaning, validation,
-and provider scope as the pull connection form. The generated guide must cite
-the profile and credential class.
+Do not:
 
-Runtime delivery may be adapted to the customer's approved environment:
+- ask which cloud vendor they use
+- copy pull-scanner `@Field(label=...)` names
+- add Hub Role ARN, Spoke Role Name, External ID, Account IDs, or Target Regions
+- assume `gcloud`, `az`, or `aws` is already logged in
+- add `--profile` unless their document names a named profile
+- embed a catalog of shipped scanner operations
 
-- a non-secret field may come from script parameters, environment, approved
-  configuration, an in-memory caller, or an interactive prompt
-- a secret may come from an approved secret store, environment, an in-memory
-  caller, or a hidden interactive prompt
-- the logical field and auth protocol do not change merely because the value is
-  injected by CI rather than typed by a person
+When the document offers more than one credential source, ask which one before
+the mapping. The script uses only that source. It does not fall back to another.
 
-Do not add a generic authentication menu. When the selected portable profile
-has one method, the generated script implements that method directly. When the
-pull provider genuinely exposes several profiles, show only those profiles and
-require the customer to select one executable method during generation.
+A laptop CLI session is allowed only when the pasted document says the calls
+use that session. It is not a default and not a requirement of this skill.
 
-## Managed-only pull flows
+## Managed-only flows
 
-Some pull forms rely on infrastructure that a customer-hosted script does not
-inherit. Examples in the catalog include MuleSoft-managed authorization-code
-token resolution and Salesforce trusted tenant relationships.
+Some Anypoint pull forms rely on infrastructure a customer-hosted script does
+not inherit (MuleSoft-managed authorization-code token resolution, Salesforce
+trusted tenant / C2C). Those forms are not executable evidence.
 
-For a `managed-only` profile:
+For a managed-only description:
 
 1. Explain which pull behavior is not portable.
 2. Request the customer's executable auth documentation, including the exact
@@ -65,7 +61,7 @@ For a `managed-only` profile:
    and how the credential is applied to the inventory requests.
 3. Do not ask for credential values.
 4. Do not generate live-capable code until the replacement auth contract is
-   complete and approved.
+   complete.
 
 ## New-provider contract
 
@@ -74,7 +70,7 @@ Request only what the selected asset type needs. The contract must prove:
 - list/search and required detail, card, metadata, handshake, or export calls
 - method, URL or SDK operation, parameters, request body, and response schema
 - pagination fields, termination, limits, stable identity, and error behavior
-- auth method and every runtime field using provider-native names
+- auth method and every runtime field using the names in their document
 - token or signing request and response format, credential application, expiry,
   refresh or rotation, identity test, and least privilege
 - source response paths for every required Agent Scanner artifact field
@@ -84,13 +80,48 @@ The generated script then performs one deterministic run:
 1. Resolve and validate provider and MuleSoft inputs.
 2. Authenticate to the provider and run the safe identity/read test.
 3. List and fetch only the configured asset type.
-4. Map and validate the approved artifact JSON and show field provenance.
+4. Map and validate the approved artifact JSON against `schemas/`.
 5. In dry-run, write inspectable ZIPs and stop.
-6. In live mode, obtain a MuleSoft Connected App token, upload every ZIP to the
-   one scanner configuration, and commit with the correct completeness value.
+6. In live mode, obtain a MuleSoft token with the selected Anypoint mode
+   (`connected-app` or `username-password`), create the scanner configuration
+   when `SCANNER_CONFIGURATION_ID` is empty (Name, optional Description,
+   Service type → target system), upload every ZIP to that one configuration
+   (retry transients; remint a mid-run 401 once), and commit with the correct
+   completeness value. Several provider accounts share that one configuration.
 7. Print a redacted structured result and clear next actions.
 
-Provider credentials never go to MuleSoft. MuleSoft Connected App credentials
-never go to the provider. A list failure does not commit; a partial discovery or
-upload commits `complete: false`; only a full successful inventory commits
-`complete: true`.
+Provider credentials never go to MuleSoft. MuleSoft credentials (Connected App
+secret or Anypoint password) never go to the provider. A list failure does not
+commit; a partial discovery or upload commits `complete: false`; only a full
+successful inventory commits `complete: true`. Do not enable pull-scanner
+cross-account flags for this script.
+
+## Completeness checks by scheme
+
+These rows are checks, not a provider catalog. Emit only the row selected and
+proven by the customer's document.
+
+| Selected scheme | Completeness checks |
+|---|---|
+| Signed request | Documented SDK or signer, identity/key, secret, region or scope when the document requires it, temporary session token when the document requires it, request signing, identity test |
+| OAuth or OIDC | Exact grant, token URL, client/workload identity, secret or certificate only when selected, required scopes/audience, form encoding, expiry/refresh |
+| API key, PAT, or bearer token | Exact header/query location and name, base URL, tenant/workspace selectors, expiry, safe identity/read test |
+| Basic authentication | Documented username/password semantics, transport requirements, safe identity/read test |
+| mTLS | Client certificate, private-key and CA/trust references, formats, hostname verification |
+| Workload identity | Runtime identity source, tenant/project/account selectors, audience/scopes, token acquisition |
+| Service-account/JWT | Account identity, private key or key reference, issuer/audience, scopes, token URL, algorithm, lifetime |
+
+Never switch schemes automatically after an authentication failure. Secret
+values never appear in process arguments or output.
+
+If several documented methods must be supported in one generated script, add an
+explicit non-secret authentication-mode selector named in their document.
+Validate all inputs for the selected mode before the first request. Do not probe
+modes, infer a mode from leftover environment variables, or silently fall back.
+
+MuleSoft rows include Anypoint host, organization id, Anypoint auth mode, then
+either Connected App client id and secret or Anypoint username and password,
+scanner configuration id (optional when creating), scanner name (required when
+creating), and scanner description (optional when creating). Asset type is a
+source constant from skill generation, not a runtime row. Do not mix the two
+Anypoint credential pairs. Do not invent the org id from `/accounts/api/me`.

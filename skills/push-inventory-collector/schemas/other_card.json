@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "The schema for a generic agent card",
+  "$ref": "#/definitions/OtherCard",
+  "definitions": {
+    "OtherCard": {
+      "@context": {
+        "@type": [
+          "http://anypoint.com/vocabs/agents#OtherCard"
+        ],
+        "@base": "http://anypoint.com/vocabs/agents#"
+      },
+      "description": "An AgentCard conveys key information:\n- Overall details (version, name, description, uses)\n- Skills: A set of capabilities the agent can perform\n- Default modalities/content types supported by the agent.\n- Authentication requirements",
+      "properties": {
+        "defaultInputModes": {
+          "description": "The set of interaction modes that the agent supports across all skills. This can be overridden per-skill.\nSupported media types for input.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "defaultOutputModes": {
+          "description": "Supported media types for output.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "A human-readable description of the agent. Used to assist users and\nother agents in understanding what the agent can do.",
+          "examples": [
+            "Agent that helps users with recipes and cooking."
+          ],
+          "type": "string"
+        },
+        "documentationUrl": {
+          "description": "A URL to documentation for the agent.",
+          "type": "string"
+        },
+        "iconUrl": {
+          "description": "A URL to an icon for the agent.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Human readable name of the agent.",
+          "examples": [
+            "Recipe Agent"
+          ],
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "a2a.json#/definitions/AgentProvider",
+          "description": "The service provider of the agent"
+        },
+        "security": {
+          "description": "Security requirements for contacting the agent.",
+          "items": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "securitySchemes": {
+          "additionalProperties": {
+            "$ref": "a2a.json#/definitions/SecurityScheme"
+          },
+          "description": "Security scheme details used for authenticating with this agent.",
+          "type": "object"
+        },
+        "skills": {
+          "description": "Skills are a unit of capability that an agent can perform.",
+          "items": {
+            "$ref": "#/definitions/Skill"
+          },
+          "type": "array"
+        },
+        "url": {
+          "description": "A URL to the address the agent is hosted at. This represents the\npreferred endpoint as declared by the agent.",
+          "type": "string"
+        },
+        "version": {
+          "description": "The version of the agent - format is up to the provider.",
+          "examples": [
+            "1.0.0"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Skill": {
+      "description": "Represents a unit of capability that an agent can perform.",
+      "properties": {
+        "description": {
+          "description": "Description of the skill - will be used by the client or a human\nas a hint to understand what the skill does.",
+          "type": "string"
+        },
+        "examples": {
+          "description": "The set of example scenarios that the skill can perform.\nWill be used by the client as a hint to understand how the skill can be used.",
+          "examples": [
+            [
+              "I need a recipe for bread"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "Unique identifier for the agent's skill.",
+          "type": "string"
+        },
+        "inputModes": {
+          "description": "The set of interaction modes that the skill supports\n(if different than the default).\nSupported media types for input.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Human readable name of the skill.",
+          "type": "string"
+        },
+        "outputModes": {
+          "description": "Supported media types for output.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tags": {
+          "description": "Set of tagwords describing classes of capabilities for this specific skill.",
+          "examples": [
+            [
+              "cooking",
+              "customer support",
+              "billing"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

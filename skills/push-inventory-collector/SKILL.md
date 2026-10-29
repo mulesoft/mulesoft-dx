@@ -5,19 +5,17 @@ description: Generate a customer-hosted collector that inventories agents, MCP s
 
 # Push inventory collector
 
+This file is the whole skill. Customers receive only this `SKILL.md`. Do not
+read other files, copy `schemas/`, or call `scripts/` — those do not ship.
+
 Generate a script that lists assets from the customer's system, writes one ZIP
 per asset, and publishes through Agent Scanner. One configuration accepts one
 type. The script is not a MuleSoft product command.
 
-Read `references/scanner-contract.md`, `references/generated-script-standard.md`,
-`references/provider-auth-resolution.md`, `references/failure-and-retry.md`, and
-`references/multi-account.md` before mapping or generating.
-`references/examples.md` is examples only. Copy `schemas/` next to the script.
-
 ## Caps
 
-These are server limits. State them in the mapping and in `--help`. Do not
-invent different numbers. Do not tell the customer the org-wide cap is 10000.
+State these in the mapping and in `--help`. Do not invent different numbers.
+Do not tell the customer the org-wide cap is 10000.
 
 | Cap | Value |
 |---|---|
@@ -27,19 +25,15 @@ invent different numbers. Do not tell the customer the org-wide cap is 10000.
 | One ZIP | one asset |
 | Org-wide capacity | server default 20000 |
 
-Also enforce: multipart request 13 MB, 500 ZIP entries, 20 MB uncompressed,
-description truncated to 250 characters at Exchange. Page the provider list so
-a run never stages more than 1000. A larger inventory is a partial workspace
-(`complete: false`).
+Also: multipart request 13 MB, 500 ZIP entries, 20 MB uncompressed, description
+truncated to 250 characters at Exchange. Page so a run never stages more than
+1000. Larger inventory → `complete: false`.
 
 ## What this produces
 
 - A script in the programming language they named
 - `inputs.env` with empty secrets
 - Inspectable ZIPs plus a mapping table, then two files after they approve
-
-One zip = one asset. Required ZIP files and Agent Fabric schema names are in
-`references/scanner-contract.md`. Validate against `schemas/` before upload.
 
 The script logs in to Anypoint with one selected mode: Connected App
 client-credentials, or username/password (`POST /accounts/login`). It creates
@@ -58,8 +52,8 @@ scanner first.
   the script can create one. Description is optional, same as the UI.
 - Feature `push-scanner-enabled` on for that org
 
-The chat never asks for secret values (client secret, password, tokens, keys).
-The generated script collects those at runtime.
+The chat never asks for secret values. The generated script collects those at
+runtime.
 
 ## One-question protocol
 
@@ -78,14 +72,10 @@ The only customer questions, in this order:
 9. Programming language
 10. Mapping approval (`Does this look fine?`)
 
-Do not combine these. Do not ask a later question before the earlier one is
-answered. Do not skip a question because a pasted OpenAPI implies an answer.
-Treat an answer already in this chat as answered.
+Do not combine these. Do not skip a question because a pasted OpenAPI implies
+an answer. Treat an answer already in this chat as answered.
 
 ### 1. Existing configuration or create
-
-If they have not said they already have a configuration id, and have not said
-to create one, ask exactly:
 
 ```text
 Do you already have a self-managed scanner configuration id, or should this script create a new scanner and push to it?
@@ -101,8 +91,6 @@ the backend API with the same fields as **Self-managed Scanner**.
 
 ### 2. Name (create only)
 
-If they chose create and have not named the scanner, ask exactly:
-
 ```text
 What name should the new scanner have? This is the Name field on the Self-managed Scanner page.
 ```
@@ -110,8 +98,6 @@ What name should the new scanner have? This is the Name field on the Self-manage
 Required. Then stop.
 
 ### 3. Description (create only)
-
-If they chose create and you have not asked for a description, ask exactly:
 
 ```text
 Optional description for the new scanner. Reply skip if none. This is the Description field on the Self-managed Scanner page.
@@ -121,55 +107,58 @@ Then stop.
 
 ### 4. Service type
 
-If they have not chosen `agent`, `mcp`, or `rest-api`, ask exactly:
-
 ```text
 What service type should this scanner accept? Reply with one of: agent, mcp, or rest-api.
 
 agent is one agent card. mcp is one MCP server card. rest-api is one API description. This is the Service type field on the Self-managed Scanner page. One script commits one of these, to one configuration.
 ```
 
-Then stop. One script, one type, one configuration. Write that type into the
-script as `ASSET_TYPE`. Do not add `--asset-type`.
-
-Creating: Service type selects the target system (`pushagent` / `pushmcp` /
-`pushapi`). Existing id: the type must match that configuration.
+Then stop. Write that type into the script as `ASSET_TYPE`. Do not add
+`--asset-type`.
 
 ### 5. Inventory
 
-Ask only for the selected type. Include `assets/sample-inputs.md`.
+Ask only for the selected type.
 
 ```text
 Please share the API inventory for {selected type}: list operation, detail or handshake, pagination, and a response example. OpenAPI, a collection, or a redacted curl transcript are all fine.
 
-If you already have a file of runtime inputs, attach it — or see assets/sample-inputs.md.
+If you already have a file of runtime inputs, attach it.
 ```
 
-Need vs nice-to-have is in `references/scanner-contract.md`.
-
 ### 6. Provider authentication
-
-Ask for the request and response, not values. Details in
-`references/provider-auth-resolution.md`.
 
 ```text
 Please share how this script should authenticate to that system: the token or login request, the response shape, and a redacted example. Do not paste secrets.
 ```
 
+Field names come from that document. Do not copy pull-scanner `@Field` names.
+Do not assume `gcloud`, `az`, or `aws` is already logged in. Do not add
+`--profile` unless their document names a profile.
+
 ### 7. Several provider accounts
 
 Ask only when their inventory or auth document names more than one account,
-project, subscription, tenant, or org, or they say they want all accounts
-scanned into the scanner they created. Exact question is in
-`references/multi-account.md`. Then stop.
+project, subscription, tenant, or org, or they want all accounts scanned into
+the scanner they created. Default is one account.
 
-Default is one account. Do not create one scanner per account. Do not tell
-them to turn on a pull-scanner cross-account feature flag. The script lists
-each account and `/push`es to the **one** configuration.
+```text
+These assets look split across more than one provider account. Should this script inventory all of them and push to the one scanner you created?
+
+Reply with one-account, or with all-accounts and how this script authenticates to each (one credential that can assume into the others, or a list of credential sets). Do not paste secrets.
+```
+
+Then stop. Do not create one scanner per account. Do not tell them to turn on
+a pull-scanner cross-account feature flag (`aws-cross-account-scanning-enabled`,
+`copilot-cross-account-scanning-enabled`,
+`azure-ai-foundry-cross-account-scanning-enabled`). Loop each account, `/push`
+to the **one** configuration, one `/commit`. Caps apply to the whole run. If
+two accounts can emit the same provider id, prefix the ZIP directory with a
+stable account discriminator (≤ 255 characters). One account fails → continue
+the others, then `complete: false`. Do not invent hub-and-spoke unless **that
+document** describes it.
 
 ### 8. Anypoint login
-
-If they have not chosen an Anypoint login, ask exactly:
 
 ```text
 How should this script log in to Anypoint? Reply with connected-app or username-password.
@@ -178,8 +167,7 @@ connected-app uses a Connected App client id and client secret (client_credentia
 ```
 
 Then stop. One mode per generated script. Do not probe both. Do not fall back
-after a 401. Both modes stay valid: an older Connected App `inputs.env` still
-works; a username/password `inputs.env` works without a Connected App.
+after a 401.
 
 ### 9. Programming language
 
@@ -211,41 +199,146 @@ Show in chat, in this order:
 10. `Does this look fine?`
 
 Ask `Does this look fine?` once, only in this turn, before any file exists.
-`Yes` writes two files. Do not write files in the mapping turn.
+`Yes` writes `{name}_collector.{ext}` and `{name}_collector.md`. Do not write
+files in the mapping turn. Re-read those files. Confirm mapping, Anypoint
+mode, create-or-existing, caps in `--help`, and that the file parses in the
+language they named (`python3 -m py_compile`, `node --check`, `bash -n`, or
+that project's compile). Then show Ways to run.
 
-After `Yes`, write `{name}_collector.{ext}` and `{name}_collector.md`. Copy
-`schemas/` next to the script. Re-read those files. Confirm the mapping,
-Anypoint mode, create-or-existing path, and caps in `--help`. Run the language
-checker in `references/generated-script-standard.md`. Then show Ways to run.
+## Anypoint token
 
-Do not ask `Does this look fine?` again. If they change mapping, inventory, or
-authentication, show a new table and ask once more before regenerating.
+Token host and scanner host are the same `ANYPOINT_BASE`. No `--scanner-base`,
+`SCANNER_BASE`, `localhost`, or `127.0.0.1`.
 
-## Guardrails
+**connected-app** — form-urlencoded, never JSON:
 
-- Do not invent inventory operations, query parameters, or authentication.
-- Do not generate from a MuleSoft-managed relationship. Ask for a customer-side
-  token contract.
-- Do not PUT/POST/DELETE on the customer's system except the documented
-  handshake (`initialize`, `tools/list`, a documented card GET).
-- Classify with that type's probe, not the display name.
-- Page the list. 1000 assets per run is a cap, not a goal. One zip = one asset.
-  Refuse a ZIP over 12 MB or a file over 5 MB.
-- `complete: true` only after a full successful inventory. Partial →
-  `complete: false` with no prompt.
-- Create body is Name, optional Description, Service type → target system,
-  `authScheme: customer-upload`, `state: STOPPED`, no `schedule`, no
-  `authParameters`. Details in `references/scanner-contract.md`.
-- Token host and scanner host are the same `ANYPOINT_BASE`. No
-  `--scanner-base`, `SCANNER_BASE`, `localhost`, or `127.0.0.1`.
-- Never log or print secrets, bearer tokens, or passwords.
-- Do not add `--profile` unless their auth document names a profile.
-- Do not describe AWS, a pull-scanner form, `@Field`, or a catalog of HTTP
-  calls as requirements. Use only what they pasted, plus the scanner contract.
-- Retry only the cases in `references/failure-and-retry.md`. Do not retry a
-  400/415/422 ZIP. Do not seal an old `workspaceRunId` after a Temporal failure.
-- Several provider accounts share one scanner. Details in
-  `references/multi-account.md`.
+```http
+POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=...&client_secret=...
+```
+
+**username-password** — JSON, never form, never `grant_type=password`:
+
+```http
+POST {ANYPOINT_BASE}/accounts/login
+Content-Type: application/json
+
+{"username":"...","password":"..."}
+```
+
+Response `access_token` is the bearer. Infer mode when `ANYPOINT_AUTH_MODE` is
+empty: client id+secret present and username empty → `connected-app`;
+username+password present and client id empty → `username-password`. Mixed or
+neither is FAILED before any HTTP.
+
+## Create configuration
+
+When `SCANNER_CONFIGURATION_ID` / `--config` is empty:
+
+```http
+GET {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{organizationId}/connectivity/target-systems
+```
+
+Pick `type` case-insensitively, ignore underscores: `agent` → `pushagent` /
+`PUSH_AGENT`; `mcp` → `pushmcp` / `PUSH_MCP`; `rest-api` → `pushapi` /
+`PUSH_API`. Then:
+
+```http
+POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{organizationId}/scanner-configurations
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "<SCANNER_NAME>",
+  "description": "<SCANNER_DESCRIPTION>",
+  "state": "STOPPED",
+  "runPolicy": "{}",
+  "notificationEnabled": false,
+  "importMode": "ask-for-review",
+  "connection": {
+    "name": "<SCANNER_NAME>-connection",
+    "orgId": "<ANYPOINT_ORG_ID>",
+    "targetSystemId": "<id from target-systems>",
+    "authScheme": "customer-upload"
+  }
+}
+```
+
+`runPolicy` is the JSON string `"{}"`. Omit `schedule`. Omit `authParameters`.
+Omit `description` when empty. Success is HTTP 200 with `id`. When the id is
+already set, do not create another.
+
+## ZIP (one zip = one asset)
+
+Top-level directory = stable provider external id, at most 255 characters.
+
+```text
+<externalId>/specification/config.json
+<externalId>/specification/<artifact>
+```
+
+`config.json`: `name`, `type` (`agent`|`mcp`|`rest-api`), optional
+`description` (truncate to 250 at Exchange). `type` must match `ASSET_TYPE`.
+
+| Type | ZIP artifact | Required keys |
+|---|---|---|
+| `agent` | `a2a-card.json` | `name`, `description`, `protocolVersion`, `url`, `version`, `capabilities`, `defaultInputModes` (≥1), `defaultOutputModes` (≥1), `skills`. Skill objects need `id`, `name`, `description`, `tags` |
+| `agent` | `a2a-v1-card.json` | `supportedInterfaces` or `supported_interfaces` with a callable `url`; no top-level `url` |
+| `agent` | `other-card.json` | whatever that card requires; not A2A |
+| `mcp` | `mcp-metadata.json` | `transport`; if `capabilities`, all four booleans `tools`, `resources`, `prompts`, `logging`; omit `serverInfo` |
+| `rest-api` | `oas.json` | `openapi` or `swagger`; keep the provider export |
+
+Refuse a ZIP over 12 MB or a file over 5 MB. Validate required keys in the
+script before upload. Do not fetch or copy schema files — they are not part of
+this skill. The server validates again.
+
+## Push and commit
+
+```http
+POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{organizationId}/scanner-configurations/{scannerConfigurationId}/push
+Content-Type: multipart/form-data
+file=<zip bytes>
+```
+
+Success is HTTP 202 with `assetId`, `action` (`created` or `replaced`),
+`workspaceRunId`. Same ZIP directory name replaces the staged object. Part name
+is `file`. Boundary must not start with `=`. Do not JSON the ZIP.
+
+```http
+POST .../commit
+{"workspaceRunId":"<id>","complete":true}
+```
+
+Both fields required. Success HTTP 202. Do not call `/seal`, `/complete`, or
+`/push-assets`.
+
+| Discovery/upload | `/commit` |
+|---|---|
+| First list failed, nothing staged | Do not commit |
+| Anything staged, then a later page/account/detail/`/push` failed | `complete: false`, no prompt, exit 2 |
+| Page cap 1000 | `complete: false` if anything staged |
+| Full list and every `/push` succeeded | Ask `Commit this scan? [y/N]` (default no). `--commit` / `PUSH_COMMIT=yes` is that yes → `complete: true` |
+
+`PUSH_COMMIT=yes` does not turn a partial into `complete: true`.
+`complete: false` publishes what was pushed and must not retire absent assets.
+
+## Retry and expired credentials
+
+| Event | Script | Do not |
+|---|---|---|
+| 429 / 502 / 503 / 504 on `/push` or `/commit` | Retry the **same** request up to 3 times (`Retry-After` or 1s/2s/4s) | Change ZIP bytes or Anypoint mode |
+| Connection refused | Retry once, then FAILED | Point at `localhost` |
+| Anypoint 401 after a good token | Remint **once** with the **same** `ANYPOINT_AUTH_MODE`, retry that call | Probe the other mode |
+| Anypoint 401 on the first token | FAILED | Retry |
+| Provider 401 after identity succeeded | Remint once if their auth doc has refresh; else fail that account | Fall back to a CLI session |
+| `/push` 400 / 415 / 422 | FAILED | Retry the same bytes |
+| `/push` 404 | FAILED | Retry |
+| `/push` 422 asset cap 1000 | Stop uploads; `complete: false` if staged | Retry that ZIP |
+| `/commit` 409 | `GET .../workspace` once; commit the current id. Already started → success | Create another scanner |
+| Temporal/Exchange fails after `/commit` 202 | Re-run the collector on the **same** config after RUNNING ends | Reseal the old `workspaceRunId` |
 
 ## `inputs.env`
 
@@ -253,10 +346,8 @@ authentication, show a new table and ask once more before regenerating.
 ANYPOINT_BASE=https://anypoint.mulesoft.com
 ANYPOINT_ORG_ID=
 ANYPOINT_AUTH_MODE=
-# connected-app
 ANYPOINT_CLIENT_ID=
 ANYPOINT_CLIENT_SECRET=
-# username-password
 ANYPOINT_USERNAME=
 ANYPOINT_PASSWORD=
 SCANNER_CONFIGURATION_ID=
@@ -264,25 +355,75 @@ SCANNER_NAME=
 SCANNER_DESCRIPTION=
 PUSH_COMMIT=no
 PUSH_ALLOW_EMPTY=
-# Provider fields: only from their authentication document.
 ```
 
-If they chose create, leave `SCANNER_CONFIGURATION_ID` empty and fill
-`SCANNER_NAME` / `SCANNER_DESCRIPTION`. If they pasted an id, set
-`SCANNER_CONFIGURATION_ID` and leave name/description blank.
+Create: leave `SCANNER_CONFIGURATION_ID` empty, fill `SCANNER_NAME` /
+`SCANNER_DESCRIPTION`. Existing id: set the id, leave name/description blank.
+Fill only the selected Anypoint mode's rows.
 
-`ANYPOINT_AUTH_MODE` is `connected-app` or `username-password`. Fill only that
-mode's rows. Leave the other mode empty. `ANYPOINT_CLIENT_SECRET` and
-`ANYPOINT_PASSWORD` stay empty in chat.
+Flags: `--dry-run`, `--input-file`, `--anypoint-base`, `--org`, `--config`,
+`--scanner-name`, `--scanner-description`, `--auth-mode`, `--client-id`,
+`--username`, `--commit`, `--verbose`, `--help`. No `--asset-type`. No
+`--client-secret`. No `--password`. No `--scanner-base`. No `--allow-empty`.
 
-US production host is an example. EU/CA/JP/AU/control-plane hosts are the
-value they supply. `--help` names both secret labels: **Connected App Client
-Secret** and **Anypoint Password**.
+`--help` three columns (Prompt label, Parameter flag, Input file key) and must
+name **Connected App Client Secret** / `ANYPOINT_CLIENT_SECRET` and **Anypoint
+Password** / `ANYPOINT_PASSWORD`. A help page that lists `--username` but not
+**Anypoint Password** is a generation failure. Caps in `--help`: 1000 assets
+per run, 12 MB zip, 5 MB per file, one zip = one asset, org-wide default 20000.
 
-## Runtime
+Multipart: `files={"file": (f"{id}.zip", zip_bytes, "application/zip")}` and do
+not set `Content-Type`. `curl -F "file=@{id}.zip;type=application/zip"`.
 
-Follow `references/generated-script-standard.md`. `--dry-run` stops after zips.
-Live: selected Anypoint login → create configuration if the id is empty →
-`POST /push` (retry transients) → optional `POST /commit`. Copy
-`scripts/retry_policy.py` behavior. Several accounts: loop provider logins,
-one configuration, one commit.
+## FAILED block
+
+```
+FAILED step=<name> http=<code>
+where: <call>
+request: <method and path, no secrets>
+response fields: <names only>
+why: <one sentence>
+body: <response snippet with secrets removed>
+next: <what to fix>
+```
+
+| http | next |
+|---|---|
+| 0 | Retry once. Confirm `ANYPOINT_BASE`. |
+| 401 / 403 first token | Do not retry. Reset Connected App secret, or confirm username/password and no MFA. |
+| 401 after a good token | Remint once, same mode. Still 401 → FAILED. |
+| 404 | Wrong org, config, or host. Do not retry. |
+| 400 / 415 / 422 | Do not retry the same bytes. Check `specification/`. |
+| 409 | `GET .../workspace` once. |
+| 429 / 502 / 503 / 504 | Retry up to 3 times, then FAILED; `complete: false` if staged. |
+
+## Ways to run
+
+Connected App:
+
+```
+export ANYPOINT_CLIENT_SECRET="..."
+<run> <script> --anypoint-base https://anypoint.mulesoft.com --org YOUR_ORG_ID --auth-mode connected-app --config YOUR_CONFIGURATION_ID --client-id YOUR_CLIENT_ID --commit
+```
+
+Username/password (omit `--config`, pass `--scanner-name` to create):
+
+```
+export ANYPOINT_PASSWORD="..."
+<run> <script> --anypoint-base https://anypoint.mulesoft.com --org YOUR_ORG_ID --auth-mode username-password --scanner-name "Production Account - Marketing" --username YOUR_USERNAME --commit
+```
+
+`--dry-run` stops after zips and does not need Anypoint rows.
+
+## Guardrails
+
+- Do not invent inventory operations or authentication.
+- Do not generate from a MuleSoft-managed relationship.
+- Do not PUT/POST/DELETE on the customer's system except the documented
+  handshake (`initialize`, `tools/list`, a documented card GET).
+- Classify with that type's probe, not the display name.
+- Never log secrets, bearer tokens, or passwords.
+- Do not describe AWS, a pull-scanner form, `@Field`, or a catalog of HTTP
+  calls as requirements.
+- Provider credentials never go to MuleSoft. MuleSoft credentials never go to
+  the provider.

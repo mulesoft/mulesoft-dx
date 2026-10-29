@@ -41,8 +41,15 @@ def read(rel: str) -> str:
 class SkillContentTests(unittest.TestCase):
     def setUp(self) -> None:
         self.skill = read("SKILL.md")
-        self.contract = read("references/scanner-contract.md")
-        self.standard = read("references/generated-script-standard.md")
+
+    def test_customer_artifact_is_skill_only(self) -> None:
+        self.assertIn("This file is the whole skill", self.skill)
+        collapsed = " ".join(self.skill.lower().split())
+        self.assertNotIn("read references/", collapsed)
+        self.assertNotIn("copy schemas/", collapsed)
+        self.assertIn("do not fetch or copy schema files", collapsed)
+        self.assertFalse((ROOT / "references").exists())
+        self.assertFalse((ROOT / "schemas").exists())
 
     def test_config_question_is_first(self) -> None:
         self.assertIn(
@@ -66,7 +73,8 @@ class SkillContentTests(unittest.TestCase):
             self.skill,
         )
         self.assertIn("This is the Service type field on the Self-managed Scanner page.", self.skill)
-        self.assertIn('"description": "<SCANNER_DESCRIPTION>"', self.contract)
+        self.assertIn('"description": "<SCANNER_DESCRIPTION>"', self.skill)
+        self.assertIn('"authScheme": "customer-upload"', self.skill)
 
     def test_anypoint_dual_auth_question(self) -> None:
         self.assertIn(
@@ -75,13 +83,13 @@ class SkillContentTests(unittest.TestCase):
         )
         self.assertIn("POST /accounts/login", self.skill)
         self.assertIn("client_credentials", self.skill)
-        self.assertIn("/accounts/api/v2/oauth2/token", self.contract)
-        self.assertIn("/accounts/login", self.contract)
+        self.assertIn("/accounts/api/v2/oauth2/token", self.skill)
+        self.assertIn("/accounts/login", self.skill)
         self.assertIn("ANYPOINT_USERNAME", self.skill)
         self.assertIn("ANYPOINT_PASSWORD", self.skill)
         self.assertIn("ANYPOINT_AUTH_MODE", self.skill)
-        self.assertIn("--username", self.standard)
-        self.assertIn("No `--password`", self.standard)
+        self.assertIn("--username", self.skill)
+        self.assertIn("No `--password`", self.skill)
         self.assertNotIn("never asks for an Anypoint username", self.skill.lower())
 
     def test_caps_explicit_in_skill(self) -> None:
@@ -95,23 +103,18 @@ class SkillContentTests(unittest.TestCase):
         ):
             self.assertIn(needle, self.skill, needle)
         self.assertIn("org-wide default 20000 (not 10000)", self.skill)
-        self.assertIn("Do not tell the customer this is 10000", self.contract)
 
-    def test_retry_and_multi_account_are_required_reading(self) -> None:
-        self.assertIn("references/failure-and-retry.md", self.skill)
-        self.assertIn("references/multi-account.md", self.skill)
-        failure = " ".join(read("references/failure-and-retry.md").split())
-        multi = " ".join(read("references/multi-account.md").split())
-        self.assertIn("Remint **once** with the **same** `ANYPOINT_AUTH_MODE`", failure)
-        self.assertIn("Do not create one scanner per account", multi)
-        self.assertIn("aws-cross-account-scanning-enabled", multi)
+    def test_retry_and_multi_account_are_in_skill(self) -> None:
         skill = " ".join(self.skill.split())
+        self.assertIn("Remint **once** with the **same** `ANYPOINT_AUTH_MODE`", skill)
+        self.assertIn("Do not create one scanner per account", skill)
+        self.assertIn("aws-cross-account-scanning-enabled", skill)
         self.assertIn(
             "Do not tell them to turn on a pull-scanner cross-account feature flag",
             skill,
         )
-        self.assertIn("401 after a good token", self.standard)
-        self.assertIn("409", self.standard)
+        self.assertIn("401 after a good token", skill)
+        self.assertIn("409", skill)
 
     def test_question_order(self) -> None:
         order = [
@@ -402,13 +405,6 @@ class RetryPolicyTests(unittest.TestCase):
 
 
 class SchemaTests(unittest.TestCase):
-    def test_schemas_parse(self) -> None:
-        schema_dir = ROOT / "schemas"
-        files = sorted(schema_dir.glob("*.json"))
-        self.assertGreaterEqual(len(files), 8)
-        for path in files:
-            json.loads(path.read_text(encoding="utf-8"))
-
     def test_evals_cover_new_questions(self) -> None:
         evals_path = ROOT / "evals" / "evals.json"
         if not evals_path.exists():

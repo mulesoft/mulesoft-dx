@@ -12,7 +12,7 @@ import process from 'node:process';
 const { argv, exit, stderr, stdout } = process;
 
 import { mkdirp } from '../lib/fsx.mjs';
-import { anypointEnv } from '../lib/anypoint.mjs';
+import { anypointEnv, shellSafeArgs } from '../lib/anypoint.mjs';
 import { rankCandidates } from '../lib/exchange-rank.mjs';
 
 const args = argv.slice(2);
@@ -26,6 +26,12 @@ const SCRIPT_NAME = 'scripts/get_latest_connector.mjs';
 if (SEARCH_TERM === '') {
     stderr.write(`Usage: ${SCRIPT_NAME} <search-term> [<nickname>]\n`);
     stderr.write(`  e.g. ${SCRIPT_NAME} mule-salesforce-connector sfdc\n`);
+    exit(1);
+}
+
+// Reject cmd.exe metacharacters up front (Windows spawns go through a shell).
+try { shellSafeArgs([SEARCH_TERM]); } catch (e) {
+    stderr.write(`❌ ${e.message}\n`);
     exit(1);
 }
 
@@ -56,13 +62,13 @@ function spawnPage(offset, pageFile, errFile) {
     const errFd = openSync(errFile, 'w');
     const child = spawn(
         'anypoint-cli-v4',
-        [
+        shellSafeArgs([
             'exchange', 'asset', 'list',
             SEARCH_TERM,
             '--limit', '200',
             '--offset', String(offset),
             '--output', 'json',
-        ],
+        ]),
         {
             env: anypointEnv(),
             stdio: ['ignore', outFd, errFd],

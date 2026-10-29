@@ -22,9 +22,31 @@ export function commandExists(cmd) {
   return r.status === 0;
 }
 
+// cmd.exe metacharacters that would let an argument break out of the command
+// line when a .cmd shim is run through `shell: true` (Windows only).
+const WIN_SHELL_UNSAFE = /[&|<>^%"'\r\n]/;
+
+/** @param {string[]} args Argv. @returns {string[]} Args safe to hand to a `shell: true` spawn: unchanged off Windows; on Windows each arg is rejected (throws) if it contains a cmd.exe metacharacter, otherwise double-quoted so spaces stay inside one argument. */
+export function shellSafeArgs(args) {
+  if (process.platform !== 'win32') return args;
+  return args.map((a) => {
+    const s = String(a);
+    if (WIN_SHELL_UNSAFE.test(s)) {
+      throw new Error(`argument contains shell metacharacters and was rejected: ${JSON.stringify(s)}`);
+    }
+    return /\s/.test(s) || s === '' ? `"${s}"` : s;
+  });
+}
+
 /** @param {string} cmd Executable. @param {string[]} args Argv. @param {{env?:Record<string,string>}} [opts] @returns {{status:number|null, signal:string|null, error:Error|undefined, stdout:string, stderr:string}} Synchronous spawn capture with anypointEnv() applied. */
 export function runProbe(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, {
+  let safeArgs;
+  try {
+    safeArgs = shellSafeArgs(args);
+  } catch (error) {
+    return { status: null, signal: null, error, stdout: '', stderr: '' };
+  }
+  const r = spawnSync(cmd, safeArgs, {
     env: anypointEnv(opts.env),
     encoding: 'utf8',
     shell: process.platform === 'win32',

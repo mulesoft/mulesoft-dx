@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 
+import { shellSafeArgs } from '../lib/anypoint.mjs';
 import { rankTemplates } from '../lib/template-rank.mjs';
 
 const { argv, exit, stderr, stdout } = process;
@@ -48,7 +49,12 @@ function templateEnv() {
 // stderr.
 function runCli(cliArgs) {
     return new Promise((resolve) => {
-        const child = spawn('anypoint-cli-v4', cliArgs, {
+        let safeArgs;
+        try { safeArgs = shellSafeArgs(cliArgs); } catch (e) {
+            resolve({ code: 1, stdout: '', stderr: `${e.message}\n` });
+            return;
+        }
+        const child = spawn('anypoint-cli-v4', safeArgs, {
             env: templateEnv(),
             stdio: ['ignore', 'pipe', 'pipe'],
             shell: process.platform === 'win32',

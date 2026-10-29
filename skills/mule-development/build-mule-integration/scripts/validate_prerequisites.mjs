@@ -58,7 +58,7 @@ if (anypointPresent) {
     if (r.status !== 0) {
         console.log('❌ anypoint-cli-v4 is not logged in');
         errors.push(
-            'anypoint-cli-v4 is not authenticated (not logged in). Fix: anypoint-cli-v4 login  (or set ANYPOINT_USERNAME / ANYPOINT_PASSWORD env vars, or run: anypoint-cli-v4 conf username <u> && anypoint-cli-v4 conf password <p>)'
+            'anypoint-cli-v4 is not authenticated. Fix: configure Connected App credentials: anypoint-cli-v4 conf client_id <client_id> && anypoint-cli-v4 conf client_secret <client_secret>'
         );
     } else {
         let user = 'authenticated';

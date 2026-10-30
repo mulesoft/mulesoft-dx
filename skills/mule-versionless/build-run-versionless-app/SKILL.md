@@ -71,7 +71,10 @@ Given a versionless Mule project root (a `pom.xml` with
    only `META-INF/mule-artifact/artifact.ast` from the jar, `dlopen`s each connector
    the app's `project-manifest.json` declares from the bundled
    `bin/<os>-<arch>/connectors/` directory, builds the flows, and registers one
-   HTTP route per flow at `/<app>/<flow>`.
+   HTTP route per flow that has an `<http:listener>` source, at the listener's
+   `path`. A flow without a source gets no route. The app name is sent at deploy time, and
+   every request to the app port must carry it in the `x-muleversionless-appname`
+   header (see Rule 6).
 
 The three phases correspond to the three bundled scripts (`setup.sh`,
 `build.sh`, `deploy-run.sh`).
@@ -117,7 +120,7 @@ location, so they work from any CWD.
 | --- | --- |
 | `scripts/setup.sh` | Install the bundled plugin into `~/.m2`; verify binaries + toolchain. Run once per machine. |
 | `scripts/build.sh <project-dir>` | `mvn clean package` with the bundled binaries + exchange stub. Produces the versionless jar. |
-| `scripts/deploy-run.sh {start\|stop\|deploy <jar>\|run <app>/<flow> [body]\|list\|undeploy <app>}` | Drive the bundled runtime. |
+| `scripts/deploy-run.sh {start\|stop\|deploy <jar> [name]\|run <path> [body]\|list\|undeploy <app>}` | Drive the bundled runtime. `deploy` sends the app name. `run` sends the `x-muleversionless-appname` header. |
 
 ## Workflow
 
@@ -142,14 +145,24 @@ location, so they work from any CWD.
    severs that discovery — the connectors never load and a connector-dependent app
    silently falls back to builtin behavior (e.g. an APIkit
    `<http:listener path="/api/*">` fails to mount at `/api/*`), with no deploy
-   error to warn you. The route prefix is the jar's file stem, so an in-tree
-   deploy yields a long `/<artifact-name>/<flow>` route — that is expected; copy
-   the exact route from the deploy response rather than shortening the jar name.
+   error to warn you. The default app name is the jar's file stem, so an in-tree
+   deploy yields a long app name — that is expected; copy the exact `name` from
+   the deploy response, or pass your own name to `deploy`.
 5. **Connector names in `project-manifest.json` are matched case-sensitively.**
    Each name must equal the connector's canonical extension name — `HTTP`, not
    `http`. The runtime does an exact-name lookup against the loaded library, so a
    case mismatch deploys as `app requires connectors not installed on this host`
    even when the connector is bundled.
+6. **Every request to the app port needs the app name header.** The runtime keeps
+   one route table per app. `deploy-run.sh deploy` sends `{"name","path"}` to
+   `POST /apps`. The name defaults to the jar's file stem, sanitized to 1–128
+   characters of `A-Za-z0-9._-`. Pass a second argument to choose another name.
+   Every request to port 8081 must then carry `x-muleversionless-appname: <name>`.
+   `deploy-run.sh run` adds it for you. For any other client, such as `curl`, add it
+   yourself. A missing, repeated, empty or non-ASCII header returns `400`. An
+   unknown app returns `404`. The flow never sees the header. This needs a
+   `mule-server` built from a ref that includes the header routing (mule-versionless
+   PR #398). Older bundled binaries ignore the name and the header.
 
 ### Step 1: Confirm the project and set up the toolchain
 
@@ -213,27 +226,33 @@ Rule 4). Do **not** copy it to `/tmp` first:
 
 ```bash
 JAR="$(ls <project-dir>/target/*-mule-application-versionless.jar)"
-<skill-dir>/scripts/deploy-run.sh deploy "$JAR"
-# → {"name":"…-mule-application-versionless","flow_count":1,"routes":["/…-mule-application-versionless/flowtotestpayload"],"status":"deployed"}
+<skill-dir>/scripts/deploy-run.sh deploy "$JAR"          # app name = the jar's file stem
+<skill-dir>/scripts/deploy-run.sh deploy "$JAR" my-app   # or choose the name
+# → {"name":"…-mule-application-versionless","flow_count":1,"routes":["/flowtotestpayload"],"status":"deployed"}
 ```
 
-The route prefix is the jar's file stem, so an in-tree deploy yields a long
-`/<artifact-name>/<flow>` route — expected. Capture the exact route from the
-deploy response and reuse it. The request body becomes the message payload; pass
-JSON to exercise expression-driven flows:
+The registered routes are the `<http:listener>` paths (for example `/flowtotestpayload`
+or an APIkit `/api/*`). Copy the exact route from the deploy response. The request
+body becomes the message payload; pass JSON to exercise expression-driven flows.
+`run` sends the app name header for you. It uses the only deployed app, or
+`MULE_APP_NAME` when more than one app is deployed:
 
 ```bash
-ROUTE="<artifact-name>/flowtotestpayload"   # copy from the deploy response's routes[]
+ROUTE="flowtotestpayload"   # copy from the deploy response's routes[]
 <skill-dir>/scripts/deploy-run.sh run "$ROUTE" '{"msg":"hi"}'
 # → Versionless is ready to rock!
 <skill-dir>/scripts/deploy-run.sh run "$ROUTE" '{}'
 # → Are you sure you want to build your integration with Classic Mule?
 ```
 
-For an APIkit-style app the registered routes are the listener paths themselves
-(e.g. `/api/*`), not `/<app>/<flow>` — hit them directly (e.g.
-`curl http://localhost:8081/api/books`). Always use the exact routes from the
-deploy response. List and clean up as needed:
+With several apps deployed, or with your own client, name the app yourself:
+
+```bash
+MULE_APP_NAME="<name>" <skill-dir>/scripts/deploy-run.sh run api/books '{}'
+curl -H 'x-muleversionless-appname: <name>' http://localhost:8081/api/books
+```
+
+Always use the exact routes from the deploy response. List and clean up as needed:
 
 ```bash
 <skill-dir>/scripts/deploy-run.sh list
@@ -301,18 +320,33 @@ different refs, so their ABI versions differ — the server log shows
 you deployed the jar from `/tmp` or another directory with no ancestor `pom.xml`.
 The runtime then can't discover `project-manifest.json`, the declared connectors
 never load, and the app silently falls back to builtin behavior — e.g. an APIkit
-`<http:listener path="/api/*">` fails to mount at `/api/*` and only name-based
-routes appear, or requests hit the server's `no route matches path` 404 instead
+`<http:listener path="/api/*">` fails to mount at `/api/*` and no route
+appears, or requests hit the server's `no route matches path` 404 instead
 of the connector's routing. Deploy the in-tree `target/` jar by absolute path
 (Rule 4, Step 4); confirm the server log shows the connector loaded (e.g.
 `loaded extension "HTTP"`) and the expected paths appear in the deploy response's
 `routes[]`.
 
 **Deploy `409`, `already deployed`:** that app name is live. `undeploy <name>`
-first, or deploy from a differently-named jar copy.
+first, or deploy again with a different name: `deploy <jar> <other-name>`.
 
-**Run `404`, `no route matches path`:** wrong `<app>/<flow>`. Use the exact entry
+**Deploy `400`, `invalid app name`:** the name is not 1–128 characters of
+`A-Za-z0-9._-`, or it is `.` or `..`. The default name is always valid. Check the
+name you passed as the second argument.
+
+**Run `404`, `no route matches path`:** wrong path. Use the exact entry
 from the deploy response's `routes[]` (or `deploy-run.sh list`).
+
+**Run `404`, `no app named '<name>'`:** the header names an app that is not deployed.
+Use the `name` from the deploy response, or set `MULE_APP_NAME` (see Rule 6).
+
+**Deploy returns `"routes":[]` and every `run` is `404`:** no flow has an
+`<http:listener>` source. The runtime registers no route for a source-less flow. Add
+an `<http:listener config-ref="…" path="/…"/>` as the flow's first element.
+
+**Run `400`, `x-muleversionless-appname header is missing` (or repeated / must be a
+non-empty ASCII value):** the request has no usable app name header. Use
+`deploy-run.sh run`, or add the header to your own client (see Rule 6).
 
 **`start` fails, `Address already in use`:** port 9090 or 8081 is taken. Re-run
 with `MULE_CONTROL_PORT=19090 MULE_APP_PORT=18081 <skill-dir>/scripts/deploy-run.sh start`

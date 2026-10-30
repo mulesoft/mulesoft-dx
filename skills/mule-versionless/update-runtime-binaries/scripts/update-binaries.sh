@@ -371,7 +371,7 @@ echo "==> verifying: runtime (control :${VERIFY_CTRL_PORT}  app :${VERIFY_APP_PO
 "${SKILL_DIR}/scripts/deploy-run.sh" start  >/dev/null || verify_fail "mule-server did not start"
 VERIFY_STARTED=1
 "${SKILL_DIR}/scripts/deploy-run.sh" deploy "${DEMO_JAR}" >/dev/null || verify_fail "deploy failed"
-RESP="$("${SKILL_DIR}/scripts/deploy-run.sh" run vselftest/flowtotestpayload '{"msg":"hi"}' 2>/dev/null || true)"
+RESP="$("${SKILL_DIR}/scripts/deploy-run.sh" run flowtotestpayload '{"msg":"hi"}' 2>/dev/null || true)"
 "${SKILL_DIR}/scripts/deploy-run.sh" undeploy vselftest >/dev/null 2>&1 || true
 
 case "${RESP}" in

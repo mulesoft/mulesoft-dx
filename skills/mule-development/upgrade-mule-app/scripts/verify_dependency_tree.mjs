@@ -55,6 +55,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
+import { writeMavenSettings, looksLikeAuthFailure, cleanupMavenSettings } from "../lib/maven-settings.mjs";
 
 // Don't crash if a downstream consumer (e.g. `head`) closes stdout early.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
@@ -116,11 +117,12 @@ function loadExpected(mode, path) {
   });
 }
 
-function runTree(projectDir, includesCsv) {
+function runTree(projectDir, includesCsv, settingsPath) {
   const r = spawnSync(
     "mvn",
     [
       "-B", // batch mode: no ANSI, stable output
+      ...(settingsPath ? ["-s", settingsPath] : []),
       "dependency:tree",
       `-Dincludes=${includesCsv}`,
       "-DoutputType=text",
@@ -167,6 +169,7 @@ function main() {
     resolvedOnlyByTree: [],
     stop: false,
     buildOk: false,
+    authFailureSuspected: false,
     warnings: [],
     notes: [],
   };
@@ -198,10 +201,26 @@ function main() {
   // the run fast. Maven's -Dincludes matches on groupId:artifactId patterns.
   const includesCsv = [...new Set(expected.map((e) => `${e.groupId}:${e.artifactId}`))].join(",");
 
+  // Refresh the Exchange session credential before resolving — a stale one
+  // in ~/.m2/settings.xml silently breaks private-connector resolution the
+  // same way it breaks describe-connector (see lib/maven-settings.mjs).
+  const settings = writeMavenSettings();
+  if (settings.warning) log(`⚠️  ${settings.warning}`);
+
   log(`Resolving dependency tree in ${projectDir} (mode: ${mode})...`);
-  const tree = runTree(projectDir, includesCsv);
+  const tree = runTree(projectDir, includesCsv, settings.path);
+  cleanupMavenSettings(settings.path); // mvn already read it; don't leave a plaintext credential in /tmp
   if (!tree.ok) {
     result.buildOk = false;
+    if (looksLikeAuthFailure(tree.out)) {
+      result.authFailureSuspected = true;
+      result.warnings.push(
+        "This looks like an expired/invalid Anypoint CLI session (401/Unauthorized), " +
+        "not a dependency or code defect — re-running the classifier or editing a POM will not fix it. " +
+        "Ask the user for permission to run `anypoint-cli-v4 login` to refresh the session, then retry " +
+        "this step. Do not run login without asking first."
+      );
+    }
     result.warnings.push(
       `mvn dependency:tree failed. Cannot verify resolved versions. ` +
       `Maven output (tail): ${tree.out.trim().split("\n").slice(-8).join(" | ") || tree.err || "(no output)"}`

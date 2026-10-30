@@ -72,6 +72,7 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 
 | Script | Purpose | Output location |
 | --- | --- | --- |
+| `scripts/write_maven_settings.mjs` | Run before every direct `mvn` invocation the skill makes (Steps 3c, 16, 17, and `verify_dependency_tree.mjs`'s own internal call). Refreshes the `anypoint-exchange-v2` and `anypoint-exchange-v3` `<server>` credentials in a temp copy of `~/.m2/settings.xml` from the live `anypoint-cli-v4` session (Connected App > bearer token, same precedence the DX plugin itself uses) — refreshing whichever blocks already exist (both patched identically, since they share one bearer token) and **adding** whichever of the two is missing, directly in the temp copy. If the CLI session is empty (no `anypoint-cli-v4 login`), falls back to the credential in Anypoint Code Builder's own `acb_settings.xml` (under `~/AnypointCodeBuilder/.tmp/<pid>/`, most recently modified wins), covering users who only ever signed in through the ACB IDE UI. Every other `<server>`/`<profile>`/`<mirror>` (Nexus, orbit, …) passes through untouched, and the real `~/.m2/settings.xml` on disk is never written to. No-op (returns the original path) when there's a `~/.m2/settings.xml` but no CLI/ACB session anywhere, or the file has no recognizable `<settings>` root to anchor an insertion on (e.g. a zero-byte file). When `~/.m2/settings.xml` doesn't exist at all, still checks for a CLI/ACB session first — if one is found, synthesizes a brand-new minimal settings.xml in the temp copy from that credential; only returns `path: null` when the file is absent AND no credential was found anywhere, since there's nothing to pass `-s` for in that case. Never logs or prints the credential value | stdout JSON `{path, patched, credentialKind, warning?}` — `credentialKind` is `client`\|`token`\|`acb`\|`null`; `path` is `null` only when there's no source settings.xml AND no CLI/ACB credential, in which case omit `-s` (`mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} ...`) rather than pass it — otherwise always safe to pass as `mvn -s <path>`. Run `scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` right after the `mvn` call to remove the temp credential file |
 | `scripts/validate_prerequisites.mjs` | Step 1 — validate app directory (`pom.xml` + `mule-artifact.json`), parent-POM availability (if referenced), Anypoint CLI v4, **DX plugin ≥ 1.3.1** (version read from `anypoint-cli-v4 plugins`; required for `dx mule jdk download` and for describe-connector's auth for some connectors), and local **Maven on the 3.9.x line** (MMP 4.x + MUnit require it; detect-and-instruct, never install). Validation-ONLY; exits non-zero when `errors[]` is non-empty | `tmp/upgrade-prereqs.json` (contains `inAppDir`, `parentDeclared`, `parentFound`, `cliPresent`, `dxPluginPresent`, `dxPluginVersion`, `dxPluginInRange`, `mavenVersion`, `mavenInRange`, `errors[]`, ...) |
 | `scripts/detect_current_mule_version.mjs` | Step 2a — determine the current Mule Runtime version from the `app.runtime` property, searching the child `pom.xml` then its full local parent chain (parent, grandparent, …) with `${...}` resolved against the merged chain, and flag versions below the supported floor (4.3). `--user-version <v>` persists a user-supplied/corrected value (also flagged via `belowFloor`) | `tmp/current-mule-version.json` (contains `version`, `source`, `resolvedFrom` (`"child"` \| `"parent"` \| `"ancestor"`), `needsUserPrompt`, `belowFloor`, `minSupportedVersion`, `warnings[]`, ...) |
 | `scripts/detect_current_java_version.mjs` | Step 2b — determine the current Java version from `mule-artifact.json` `javaSpecificationVersions`, and flag versions below the supported floor (8). `--user-version <n>` persists a user-supplied/corrected value (also flagged via `belowFloor`) | `tmp/current-java-version.json` (contains `version`, `source`, `supportedVersions`, `needsUserPrompt`, `belowFloor`, `minSupportedVersion`, `warnings[]`, ...) |
@@ -92,7 +93,7 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 | `promote_new_connector_pins.mjs` | Copies every `tmp/connector-choices/<nick>-new.json` → `tmp/connector-versions/<nick>.json` so Phase 2's pin script can consume them. Run once, before `apply_connector_pin.mjs`. | `tmp/connector-versions/<nick>.json` |
 | `apply_parent_pom_fork.mjs` | Parent-owned **connector** versions — the WRITE-side counterpart to the read-side chain walk, in two phases. Scope is **connectors only**: `app.runtime` / `mule.maven.plugin.version` / Java props are app-scoped and always child-written by `apply_runtime_bump.mjs` (never forked into a shared ancestor). **`--phase=edit` (Step 14):** for every **local ancestor** that owns a connector (in its `<dependencies>`/`<dependencyManagement>`), bump every connector version that ancestor owns to the resolved target — following `${property}` refs — for **all** connectors declared in that ancestor (fork-wide scope; an app-unused connector with no resolved target is a warning, never a hard stop). The ancestor's own `<version>` and the child's `<parent>` ref are left untouched, so the local build resolves the new versions via `<relativePath>`. **`--phase=fork` (Step 18, after a green build):** bump each owning ancestor's own `<version>` (computed from the pristine `tmp/pom-backups/` snapshot, so it is idempotent) and repoint the downstream `<parent><version>`. Both phases process the chain **deepest-first** and **verify** — re-resolving each connector from the child's perspective (same walk as the extractor), and in the fork phase confirming each `<parent>` link points at the fork. Reads `tmp/connectors.json` (provenance), `tmp/target-connectors.json` (target versions). `--phase=edit\|fork` (default `edit`); `--fork-bump=major\|minor\|patch` (default `minor`, fork phase only); `--dry-run` prints the plan without writing. Exit 1 on verify failure or missing/bad inputs; a no-op (no ancestor owns a connector) exits 0. No Exchange publish — purely local edits. | mutates ancestor `pom.xml`(s) (edit phase: managed connector versions; fork phase: own `<version>` + downstream `<parent>` refs); full result JSON `{phase, ancestorsForked[], edits[], backedUp[], verify{}, warnings[]}` written to `tmp/parent-pom-<phase>[-dryrun].json` (edit phase snapshots each ancestor it edits to `tmp/pom-backups/` pristine, create-if-absent, before its first write); stdout gets a short summary only (so a long chain never clips) |
 | `verify_metadata_coverage.mjs` | Step 11.5 gate — for every op / source / provider in `tmp/connector-usage/*.json`, verify a Mode-B / Mode-C JSON exists in `tmp/connector-metadata/`. Exits 1 with FAIL rows when any required per-op / per-provider describe is missing. Configs whose Mode-A `.connectionProviders[]` is empty (D7 fallback — some DB configs) emit INFO and do not fail; Phase C reads Mode-A `.configs[]` directly for those. Optional `--strict` also fails on WARN rows (renamed / removed ops that lack a `<nick>-op-renames.json` entry). | stdout FAIL/WARN/INFO rows |
-| `verify_dependency_tree.mjs` | Cross-checks what the static POM walk discovered against what Maven actually resolves (`mvn dependency:tree`, scoped to the connector GAVs) — the authority on the *resolved value*, catching imported-BOM / transitive / stale-`~/.m2` sources the local walk can't see. Two gates, one engine: **Step 12.0 `--against=existing`** diffs current versions vs `tmp/connectors.json` (SOFT — annotate plan + raise at approval); **Step 14.5 `--against=target`** diffs the just-written pins vs `tmp/target-connectors.json` (HARD — stop before the build). `--expected=<path>` overrides the file. The caller positions it: existing BEFORE Step 14 writes, target AFTER. Exit **0** all match, **1** operational error (Maven missing / tree failed / expected file unreadable — always a stop), **2** mismatch(es) — caller decides soft vs hard. | `tmp/dep-tree-verify-<mode>.json` (`matched[]`, `mismatches[]`, `missingFromTree[]`, `resolvedOnlyByTree[]`) |
+| `verify_dependency_tree.mjs` | Cross-checks what the static POM walk discovered against what Maven actually resolves (`mvn dependency:tree`, scoped to the connector GAVs) — the authority on the *resolved value*, catching imported-BOM / transitive / stale-`~/.m2` sources the local walk can't see. Two gates, one engine: **Step 12.0 `--against=existing`** diffs current versions vs `tmp/connectors.json` (SOFT — annotate plan + raise at approval); **Step 14.5 `--against=target`** diffs the just-written pins vs `tmp/target-connectors.json` (HARD — stop before the build). `--expected=<path>` overrides the file. The caller positions it: existing BEFORE Step 14 writes, target AFTER. Exit **0** all match, **1** operational error (Maven missing / tree failed / expected file unreadable — always a stop), **2** mismatch(es) — caller decides soft vs hard. On a **1** with `authFailureSuspected: true`, the tree build failed on a 401/Unauthorized — that's an expired Anypoint CLI session, not an operational defect; ask the user for permission to run `anypoint-cli-v4 login` before retrying. | `tmp/dep-tree-verify-<mode>.json` (`matched[]`, `mismatches[]`, `missingFromTree[]`, `resolvedOnlyByTree[]`, `authFailureSuspected`) |
 
 Shared helpers live in `lib/*.mjs` alongside `scripts/`: `anypoint.mjs` (CLI env scrubbing), `fsx.mjs` (I/O), `platform.mjs` (Java version parsing), `pom-edit.mjs` (pom.xml + mule-artifact.json + XSD rewrites), `xml-flow.mjs` (flow XML grep primitives). Steps 1–6's detection/validation/extraction scripts share `scripts/_pom_utils.mjs` (tolerant XML + `${...}` + parent-POM location + managed-version lookup); Steps 7–20's edit scripts use `lib/pom-edit.mjs` — the two POM helpers are independent.
 
@@ -275,18 +276,26 @@ echo "$MMP" > tmp/latest-mmp.txt
 echo "latest MMP: $MMP"   # this is <latest-4.x> below
 ```
 
-Then apply it for the baseline build only. Two cases, by how the pom pins the plugin version:
+Then apply it for the baseline build only. Every `mvn` invocation below is prefixed by refreshing the Exchange session credential Maven will authenticate with — `~/.m2/settings.xml`'s `anypoint-exchange-v2`/`anypoint-exchange-v3` entries go stale independently of the DX plugin's own auth (that's a *different* Maven invocation, inside the `describe-connector` subprocess — see `lib/anypoint.mjs`); this one is the skill's own `mvn` process and needs its own refresh:
+
+```bash
+MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
+```
+
+Two cases, by how the pom pins the plugin version:
 
 - **Case A — version is a property** (e.g. `<version>${mule.maven.plugin.version}</version>`): override on the command line, **no file change**:
   ```bash
   JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) \
-    mvn clean package -Dmule.maven.plugin.version="$MMP"
+    mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -Dmule.maven.plugin.version="$MMP"
+  node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
   ```
 - **Case B — version is a literal** (e.g. `<version>3.5.4</version>`): a `-D` flag cannot override a hardcoded plugin version, so the pom must be edited. **Do not hand-edit with `Edit`/`sed`** — tab-indented poms and multiple `mule-maven-plugin` blocks (build/plugins + pluginManagement) make that error-prone. Use the deterministic writer, which rewrites only the `<version>` inside the matched plugin block(s), whitespace-agnostic:
   ```bash
   cp pom.xml tmp/pom.baseline.bak
   node scripts/set_plugin_version.mjs mule-maven-plugin "$MMP" . --group-id org.mule.tools.maven
-  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn clean package
+  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+  node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
   cp tmp/pom.baseline.bak pom.xml   # ALWAYS revert — on success AND failure. The real bump happens in Phase 2 after approval.
   ```
   Log clearly: *"current MMP <old> can't run on Maven 3.9.x; building baseline on $MMP (not persisted — reverted after build)."*
@@ -294,13 +303,15 @@ Then apply it for the baseline build only. Two cases, by how the pom pins the pl
 For a 4.x MMP with no bump needed, just run the build with the resolved `JAVA_HOME` (one `mvn` invocation, nothing else in the response):
 
 ```bash
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn clean package
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 
 Branch on the result:
 
 - **`BUILD SUCCESS`** → baseline established (Case B: confirm the pom was reverted). Continue to Step 4.
-- **Build fails** → STOP. In Case B, **revert the pom first**, then surface the failure. Inform the user the app must build cleanly on its current versions (with a compatible toolchain) before an upgrade can proceed. Do not attempt upgrade edits to fix a pre-existing baseline failure.
+- **Build fails with `401` / `Unauthorized` / `Not authorized to access`** → this is an expired Anypoint CLI session, not a baseline defect. In Case B, revert the pom first. Ask the user for permission to run `anypoint-cli-v4 login`, then retry the same build once they confirm.
+- **Build fails otherwise** → STOP. In Case B, **revert the pom first**, then surface the failure. Inform the user the app must build cleanly on its current versions (with a compatible toolchain) before an upgrade can proceed. Do not attempt upgrade edits to fix a pre-existing baseline failure.
 
 ---
 
@@ -1177,7 +1188,7 @@ node <skill-dir>/scripts/promote_new_connector_pins.mjs
 node <skill-dir>/scripts/apply_runtime_bump.mjs .
 ```
 
-`apply_runtime_bump.mjs` only rewrites versions in `pom.xml` / `mule-artifact.json` — it does not run java. Correct-JDK enforcement comes from **pinning the build to the resolved target JDK inline**: Step 16's `mvn` is invoked as `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn clean package …`, exactly like the baseline build (Step 3c). The user's ambient `JAVA_HOME`/`PATH` is never consulted — the JDK is the one `resolve_jdk.mjs` found-or-installed in Step 13 (under the ACB java dir, or downloaded if absent).
+`apply_runtime_bump.mjs` only rewrites versions in `pom.xml` / `mule-artifact.json` — it does not run java. Correct-JDK enforcement comes from **pinning the build to the resolved target JDK inline**: Step 16's `mvn` is invoked as `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package …`, exactly like the baseline build (Step 3c). The user's ambient `JAVA_HOME`/`PATH` is never consulted — the JDK is the one `resolve_jdk.mjs` found-or-installed in Step 13 (under the ACB java dir, or downloaded if absent).
 
 Then per connector:
 
@@ -1337,7 +1348,8 @@ Use metadata from `describe-connector` to ensure operations, configs, and attrib
 
 Bounded recovery loop with a **5-retry** cap. `mvn clean package -DskipTests` BUILD SUCCESS is packaging-only — it validates that (a) XSDs parse, (b) DataWeave compiles, (c) the `.jar` packages. It does NOT execute any flow, hit any external system, or run MUnit. Step 17 (`mvn test`) is the real runtime gate.
 
-- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn clean package -DskipTests 2>&1 | tee tmp/mvn-failures/build-<attempt>.log` — set `JAVA_HOME` inline to the target JDK (each `Bash` call is a fresh shell; an earlier `export` does not carry over)
+- Refresh the Exchange session credential first (each `Bash` call is a fresh shell, so this is re-run every retry too): `MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')`
+- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -DskipTests 2>&1 | tee tmp/mvn-failures/build-<attempt>.log` — set `JAVA_HOME` inline to the target JDK (each `Bash` call is a fresh shell; an earlier `export` does not carry over). Immediately after, run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to remove the temp credential file.
 - If BUILD SUCCESS → advance to Step 17.
 - If BUILD FAILURE → **do not ad-hoc patch.** Enter the classifier below (16.1). Almost every mvn failure is an XSD/DSL mismatch whose fix is already in the metadata collected during Plan Phase (Mode-A / Mode-B / Mode-C JSON) — structured recovery reuses that data instead of re-guessing. Apply **one** targeted edit, then re-run `mvn` in a NEW response.
 
@@ -1356,6 +1368,7 @@ Bounded recovery loop with a **5-retry** cap. `mvn clean package -DskipTests` BU
 
 **Classify** into one of these classes and fix from the cited metadata:
 
+0. **auth failure (not a code defect)** — `status code: 401` / `ReasonPhrase: Unauthorized` / `Not authorized to access` / `401 Unauthorized` anywhere in the output, usually while resolving a connector dependency. Don't confuse this with a bare `401` elsewhere in ordinary output (a download-speed log like `(401 kB at 2.0 MB/s)`, or an XSD line/column reference like `flows.xml:[401,25]`) — those are not auth failures. This means the Anypoint CLI session itself has expired — `write_maven_settings.mjs` can only forward whatever credential the live session reports, so it cannot repair a dead one. **No code edit will fix this and it does not count against the 5-retry budget.** Tell the user their Anypoint CLI session looks expired and ask permission to run `anypoint-cli-v4 login` (it is typically interactive — browser or credential prompt — so the user may need to finish it themselves). Only retry `mvn` after they confirm the login is done.
 1. **attribute-rename** — `cvc-complex-type.3.2.2` "Attribute '<X>' is not allowed to appear in element '<prefix:op>'". Fix source: `tmp/connector-metadata/<nick>-new-<op>.json` → `.attributes[].attributeName`. Recovery: find a plausible NEW attribute (Levenshtein-close or same semantic role) and edit the site; if the plan already picked a mapping, apply the plan's. Common case: `http:listener` `method="X"` → `allowedMethods="X"` (the rename applies to the listener **source** only — `http:request` keeps `method`, so do not touch request sites).
 2. **missing-required-child** — `cvc-complex-type.2.4.a/b` "Invalid content was found starting with element '…'. One of '{…}' is expected". Fix source: `…-new-<op>.json` → `.childElements[]`. Recovery: an OLD attribute (e.g. `content="#[payload]"`) is now a child element (`<prefix:content>#[payload]</prefix:content>`) — rewrite accordingly.
 3. **element-rename** — `cvc-elt.1.a` "Cannot find the declaration of element '<prefix:op>'". Fix source: `<nick>-new.json` → `.operations[]` / `.sources[]`. Recovery: if the plan already picked a rename target, apply it; otherwise the plan missed the rename — go back to Step 12, do NOT guess.
@@ -1381,8 +1394,11 @@ Meaning: the flow XML calls an op that the *resolved* XSD doesn't declare. The p
 
 Before editing anything, run:
 ```bash
-mvn dependency:tree -Dincludes=<groupId>:<artifactId> 2>&1 | tail -20
+MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
+mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} dependency:tree -Dincludes=<groupId>:<artifactId> 2>&1 | tail -20
+node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
+- If the command itself fails with `status code: 401` / `ReasonPhrase: Unauthorized` / `Not authorized to access` → stop here, this is an expired Anypoint CLI session, not a stale/renamed op. Ask the user for permission to run `anypoint-cli-v4 login`, then re-run this probe.
 - If the resolved version ≠ the pinned version → `rm -rf ~/.m2/repository/<groupPath>/<artifactId>/<staleVer>` then re-run `mvn ... -U`.
 - If versions match → the operation was genuinely renamed. Re-read the connector's Mode-B / `<nick>-op-renames.json` and apply the rename to the flow XML.
 
@@ -1391,8 +1407,10 @@ Symptom: `java.lang.ClassCastException: class java.lang.String cannot be cast to
 
 Before editing anything, re-run with debug and grep for the failure frame + bean context:
 ```bash
-mvn clean package -DskipTests -X 2>&1 | grep -B 20 -A 3 'ClassCastException\|NullPointerException' \
+MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
+mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -DskipTests -X 2>&1 | grep -B 20 -A 3 'ClassCastException\|NullPointerException' \
   | tee tmp/mvn-failures/build-<attempt>-debug.log
+node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 Then scan the preceding 20 lines for `Creating bean` / `parsing element` / `BeanDefinition` — those name the flow-XML element being constructed (e.g. `db:pooling-profile`, `http:listener-connection`). That element is where the fix lives. Common cause: a `${property}` placeholder on an attribute the new connector version now types as `xs:int`/`xs:boolean` — quote-strip or wrap in `${int(...)}` per the Mode-B `.attributes[].type`.
 
@@ -1435,7 +1453,7 @@ find src/test/munit -name '*.xml' 2>/dev/null | wc -l   # suites present?
 
 **The pass gate is the `MUnit Run Summary`, nothing else — not `BUILD SUCCESS`, not the absence of `Skipping…`.** Grep the WHOLE log (`grep -nE 'MUnit Run Summary|Tests run:' <log>`), never judge from the tail. MUnit passes ONLY when the log contains an actual `MUnit Run Summary` with `Tests run: N (N >= 1)`, `Failed: 0`, `Errors: 0`. Treat as a FAIL only when there is NO `MUnit Run Summary` at all, or it shows `Tests run: 0`, or `Failed`/`Errors` > 0 — even if the build says `BUILD SUCCESS`. A trailing `Skipping execution of munit` line with a real `MUnit Run Summary` earlier in the log IS a pass.
 
-**One `mvn clean test` per response.** On failure, apply the same recovery approach as Step 16's classifier (16.1), but the applicable classes are narrower — MUnit failures are always inside test XML, not flow XML. Save each failing run's output to `tmp/mvn-failures/munit-<attempt>.log`. The five MUnit-specific classes:
+**One `mvn clean test` per response.** On failure, first check for Step 16's classifier class 0 (16.1) — a `401`/`Unauthorized` anywhere in the output means the Anypoint CLI session expired, not a test defect; ask permission to run `anypoint-cli-v4 login` and retry, don't spend a retry on it. Otherwise apply the same recovery approach as Step 16's classifier (16.1), but the applicable classes are narrower — MUnit failures are always inside test XML, not flow XML. Save each failing run's output to `tmp/mvn-failures/munit-<attempt>.log`. The five MUnit-specific classes:
 
 1. **attribute-rename** on `<munit-tools:mock-when processor="<prefix:op>">` — an unknown mock attribute. Fix source: `tmp/connector-metadata/<nick>-new-<op>.json` `.attributes[].attributeName`.
 2. **element-rename** on `<munit-tools:mock-when processor="<prefix:oldOp>">` — the `processor` attribute names an op that no longer exists. Fix source: `<nick>-new.json` `.operations[]`; apply the plan's rename mapping.
@@ -1449,8 +1467,10 @@ MUnit failures classify against the same Mode-B `.attributes[] / .childElements[
 
 Do NOT attempt a 7th retry without user direction. Treat repeated failures as a signal that the plan missed a Mode-B / Mode-C detail, not as noise to retry through.
 
-- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn clean test` — pin the MUnit run to the resolved target JDK inline, same as Steps 3c and 16
+- Refresh the Exchange session credential first: `MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')`
+- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean test` — pin the MUnit run to the resolved target JDK inline, same as Steps 3c and 16
 - Confirm the `MUnit Run Summary` shows `Tests run: N (>= 1)`, `Failed: 0`, `Errors: 0` — `BUILD SUCCESS` alone is not a pass
+- Run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to remove the plaintext credential from /tmp
 - Fix MUnit tests
 - Repeat until all tests pass
 
@@ -1489,7 +1509,9 @@ Prints a short summary; the full result is written to `tmp/parent-pom-fork.json`
 **Confirm with a re-build.** The fork is the workflow's **last file mutation**, and the script's link-check is a *static* verify (it confirms each downstream `<parent><version>` points at the fork), not a compile. Since every other mutating step ends in a build gate, close this one too — re-run the build once, pinned to the target JDK exactly as in Step 16, and require `BUILD SUCCESS` before cleanup:
 
 ```bash
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn clean package
+MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 
 This catches a repoint that verifies statically but won't actually resolve (e.g. `<relativePath>` not pointing at the forked ancestor, or a sibling GAV mismatch). If it fails, fix the `<parent>`/`<relativePath>` link — do **not** hand-edit versions (see idempotency note below) — and re-run before proceeding to Step 19.
@@ -1588,7 +1610,9 @@ node <skill-dir>/scripts/resolve_jdk.mjs <current-java-major> .
 node <skill-dir>/scripts/detect_current_mmp_version.mjs .
 
 # Step 3c — baseline build on the resolved JAVA_HOME (must be BUILD SUCCESS)
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn clean package
+MVN_SETTINGS=$(node <skill-dir>/scripts/write_maven_settings.mjs | jq -r '.path // empty')
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+node <skill-dir>/scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 
 # Step 4 — recommend a target (writes tmp/target-versions.json)
 node <skill-dir>/scripts/resolve_target_versions.mjs .

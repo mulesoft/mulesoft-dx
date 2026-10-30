@@ -4,7 +4,17 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.4] - Unreleased
+## [1.9.5] - 2026-10-30
+
+### Changed
+
+- **`build-mule-integration`, `upgrade-mule-app`, `manage-api-version`** — the "anypoint-cli-v4 not found" install guidance (`SKILL.md` prerequisites and troubleshooting, and the `validate_prerequisites.mjs` error messages) now says `npm install -g anypoint-cli-v4-public` instead of `npm install -g @mulesoft/anypoint-cli-v4`, which is not the published package name.
+
+### Fixed
+
+- **`upgrade-mule-app`** — Step 1 (`validate_prerequisites.mjs`) now spawns its `anypoint-cli-v4` / `mvn` probes with `shell: process.platform === 'win32'`. On Windows both resolve to `.cmd` shims that `spawnSync` cannot find by bare name without a shell, so every prerequisite check failed with `ENOENT` and reported the tools as missing. Behavior on macOS/Linux is unchanged.
+
+## [1.9.4] - 2026-10-29
 
 ### Added
 
@@ -14,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`build-mule-integration`** — the helper scripts now spawn `anypoint-cli-v4` with `shell: process.platform === 'win32'` instead of `shell: false` (`lib/anypoint.mjs`, `describe_connector.mjs`, `get_latest_connector.mjs`, `search_templates.mjs`). On Windows the npm-installed CLI is a `.cmd` shim that cannot be launched without a shell, so every CLI call failed with `ENOENT`. Behavior on macOS/Linux is unchanged.
 
-## [1.9.3] - Unreleased
+## [1.9.3]
 
 ### Added
 

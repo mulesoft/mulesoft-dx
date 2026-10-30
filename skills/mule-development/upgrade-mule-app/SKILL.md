@@ -41,7 +41,7 @@ anypoint-cli-v4 conf
 If tools are missing:
 
 ```bash
-npm install -g @mulesoft/anypoint-cli-v4
+npm install -g anypoint-cli-v4-public
 npm install -g @salesforce/anypoint-cli-dx-mule-plugin@latest
 anypoint-cli-v4 conf username <username>
 anypoint-cli-v4 conf password <password>
@@ -1567,7 +1567,7 @@ Present final summary:
 
 ## Troubleshooting
 
-**anypoint-cli-v4 not found:** `npm install -g @mulesoft/anypoint-cli-v4`
+**anypoint-cli-v4 not found:** `npm install -g anypoint-cli-v4-public`
 
 **DX plugin not found:** `npm install -g @salesforce/anypoint-cli-dx-mule-plugin`
 

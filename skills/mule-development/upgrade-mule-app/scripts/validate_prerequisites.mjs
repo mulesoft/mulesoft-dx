@@ -62,9 +62,14 @@ function log(msg) {
   process.stdout.write(msg + "\n");
 }
 
-// Run a command, capturing both streams.
+// Run a command, capturing both streams. shell is required on Windows —
+// anypoint-cli-v4/mvn resolve to .cmd shims there, and spawnSync can't find
+// those by bare name without a shell to apply PATHEXT resolution. Scoped to
+// win32 only: unconditional shell:true with an args array trips Node's
+// DEP0190 (unescaped args) and is unnecessary on POSIX, where direct exec
+// already works.
 function tryExec(cmd, args) {
-  const r = spawnSync(cmd, args, { encoding: "utf8", timeout: 10_000 });
+  const r = spawnSync(cmd, args, { encoding: "utf8", shell: process.platform === "win32", timeout: 10_000  });
   if (r.error) return { ok: false, out: "", error: r.error.message };
   const combined = `${r.stdout || ""}${r.stderr || ""}`.trim();
   return { ok: r.status === 0, out: combined };
@@ -203,7 +208,7 @@ function main() {
   result.cliPresent = cli.ok;
   if (!cli.ok) {
     log("❌ anypoint-cli-v4 not found");
-    result.errors.push("anypoint-cli-v4 not found. Install: npm install -g @mulesoft/anypoint-cli-v4");
+    result.errors.push("anypoint-cli-v4 not found. Install: npm install -g anypoint-cli-v4-public");
   } else {
     log("✅ anypoint-cli-v4 found");
     const dx = tryExec("anypoint-cli-v4", ["dx", "--help"]);

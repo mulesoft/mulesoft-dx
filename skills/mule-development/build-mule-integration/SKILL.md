@@ -44,7 +44,7 @@ anypoint-cli-v4 conf
 If tools are missing:
 
 ```bash
-npm install -g @mulesoft/anypoint-cli-v4
+npm install -g anypoint-cli-v4-public
 npm install -g @salesforce/anypoint-cli-dx-mule-plugin
 anypoint-cli-v4 conf username <username>
 anypoint-cli-v4 conf password <password>
@@ -1200,7 +1200,7 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 
 **JAVA_HOME not set:** `export JAVA_HOME=$(/usr/libexec/java_home -v 11)`
 
-**anypoint-cli-v4 not found:** `npm install -g @mulesoft/anypoint-cli-v4`
+**anypoint-cli-v4 not found:** `npm install -g anypoint-cli-v4-public`
 
 **DX plugin not found:** `npm install -g @salesforce/anypoint-cli-dx-mule-plugin`
 

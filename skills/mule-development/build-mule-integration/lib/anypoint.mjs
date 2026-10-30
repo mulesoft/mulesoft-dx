@@ -38,7 +38,7 @@ export function shellSafeArgs(args) {
   });
 }
 
-/** @param {string} cmd Executable. @param {string[]} args Argv. @param {{env?:Record<string,string>}} [opts] @returns {{status:number|null, signal:string|null, error:Error|undefined, stdout:string, stderr:string}} Synchronous spawn capture with anypointEnv() applied. */
+/** @param {string} cmd Executable. @param {string[]} args Argv. @param {{env?:Record<string,string>}} [opts] @returns {{status:number|null, signal:string|null, error:Error|undefined, stdout:string, stderr:string}} Synchronous spawn capture with anypointEnv() applied. shell is scoped to win32 — anypoint-cli-v4 resolves to a .cmd shim there, and spawnSync can't find it by bare name without a shell to apply PATHEXT resolution. Unconditional shell:true with an args array would trip Node's DEP0190 (unescaped args) and is unnecessary on POSIX, where direct exec already works. */
 export function runProbe(cmd, args, opts = {}) {
   let safeArgs;
   try {

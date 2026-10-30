@@ -41,7 +41,7 @@ mvn --version               # Maven 3.6+ for rescaffold (CHANGE path only)
 
 If `anypoint-cli-v4` is missing:
 ```bash
-npm install -g @mulesoft/anypoint-cli-v4
+npm install -g anypoint-cli-v4-public
 anypoint-cli-v4 conf username <username>
 anypoint-cli-v4 conf password <password>
 ```

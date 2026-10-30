@@ -36,7 +36,7 @@ console.log('Validating prerequisites...');
 const anypointPresent = commandExists('anypoint-cli-v4');
 if (!anypointPresent) {
     console.log('❌ anypoint-cli-v4 not installed');
-    errors.push('anypoint-cli-v4 not installed. Install: npm install -g @mulesoft/anypoint-cli-v4');
+    errors.push('anypoint-cli-v4 not installed. Install: npm install -g anypoint-cli-v4-public');
 } else {
     console.log('✅ anypoint-cli-v4 found');
 }

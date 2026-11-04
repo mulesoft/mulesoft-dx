@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { writeMavenSettings, looksLikeAuthFailure, cleanupMavenSettings } from './maven-settings.mjs';
+import { writeMavenSettings, looksLikeAuthFailure, classifyMavenFailure, cleanupMavenSettings } from './maven-settings.mjs';
 import { existsSync } from 'node:fs';
 
 // These tests exercise the pure settings.xml patching path with a fixture
@@ -484,4 +484,76 @@ test('looksLikeAuthFailure does not flag a bare 401/Unauthorized that appears in
   assert.equal(looksLikeAuthFailure(
     "[ERROR] flows.xml:[401,25] cvc-elt.1.a: Cannot find the declaration of element 'flow'."
   ), false);
+});
+
+// --- classifyMavenFailure ---------------------------------------------------
+
+test('classifyMavenFailure: private/EE Nexus 401 is mulesoft-ee-auth, with repo id and url', () => {
+  const log = [
+    '[INFO] Downloading from mulesoft-private: https://repository.mulesoft.org/nexus/content/repositories/private/com/mulesoft/licm/licm/2.1.13/licm-2.1.13.pom',
+    '[INFO] BUILD FAILURE',
+    '[ERROR] Failed to execute goal com.mulesoft.munit.tools:munit-maven-plugin:3.7.3:test (test) on project batch-template: Execution test of goal com.mulesoft.munit.tools:munit-maven-plugin:3.7.3:test failed: Could not transfer artifact com.mulesoft.licm:licm:pom:2.1.13 from/to mulesoft-private (https://repository.mulesoft.org/nexus/content/repositories/private): status code: 401, reason phrase: Unauthorized (401) -> [Help 1]',
+  ].join('\n');
+  const r = classifyMavenFailure(log);
+  assert.equal(r.kind, 'mulesoft-ee-auth');
+  assert.equal(r.repoId, 'mulesoft-private');
+  assert.equal(r.url, 'https://repository.mulesoft.org/nexus/content/repositories/private');
+  assert.equal(r.artifact, 'com.mulesoft.licm:licm:pom:2.1.13');
+  assert.match(r.hint, /<id>mulesoft-private<\/id>/);
+  assert.match(r.hint, /NOT the Anypoint\/Exchange token/);
+});
+
+test('classifyMavenFailure: releases-ee 403 under MuleRepository is mulesoft-ee-auth', () => {
+  const r = classifyMavenFailure(
+    '[ERROR] Could not transfer artifact com.mulesoft.mule.distributions:mule-runtime-impl-no-services-bom:pom:4.6.14 from/to MuleRepository (https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/): status code: 403, reason phrase: Forbidden (403)'
+  );
+  assert.equal(r.kind, 'mulesoft-ee-auth');
+  assert.equal(r.repoId, 'MuleRepository');
+});
+
+test('classifyMavenFailure: Exchange 401 is exchange-auth (CLI session expired)', () => {
+  const r = classifyMavenFailure(
+    '[ERROR] Failed to read artifact descriptor for org.mule.connectors:mule-http-connector:jar:1.10.3: Could not transfer artifact org.mule.connectors:mule-http-connector:pom:1.10.3 from/to anypoint-exchange-v3 (https://maven.anypoint.mulesoft.com/api/v3/maven): status code: 401, reason phrase: Unauthorized (401)'
+  );
+  assert.equal(r.kind, 'exchange-auth');
+  assert.equal(r.repoId, 'anypoint-exchange-v3');
+  assert.match(r.hint, /anypoint-cli-v4 login/);
+});
+
+test('classifyMavenFailure: plugin-resolution "Failed to transfer file" form is parsed by url', () => {
+  const r = classifyMavenFailure(
+    '[ERROR] Plugin x:y:1 or one of its dependencies could not be resolved: Failed to transfer file https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/a/b/1/b-1.pom with status code 401'
+  );
+  assert.equal(r.kind, 'mulesoft-ee-auth');
+  assert.equal(r.repoId, null);
+});
+
+test('classifyMavenFailure: an unknown repo 401 is other-repo-auth, not an Exchange re-login', () => {
+  const r = classifyMavenFailure(
+    '[ERROR] Could not transfer artifact a:b:jar:1 from/to corp-nexus (https://nexus.corp.example/repo): status code: 401, reason phrase: Unauthorized (401)'
+  );
+  assert.equal(r.kind, 'other-repo-auth');
+  assert.match(r.hint, /<id>corp-nexus<\/id>/);
+});
+
+test('classifyMavenFailure: ignores harmless 401s on INFO lines of a build that failed for another reason', () => {
+  const log = [
+    '[INFO] Downloading from MuleRepository: https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/org/x/y/1/y-1.pom',
+    '[WARNING] Could not transfer artifact org.x:y:pom:1 from/to MuleRepository (https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/): status code: 401, reason phrase: Unauthorized (401)',
+    '[INFO] BUILD FAILURE',
+    '[ERROR] Failed to execute goal munit:test: Build Failed: There was an error running MUnit tests',
+  ].join('\n');
+  assert.equal(classifyMavenFailure(log).kind, 'none');
+});
+
+test('classifyMavenFailure: ordinary test/XSD failures and empty input are none', () => {
+  assert.equal(classifyMavenFailure("[ERROR] cvc-complex-type.3.2.2: Attribute 'method' is not allowed").kind, 'none');
+  assert.equal(classifyMavenFailure('flows.xml:[401,25] (401 kB at 2.0 MB/s)').kind, 'none');
+  assert.equal(classifyMavenFailure('').kind, 'none');
+  assert.equal(classifyMavenFailure(undefined).kind, 'none');
+});
+
+test('classifyMavenFailure: a bare legacy 401 with no repo falls back to exchange-auth only on a failed build', () => {
+  assert.equal(classifyMavenFailure('[ERROR] Return code is: 401, ReasonPhrase: Unauthorized.').kind, 'exchange-auth');
+  assert.equal(classifyMavenFailure('[INFO] Return code is: 401, ReasonPhrase: Unauthorized.').kind, 'none');
 });

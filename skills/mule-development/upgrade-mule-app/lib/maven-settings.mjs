@@ -385,3 +385,97 @@ const AUTH_FAILURE_RE =
 export function looksLikeAuthFailure(mvnOutput) {
   return AUTH_FAILURE_RE.test(mvnOutput || '');
 }
+
+// --- Failure classification -------------------------------------------------
+//
+// looksLikeAuthFailure() answers "is there a 401 anywhere?" — enough for the
+// Exchange-session case, but it cannot tell WHOSE credential was rejected. Two
+// very different fixes hide behind the same 401:
+//   * Exchange (maven.anypoint.mulesoft.com): the Anypoint CLI session expired;
+//     the skill's own settings writer can refresh it (re-login).
+//   * MuleSoft's private/EE Nexus repos (repository.mulesoft.org/nexus*, e.g.
+//     `private`, `releases-ee`): needs the user's own Enterprise repository
+//     credentials in ~/.m2/settings.xml. The skill cannot mint those, and the
+//     Exchange token is NOT accepted there. Running MUnit with an EE runtime
+//     outside ACB/Studio hits this (mule-core-ee -> licm, runtime-impl BOMs).
+// Sending the second to "re-login" or to the MUnit test-fix classes burns
+// retries and invites an agent to improvise credentials.
+//
+// Only [ERROR] lines are inspected for the repo-specific kinds: Maven prints
+// `[INFO] Downloading from <repo>` for every attempt, and an anonymous 401 from
+// an EE repo is routinely logged and then ignored when another repo serves the
+// artifact — a build that passes must not look like a credential failure.
+const STATUS_RE = /status code:?\s*(401|403)|Return code is:?\s*(401|403)|\b(401|403)\s+(?:Unauthorized|Forbidden)\b/i;
+// `Could not transfer artifact g:a:t:v from/to <id> (<url>): status code: 401 ...`
+const TRANSFER_RE = /Could not transfer (?:artifact|metadata) (\S+) from\/to (\S+) \((https?:\/\/[^)\s]+)\)/i;
+// `Failed to transfer file <url> with status code 401` (plugin resolution form)
+const TRANSFER_URL_RE = /Failed to transfer file:?\s*(https?:\/\/\S+?)(?:\s+with)?\s+(?:return code|status code)/i;
+
+function hostAndPath(url) {
+  try {
+    const u = new URL(url);
+    return { host: u.hostname, path: u.pathname };
+  } catch {
+    return { host: '', path: '' };
+  }
+}
+
+function repoKind(repoId, url) {
+  const { host, path } = hostAndPath(url || '');
+  if (host === 'repository.mulesoft.org' && /^\/nexus/.test(path)) return 'mulesoft-ee-auth';
+  if (/^(mulesoft-private|MuleRepository)$/i.test(repoId || '')) return 'mulesoft-ee-auth';
+  if (host === 'maven.anypoint.mulesoft.com' || /\/exchange\/maven/.test(path)) return 'exchange-auth';
+  if (/^anypoint-exchange/i.test(repoId || '')) return 'exchange-auth';
+  return 'other-repo-auth';
+}
+
+/**
+ * Classify a FAILED mvn run's output by whose credential was rejected.
+ *
+ * @param {string} mvnOutput combined stdout+stderr from a failed mvn run.
+ * @returns {{kind: 'mulesoft-ee-auth'|'exchange-auth'|'other-repo-auth'|'none',
+ *   repoId: string|null, url: string|null, artifact: string|null, hint: string|null}}
+ *   `mulesoft-ee-auth` / `other-repo-auth` mean the USER must add credentials for
+ *   that repo id to ~/.m2/settings.xml — not a code defect, no retry should be
+ *   spent. `exchange-auth` means the Anypoint CLI session expired. `none` means
+ *   "not an auth failure; classify as a code/test defect".
+ */
+export function classifyMavenFailure(mvnOutput) {
+  const text = String(mvnOutput || '');
+  const errorLines = text.split('\n').filter((l) => /^\[ERROR\]/.test(l) || /^\s+(?:Caused by|Failed to|Could not)/.test(l));
+  for (const line of errorLines) {
+    if (!STATUS_RE.test(line)) continue;
+    const m = TRANSFER_RE.exec(line);
+    if (m) {
+      const [, artifact, repoId, url] = m;
+      const kind = repoKind(repoId, url);
+      return { kind, repoId, url, artifact, hint: authHint(kind, repoId, url) };
+    }
+    const u = TRANSFER_URL_RE.exec(line);
+    if (u) {
+      const kind = repoKind('', u[1]);
+      return { kind, repoId: null, url: u[1], artifact: null, hint: authHint(kind, null, u[1]) };
+    }
+  }
+  // A 401 with no parsable repo: keep the legacy behaviour (Exchange session).
+  if (errorLines.some((l) => AUTH_FAILURE_RE.test(l))) {
+    return { kind: 'exchange-auth', repoId: null, url: null, artifact: null, hint: authHint('exchange-auth') };
+  }
+  return { kind: 'none', repoId: null, url: null, artifact: null, hint: null };
+}
+
+function authHint(kind, repoId, url) {
+  if (kind === 'exchange-auth') {
+    return 'The Anypoint CLI session looks expired. Ask the user to run `anypoint-cli-v4 login`, then retry.';
+  }
+  const id = repoId || '<repository-id>';
+  const where = url ? ` (${url})` : '';
+  return (
+    `Maven was rejected by repository '${id}'${where}. This repository needs the user's own ` +
+    `MuleSoft Enterprise repository credentials — NOT the Anypoint/Exchange token. They go in ` +
+    `~/.m2/settings.xml (not pom.xml) as a <server> whose <id> equals the repository id: ` +
+    `<server><id>${id}</id><username>…</username><password>…</password></server>. ` +
+    `See https://docs.mulesoft.com/mule-runtime/latest/maven-reference#configure-mulesoft-enterprise-repository . ` +
+    `Do not create, guess, copy or reuse credentials for it.`
+  );
+}

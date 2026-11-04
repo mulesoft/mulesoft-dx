@@ -1,0 +1,24 @@
+{
+  "audit": {
+    "created": { "date": "2026-04-10T13:46:34.649Z" },
+    "updated": { "date": "2026-04-10T13:46:34.649Z" }
+  },
+  "id": "15e32731-fb86-4ea5-af71-67028f229a84",
+  "masterOrganizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "organizationId": "22a0c902-2e8c-4a4f-90b2-f001999ed826",
+  "environmentId": "c51bf541-b006-430f-bd17-a043eadd1203",
+  "label": "aditi-semantic-adv-openai-qdrant",
+  "serviceType": "advanced",
+  "provider": "openai",
+  "config": {
+    "authKey": "sk-REDACTED",
+    "url": "https://api.openai.com/v1/embeddings",
+    "model": "text-embedding-3-small"
+  },
+  "vectorDBConfig": {
+    "provider": "qdrant",
+    "apiKey": "REDACTED",
+    "url": "https://d5bce6b5-1133-4d71-a433-ff2497217d53.eu-west-2-0.aws.cloud.qdrant.io",
+    "collection": "llmproxy"
+  }
+}

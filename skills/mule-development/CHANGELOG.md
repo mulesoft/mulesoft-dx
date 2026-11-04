@@ -4,6 +4,16 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.6] - Unreleased
+
+### Fixed
+
+- **`upgrade-mule-app`** — Steps 16 and 17 now tell *whose* credential Maven rejected before deciding what to do. A 401/403 from MuleSoft's private or Enterprise Nexus repos (`mulesoft-private`, `releases-ee`) used to be treated as an expired Exchange session (Step 16.1 class 0) or as a broken test (Step 17), so the skill asked for a re-login that could not help, or spent up to 6 MUnit retries and then halted without saying why. The new `scripts/classify_mvn_failure.mjs` (backed by `classifyMavenFailure()` in `lib/maven-settings.mjs`) reads the failing `[ERROR]` lines and returns `exchange-auth`, `mulesoft-ee-auth`, `other-repo-auth` or `none`, with the repository id and URL. A credential failure now stops without spending a retry and shows the user which `<server>` entry is missing.
+
+### Changed
+
+- **`upgrade-mule-app`** — Step 17 retries a `mulesoft-ee-auth` failure once with the Anypoint Code Builder runtime that Step 13 already installed (`-DruntimeLocalDistribution`, writing `version.txt` like the ACB MUnit extension does), which needs no Enterprise credentials; if that also fails it stops and reports that MUnit could not be verified. A retry is now spent only on the five recognised MUnit failure classes, and Step 17 gains hard guardrails: never reuse the Exchange token for an Enterprise repo, never search for credentials, never switch Maven offline.
+
 ## [1.9.5] - 2026-10-30
 
 ### Changed

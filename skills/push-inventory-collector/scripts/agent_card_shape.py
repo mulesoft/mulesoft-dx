@@ -106,8 +106,41 @@ def _has_top_level_url(card: dict) -> bool:
     return isinstance(url, str) and bool(url.strip())
 
 
+# Agent Card properties from agent-fabric a2a_v1.json (1.2609.1). additionalProperties is false.
+# A top-level url is not one of them; the parser moves it onto supportedInterfaces before validation.
+A2A_V1_PROPERTIES = frozenset(
+    {
+        "capabilities",
+        "defaultInputModes",
+        "defaultOutputModes",
+        "default_input_modes",
+        "default_output_modes",
+        "description",
+        "documentationUrl",
+        "documentation_url",
+        "iconUrl",
+        "icon_url",
+        "name",
+        "provider",
+        "security",
+        "securityRequirements",
+        "securitySchemes",
+        "security_requirements",
+        "security_schemes",
+        "signatures",
+        "skills",
+        "supportedInterfaces",
+        "supported_interfaces",
+        "version",
+    }
+)
+
+
 def is_a2a_v1(card: dict) -> bool:
     if _has_top_level_url(card):
+        return False
+    extra = set(card) - A2A_V1_PROPERTIES
+    if extra:
         return False
     return _first_interface_http_url(card) is not None
 

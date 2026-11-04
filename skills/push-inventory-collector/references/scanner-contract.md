@@ -54,8 +54,8 @@ Artifact file by type:
 | Type | Artifact | Validation |
 |---|---|---|
 | `agent` | `a2a-card.json`, `a2a-v1-card.json`, or `other-card.json` | Exchange agent-fabric `agent_card` / `agent_card_v1` / `other_card` (1.2609.1), then a callable HTTP URL via `url` or `supportedInterfaces` |
-| `mcp` | `mcp-metadata.json` | Exchange `mcp_metadata` (transport required, no `serverInfo`). Generated scripts emit pull four-boolean capabilities |
-| `rest-api` | `oas.json` | Require `openapi` or `swagger`; preserve the provider export unless an approved transformation is documented |
+| `mcp` | `mcp-metadata.json` | Exchange `mcp_metadata` 1.2609.1. `transport.kind` is `streamableHttp`, `sse`, or `stdio`. `sse` needs `ssePath` (copy `path` into it when that is all the provider sent). Do not invent the missing capability keys. Keep `protocolVersion` only for `2024-11-05`, `2025-03-26`, `2025-06-18`, or `2025-11-25`. Omit `serverInfo`. |
+| `rest-api` | `oas.json` or `oas.yaml` | OpenAPI `3.x.y` or Swagger `2.0`, plus `info.title`, `info.version`, and `paths`. Preserve the provider export. |
 
 Agent artifact, choose the first match. Do not apply the A2A v0.3 key list to every agent.
 

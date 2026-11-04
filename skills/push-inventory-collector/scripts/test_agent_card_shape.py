@@ -23,6 +23,7 @@ from referencing.jsonschema import DRAFT7
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from agent_card_shape import (  # noqa: E402
+    A2A_V1_PROPERTIES,
     ShapeRefusal,
     build_agent_zip,
     shape_agent_card,
@@ -150,6 +151,25 @@ class ShapeTests(unittest.TestCase):
         }
         filename, _body = shape_agent_card(card)
         self.assertEqual(filename, "a2a-v1-card.json")
+
+    def test_v1_property_list_matches_fabric_schema(self) -> None:
+        schema_dir = _schema_dir()
+        card = json.loads((schema_dir / "a2a_v1.json").read_text(encoding="utf-8"))
+        properties = set(card["definitions"]["Agent Card"]["properties"])
+        self.assertEqual(A2A_V1_PROPERTIES, properties)
+        self.assertFalse(card["definitions"]["Agent Card"].get("additionalProperties", True))
+
+    def test_v1_card_with_vendor_field_is_other_card(self) -> None:
+        card = {
+            "name": "Vendor Agent",
+            "supportedInterfaces": [{"url": "https://agents.example.com/v1"}],
+            "vendorField": "astra",
+        }
+        filename, body = shape_agent_card(card)
+        self.assertEqual(filename, "other-card.json")
+        self.assertEqual(body["vendorField"], "astra")
+        _assert_schema(self.other, body)
+        self.assertTrue(list(self.v1.iter_errors(body)))
 
     def test_partial_a2a_with_top_level_url_does_not_become_v1(self) -> None:
         card = _v03()

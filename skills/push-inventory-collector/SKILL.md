@@ -138,7 +138,7 @@ When type, inventory, auth, and language are known, do not write files in that t
 1. What was collected, in plain English: the list and detail calls, the auth field names (not values), the language, and the one asset type.
 2. One row per inventory call. Columns: Call, Request, Response field, Zip path.
 3. One row per field the zip will contain. Columns: Source, Sent as, Required. Source is the operation and response path, or `constant`. If a required Source cannot be pointed at, leave the row blank and ask only for that API or field. Do not guess. If any required Source is blank, stop here. Do not show items 4–8 and do not ask "Does this look fine?" until every required Source is filled.
-4. One Representative generated JSON object for a single asset, using values from their inventory when they gave an example, otherwise empty strings. For `agent`, show the artifact chosen by **ZIP and push**: complete A2A v0.3 is `a2a-card.json` and those keys are required on that row; v1 interfaces with no top-level `url` is `a2a-v1-card.json`; any other agent with an http or https URL is `other-card.json`, and `skills` and `protocolVersion` are not required on that row. Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL. For `mcp`, `specification/mcp-metadata.json` with `transport` required; if capabilities are included, include all four booleans `tools`, `resources`, `prompts`, and `logging`; do not add `serverInfo`. For `rest-api`, `specification/oas.json` with `info` and `paths`; `externalId` is the provider id, and one stage is one asset.
+4. One Representative generated JSON object for a single asset, using values from their inventory when they gave an example, otherwise empty strings. For `agent`, show the artifact chosen by **ZIP and push**: complete A2A v0.3 is `a2a-card.json` and those keys are required on that row; v1 interfaces with no top-level `url` is `a2a-v1-card.json`; any other agent with an http or https URL is `other-card.json`, and `skills` and `protocolVersion` are not required on that row. Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL. For `mcp`, `specification/mcp-metadata.json`. `transport.kind` is `streamableHttp`, `sse`, or `stdio`. Do not require all of `tools`, `resources`, `prompts`, and `logging`. Do not invent the missing capability keys. Omit `serverInfo`. For `rest-api`, `specification/oas.json` or `specification/oas.yaml`. Require `openapi` `3.x.y` or `swagger` `2.0`, `info.title`, `info.version`, and `paths`. `externalId` is the provider id, and one stage is one asset.
 5. How the zip is uploaded after they run the script: `POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{org}/scanner-configurations/{config}/push` is the zip as multipart part `file`, filename `{externalId}.zip`. Not JSON. Finish is a separate `POST .../commit`. The customer question is "Commit this scan? [y/N]". Do not name `/push-assets`, `/complete`, or `/seal`.
 6. Script architecture: the function names to write (provider login, list, shape zip, token, upload, optional commit, print status) and the numbered stderr steps below.
 7. Flags, environment variables, prompts, and which of those are secret. Same names as **The script**. `--help` three columns: Prompt label, Parameter flag, Input file key.
@@ -242,7 +242,7 @@ After step 3, if zero assets matched `ASSET_TYPE`:
 
 `complete: true` means this list is the full inventory, so the scanner may retire assets that were not in the list. `complete: false` means upsert only.
 
-The upload is one ZIP per asset because that is the API. The customer confirms the mapping and the sample JSON. Do not spend the chat on archive layout. The script still produces a valid ZIP: one directory whose name is the provider's stable id, `specification/config.json` with `name` and `type`, and the artifact next to it (`a2a-card.json`, `a2a-v1-card.json`, or `other-card.json`, `mcp-metadata.json`, or `oas.json`).
+The upload is one ZIP per asset because that is the API. The customer confirms the mapping and the sample JSON. Do not spend the chat on archive layout. The script still produces a valid ZIP: one directory whose name is the provider's stable id, `specification/config.json` with `name` and `type`, and the artifact next to it (`a2a-card.json`, `a2a-v1-card.json`, or `other-card.json`, `mcp-metadata.json`, or `oas.json` / `oas.yaml`).
 
 Live stderr after MuleSoft values resolve (non-secrets in full; secret presence only):
 
@@ -541,7 +541,7 @@ Not `VERTEX_MCP`. That enum has no pull class. Do not list reasoning engines.
 
 `gcloud` ADC. Prompt **GCP Project ID** and **Location**. List `GET https://run.googleapis.com/v2/projects/{project}/locations/{location}/services` with an **access** token. For each service `uri`, JSON-RPC `initialize` (`protocolVersion` `2025-03-26`) then `tools/list` to `POST {uri}/` with an **identity** token (`gcloud auth print-identity-token --audiences={uri}`). Null `initialize` result = skip (count only unless `--verbose`). HTTP 401/403 on initialize is FAILED. Do not POST `https://run.googleapis.com/mcp-handshake`.
 
-Zip `mcp-metadata.json`: `transport.kind` `streamableHttp`, `transport.path` `/`. If `capabilities` is present, four booleans `tools`, `resources`, `prompts`, `logging`. Omit `serverInfo`. External id is the service id (last segment of `name`).
+Zip `mcp-metadata.json`: `transport.kind` `streamableHttp`, `transport.path` `/`. Copy `capabilities` as returned. Do not invent the missing capability keys. Omit `serverInfo`. External id is the service id (last segment of `name`).
 
 ### Databricks agents
 
@@ -618,9 +618,21 @@ Agent artifact, choose the first match. Do not run the A2A v0.3 key list against
 
 Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL.
 
-MCP (`mcp-metadata.json`): `transport` required; if emitting `capabilities`, emit all four booleans `tools`, `resources`, `prompts`, `logging`; omit `serverInfo`.
+MCP (`mcp-metadata.json`), from agent-fabric `mcp_metadata` 1.2609.1. Do not apply a stricter local subset.
 
-REST artifact is the exported OpenAPI document. It must contain `openapi` or `swagger`.
+- `transport` is required. `kind` is `streamableHttp`, `sse`, or `stdio`. `streamableHttp` needs only `kind`; `path` is optional. `stdio` needs only `kind`; `instructions` is optional. `sse` needs `kind` and `ssePath`. If the provider stored the endpoint in `path`, copy that value to `ssePath` and omit `path`. Do not fail that server.
+- `capabilities` is optional. Copy the keys the server returned. `tools`, `resources`, `prompts`, and `logging` may each be absent, and each may be a boolean or an object. Do not invent the missing capability keys.
+- `protocolVersion` is optional. Keep it only when it is `2024-11-05`, `2025-03-26`, `2025-06-18`, or `2025-11-25`. Otherwise omit it. Do not fail the server.
+- Omit `serverInfo` and any other top-level field outside `protocolVersion`, `transport`, `provider`, `capabilities`, `logging`, `tools`, `resources`, `resourceTemplates`, `prompts`, `platform`, `securitySchemes`, `connections`, and `provenance`. Omitting `serverInfo` is not a failure.
+- A `tools` item needs `name` and `inputSchema`. A `resources` item needs `name` and `uri`. A `prompts` item needs `name`. A `resourceTemplates` item needs `name` and `uriTemplate`. Omit an item that lacks its required fields. Do not fail the server for that item.
+- Missing `transport`, or a `kind` other than those three, is FAILED. Do not upload that server.
+
+REST (`oas.json` or `oas.yaml`). Keep the provider document, including extra OpenAPI fields.
+
+- OpenAPI 3: `openapi` matches `3.x.y`, plus `info.title`, `info.version`, and `paths` (an object; it may be empty).
+- Swagger 2: `swagger` is `2.0`, plus `info.title`, `info.version`, and `paths`.
+- Do not require `servers`, security, or a non-empty `paths` object.
+- Missing `info.title`, `info.version`, `paths`, or a spec version is FAILED. Do not upload that API.
 
 Push, to that one configuration id. `/push` is the zip.
 
@@ -686,4 +698,3 @@ The zip **must** contain `{externalId}/specification/config.json` and `{external
 
 - **skill setup-service-scanner**: Create a pull scanner configuration that discovers assets from a connected cloud platform.
 - **skill run-service-scan-and-view-results**: Run a hosted scan and review discovered staging assets.
-

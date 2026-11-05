@@ -1,6 +1,6 @@
 ---
 name: manage-global-configurations
-description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. NEVER use MCP server tools — use only the bash scripts provided.
+description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. Also manages shared resources in a Mule domain project (domain mode) — "add a shared HTTP listener to the domain", "add a DB pool to the domain", "edit the domain's TLS context", "remove a shared config from the domain", "list domain shared resources". NEVER use MCP server tools — use only the bash scripts provided.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@mulesoft/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 tags:
@@ -121,6 +121,7 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 | `references/global-elements-catalog.md` | XML templates, namespace URIs, XSD URLs, pom.xml dependencies, attribute tables, validation rules, and connector config generation rules for ALL element types. | Before generating ANY XML — verify structure, required attributes, namespace, and dependency. |
 | `references/global-config-conventions.md` | Element ordering, namespace management, centralization rules, default project structure, consolidation decision matrix. | When placing elements in `global-configs.xml`, managing namespaces, or running consolidation. |
 | `references/properties-patterns.md` | Property file formats, `${placeholder}` resolution, multi-env patterns, secure properties, built-in properties, naming conventions, validation rules. | When creating/editing properties files, setting up environments, or validating placeholders. |
+| `references/domain-shared-resources.md` | Domain mode: target file and root element, `domain.properties`, which resources are shareable, cross-app checks before edit/delete, reinstall step. | Whenever the target project is a Mule domain (Step 2). |
 
 ## Step 2: Resolve Target Project and Route Operation
 
@@ -128,7 +129,20 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 
 Run once per session — reuse the result for all subsequent operations in this conversation.
 
-If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking.
+If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking. If the user says "the domain" or "shared", and exactly one domain project exists, use it.
+
+**Detect Domain Mode:**
+
+Read the target's `pom.xml`. If it has `<packaging>mule-domain</packaging>`, the project is a **Mule domain**. Read `references/domain-shared-resources.md`, then apply these overrides for every step that follows:
+
+- Write global elements to `src/main/mule/mule-domain-config.xml`, inside the `<domain:mule-domain>` root, instead of `global-configs.xml`.
+- Write placeholders to `src/main/resources/domain.properties` (`key=value`) instead of `config.yaml`, and make sure `<configuration-properties file="domain.properties"/>` is registered.
+- Add dependencies to the **domain's** `pom.xml`. JDBC drivers and JMS client jars also go into the `mule-maven-plugin` `<sharedLibraries>`.
+- Never create flows or sub-flows. Refuse to add flow-bound elements (API AutoDiscovery, `configuration` / `defaultErrorHandler-ref`, error handlers), and suggest adding them to the application instead.
+- EDIT (rename or type change), DELETE, FIND USAGES, LIST ALL and VALIDATE also scan the **linked applications**. See "Before Editing or Deleting a Shared Resource" in the reference.
+- Validate with `mvn clean install -DskipTests` (not `package`), so linked apps and run configurations pick up the new domain jar.
+
+If the target is an application linked to a domain (its `pom.xml` has a `<classifier>mule-domain</classifier>` dependency), check the domain's shared elements before creating a config. If the domain already provides an equivalent config (same type and purpose, for example an HTTP listener on the same port), propose referencing it by name instead of creating a duplicate. A local config with the same name **shadows** the domain's. A listener on the same port fails at deploy.
 
 **Operation Routing — Level 1 (Domain):**
 
@@ -499,10 +513,14 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 - **Connector not found in Exchange:** Ensure Anypoint CLI is authenticated. Try broader search terms with `get_latest_connector.sh`.
 - **Describe-connector fails:** Verify Java 11+ is available and the connector GAV is valid. Check `tmp/connector-choices/` for the saved JSON.
 - **Unresolved placeholders at runtime:** Ensure `<configuration-properties>` is registered in `global-configs.xml` and the properties file exists in `src/main/resources/`.
+- **Linked app can't find a shared config after a domain change:** Reinstall the domain (`mvn clean install -DskipTests` in the domain project) and rebuild the app.
+- **Port already in use at deploy (domain mode):** An app declares its own listener on the domain listener's port. Make the app reference the domain's listener instead.
 - **Namespace conflicts:** Run consolidation to centralize all global elements and clean up duplicate namespace declarations.
 
 ## Related Jobs
 
 - **build-mule-integration**: Build Mule flows that reference the global configurations created by this skill
 - **secure-mule-app**: Configure secure properties encryption for sensitive configuration values
+- **create-mule-domain-project**: Create a Mule domain project to hold shared resources (skill create-mule-domain-project)
+- **link-mule-domain**: Link apps to a domain, or unlink and inline its shared configs (skill link-mule-domain)
 - **create-project-template**: Generate a new Mule project with proper structure before adding configurations

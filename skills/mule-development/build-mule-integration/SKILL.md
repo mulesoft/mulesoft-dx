@@ -102,6 +102,11 @@ In update mode:
 
 If you are about to declare completion and the most recent response did not run `mvn clean package` to `BUILD SUCCESS`, STOP — run the build first (Step 16).
 
+**Mule domains.**
+
+- If the target `pom.xml` has `<packaging>mule-domain</packaging>`, the project is a shared-resource domain, not an application. Do not generate flows in it. Route the request to skill manage-global-configurations (domain mode), skill link-mule-domain, or skill create-mule-domain-project.
+- If the app's `pom.xml` has a `<classifier>mule-domain</classifier>` dependency, read the domain's `src/main/mule/mule-domain-config.xml` before Steps 11–12. Reference an existing shared config by name (`config-ref`) instead of creating a duplicate. A local config with the same name shadows the domain's, and a second HTTP listener on the domain listener's port fails at deploy. Domain-provided connectors are `provided` in the app pom; keep that scope.
+
 ## Workflow-wide discipline (read before Phase 1)
 
 - **Build → cleanup → completion separation (Step 16 → Step 17 → Step 18).** Three responses, in order, each with a single tool call: `mvn clean package`, then `rm -r tmp/`, then the completion signal. Do not bundle them. Wait for each result before moving on.

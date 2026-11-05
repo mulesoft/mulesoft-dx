@@ -209,6 +209,7 @@ For each property the user wants to change:
 - Show available workspace projects
 - Let user specify which projects to include (full replacement, not additive)
 - Use absolute paths from `workspaceFolder.uri.fsPath`
+- **Domains:** run the domain check from skill create-mule-run-config (Step 2b; `<create-mule-run-config-dir>` is the sibling `create-mule-run-config` folder next to this skill's directory: `<create-mule-run-config-dir>/scripts/resolve_domain_run_plan.mjs --select <each-path> --workspace <each-workspace-path>`) on the new selection. Use its ordered `projects` (domains first). If it reports `errors` (only domains selected, or a missing or uninstalled domain), show them and do not update. Offer its `suggestedApplications` when a domain was added.
 
 **If changing mode:**
 - Ask if it should be run mode (noDebug: true) or debug mode (noDebug: false)

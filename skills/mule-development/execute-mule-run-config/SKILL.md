@@ -98,6 +98,7 @@ If no matching config exists (specific request only):
 - Generate appropriate name:
   - Debug mode: "Debug <project-name>" or "Debug All Projects"
   - Run mode: "Run <project-name>" or "Run All Projects"
+- **Domains:** before creating, run the domain check from skill create-mule-run-config (Step 2b; `<create-mule-run-config-dir>` is the sibling `create-mule-run-config` folder next to this skill's directory: `<create-mule-run-config-dir>/scripts/resolve_domain_run_plan.mjs --select ... --workspace ...`). Use its ordered `projects` (domains first) and `scope`. If it reports `errors`, show them and stop.
 - Create the config with `manage_run_configuration` operation "create"
 - **CRITICAL**: The tool may return a DIFFERENT name if there was a duplicate (e.g., "Run All Projects (2)")
 - **MUST use the EXACT name returned by the create operation** when executing in step 4
@@ -219,6 +220,7 @@ The tool will return a message like "Started configuration '<name>'". Share this
 - **DO NOT make assumptions** - Choosing "Multiple projects together" does NOT mean the user wants to run ALL projects. They need to confirm which specific configuration to execute.
 - **CRITICAL: NEVER run multiple projects individually** - Only ONE Mule runtime instance can be active at a time. To run multiple projects together, they MUST be in a single workspace-level configuration. NEVER attempt to run project-level configs sequentially or in parallel for multiple projects.
 - **If a workspace-level run fails**: Do NOT fall back to running individual project configs. Do NOT use `run_local_mule_application` tool as a fallback. Instead, report the error and suggest creating a new workspace-level configuration or checking if the configuration exists.
+- **Mule domains**: ACB deploys the domain of every launched app before the apps. If execution fails with "Domain … is not installed in the local Maven repository", show the message verbatim. Offer to open the domain project in the workspace or run `mvn clean install -DskipTests` in it, then execute the same configuration again. Do not remove the app from the configuration. A configuration that contains only domains cannot run; offer to add the domain's linked applications (skill update-mule-run-config).
 - **NEVER use run_local_mule_application**: This tool is for a different workflow (direct runtime deployment). Always use `manage_run_configuration` with operation "execute" for executing run configurations.
 
 ## Example Conversations

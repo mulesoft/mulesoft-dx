@@ -1,6 +1,6 @@
 ---
 name: create-mule-run-config
-description: Call use_skill as your FIRST and ONLY action when the user asks to CREATE a NEW run configuration for Mule applications. Use this ONLY for creating new configurations from scratch, NOT for editing existing ones. Trigger phrases include "create config", "new run config", "set up config", "add config". When you call use_skill, it must be the only tool call in that response.
+description: Call use_skill as your FIRST and ONLY action when the user asks to CREATE a NEW run configuration for Mule applications. Use this ONLY for creating new configurations from scratch, NOT for editing existing ones. Trigger phrases include "create config", "new run config", "set up config", "add config", "run my domain with its apps", "debug config for the domain". Domain-aware — when a selected app uses a Mule domain, or a domain is selected, the domain is validated and deployed before its applications. When you call use_skill, it must be the only tool call in that response.
 user-invocable: true
 metadata:
   author: mule-dx-tooling
@@ -35,13 +35,13 @@ Then call the `create_run_configuration` Language Model Tool with these paramete
 **If the request is SPECIFIC and mentions "all projects":**
 - Get workspace info (step 1)
 - Use ALL projects from the workspace info
-- Skip directly to step 3 (collect preferences for name and mode)
+- Run step 2b (domain check), then go to step 3 (collect preferences for name and mode)
 - DO NOT show the project selection list or buttons
 
 **If the request is SPECIFIC and names exact projects:**
 - Get workspace info (step 1)
 - Match the named projects against the projects list
-- Skip directly to step 3 (collect preferences for name and mode)
+- Run step 2b (domain check), then go to step 3 (collect preferences for name and mode)
 - DO NOT show the project selection list or buttons
 
 **If the request is VAGUE:**
@@ -93,7 +93,7 @@ Which projects do you want to include?
 
 **If workspace has only one project:**
 - Auto-select it automatically - DO NOT ask the user to choose
-- Skip directly to step 3 (collecting preferences for config name and mode)
+- Run step 2b (domain check), then go to step 3 (collecting preferences for config name and mode)
 - Confirm to the user: "Found 1 project: my-mule-app. Using this project for the run configuration."
 
 **If workspace has multiple projects and request was vague:**
@@ -108,6 +108,29 @@ Which projects do you want to include?
 - NEVER suggest a combination that includes all projects (that's what "all" is for)
 - For the suggested combinations, pick logical groupings if possible, or just pick different subsets of 2-3 projects
 
+## Step 2b: Domain Check (always, after projects are chosen)
+
+Mule domains hold resources shared by several applications. Anypoint Code Builder deploys a launch in this order: it runs `mvn install` on the launched domains, deploys the domains, and then deploys the applications. Each application's domain must be a workspace project or be installed in `~/.m2`. A launch that contains only domains is rejected. Validate the selection before creating anything:
+
+```bash
+node <skill-dir>/scripts/resolve_domain_run_plan.mjs \
+  --select <chosen-path-1> [--select <chosen-path-2> ...] \
+  --workspace <every-path-from-step-1> [...]
+```
+
+`<skill-dir>` is the directory containing this `SKILL.md`. The script prints JSON: `{ok, projects[], scope, domains[], suggestedApplications[], errors[], warnings[]}`.
+
+- **No domain involved** (`domains` is empty): continue with the user's selection.
+- **`ok: true`**: use the returned **`projects`** (workspace domains first, then applications) as the `projects` for Step 4, and the returned `scope` for execute. Tell the user, for example: "orders-app uses domain shared-domain; it's included and starts first." A domain with `source: "installed"` deploys from `~/.m2`, so it is not added to `projects`.
+- **`suggestedApplications` not empty** (a domain was selected): ask whether to add these linked applications as well. Offer two buttons, "Add <names>" and "Keep current selection". Then re-run the script with the final selection.
+- **`ok: false`**: show each entry of `errors` verbatim and **do not create the configuration**. Offer the fix that matches the error:
+  - *only domain projects selected* → add at least one of the `suggestedApplications`;
+  - *domain is not installed in the local Maven repository* → open the domain project in this workspace, or run `mvn clean install -DskipTests` in the domain project; then re-run this step;
+  - *version mismatch* → re-link the app to the workspace domain version (skill link-mule-domain), or install the required version.
+- Show `warnings` to the user, but do not block on them.
+
+Domains cannot be debugged on their own: breakpoints in domain files are ignored. The debugger attaches to the applications.
+
 ## Step 3: Collect Additional Preferences
 
 After user selects projects, ask for:
@@ -115,6 +138,7 @@ After user selects projects, ask for:
 **Configuration name** (optional):
 - For single project: default to "Run <project-name>"
 - For multiple projects: default to "Run Multiple Projects"
+- When Step 2b added a domain, count only the **applications**: one app plus its domain uses the default "Run <app-name>"
 - **CRITICAL**: Present ONLY TWO options to the user:
   1. A button/option to use the default name
   2. A text input option for them to type their own custom name
@@ -226,7 +250,7 @@ Flow:
 
 - **Always show available projects first** - list workspace folders and let user select by number
 - **Support flexible input** - users can enter "1", "1,3", "all", or project names
-- **You don't validate anything** - the tool handles all validation and file operations
+- **Validate domains only** - Step 2b's script validates the domain setup; the tool handles all other validation and file operations
 - **Keep it conversational** - don't ask for information the command doesn't need
 - **Detect debug intent** - if user says "debug" in their request, set noDebug = false
 - **Use the EXACT name returned after creating** - If the create operation returns "Run my-app (2)", you MUST use that exact name (with the number) when offering to run it. Do NOT use the original suggested name.
@@ -234,6 +258,31 @@ Flow:
 - **CRITICAL: NEVER run multiple projects individually** - Only ONE Mule runtime instance can be active at a time. To run multiple projects together, they MUST be in a single workspace-level configuration. NEVER attempt to run project-level configs sequentially or in parallel for multiple projects.
 
 ## Example Conversations
+
+### Example 0: App that uses a domain
+
+```text
+User: "Create a run config for orders-app"
+
+Assistant: [runs resolve_domain_run_plan.mjs --select /ws/orders-app --workspace ...]
+"orders-app uses domain shared-domain (in this workspace); it's included and starts before the app.
+Use default name 'Run orders-app' or type a custom name?"
+
+User: [uses default]
+Assistant: "Creating run configuration 'Run orders-app' with:
+- Projects: ['/ws/shared-domain', '/ws/orders-app']
+- Mode: Run (noDebug: true)
+✓ Successfully created run configuration.
+Would you like to run this configuration now?"   (execute with scope "workspace")
+```
+
+If the domain were neither open nor installed:
+
+```text
+Assistant: "Can't create the configuration: Domain com.acme:shared-domain:1.0.0 is not installed in the local
+Maven repository (expected ~/.m2/repository/com/acme/shared-domain/1.0.0/shared-domain-1.0.0-mule-domain.jar).
+Open the domain project in this workspace, or install it with 'mvn install'."
+```
 
 ### Example 1: Quick single-project setup
 

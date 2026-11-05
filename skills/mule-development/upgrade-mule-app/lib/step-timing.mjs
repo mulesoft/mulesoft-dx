@@ -189,10 +189,9 @@ export function computeReport(events, endTs) {
 /** @param {number} ms @returns {string} e.g. `850ms`, `12.3s`, `4m 07s`. */
 export function formatMs(ms) {
   if (ms < 1000) return `${Math.round(ms)}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  const m = Math.floor(ms / 60000);
-  const s = Math.round((ms % 60000) / 1000);
-  return `${m}m ${String(s).padStart(2, '0')}s`;
+  if (ms < 59950) return `${(ms / 1000).toFixed(1)}s`;
+  const totalSec = Math.round(ms / 1000);
+  return `${Math.floor(totalSec / 60)}m ${String(totalSec % 60).padStart(2, '0')}s`;
 }
 
 function describeName(d) {

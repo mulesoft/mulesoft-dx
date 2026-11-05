@@ -79,6 +79,9 @@ test('formatMs renders ms, seconds and minutes', () => {
   assert.equal(formatMs(850), '850ms');
   assert.equal(formatMs(12300), '12.3s');
   assert.equal(formatMs(247000), '4m 07s');
+  assert.equal(formatMs(59960), '1m 00s');
+  assert.equal(formatMs(479900), '8m 00s');
+  assert.equal(formatMs(59900), '59.9s');
 });
 
 test('marks fired less than 1s apart are merged into one row with the work that followed', () => {

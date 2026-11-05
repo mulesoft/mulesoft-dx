@@ -38,6 +38,7 @@ import path from 'node:path';
 import { mkdirp } from '../lib/fsx.mjs';
 import { parseJavaVersion } from '../lib/platform.mjs';
 import { anypointEnv, checkDxPluginVersion, DX_PLUGIN_MIN_LABEL, DX_PLUGIN_UPGRADE_CMD } from '../lib/anypoint.mjs';
+import { recordDescribe } from '../lib/step-timing.mjs';
 
 // Correlate a describe-connector failure with an outdated DX plugin rather
 // than guessing — Step 1 already gates on DX_PLUGIN_MIN_LABEL, but a plugin
@@ -224,11 +225,24 @@ const cmdArgs = ['dx', 'mule', 'describe-connector', '--connector', GAV, '--outp
 if (TYPE) cmdArgs.push('--type', TYPE, '--name', NAME);
 if (CONFIG_NAME) cmdArgs.push('--config-name', CONFIG_NAME);
 
+const cliStartedAt = Date.now();
 const r = spawnSync('anypoint-cli-v4', cmdArgs, {
   env: buildChildEnv(),
   shell: false,
   encoding: 'buffer',
   maxBuffer: Infinity,
+});
+
+// Debug timing (no-op unless `step_timer.mjs init` was run for this app). Recorded
+// right after the spawn so every failure exit below is covered.
+recordDescribe('.', {
+  nick: NICKNAME,
+  mode: !TYPE ? 'A' : (TYPE === 'connection-provider' ? 'C' : 'B'),
+  type: TYPE || undefined,
+  name: NAME || undefined,
+  configName: CONFIG_NAME || undefined,
+  durationMs: Date.now() - cliStartedAt,
+  cliStatus: r.status,
 });
 
 if (r.error) {

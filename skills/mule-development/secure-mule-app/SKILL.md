@@ -49,23 +49,25 @@ Ask the user for the following information, **one question at a time**:
 
 > "Checking for the MuleSoft **secure-properties-tool JAR** (the CLI tool used to encrypt your sensitive values). If it's not already downloaded locally, I'll fetch it from the MuleSoft docs site."
 
-- Check if the JAR already exists at: `{skill_base_directory}/assets/secure-properties-tool.jar`
+- Check if the JAR already exists at: `{skill_base_directory}/assets/secure-properties-tool-j17.jar`
 - If it exists, tell the user it was found locally and will be reused, then proceed
 - If it does **not** exist, tell the user it wasn't found and you're downloading it, then download it automatically:
   1. Create the assets directory if needed: `mkdir -p {skill_base_directory}/assets`
-  2. Download using `curl` (preferred — available by default on macOS):
+  2. Download using `curl` (preferred — available by default on macOS). `-f` makes an HTTP error such as a 404 fail the command instead of saving the error page as the JAR:
      ```bash
-     curl -L -o "{skill_base_directory}/assets/secure-properties-tool.jar" \
-       "https://docs.mulesoft.com/mule-runtime/4.4/_attachments/secure-properties-tool.jar"
+     curl -fL -o "{skill_base_directory}/assets/secure-properties-tool-j17.jar" \
+       "https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar"
      ```
   3. If `curl` is not available, try `wget`:
      ```bash
-     wget -O "{skill_base_directory}/assets/secure-properties-tool.jar" \
-       "https://docs.mulesoft.com/mule-runtime/4.4/_attachments/secure-properties-tool.jar"
+     wget -O "{skill_base_directory}/assets/secure-properties-tool-j17.jar" \
+       "https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar"
      ```
-  4. After downloading, verify the file exists and is non-empty before proceeding
+  4. After downloading with either tool, verify the file is a valid JAR before proceeding: `unzip -tq "{skill_base_directory}/assets/secure-properties-tool-j17.jar"` must exit 0. If it fails (an error page, a truncated or empty download — `wget -O` can leave one behind), delete the file and treat the download as failed
 - If the download fails, inform the user and provide the manual download URL:
-  `https://docs.mulesoft.com/mule-runtime/4.4/_attachments/secure-properties-tool.jar`
+  `https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar`
+- Note: use the `-j17` JAR (`secure-properties-tool-j17.jar`), not the older `secure-properties-tool.jar` — the older one was built for pre-JDK 17 connectors. The `-j17` JAR is published only under the docs site's `latest` path; the `4.4` path returns 404 for it.
+- Note: the `-j17` JAR runs on Java 8 or later — string encrypt/decrypt was verified on Java 8, 11 and 17. A Java version check is not needed beyond Java being installed.
 - Note: Maven (`mvn`) cannot be used here — this JAR is hosted on a documentation site, not a Maven repository
 
 ## Step 4: Scan XML Files and Properties Files
@@ -109,7 +111,7 @@ If no sensitive data is found, inform the user and exit.
 Before making ANY changes, show the user:
 - What files will be modified
 - What actions will be taken (update pom.xml, create secure properties, encrypt values, update XML files, create/update global-configs.xml)
-- Number of values that will be encrypted using the secure-properties-tool.jar
+- Number of values that will be encrypted using the secure-properties-tool-j17.jar
 
 If user says no, stop immediately.
 
@@ -155,7 +157,7 @@ After user confirmation, batch encrypt all unique sensitive values:
 - Collect all unique sensitive values that need encryption
 - For each value, run the encryption command without prompting:
   ```bash
-  java -cp {skill_base_directory}/assets/secure-properties-tool.jar com.mulesoft.tools.SecurePropertiesTool string encrypt <algorithm> <mode> <key> <value>
+  java -cp {skill_base_directory}/assets/secure-properties-tool-j17.jar com.mulesoft.tools.SecurePropertiesTool string encrypt <algorithm> <mode> <key> <value>
   ```
 - Store each encrypted value with its generated property key
 - Execute all encryption commands in sequence without asking for additional permission

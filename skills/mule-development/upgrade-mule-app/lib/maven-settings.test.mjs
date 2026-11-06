@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { writeMavenSettings, looksLikeAuthFailure, classifyMavenFailure, cleanupMavenSettings } from './maven-settings.mjs';
+import { writeMavenSettings, looksLikeAuthFailure, classifyMavenFailure, cleanupMavenSettings, detectCredentialKind, findDuplicateServerIds, duplicateServerIdsIn } from './maven-settings.mjs';
 import { existsSync } from 'node:fs';
 
 // These tests exercise the pure settings.xml patching path with a fixture
@@ -26,6 +26,8 @@ if [ "$1" = "conf" ]; then
     client_id) printf '%s' ${shQuote(confValues.client_id || '')} ;;
     client_secret) printf '%s' ${shQuote(confValues.client_secret || '')} ;;
     token) printf '%s' ${shQuote(confValues.token || '')} ;;
+    username) printf '%s' ${shQuote(confValues.username || '')} ;;
+    password) printf '%s' ${shQuote(confValues.password || '')} ;;
     *) printf '' ;;
   esac
   exit 0
@@ -517,7 +519,7 @@ test('classifyMavenFailure: Exchange 401 is exchange-auth (CLI session expired)'
   );
   assert.equal(r.kind, 'exchange-auth');
   assert.equal(r.repoId, 'anypoint-exchange-v3');
-  assert.match(r.hint, /anypoint-cli-v4 login/);
+  assert.match(r.hint, /re-authenticate the Anypoint CLI/);
 });
 
 test('classifyMavenFailure: plugin-resolution "Failed to transfer file" form is parsed by url', () => {
@@ -556,4 +558,81 @@ test('classifyMavenFailure: ordinary test/XSD failures and empty input are none'
 test('classifyMavenFailure: a bare legacy 401 with no repo falls back to exchange-auth only on a failed build', () => {
   assert.equal(classifyMavenFailure('[ERROR] Return code is: 401, ReasonPhrase: Unauthorized.').kind, 'exchange-auth');
   assert.equal(classifyMavenFailure('[INFO] Return code is: 401, ReasonPhrase: Unauthorized.').kind, 'none');
+});
+
+// --- detectCredentialKind / findDuplicateServerIds ---------------------------
+
+test('detectCredentialKind is null with no CLI session and no acb_settings.xml', () => {
+  const acbTempDir = emptyAcbTempDir();
+  withFakeCli({}, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), null);
+  });
+  rmSync(acbTempDir, { recursive: true, force: true });
+});
+
+test('detectCredentialKind reports the kind of session without exposing it', () => {
+  const acbTempDir = emptyAcbTempDir();
+  withFakeCli({ token: 'tok-123' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'token');
+  });
+  withFakeCli({ client_id: 'id', client_secret: 'sec' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'client');
+  });
+  rmSync(acbTempDir, { recursive: true, force: true });
+});
+
+test('detectCredentialKind treats conf username + password as a CLI session (lazy auth)', () => {
+  const acbTempDir = emptyAcbTempDir();
+  withFakeCli({ username: 'u', password: 'p' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'password');
+  });
+  // only one of the two is not a session
+  withFakeCli({ username: 'u' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), null);
+  });
+  rmSync(acbTempDir, { recursive: true, force: true });
+});
+
+test('detectCredentialKind: username + password outranks the ACB fallback, client/token outrank both', () => {
+  const acbTempDir = mkdtempSync(join(tmpdir(), 'acbdir-'));
+  mkdirSync(join(acbTempDir, '1'), { recursive: true });
+  writeFileSync(join(acbTempDir, '1', 'acb_settings.xml'), '<settings><servers><server><id>anypoint-exchange-v3</id><username>a</username><password>b</password></server></servers></settings>');
+  withFakeCli({}, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'acb');
+  });
+  withFakeCli({ username: 'u', password: 'p' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'password');
+  });
+  withFakeCli({ username: 'u', password: 'p', token: 't' }, () => {
+    assert.equal(detectCredentialKind({ acbTempDir }), 'token');
+  });
+  rmSync(acbTempDir, { recursive: true, force: true });
+});
+
+test('findDuplicateServerIds reports ids declared twice and ignores unique ones', () => {
+  const xml = `<settings><servers>
+    <server><id>nexus3</id><username>a</username><password>b</password></server>
+    <server><id>anypoint-exchange-v3</id><username>old</username><password>old</password></server>
+    <server><id> anypoint-exchange-v3 </id><username>new</username><password>new</password></server>
+  </servers></settings>`;
+  assert.deepEqual(findDuplicateServerIds(xml), ['anypoint-exchange-v3']);
+});
+
+test('findDuplicateServerIds ignores commented-out blocks and empty input', () => {
+  const xml = `<settings><servers>
+    <server><id>nexus3</id></server>
+    <!-- <server><id>nexus3</id></server> -->
+  </servers></settings>`;
+  assert.deepEqual(findDuplicateServerIds(xml), []);
+  assert.deepEqual(findDuplicateServerIds(''), []);
+  assert.deepEqual(findDuplicateServerIds(undefined), []);
+});
+
+test('duplicateServerIdsIn reads a file and returns [] when it is missing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'maven-settings-dup-'));
+  const p = join(dir, 'settings.xml');
+  writeFileSync(p, '<settings><servers><server><id>x</id></server><server><id>x</id></server></servers></settings>');
+  assert.deepEqual(duplicateServerIdsIn(p), ['x']);
+  assert.deepEqual(duplicateServerIdsIn(join(dir, 'missing.xml')), []);
+  rmSync(dir, { recursive: true, force: true });
 });

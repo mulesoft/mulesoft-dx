@@ -291,8 +291,7 @@ Use the MuleSoft secure-properties-tool JAR:
 java -cp secure-properties-tool-j17.jar \
   com.mulesoft.tools.SecurePropertiesTool \
   string encrypt AES CBC \
-  --key "my-encryption-key" \
-  --value "my-secret-password"
+  "my-encryption-key" "my-secret-password"
 ```
 
 Output: `![encrypted-base64-string]`

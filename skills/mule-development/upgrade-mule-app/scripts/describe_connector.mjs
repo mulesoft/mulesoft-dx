@@ -37,6 +37,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { mkdirp } from '../lib/fsx.mjs';
 import { parseJavaVersion } from '../lib/platform.mjs';
+import { checkReleasesRepo, RELEASES_REPO_URL } from '../lib/releases-repo.mjs';
 import { anypointEnv, checkDxPluginVersion, DX_PLUGIN_MIN_LABEL, DX_PLUGIN_UPGRADE_CMD } from '../lib/anypoint.mjs';
 
 // Correlate a describe-connector failure with an outdated DX plugin rather
@@ -220,6 +221,25 @@ function buildChildEnv() {
   return childEnv;
 }
 
+// describe-connector resolves the connector's parent POMs, which are published
+// only on the MuleSoft releases repository, and the plugin does not add that
+// repository itself. Without it in ~/.m2/settings.xml the call exits non-zero
+// with NO output (the plugin disables its own logging), so say so — but only
+// when the settings really lack the repo, to avoid blaming it for other failures.
+function releasesRepoHint() {
+  let check;
+  try {
+    check = checkReleasesRepo();
+  } catch {
+    return '';
+  }
+  if (!check.needsAdd) return '';
+  return `   likely cause: ${check.settingsPath} does not define the MuleSoft releases repository (${RELEASES_REPO_URL}), where the connector's parent POMs live; describe-connector fails silently without it.\n` +
+    `   fix: run \`node scripts/ensure_mulesoft_releases_repo.mjs --apply\` (backs up settings.xml first) after the user confirms, or add this to ~/.m2/settings.xml:\n` +
+    `     <profile><id>mulesoft-releases-repo</id><repositories><repository><id>mulesoft-releases</id><url>${RELEASES_REPO_URL}</url></repository></repositories></profile>\n` +
+    `     plus <activeProfiles><activeProfile>mulesoft-releases-repo</activeProfile></activeProfiles>\n`;
+}
+
 const cmdArgs = ['dx', 'mule', 'describe-connector', '--connector', GAV, '--output', 'json'];
 if (TYPE) cmdArgs.push('--type', TYPE, '--name', NAME);
 if (CONFIG_NAME) cmdArgs.push('--config-name', CONFIG_NAME);
@@ -250,6 +270,7 @@ if (r.status !== 0) {
     stderr.write(`❌ describe-connector failed for ${GAV}\n`);
   }
   stderr.write(dxPluginVersionHint());
+  if (stdoutBuf.length === 0) stderr.write(releasesRepoHint());
   exit(1);
 }
 

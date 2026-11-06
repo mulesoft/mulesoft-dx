@@ -29,7 +29,7 @@
 // Output JSON (file): { ok, inAppDir, pomExists, muleArtifactExists,
 //   parentDeclared, parentFound, parentPath, ancestorChain[], cliPresent,
 //   dxPluginPresent, dxPluginVersion, dxPluginInRange, mavenVersion,
-//   mavenInRange, errors[], warnings[], notes[] }.
+//   mavenInRange, mulesoftReleasesRepo, errors[], warnings[], notes[] }.
 //   ancestorChain[] is every local ancestor POM path (nearest-first) discovered by
 //   walking the full <relativePath> chain; parent{Declared,Found,Path} describe the
 //   immediate parent only (retained for backward compatibility). `ok` is true when
@@ -54,6 +54,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
 import { readPomProject, child, findParentPomPath } from "./_pom_utils.mjs";
+import { checkReleasesRepo, RELEASES_REPO_URL } from "../lib/releases-repo.mjs";
 
 // Don't crash if a downstream consumer (e.g. `head`) closes stdout early.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
@@ -118,6 +119,7 @@ function main() {
     dxPluginInRange: false,
     mavenVersion: null,
     mavenInRange: false,
+    mulesoftReleasesRepo: null, // { settingsPath, exists, covered, via, needsAdd } — see lib/releases-repo.mjs
     errors: [],
     warnings: [],
     notes: [],
@@ -241,6 +243,21 @@ function main() {
         }
       }
     }
+  }
+
+  // describe-connector (Step 7) needs the MuleSoft releases repository in
+  // ~/.m2/settings.xml or it exits 1 with no output. Detect only — adding it
+  // edits the user's real settings.xml, so SKILL.md asks once and then runs
+  // scripts/ensure_mulesoft_releases_repo.mjs --apply. Not an error: the rest
+  // of the run does not depend on it, and a user may decline.
+  result.mulesoftReleasesRepo = checkReleasesRepo();
+  if (result.mulesoftReleasesRepo.needsAdd) {
+    log(`⚠️  ${RELEASES_REPO_URL} is not defined in ${result.mulesoftReleasesRepo.settingsPath}`);
+    result.warnings.push(
+      `${result.mulesoftReleasesRepo.settingsPath} does not define the MuleSoft releases repository (${RELEASES_REPO_URL}). Without it, describe-connector (Step 7) exits 1 with no output. Ask the user once whether to add it (see Step 1).`
+    );
+  } else {
+    log(`✅ MuleSoft releases repository available (${result.mulesoftReleasesRepo.via})`);
   }
 
   // Local Maven on the required 3.9.x line. Detect-and-instruct only —

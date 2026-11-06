@@ -4,11 +4,13 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.6] - Unreleased
+## [1.9.7] - Unreleased
 
 ### Added
 
 - **`upgrade-mule-app`** — Step 1 now checks that `~/.m2/settings.xml` defines the MuleSoft releases repository (`https://repository.mulesoft.org/releases/`) and, after one confirmation, adds it. Without it `anypoint-cli-v4 dx mule describe-connector` exits 1 with no output, because a connector's parent POMs live only on that repository. `validate_prerequisites.mjs` reports it as `mulesoftReleasesRepo`, and `describe_connector.mjs` now prints the likely cause and the snippet to add when describe-connector fails with no output and the repo is missing. New `scripts/ensure_mulesoft_releases_repo.mjs` (check by default; `--apply` writes a `settings.xml.bak-<timestamp>` backup first, adds a dedicated profile activated through `<activeProfiles>`, and creates `~/.m2/repository` when missing). A repo already declared in an active profile, or a catch-all `<mirror>`, counts as covered and nothing is written.
+
+## [1.9.6] - Unreleased
 
 ### Fixed
 

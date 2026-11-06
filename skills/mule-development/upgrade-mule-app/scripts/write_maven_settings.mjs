@@ -15,7 +15,7 @@
 // OWN describe-connector subprocess, not the skill's `mvn` calls.
 //
 // Usage: node scripts/write_maven_settings.mjs
-// Prints JSON: { path, patched, credentialKind, warning? } to stdout.
+// Prints JSON: { path, patched, credentialKind, needsLogin, duplicateServerIds, warning? } to stdout.
 // `path` is null when ~/.m2/settings.xml does not exist — callers MUST omit
 // `-s` in that case rather than pass a nonexistent path, e.g.
 // `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} ...`. Whenever path is non-null
@@ -24,6 +24,13 @@
 // should run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to
 // remove the plaintext credential from /tmp.
 import { stdout } from 'node:process';
-import { writeMavenSettings } from '../lib/maven-settings.mjs';
+import { writeMavenSettings, duplicateServerIdsIn } from '../lib/maven-settings.mjs';
 
-stdout.write(JSON.stringify(writeMavenSettings(), null, 2) + '\n');
+const result = writeMavenSettings();
+// Duplicate <server><id> entries in the REAL settings.xml are only a Maven
+// warning, but which one wins depends on merge order — surface them before
+// any mvn call so a shadowed credential isn't misdiagnosed later.
+const duplicateServerIds = duplicateServerIdsIn();
+// `needsLogin` is true when there is no CLI/ACB session at all: the temp copy
+// carries no fresh Exchange credential, so any Exchange resolution will 401.
+stdout.write(JSON.stringify({ ...result, needsLogin: result.credentialKind === null, duplicateServerIds }, null, 2) + '\n');

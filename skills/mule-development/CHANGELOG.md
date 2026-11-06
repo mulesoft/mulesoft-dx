@@ -4,7 +4,7 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.7] - Unreleased
+## [1.9.7]
 
 ### Added
 
@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`secure-mule-app`** — Step 3 downloaded the outdated `secure-properties-tool.jar` (from the `4.4` docs path), built for pre-JDK 17 connectors. It now uses `secure-properties-tool-j17.jar` from `https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar`, and the encrypt command in Step 8 points at the same file. `curl` now uses `-f` so an HTTP error is not saved as a "JAR". Both download paths now check the result with `unzip -tq`, so a `wget` error page or truncated file is rejected. A previously cached `secure-properties-tool.jar` is ignored and the new file is fetched.
 - **`manage-global-configurations`** — the `properties-patterns.md` encrypt example used `--key`/`--value` flags, which the tool rejects ("Invalid arguments"); key and value are positional arguments.
+- **`upgrade-mule-app`** — Step 1 now fails fast when there is no Anypoint session or only an Anypoint Code Builder sign-in, which the CLI does not share, telling the user to authenticate the Anypoint CLI instead of letting later CLI and Maven calls fail opaquely. `validate_prerequisites.mjs` reports it as `anypointSession`.
+- **`upgrade-mule-app`** — Duplicate `<server><id>` entries in `~/.m2/settings.xml` are now detected and reported (`duplicateServerIds` from `validate_prerequisites.mjs` and `write_maven_settings.mjs`) before any `mvn` call. Maven only warns about them, and a stale duplicate can shadow the correct credential without an explicit 401. The skill reports them and never edits the user's file.
 
 ## [1.9.6]
 

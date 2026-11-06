@@ -29,7 +29,8 @@
 // Output JSON (file): { ok, inAppDir, pomExists, muleArtifactExists,
 //   parentDeclared, parentFound, parentPath, ancestorChain[], cliPresent,
 //   dxPluginPresent, dxPluginVersion, dxPluginInRange, mavenVersion,
-//   mavenInRange, mulesoftReleasesRepo, errors[], warnings[], notes[] }.
+//   mavenInRange, mulesoftReleasesRepo, anypointSession, duplicateServerIds[], errors[],
+//   warnings[], notes[] }.
 //   ancestorChain[] is every local ancestor POM path (nearest-first) discovered by
 //   walking the full <relativePath> chain; parent{Declared,Found,Path} describe the
 //   immediate parent only (retained for backward compatibility). `ok` is true when
@@ -55,6 +56,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
 import { readPomProject, child, findParentPomPath } from "./_pom_utils.mjs";
 import { checkReleasesRepo, RELEASES_REPO_URL } from "../lib/releases-repo.mjs";
+import { detectCredentialKind, duplicateServerIdsIn } from "../lib/maven-settings.mjs";
 
 // Don't crash if a downstream consumer (e.g. `head`) closes stdout early.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
@@ -120,6 +122,8 @@ function main() {
     mavenVersion: null,
     mavenInRange: false,
     mulesoftReleasesRepo: null, // { settingsPath, exists, covered, via, needsAdd } — see lib/releases-repo.mjs
+    anypointSession: null, // 'client' | 'token' | 'password' | 'acb' | null
+    duplicateServerIds: [], // <server><id> repeated in ~/.m2/settings.xml
     errors: [],
     warnings: [],
     notes: [],
@@ -258,6 +262,38 @@ function main() {
     );
   } else {
     log(`✅ MuleSoft releases repository available (${result.mulesoftReleasesRepo.via})`);
+  }
+
+  // Anypoint session + settings.xml sanity. Both are checked here, before any
+  // CLI/Maven call, so the user gets one clear instruction instead of an
+  // opaque failure several steps later. The session check needs the CLI, so it
+  // is skipped (the missing-CLI error above already covers it) when absent.
+  if (result.cliPresent) {
+    result.anypointSession = detectCredentialKind();
+    if (result.anypointSession === "acb") {
+      // ACB's sign-in lives in its own store, not in `anypoint-cli-v4 conf`, so
+      // the CLI itself is unauthenticated: the runtime/Exchange/describe-connector
+      // steps would fail. Maven alone could use the ACB credential, but the
+      // upgrade cannot finish without the CLI.
+      log("❌ Anypoint Code Builder session found, but the Anypoint CLI has no session");
+      result.errors.push(
+        "Signed in through Anypoint Code Builder only: `anypoint-cli-v4 conf` has no client_id/client_secret, token, or username/password, and the CLI does not share ACB's sign-in. The CLI steps (`dx mule runtime list`, `exchange asset list`, `describe-connector`) would fail. Authenticate the Anypoint CLI (set `conf username` and `conf password` — or a Connected App via `conf client_id` and `conf client_secret` — as documented in the skill Prerequisites; the user must do this), then re-run this check."
+      );
+    } else if (result.anypointSession) {
+      log(`✅ Anypoint session found (${result.anypointSession})`);
+    } else {
+      log("❌ No Anypoint CLI session and no Anypoint Code Builder session");
+      result.errors.push(
+        "No Anypoint session found: `anypoint-cli-v4 conf` has no client_id/client_secret, token, or username/password, and there is no Anypoint Code Builder acb_settings.xml. Exchange lookups and private-connector resolution will fail with opaque errors. Authenticate the Anypoint CLI (set `conf username` and `conf password` — or a Connected App via `conf client_id` and `conf client_secret` — as documented in the skill Prerequisites; the user must do this), then re-run this check."
+      );
+    }
+  }
+  result.duplicateServerIds = duplicateServerIdsIn();
+  if (result.duplicateServerIds.length > 0) {
+    log(`⚠️  Duplicate <server><id> in ~/.m2/settings.xml: ${result.duplicateServerIds.join(", ")}`);
+    result.warnings.push(
+      `~/.m2/settings.xml declares more than one <server> with the same <id>: ${result.duplicateServerIds.join(", ")}. Maven only warns, and which entry wins depends on merge order, so a stale credential can shadow the correct one and fail without an explicit 401. Tell the user to remove the duplicates; do not edit the file yourself.`
+    );
   }
 
   // Local Maven on the required 3.9.x line. Detect-and-instruct only —

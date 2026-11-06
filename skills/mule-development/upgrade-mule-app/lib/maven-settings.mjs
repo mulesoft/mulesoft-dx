@@ -47,7 +47,7 @@ const EXCHANGE_SERVER_IDS = ['anypoint-exchange-v3', 'anypoint-exchange-v2'];
 // on its own token-refresh timer, driven by the IDE's native "Sign in"
 // session (VS Code AuthenticationSession + its own KeyStore) — a DIFFERENT
 // credential store than `anypoint-cli-v4 conf`, which only knows about a
-// separate `anypoint-cli-v4 login`. A customer who only ever signs in
+// separate CLI authentication. A customer who only ever signs in
 // through ACB's own UI has nothing in `anypoint-cli-v4 conf`, so this is the
 // fallback: if the CLI has no session, look for a live acb_settings.xml and
 // borrow its already-fresh Exchange credential.
@@ -194,6 +194,67 @@ function readCredentials(opts) {
   }
 
   return null;
+}
+
+/**
+ * Which kind of Anypoint session is available right now, without exposing the
+ * credential itself: 'client' | 'token' (live anypoint-cli-v4 session),
+ * 'password' (`conf username` + `conf password`, the setup the skill's
+ * Prerequisites document — the CLI authenticates lazily on its first real
+ * command, so `conf` alone never populates client_id/token), 'acb' (Anypoint
+ * Code Builder's acb_settings.xml), or null when none exists. Step 1 uses it
+ * to fail fast with "authenticate the Anypoint CLI" instead of letting a later
+ * CLI/Maven call fail opaquely.
+ *
+ * 'password' is a CLI-only kind: readCredentials() (used to build the Maven
+ * settings) does not return it, so it never changes what Maven receives.
+ *
+ * @param {{ acbTempDir?: string }} [opts]
+ * @returns {'client'|'token'|'password'|'acb'|null}
+ */
+export function detectCredentialKind(opts = {}) {
+  const found = readCredentials(opts);
+  if (found && found.kind !== 'acb') return found.kind;
+  // A CLI configured with username + password outranks the ACB fallback: the
+  // CLI itself is set up, even though no token has been cached yet.
+  if (readConfValue('username') && readConfValue('password')) return 'password';
+  return found?.kind ?? null;
+}
+
+/**
+ * <server><id> values declared more than once in a settings.xml (commented-out
+ * blocks ignored). Maven accepts such a file with only a warning, and which
+ * duplicate wins depends on merge order, so a correct credential can be
+ * shadowed by a stale one with no 401 naming the cause.
+ *
+ * @param {string} xml contents of a settings.xml
+ * @returns {string[]} ids with more than one live <server> block, in file order
+ */
+export function findDuplicateServerIds(xml) {
+  const commentRanges = findCommentRanges(xml || '');
+  const serverRe = /<server\b[^>]*>[\s\S]*?<\/server>/g;
+  const counts = new Map();
+  let m;
+  while ((m = serverRe.exec(xml || '')) !== null) {
+    if (isInsideAnyRange(commentRanges, m.index)) continue;
+    const id = /<id>\s*([^<]*?)\s*<\/id>/.exec(m[0])?.[1];
+    if (id) counts.set(id, (counts.get(id) || 0) + 1);
+  }
+  return [...counts].filter(([, n]) => n > 1).map(([id]) => id);
+}
+
+/**
+ * Reads the real settings.xml (never writes it) and reports duplicate server
+ * ids. Returns [] when the file is missing or unreadable.
+ *
+ * @param {string} [sourcePath] defaults to ~/.m2/settings.xml
+ */
+export function duplicateServerIdsIn(sourcePath = join(homedir(), '.m2', 'settings.xml')) {
+  try {
+    return findDuplicateServerIds(readFileSync(sourcePath, 'utf8'));
+  } catch {
+    return [];
+  }
 }
 
 // Replace <username>/<password> inside every EXISTING <server> block whose
@@ -466,7 +527,7 @@ export function classifyMavenFailure(mvnOutput) {
 
 function authHint(kind, repoId, url) {
   if (kind === 'exchange-auth') {
-    return 'The Anypoint CLI session looks expired. Ask the user to run `anypoint-cli-v4 login`, then retry.';
+    return 'The Anypoint CLI session looks expired. Ask the user to re-authenticate the Anypoint CLI, then retry.';
   }
   const id = repoId || '<repository-id>';
   const where = url ? ` (${url})` : '';

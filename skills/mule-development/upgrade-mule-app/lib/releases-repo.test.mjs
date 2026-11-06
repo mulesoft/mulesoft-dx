@@ -128,3 +128,56 @@ test('applyReleasesRepo is a no-op when already covered (file untouched, no back
   assert.deepEqual(readdirSync(dir).filter((f) => f.includes('.bak-')), []);
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('applyReleasesRepo when already covered does not create ~/.m2/repository', () => {
+  const { dir, settings } = tmpM2();
+  writeFileSync(settings, PROFILE_DEFAULT);
+  const r = applyReleasesRepo(settings);
+  assert.deepEqual(r, { changed: false, settingsPath: settings, backupPath: null, createdLocalRepo: false });
+  assert.equal(existsSync(join(dir, 'repository')), false);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('url match accepts the Nexus-style path of the same repository', () => {
+  const xml = PROFILE_DEFAULT.replace('https://repository.mulesoft.org/releases/', 'https://repository.mulesoft.org/nexus/content/repositories/releases/');
+  assert.notEqual(xml, PROFILE_DEFAULT);
+  assert.equal(inspectReleasesRepo(xml).covered, true);
+});
+
+test('addReleasesRepo anchors on live tags, not on commented-out ones', () => {
+  const xml = `<settings>
+  <!-- <profiles><profile><id>old</id></profile></profiles> -->
+  <profiles>
+    <profile><id>mine</id></profile>
+  </profiles>
+  <!-- <activeProfiles><activeProfile>old</activeProfile></activeProfiles> -->
+  <activeProfiles>
+    <activeProfile>mine</activeProfile>
+  </activeProfiles>
+</settings>`;
+  const out = addReleasesRepo(xml);
+  assert.equal(inspectReleasesRepo(out).covered, true);
+  // the commented blocks are byte-for-byte untouched
+  assert.ok(out.includes('<!-- <profiles><profile><id>old</id></profile></profiles> -->'));
+  assert.ok(out.includes('<!-- <activeProfiles><activeProfile>old</activeProfile></activeProfiles> -->'));
+  assert.ok(out.includes('<activeProfile>mine</activeProfile>'));
+});
+
+test('addReleasesRepo works when the only </settings>, <profiles/> and <activeProfiles/> are in comments', () => {
+  const xml = `<settings>
+  <!-- <profiles/> <activeProfiles/> </settings> -->
+</settings>`;
+  const out = addReleasesRepo(xml);
+  assert.equal(inspectReleasesRepo(out).covered, true);
+  assert.ok(out.includes('<!-- <profiles/> <activeProfiles/> </settings> -->'));
+});
+
+test('applyReleasesRepo on a commented-out-heavy file succeeds and leaves one backup', () => {
+  const { dir, settings } = tmpM2();
+  writeFileSync(settings, '<settings>\n<!-- <profiles></profiles> <activeProfiles></activeProfiles> -->\n<servers/>\n</settings>');
+  const r = applyReleasesRepo(settings);
+  assert.equal(r.changed, true);
+  assert.equal(checkReleasesRepo(settings).covered, true);
+  assert.equal(readdirSync(dir).filter((f) => f.includes('.bak-')).length, 1);
+  rmSync(dir, { recursive: true, force: true });
+});

@@ -87,7 +87,7 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 | `scripts/check_connector_java_compat.mjs` | Step 5b — for each connector from Step 5a, `exchange asset describe <groupId>/<assetId>/<version>` (exact lookup, with retries) and read its `is-java-*-supported` tags to report which Java versions the CURRENT in-use version supports. HARD-STOPS (exit 1, `stop: true`) when a connector cannot be verified: describe fails **and** an exact-GA `asset list` probe finds no matching asset (genuinely not on Exchange), or no `is-java-*` tags are present. When describe fails but the asset exists (only the pinned version was delisted), it sets `currentVersionDelisted: true` and does **not** block | `tmp/connector-java-compat.json` (contains `connectors[]` {`nick`, `groupId`, `artifactId`, `version`, `supportedJava[]`, `blocked`, `blockReason`}, `blocked[]`, `stop`, `warnings[]`, ...) |
 | `scripts/resolve_target_connectors.mjs` | Step 6 — for each connector from Step 5, find the LATEST published version that supports BOTH the target Mule and target Java (from Step 4). One `exchange asset describe` per connector returns every sibling version with its own `min-mule-version` / `is-java-*-supported` tags; filters locally to versions where `is-java-<targetJava>-supported == true` AND `min-mule-version <= targetMule`, then picks the highest by semver. If describing the current version fails (delisted), it re-anchors the describe on the newest GA sibling from `asset list` so `.versions[]` is still readable. HARD-STOPS (exit 1, `stop: true`) when a connector has no target-compatible version, or is genuinely absent from Exchange. Target comes from `TARGET_MULE`/`TARGET_JAVA` env or `tmp/target-versions.json` `options[0]` | `tmp/target-connectors.json` (contains `targetMule`, `targetJava`, `connectors[]` {`nick`, `groupId`, `artifactId`, `currentVersion`, `targetVersion`, `changed`, `candidateCount`, `minMuleVersion`, `supportedJava[]`, `blocked`, `blockReason`}, `blocked[]`, `stop`, `warnings[]`, ...) |
 | `scripts/_pom_utils.mjs` | Shared library (Steps 1–6) — tolerant XML parser, `${...}` property resolution (single/nested/composite, cycle-guarded), local parent-POM location (with parent-identity verification), and managed-version lookup across the local ancestor chain. Used by the detection/validation/extraction scripts above. Not invoked directly | (imported) |
-| `describe_connector.mjs` | Mode-A/B/C describe of a NEW connector version (summary, per-op, per-config-provider). Invocations (flags — not positional): Mode-A `<nick>-new`; Mode-B `<nick>-new --type operation --name <op>` (or `--type source --name <src>`); Mode-C `<nick>-new --type connection-provider --name <provider> --config-name <config>`. See Step 7 (7a Mode-A, 7b Mode-B/C). | `tmp/connector-metadata/<nick>-new.json`, `<nick>-new-<op>.json`, `<nick>-new-<config>-<provider>.json` |
+| `describe_connector.mjs` | Mode-A/B/C describe of a NEW connector version (summary, per-op, per-config-provider). Invocations (flags — not positional): Mode-A `<nick>-new`; Mode-B `<nick>-new --type operation --name <op>` (or `--type source --name <src>`); Mode-C `<nick>-new --type connection-provider --name <provider> --config-name <config>`. See Step 7 (7a Mode-A, 7b Mode-B/C). | `tmp/connector-metadata/<nick>-new.json`, `<nick>-new-<op>.json`, `<nick>-new-<config>-<provider>.json` (in timing mode also appends its CLI duration to `upgrade-timing.jsonl`) |
 | `enumerate_usage_xml.mjs` | **Preferred** usage enumerator — parses `src/main/mule/**/*.xml` with `fast-xml-parser`. Identical output to `enumerate_usage.mjs` but correct on messy input (ignores commented-out elements; binds `config-ref` to its owning element). Exits rc=3 if `fast-xml-parser` isn't importable → caller falls back to the grep script. See Step 7 "Usage enumeration". | `tmp/connector-usage/<nick>.json` |
 | `enumerate_usage.mjs` | Zero-dependency (regex/grep) usage enumerator — the fallback for `enumerate_usage_xml.mjs`. Scans `src/main/mule/**/*.xml` for a connector's ops, configs, error types, namespace prefix used by the app. The OLD-side source of truth — replaces re-describing the old connector version. See Step 7b (usage enumeration + output shape). | `tmp/connector-usage/<nick>.json` |
 | `apply_connector_pin.mjs` | Bumps one connector's version in `pom.xml` and rewrites its `xsi:schemaLocation` in every flow XML. Reads `tmp/connector-choices/<nick>-new.json` (GAV, required) and `tmp/connector-metadata/<nick>-new.json` (namespace metadata, **optional** — absent for pom-only connectors, in which case the XSD rewrite no-ops). Deterministic — never hand-edit `xsi:schemaLocation`. | mutates `pom.xml` + `src/main/mule/**/*.xml` |
@@ -96,8 +96,9 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 | `apply_parent_pom_fork.mjs` | Parent-owned **connector** versions — the WRITE-side counterpart to the read-side chain walk, in two phases. Scope is **connectors only**: `app.runtime` / `mule.maven.plugin.version` / Java props are app-scoped and always child-written by `apply_runtime_bump.mjs` (never forked into a shared ancestor). **`--phase=edit` (Step 14):** for every **local ancestor** that owns a connector (in its `<dependencies>`/`<dependencyManagement>`), bump every connector version that ancestor owns to the resolved target — following `${property}` refs — for **all** connectors declared in that ancestor (fork-wide scope; an app-unused connector with no resolved target is a warning, never a hard stop). The ancestor's own `<version>` and the child's `<parent>` ref are left untouched, so the local build resolves the new versions via `<relativePath>`. **`--phase=fork` (Step 18, after a green build):** bump each owning ancestor's own `<version>` (computed from the pristine `tmp/pom-backups/` snapshot, so it is idempotent) and repoint the downstream `<parent><version>`. Both phases process the chain **deepest-first** and **verify** — re-resolving each connector from the child's perspective (same walk as the extractor), and in the fork phase confirming each `<parent>` link points at the fork. Reads `tmp/connectors.json` (provenance), `tmp/target-connectors.json` (target versions). `--phase=edit\|fork` (default `edit`); `--fork-bump=major\|minor\|patch` (default `minor`, fork phase only); `--dry-run` prints the plan without writing. Exit 1 on verify failure or missing/bad inputs; a no-op (no ancestor owns a connector) exits 0. No Exchange publish — purely local edits. | mutates ancestor `pom.xml`(s) (edit phase: managed connector versions; fork phase: own `<version>` + downstream `<parent>` refs); full result JSON `{phase, ancestorsForked[], edits[], backedUp[], verify{}, warnings[]}` written to `tmp/parent-pom-<phase>[-dryrun].json` (edit phase snapshots each ancestor it edits to `tmp/pom-backups/` pristine, create-if-absent, before its first write); stdout gets a short summary only (so a long chain never clips) |
 | `verify_metadata_coverage.mjs` | Step 11.5 gate — for every op / source / provider in `tmp/connector-usage/*.json`, verify a Mode-B / Mode-C JSON exists in `tmp/connector-metadata/`. Exits 1 with FAIL rows when any required per-op / per-provider describe is missing. Configs whose Mode-A `.connectionProviders[]` is empty (D7 fallback — some DB configs) emit INFO and do not fail; Phase C reads Mode-A `.configs[]` directly for those. Optional `--strict` also fails on WARN rows (renamed / removed ops that lack a `<nick>-op-renames.json` entry). | stdout FAIL/WARN/INFO rows |
 | `verify_dependency_tree.mjs` | Cross-checks what the static POM walk discovered against what Maven actually resolves (`mvn dependency:tree`, scoped to the connector GAVs) — the authority on the *resolved value*, catching imported-BOM / transitive / stale-`~/.m2` sources the local walk can't see. Two gates, one engine: **Step 12.0 `--against=existing`** diffs current versions vs `tmp/connectors.json` (SOFT — annotate plan + raise at approval); **Step 14.5 `--against=target`** diffs the just-written pins vs `tmp/target-connectors.json` (HARD — stop before the build). `--expected=<path>` overrides the file. The caller positions it: existing BEFORE Step 14 writes, target AFTER. Exit **0** all match, **1** operational error (Maven missing / tree failed / expected file unreadable — always a stop), **2** mismatch(es) — caller decides soft vs hard. On a **1** with `authFailureSuspected: true`, the tree build failed on a 401/Unauthorized — that's an expired Anypoint CLI session, not an operational defect; ask the user for permission to run `anypoint-cli-v4 login` before retrying. | `tmp/dep-tree-verify-<mode>.json` (`matched[]`, `mismatches[]`, `missingFromTree[]`, `resolvedOnlyByTree[]`, `authFailureSuspected`) |
+| `scripts/step_timer.mjs` | **Opt-in debug** — per-step wall-clock timing, used only when the user asked to run the skill with timing. `init` (Step 1), `mark <step>` (start of each step; Steps 16/17 are numbered per attempt by the script), `wait-start`/`wait-end` (around every question to the user, e.g. Step 3a, Step 12.4), `report` (Step 19 and every STOP/HALT). A step's time runs from its mark to the next mark; user wait is shown as its own row. Always exits 0 — timer warnings are ignored. See "Timing mode" in Workflow-Wide Discipline | `upgrade-timing.jsonl` (raw marks) and `upgrade-timing.md` (table) in the app directory, outside `tmp/` |
 
-Shared helpers live in `lib/*.mjs` alongside `scripts/`: `anypoint.mjs` (CLI env scrubbing), `fsx.mjs` (I/O), `platform.mjs` (Java version parsing), `pom-edit.mjs` (pom.xml + mule-artifact.json + XSD rewrites), `xml-flow.mjs` (flow XML grep primitives). Steps 1–6's detection/validation/extraction scripts share `scripts/_pom_utils.mjs` (tolerant XML + `${...}` + parent-POM location + managed-version lookup); Steps 7–20's edit scripts use `lib/pom-edit.mjs` — the two POM helpers are independent.
+Shared helpers live in `lib/*.mjs` alongside `scripts/`: `anypoint.mjs` (CLI env scrubbing), `fsx.mjs` (I/O), `platform.mjs` (Java version parsing), `step-timing.mjs` (opt-in timing log + report), `pom-edit.mjs` (pom.xml + mule-artifact.json + XSD rewrites), `xml-flow.mjs` (flow XML grep primitives). Steps 1–6's detection/validation/extraction scripts share `scripts/_pom_utils.mjs` (tolerant XML + `${...}` + parent-POM location + managed-version lookup); Steps 7–20's edit scripts use `lib/pom-edit.mjs` — the two POM helpers are independent.
 
 Invoke scripts by the absolute path you were given in the "skill is now active" message (it is the directory containing this `SKILL.md`). Do **not** construct relative paths like `../scripts/...` — Cline's working directory shifts across turns and relative paths have produced "No such file or directory" errors in real runs. The inline step examples below write `scripts/...` as shorthand; substitute `<skill-dir>/scripts/...` when you actually execute them.
 
@@ -125,6 +126,7 @@ Phase 2 MUST NOT start until Step 12's approval gate has been passed explicitly.
 - **Version resolution from scripts/CLI only.** All versions come from the bundled scripts (or, where a step has no script, the CLI command that step names), never hardcoded. Never paste versions from memory or documentation.
 - **One step at a time.** Do the current step's work and stop. Do not jump ahead to gather data for later steps (e.g. plugin versions, flow/DataWeave review) while still on Step 6 — each step has its own script and instructions.
 - **Java 17+ REQUIRED for every `describe_connector.mjs` call.** Under Java 8 or 11 the Anypoint CLI's `dx mule describe-connector` still exits 0 but returns a DEGRADED response — `configs[]` collapse to `{name, connectionProviders: []}` with no `parameters` / `attributes`, silently hiding required-attribute breaking changes. The skill's Phase-C diff then signs off on a config that is actually broken, and `mvn` fails at `process-classes` with an XSD-validation error (`cvc-complex-type.4: Attribute 'X' must appear on element '<prefix>:<config>'`). Before invoking `describe_connector.mjs` (Mode-A/B/C) in Step 7 — or the lazy single-connector re-describe in Step 16 class 6 — export a Java 17+ `JAVA_HOME` (see Step 13). The script itself refuses to run under < Java 17 and exits with a fix-it message, so a stale `JAVA_HOME` is caught immediately, not seven steps later at packaging.
+- **Timing mode (opt-in debug — off unless the user asks).** Only when the user asks to run the skill with timing (e.g. "run with timing"); otherwise ignore every `step_timer.mjs` line in this document and make no timer calls. When on: Step 1 runs `step_timer.mjs init`; at each step or sub-step that carries a "timing mode" line, run that `mark` as the first action; around every `AskUserQuestion` or other wait for user input (e.g. Step 3a's version check, Step 12.4's approval) run `wait-start` right before asking and `wait-end` right after the answer; run `report` at every STOP, HALT or cancel and at Step 19. A timer call may share a response with the step's first tool call, **except** a response that runs `mvn` or `rm` (the separation rules above stand) — put the mark in the previous response or its own. Timing is on only if the user asked for it in this conversation; an existing `upgrade-timing.jsonl` may be left over from an earlier run, so it is not proof. The timer always exits 0: never stop, retry or comment on a timer warning. Mark each step when you start its work — never several marks in one command (batched marks cannot be timed separately). Do not mark steps you skip — the report infers them. The files are written to the app directory, outside `tmp/` — they are the one exception to Phase 1's "writes nothing to project files" rule.
 - **`not_in_use` skip — the ONLY pre-Mode-B/C skip.** If Step 7's `enumerate_usage.mjs` prints a `not_in_use` JSON on stdout, the connector is declared in `pom.xml` but has zero flow usage. Reduce the plan for that connector to "bump the pom version only — no flow edits, no per-op describe." Skip Mode-B and Mode-C, but keep the connector in the plan under a `pom-only` section so Phase 2 still runs `apply_connector_pin.mjs`. Do NOT invent any other "stable connector" short-circuit — for every connector with real usage, run Mode-B / Mode-C unconditionally and let Step 12's plan synthesis surface "no rewrites" naturally by finding zero per-symbol diffs against the Mode-B / Mode-C JSONs.
 
 ---
@@ -132,6 +134,8 @@ Phase 2 MUST NOT start until Step 12's approval gate has been passed explicitly.
 # Phase 1: Plan
 
 ## Step 1: Validate Prerequisites
+
+> Timing mode applies only if the user asked to run the skill with timing. If so, first run `node <skill-dir>/scripts/step_timer.mjs init`, then `node <skill-dir>/scripts/step_timer.mjs mark 1`.
 
 Run the prerequisite validation script. It only validates — it writes nothing to the project and never prompts:
 
@@ -156,6 +160,8 @@ Do **not** gate on JAVA_HOME pointing at Java 17 here. Step 3 builds the app on 
 ---
 
 ## Step 2: Get Current Versions
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 2`
 
 ### 2a. Current Mule Runtime version
 
@@ -217,6 +223,8 @@ Detection source (implemented by the script): `mule-artifact.json` `javaSpecific
 
 ## Step 3: Build Baseline
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 3`
+
 Establish that the app builds **on its current versions** before changing anything. A green baseline is the reference point every later step is measured against — if the app doesn't build now, upgrade findings are meaningless.
 
 ### 3a. Confirm current versions (detected values only)
@@ -246,6 +254,8 @@ The **confirmed current Java major** that comes out of this step — the `versio
 
 ### 3b. Ensure the current Java JDK is available
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 3b`
+
 The baseline must build on the app's **current** Java, which may differ from whatever `$JAVA_HOME` currently points at. Run the helper with the **confirmed current Java major** from Step 3a (`<current-java-major>`):
 
 ```bash
@@ -260,6 +270,8 @@ It writes `tmp/resolve-jdk-<major>.json`. Read it and branch:
 This is the same helper Phase 2 uses for the target Java — run it once per Java version needed.
 
 ### 3c. Build
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 3c`
 
 **First, make the baseline buildable on a modern Maven.** The baseline builds on the app's **current** `mule-maven-plugin` (MMP) — whatever version the app declares (detected below, not assumed). MMP 3.x was built against Maven 3.8's Eclipse Aether; Maven 3.9 replaced it with Maven Resolver, so a 3.x plugin crashes on Maven 3.9.x with a cryptic `NoClassDefFoundError: org/eclipse/aether/connector/basic/BasicRepositoryConnectorFactory` at packaging time. The toolchain requires **Maven 3.9.x** (already gated in Step 1 — MMP 4.x and MUnit need it); we do **not** ask users to downgrade to EOL Maven 3.8. Instead, if the current MMP can't run on 3.9.x, bump it to the latest 4.x **for the baseline build only**.
 
@@ -321,6 +333,8 @@ Branch on the result:
 
 ## Step 3.5: Flow-XML Hygiene Scan (Phase-1 gate — every flow file)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 3.5`
+
 **Why this step exists.** `mule-maven-plugin` 3.x `process-classes` is a no-op — it never parses flow XML at build time. 4.9+ `process-classes` builds a Mule Runtime AST and namespace-aware SAX-parses **every** flow file, so it rejects any prefixed element/attribute (`doc:name`, `<ee:transform>`, `db:config`, …) whose prefix is **not** declared on an in-scope ancestor with `The prefix "<p>" ... is not bound`. This defect ships fine on 4.3 and is latent until the upgrade — the upgrade is simply the first toolchain that reads the XML. Because the baseline build (Step 3c) runs on the app's **current** (pre-4.9) runtime, it does **not** catch this. It must be found here, at plan time, on **every** flow file — not just the ones later steps happen to edit. (Step 15.1's per-file gate only fires on edited files; a latent prefix in an untouched file would otherwise reach Step 16's `mvn` and fail. This step is what closes that hole.)
 
 Scan every flow file. `xmllint --noout` reports an unbound prefix as a *warning* and still **exits 0**, so an exit-code check is not a gate — grep its stderr instead. This parses real XML, so it does **not** false-positive on DataWeave tokens (`accountId:`), error-type values (`VALIDATION:INVALID_VALUE`), or other `word:` text the way a raw prefix regex does:
@@ -346,6 +360,8 @@ Every file flagged here MUST appear in the plan (Step 12) under a **§Flow-XML h
 ---
 
 ## Step 4: Determine Target Versions
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 4`
 
 Determine the upgrade target from the confirmed current versions and the **live** runtime list. Never hardcode versions or channels — the script derives everything from `anypoint-cli-v4 dx mule runtime list`.
 
@@ -426,6 +442,8 @@ Identify every connector the app depends on, then report — for the version eac
 
 ### 5a. Extract connectors from the POM
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 5a`
+
 Run the extractor. It parses the child `pom.xml` and its full local ancestor chain (parent, grandparent, …) and collects every `<dependency>` carrying `<classifier>mule-plugin</classifier>` that is **not** `<scope>test</scope>`. It captures public and custom connectors identically (the classifier is publisher-agnostic) and, for the same `groupId:artifactId` declared at more than one level, keeps the **nearest** declaration (child over parent over grandparent — Maven's "nearest wins").
 
 ```bash
@@ -449,6 +467,8 @@ It writes `tmp/connectors.json`. Read it and branch:
 `version` stays `null` **only** when the value is not available in any local POM: a parent that is not on the filesystem (remote / `~/.m2`), an imported BOM (`<scope>import</scope>`), a `<profiles>` block, or a `${...}` that is unknown or forms a reference cycle. These are the cases that genuinely require Maven's effective model — and they are also cases the version cannot be edited locally — so they are reported as unresolved rather than guessed. A declared-but-missing parent is already a hard stop at Step 1, so it should not reach here; if the extractor still warns about it, stop and ask for the parent POM.
 
 ### 5b. Check current-version Java compatibility in Exchange
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 5b`
 
 Run the compatibility check. For each connector it calls `anypoint-cli-v4 exchange asset describe <groupId>/<assetId>/<version>` (an exact lookup — not the fuzzy `asset list`), retrying a few times so a transient network/auth blip is not mistaken for a genuine miss, and reads the `is-java-*-supported` tags.
 
@@ -480,6 +500,8 @@ It writes `tmp/connector-java-compat.json` and **exits 1 when `stop: true`**. Re
 
 ## Step 6: Resolve Target-Compatible Connector Versions
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 6`
+
 Step 5 reported where each connector stands on Java *today*. This step picks the version each connector will move **to**: the latest published version that runs on the **target** Mule Runtime and Java (from Step 4). This is what the plan proposes as the new pin for every connector.
 
 Run the resolver. It reads the connectors from Step 5a and the target from Step 4.
@@ -509,6 +531,8 @@ It writes `tmp/target-connectors.json` and **exits 1 when `stop: true`**. Read i
 ---
 
 ## Step 6.5: Stage the downstream data-contracts (bridge)
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 6.5`
 
 Steps 7–20 and the Phase-2 mutation scripts do **not** re-read Steps 1–6's individual `tmp/*.json` files. They read two consolidated contracts that this step writes from the outputs you already have. It is the seam between the version-resolution half (Steps 1–6) and the impact-analysis + execute half (Steps 7–20). Assemble both with a `Write` (or a `jq` construction), **not a new script** — no CLI, no network here.
 
@@ -562,6 +586,8 @@ After writing, sanity-check: `jq -e '.mule.to and .java.to and (.connectors|type
 
 ## Step 7: Check Operations/Configs/Error Types Changes
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 7`
+
 Discover, from the NEW connector versions, what changed in operations, configs, and error types — so Step 12 can synthesize a mechanical, per-symbol upgrade plan. Four describe modes feed this: 7a Mode-A summary, 7b usage enumeration (the OLD-side source of truth — a flow-XML scan, **not** a second describe), 7b Mode-B per-op, and 7b Mode-C per-config-provider. Each mode's output shape is documented inline below.
 
 **Prerequisite: Java 17+ (before any `describe_connector.mjs` call).** Export a Java 17 `JAVA_HOME` for the shell that runs this step (see Step 13 for resolving one). The script hard-refuses to run under Java 8/11 because those JDKs return a degraded describe (empty `configs[].parameters`) that would silently miss required-attribute breaking changes. If Step 3b resolved only the current (pre-17) JDK, resolve a Java-17 JDK now with the same helper, and re-verify `$JAVA_HOME` before the Mode-B / Mode-C fan-out (a subshell or `cd` may have reset it):
@@ -583,6 +609,8 @@ anypoint-cli-v4 dx mule runtime path --set "$(jq -r .runtimePath tmp/resolve-run
 If a describe still fails silently later, capture the hidden exception with `_JAVA_OPTIONS='-Xlog:exceptions*=info:file=/tmp/xlog.log' node <skill-dir>/scripts/describe_connector.mjs <nick>-new` then `grep NoSuchMethodError /tmp/xlog.log` — a hit on `ErrorTypeBuilder.builder()` confirms the registered path is still < 4.9.
 
 ### 7a. Mode-A summary describe (the NEW version each connector was pinned to in Step 6)
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 7a`
 
 For each **used** connector nickname `<nick>` in `tmp/upgrade-targets.json` (skip pom-only — they have no flow usage to introspect):
 
@@ -611,6 +639,8 @@ The summary does NOT carry per-op attribute lists or per-config-provider DSL ele
 **Describe is NEW-only.** Do NOT describe the OLD connector version — the OLD-side source of truth is `enumerate_usage.mjs` (flow XML scan) below, not a second describe. Pre-4.6-era connectors often fail to describe under a Java-17 JDK; the skill is designed to work without OLD describe. See `feedback_upgrade_describe_new_only`.
 
 ### 7b. Usage enumeration and per-symbol fan-out
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 7b`
 
 **Usage enumeration — parser-preferred, grep-fallback.** Two interchangeable scripts write the identical `tmp/connector-usage/<nick>.json` shape:
 
@@ -770,6 +800,8 @@ Every diff residue MUST appear in Step 12's plan (`tmp/upgrade-plan.md`) as an e
 
 ## Step 8: Check Custom Java Compatibility
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 8`
+
 **No scripts, and nothing deterministic here.** Unlike the connector steps (Mode-A/B/C metadata → mechanical per-symbol rewrites) or even DataWeave (Step 9's fixed pattern catalog), custom Java in a Mule app has **no machine-readable contract and no canonical fix**. There is no describe, no XSD, no `tmp/*.json` to diff against. The agent reads the app's own Java **source** directly at plan-synthesis time (Step 12) with the `Read` tool and reasons about each site using its own knowledge of the Java migration. The bar for this step is **functional correctness**: an upgraded app that invokes custom Java classes must still compile *and* behave the same at runtime — not merely produce a green `mvn package`.
 
 **Run this step only when the upgrade crosses a Java version boundary — the one deterministic gate here.** Compare `currentJava` (`tmp/current-java-version.json` `.version`) with `targetJava` (the confirmed target from Step 4). If `targetJava == currentJava` (e.g. a Mule-runtime-only bump that keeps the app on the same Java), **no Java version boundary is crossed, so no version-introduced breaking changes are possible** — record "skipped — Java unchanged (`<currentJava>` → `<targetJava>`)" for the plan and move on. Only when `targetJava > currentJava` do the FIX/FLAG analysis below. (This skill never downgrades.)
@@ -820,6 +852,8 @@ This step is **discovery only** — read and flag, but make **no edits** (Phase 
 
 ## Step 9: Check DataWeave Compatibility
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 9`
+
 **No scripts for this step.** The agent reads DW sources directly at plan-synthesis time (Step 12) using the `Read` tool. Compare symbols against Mode-B `.output*` keys from `tmp/connector-metadata/<nick>-new-<op>.json`:
 
 - Symbols present in Mode-B → no change
@@ -855,6 +889,8 @@ This step is **discovery only** — grep/read the DW sources, flag every mismatc
 
 ## Step 10: Check MUnit Compatibility
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 10`
+
 **No scripts for this step.** The agent reads every `src/test/munit/**/*.xml` directly at plan-synthesis time (Step 12) using the `Read` tool. For each operation the plan will rewrite, flag:
 
 - `<munit-tools:mock-when processor="<old-op>">` → rename plan entry
@@ -877,6 +913,8 @@ Resolve the target **Mule Maven Plugin (MMP)** and **MUnit** versions the upgrad
 
 ### 11a — Resolve the latest version (live, deterministic)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 11a`
+
 Both plugins publish every release to Maven metadata, so the newest version is a deterministic lookup — take the `<release>` element (authoritative "latest published"; more reliable than `<latest>`, which can point at a snapshot/RC):
 
 - **MMP** — `https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/tools/maven/mule-maven-plugin/maven-metadata.xml`
@@ -898,6 +936,8 @@ tmp=$(mktemp); jq --arg m "$MMP" --arg u "$MUNIT" '.muleMavenPlugin = {to: $m} |
 ```
 
 ### 11b — Determine that version's Java / Maven / Mule compatibility
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 11b`
 
 <!--
   KNOWN LIMITATION — no API / machine-readable compat source (verified 2026-08). Maven
@@ -923,6 +963,8 @@ Confirm the target Java (from Step 2b) and target Mule (from Step 6) fall inside
 
 ## Step 11.5: Verify Metadata Coverage (gate)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 11.5`
+
 Run the coverage gate before touching Step 12. It cross-references every op / source / provider in `tmp/connector-usage/*.json` against the Mode-A / Mode-B / Mode-C JSONs on disk and refuses to advance the plan if any required describe is missing.
 
 ```bash
@@ -947,6 +989,8 @@ Concrete flow for this step:
 
 ### 12.0 Cross-check discovery against Maven (soft gate)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 12.0`
+
 Before authoring the plan, confirm the static POM walk (Step 5) discovered the **right current versions** by asking Maven what each connector actually resolves to. The walk is deliberately local — it does **not** follow `<scope>import</scope>` BOMs or transitive pulls — so a connector whose real version lives in an imported BOM can be silently mislabeled (right value, wrong owner), and a Step 14 edit to the discovered site would then no-op. `mvn dependency:tree` is the one authority on the *resolved value*; this check diffs it against `connectors.json`.
 
 ```bash
@@ -965,6 +1009,8 @@ Entries in `missingFromTree[]` (declared but pruned from the resolved tree — e
 
 ### 12.1 Completeness checklist (run BEFORE authoring the plan)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 12.1`
+
 Every connector must have all four artifacts on disk, fully cross-checked against usage, before a plan is presented:
 
 - [ ] `tmp/connector-choices/<nick>-new.json` — drafted GAV
@@ -977,6 +1023,8 @@ Step 11.5's `verify_metadata_coverage.mjs` gate already ran the mechanical versi
 
 ### 12.2 Resolve renames from the data you already have
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 12.2`
+
 **Do not defer to Step 16.** Every WARN row emitted by Step 11.5 is a rename signal (`WARN <nick>/<op-or-provider> — not in Mode-A ...`). For each WARN:
    - **Op renames**: cross-reference `tmp/connector-metadata/<nick>-new.json` `.operations[]` (all new op names). Pick the semantically closest match to the old op name and confirm by reading its Mode-B `tmp/connector-metadata/<nick>-new-<newOp>.json` `.attributes[]` — does the new op accept the attributes the flow XML sets on the old element? If yes, encode the rewrite as a plan bullet: `Rewrite <ns>:<oldOp> → <ns>:<newOp>` with attribute deltas listed inline (renamed, removed, newly-required).
    - **Provider renames**: cross-reference Mode-A `.configs[].connectionProviders[]` (all new provider names for that config) and read the Mode-C describe `tmp/connector-metadata/<nick>-new-<config>-<newProvider>.json` for each candidate. Pick the new provider whose attributes best cover what the flow XML sets on the old provider element (grep the flow XML: `grep -c 'ns:oldProvider' src/main/mule/*.xml` and then list its attributes). Emit `Rewrite <ns>:<oldProvider> → <ns>:<newProvider>` with attribute deltas.
@@ -988,6 +1036,8 @@ Step 11.5's `verify_metadata_coverage.mjs` gate already ran the mechanical versi
    - This catches the "XSD says attribute X is required and you didn't set it" class of failure at plan time using Mode-B/C data you already fetched, instead of letting Step 16 burn retries reverse-engineering enum values from mvn error text.
 
 ### 12.3 Author `tmp/upgrade-plan.md`
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 12.3`
 
 Write `tmp/upgrade-plan.md` with the rename bullets from 12.2 folded in. Plan **inputs** (all already on disk): `tmp/upgrade-targets.json` (from/to for mule, java, connectors), `tmp/connector-metadata/<nick>-new.json` (Mode-A), `…-new-<op>.json` (Mode-B, with `attributes[]`, `childElements[]`, `errorTypes[]`, `.output*`), `…-new-<config>-<provider>.json` (Mode-C), `tmp/connector-usage/<nick>.json` (usage sites, `attributes_set`, errorTypes caught/raised, `namespace_prefix_changed`). Every section MUST cite the specific JSON file(s) it derives from — reviewers verify a plan by cross-checking citations.
 
@@ -1138,10 +1188,12 @@ Authoring rules:
 
 ### 12.4 Present and gate
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 12.4`
+
 1. `Read` the file `tmp/upgrade-plan.md` (with the rename bullets folded in).
 2. Print its full contents inline in the response as fenced markdown so the user can review without opening another file.
 3. **Custom-library confirmation (only if `connectors.json .customLibraries[]` is non-empty).** Before the main approval gate, raise these proactively with a dedicated `AskUserQuestion` — the skill can neither verify nor upgrade a non-connector jar, so the operator must make the call while the target Java/Mule is in view. **State the coordinates only — do NOT assert or imply whether they support the target Java/Mule.** You have no compatibility source for these jars (not on Exchange, source not in the workspace, a green `-DskipTests` build will not exercise the library's own bytecode), so any "these support Java N" claim is an unverifiable guess and must not appear — even if you happen to believe it from background knowledge; the whole point of this gate is that the *operator* owns that judgment, not the skill. Phrase the question neutrally, e.g. *"Your app depends on these non-connector libraries the skill can't verify or auto-upgrade: `<list>`. Confirm they work on Java `<targetJava>` + Mule `<targetMule>`, or tell me what to change."* List every `customLibraries[]` coordinate and offer three options: `I've confirmed these are compatible — keep as-is`, `Some need a version change — I'll supply coordinates`, `Not sure — flag and continue at my own risk`. On "supply coordinates," collect them and fold the replacements into the plan's pom.xml section (the operator's explicit version is a normal version edit — not an auto-resolved bump). If `customLibraries[]` is empty, skip this sub-step entirely — do not prompt.
-4. Use `AskUserQuestion` with three options:
+4. Use `AskUserQuestion` with three options (if timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs wait-start` right before asking and `node <skill-dir>/scripts/step_timer.mjs wait-end` right after the answer — also around the custom-library question above; the same applies to every other question in the workflow):
    - `Yes, proceed to Execution`
    - `No, I want to change the plan`
    - `No, cancel the upgrade`
@@ -1149,7 +1201,7 @@ Authoring rules:
 
 On `No, change`: collect specifics via a follow-up `AskUserQuestion`, loop back to the affected step (5/6/7/9/10), re-synthesize the plan, re-present. Do NOT rerun Step 1.
 
-On `No, cancel`: stop the workflow. Leave `tmp/` in place for inspection.
+On `No, cancel`: stop the workflow. Leave `tmp/` in place for inspection. If timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs report` first.
 
 - Display all version updates
 - Show connector version changes
@@ -1163,6 +1215,8 @@ On `No, cancel`: stop the workflow. Leave `tmp/` in place for inspection.
 # Phase 2: Execute
 
 ## Step 13: Download Target Runtime and Java
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 13`
 
 Ensure the **finalized target** Mule Runtime and target JDK are present on disk before the build. Both are driven by the approved target in `tmp/upgrade-targets.json` (`.mule.to` = full Mule version, `.java.to` = Java major) — never a hardcoded pair. Each resolver checks the local install dir first and only downloads when the version is absent. **A version can be downloaded only if `anypoint-cli-v4 dx mule runtime list` returns it** — that list is the sole source of truth for what is downloadable, so the target must always be one it offers (Step 4 already resolves the target against this same list).
 
@@ -1184,6 +1238,8 @@ Neither script sets `JAVA_HOME` or any runtime path — they only ensure the dis
 ---
 
 ## Step 14: Update Files - Versions Only
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 14`
 
 Deterministic version rewrites — each script call in its own `Bash` response. Order matters: promote drafts → runtime bump → per-connector pin.
 
@@ -1245,6 +1301,8 @@ The fixed order above (promote drafts → runtime bump → per-connector pin →
 
 ## Step 14.5: Verify Pins Took (hard gate)
 
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 14.5`
+
 The writes above are done; now prove Maven actually resolves each connector to its **target** version **before** spending a full build on it. `apply_parent_pom_fork.mjs`'s own verify re-runs the static walk, but the static walk shares the discovery blind spot — it can't see an imported BOM or a stale `~/.m2` overriding a pin. `mvn dependency:tree` is the authority on the resolved value: it answers the one question that matters here — *did the edit take?* This is the acceptance test for Step 14.
 
 ```bash
@@ -1265,6 +1323,8 @@ Only advance to Step 15/16 once this gate exits 0 (or the operator has explicitl
 ---
 
 ## Step 15: Update Application Code
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 15`
 
 Apply the edits enumerated in `tmp/upgrade-plan.md` **mechanically** — no new discoveries, no new choices. Everything that could require user input was resolved during planning. Use `references/llm-prompts.md §1` verbatim as the per-op model prompt (it is self-contained per operation, so it doesn't need to re-open files).
 
@@ -1350,6 +1410,8 @@ Use metadata from `describe-connector` to ensure operations, configs, and attrib
 
 ## Step 16: Build Loop
 
+> If timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs mark 16` before **each** build attempt — the script numbers the attempts (16#1, 16#2, …). Put the mark in the previous response (the one that applied the fix), never in the response that runs `mvn`.
+
 Bounded recovery loop with a **5-retry** cap. `mvn clean package -DskipTests` BUILD SUCCESS is packaging-only — it validates that (a) XSDs parse, (b) DataWeave compiles, (c) the `.jar` packages. It does NOT execute any flow, hit any external system, or run MUnit. Step 17 (`mvn test`) is the real runtime gate.
 
 - Refresh the Exchange session credential first (each `Bash` call is a fresh shell, so this is re-run every retry too): `MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')`
@@ -1432,7 +1494,7 @@ Do NOT re-analyze from XSD error text and do NOT guess an enum value. `grep -A2 
 ### Retry cap and halt
 
 - Retry budget: **5 build failures max** (log-and-diagnostic pass counts as ½ retry — see the classifier in 16.1).
-- If BUILD FAILURE persists after 5 real edit-retries with both escalation probes run, HALT via `AskUserQuestion` with:
+- If BUILD FAILURE persists after 5 real edit-retries with both escalation probes run, HALT via `AskUserQuestion` (if timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs report` first) with:
   1. First 30 lines of the last three `tmp/mvn-failures/build-<N>.log`
   2. Dependency-tree excerpt (Trigger A) or debug stack frame (Trigger B), whichever ran
   3. Classifications applied per retry
@@ -1441,6 +1503,8 @@ Do NOT re-analyze from XSD error text and do NOT guess an enum value. `grep -A2 
 ---
 
 ## Step 17: MUnit Loop
+
+> If timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs mark 17` before **each** test attempt (numbered 17#1, 17#2, … by the script), in the previous response — never in the response that runs `mvn`. Skip the mark if the loop is skipped.
 
 Runs ONLY after Step 16 reports `BUILD SUCCESS`. `mvn clean package` validates packaging only — MUnit is the authoritative runtime gate.
 
@@ -1485,7 +1549,7 @@ find src/test/munit -name '*.xml' 2>/dev/null | wc -l   # suites present?
 
 MUnit failures classify against the same Mode-B `.attributes[] / .childElements[] / .output*` JSON as flow-XML failures.
 
-**Retry budget: 6 attempts.** MUnit failures are more diffuse than XSD/DSL failures (test authoring style varies, and one op change often touches multiple mocks), so the budget is looser than Step 16's 5-retry cap. After the 6th failed `mvn clean test`, HALT via `AskUserQuestion` with the last three `tmp/mvn-failures/munit-<attempt>.log` excerpts (first 30 lines each), classifications, edits applied, and 2–4 candidate next actions.
+**Retry budget: 6 attempts.** MUnit failures are more diffuse than XSD/DSL failures (test authoring style varies, and one op change often touches multiple mocks), so the budget is looser than Step 16's 5-retry cap. After the 6th failed `mvn clean test`, HALT via `AskUserQuestion` (if timing mode is on, run `node <skill-dir>/scripts/step_timer.mjs report` first) with the last three `tmp/mvn-failures/munit-<attempt>.log` excerpts (first 30 lines each), classifications, edits applied, and 2–4 candidate next actions.
 
 Do NOT attempt a 7th retry without user direction. Treat repeated failures as a signal that the plan missed a Mode-B / Mode-C detail, not as noise to retry through.
 
@@ -1499,6 +1563,8 @@ Do NOT attempt a 7th retry without user direction. Treat repeated failures as a 
 ---
 
 ## Step 18: Fork the Parent-POM Version
+
+> If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 18`
 
 **Conditional:** Only relevant when Step 14's `apply_parent_pom_fork.mjs --phase=edit` reported one or more owning ancestors — i.e. its output `ancestorsForked[]` was non-empty. If the app is child-only, the edit phase printed "nothing to do" and there is nothing to fork; skip to Step 19.
 
@@ -1546,6 +1612,8 @@ This catches a repoint that verifies statically but won't actually resolve (e.g.
 
 ## Step 19: Clean Up Workspace `tmp/`
 
+> If timing mode is on, first — in its own response, before any `rm` — run `node <skill-dir>/scripts/step_timer.mjs mark 19 && node <skill-dir>/scripts/step_timer.mjs report`. This writes the table; `tmp/` is not involved, so the timing files survive the cleanup. Remember the printed `upgrade-timing.md` path for Step 20.
+
 Delete `tmp/` **only** after Step 16 reported `BUILD SUCCESS` and Step 17 recorded its MUnit verdict — the state files are useful for diagnosing failures, so do not clean them up mid-flight.
 
 Run the two removals as **two separate responses**, one `rm` each — never chain them into one command, and never bundle with `mvn` or the completion signal. Both targets are gitignored, so a denial is harmless.
@@ -1564,17 +1632,18 @@ rm -rf "$(dirname "$(cd "<skill-dir>" && pwd -P)")/node_modules"
 
 ## Step 20: Declare Completion
 
-**Its own response.** No `mvn`, no `rm`, no other tool calls. This response's only job is the three-line summary. Preconditions:
+**Its own response.** No `mvn`, no `rm`, no other tool calls. This response's only job is the three-line summary (four lines when timing mode is on). Preconditions:
 
 1. Step 16 last returned `BUILD SUCCESS` on the upgraded project.
 2. Step 17 either recorded `mvn test` passed OR wrote a `no runtime validation performed — …` skip note (no plugin, or plugin wired but no suites).
 3. Step 19's two cleanup removals (`rm -r tmp/`, then `rm -rf` the ephemeral `node_modules`) each already ran in their own previous response.
 
-Emit exactly three lines:
+Emit exactly three lines (four when timing mode is on — see the end of this list):
 
 1. `BUILD SUCCESS` with the path to `target/<project>-*.jar`.
 2. MUnit verdict from Step 17 (`mvn test: all passing` OR the exact `no runtime validation performed — …` skip note Step 17 logged: no plugin, or plugin wired but no suites under `src/test/munit`).
 3. One-line from-to summary: `Mule <from> → <to>, Java <from> → <to>, connectors: <C> of <total> updated` — read the from/to values from `tmp/upgrade-targets.json` (`.mule.from`/`.mule.to`, `.java.from`/`.java.to`) before Step 19 removed it, or from your locked target in Step 4c. **`<C>` is the count of connectors that actually changed version** (`target-connectors.json .connectors[] | changed == true`) and `<total>` is all connectors in scope — so an already-latest connector (e.g. `email 1.8.0 → 1.8.0`, `changed == false`) is counted in `<total>` but not in `<C>`, and the number can never read as if every connector was bumped. Capture both counts from `target-connectors.json` **before** Step 19 removes `tmp/`. When `<C>` equals `<total>` (everything changed) this naturally reads `N of N updated`.
+4. **Only when timing mode is on:** `Timing: <path to upgrade-timing.md>` (the path Step 19's `report` printed). Omit this line entirely in a normal run.
 
 Do NOT include per-file diffs, "what was done" recaps, or speculative "next steps" — the user can read the diff.
 

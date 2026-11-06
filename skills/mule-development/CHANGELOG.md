@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.9.6] - Unreleased
 
+### Added
+
+- **`upgrade-mule-app`** — opt-in per-step timing (debug mode, W-24731668). Only when the user asks to run the skill with timing: Step 1 runs `scripts/step_timer.mjs init`, each step/sub-step runs `mark <step>` (Steps 16/17 are numbered per attempt by the script), every question to the user (e.g. Step 3a, Step 12.4) is bracketed with `wait-start`/`wait-end` so user wait is reported as its own row, and `report` (Step 19 and every STOP/HALT/cancel) writes the per-step table. Marks fired less than 1s apart are merged into one row (`8 + 9 + 10`) because their times cannot be split. `describe_connector.mjs` also appends each CLI call's duration. Output is `upgrade-timing.jsonl` (raw marks) and `upgrade-timing.md` (table) in the app directory, outside `tmp/`; the Step 20 summary gains a fourth `Timing:` line only in this mode. New `lib/step-timing.mjs`, with tests. Normal runs are unchanged, except that a leftover `upgrade-timing.jsonl` from an earlier timed run can still receive `describe_connector` records.
+
 ### Fixed
 
 - **`upgrade-mule-app`** — Steps 16 and 17 now tell *whose* credential Maven rejected before deciding what to do. A 401/403 from MuleSoft's private or Enterprise Nexus repos (`mulesoft-private`, `releases-ee`) used to be treated as an expired Exchange session (Step 16.1 class 0) or as a broken test (Step 17), so the skill asked for a re-login that could not help, or spent up to 6 MUnit retries and then halted without saying why. The new `scripts/classify_mvn_failure.mjs` (backed by `classifyMavenFailure()` in `lib/maven-settings.mjs`) reads the failing `[ERROR]` lines and returns `exchange-auth`, `mulesoft-ee-auth`, `other-repo-auth` or `none`, with the repository id and URL. A credential failure now stops without spending a retry and shows the user which `<server>` entry is missing.

@@ -227,6 +227,8 @@ Each row contains:
 }
 ```
 
+That `targetPath` is an example for a complete A2A v0.3 card. A non-A2A agent uses `other-card.json` and does not mark `skills` or `protocolVersion` required. Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL. Choose the artifact with the rule in `SKILL.md` under **ZIP and push** and in `scanner-contract.md`.
+
 Include representative generated `config.json` and artifact JSON. Redact secret
 or unrelated response values. Mark large-artifact previews as truncated and
 identify the local full ZIP.

@@ -165,7 +165,7 @@ commit were skipped. That message is expected. The mapping was approved in chat,
 so live is not refused for a pending fingerprint. A partial workspace still
 calls `POST /commit` with `complete: false` and does not ask. A full success
 asks "Commit this scan? [y/N]". The default is no. `--commit` or
-`PUSH_COMMIT=yes` is that yes when there is no prompt, and that yes sends
+`PUSH_COMMIT` matches `yes` without regard to case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` are no. That yes sends
 `complete: true`. Live without `--commit` on a full success uploads and stops.
 
 Before discovery, explain:

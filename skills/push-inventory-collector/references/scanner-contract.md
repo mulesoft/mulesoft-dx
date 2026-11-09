@@ -45,9 +45,14 @@ Required entries:
 {
   "name": "<display name>",
   "type": "<agent|mcp|rest-api>",
-  "description": "<optional, at most 500 characters>"
+  "description": "<optional, at most 250 characters>",
+  "properties": {}
 }
 ```
+
+`description` is optional. Publication keeps at most 250 characters. Do not put custom metadata in `description`.
+
+`properties` is optional. The scanner stores it and uses it when deciding whether the asset changed. Publication does not copy it onto the Exchange asset. The published properties are `platform` and `provenance` only.
 
 Artifact file by type:
 
@@ -87,6 +92,8 @@ POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials&client_id=...&client_secret=...
+
+The body is that one line and then ends. No trailing newline, no blank line, and no space after the secret. A trailing newline is sent as part of the secret, and the token request returns 401.
 ```
 
 Do not send that token request as JSON. Never log the secret or bearer token.
@@ -147,7 +154,8 @@ Success is HTTP 200 (`PushWorkspaceUnstageResponse`).
 A partial workspace still calls this. A page cap, a dropped asset, or a failed
 upload after another upload succeeded sends `complete: false` and does not ask.
 A full success asks "Commit this scan? [y/N]". The default is no. `--commit` or
-`PUSH_COMMIT=yes` is that yes when there is no prompt, and that yes sends
+`PUSH_COMMIT` is that yes when there is no prompt. Match `yes` without regard
+to case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` are no. That yes sends
 `complete: true`.
 
 ```http
@@ -169,7 +177,7 @@ A generated script that calls `POST /seal`, `POST /complete`, or
 not the path.
 
 JSON field `complete` is inventory completeness, not the HTTP method name.
-`PUSH_COMMIT=yes` / `--commit` is the yes for a full inventory. It does not
+`PUSH_COMMIT` matches `yes` without regard to case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` are no. `--commit` is the same yes. It does not
 turn a partial inventory into `complete: true`.
 
 | Discovery/upload state | Complete behavior |
@@ -184,7 +192,7 @@ turn a partial inventory into `complete: true`.
 
 `complete: false` publishes the pushed assets and must not retire assets that
 were absent. A partial run still exits 2. A full success does not call
-`/commit` unless they answer yes or set `--commit` / `PUSH_COMMIT=yes`.
+`/commit` unless they answer yes or set `--commit` / `PUSH_COMMIT` to `yes` in any case.
 
 ## Ownership boundary
 

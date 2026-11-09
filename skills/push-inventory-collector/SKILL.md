@@ -176,7 +176,7 @@ SCANNER_CONFIGURATION_ID=
 ANYPOINT_CLIENT_ID=
 # (required) Connected App client secret. Leave empty in chat. Fill this on the machine that runs the script.
 ANYPOINT_CLIENT_SECRET=
-# (optional) Commit the scan without a prompt. yes or no. Default no.
+# (optional) Commit the scan without a prompt. yes or no, any case. Default no.
 PUSH_COMMIT=
 ```
 
@@ -205,7 +205,7 @@ An Organization Administrator creates the app once, in Access Management, before
 
 The self-managed types are offered only when `push-scanner-enabled` is on and the entitlement matches: `agent` for agents, `apiScanners` for MCP and REST. If upload returns that the type is absent, stop and say so. Do not invent an id.
 
-Token request, in every language: `POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token` with `Content-Type: application/x-www-form-urlencoded` and body `grant_type=client_credentials&client_id=...&client_secret=...`. Never JSON.
+Token request, in every language: `POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token` with `Content-Type: application/x-www-form-urlencoded` and body `grant_type=client_credentials&client_id=...&client_secret=...`. Never JSON. The body is that one line and then ends. No trailing newline, no blank line, and no space after the secret. A trailing newline is sent as part of the secret, and the token request returns 401.
 
 ## What the script does
 
@@ -236,7 +236,7 @@ After step 3, if zero assets matched `ASSET_TYPE`:
 4. Upload each valid ZIP with `POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{org}/scanner-configurations/{config}/push`. The body is the zip bytes, not JSON. `Content-Type` is `multipart/form-data` with exactly one part named `file`, filename `{externalId}.zip`, part `Content-Type: application/zip`. HTTP 202 JSON is `{assetId, action, workspaceRunId}`. Keep that `workspaceRunId`. Every later upload in this run must return the same id. The server checks the zip again. A refusal is FAILED, with the response body. The same provider id replaces the staged object. It does not create a second row, and Exchange is not called. An id uploaded earlier and absent from this list stays staged until `DELETE .../push/{externalId}`. Omission is not deletion. HTTP 415 means this POST was not a zip part named `file` (JSON body, `application/x-www-form-urlencoded`, `Content-Type: multipart/form-data` with no boundary, or a boundary that starts with `=`). A generated script that posts JSON to `/push`, uses `json=`, sets `Content-Type: application/json` on `/push`, or names the part anything other than `file` is a generation failure.
 5. Close the workspace and declare completeness separately. `workspaceRunId` comes only from a 202 `/push` (or `GET .../workspace` when `PUSH_ALLOW_EMPTY=yes` and nothing was uploaded). Inventing `run-…` or posting `/commit` without that id is a generation failure. Zero accepted uploads: do not call `/commit`.
    - The list stopped at a page cap, or any upload failed, and at least one upload was accepted: `POST .../commit` with `{"workspaceRunId":"<id from 202>","complete":false}`. Do not ask. `complete:false` is upsert only. It must not be `true`.
-   - The list finished and every upload succeeded: ask on a TTY, "Commit this scan? [y/N]". The default is no. `--commit` or `PUSH_COMMIT=yes` is the yes when there is no TTY. Yes sends `POST .../commit` with `"complete":true`. No uploads and does not commit.
+   - The list finished and every upload succeeded: ask on a TTY, "Commit this scan? [y/N]". The default is no. `--commit` or `PUSH_COMMIT` is the yes when there is no TTY. Match `yes` without regard to case: `yes`, `Yes`, and `YES` are yes. Empty, `no`, and `No` are no. Yes sends `POST .../commit` with `"complete":true`. No uploads and does not commit.
    - An empty successful list does not commit unless they also set `PUSH_ALLOW_EMPTY=yes`.
 6. Print one JSON object on stdout: counts, `truncated`, `workspaceRunId`, `scanRunId`, and whether the scan was committed. Exit 0 when nothing failed. Exit 2 when a list, an upload, or a requested commit failed.
 
@@ -407,7 +407,7 @@ The file `inputs.env` is a downloadable file, written beside the script, and its
 <run> <script> --input-file inputs.env
 ```
 
-`PUSH_COMMIT=yes` in that file commits the scan. Empty or `no` does not.
+`PUSH_COMMIT` commits the scan when its value is `yes` in any case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` do not.
 
 ### Dry-run and help
 
@@ -602,10 +602,14 @@ One asset is one zip. The zip has one top-level directory. That directory name i
 `specification/config.json`:
 
 ```json
-{ "name": "<display name>", "type": "agent", "description": "<optional, max 500 chars>" }
+{ "name": "<display name>", "type": "agent", "description": "<optional, max 250 chars>" }
 ```
 
 `type` is the baked `ASSET_TYPE` and must match that configuration.
+
+`description` is optional. Publication keeps at most 250 characters. Do not put custom metadata in `description`.
+
+`config.json` may include a `properties` object. The scanner stores it and uses it when deciding whether the asset changed. Publication does not copy it onto the Exchange asset. The published properties are `platform` and `provenance` only. There is no custom metadata field on the card.
 
 Artifact JSON must pass the Exchange agent-fabric schemas (tag `1.2609.1`: `agent_card`, `agent_card_v1`, `other_card`, `mcp_metadata`). Do not invent a second subset.
 

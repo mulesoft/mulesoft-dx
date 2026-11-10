@@ -39,6 +39,7 @@ import {
   extractConfigProviderChildren,
   extractUsageSites,
 } from '../lib/xml-flow.mjs';
+import { classifyElements } from '../lib/usage-classify.mjs';
 
 // -- args -------------------------------------------------------------------
 
@@ -162,65 +163,7 @@ const ELEMS = grepElementNames(FLOW_FILES, PREFIX);
 
 // -- classify against NEW metadata -----------------------------------------
 // .operations / .sources may be array of strings OR array of {name: ...}.
-/** @param {any} v @returns {string} */
-function opsName(v) {
-  if (typeof v === 'string') return v;
-  if (v && typeof v === 'object') return String(v.name || '');
-  return '';
-}
-/** @param {any} cfg @returns {string} */
-function configDslName(cfg) {
-  if (!cfg || typeof cfg !== 'object') return '';
-  return String(cfg.elementName || cfg.name || '');
-}
-
-const opsSet = new Set(
-  (Array.isArray(newMeta.operations) ? newMeta.operations : [])
-    .map(opsName).filter(Boolean),
-);
-const srcsSet = new Set(
-  (Array.isArray(newMeta.sources) ? newMeta.sources : [])
-    .map(opsName).filter(Boolean),
-);
-const cfgElemsSet = new Set(
-  (Array.isArray(newMeta.configs) ? newMeta.configs : [])
-    .map(configDslName).filter(Boolean),
-);
-const cfgProvidersSet = new Set();
-for (const cfg of (Array.isArray(newMeta.configs) ? newMeta.configs : [])) {
-  const providers = (cfg && Array.isArray(cfg.connectionProviders)) ? cfg.connectionProviders : [];
-  for (const cp of providers) {
-    const n = typeof cp === 'string' ? cp : configDslName(cp);
-    if (n) cfgProvidersSet.add(n);
-  }
-}
-
-const operations_used = [];
-const sources_used = [];
-const config_elems_used = [];
-const provider_hits_from_classify = [];
-const child_elements_used = [];
-
-for (const name of ELEMS) {
-  if (!name) continue;
-  if (opsSet.has(name)) {
-    operations_used.push(name);
-  } else if (srcsSet.has(name)) {
-    sources_used.push(name);
-  } else if (cfgElemsSet.has(name)) {
-    config_elems_used.push(name);
-  } else if (cfgProvidersSet.has(name)) {
-    // Known child element of <prefix:config> — bucket into
-    // child_elements_used only.
-    provider_hits_from_classify.push(name);
-    child_elements_used.push(name);
-  } else {
-    // Unknown to NEW metadata — treat as ambiguous op/child. Downstream
-    // Phase B intersect filters these before per-op describe.
-    operations_used.push(name);
-    child_elements_used.push(name);
-  }
-}
+const { operations_used, sources_used, config_elems_used, provider_hits_from_classify, child_elements_used } = classifyElements(ELEMS, newMeta);
 
 // -- usage sites (needed before configs_used) ------------------------------
 // Extract usage sites first: config-ref is an attribute on THIS connector's

@@ -24,12 +24,16 @@
 //      pom.xml (parent POMs are never edited). Idempotent: the parser strips
 //      comments, so already-migrated deps are invisible on re-run.
 //
-// The ONLY files this ever writes are project-manifest.json and the child pom.xml.
+// NON-DESTRUCTIVE: the source tree is only READ. The edited pom.xml and the
+// project-manifest.json are written into a STAGED COPY of the project at
+// <projectDir>/target/versionless-staging/ — recreated fresh from source on every run,
+// so staging is deterministic and idempotent. The source pom.xml / project-manifest.json
+// are never modified.
 //
 // Usage:
 //   node switch_to_versionless.mjs [projectDir] [--dry-run]
-//   Default projectDir = cwd. --dry-run prints the plan and the manifest it WOULD
-//   write, but touches nothing on disk.
+//   Default projectDir = cwd. The switch always stages (no flag needed). --dry-run
+//   prints the plan and the manifest it WOULD write, but touches nothing on disk.
 //
 // Output: a JSON report on stdout (see the `report` object below for its fields).
 // Manifest connectors are written name-only: { "name": "<xml-prefix>" }.
@@ -37,8 +41,8 @@
 // Exit code: 0 on success (including "nothing to migrate"), 1 only on a hard error
 // (no pom.xml, unrecognized existing manifest, manifest/pom write failure).
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
-import { dirname, resolve, join } from "node:path";
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, rmSync, cpSync, mkdirSync } from "node:fs";
+import { dirname, resolve, join, basename, sep } from "node:path";
 import {
   child,
   children,
@@ -53,6 +57,14 @@ import {
 const MULE_PLUGIN_CLASSIFIER = "mule-plugin";
 const MANIFEST_FILE_NAME = "project-manifest.json";
 const MANIFEST_VERSION = "1.0.0";
+
+// The switch is NON-DESTRUCTIVE by default: it never edits the source tree. It stages a
+// full copy of the project under <projectDir>/target/<STAGING_SUBDIR>/ and writes the
+// versionless pom + manifest THERE. The in-tree location (inside target/, which has an
+// ancestor pom) keeps project-manifest.json discoverable so the staged jar is deployable
+// from its own tree. Running the switch against a dir that already IS the staging dir
+// operates in place (no re-nesting).
+const STAGING_SUBDIR = "versionless-staging";
 
 // A versionless app is not just a manifest: the pom must declare the versionless
 // packaging AND a mule-maven-plugin version that understands it. The classic
@@ -342,8 +354,15 @@ function main() {
   for (const a of argv) if (!a.startsWith("--")) projectDir = resolve(a);
   projectDir = resolve(projectDir);
 
+  // Where the staged (versionless) copy lives. Normally a subdir of the source tree's
+  // target/; if the caller already pointed us AT a staging dir, operate in place.
+  const stagingDir = (basename(projectDir) === STAGING_SUBDIR)
+    ? projectDir
+    : join(projectDir, "target", STAGING_SUBDIR);
+
   const report = {
     projectDir,
+    stagingDir,            // the staged copy the versionless pom + manifest are written into
     pomPath: null,
     manifestPath: null,
     connectors: [],        // final, merged manifest connectors (name-only): existing + newly added
@@ -386,6 +405,17 @@ function main() {
     ancestors.push({ project: nextProject, props: extractProperties(nextProject), path: nextPath });
     curProject = nextProject;
     curPath = nextPath;
+  }
+
+  // A parent pom that lives OUTSIDE the project root is not copied into the staged tree
+  // (we only stage projectDir), so a staged build may fail to resolve it. Warn — the
+  // source build is unaffected since we never touch the source tree.
+  if (stagingDir !== projectDir) {
+    for (const a of ancestors) {
+      if (!a.path.startsWith(projectDir + sep)) {
+        report.warnings.push(`Parent POM ${a.path} is outside the project root; the staged copy under target/${STAGING_SUBDIR} will not include it and a staged build may fail to resolve it. Make the parent reachable under the project root if you intend to build the staged app.`);
+      }
+    }
   }
 
   const mergedProps = {};
@@ -466,9 +496,16 @@ function main() {
   // append this run's new ones (deduped by name). This preserves connectors that were
   // migrated on earlier runs (whose pom deps are now commented out and thus invisible)
   // and makes re-running a no-op once everything is migrated.
-  const manifestPath = join(projectDir, MANIFEST_FILE_NAME);
-  report.manifestPath = manifestPath;
-  const existing = readExistingManifest(manifestPath);
+  // Read any existing manifest from the SOURCE tree (so a hand-authored one is retained),
+  // but write the merged result into the STAGED tree.
+  const sourceManifestPath = join(projectDir, MANIFEST_FILE_NAME);
+  const stagedManifestPath = (stagingDir === projectDir)
+    ? sourceManifestPath
+    : join(stagingDir, MANIFEST_FILE_NAME);
+  const stagedPomPath = (stagingDir === projectDir) ? childPomPath : join(stagingDir, "pom.xml");
+  report.manifestPath = stagedManifestPath;
+  report.pomPath = stagedPomPath;   // the versionless pom deliverable (in the staged tree)
+  const existing = readExistingManifest(sourceManifestPath);
   if (existing.parseError) {
     // A same-named file we don't recognise as our manifest — refuse to clobber it.
     report.warnings.push(`Existing ${MANIFEST_FILE_NAME} ${existing.parseError} — refusing to overwrite. Remove or fix it, then re-run.`);
@@ -514,17 +551,42 @@ function main() {
     process.exit(0);
   }
 
+  // Materialize a pristine copy of the project into the staging dir (fresh each run, so
+  // the staged result is deterministic regardless of a previous run). Exclude target/
+  // (build output — and, critically, the staging dir itself, which lives under target/)
+  // and .git/. The source tree is never modified.
+  if (stagingDir !== projectDir) {
+    try {
+      // Copy the project tree into the staging dir, EXCLUDING target/ and .git/. We copy
+      // each top-level entry individually rather than the whole root: cpSync refuses to
+      // copy a directory into a subdirectory of itself (the staging dir lives under
+      // target/), and skipping target/ here sidesteps that and avoids recursing into the
+      // staging dir itself.
+      rmSync(stagingDir, { recursive: true, force: true });
+      mkdirSync(stagingDir, { recursive: true });
+      const EXCLUDE_TOP = new Set(["target", ".git"]);
+      for (const entry of readdirSync(projectDir)) {
+        if (EXCLUDE_TOP.has(entry)) continue;
+        cpSync(join(projectDir, entry), join(stagingDir, entry), { recursive: true });
+      }
+    } catch (e) {
+      report.warnings.push(`Failed to stage project copy at ${stagingDir}: ${e.message}`);
+      log(JSON.stringify(report, null, 2));
+      process.exit(1);
+    }
+  }
+
   const manifestText = JSON.stringify(manifestDoc, null, 2) + "\n";
   let currentManifestText = null;
-  if (existsSync(manifestPath)) {
-    try { currentManifestText = readFileSync(manifestPath, "utf8"); } catch { /* rewrite below */ }
+  if (existsSync(stagedManifestPath)) {
+    try { currentManifestText = readFileSync(stagedManifestPath, "utf8"); } catch { /* rewrite below */ }
   }
   try {
     // Only touch the file when the content actually changes, so a no-op re-run of a
     // fully-migrated project leaves it byte-for-byte untouched.
-    if (manifestText !== currentManifestText) writeFileSync(manifestPath, manifestText, "utf8");
+    if (manifestText !== currentManifestText) writeFileSync(stagedManifestPath, manifestText, "utf8");
   } catch (e) {
-    report.warnings.push(`Failed to write ${manifestPath}: ${e.message}`);
+    report.warnings.push(`Failed to write ${stagedManifestPath}: ${e.message}`);
     log(JSON.stringify(report, null, 2));
     process.exit(1);
   }
@@ -532,9 +594,11 @@ function main() {
     // Write the pom when anything changed: connector deps commented out AND/OR the
     // versionless packaging / plugin-version edits. A core-only app has no dep edits
     // but still needs the packaging flip, so this must not gate on edits.length alone.
-    if (pomChanged) writeFileSync(childPomPath, newPom, "utf8");
+    // The staged pom starts as a byte-copy of the source pom, so writing only when
+    // pomChanged keeps a no-op run's staged pom identical to source.
+    if (pomChanged) writeFileSync(stagedPomPath, newPom, "utf8");
   } catch (e) {
-    report.warnings.push(`Manifest written, but failed to update ${childPomPath}: ${e.message}`);
+    report.warnings.push(`Manifest written, but failed to update ${stagedPomPath}: ${e.message}`);
     log(JSON.stringify(report, null, 2));
     process.exit(1);
   }

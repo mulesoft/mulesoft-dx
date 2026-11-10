@@ -119,7 +119,7 @@ location, so they work from any CWD.
 | Script | Purpose |
 | --- | --- |
 | `scripts/setup.sh` | Install the bundled plugin into `~/.m2`; verify binaries + toolchain. Run once per machine. |
-| `scripts/build.sh <project-dir>` | `mvn clean package` with the bundled binaries + exchange stub. Produces the versionless jar. |
+| `scripts/build.sh <project-dir>` | `mvn clean package` with the bundled binaries + exchange stub. Produces the versionless jar. If `<project-dir>` is a project root that has a staged tree at `target/versionless-staging/` (written by the **switch-classic-mule-to-versionless** skill), it builds that staged tree; pass the staging dir itself to build it directly. |
 | `scripts/deploy-run.sh {start\|stop\|deploy <jar> [name]\|run <path> [body]\|list\|undeploy <app>}` | Drive the bundled runtime. `deploy` sends the app name. `run` sends the `x-muleversionless-appname` header. |
 
 ## Workflow

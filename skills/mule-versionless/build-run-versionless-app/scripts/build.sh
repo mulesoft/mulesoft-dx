@@ -13,10 +13,23 @@
 # Usage: scripts/build.sh <project-dir>
 #   <project-dir>  a versionless Mule app root (pom.xml with
 #                  <packaging>mule-application-versionless</packaging>). Defaults to CWD.
+#
+# The switch-classic-mule-to-versionless skill stages its versionless output under
+# <root>/target/versionless-staging/ rather than editing source. So if <project-dir> is a
+# project root that has a staged tree, this builds the STAGED tree; if <project-dir> is
+# already the staging dir, it builds that directly.
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_DIR="$(cd "${1:-$PWD}" && pwd)"
+
+# Resolve the staged versionless tree when present. If the caller already pointed us at
+# the staging dir, use it as-is; otherwise prefer <root>/target/versionless-staging.
+if [ "$(basename "${PROJECT_DIR}")" != "versionless-staging" ] \
+   && [ -f "${PROJECT_DIR}/target/versionless-staging/pom.xml" ]; then
+  PROJECT_DIR="${PROJECT_DIR}/target/versionless-staging"
+  echo "==> Using staged versionless tree: ${PROJECT_DIR}"
+fi
 
 if [ ! -f "${PROJECT_DIR}/pom.xml" ]; then
   echo "ERROR: no pom.xml in ${PROJECT_DIR} — not a Mule project root." >&2

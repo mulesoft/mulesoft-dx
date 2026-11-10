@@ -1,15 +1,18 @@
 ---
 name: switch-classic-mule-to-versionless
 description: >
-  Switch a classic (versioned) Mule application to a versionless app by writing a
-  project-manifest.json next to pom.xml and moving the app's connector dependencies
-  into it. First gates on switchability by running the switch validator and refuses
-  to switch while any blocker remains. TRIGGER when: user asks to "switch/convert/upgrade/migrate a Mule app to
+  Switch a classic (versioned) Mule application to a versionless app NON-DESTRUCTIVELY:
+  rather than editing the source tree, it stages a versionless copy of the project under
+  target/versionless-staging/ — an edited pom.xml plus a project-manifest.json that
+  declares the app's connectors by name. First gates on switchability by running the
+  switch validator and refuses to switch while any blocker remains. When the prompt also
+  asks to build a jar, it builds the staged app into a deployable versionless jar (and
+  otherwise offers to). TRIGGER when: user asks to "switch/convert/upgrade/migrate a Mule app to
   versionless", "make my Mule project versionless", "create a project-manifest.json",
-  or "move connectors to the manifest"; the project has a pom.xml with
-  mule-plugin connector dependencies. Trigger phrases include "switch to versionless",
-  "versionless app", "classic to versionless". DO NOT TRIGGER when: the user wants to
-  upgrade connector/runtime VERSIONS or Java compatibility (that is skill
+  "move connectors to the manifest", or "switch and build a versionless jar"; the project
+  has a pom.xml with mule-plugin connector dependencies. Trigger phrases include "switch
+  to versionless", "versionless app", "classic to versionless". DO NOT TRIGGER when: the
+  user wants to upgrade connector/runtime VERSIONS or Java compatibility (that is skill
   upgrade-mule-app), or to build a new integration (skill build-mule-integration).
 license: Apache-2.0
 compatibility: >
@@ -34,6 +37,16 @@ coordinate in `pom.xml`. Instead, a `project-manifest.json` sibling of `pom.xml`
 declares the connectors by name, and the versionless runtime resolves them. This
 skill performs that switch standalone — no IDE, no platform connection, no network.
 
+**The switch is non-destructive.** It never edits your source tree. It stages a full
+copy of the project under `target/versionless-staging/` and writes the versionless
+`pom.xml` and `project-manifest.json` **there**. The staged copy is recreated fresh from
+source on every run, so it is deterministic and safe to re-run. Your original `pom.xml`
+and `src/` are left byte-for-byte untouched. The staging dir sits inside `target/` (which
+has an ancestor `pom.xml`) so the versionless runtime can still discover the manifest when
+you build and deploy the staged jar. When the prompt also asks for a jar — e.g. "switch
+and build a versionless jar" — this skill builds the staged tree via the sibling
+**build-run-versionless-app** skill; otherwise it offers to after staging.
+
 ## When to Use This Skill
 
 **Use this skill when the user asks to:**
@@ -57,7 +70,10 @@ anything. This gate is an **agent-workflow safeguard enforced by this skill, not
 script**: `switch_to_versionless.mjs` performs no validation of its own, so a caller that
 invokes the script directly (bypassing this workflow) can still switch a non-switchable
 app. Run through this skill and the gate catches blockers before they reach a deploy.
-Once the gate passes, it:
+
+Everything below is written into the **staged copy** at `target/versionless-staging/`,
+never the source tree. The script copies the project there (excluding `target/` and
+`.git/`), then — once the gate passes — it:
 
 1. Reads `pom.xml` (and its local parent chain) and finds every **connector** —
    a `<dependency>` with `<classifier>mule-plugin</classifier>` that is **not**
@@ -73,9 +89,10 @@ Once the gate passes, it:
 2. Derives each connector's versionless **name** — its Mule XML namespace / prefix
    (the identity the versionless runtime resolves against, e.g. `http`, `salesforce`,
    `os`) — cross-checking the namespaces actually declared in the app's Mule XML.
-3. **Merges into** `project-manifest.json` next to `pom.xml` (creating it if absent).
-   Connectors are **name-only** — the versionless name (XML namespace / prefix) is the
-   identity the runtime resolves against:
+3. **Writes** `project-manifest.json` into the staged copy (next to the staged
+   `pom.xml`), merging in any manifest already present in source. Connectors are
+   **name-only** — the versionless name (XML namespace / prefix) is the identity the
+   runtime resolves against:
    ```json
    {
      "version": "1.0.0",
@@ -85,18 +102,18 @@ Once the gate passes, it:
      ]
    }
    ```
-   An existing manifest's connectors are **retained**; only genuinely-new connectors
+   A source manifest's connectors are **retained**; only genuinely-new connectors
    (used in code and still uncommented in the pom) are appended. A core-only app (no
    connectors) still becomes versionless — the manifest is written with an empty
    `connectors` array.
-4. **Comments out** each newly-migrated connector `<dependency>` block in the child
+4. **Comments out** each newly-migrated connector `<dependency>` block in the **staged**
    `pom.xml`, so the coordinates are no longer active but stay recoverable
    (`<!-- [versionless] moved to project-manifest.json ... -->`). Runtime-provided
    modules that are excluded from the manifest get a distinct note instead
    (`<!-- [versionless] removed (runtime-provided; not in project-manifest.json) ... -->`).
    Connectors inherited from a parent pom are added to the manifest but their dependency
    is left in place (the script never edits a parent pom).
-5. **Makes the child pom itself versionless**: flips
+5. **Makes the staged pom itself versionless**: flips
    `<packaging>mule-application</packaging>` to
    `<packaging>mule-application-versionless</packaging>` and raises the
    `mule-maven-plugin` version (inline or via its `${property}`) to one that
@@ -105,9 +122,11 @@ Once the gate passes, it:
    with `Unknown packaging: mule-application-versionless`. This is why a core-only app
    still has its pom rewritten even though no connector deps are commented out.
 
-This design is **idempotent and incremental**: because the commented-out blocks are
-invisible to the pom parser, re-running only ever picks up connectors added since the
-last run, and re-running a fully-migrated project is a no-op.
+This design is **non-destructive and deterministic**: each run recreates the staged copy
+from the pristine source, so the staged `pom.xml` and `project-manifest.json` come out
+byte-identical across repeated runs. The source tree is only read, never written — so
+there is nothing to revert if you decide not to go versionless; just delete
+`target/versionless-staging/`.
 
 ## Prerequisites
 
@@ -130,7 +149,12 @@ given in the "skill is now active" message — do not construct relative
 
 | Script | Purpose | Output |
 | --- | --- | --- |
-| `scripts/switch_to_versionless.mjs [projectDir] [--dry-run]` | The whole switch: reads pom + Mule XML, writes `project-manifest.json`, comments out connector deps, and sets versionless packaging + mule-maven-plugin version. `--dry-run` plans only, writes nothing. | JSON report on stdout (and, unless `--dry-run`, the manifest + edited pom on disk) |
+| `scripts/switch_to_versionless.mjs [projectDir] [--dry-run]` | The whole switch: reads the source pom + Mule XML, stages a copy under `target/versionless-staging/`, and writes the `project-manifest.json` + versionless `pom.xml` **there** (comments out connector deps, sets versionless packaging + mule-maven-plugin version). The source tree is never edited. `--dry-run` plans only, writes nothing. | JSON report on stdout (and, unless `--dry-run`, the staged tree on disk under `target/versionless-staging/`) |
+
+To build the staged app into a jar, this skill calls the sibling
+**build-run-versionless-app** skill's `scripts/build.sh` — it detects
+`target/versionless-staging/` automatically when pointed at the project root, or builds
+the staging dir directly if you pass it.
 
 ## Workflow
 
@@ -144,11 +168,13 @@ given in the "skill is now active" message — do not construct relative
    its connectors are retained; this run only appends connectors that are still
    uncommented in the pom. If a same-named file exists but isn't a valid manifest, the
    script refuses to overwrite it and exits — don't force past that; fix the file.
-3. **Only the child pom is edited.** Connectors inherited from a parent POM are
-   written to the manifest but left declared in the parent (the script warns);
-   never edit a parent POM automatically.
+3. **Source is never edited; only the staged tree is written.** All edits land in
+   `target/versionless-staging/`. Connectors inherited from a parent POM are written to
+   the staged manifest but their dependency is left declared in the parent (the script
+   warns); a parent POM outside the project root is not copied into the staged tree, so
+   a staged build may not resolve it — the script warns when that happens.
 4. **Confirm before writing** (see the gate in Step 4).
-5. **Validate before switching.** Never write the manifest or edit the pom while the
+5. **Validate before switching.** Never stage the versionless tree while the
    switch validator reports blockers (Step 2, which gates on all seven axes). Switching
    a non-switchable app produces a versionless project that fails to build or deploys
    broken. The only way past a blocker is to fix it in the app, or an explicit user
@@ -235,28 +261,31 @@ node <skill-dir>/scripts/switch_to_versionless.mjs <projectDir> --dry-run
 
 Read the JSON report:
 
+- **`stagingDir`** — where the staged versionless copy will be written (`<projectDir>/target/versionless-staging`).
 - **`connectors[]`** — the final, merged manifest (name-only): retained + newly added.
-- **`existingRetained[]`** — connector names carried over from a pre-existing manifest.
-- **`newlyAdded[]`** — connectors migrated on this run (declared **and** used in code); empty means nothing new to do.
+- **`existingRetained[]`** — connector names carried over from a manifest found in source.
+- **`newlyAdded[]`** — connectors migrated on this run (declared **and** used in code); empty means the source declares no new connectors.
 - **`declaredButUnused[]`** — mule-plugin deps whose namespace is not used in `src/main/mule`; excluded from the manifest and left in the pom.
-- **`manifestExcluded[]`** — runtime-provided modules (e.g. `mule-apikit-module`) that are commented out of the child pom but intentionally **not** written to the manifest.
+- **`manifestExcluded[]`** — runtime-provided modules (e.g. `mule-apikit-module`) that are commented out of the staged pom but intentionally **not** written to the manifest.
 - **`skipped[]`** — test-scoped mule-plugins that are intentionally excluded.
 - **`xmlPrefixes[]`** — the connector namespaces actually used in the app's Mule XML (the "used in code" set).
-- **`pomEdits[]`** — the child-pom dependency blocks that will be commented out.
-- **`pomVersionlessChanges[]`** — the packaging + mule-maven-plugin version edits that will be applied to the child pom (empty if it is already versionless).
-- **`warnings[]`** — unresolved versions, parent-declared connectors, unused deps, or a packaging/plugin edit that must be done manually (e.g. the plugin version lives in a parent pom).
+- **`pomEdits[]`** — the dependency blocks that will be commented out in the staged pom.
+- **`pomVersionlessChanges[]`** — the packaging + mule-maven-plugin version edits that will be applied to the staged pom (empty if source is already versionless).
+- **`warnings[]`** — unresolved versions, parent-declared connectors, unused deps, a parent pom outside the project root, or a packaging/plugin edit that must be done manually (e.g. the plugin version lives in a parent pom).
 
 Review **`declaredButUnused[]`**: an entry there is either genuinely unused (correctly
 dropped) or a connector whose real XML prefix differs from what was derived from its
 artifactId (a false drop). Cross-check against `xmlPrefixes[]`; if a listed connector
 IS used, add its correct name to the manifest manually rather than guessing.
 
-### Step 4: Get confirmation, then apply
+### Step 4: Get confirmation, then stage
 
 **[GATE] Show the user the plan from Step 3 — the connectors to migrate, the manifest
-that will be written, the pom dependencies that will be commented out, and the
-packaging / plugin-version edits (`pomVersionlessChanges[]`) — and WAIT for explicit
-approval before writing anything.**
+that will be written, the pom dependencies that will be commented out, the
+packaging / plugin-version edits (`pomVersionlessChanges[]`), and where it will be staged
+(`stagingDir`) — and WAIT for explicit approval before writing anything.** (Because the
+switch is non-destructive, this gate protects against a surprise staged build, not against
+source edits — the source tree is never touched.)
 
 On approval, run the script for real:
 
@@ -264,32 +293,55 @@ On approval, run the script for real:
 node <skill-dir>/scripts/switch_to_versionless.mjs <projectDir>
 ```
 
-This merges into (or creates) `project-manifest.json` and edits the child `pom.xml`:
-it comments out the newly-migrated connector `<dependency>` blocks, flips
-`<packaging>` to `mule-application-versionless`, and bumps the `mule-maven-plugin`
-version. The manifest and the child pom are the only two files it ever writes.
+This copies the project into `target/versionless-staging/` and, **in that staged copy**,
+writes `project-manifest.json` and the versionless `pom.xml` (comments out the
+newly-migrated connector `<dependency>` blocks, flips `<packaging>` to
+`mule-application-versionless`, and bumps the `mule-maven-plugin` version). The source
+tree is left untouched.
 
-### Step 5: Verify and report
+### Step 5: Verify, then build if asked
 
-Confirm the result:
+Confirm the result against the **staged** tree (`report.stagingDir`):
 
-- Read `project-manifest.json` and check it matches the planned connectors.
-- Read `pom.xml` and confirm: each migrated connector block is wrapped in
+- Read `<stagingDir>/project-manifest.json` and check it matches the planned connectors.
+- Read `<stagingDir>/pom.xml` and confirm: each migrated connector block is wrapped in
   `<!-- [versionless] moved to project-manifest.json ... -->`, `<packaging>` is
   `mule-application-versionless`, and the `mule-maven-plugin` version is
   `4.11.0-SNAPSHOT`.
-- Re-run the script; on the second run `newlyAdded[]`, `pomEdits[]`, and
-  `pomVersionlessChanges[]` are all empty and the manifest is unchanged (idempotent).
-  Adding another connector to the pom later and re-running appends just that one —
-  existing entries are retained.
+- Confirm the **source** `pom.xml` is unchanged and no `project-manifest.json` was written
+  to the source root.
+- Re-run the script; the staged `pom.xml` and `project-manifest.json` come out
+  byte-identical (the staged copy is always rebuilt from pristine source).
 
-Report concisely: how many connectors were moved, which were skipped and why, any
-connector whose version could not be resolved (written as `version: null`), and any
-parent-declared connectors left in place. State plainly if anything needs manual
-follow-up.
+**Then handle the build:**
+
+- **If the prompt asked to build** (e.g. "switch **and build** a versionless jar"), build
+  the staged app now by invoking the sibling **build-run-versionless-app** skill. Point
+  its `scripts/build.sh` at the **project root** — it auto-detects
+  `target/versionless-staging/` — or pass the staging dir directly:
+
+  ```bash
+  <build-skill-dir>/scripts/build.sh <projectDir>
+  ```
+
+  The jar lands at `<stagingDir>/target/*-mule-application-versionless.jar`. Per **skill
+  build-run-versionless-app** (Rule 4), deploy it **in-tree** from the staged `target/`
+  by absolute path: at deploy time the runtime resolves the app's connectors from the
+  on-disk `project-manifest.json` it finds by walking up from the jar to an ancestor
+  `pom.xml`, so a jar copied to a directory with no ancestor `pom.xml` can silently fail
+  to load its connectors. See that skill for setup (`scripts/setup.sh`) and deploy/run.
+
+- **If the prompt did not ask to build**, offer it: tell the user the staged app is ready
+  and ask whether to build the versionless jar. Only build on a yes.
+
+Report concisely: where the app was staged, how many connectors were moved, which were
+skipped and why, any connector whose version could not be resolved (written as
+`version: null`), any parent-declared connectors left in place, and — if you built — the
+jar path. State plainly if anything needs manual follow-up.
 
 Finally, **remove the transient gate report** from Step 2 — the switch succeeded, so it
-has served its purpose and only the manifest + pom are the real deliverables:
+has served its purpose and the staged tree (`target/versionless-staging/`) is the real
+deliverable:
 
 ```bash
 rm -f /tmp/<app>-switch-gate.json
@@ -302,9 +354,11 @@ confirm — in those cases the report stays for the user to act on.
 
 ## Best Practices
 
-- **Commit or stash first.** ✅ Have the user commit before applying so the pom edits
-  and new manifest are easy to review or revert. ❌ Don't run on a dirty tree without
-  telling them.
+- **Source stays clean — nothing to revert.** ✅ The switch only writes under
+  `target/versionless-staging/`, so no commit is needed to protect the source; to discard
+  a switch, just delete that dir. Add `target/` to `.gitignore` (usually already there) so
+  the staged tree doesn't get committed. ❌ Don't hand-edit the source pom to "make it
+  versionless" — that defeats the non-destructive design.
 - **Reconcile unconfirmed names.** ✅ Trust `xmlPrefixes[]` over the artifactId when
   they disagree (e.g. `mule-objectstore-connector` → `os`). ❌ Never write a name the
   XML doesn't support just because it was derived from the artifactId.

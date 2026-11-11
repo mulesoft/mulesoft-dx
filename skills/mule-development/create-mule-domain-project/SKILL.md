@@ -48,7 +48,7 @@ Invoke scripts by the absolute path of this skill's directory (the directory con
 
 | Script | Purpose | Output |
 | --- | --- | --- |
-| `scripts/scaffold_domain.mjs` | Writes the domain project: `pom.xml` (packaging `mule-domain`, `mule-maven-plugin` 4.10.3, the Exchange and MuleSoft repositories used by ACB), `mule-artifact.json` (`minMuleVersion` = runtime `x.y.0`, `javaSpecificationVersions`), `src/main/mule/mule-domain-config.xml` (root `<domain:mule-domain>` with `<configuration-properties file="domain.properties">`), `src/main/resources/domain.properties`, and `.vscode/settings.json`. The name is converted to kebab-case, which becomes both the folder name and the artifactId. Refuses to overwrite an existing folder. | stdout JSON `{projectDir, artifactId, groupId, version, runtime, java, files[]}`. Exit 0 when written, 1 on bad input or an existing folder |
+| `scripts/scaffold_domain.mjs` | Writes the domain project: `pom.xml` (packaging `mule-domain`, `mule-maven-plugin` 4.10.3, the Exchange and MuleSoft repositories used by ACB), `mule-artifact.json` (`minMuleVersion` = runtime `x.y.0`, `javaSpecificationVersions`), `src/main/mule/mule-domain-config.xml` (root `<domain:mule-domain>` with `<configuration-properties file="domain.properties">`), `src/main/resources/domain.properties`, an empty `src/test/munit` folder (without it, `mvn install` fails in `generate-test-sources` once the domain has a connector dependency), and `.vscode/settings.json`. The name is converted to kebab-case, which becomes both the folder name and the artifactId. Refuses to overwrite an existing folder. | stdout JSON `{projectDir, artifactId, groupId, version, runtime, java, files[]}`. Exit 0 when written, 1 on bad input or an existing folder |
 
 ```
 node <skill-dir>/scripts/scaffold_domain.mjs <parent-dir> <domain-name> \
@@ -68,13 +68,15 @@ Read what the user already said, and ask (with `AskUserQuestion`) only for what 
 | Input | Default | Notes |
 | --- | --- | --- |
 | Domain name | none (required) | At least 3 characters. Converted to kebab-case (`Shared Services` → `shared-services`). |
-| Parent folder | Workspace root | The folder that contains the user's Mule apps. |
+| Parent folder | Workspace root | The folder that contains the user's Mule apps. It may not exist yet: the script creates missing parent folders, so do not stop or ask. |
 | groupId | The sibling apps' `groupId`, else `com.mycompany` | Linked apps reference the domain by this groupId. |
 | Mule Runtime | The sibling apps' highest `app.runtime`, else `4.9.0` | **Apps inherit the domain's runtime when they are linked.** Pick a version every app can run on. |
 | Java | The sibling apps' `javaSpecificationVersions`, else `17` | Apps inherit this too. |
 | Exchange repository | Copy the `anypoint-exchange-v3` URL from a sibling app's `pom.xml` (`--exchange-url`); otherwise ask for the control-plane region (`--region us\|eu\|ca\|jp`, default `us`) | Keeps the domain resolving connectors from the same Exchange as the apps. |
 
 To read the sibling defaults, run the scan from skill link-mule-domain (`node <link-mule-domain-dir>/scripts/scan_workspace.mjs <workspace-root>`, where `<link-mule-domain-dir>` is the sibling `link-mule-domain` folder next to this skill's directory), or read the sibling `pom.xml` and `mule-artifact.json` files directly.
+
+**No sibling apps:** an app the user names might not exist yet (for example, "a domain for my orders app" before `orders-app` is created), or the parent folder might contain no apps. Either way, do not stop and do not ask for the groupId, runtime, or Java. Use the defaults above and list them in the Step 6 summary. Ask only for the control-plane region, and only if the user hasn't given it.
 
 ## Step 2: Scaffold
 
@@ -114,7 +116,23 @@ cd "<projectDir>" && mvn clean install -DskipTests
 
 `install` puts `<artifactId>-<version>-mule-domain.jar` into `~/.m2`. Linked applications compile against that jar, and the run configuration deploys it. If the build fails with a 401 against `anypoint-exchange-v3`, the Anypoint credentials in `~/.m2/settings.xml` are missing or expired. Tell the user, and do not retry blindly.
 
-## Step 5: Report and offer next steps
+## Step 5: Add the domain to the workspace
+
+ACB recognizes the domain only after it is in the open VS Code workspace. When the build succeeds, call the `open_project` tool:
+
+```typescript
+{
+  "projectPath": "<projectDir>",
+  "addToWorkspace": true,
+  "newWindow": false
+}
+```
+
+If `open_project` is not available, run `code --add "<projectDir>"`. If both fail, carry on to Step 6 and tell the user to add the folder with **File → Add Folder to Workspace**.
+
+If the window held only one folder before, adding the domain turns it into an unsaved (in-memory) multi-root workspace. Skill create-mule-run-config saves it to a `.code-workspace` file when a run configuration needs one.
+
+## Step 6: Report and offer next steps
 
 Summarize:
 
@@ -137,7 +155,7 @@ Then offer:
 | --- | --- |
 | `target folder already exists` | Choose another name. The script never overwrites. |
 | `domain name must have at least 3 characters` | Same rule as the ACB "Create Mule Domain Project" command. |
-| ACB doesn't show the project as a domain | Check that `pom.xml` has `<packaging>mule-domain</packaging>`, and reload the window. |
+| ACB doesn't show the project as a domain | Make sure the folder is in the workspace (Step 5) and that `pom.xml` has `<packaging>mule-domain</packaging>`. Then reload the window. |
 | `mvn install` 401 Unauthorized on `anypoint-exchange-v3` | Refresh the Anypoint credentials in `~/.m2/settings.xml` (or sign in again in ACB), then rebuild. |
 | User wants to deploy to CloudHub | Domains aren't supported there. Keep the shared configs in each app instead, or use skill manage-global-configurations to consolidate them per app. |
 

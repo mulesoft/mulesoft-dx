@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- **`create-mule-domain-project`** (new): creates a Mule 4 domain project that Anypoint Code Builder treats as a domain. `scripts/scaffold_domain.mjs` writes the same `pom.xml` as ACB's "Create Mule Domain Project" (`<packaging>mule-domain</packaging>`, `mule-maven-plugin` 4.10.3, region-aware Exchange repository), plus `mule-artifact.json` and `src/main/mule/mule-domain-config.xml`. It also writes `src/main/resources/domain.properties`, registered through `<configuration-properties>`. Shared resources that the user describes in natural language are created through `manage-global-configurations` in domain mode, and the domain is then `mvn install`ed.
+- **`create-mule-domain-project`** (new): creates a Mule 4 domain project that Anypoint Code Builder treats as a domain. `scripts/scaffold_domain.mjs` writes the same `pom.xml` as ACB's "Create Mule Domain Project" (`<packaging>mule-domain</packaging>`, `mule-maven-plugin` 4.10.3, region-aware Exchange repository), plus `mule-artifact.json` and `src/main/mule/mule-domain-config.xml`. It also writes `src/main/resources/domain.properties`, registered through `<configuration-properties>`. Shared resources that the user describes in natural language are created through `manage-global-configurations` in domain mode, and the domain is then `mvn install`ed. The scaffold also creates an empty `src/test/munit` folder, so `mvn install` doesn't fail in `generate-test-sources` once the domain has a connector dependency. Finally, the domain is added to the VS Code workspace with `open_project` (`addToWorkspace: true`) so ACB recognizes it. The skill falls back to defaults when the parent folder or the named sibling apps don't exist yet.
 - **`link-mule-domain`** (new): links an application to a domain, or unlinks it, with a dry-run plan and a confirmation gate.
   - **Linking** makes the same edits ACB does:
     - adds a `mule-domain` dependency with `provided` scope;
@@ -35,6 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - rejects a selection that contains only domains;
   - fails with a clear error when an app's domain is neither in the workspace nor installed in `~/.m2`.
   
+  Before creating a multi-project configuration, a new Step 2c checks that the multi-root workspace is saved to a `.code-workspace` file. If it isn't, the skill offers to create one. If `execute` fails because the workspace isn't saved, Step 5b falls back to `run_local_mule_application` for a single application without a domain. First it adds the `name` field to `mule-artifact.json` when it's missing, because the tool requires it.
+
   `execute-mule-run-config` and `update-mule-run-config` use the same check, and `execute-mule-run-config` explains how to recover from the runtime's missing-domain error.
 - **`build-mule-integration`**: update mode no longer generates flows in a domain project. In an app linked to a domain, it reuses the domain's shared configs.
 

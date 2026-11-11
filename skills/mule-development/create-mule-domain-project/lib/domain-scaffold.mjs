@@ -4,7 +4,9 @@
 // Domain Project" command (pom.xml with <packaging>mule-domain</packaging>,
 // mule-artifact.json, src/main/mule/mule-domain-config.xml, .vscode/settings.json),
 // plus src/main/resources/domain.properties registered through
-// <configuration-properties> so shared resources can use ${placeholders}.
+// <configuration-properties> so shared resources can use ${placeholders}, and
+// an empty src/test/munit folder (mule-maven-plugin's generate-test-sources
+// fails without it once the domain has a connector dependency).
 //
 // scaffoldDomain(parentDir, name, opts) -> {projectDir, artifactId, ..., files[]}
 //     Throws on invalid input or when the target folder exists; never overwrites.
@@ -15,6 +17,8 @@ import { join, resolve } from 'node:path';
 export const MULE_MAVEN_PLUGIN_VERSION = '4.10.3';
 export const DEFAULT_RUNTIME = '4.9.0';
 export const DEFAULT_JAVA = '17';
+
+const EMPTY_DIRS = ['src/test/munit'];
 
 const EXCHANGE_HOSTS = {
   us: 'anypoint',
@@ -178,5 +182,6 @@ export function scaffoldDomain(parentDir, rawName, opts = {}) {
     mkdirSync(join(abs, '..'), { recursive: true });
     writeFileSync(abs, content);
   }
+  for (const rel of EMPTY_DIRS) mkdirSync(join(projectDir, rel), { recursive: true });
   return { projectDir, artifactId, groupId, version, runtime, java, files: Object.keys(files) };
 }

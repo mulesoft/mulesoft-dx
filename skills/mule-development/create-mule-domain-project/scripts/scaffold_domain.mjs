@@ -4,7 +4,8 @@
 // Project" command generates (pom.xml with <packaging>mule-domain</packaging>,
 // mule-artifact.json, src/main/mule/mule-domain-config.xml), plus a
 // src/main/resources/domain.properties file registered through
-// <configuration-properties> so shared resources can use ${placeholders}.
+// <configuration-properties> so shared resources can use ${placeholders}, and
+// an empty src/test/munit folder.
 //
 // Usage:
 //   node scripts/scaffold_domain.mjs <parent-dir> <domain-name> \

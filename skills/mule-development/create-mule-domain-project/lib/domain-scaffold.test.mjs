@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,6 +61,8 @@ test('scaffoldDomain writes the full domain layout', () => withTmp((dir) => {
 
   const props = readFileSync(join(res.projectDir, 'src/main/resources/domain.properties'), 'utf8');
   assert.match(props, /^# Shared properties/);
+
+  assert.ok(existsSync(join(res.projectDir, 'src/test/munit')));
 }));
 
 test('scaffoldDomain refuses to overwrite and validates input', () => withTmp((dir) => {

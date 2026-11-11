@@ -4,24 +4,7 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.7]
-
-### Added
-
-- **`upgrade-mule-app`** — Step 1 now checks that `~/.m2/settings.xml` defines the MuleSoft releases repository (`https://repository.mulesoft.org/releases/`) and, after one confirmation, adds it. Without it `anypoint-cli-v4 dx mule describe-connector` exits 1 with no output, because a connector's parent POMs live only on that repository. `validate_prerequisites.mjs` reports it as `mulesoftReleasesRepo`, and `describe_connector.mjs` now prints the likely cause and the snippet to add when describe-connector fails with no output and the repo is missing. New `scripts/ensure_mulesoft_releases_repo.mjs` (check by default; `--apply` writes a `settings.xml.bak-<timestamp>` backup first, adds a dedicated profile activated through `<activeProfiles>`, and creates `~/.m2/repository` when missing). A repo already declared in an active profile, or a catch-all `<mirror>`, counts as covered and nothing is written.
-
-### Fixed
-
-- **`secure-mule-app`** — Step 3 downloaded the outdated `secure-properties-tool.jar` (from the `4.4` docs path), built for pre-JDK 17 connectors. It now uses `secure-properties-tool-j17.jar` from `https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar`, and the encrypt command in Step 8 points at the same file. `curl` now uses `-f` so an HTTP error is not saved as a "JAR". Both download paths now check the result with `unzip -tq`, so a `wget` error page or truncated file is rejected. A previously cached `secure-properties-tool.jar` is ignored and the new file is fetched.
-- **`manage-global-configurations`** — the `properties-patterns.md` encrypt example used `--key`/`--value` flags, which the tool rejects ("Invalid arguments"); key and value are positional arguments.
-- **`upgrade-mule-app`** — Step 1 now fails fast when there is no Anypoint session or only an Anypoint Code Builder sign-in, which the CLI does not share, telling the user to authenticate the Anypoint CLI instead of letting later CLI and Maven calls fail opaquely. `validate_prerequisites.mjs` reports it as `anypointSession`.
-- **`upgrade-mule-app`** — Duplicate `<server><id>` entries in `~/.m2/settings.xml` are now detected and reported (`duplicateServerIds` from `validate_prerequisites.mjs` and `write_maven_settings.mjs`) before any `mvn` call. Maven only warns about them, and a stale duplicate can shadow the correct credential without an explicit 401. The skill reports them and never edits the user's file.
-
-## [1.9.6]
-
-### Added
-
-- **`upgrade-mule-app`** — opt-in per-step timing (debug mode, W-24731668). Only when the user asks to run the skill with timing: Step 1 runs `scripts/step_timer.mjs init`, each step/sub-step runs `mark <step>` (Steps 16/17 are numbered per attempt by the script), every question to the user (e.g. Step 3a, Step 12.4) is bracketed with `wait-start`/`wait-end` so user wait is reported as its own row, and `report` (Step 19 and every STOP/HALT/cancel) writes the per-step table. Marks fired less than 1s apart are merged into one row (`8 + 9 + 10`) because their times cannot be split. `describe_connector.mjs` also appends each CLI call's duration. Output is `upgrade-timing.jsonl` (raw marks) and `upgrade-timing.md` (table) in the app directory, outside `tmp/`; the Step 20 summary gains a fourth `Timing:` line only in this mode. New `lib/step-timing.mjs`, with tests. Normal runs are unchanged, except that a leftover `upgrade-timing.jsonl` from an earlier timed run can still receive `describe_connector` records.
+## [1.9.8] - Unreleased
 
 ### Added
 
@@ -54,6 +37,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   
   `execute-mule-run-config` and `update-mule-run-config` use the same check, and `execute-mule-run-config` explains how to recover from the runtime's missing-domain error.
 - **`build-mule-integration`**: update mode no longer generates flows in a domain project. In an app linked to a domain, it reuses the domain's shared configs.
+
+## [1.9.7]
+
+### Added
+
+- **`upgrade-mule-app`** — Step 1 now checks that `~/.m2/settings.xml` defines the MuleSoft releases repository (`https://repository.mulesoft.org/releases/`) and, after one confirmation, adds it. Without it `anypoint-cli-v4 dx mule describe-connector` exits 1 with no output, because a connector's parent POMs live only on that repository. `validate_prerequisites.mjs` reports it as `mulesoftReleasesRepo`, and `describe_connector.mjs` now prints the likely cause and the snippet to add when describe-connector fails with no output and the repo is missing. New `scripts/ensure_mulesoft_releases_repo.mjs` (check by default; `--apply` writes a `settings.xml.bak-<timestamp>` backup first, adds a dedicated profile activated through `<activeProfiles>`, and creates `~/.m2/repository` when missing). A repo already declared in an active profile, or a catch-all `<mirror>`, counts as covered and nothing is written.
+
+### Fixed
+
+- **`secure-mule-app`** — Step 3 downloaded the outdated `secure-properties-tool.jar` (from the `4.4` docs path), built for pre-JDK 17 connectors. It now uses `secure-properties-tool-j17.jar` from `https://docs.mulesoft.com/mule-runtime/latest/_attachments/secure-properties-tool-j17.jar`, and the encrypt command in Step 8 points at the same file. `curl` now uses `-f` so an HTTP error is not saved as a "JAR". Both download paths now check the result with `unzip -tq`, so a `wget` error page or truncated file is rejected. A previously cached `secure-properties-tool.jar` is ignored and the new file is fetched.
+- **`manage-global-configurations`** — the `properties-patterns.md` encrypt example used `--key`/`--value` flags, which the tool rejects ("Invalid arguments"); key and value are positional arguments.
+- **`upgrade-mule-app`** — Step 1 now fails fast when there is no Anypoint session or only an Anypoint Code Builder sign-in, which the CLI does not share, telling the user to authenticate the Anypoint CLI instead of letting later CLI and Maven calls fail opaquely. `validate_prerequisites.mjs` reports it as `anypointSession`.
+- **`upgrade-mule-app`** — Duplicate `<server><id>` entries in `~/.m2/settings.xml` are now detected and reported (`duplicateServerIds` from `validate_prerequisites.mjs` and `write_maven_settings.mjs`) before any `mvn` call. Maven only warns about them, and a stale duplicate can shadow the correct credential without an explicit 401. The skill reports them and never edits the user's file.
+
+## [1.9.6]
+
+### Added
+
+- **`upgrade-mule-app`** — opt-in per-step timing (debug mode, W-24731668). Only when the user asks to run the skill with timing: Step 1 runs `scripts/step_timer.mjs init`, each step/sub-step runs `mark <step>` (Steps 16/17 are numbered per attempt by the script), every question to the user (e.g. Step 3a, Step 12.4) is bracketed with `wait-start`/`wait-end` so user wait is reported as its own row, and `report` (Step 19 and every STOP/HALT/cancel) writes the per-step table. Marks fired less than 1s apart are merged into one row (`8 + 9 + 10`) because their times cannot be split. `describe_connector.mjs` also appends each CLI call's duration. Output is `upgrade-timing.jsonl` (raw marks) and `upgrade-timing.md` (table) in the app directory, outside `tmp/`; the Step 20 summary gains a fourth `Timing:` line only in this mode. New `lib/step-timing.mjs`, with tests. Normal runs are unchanged, except that a leftover `upgrade-timing.jsonl` from an earlier timed run can still receive `describe_connector` records.
 
 ### Fixed
 

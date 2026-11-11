@@ -43,6 +43,10 @@ Do **not** put these in a domain: flows, sub-flows, `error-handler` used by flow
 - For secrets, use `secure-properties:config` with `${secure::key}`. The decryption key comes from a system property (`-Dsecure.key=…`) on the runtime that hosts the domain.
 - `${domain}` resolves to the domain name only inside a domain. Avoid it in elements that might later be inlined into an app during an unlink.
 
+## Applications Linked to a Domain
+
+When the target is an application linked to a domain, check the domain's shared elements before creating a config. If the domain already provides an equivalent config (same type and purpose, for example an HTTP listener on the same port), propose referencing it by name instead of creating a duplicate. A local config with the same name **shadows** the domain's. A listener on the same port fails at deploy.
+
 ## Before Editing or Deleting a Shared Resource
 
 Shared resources are a cross-project contract. Before any **EDIT** that renames an element or changes its type, and before any **DELETE**:
@@ -65,3 +69,8 @@ Edits that change only values (a port, a host, a pool size) need no app changes.
 - **LIST ALL**: list the top-level elements of `<domain:mule-domain>`. For each, report the usage count across the linked apps (0 = unused shared resource).
 - **VALIDATE**: in the domain itself, check intra-domain references (e.g. `tlsContext` on a listener). Then, for each linked app, check that its references resolve to either the app or the domain. Use `node <link-mule-domain-dir>/scripts/link_domain.mjs <app> <domain> --dry-run`, whose `references.dangling` / `references.shadowed` fields report this.
 - Flag any listener port that is configured both in the domain and in an app: deploying both fails with "port already in use".
+
+## Troubleshooting
+
+- **Linked app can't find a shared config after a domain change:** Reinstall the domain (`mvn clean install -DskipTests` in the domain project) and rebuild the app.
+- **Port already in use at deploy:** An app declares its own listener on the domain listener's port. Make the app reference the domain's listener instead.

@@ -133,16 +133,9 @@ If multiple Mule projects exist in the workspace, ask the user which one to use 
 
 **Detect Domain Mode:**
 
-Read the target's `pom.xml`. If it has `<packaging>mule-domain</packaging>`, the project is a **Mule domain**. Read `references/domain-shared-resources.md`, then apply these overrides for every step that follows:
+Read the target's `pom.xml`. If it has `<packaging>mule-domain</packaging>`, the project is a **Mule domain**: read `references/domain-shared-resources.md` and apply its overrides (target file, properties file, dependencies, no flows, cross-app checks, `mvn install`) to every step that follows.
 
-- Write global elements to `src/main/mule/mule-domain-config.xml`, inside the `<domain:mule-domain>` root, instead of `global-configs.xml`.
-- Write placeholders to `src/main/resources/domain.properties` (`key=value`) instead of `config.yaml`, and make sure `<configuration-properties file="domain.properties"/>` is registered.
-- Add dependencies to the **domain's** `pom.xml`. JDBC drivers and JMS client jars also go into the `mule-maven-plugin` `<sharedLibraries>`.
-- Never create flows or sub-flows. Refuse to add flow-bound elements (API AutoDiscovery, `configuration` / `defaultErrorHandler-ref`, error handlers), and suggest adding them to the application instead.
-- EDIT (rename or type change), DELETE, FIND USAGES, LIST ALL and VALIDATE also scan the **linked applications**. See "Before Editing or Deleting a Shared Resource" in the reference.
-- Validate with `mvn clean install -DskipTests` (not `package`), so linked apps and run configurations pick up the new domain jar.
-
-If the target is an application linked to a domain (its `pom.xml` has a `<classifier>mule-domain</classifier>` dependency), check the domain's shared elements before creating a config. If the domain already provides an equivalent config (same type and purpose, for example an HTTP listener on the same port), propose referencing it by name instead of creating a duplicate. A local config with the same name **shadows** the domain's. A listener on the same port fails at deploy.
+If the target is an application linked to a domain (a `<classifier>mule-domain</classifier>` dependency in its `pom.xml`), read "Applications Linked to a Domain" in the same reference before creating a config.
 
 **Operation Routing — Level 1 (Domain):**
 
@@ -309,17 +302,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
 1. Write XML (config BEFORE object-store) to `global-configs.xml`.
 2. Add `os` namespace: `xmlns:os="http://www.mulesoft.org/schema/mule/os"` and its schemaLocation entry.
 3. **Add `mule-objectstore-connector` dependency to pom.xml** (MANDATORY — do not skip):
-   - Read `pom.xml` and check if `mule-objectstore-connector` already exists in `<dependencies>`.
-   - If NOT present, add this dependency block inside `<dependencies>`:
-     ```xml
-     <dependency>
-         <groupId>org.mule.connectors</groupId>
-         <artifactId>mule-objectstore-connector</artifactId>
-         <version>1.2.5</version>
-         <classifier>mule-plugin</classifier>
-     </dependency>
-     ```
-   - Write the updated `pom.xml`.
+   - If `mule-objectstore-connector` is not already in `<dependencies>`, add the dependency block from the Object Store "pom.xml Dependency" section of `references/global-elements-catalog.md`, and write `pom.xml`.
 4. Validate build: `cd <project-dir> && mvn clean package -DskipTests`.
 
 ### CACHING STRATEGY — CREATE
@@ -357,18 +340,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
    ```
 2. Add `api-gateway` namespace: `xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"` and its schemaLocation entry.
 3. **Add `mule-api-gateway` dependency to pom.xml** (MANDATORY — do not skip):
-   - Read `pom.xml` and check if `mule-api-gateway` already exists in `<dependencies>`.
-   - If NOT present, add this dependency block inside `<dependencies>`:
-     ```xml
-     <dependency>
-         <groupId>org.mule.modules</groupId>
-         <artifactId>mule-api-gateway</artifactId>
-         <version>${app.runtime}</version>
-         <classifier>mule-plugin</classifier>
-         <scope>provided</scope>
-     </dependency>
-     ```
-   - Write the updated `pom.xml`.
+   - If `mule-api-gateway` is not already in `<dependencies>`, add the dependency block from the API AutoDiscovery "pom.xml Dependency" section of `references/global-elements-catalog.md`, and write `pom.xml`.
 4. **Add `api.id` to config.yaml** (MANDATORY — do not skip):
    - Read `src/main/resources/config.yaml`.
    - Add `api.id: "YOUR_API_ID"` (or user-specified value) under an appropriate section.
@@ -497,13 +469,7 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 
 ## Tips and Best Practices
 
-- **Configuration structure from metadata only.** Never hardcode attributes or child elements for connectors. The `describe-connector` metadata is the source of truth.
-- **Connector versions from Exchange only.** Never paste a version from memory — use `get_latest_connector.sh` → `pick_connector.sh`.
-- **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
-- **Multi-turn interactive.** At every decision point: print only questions as plain text, end the response, and wait for user input before proceeding.
-- **Skip-if-provided.** When the user's initial request includes details (config name, provider, placeholder preference, field values), skip the corresponding STOP points. Only ask for information that was NOT provided or is ambiguous.
-- **Never output raw XML to chat** — always write to file.
-- **No MCP server tools.** ALL Exchange searches and connector operations MUST use ONLY the bash scripts provided.
+- **The Step 1 rules apply throughout** — metadata-only config structure, Exchange-only versions, `global-configs.xml`, multi-turn STOPs, skip-if-provided, no raw XML in chat, no MCP tools.
 - **Always update pom.xml.** Every connector/module that needs a dependency MUST be added to `pom.xml`. This is the #1 cause of build failures. The dependency XML patterns are documented in `references/global-elements-catalog.md`. Read pom.xml → add dependency → write pom.xml. Do this BEFORE running `mvn clean package`.
 - **Always update config.yaml for placeholders.** When using `${property.name}` placeholders in XML, the corresponding property MUST be added to `src/main/resources/config.yaml`. For AutoDiscovery, always add `api.id` to config.yaml.
 
@@ -513,8 +479,6 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 - **Connector not found in Exchange:** Ensure Anypoint CLI is authenticated. Try broader search terms with `get_latest_connector.sh`.
 - **Describe-connector fails:** Verify Java 11+ is available and the connector GAV is valid. Check `tmp/connector-choices/` for the saved JSON.
 - **Unresolved placeholders at runtime:** Ensure `<configuration-properties>` is registered in `global-configs.xml` and the properties file exists in `src/main/resources/`.
-- **Linked app can't find a shared config after a domain change:** Reinstall the domain (`mvn clean install -DskipTests` in the domain project) and rebuild the app.
-- **Port already in use at deploy (domain mode):** An app declares its own listener on the domain listener's port. Make the app reference the domain's listener instead.
 - **Namespace conflicts:** Run consolidation to centralize all global elements and clean up duplicate namespace declarations.
 
 ## Related Jobs

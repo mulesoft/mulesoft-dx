@@ -1,8 +1,25 @@
 ---
 name: create-mule-domain-project
-description: Workflow required before creating a Mule domain project. Call use_skill as your FIRST action — before writing any pom.xml or mule-domain-config.xml yourself — to create a new Mule 4 domain project, the shared-resource container that several Mule applications deployed to the same Mule Runtime can reference. Generates pom.xml with mule-domain packaging, mule-artifact.json, src/main/mule/mule-domain-config.xml and src/main/resources/domain.properties, then adds any shared resources the user describes (HTTP listeners, DB pools, JMS connections, TLS contexts, object stores). Use when the user asks to "create a domain project", "new Mule domain", "create a shared domain", "share an HTTP listener across apps", "set up a domain for my apps", or "create a domain with a shared DB pool". DO NOT TRIGGER for creating a Mule application (use skill build-mule-integration), for adding a shared resource to an existing domain (use skill manage-global-configurations), or for linking an app to a domain (use skill link-mule-domain). When you call use_skill, it must be the only tool call in that response.
+description: >-
+  Workflow required before creating a Mule domain project. Call use_skill as your FIRST action —
+  before writing any pom.xml or mule-domain-config.xml yourself — to create a new Mule 4 domain
+  project, the shared-resource container that several Mule applications deployed to the same Mule
+  Runtime can reference. Generates pom.xml with mule-domain packaging, mule-artifact.json,
+  src/main/mule/mule-domain-config.xml and src/main/resources/domain.properties, then adds any
+  shared resources the user describes (HTTP listeners, DB pools, JMS connections, TLS contexts,
+  object stores). TRIGGER when: the user asks to "create a domain project", "new Mule domain",
+  "create a shared domain", "share an HTTP listener across apps", "set up a domain for my apps", or
+  "create a domain with a shared DB pool". DO NOT TRIGGER when: the user wants to create a Mule
+  application (use skill build-mule-integration), add a shared resource to an existing domain (use
+  skill manage-global-configurations), or link an app to a domain (use skill link-mule-domain). When
+  you call use_skill, it must be the only tool call in that response.
 license: Apache-2.0
 compatibility: Requires Node.js 18+ and Maven 3.9.x (for the install step). Domains run on customer-hosted Mule Runtime (standalone / Runtime Fabric on-prem); CloudHub and CloudHub 2.0 do not support domains.
+tags:
+  - MuleSoft
+  - Domains
+  - Shared Resources
+  - Project Creation
 metadata:
   author: mule-dx-tooling
   version: "1.0.0"
@@ -13,6 +30,8 @@ allowed-tools: Bash Read Write Edit AskUserQuestion
 # Create Mule Domain Project
 
 Create a Mule 4 domain project that Anypoint Code Builder recognizes as a first-class **domain** project (pom `<packaging>mule-domain</packaging>`), optionally seeded with the shared resources the user describes in natural language.
+
+**What you'll build:** A domain project (`pom.xml`, `mule-artifact.json`, `mule-domain-config.xml`, `domain.properties`) installed in `~/.m2` and added to the VS Code workspace, ready for applications to link to it.
 
 ## When to Use This Skill
 
@@ -30,8 +49,6 @@ Create a Mule 4 domain project that Anypoint Code Builder recognizes as a first-
 - Linking or unlinking an application to a domain → skill link-mule-domain
 - Running a domain with its applications → skill create-mule-run-config
 
----
-
 ## Prerequisites
 
 - Node.js 18+ (the bundled script is zero-dependency ESM).
@@ -39,8 +56,6 @@ Create a Mule 4 domain project that Anypoint Code Builder recognizes as a first-
 - A workspace folder to create the domain in. Usually this is the same parent folder (or multi-root workspace) as the applications that will use it.
 
 **Platform constraint:** domains only run on customer-hosted Mule Runtime (standalone server, hybrid, or Runtime Fabric on self-managed infrastructure). CloudHub and CloudHub 2.0 do **not** support domains. Tell the user this whenever their apps deploy to CloudHub.
-
----
 
 ## Bundled scripts
 
@@ -59,9 +74,33 @@ node <skill-dir>/scripts/scaffold_domain.mjs <parent-dir> <domain-name> \
 
 The logic lives in `lib/domain-scaffold.mjs`; tests are in `lib/domain-scaffold.test.mjs` (`node --test`).
 
----
+## Workflow
 
-## Step 1: Collect inputs
+### Execution paths
+
+- **Create an empty domain**: Steps 1, 2, 4, 5, 6
+  - When: User asks for a domain project without describing any shared resources
+  - You'll need: `domainName`, `parentDir`
+
+- **Create a domain with shared resources**: Steps 1, 2, 3, 4, 5, 6
+  - When: User describes what the domain should share (HTTP listener, DB pool, JMS, TLS context, object store)
+  - You'll need: `domainName`, `parentDir`, `sharedResources`
+
+### Architecture
+
+```mermaid
+flowchart TD
+    A[User request] --> B[Step 1: Collect inputs<br/>defaults from sibling apps]
+    B --> C[Step 2: scaffold_domain.mjs]
+    C --> D{Shared resources<br/>described?}
+    D -- yes --> E[Step 3: manage-global-configurations<br/>domain mode]
+    D -- no --> F
+    E --> F[Step 4: mvn clean install]
+    F --> G[Step 5: open_project<br/>addToWorkspace]
+    G --> H[Step 6: Report + offer link / run config]
+```
+
+### Step 1: Collect inputs
 
 Read what the user already said, and ask (with `AskUserQuestion`) only for what is missing:
 
@@ -78,7 +117,7 @@ To read the sibling defaults, run the scan from skill link-mule-domain (`node <l
 
 **No sibling apps:** an app the user names might not exist yet (for example, "a domain for my orders app" before `orders-app` is created), or the parent folder might contain no apps. Either way, do not stop and do not ask for the groupId, runtime, or Java. Use the defaults above and list them in the Step 6 summary. Ask only for the control-plane region, and only if the user hasn't given it.
 
-## Step 2: Scaffold
+### Step 2: Scaffold
 
 ```bash
 node <skill-dir>/scripts/scaffold_domain.mjs "<parent-dir>" "<domain-name>" \
@@ -87,7 +126,7 @@ node <skill-dir>/scripts/scaffold_domain.mjs "<parent-dir>" "<domain-name>" \
 
 If the script exits 1 because the folder exists, **stop** and ask the user for another name. Never delete or overwrite the existing folder.
 
-## Step 3: Add shared resources (when the user described any)
+### Step 3: Add shared resources (when the user described any)
 
 Turn the user's natural-language description into shared resources by following skill manage-global-configurations in **domain mode**. That skill detects `<packaging>mule-domain</packaging>` and then:
 
@@ -108,7 +147,7 @@ Typical mappings:
 
 **Domains hold only shared global elements.** Do not create `<flow>`, `<sub-flow>`, or error handlers that flows use in a domain. Flows belong to the applications.
 
-## Step 4: Build and install
+### Step 4: Build and install
 
 ```bash
 cd "<projectDir>" && mvn clean install -DskipTests
@@ -116,7 +155,7 @@ cd "<projectDir>" && mvn clean install -DskipTests
 
 `install` puts `<artifactId>-<version>-mule-domain.jar` into `~/.m2`. Linked applications compile against that jar, and the run configuration deploys it. If the build fails with a 401 against `anypoint-exchange-v3`, the Anypoint credentials in `~/.m2/settings.xml` are missing or expired. Tell the user, and do not retry blindly.
 
-## Step 5: Add the domain to the workspace
+### Step 5: Add the domain to the workspace
 
 ACB recognizes the domain only after it is in the open VS Code workspace. When the build succeeds, call the `open_project` tool:
 
@@ -132,7 +171,7 @@ If `open_project` is not available, run `code --add "<projectDir>"`. If both fai
 
 If the window held only one folder before, adding the domain turns it into an unsaved (in-memory) multi-root workspace. Skill create-mule-run-config saves it to a `.code-workspace` file when a run configuration needs one.
 
-## Step 6: Report and offer next steps
+### Step 6: Report and offer next steps
 
 Summarize:
 
@@ -147,7 +186,14 @@ Then offer:
 1. To link applications to the domain (skill link-mule-domain).
 2. To create a run configuration that starts the domain with its applications (skill create-mule-run-config).
 
----
+## Best Practices
+
+- **Skip-if-provided.** Extract the domain name, parent folder, groupId, runtime, Java, region, and shared resources from the user's request before asking anything. Ask only for what is missing or ambiguous. "Create a domain called shared-services with a shared HTTP listener on 8081" needs no questions when sibling apps supply the remaining defaults.
+- **Pick the runtime for every app.** Linked apps inherit the domain's runtime and Java version, so choose the highest version all of them can run on.
+- **Never overwrite.** If the target folder exists, ask for another name. Never delete it.
+- **Shared global elements only.** Domains never contain flows, sub-flows, or flow-bound error handlers.
+- **Placeholders for environment values.** Hosts, ports, users, passwords, and keystore paths go to `domain.properties` as `${placeholders}`.
+- **Install before linking.** Apps and run configurations resolve the domain from `~/.m2`, so always finish Step 4 before offering skill link-mule-domain.
 
 ## Troubleshooting
 
@@ -159,11 +205,9 @@ Then offer:
 | `mvn install` 401 Unauthorized on `anypoint-exchange-v3` | Refresh the Anypoint credentials in `~/.m2/settings.xml` (or sign in again in ACB), then rebuild. |
 | User wants to deploy to CloudHub | Domains aren't supported there. Keep the shared configs in each app instead, or use skill manage-global-configurations to consolidate them per app. |
 
----
-
 ## Related Skills
 
-- skill manage-global-configurations: add, edit, or remove shared resources in the domain (domain mode)
-- skill link-mule-domain: reference the domain from applications, or unlink and inline its configs
-- skill create-mule-run-config: run or debug the domain together with its applications
-- skill build-mule-integration: build the applications that use the domain
+- **skill manage-global-configurations**: Add, edit, or remove shared resources in the domain (domain mode)
+- **skill link-mule-domain**: Reference the domain from applications, or unlink and inline its configs
+- **skill create-mule-run-config**: Run or debug the domain together with its applications
+- **skill build-mule-integration**: Build the applications that use the domain

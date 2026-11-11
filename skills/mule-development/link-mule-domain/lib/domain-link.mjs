@@ -388,6 +388,16 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
   const extraElements = [];
   const resourceFiles = [];
   let needsSecure = false;
+  const inlineProperty = (key, owner) => {
+    const value = domain.properties.get(key);
+    if (app.properties.has(key)) {
+      if (app.properties.get(key) !== value) {
+        blockers.push(`Property "${key}" is "${value}" in the domain but "${app.properties.get(key)}" in the application; the inlined "${owner}" would silently change behavior. Decide which value to keep.`);
+      }
+    } else if (!properties.some(([k]) => k === key)) {
+      properties.push([key, value]);
+    }
+  };
 
   for (const el of inlineElements) {
     for (const key of collectPlaceholders(el.text)) {
@@ -401,14 +411,7 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
       }
       if (RUNTIME_PLACEHOLDERS.has(key)) continue;
       if (domain.properties.has(key)) {
-        const value = domain.properties.get(key);
-        if (app.properties.has(key)) {
-          if (app.properties.get(key) !== value) {
-            blockers.push(`Property "${key}" is "${value}" in the domain but "${app.properties.get(key)}" in the application; the inlined "${el.name}" would silently change behavior. Decide which value to keep.`);
-          }
-        } else if (!properties.some(([k]) => k === key)) {
-          properties.push([key, value]);
-        }
+        inlineProperty(key, el.name);
       } else if (globalProps.has(key)) {
         if (!appNames.has(key) && !extraElements.includes(globalProps.get(key))) extraElements.push(globalProps.get(key));
       } else if (!app.properties.has(key)) {
@@ -435,10 +438,11 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
       for (const sc of secureConfigs) {
         if (!appNames.has(sc.name)) extraElements.push(sc);
         const file = ownAttr(sc, 'file');
-        if (file && !file.includes('${') && existsSync(join(domain.resourcesDir, file)) && !existsSync(join(app.resourcesDir, file))) {
-          resourceFiles.push({ src: join(domain.resourcesDir, file), dest: join(app.resourcesDir, file), file });
+        const dest = file && join(app.resourcesDir, file);
+        if (file && !file.includes('${') && existsSync(join(domain.resourcesDir, file)) && !existsSync(dest) && !resourceFiles.some((f) => f.dest === dest)) {
+          resourceFiles.push({ src: join(domain.resourcesDir, file), dest, file });
         }
-        for (const key of collectPlaceholders(sc.text)) if (domain.properties.has(key) && !app.properties.has(key)) properties.push([key, domain.properties.get(key)]);
+        for (const key of collectPlaceholders(sc.text)) if (domain.properties.has(key)) inlineProperty(key, sc.name);
       }
       warnings.push('Inlined configs read encrypted ${secure::...} values: the application must now be started with the same secure-properties encryption key the domain used.');
     }
@@ -463,9 +467,8 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
       connectorChanges.push({ action: 'add', groupId: d.groupId, artifactId: d.artifactId, version: d.version, classifier: d.classifier ?? undefined });
     }
   }
-  const sharedLibraries = [...domain.pomText.matchAll(/<sharedLibrary>[\s\S]*?<groupId>\s*([^<\s]+)\s*<\/groupId>[\s\S]*?<artifactId>\s*([^<\s]+)\s*<\/artifactId>[\s\S]*?<\/sharedLibrary>/g)]
-    .map((m) => ({ groupId: m[1], artifactId: m[2] }))
-    .filter((s) => !new RegExp(`<sharedLibrary>[\\s\\S]*?<artifactId>\\s*${s.artifactId}\\s*</artifactId>`).test(app.pomText));
+  const appLibraries = readSharedLibraries(app.pomText);
+  const sharedLibraries = readSharedLibraries(domain.pomText).filter((s) => !appLibraries.some((a) => sameGA(a, s)));
   if (sharedLibraries.length) {
     warnings.push(`The domain declares shared libraries (${sharedLibraries.map((s) => s.artifactId).join(', ')}) in its mule-maven-plugin <sharedLibraries>; they are added to the application's mule-maven-plugin configuration.`);
   }
@@ -499,6 +502,13 @@ const GLOBAL_CONFIGS_SKELETON = `<?xml version="1.0" encoding="UTF-8"?>
 
 </mule>
 `;
+
+function readSharedLibraries(pomText) {
+  return [...pomText.matchAll(/<sharedLibrary>\s*([\s\S]*?)<\/sharedLibrary>/g)].map((m) => ({
+    groupId: m[1].match(/<groupId>\s*([^<\s]+)\s*<\/groupId>/)?.[1],
+    artifactId: m[1].match(/<artifactId>\s*([^<\s]+)\s*<\/artifactId>/)?.[1],
+  })).filter((l) => l.groupId && l.artifactId);
+}
 
 function namespacesFor(elements, domain) {
   const out = new Map();

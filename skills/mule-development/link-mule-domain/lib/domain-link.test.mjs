@@ -264,6 +264,65 @@ test('unlink surfaces configs that cannot be inlined safely', () => {
   }
 });
 
+test('unlink inlines secure-properties configs without duplicating properties or resource files', () => {
+  const fx = fixture();
+  try {
+    write(join(fx.domain, 'src/main/mule/mule-domain-config.xml'), DOMAIN_XML
+      .replace('xmlns:db=', 'xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"\n  xmlns:db=')
+      .replace('password="${db.password}"', 'password="${secure::db.password}"')
+      .replace('<http:request-config', `<secure-properties:config name="Secure_A" file="secure.yaml" key="\${tls.password}" />
+  <secure-properties:config name="Secure_B" file="secure.yaml" key="\${tls.password}" />
+  <http:request-config`));
+    write(join(fx.domain, 'src/main/resources/secure.yaml'), 'db:\n  password: "![abc]"\n');
+    let app = loadApp(fx.app);
+    const domain = loadDomain(fx.domain);
+    applyLink(app, domain, planLink(app, domain));
+    app = loadApp(fx.app);
+
+    const plan = planUnlink(app, domain);
+    assert.equal(plan.ok, true, plan.blockers.join('\n'));
+    const keys = plan.actions.properties.entries.map(([k]) => k);
+    assert.deepEqual(keys, [...new Set(keys)]);
+    assert.ok(keys.includes('tls.password'));
+    assert.deepEqual(plan.actions.resourceFiles.map((f) => f.file).sort(), ['keystore.jks', 'secure.yaml']);
+    assert.ok(plan.actions.inline.some((e) => e.name === 'Secure_A'));
+  } finally {
+    rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
+test('unlink matches shared libraries by groupId and artifactId', () => {
+  const fx = fixture();
+  const appPom = (groupId) => pom({
+    artifactId: 'orders-app',
+    packaging: 'mule-application',
+    deps: dep('org.mule.connectors', 'mule-http-connector', '1.10.3', 'mule-plugin'),
+    build: `                <configuration>
+                    <sharedLibraries>
+                        <sharedLibrary>
+                            <groupId>${groupId}</groupId>
+                            <artifactId>mysql-connector-j</artifactId>
+                        </sharedLibrary>
+                    </sharedLibraries>
+                </configuration>
+`,
+  });
+  try {
+    const domain = loadDomain(fx.domain);
+    write(join(fx.app, 'pom.xml'), appPom('com.mysql'));
+    let app = loadApp(fx.app);
+    applyLink(app, domain, planLink(app, domain));
+    assert.deepEqual(planUnlink(loadApp(fx.app), domain).actions.sharedLibraries, []);
+
+    write(join(fx.app, 'pom.xml'), appPom('com.example'));
+    app = loadApp(fx.app);
+    applyLink(app, domain, planLink(app, domain));
+    assert.deepEqual(planUnlink(loadApp(fx.app), domain).actions.sharedLibraries, [{ groupId: 'com.mysql', artifactId: 'mysql-connector-j' }]);
+  } finally {
+    rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
 test('scanWorkspace resolves domains from the workspace and ~/.m2', () => {
   const fx = fixture();
   const prev = process.env.MULE_DX_M2_REPO;

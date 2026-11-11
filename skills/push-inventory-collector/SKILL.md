@@ -138,7 +138,7 @@ When type, inventory, auth, and language are known, do not write files in that t
 1. What was collected, in plain English: the list and detail calls, the auth field names (not values), the language, and the one asset type.
 2. One row per inventory call. Columns: Call, Request, Response field, Zip path.
 3. One row per field the zip will contain. Columns: Source, Sent as, Required. Source is the operation and response path, or `constant`. If a required Source cannot be pointed at, leave the row blank and ask only for that API or field. Do not guess. If any required Source is blank, stop here. Do not show items 4–8 and do not ask "Does this look fine?" until every required Source is filled.
-4. One Representative generated JSON object for a single asset, using values from their inventory when they gave an example, otherwise empty strings. For `agent`, every required A2A v0.3 field has a row (`name`, `description`, `protocolVersion`, `url`, `version`, `capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`). A v1 card uses `supportedInterfaces` or `supported_interfaces` and has no top-level `url`. The artifact is `a2a-card.json` or `a2a-v1-card.json`. For `mcp`, `specification/mcp-metadata.json` with `transport` required; if capabilities are included, include all four booleans `tools`, `resources`, `prompts`, and `logging`; do not add `serverInfo`. For `rest-api`, `specification/oas.json` with `info` and `paths`; `externalId` is the provider id, and one stage is one asset.
+4. One Representative generated JSON object for a single asset, using values from their inventory when they gave an example, otherwise empty strings. For `agent`, show the artifact chosen by **ZIP and push**: complete A2A v0.3 is `a2a-card.json` and those keys are required on that row; v1 interfaces with no top-level `url` is `a2a-v1-card.json`; any other agent with an http or https URL is `other-card.json`, and `skills` and `protocolVersion` are not required on that row. Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL. For `mcp`, `specification/mcp-metadata.json`. `transport.kind` is `streamableHttp`, `sse`, or `stdio`. Do not require all of `tools`, `resources`, `prompts`, and `logging`. Do not invent the missing capability keys. Omit `serverInfo`. For `rest-api`, `specification/oas.json` or `specification/oas.yaml`. Require `openapi` `3.x.y` or `swagger` `2.0`, `info.title`, `info.version`, and `paths`. `externalId` is the provider id, and one stage is one asset.
 5. How the zip is uploaded after they run the script: `POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{org}/scanner-configurations/{config}/push` is the zip as multipart part `file`, filename `{externalId}.zip`. Not JSON. Finish is a separate `POST .../commit`. The customer question is "Commit this scan? [y/N]". Do not name `/push-assets`, `/complete`, or `/seal`.
 6. Script architecture: the function names to write (provider login, list, shape zip, token, upload, optional commit, print status) and the numbered stderr steps below.
 7. Flags, environment variables, prompts, and which of those are secret. Same names as **The script**. `--help` three columns: Prompt label, Parameter flag, Input file key.
@@ -150,7 +150,7 @@ If they say no, ask which row is wrong, fix the table, and ask again. Still do n
 
 That yes is the only approval. The script is not written until they say yes, so a run does not ask them to approve the mapping again and does not refuse live because a fingerprint is pending. Record the approved rows as `MAPPING_FINGERPRINT`: canonical JSON, UTF-8, keys sorted, `{"assetType":"...","rows":[{"source":"...","sentAs":"...","required":true}]}`, rows in the order shown, SHA-256 hex. That value is a record of the chat yes. It is not a second question.
 
-Classify with the check described in their inventory. Do not classify by display name. A list that returns more than one kind of asset still yields only the type they named. The other kinds are skipped. A shared AgentCore `ListAgentRuntimes` is not permission to zip both agents and MCP. Agent script: skip `protocolConfiguration.serverProtocol=MCP`, then `GetAgentCard` or the documented synthesized card. MCP script: SigV4 JSON-RPC `initialize`, then `tools/list`; null `initialize` = skip. Name is never classification. REST script lists API Gateway (or their REST inventory), not AgentCore runtimes. A skip is a count, not a default log line: increment `skipped` and continue. Do not print `skipped {id}`, `skipping MCP`, or `not MCP` on stderr unless `--verbose` is set. `--verbose` may print `skipped {id} <reason>`. FAILED still prints (list/page errors, HTTP 401/403, missing required zip fields, upload refusals).
+Classify with the check described in their inventory. Do not classify by display name. A list that returns more than one kind of asset still yields only the type they named. The other kinds are skipped. A shared AgentCore `ListAgentRuntimes` is not permission to zip both agents and MCP. Agent script: skip `protocolConfiguration.serverProtocol=MCP`, then `GetAgentCard` or the documented synthesized card. MCP script: SigV4 JSON-RPC `initialize`, then `tools/list`; null `initialize` = skip. Name is never classification. REST script lists API Gateway (or their REST inventory), not AgentCore runtimes. A skip is a count, not a default log line: increment `skipped` and continue. Do not print `skipped {id}`, `skipping MCP`, or `not MCP` on stderr unless `--verbose` is set. `--verbose` may print `skipped {id} <reason>`. FAILED still prints (list/page errors, HTTP 401/403, an agent with no http or https URL, a missing mcp or rest-api required field, upload refusals). A missing `skills` or `protocolVersion` on an agent that has an HTTP URL is `other-card.json`, not FAILED.
 
 AgentCore MCP handshake URL is not the Exchange card field `transport.path` (`/mcp`). The invoke URL is `https://bedrock-agentcore.{region}.amazonaws.com/runtimes/{urlencoded agentRuntimeArn}/invocations?qualifier={endpointName}`. `agentRuntimeArn` comes from `get-agent-runtime` / the list item. Encode it with `urllib.parse.quote(arn, safe="")` (every `:`, `/`, and extra character). `endpointName` is `list-agent-runtime-endpoints` `runtimeEndpoints[0].name`, usually `DEFAULT`. No endpoint name means skip that runtime. `Accept` is `application/json, text/event-stream`. Parse JSON or SSE `data:` lines. `initialize` params are `protocolVersion` `2025-03-26`, `capabilities` `{}`, `clientInfo`. HTTP 401/403 on initialize is FAILED. HTTP 400/404/405/415/422 or a missing `result` object is skip. A generated script that POSTs `/runtimes/{agentRuntimeId}/invocations/mcp`, uses the unencoded runtime id in the path, or omits `?qualifier=` is a generation failure. A default run that prints `skipped {id}` for every non-matching runtime is a generation failure.
 
@@ -176,7 +176,7 @@ SCANNER_CONFIGURATION_ID=
 ANYPOINT_CLIENT_ID=
 # (required) Connected App client secret. Leave empty in chat. Fill this on the machine that runs the script.
 ANYPOINT_CLIENT_SECRET=
-# (optional) Commit the scan without a prompt. yes or no. Default no.
+# (optional) Commit the scan without a prompt. yes or no, any case. Default no.
 PUSH_COMMIT=
 ```
 
@@ -205,7 +205,7 @@ An Organization Administrator creates the app once, in Access Management, before
 
 The self-managed types are offered only when `push-scanner-enabled` is on and the entitlement matches: `agent` for agents, `apiScanners` for MCP and REST. If upload returns that the type is absent, stop and say so. Do not invent an id.
 
-Token request, in every language: `POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token` with `Content-Type: application/x-www-form-urlencoded` and body `grant_type=client_credentials&client_id=...&client_secret=...`. Never JSON.
+Token request, in every language: `POST {ANYPOINT_BASE}/accounts/api/v2/oauth2/token` with `Content-Type: application/x-www-form-urlencoded` and body `grant_type=client_credentials&client_id=...&client_secret=...`. Never JSON. The body is that one line and then ends. No trailing newline, no blank line, and no space after the secret. A trailing newline is sent as part of the secret, and the token request returns 401.
 
 ## What the script does
 
@@ -232,17 +232,17 @@ After step 3, if zero assets matched `ASSET_TYPE`:
 
 1. Read inputs. See **One input mode**.
 2. Call their list and detail APIs with their auth. Follow pages until the list ends or a page cap is hit. If the list call itself fails, exit 2 and do not commit. After a successful list, print one summary line: `listed N, matching M, skipped K`. Do not print one line per skipped id unless `--verbose`.
-3. For each matching asset, build the object from the mapping they accepted. If a required field is missing, print FAILED and do not upload that object. An invalid object is the script's fault. Print each matching asset on its own line: type, external id, display name. Print the zip path `{id}/specification/config.json` plus the artifact. A zip that uses `{id}/config.json` (no `specification/`) is a generation failure.
+3. For each matching asset, build the object from the mapping they accepted. For `agent`, choose the artifact in **ZIP and push** and upload `other-card.json` when the card is not complete A2A and still has an http or https URL. Do not print FAILED because `skills` or `protocolVersion` is missing. Print FAILED and do not upload that object only when an agent has no http or https URL, or when an `mcp` or `rest-api` required field is missing. An invalid object is the script's fault. Print each matching asset on its own line: type, external id, display name. Print the zip path `{id}/specification/config.json` plus the artifact. A zip that uses `{id}/config.json` (no `specification/`) is a generation failure.
 4. Upload each valid ZIP with `POST {ANYPOINT_BASE}/agent-scanner/api/v1/organizations/{org}/scanner-configurations/{config}/push`. The body is the zip bytes, not JSON. `Content-Type` is `multipart/form-data` with exactly one part named `file`, filename `{externalId}.zip`, part `Content-Type: application/zip`. HTTP 202 JSON is `{assetId, action, workspaceRunId}`. Keep that `workspaceRunId`. Every later upload in this run must return the same id. The server checks the zip again. A refusal is FAILED, with the response body. The same provider id replaces the staged object. It does not create a second row, and Exchange is not called. An id uploaded earlier and absent from this list stays staged until `DELETE .../push/{externalId}`. Omission is not deletion. HTTP 415 means this POST was not a zip part named `file` (JSON body, `application/x-www-form-urlencoded`, `Content-Type: multipart/form-data` with no boundary, or a boundary that starts with `=`). A generated script that posts JSON to `/push`, uses `json=`, sets `Content-Type: application/json` on `/push`, or names the part anything other than `file` is a generation failure.
 5. Close the workspace and declare completeness separately. `workspaceRunId` comes only from a 202 `/push` (or `GET .../workspace` when `PUSH_ALLOW_EMPTY=yes` and nothing was uploaded). Inventing `run-…` or posting `/commit` without that id is a generation failure. Zero accepted uploads: do not call `/commit`.
    - The list stopped at a page cap, or any upload failed, and at least one upload was accepted: `POST .../commit` with `{"workspaceRunId":"<id from 202>","complete":false}`. Do not ask. `complete:false` is upsert only. It must not be `true`.
-   - The list finished and every upload succeeded: ask on a TTY, "Commit this scan? [y/N]". The default is no. `--commit` or `PUSH_COMMIT=yes` is the yes when there is no TTY. Yes sends `POST .../commit` with `"complete":true`. No uploads and does not commit.
+   - The list finished and every upload succeeded: ask on a TTY, "Commit this scan? [y/N]". The default is no. `--commit` or `PUSH_COMMIT` is the yes when there is no TTY. Match `yes` without regard to case: `yes`, `Yes`, and `YES` are yes. Empty, `no`, and `No` are no. Yes sends `POST .../commit` with `"complete":true`. No uploads and does not commit.
    - An empty successful list does not commit unless they also set `PUSH_ALLOW_EMPTY=yes`.
 6. Print one JSON object on stdout: counts, `truncated`, `workspaceRunId`, `scanRunId`, and whether the scan was committed. Exit 0 when nothing failed. Exit 2 when a list, an upload, or a requested commit failed.
 
 `complete: true` means this list is the full inventory, so the scanner may retire assets that were not in the list. `complete: false` means upsert only.
 
-The upload is one ZIP per asset because that is the API. The customer confirms the mapping and the sample JSON. Do not spend the chat on archive layout. The script still produces a valid ZIP: one directory whose name is the provider's stable id, `specification/config.json` with `name` and `type`, and the artifact next to it (`a2a-card.json` or `a2a-v1-card.json`, `mcp-metadata.json`, or `oas.json`).
+The upload is one ZIP per asset because that is the API. The customer confirms the mapping and the sample JSON. Do not spend the chat on archive layout. The script still produces a valid ZIP: one directory whose name is the provider's stable id, `specification/config.json` with `name` and `type`, and the artifact next to it (`a2a-card.json`, `a2a-v1-card.json`, or `other-card.json`, `mcp-metadata.json`, or `oas.json` / `oas.yaml`).
 
 Live stderr after MuleSoft values resolve (non-secrets in full; secret presence only):
 
@@ -407,7 +407,7 @@ The file `inputs.env` is a downloadable file, written beside the script, and its
 <run> <script> --input-file inputs.env
 ```
 
-`PUSH_COMMIT=yes` in that file commits the scan. Empty or `no` does not.
+`PUSH_COMMIT` commits the scan when its value is `yes` in any case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` do not.
 
 ### Dry-run and help
 
@@ -541,7 +541,7 @@ Not `VERTEX_MCP`. That enum has no pull class. Do not list reasoning engines.
 
 `gcloud` ADC. Prompt **GCP Project ID** and **Location**. List `GET https://run.googleapis.com/v2/projects/{project}/locations/{location}/services` with an **access** token. For each service `uri`, JSON-RPC `initialize` (`protocolVersion` `2025-03-26`) then `tools/list` to `POST {uri}/` with an **identity** token (`gcloud auth print-identity-token --audiences={uri}`). Null `initialize` result = skip (count only unless `--verbose`). HTTP 401/403 on initialize is FAILED. Do not POST `https://run.googleapis.com/mcp-handshake`.
 
-Zip `mcp-metadata.json`: `transport.kind` `streamableHttp`, `transport.path` `/`. If `capabilities` is present, four booleans `tools`, `resources`, `prompts`, `logging`. Omit `serverInfo`. External id is the service id (last segment of `name`).
+Zip `mcp-metadata.json`: `transport.kind` `streamableHttp`, `transport.path` `/`. Copy `capabilities` as returned. Do not invent the missing capability keys. Omit `serverInfo`. External id is the service id (last segment of `name`).
 
 ### Databricks agents
 
@@ -602,20 +602,41 @@ One asset is one zip. The zip has one top-level directory. That directory name i
 `specification/config.json`:
 
 ```json
-{ "name": "<display name>", "type": "agent", "description": "<optional, max 500 chars>" }
+{ "name": "<display name>", "type": "agent", "description": "<optional, max 250 chars>" }
 ```
 
 `type` is the baked `ASSET_TYPE` and must match that configuration.
 
+`description` is optional. Publication keeps at most 250 characters. Do not put custom metadata in `description`.
+
+`config.json` may include a `properties` object. The scanner stores it and uses it when deciding whether the asset changed. Publication does not copy it onto the Exchange asset. The published properties are `platform` and `provenance` only. There is no custom metadata field on the card.
+
 Artifact JSON must pass the Exchange agent-fabric schemas (tag `1.2609.1`: `agent_card`, `agent_card_v1`, `other_card`, `mcp_metadata`). Do not invent a second subset.
 
-A2A v0.3 (`a2a-card.json`) required keys: `name`, `description`, `protocolVersion`, `url`, `version`, `capabilities`, `defaultInputModes` (at least one), `defaultOutputModes` (at least one), `skills`. Synthesized AgentCore fallbacks use `protocolVersion` `0.3.0`. Skill objects, when present, need `id`, `name`, `description`, and `tags`.
+Agent artifact, choose the first match. Do not run the A2A v0.3 key list against every agent.
 
-A2A v1 (`a2a-v1-card.json`): `supportedInterfaces` or `supported_interfaces` with a callable `url`; never a top-level `url`.
+1. `a2a-card.json` when the card is complete A2A v0.3: non-empty `name`, `description`, `protocolVersion`, and `version`; `url` is http or https; `capabilities` is an object; `defaultInputModes` and `defaultOutputModes` are arrays of at least one string; `skills` is an array. Each skill object has non-empty `id`, `name`, `description`, and `tags` as an array of strings. An empty `skills` array is valid. Synthesized AgentCore fallbacks that fill these keys stay on this file.
+2. `a2a-v1-card.json` when step 1 does not match, there is no top-level `url`, and `supportedInterfaces` or `supported_interfaces` contains an http or https `url`.
+3. `other-card.json` otherwise, when `url`, `supportedInterfaces`, or `supported_interfaces` has an http or https URL. Copy the provider card unchanged. Do not add `protocolVersion`, `skills`, or `capabilities`. Do not print FAILED because `skills` or `protocolVersion` is missing. The self-managed scanner accepts this file.
+4. FAILED step=shape zips http=n/a when no http or https URL exists. Do not upload that agent.
 
-MCP (`mcp-metadata.json`): `transport` required; if emitting `capabilities`, emit all four booleans `tools`, `resources`, `prompts`, `logging`; omit `serverInfo`.
+Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL.
 
-REST artifact is the exported OpenAPI document. It must contain `openapi` or `swagger`.
+MCP (`mcp-metadata.json`), from agent-fabric `mcp_metadata` 1.2609.1. Do not apply a stricter local subset.
+
+- `transport` is required. `kind` is `streamableHttp`, `sse`, or `stdio`. `streamableHttp` needs only `kind`; `path` is optional. `stdio` needs only `kind`; `instructions` is optional. `sse` needs `kind` and `ssePath`. If the provider stored the endpoint in `path`, copy that value to `ssePath` and omit `path`. Do not fail that server.
+- `capabilities` is optional. Copy the keys the server returned. `tools`, `resources`, `prompts`, and `logging` may each be absent, and each may be a boolean or an object. Do not invent the missing capability keys.
+- `protocolVersion` is optional. Keep it only when it is `2024-11-05`, `2025-03-26`, `2025-06-18`, or `2025-11-25`. Otherwise omit it. Do not fail the server.
+- Omit `serverInfo` and any other top-level field outside `protocolVersion`, `transport`, `provider`, `capabilities`, `logging`, `tools`, `resources`, `resourceTemplates`, `prompts`, `platform`, `securitySchemes`, `connections`, and `provenance`. Omitting `serverInfo` is not a failure.
+- A `tools` item needs `name` and `inputSchema`. A `resources` item needs `name` and `uri`. A `prompts` item needs `name`. A `resourceTemplates` item needs `name` and `uriTemplate`. Omit an item that lacks its required fields. Do not fail the server for that item.
+- Missing `transport`, or a `kind` other than those three, is FAILED. Do not upload that server.
+
+REST (`oas.json` or `oas.yaml`). Keep the provider document, including extra OpenAPI fields.
+
+- OpenAPI 3: `openapi` matches `3.x.y`, plus `info.title`, `info.version`, and `paths` (an object; it may be empty).
+- Swagger 2: `swagger` is `2.0`, plus `info.title`, `info.version`, and `paths`.
+- Do not require `servers`, security, or a non-empty `paths` object.
+- Missing `info.title`, `info.version`, `paths`, or a spec version is FAILED. Do not upload that API.
 
 Push, to that one configuration id. `/push` is the zip.
 
@@ -681,4 +702,3 @@ The zip **must** contain `{externalId}/specification/config.json` and `{external
 
 - **skill setup-service-scanner**: Create a pull scanner configuration that discovers assets from a connected cloud platform.
 - **skill run-service-scan-and-view-results**: Run a hosted scan and review discovered staging assets.
-

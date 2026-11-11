@@ -87,14 +87,15 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 | `scripts/check_connector_java_compat.mjs` | Step 5b — for each connector from Step 5a, `exchange asset describe <groupId>/<assetId>/<version>` (exact lookup, with retries) and read its `is-java-*-supported` tags to report which Java versions the CURRENT in-use version supports. HARD-STOPS (exit 1, `stop: true`) when a connector cannot be verified: describe fails **and** an exact-GA `asset list` probe finds no matching asset (genuinely not on Exchange), or no `is-java-*` tags are present. When describe fails but the asset exists (only the pinned version was delisted), it sets `currentVersionDelisted: true` and does **not** block | `tmp/connector-java-compat.json` (contains `connectors[]` {`nick`, `groupId`, `artifactId`, `version`, `supportedJava[]`, `blocked`, `blockReason`}, `blocked[]`, `stop`, `warnings[]`, ...) |
 | `scripts/resolve_target_connectors.mjs` | Step 6 — for each connector from Step 5, find the LATEST published version that supports BOTH the target Mule and target Java (from Step 4). One `exchange asset describe` per connector returns every sibling version with its own `min-mule-version` / `is-java-*-supported` tags; filters locally to versions where `is-java-<targetJava>-supported == true` AND `min-mule-version <= targetMule`, then picks the highest by semver. If describing the current version fails (delisted), it re-anchors the describe on the newest GA sibling from `asset list` so `.versions[]` is still readable. HARD-STOPS (exit 1, `stop: true`) when a connector has no target-compatible version, or is genuinely absent from Exchange. Target comes from `TARGET_MULE`/`TARGET_JAVA` env or `tmp/target-versions.json` `options[0]` | `tmp/target-connectors.json` (contains `targetMule`, `targetJava`, `connectors[]` {`nick`, `groupId`, `artifactId`, `currentVersion`, `targetVersion`, `changed`, `candidateCount`, `minMuleVersion`, `supportedJava[]`, `blocked`, `blockReason`}, `blocked[]`, `stop`, `warnings[]`, ...) |
 | `scripts/_pom_utils.mjs` | Shared library (Steps 1–6) — tolerant XML parser, `${...}` property resolution (single/nested/composite, cycle-guarded), local parent-POM location (with parent-identity verification), and managed-version lookup across the local ancestor chain. Used by the detection/validation/extraction scripts above. Not invoked directly | (imported) |
-| `describe_connector.mjs` | Mode-A/B/C describe of a NEW connector version (summary, per-op, per-config-provider). Invocations (flags — not positional): Mode-A `<nick>-new`; Mode-B `<nick>-new --type operation --name <op>` (or `--type source --name <src>`); Mode-C `<nick>-new --type connection-provider --name <provider> --config-name <config>`. See Step 7 (7a Mode-A, 7b Mode-B/C). | `tmp/connector-metadata/<nick>-new.json`, `<nick>-new-<op>.json`, `<nick>-new-<config>-<provider>.json` (in timing mode also appends its CLI duration to `upgrade-timing.jsonl`) |
+| `describe_connector.mjs` | Mode-A/B/C describe of a NEW connector version (summary, per-op, per-config-provider). Invocations (flags — not positional): Mode-A `<nick>-new`; Mode-B `<nick>-new --type operation --name <op>` (or `--type source --name <src>`); Mode-C `<nick>-new --type connection-provider --name <provider> --config-name <config>`. See Step 7 (7a Mode-A, 7b Mode-B/C). Step 7 calls it through `describe_missing.mjs`; call it directly only for a one-off describe (Step 16 class 6). | `tmp/connector-metadata/<nick>-new.json`, `<nick>-new-<op>.json`, `<nick>-new-<config>-<provider>.json` (in timing mode also appends its CLI duration to `upgrade-timing.jsonl`) |
 | `enumerate_usage_xml.mjs` | **Preferred** usage enumerator — parses `src/main/mule/**/*.xml` with `fast-xml-parser`. Identical output to `enumerate_usage.mjs` but correct on messy input (ignores commented-out elements; binds `config-ref` to its owning element). Exits rc=3 if `fast-xml-parser` isn't importable → caller falls back to the grep script. See Step 7 "Usage enumeration". | `tmp/connector-usage/<nick>.json` |
 | `enumerate_usage.mjs` | Zero-dependency (regex/grep) usage enumerator — the fallback for `enumerate_usage_xml.mjs`. Scans `src/main/mule/**/*.xml` for a connector's ops, configs, error types, namespace prefix used by the app. The OLD-side source of truth — replaces re-describing the old connector version. See Step 7b (usage enumeration + output shape). | `tmp/connector-usage/<nick>.json` |
 | `apply_connector_pin.mjs` | Bumps one connector's version in `pom.xml` and rewrites its `xsi:schemaLocation` in every flow XML. Reads `tmp/connector-choices/<nick>-new.json` (GAV, required) and `tmp/connector-metadata/<nick>-new.json` (namespace metadata, **optional** — absent for pom-only connectors, in which case the XSD rewrite no-ops). Deterministic — never hand-edit `xsi:schemaLocation`. | mutates `pom.xml` + `src/main/mule/**/*.xml` |
 | `apply_runtime_bump.mjs` | Ensures `<app.runtime>` (bumped, or inserted if absent); bumps `<javaVersion>`, `java.version`, `jdk.version` **only if present** (never inserted); **normalizes the maven-compiler-plugin level to the target Java in place** — a `maven.compiler.{source,target,release}` property or inline `<source>/<target>/<release>` is bumped where it lives (a lone inline `<target>`/`<source>` is completed by converting it to `<release>`; `release` never coexists with `source`/`target`), inserting `maven.compiler.release` only when the app has custom Java (`src/main/java`/`src/test/java`) with no level declared anywhere; bumps/inserts `<mule.maven.plugin.version>`; bumps every MUnit version site (the `<munit.version>` property, the `munit-maven-plugin` plugin block, and the `munit-runner`/`munit-tools` dependencies) in `pom.xml`; inserts `<runtimeVersion>${app.runtime}</runtimeVersion>` into the `munit-maven-plugin` config (insert-if-absent, never clobbers an existing pin); sets `minMuleVersion` to the **`x.y.0` feature line** (platform-correct — matches ACB/Studio, the Introspection Service needs the minor-line form) and ensures `javaSpecificationVersions` contains the target Java in `mule-artifact.json`. The `runtimeVersion` pin is what lets the feature-line floor be correct without regressing tests: MUnit's embedded runtime defaults to `minMuleVersion` otherwise, and an `x.y.0` floor would boot an older runtime that fails JAVA_25-annotated connectors with `EnumConstantNotPresentException`. All values read from `tmp/upgrade-targets.json` (`.mule.to` / `.java.to` / `.muleMavenPlugin.to` / `.munit.to`) — nothing hardcoded. `.muleMavenPlugin.to` and `.munit.to` are resolved live in Step 11a; if either is absent, the corresponding versions are left unchanged. Version rewrites only — does not run java (the build is pinned to the resolved target JDK via the inline `JAVA_HOME=... mvn` prefix in Step 16). | mutates `pom.xml` + `mule-artifact.json` |
 | `promote_new_connector_pins.mjs` | Copies every `tmp/connector-choices/<nick>-new.json` → `tmp/connector-versions/<nick>.json` so Phase 2's pin script can consume them. Run once, before `apply_connector_pin.mjs`. | `tmp/connector-versions/<nick>.json` |
 | `apply_parent_pom_fork.mjs` | Parent-owned **connector** versions — the WRITE-side counterpart to the read-side chain walk, in two phases. Scope is **connectors only**: `app.runtime` / `mule.maven.plugin.version` / Java props are app-scoped and always child-written by `apply_runtime_bump.mjs` (never forked into a shared ancestor). **`--phase=edit` (Step 14):** for every **local ancestor** that owns a connector (in its `<dependencies>`/`<dependencyManagement>`), bump every connector version that ancestor owns to the resolved target — following `${property}` refs — for **all** connectors declared in that ancestor (fork-wide scope; an app-unused connector with no resolved target is a warning, never a hard stop). The ancestor's own `<version>` and the child's `<parent>` ref are left untouched, so the local build resolves the new versions via `<relativePath>`. **`--phase=fork` (Step 18, after a green build):** bump each owning ancestor's own `<version>` (computed from the pristine `tmp/pom-backups/` snapshot, so it is idempotent) and repoint the downstream `<parent><version>`. Both phases process the chain **deepest-first** and **verify** — re-resolving each connector from the child's perspective (same walk as the extractor), and in the fork phase confirming each `<parent>` link points at the fork. Reads `tmp/connectors.json` (provenance), `tmp/target-connectors.json` (target versions). `--phase=edit\|fork` (default `edit`); `--fork-bump=major\|minor\|patch` (default `minor`, fork phase only); `--dry-run` prints the plan without writing. Exit 1 on verify failure or missing/bad inputs; a no-op (no ancestor owns a connector) exits 0. No Exchange publish — purely local edits. | mutates ancestor `pom.xml`(s) (edit phase: managed connector versions; fork phase: own `<version>` + downstream `<parent>` refs); full result JSON `{phase, ancestorsForked[], edits[], backedUp[], verify{}, warnings[]}` written to `tmp/parent-pom-<phase>[-dryrun].json` (edit phase snapshots each ancestor it edits to `tmp/pom-backups/` pristine, create-if-absent, before its first write); stdout gets a short summary only (so a long chain never clips) |
-| `verify_metadata_coverage.mjs` | Step 11.5 gate — for every op / source / provider in `tmp/connector-usage/*.json`, verify a Mode-B / Mode-C JSON exists in `tmp/connector-metadata/`. Exits 1 with FAIL rows when any required per-op / per-provider describe is missing. Configs whose Mode-A `.connectionProviders[]` is empty (D7 fallback — some DB configs) emit INFO and do not fail; Phase C reads Mode-A `.configs[]` directly for those. Optional `--strict` also fails on WARN rows (renamed / removed ops that lack a `<nick>-op-renames.json` entry). | stdout FAIL/WARN/INFO rows |
+| `describe_missing.mjs` | Step 7 runner. `--phase a <nick>…` runs Mode-A for the given used connectors; `--phase bc` runs every missing Mode-B / Mode-C describe from the usage files and Mode-A, several at a time. Skips files that already parse as JSON, retries failures once serially, exits 1 if any call still fails, 2 on a missing prerequisite. Runs at most `min(4, cores/2)` at once (at least 1; 4 if the core count is unreadable). Shares its expected-file list with the gate (`lib/metadata-coverage.mjs`). | the `tmp/connector-metadata/` files above; failed calls' output in `tmp/describe-logs/` |
+| `verify_metadata_coverage.mjs` | Step 11.5 gate — verify a Mode-B JSON exists in `tmp/connector-metadata/` for every USED op / source in `tmp/connector-usage/*.json`, and a Mode-C JSON for EVERY (config, provider) pair in the connector's Mode-A `.configs[]`, used or not. Exits 1 with FAIL rows when any required per-op / per-provider describe is missing. Configs whose Mode-A `.connectionProviders[]` is empty (D7 fallback — some DB configs) emit INFO and do not fail; Phase C reads Mode-A `.configs[]` directly for those. Optional `--strict` also fails on WARN rows (renamed / removed ops that lack a `<nick>-op-renames.json` entry). | stdout FAIL/WARN/INFO rows |
 | `verify_dependency_tree.mjs` | Cross-checks what the static POM walk discovered against what Maven actually resolves (`mvn dependency:tree`, scoped to the connector GAVs) — the authority on the *resolved value*, catching imported-BOM / transitive / stale-`~/.m2` sources the local walk can't see. Two gates, one engine: **Step 12.0 `--against=existing`** diffs current versions vs `tmp/connectors.json` (SOFT — annotate plan + raise at approval); **Step 14.5 `--against=target`** diffs the just-written pins vs `tmp/target-connectors.json` (HARD — stop before the build). `--expected=<path>` overrides the file. The caller positions it: existing BEFORE Step 14 writes, target AFTER. Exit **0** all match, **1** operational error (Maven missing / tree failed / expected file unreadable — always a stop), **2** mismatch(es) — caller decides soft vs hard. On a **1** with `authFailureSuspected: true`, the tree build failed on a 401/Unauthorized — that's an expired Anypoint CLI session, not an operational defect; ask the user for permission to re-authenticate the Anypoint CLI before retrying. | `tmp/dep-tree-verify-<mode>.json` (`matched[]`, `mismatches[]`, `missingFromTree[]`, `resolvedOnlyByTree[]`, `authFailureSuspected`) |
 | `scripts/step_timer.mjs` | **Opt-in debug** — per-step wall-clock timing, used only when the user asked to run the skill with timing. `init` (Step 1), `mark <step>` (start of each step; Steps 16/17 are numbered per attempt by the script), `wait-start`/`wait-end` (around every question to the user, e.g. Step 3a, Step 12.4), `report` (Step 19 and every STOP/HALT). A step's time runs from its mark to the next mark; user wait is shown as its own row. Always exits 0 — timer warnings are ignored. See "Timing mode" in Workflow-Wide Discipline | `upgrade-timing.jsonl` (raw marks) and `upgrade-timing.md` (table) in the app directory, outside `tmp/` |
 
@@ -614,11 +615,13 @@ If a describe still fails silently later, capture the hidden exception with `_JA
 
 > If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 7a`
 
-For each **used** connector nickname `<nick>` in `tmp/upgrade-targets.json` (skip pom-only — they have no flow usage to introspect):
+Describe every **used** connector nickname `<nick>` in `tmp/upgrade-targets.json` in one runner call (skip pom-only — they have no flow usage to introspect, and passing one would write a Mode-A stub that `apply_connector_pin.mjs` treats as a described connector). The runner runs one `describe_connector.mjs <nick>-new` per nick, several at a time, and skips any nick whose Mode-A file already parses:
 
 ```bash
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new
+node <skill-dir>/scripts/describe_missing.mjs --phase a <nick1> <nick2> ...
 ```
+
+It prints one ✅/❌ line per call and a summary, and exits 1 if any call still failed after one serial retry (the failing call's output is kept in `tmp/describe-logs/`). Fix the cause and re-run — finished files are skipped. It runs at most `min(4, cores/2)` describes at once (at least 1; 4 when the core count is unavailable).
 
 **Nickname discipline (BLOCKER).** `<nick>` MUST equal the XSD prefix the flow XML uses (`crypto`, `os`, `xml-module`, `saml`), NOT the artifact slug (`cryptography`, `objectstore`, `xml`). Step 6.5 already remapped the choices/targets files to the prefix; keep it consistent across Mode-A → Mode-B → Mode-C. `enumerate_usage.mjs` will still resolve a mismatched nick by scanning every `*-new.json` for `.namespace.prefix == <nick>`, but relying on that fallback means every downstream script has to be called with the right stem too — cheaper to keep the prefix.
 
@@ -693,18 +696,7 @@ The ephemeral `node_modules` (fast-xml-parser's install closure) is removed in S
 - Op present in `.operations[]` → run Mode-B on it.
 - Op **absent** from `.operations[]` → the op was renamed or removed. Pick the closest rename candidate (Levenshtein-close or same semantic role — e.g. S3 8.x: `createObject` → `putObject`, `readObject` → `getObject`) and run Mode-B on the **candidate**. Log the guessed rename in `tmp/connector-metadata/<nick>-op-renames.json` so Step 12's plan enumerates it explicitly. Never silently skip an op — the flow XML still calls it. A Mode-B call that returns non-zero or empty is itself a strong rename signal (the op likely doesn't exist under that name) — cross-check against `.operations[]` and re-run on the candidate.
 
-**Concrete invocations — flag-based, not positional.** The bundled scripts table (top of file) lists the syntax; repeat here so a subagent doesn't have to scroll:
-
-```bash
-# Mode-B — per operation or source
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new --type operation --name <op>
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new --type source    --name <src>
-
-# Mode-C — per config-provider (both --name and --config-name are required)
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new --type connection-provider --name <provider> --config-name <config>
-```
-
-Passing operation names as positional args (`describe_connector.mjs <nick>-new <op>`) is NOT supported and will trigger a "missing/partial args" exit — a real run in July 2026 burned 2–4 tool calls trial-and-erroring the flag order.
+**You do not build the routine Mode-B / Mode-C calls by hand.** `describe_missing.mjs --phase bc` (below) works out every call from Mode-A and the usage files and runs them. The runner never guesses renames: for an op absent from Mode-A, run Mode-B yourself on the rename candidate (rule above). The same single-call form serves a one-off describe (Step 16 class 6); `describe_connector.mjs` takes flags, not positional args: Mode-B `<nick>-new --type operation|source --name <name>`; Mode-C `<nick>-new --type connection-provider --name <provider> --config-name <config>`.
 
 **Why Mode-C exists, and the `--name` / `--config-name` discipline (BLOCKER).** The connection element inside `<prefix:config>` (e.g. `<s3:basic-connection>`, `<jms:active-mq-connection>`) can't be derived from the summary — Mode-A reports only the provider's SDK identifier, not its DSL element name. **`--config-name` and `--name` are the connector's SDK-side identifiers, taken from Mode-A `<nick>-new.json`, NEVER from the flow XML:**
 
@@ -718,69 +710,23 @@ Do NOT pass: the user's XML config identifier (`Warehouse_DB_Config` — those g
 
 Use the `elementName` from this Mode-C file when writing the connection-element rewrite — do not guess from the SDK provider name, and do not read `.elementName` from Mode-A (it isn't there).
 
-**Mandatory fan-out loop — one Mode-B per op, one Mode-C per provider, NO exceptions.** Do not "sample one op per connector" — every op / source / provider in `tmp/connector-usage/<nick>.json` MUST have its own describe file before Step 11.5. Skipping the fan-out leaves Step 12 blind on attribute renames and required-attribute additions; Step 16's retry loop then burns its whole budget guessing.
+**Mandatory fan-out — Mode-B for every USED op / source, Mode-C for EVERY (config, provider) pair Mode-A declares (used or not), NO exceptions.** Mode-B is driven by `tmp/connector-usage/<nick>.json`; Mode-C is driven by Mode-A `.configs[]` alone, because the provider-rename check below needs the connector's whole set of new provider `elementName`s. An app that uses one provider still needs a Mode-C file for every other provider of every config (Kafka: 2 configs × 7 providers = 14 files). Do not "sample one op per connector". Skipping the fan-out leaves Step 12 blind on attribute renames and required-attribute additions; Step 16's retry loop then burns its whole budget guessing.
 
-Execute the fan-out for every connector via this loop (paste verbatim — do not re-implement it inline). It is idempotent — an existing `<nick>-new-<op>.json` is skipped, so re-running after a partial run is cheap:
+Run the runner once, after enumeration has written every `tmp/connector-usage/*.json` and Mode-A exists for each used connector:
 
 ```bash
-for usage in tmp/connector-usage/*.json; do
-    nick="$(basename "$usage" .json)"
-    usage_status="$(jq -r '.status // ""' "$usage")"   # NOT `status` — read-only in zsh
-    [ "$usage_status" = "not_in_use" ] && continue
-
-    modeA="tmp/connector-metadata/${nick}-new.json"
-    [ -f "$modeA" ] || { echo "❌ Mode-A missing for $nick — re-run Step 7a"; exit 1; }
-
-    # Mode-B per operation (intersect with Mode-A .operations[])
-    for op in $(jq -r '.operations_used[]? // empty' "$usage"); do
-        known="$(jq -r --arg n "$op" '[.operations[]? | if type == "string" then . else .name end] | index($n) // "none"' "$modeA")"
-        if [ "$known" = "none" ]; then
-            echo "⚠️  $nick/$op — op absent from Mode-A .operations[] (rename/removed); Step 12 must consult <nick>-op-renames.json"
-            continue
-        fi
-        out="tmp/connector-metadata/${nick}-new-${op}.json"
-        [ -f "$out" ] && continue
-        node <skill-dir>/scripts/describe_connector.mjs "${nick}-new" --type operation --name "$op"
-    done
-
-    # Mode-B per source
-    for src in $(jq -r '.sources_used[]? // empty' "$usage"); do
-        out="tmp/connector-metadata/${nick}-new-${src}.json"
-        [ -f "$out" ] && continue
-        node <skill-dir>/scripts/describe_connector.mjs "${nick}-new" --type source --name "$src"
-    done
-
-    # Mode-C per (config, provider) — driven from Mode-A .configs[], per the
-    # "--name / --config-name discipline" block above.
-    # Do NOT drive from usage.configs_used[] / config_providers_used[]: those
-    # hold flow-instance names (config-ref values like db-config-primary, and
-    # camelCase child names like genericConnection) that never equal Mode-A's
-    # SDK names (config, generic) — the old join matched nothing and silently
-    # wrote zero Mode-C files, so Phase C never saw reparenting like db's
-    # <pooling-profile> and the first mvn broke on XSD validation.
-    # --config-name ← .configs[].name; --name ← .configs[].connectionProviders[]
-    # entry. Configs with an empty connectionProviders[] are skipped (D7
-    # fallback — Phase C reads Mode-A .configs[] directly there).
-    jq -r '.configs[]? as $cfg
-             | $cfg.connectionProviders[]?
-             | "\($cfg.name)\t\(if type == "string" then . else (.name // .elementName) end)"' "$modeA" \
-      | while IFS=$'\t' read -r cfg prov; do
-        [ -z "$cfg" ] && continue
-        [ -z "$prov" ] && continue
-        out="tmp/connector-metadata/${nick}-new-${cfg}-${prov}.json"
-        [ -f "$out" ] && continue
-        node <skill-dir>/scripts/describe_connector.mjs "${nick}-new" --type connection-provider --name "$prov" --config-name "$cfg"
-    done
-done
+node <skill-dir>/scripts/describe_missing.mjs --phase bc
 ```
+
+It computes the expected files with the same code the coverage gate uses (`lib/metadata-coverage.mjs`), so what it writes is exactly what the gate checks. It skips `not_in_use` connectors and any file that already parses as JSON, runs the rest through a capped pool, and retries failures once serially. Ops or sources in the usage file that are absent from Mode-A are reported as WARN (renamed or removed): follow the rename rule above and record the candidate in `<nick>-op-renames.json`. Exit 0 means every expected file is present; exit 1 means some calls still failed (see `tmp/describe-logs/`); exit 2 means a prerequisite is missing (no usage files, or a connector with no parseable Mode-A: re-run Step 7a for it).
 
 **Post-condition (self-check) — must pass before Step 7 declares "done".** Do not defer this to Step 11.5:
 
 ```bash
-node <skill-dir>/scripts/verify_metadata_coverage.mjs || { echo "❌ Mode-B/C fan-out incomplete — re-run the loop above until coverage passes"; exit 1; }
+node <skill-dir>/scripts/verify_metadata_coverage.mjs || { echo "❌ Mode-B/C fan-out incomplete — run describe_missing.mjs --phase bc again until coverage passes"; exit 1; }
 ```
 
-If `verify_metadata_coverage.mjs` prints FAIL rows, re-run the fan-out loop for just those `(nick, op)` / `(nick, cfg, prov)` pairs. The loop is idempotent — it only re-invokes describe when the target file is missing.
+If `verify_metadata_coverage.mjs` prints FAIL rows, run `describe_missing.mjs --phase bc` again. It only re-invokes describe for files that are missing.
 
 **After Mode-B / Mode-C complete**, run these mandatory diffs (they feed Step 12's Phase-C completeness checklist):
 
@@ -967,7 +913,7 @@ Confirm the target Java (from Step 2b) and target Mule (from Step 6) fall inside
 
 > If timing mode is on, first run: `node <skill-dir>/scripts/step_timer.mjs mark 11.5`
 
-Run the coverage gate before touching Step 12. It cross-references every op / source / provider in `tmp/connector-usage/*.json` against the Mode-A / Mode-B / Mode-C JSONs on disk and refuses to advance the plan if any required describe is missing.
+Run the coverage gate before touching Step 12. It cross-references every used op / source in `tmp/connector-usage/*.json`, and every (config, provider) pair in Mode-A, against the Mode-A / Mode-B / Mode-C JSONs on disk and refuses to advance the plan if any required describe is missing.
 
 ```bash
 node <skill-dir>/scripts/verify_metadata_coverage.mjs
@@ -975,9 +921,9 @@ node <skill-dir>/scripts/verify_metadata_coverage.mjs
 
 Behavior:
 
-- **FAIL** (exit 1) — a required Mode-B or Mode-C JSON is missing on disk for an op/provider that IS present in Mode-A. Re-run `describe_connector.mjs` for those (op, provider) pairs, then re-run this gate.
+- **FAIL** (exit 1) — a required Mode-B or Mode-C JSON is missing on disk for an op/provider that IS present in Mode-A. Run `node <skill-dir>/scripts/describe_missing.mjs --phase bc` to describe the missing files, then re-run this gate.
 - **WARN** — an op/provider appears in `usage_sites` but is NOT in Mode-A `.operations[]` / `.configs[].connectionProviders[]`. Usually a rename or removal; Step 7 should have written `<nick>-op-renames.json` with the candidate. Non-fatal by default — pass `--strict` to fail on WARN rows too.
-- **INFO** — the connector is `not_in_use`, OR a used config has zero declared providers in Mode-A (D7 fallback). Phase C consumes Mode-A `.configs[]` directly for the empty-provider case; no Mode-C is required.
+- **INFO** — the connector is `not_in_use`, OR a config has zero declared providers in Mode-A (D7 fallback). Phase C consumes Mode-A `.configs[]` directly for the empty-provider case; no Mode-C is required.
 
 Do not proceed to Step 12 until this gate exits 0. A blind plan built on a missing per-op describe silently ships a "no rewrites needed" verdict for whatever the missing JSON would have revealed.
 
@@ -1018,7 +964,7 @@ Every connector must have all four artifacts on disk, fully cross-checked agains
 - [ ] `tmp/connector-choices/<nick>-new.json` — drafted GAV
 - [ ] `tmp/connector-metadata/<nick>-new.json` — Mode-A summary
 - [ ] `tmp/connector-metadata/<nick>-new-<op>.json` — Mode-B per-op **for every op in `usage.operations_used[]` that intersects `new.operations[]`**
-- [ ] `tmp/connector-metadata/<nick>-new-<config>-<provider>.json` — Mode-C **for every (config, provider) pair the flow uses**
+- [ ] `tmp/connector-metadata/<nick>-new-<config>-<provider>.json` — Mode-C **for every (config, provider) pair in Mode-A `.configs[]`** (used or not)
 - [ ] Every file flagged by the Step 3.5 hygiene scan is enumerated in the plan's §Flow-XML hygiene section (or the scan was clean and the section says so)
 
 Step 11.5's `verify_metadata_coverage.mjs` gate already ran the mechanical version of this presence check; if it exited 0 the artifacts are all present. If any artifact is missing, loop back to Step 5/6/7 and do **not** present a partial plan. Step 7's mandatory diffs (attribute-rename, error-type, provider-element set-membership, recursive child-tree) must already be complete — this checklist confirms their residues all landed as plan bullets below. **If any diff surfaces a symbol the plan does not enumerate, that plan is incomplete — go back to Step 7, re-describe, and re-synthesize.** "Build breaks after the skill claims success" is almost always metadata-present-but-ignored.
@@ -1100,7 +1046,7 @@ For each op the flow uses:
   - S3:BUCKET_NOT_FOUND → S3:NO_SUCH_BUCKET   (source: <nick>-new-<op>.json .errorTypes[])
 
 ## Configs / connection providers
-For each (config, provider) pair the flow uses:
+For each (config, provider) pair the flow uses (Mode-C exists for all of them, plus the unused ones):
 
 ### <config-nick> (<config-name>, provider <provider-name>)
 - Sources: <nick>-new-<config>-<provider>.json
@@ -1737,16 +1683,15 @@ SUBSTRATE=$(jq -r 'if (.mule.to | split(".") | map(tonumber)) as $v | ($v[0] > 4
 node <skill-dir>/scripts/resolve_runtime.mjs "$SUBSTRATE" .
 anypoint-cli-v4 dx mule runtime path --set "$(jq -r .runtimePath tmp/resolve-runtime-$SUBSTRATE.json)"
 
-# Step 7a — Mode-A summary describe of a NEW connector version (Java 17+ required)
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new
+# Step 7a — Mode-A summary describe of every used connector (Java 17+ required)
+node <skill-dir>/scripts/describe_missing.mjs --phase a <nick1> <nick2> ...
 
 # Step 7b — enumerate connector usage from flow XML (parser-preferred, grep fallback rc=3)
 node <skill-dir>/scripts/enumerate_usage_xml.mjs <nick> .
 node <skill-dir>/scripts/enumerate_usage.mjs <nick> .
 
-# Step 7b — Mode-B (per op/source) and Mode-C (per config-provider) describe
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new --type operation --name <op>
-node <skill-dir>/scripts/describe_connector.mjs <nick>-new --type connection-provider --name <provider> --config-name <config>
+# Step 7b — Mode-B (used ops/sources) and Mode-C (every Mode-A config-provider) describe
+node <skill-dir>/scripts/describe_missing.mjs --phase bc
 
 # Step 11.5 — coverage gate (exit 1 => re-run missing describes)
 node <skill-dir>/scripts/verify_metadata_coverage.mjs

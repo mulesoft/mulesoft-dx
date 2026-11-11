@@ -1,0 +1,83 @@
+Bundled mule-maven-plugin modules — m2-plugin/
+(SNAPSHOT jars on no remote repo; setup.sh copies this tree into ~/.m2
+ so `mvn package` can resolve the versionless build path. This file
+ records where each jar came from.)
+
+All five modules share version 4.11.0-SNAPSHOT, built from the
+mule-maven-plugin repo, branch chore/versionless-mule-project-support.
+The versionless build path (packaging mule-application-versionless,
+connector-schema fetch, runtime-binary generation) lives only in this
+unreleased SNAPSHOT, which is why the jars are vendored here.
+
+mule-packager            (REFRESHED)
+  version: 4.11.0-SNAPSHOT
+  jar:     org/mule/tools/maven/mule-packager/4.11.0-SNAPSHOT/mule-packager-4.11.0-SNAPSHOT.jar
+  sha256:  66b8ce58399b...   size: 217584 bytes
+  branch:  chore/versionless-mule-project-support
+  commit:  3cb29198  (merge HEAD; carries both changes below)
+  built:   2026-11-10 (mvn -pl mule-packager install, from merged HEAD)
+  carries:
+    d4240d0f  Install Exchange API-spec deps under repository/<uuid> for
+              versionless packaging. Versionless is lightweight and emits no
+              classloader-model.json, so the three repository/ gates
+              (folder-create, populate, archive) normally exclude it
+              entirely. This relaxes all three for the API-spec subset only
+              (classifiers raml / raml-fragment / oas, non-provided scope):
+              RepositoryGenerator#generateApiSpecRepository installs just
+              those deps under repository/<uuid>/<asset>/<version>/ with
+              their .pom (classic heavyweight layout, no
+              classloader-model.json); SourcesProcessor fires it on the
+              versionless branch; MulePackageBuilder archives the folder
+              when it is non-null. Output parity with classic packaging;
+              runtime-inert on versionless.
+    01aec737  @W-24417585: Package versionless resources at the jar root
+              (PR #1124). src/main/resources contents archive to the zip
+              ROOT (JVM Mule classpath-root layout), not under resources/.
+              Present because mule-packager was rebuilt from the merged HEAD
+              that includes this fix.
+  note:    The original bundle shipped 16e547c5 (2026-09-04), predating both
+           commits above. Refreshed once (edd5bf9, pre-merge, R1 only) then
+           again (this jar, post-merge) so it carries the resources-at-root
+           fix too.
+
+mule-maven-plugin        (original bundle)
+  version: 4.11.0-SNAPSHOT
+  jar:     .../mule-maven-plugin/4.11.0-SNAPSHOT/mule-maven-plugin-4.11.0-SNAPSHOT.jar
+  sha256:  783a66128dad...   size: 88295 bytes
+  built:   2026-09-04
+  note:    The mojo jar. Does NOT shade mule-packager (depends on it as a
+           separate ~/.m2 artifact), so the R1 / resources changes do not
+           touch it — unchanged from the original bundle.
+
+mule-classloader-model   (original bundle)
+  version: 4.11.0-SNAPSHOT
+  jar:     .../mule-classloader-model/4.11.0-SNAPSHOT/mule-classloader-model-4.11.0-SNAPSHOT.jar
+  sha256:  65c687b75d03...   size: 26321 bytes
+  built:   2026-09-04  (unchanged)
+
+mule-deployer            (original bundle)
+  version: 4.11.0-SNAPSHOT
+  jar:     .../mule-deployer/4.11.0-SNAPSHOT/mule-deployer-4.11.0-SNAPSHOT.jar
+  sha256:  c255e90115e3...   size: 234881 bytes
+  built:   2026-09-04  (unchanged)
+
+mule-artifact-tools      (original bundle, pom only)
+  version: 4.11.0-SNAPSHOT
+  pom:     .../mule-artifact-tools/4.11.0-SNAPSHOT/mule-artifact-tools-4.11.0-SNAPSHOT.pom
+  sha256:  55195f1ac207...   size: 32426 bytes
+  built:   2026-09-04  (reactor parent pom; no jar)
+
+----------------------------------------------------------------------
+Refreshing a module
+----------------------------------------------------------------------
+1. In the mule-maven-plugin checkout, on branch
+   chore/versionless-mule-project-support, build the module:
+     mvn -q -pl <module> -am install -DskipTests
+   (install, not just package — setup.sh resolves these from ~/.m2.)
+2. Copy the produced jar/pom over the one here, preserving the
+   org/mule/tools/maven/<module>/4.11.0-SNAPSHOT/ path.
+3. Re-run the build-run-versionless-app verify loop (setup.sh ->
+   build the bundled example-app) before committing.
+4. Update this file: sha256 (shasum -a 256 | cut -c1-12), size,
+   branch, commit (git rev-parse HEAD), build date, and — for a
+   behavioural change — the carries: block.

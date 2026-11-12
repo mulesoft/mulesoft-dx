@@ -291,6 +291,31 @@ test('unlink inlines secure-properties configs without duplicating properties or
   }
 });
 
+test('link and unlink refuse domain pom values that would inject markup into the app pom', () => {
+  const fx = fixture();
+  try {
+    const domainPom = join(fx.domain, 'pom.xml');
+    write(domainPom, readFileSync(domainPom, 'utf8')
+      .replace('<version>1.10.3</version>', '<version>1.10.3<evil/></version>')
+      .replace('<version>1.14.0</version>', '<version>1.14.0<evil/></version>'));
+    let app = loadApp(fx.app);
+    const domain = loadDomain(fx.domain);
+    const link = planLink(app, domain);
+    assert.equal(link.ok, false);
+    assert.ok(link.blockers.some((b) => b.includes('1.10.3<evil/>')));
+
+    const linked = readFileSync(join(fx.app, 'pom.xml'), 'utf8')
+      .replace('</dependencies>', `${dep('com.acme', 'shared-domain', '1.0.0-SNAPSHOT', 'mule-domain', 'provided')}    </dependencies>`);
+    write(join(fx.app, 'pom.xml'), linked);
+    app = loadApp(fx.app);
+    const unlink = planUnlink(app, domain);
+    assert.equal(unlink.ok, false);
+    assert.ok(unlink.blockers.some((b) => b.includes('1.14.0<evil/>')));
+  } finally {
+    rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
 test('unlink never copies resource files from outside src/main/resources', () => {
   const fx = fixture();
   try {

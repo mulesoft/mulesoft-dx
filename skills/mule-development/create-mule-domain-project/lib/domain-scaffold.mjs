@@ -48,7 +48,7 @@ export function exchangeUrlForRegion(region) {
 
 /** @param {string} runtime e.g. 4.9.5. @returns {string} minMuleVersion with patch forced to 0 (4.9.0). */
 export function minMuleVersion(runtime) {
-  const m = /^(\d+)\.(\d+)\.(\d+)/.exec(String(runtime));
+  const m = /^(\d+)\.(\d+)\.(\d+)([-+][0-9A-Za-z.+-]+)?$/.exec(String(runtime));
   if (!m) throw new Error(`runtime "${runtime}" is not a semver version`);
   return `${m[1]}.${m[2]}.0`;
 }
@@ -161,11 +161,13 @@ export function scaffoldDomain(parentDir, rawName, opts = {}) {
   const groupId = opts.groupId || 'com.mycompany';
   if (!/^[A-Za-z0-9_.-]+$/.test(groupId)) throw new Error(`invalid groupId "${groupId}"`);
   const version = opts.version || '1.0.0-SNAPSHOT';
+  if (!/^[0-9A-Za-z][0-9A-Za-z.+_-]*$/.test(version)) throw new Error(`invalid version "${version}"`);
   const runtime = opts.runtime || DEFAULT_RUNTIME;
   minMuleVersion(runtime); // validates semver
   const java = String(opts.java || DEFAULT_JAVA);
   if (!/^[1-9]\d*$/.test(java)) throw new Error(`invalid Java version "${java}" (expected e.g. 17)`);
   const exchangeUrl = opts.exchangeUrl || exchangeUrlForRegion(opts.region || 'us');
+  if (!/^https?:\/\/[^\s<>&"']+$/.test(exchangeUrl)) throw new Error(`invalid Exchange URL "${exchangeUrl}"`);
 
   const projectDir = resolve(parentDir, artifactId);
   if (existsSync(projectDir)) throw new Error(`${projectDir} already exists`);

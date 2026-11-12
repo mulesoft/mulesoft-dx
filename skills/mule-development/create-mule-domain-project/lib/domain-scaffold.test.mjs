@@ -71,6 +71,9 @@ test('scaffoldDomain refuses to overwrite and validates input', () => withTmp((d
   assert.throws(() => scaffoldDomain(dir, 'ab'), /at least 3 characters/);
   assert.throws(() => scaffoldDomain(dir, 'other-domain', { java: '17.0' }), /invalid Java/);
   assert.throws(() => scaffoldDomain(dir, 'other-domain', { runtime: 'x' }), /not a semver/);
+  assert.throws(() => scaffoldDomain(dir, 'other-domain', { runtime: '4.9.0</app.runtime>' }), /not a semver/);
+  assert.throws(() => scaffoldDomain(dir, 'other-domain', { version: '1.0</version><x>' }), /invalid version/);
+  assert.throws(() => scaffoldDomain(dir, 'other-domain', { exchangeUrl: 'https://x"/><y' }), /invalid Exchange URL/);
 }));
 
 test('CLI prints a JSON summary and exits 1 on bad arguments', () => withTmp((dir) => {

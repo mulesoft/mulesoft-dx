@@ -69,7 +69,18 @@ function insideDir(base, file) {
 }
 
 function semverOk(v) {
-  return typeof v === 'string' && /^\d+\.\d+\.\d+([-+].*)?$/.test(v);
+  return typeof v === 'string' && /^\d+\.\d+\.\d+([-+][0-9A-Za-z.+-]+)?$/.test(v);
+}
+
+// Domain coordinates/versions that would inject markup when written into the app pom.
+function unsafeCoordinates(deps) {
+  const out = [];
+  for (const d of deps) {
+    for (const key of ['groupId', 'artifactId', 'version', 'classifier']) {
+      if (d[key] != null && /[<>&"'\s]/.test(d[key])) out.push(`${key} "${d[key]}"`);
+    }
+  }
+  return out;
 }
 
 function minMule(runtime) {
@@ -257,6 +268,10 @@ export function planLink(app, domain, { otherApps = [] } = {}) {
     } else if (!fromDomain && p.scope === 'provided') {
       connectorChanges.push({ groupId: p.groupId, artifactId: p.artifactId, scope: { from: 'provided', to: 'compile' }, version: { from: p.version, to: p.version } });
     }
+  }
+
+  for (const bad of unsafeCoordinates([domain.gav, ...connectorChanges.map((c) => ({ version: c.version.to }))])) {
+    blockers.push(`Domain pom ${bad} is not a valid Maven value; refusing to write it into the application pom.`);
   }
 
   // Cross-project reference validation.
@@ -482,6 +497,9 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
     } else {
       connectorChanges.push({ action: 'add', groupId: d.groupId, artifactId: d.artifactId, version: d.version, classifier: d.classifier ?? undefined });
     }
+  }
+  for (const bad of unsafeCoordinates(connectorChanges.filter((c) => c.action === 'add'))) {
+    blockers.push(`Domain pom ${bad} is not a valid Maven value; refusing to write it into the application pom.`);
   }
   const appLibraries = readSharedLibraries(app.pomText);
   const sharedLibraries = readSharedLibraries(domain.pomText).filter((s) => !appLibraries.some((a) => sameGA(a, s)));

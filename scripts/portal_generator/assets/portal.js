@@ -2524,6 +2524,9 @@ function updateAuthSummary() {
         } else if (type === 'platform') {
             var region = getSelectedRegion();
             regionText.textContent = region ? region.toUpperCase() : 'CA1';
+        } else if (type === 'corepaas') {
+            var corePaasRegion = getSelectedRegion();
+            regionText.textContent = corePaasRegion ? corePaasRegion.toUpperCase() : 'DEVX';
         } else {
             regionText.textContent = 'US';
         }
@@ -2583,24 +2586,18 @@ async function loginBearer() {
     if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add('loading'); }
     var serverBase = getSelectedBaseUrl();
     try {
-        var resp = await fetch(PROXY_URL, {
+        // POC (W-logintest): call /accounts/login directly from the browser,
+        // bypassing PROXY_URL, to verify whether the CorePaaS environments
+        // (devx/qax/stgx) respond with CORS headers that allow this.
+        var resp = await fetch(serverBase + '/accounts/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                method: 'POST',
-                url: serverBase + '/accounts/login',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: username, password: password})
-            })
+            body: JSON.stringify({username: username, password: password})
         });
-        var data = await resp.json();
-        if (data.error) {
-            showAuthMessage('Server error: ' + data.error, true);
-            return;
-        }
-        var body;
-        try { body = JSON.parse(data.body); } catch (_) { body = {}; }
-        if (data.status === 200 && body.access_token) {
+        var raw = await resp.text();
+        var body = {};
+        try { body = JSON.parse(raw); } catch (_) { body = {}; }
+        if (resp.ok && body.access_token) {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', username);
 
@@ -2619,7 +2616,7 @@ async function loginBearer() {
             }
             applyAuthModalMode();
         } else {
-            var errMsg = body.message || body.error || data.body || 'Unknown error';
+            var errMsg = body.message || body.error || raw || 'Unknown error';
             showAuthMessage('Login failed: ' + errMsg, true);
         }
     } catch (e) {
@@ -3750,6 +3747,7 @@ function getSelectedServerType() {
     var region = document.getElementById('regionSelect');
     if (region) {
         if (region.value === 'us') return 'us';
+        if (region.value === 'devx' || region.value === 'qax' || region.value === 'stgx') return 'corepaas';
         if (region.value === 'custom') {
             var srv = document.getElementById('serverSelect');
             if (srv && (srv.value === 'eu' || srv.value === 'platform')) return srv.value;
@@ -3769,7 +3767,7 @@ function getSelectedServerType() {
         return domValue;
     }
     var stored = _safeSessionGet('anypoint_server_type');
-    if (stored === 'eu' || stored === 'platform' || stored === 'us') return stored;
+    if (stored === 'eu' || stored === 'platform' || stored === 'us' || stored === 'corepaas') return stored;
     return 'us';
 }
 
@@ -3778,6 +3776,7 @@ function getSelectedRegion() {
     if (type === 'us') return null;
     var region = document.getElementById('regionSelect');
     if (region) {
+        if (type === 'corepaas') return region.value;
         if (region.value === 'custom') {
             var customInput = document.getElementById('regionCustomInput');
             if (customInput && customInput.value.trim()) return customInput.value.trim();
@@ -3806,6 +3805,7 @@ function getSelectedBaseUrl() {
     var region = getSelectedRegion();
     if (type === 'eu') return 'https://' + (region || 'eu1') + '.anypoint.mulesoft.com';
     if (type === 'platform') return 'https://' + (region || 'ca1') + '.platform.mulesoft.com';
+    if (type === 'corepaas') return 'https://' + (region || 'devx') + '.anypoint.mulesoft.com';
     return 'https://anypoint.mulesoft.com';
 }
 
@@ -4146,10 +4146,10 @@ function onRegionSelectChange() {
         if (customInput) customInput.focus();
     } else {
         if (customRow) customRow.style.display = 'none';
-        var derived = getServerTypeForRegion(val);
+        var derived = (val === 'devx' || val === 'qax' || val === 'stgx') ? 'corepaas' : getServerTypeForRegion(val);
         sessionStorage.setItem('anypoint_server_type', derived);
         sessionStorage.setItem('anypoint_region', val === 'us' ? '' : val);
-        if (serverSelect && derived !== 'us') serverSelect.value = derived;
+        if (serverSelect && derived !== 'us' && derived !== 'corepaas') serverSelect.value = derived;
     }
     updateAuthSummary();
     updateAllServerBars();
@@ -7267,6 +7267,15 @@ function restoreServerSelection() {
         if (serverSelect) serverSelect.value = storedType;
         if (customInput) customInput.value = storedRegion || '';
         return;
+    }
+
+    // CorePaaS POC environments (devx/qax/stgx) map directly to a regionSelect option.
+    if (storedType === 'corepaas') {
+        if (storedRegion === 'devx' || storedRegion === 'qax' || storedRegion === 'stgx') {
+            regionSelect.value = storedRegion;
+            if (customRow) customRow.style.display = 'none';
+            return;
+        }
     }
 
     // Unknown stored type → default US.

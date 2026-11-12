@@ -1883,6 +1883,16 @@ function mockFetchResponse(data) {
     }));
 }
 
+// loginBearer talks directly to the server (no PROXY_URL wrapper), so its
+// mock needs a real Response shape: ok/status plus a raw text body.
+function mockDirectFetchResponse(status, rawBody) {
+    global.fetch = jest.fn(() => Promise.resolve({
+        ok: status >= 200 && status < 300,
+        status: status,
+        text: () => Promise.resolve(rawBody),
+    }));
+}
+
 function mockFetchNetworkError() {
     global.fetch = jest.fn(() => Promise.reject(new Error('Failed to fetch')));
 }
@@ -1903,7 +1913,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('401 with non-JSON body shows "Login failed: Unauthorized"', async () => {
-        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        mockDirectFetchResponse(401, 'Unauthorized');
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: Unauthorized');
@@ -1911,7 +1921,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('400 with JSON error body shows the error message', async () => {
-        mockFetchResponse({ status: 400, headers: {}, body: JSON.stringify({ message: 'Invalid request format' }) });
+        mockDirectFetchResponse(400, JSON.stringify({ message: 'Invalid request format' }));
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: Invalid request format');
@@ -1919,7 +1929,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('404 with plain text body shows the body content', async () => {
-        mockFetchResponse({ status: 404, headers: {}, body: 'Not Found' });
+        mockDirectFetchResponse(404, 'Not Found');
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: Not Found');
@@ -1927,7 +1937,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('500 with JSON error body shows the error field', async () => {
-        mockFetchResponse({ status: 500, headers: {}, body: JSON.stringify({ error: 'Internal Server Error' }) });
+        mockDirectFetchResponse(500, JSON.stringify({ error: 'Internal Server Error' }));
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: Internal Server Error');
@@ -1935,7 +1945,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('502 with empty body shows "Unknown error"', async () => {
-        mockFetchResponse({ status: 502, headers: {}, body: '' });
+        mockDirectFetchResponse(502, '');
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: Unknown error');
@@ -1943,7 +1953,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('504 with HTML body shows raw body as fallback', async () => {
-        mockFetchResponse({ status: 504, headers: {}, body: '<html>Gateway Timeout</html>' });
+        mockDirectFetchResponse(504, '<html>Gateway Timeout</html>');
         await loginBearer();
         const msg = getAuthMessage();
         expect(msg.text).toBe('Login failed: <html>Gateway Timeout</html>');
@@ -1959,7 +1969,7 @@ describe('loginBearer error handling', () => {
     });
 
     test('no error message mentions proxy', async () => {
-        mockFetchResponse({ status: 401, headers: {}, body: 'Unauthorized' });
+        mockDirectFetchResponse(401, 'Unauthorized');
         await loginBearer();
         expect(getAuthMessage().text.toLowerCase()).not.toContain('proxy');
     });

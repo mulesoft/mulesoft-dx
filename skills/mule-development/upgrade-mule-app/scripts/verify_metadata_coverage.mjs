@@ -18,6 +18,7 @@ import { argv, exit, env, stderr, stdout } from 'node:process';
 import path from 'node:path';
 import { readdirSync } from 'node:fs';
 import { isDir, isFile, readJsonOrNull } from '../lib/fsx.mjs';
+import { computeCoverageRows } from '../lib/metadata-coverage.mjs';
 
 const strict = argv.slice(2).includes('--strict');
 
@@ -49,13 +50,6 @@ let warns = 0;
 let infoCount = 0;
 const report = [];
 
-/** Extract .name from either a string entry or {name} object. @param {any} entry @returns {string} */
-function opName(entry) {
-  if (typeof entry === 'string') return entry;
-  if (entry && typeof entry === 'object') return String(entry.name || '');
-  return '';
-}
-
 for (const usageFile of usageFiles) {
   const nick = path.basename(usageFile, '.json');
   const usage = readJsonOrNull(usageFile);
@@ -84,82 +78,10 @@ for (const usageFile of usageFiles) {
     continue;
   }
 
-  const modeAOps = (Array.isArray(modeA.operations) ? modeA.operations : []).map(opName).filter(Boolean);
-  const modeASrcs = (Array.isArray(modeA.sources) ? modeA.sources : []).map(opName).filter(Boolean);
-
-  // --- Mode-B ops ---
-  const opsUsed = Array.isArray(usage.operations_used) ? usage.operations_used : [];
-  for (const op of opsUsed) {
-    if (!op) continue;
-    if (!modeAOps.includes(op)) {
-      report.push(`WARN  ${nick}/${op} — op not in Mode-A .operations[] (rename or removed; check <nick>-op-renames.json)`);
-      warns += 1;
-      continue;
-    }
-    const modeBPath = path.join(metadataDir, `${nick}-new-${op}.json`);
-    if (!isFile(modeBPath)) {
-      report.push(`FAIL  ${nick}/${op} — missing Mode-B: ${modeBPath}`);
-      missing += 1;
-    }
-  }
-
-  // --- Mode-B sources ---
-  const srcsUsed = Array.isArray(usage.sources_used) ? usage.sources_used : [];
-  for (const src of srcsUsed) {
-    if (!src) continue;
-    if (!modeASrcs.includes(src)) {
-      report.push(`WARN  ${nick}/${src} — source not in Mode-A .sources[]`);
-      warns += 1;
-      continue;
-    }
-    const modeBPath = path.join(metadataDir, `${nick}-new-${src}.json`);
-    if (!isFile(modeBPath)) {
-      report.push(`FAIL  ${nick}/${src} — missing Mode-B (source): ${modeBPath}`);
-      missing += 1;
-    }
-  }
-
-  // --- Mode-C providers ---
-  // Driven from Mode-A .configs[], per SKILL.md Step 7 (Mode-C),
-  // in lockstep with the Step 7 fan-out loop (SKILL.md). The pre-fix gate joined
-  // usage.configs_used[] / config_providers_used[] (flow-instance config-ref
-  // values + camelCase child names) against Mode-A SDK names — those never
-  // matched, so declaredProviders was always [], the FAIL branch was
-  // unreachable, and the gate passed green while zero Mode-C files existed
-  // (Phase C then missed reparenting like db's <pooling-profile> and the first
-  // mvn broke). Now: require a Mode-C file for every (config, provider) pair the
-  // fan-out is expected to describe. --config-name is .configs[].name and --name
-  // is the .connectionProviders[] entry — identical tokens to the fan-out, so
-  // the reconstructed filename matches what describe_connector.mjs wrote.
-  const modeAConfigs = Array.isArray(modeA.configs) ? modeA.configs : [];
-
-  for (const cfg of modeAConfigs) {
-    // Fan-out passes `--config-name "$cfg.name"`; mirror that exactly (name
-    // first, elementName only as a defensive fallback).
-    const configName = (cfg && typeof cfg === 'object') ? String(cfg.name || cfg.elementName || '') : '';
-    if (!configName) continue;
-
-    const declaredProviders = (cfg && Array.isArray(cfg.connectionProviders))
-      ? cfg.connectionProviders
-        .map((cp) => (typeof cp === 'string' ? cp : String((cp && (cp.name || cp.elementName)) || '')))
-        .filter(Boolean)
-      : [];
-
-    if (declaredProviders.length === 0) {
-      // Empty connectionProviders[] — Mode-C is un-runnable here (D7 fallback);
-      // Phase C reads Mode-A .configs[] directly. Non-fatal.
-      report.push(`INFO  ${nick}/${configName} — no providers declared in Mode-A (Phase C reads .configs[] directly)`);
-      infoCount += 1;
-      continue;
-    }
-
-    for (const prov of declaredProviders) {
-      const modeCPath = path.join(metadataDir, `${nick}-new-${configName}-${prov}.json`);
-      if (!isFile(modeCPath)) {
-        report.push(`FAIL  ${nick}/${configName}/${prov} — missing Mode-C: ${modeCPath}`);
-        missing += 1;
-      }
-    }
+  for (const row of computeCoverageRows({ nick, usage, modeA, metadataDir })) {
+    if (row.level === 'WARN') { report.push(row.text); warns += 1; continue; }
+    if (row.level === 'INFO') { report.push(row.text); infoCount += 1; continue; }
+    if (!isFile(row.path)) { report.push(row.missingText); missing += 1; }
   }
 }
 
@@ -170,7 +92,7 @@ stdout.write(`Coverage: ${report.length} rows — ${missing} FAIL, ${warns} WARN
 if (missing > 0) {
   stderr.write('\n');
   stderr.write("❌ Metadata coverage incomplete — Step 12's plan will be blind on the FAIL rows above.\n");
-  stderr.write('   Re-run describe_connector.mjs for the missing (op, provider) pairs before proceeding.\n');
+  stderr.write('   Run `node scripts/describe_missing.mjs --phase bc` to describe the missing files, then re-run this gate.\n');
   exit(1);
 }
 if (strict && warns > 0) {

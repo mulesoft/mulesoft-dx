@@ -35,6 +35,7 @@ import {
   grepErrorTypesCaught,
   grepErrorTypesRaised,
 } from '../lib/xml-flow.mjs';
+import { classifyElements } from '../lib/usage-classify.mjs';
 
 // -- parser-lib import (soft) ----------------------------------------------
 // Dynamic import so a missing fast-xml-parser exits cleanly with rc=3 (signal
@@ -157,58 +158,7 @@ for (const { file, nodes, text } of parsed) {
 const ELEMS = dom.domElementNames(parsed, PREFIX);
 
 // -- classify against NEW metadata (identical to grep path) ----------------
-/** @param {any} v @returns {string} */
-function opsName(v) {
-  if (typeof v === 'string') return v;
-  if (v && typeof v === 'object') return String(v.name || '');
-  return '';
-}
-/** @param {any} cfg @returns {string} */
-function configDslName(cfg) {
-  if (!cfg || typeof cfg !== 'object') return '';
-  return String(cfg.elementName || cfg.name || '');
-}
-
-const opsSet = new Set(
-  (Array.isArray(newMeta.operations) ? newMeta.operations : []).map(opsName).filter(Boolean),
-);
-const srcsSet = new Set(
-  (Array.isArray(newMeta.sources) ? newMeta.sources : []).map(opsName).filter(Boolean),
-);
-const cfgElemsSet = new Set(
-  (Array.isArray(newMeta.configs) ? newMeta.configs : []).map(configDslName).filter(Boolean),
-);
-const cfgProvidersSet = new Set();
-for (const cfg of (Array.isArray(newMeta.configs) ? newMeta.configs : [])) {
-  const providers = (cfg && Array.isArray(cfg.connectionProviders)) ? cfg.connectionProviders : [];
-  for (const cp of providers) {
-    const n = typeof cp === 'string' ? cp : configDslName(cp);
-    if (n) cfgProvidersSet.add(n);
-  }
-}
-
-const operations_used = [];
-const sources_used = [];
-const config_elems_used = [];
-const provider_hits_from_classify = [];
-const child_elements_used = [];
-
-for (const name of ELEMS) {
-  if (!name) continue;
-  if (opsSet.has(name)) {
-    operations_used.push(name);
-  } else if (srcsSet.has(name)) {
-    sources_used.push(name);
-  } else if (cfgElemsSet.has(name)) {
-    config_elems_used.push(name);
-  } else if (cfgProvidersSet.has(name)) {
-    provider_hits_from_classify.push(name);
-    child_elements_used.push(name);
-  } else {
-    operations_used.push(name);
-    child_elements_used.push(name);
-  }
-}
+const { operations_used, sources_used, config_elems_used, provider_hits_from_classify, child_elements_used } = classifyElements(ELEMS, newMeta);
 
 // -- usage sites (DOM) — needed before configs_used ------------------------
 // config-ref is an attribute on THIS connector's own elements, so the

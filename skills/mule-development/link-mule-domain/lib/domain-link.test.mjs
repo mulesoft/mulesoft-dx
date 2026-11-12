@@ -291,6 +291,34 @@ test('unlink inlines secure-properties configs without duplicating properties or
   }
 });
 
+test('unlink never copies resource files from outside src/main/resources', () => {
+  const fx = fixture();
+  try {
+    write(join(fx.domain, 'src/main/mule/mule-domain-config.xml'), DOMAIN_XML
+      .replace('xmlns:db=', 'xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"\n  xmlns:db=')
+      .replace('path="keystore.jks"', 'path="../../../outside.jks"')
+      .replace('password="${db.password}"', 'password="${secure::db.password}"')
+      .replace('<http:request-config', `<secure-properties:config name="Secure_A" file="../../../outside.yaml" key="\${tls.password}" />
+  <http:request-config`));
+    write(join(fx.root, 'outside.jks'), 'not-yours');
+    write(join(fx.root, 'outside.yaml'), 'not: yours\n');
+    let app = loadApp(fx.app);
+    const domain = loadDomain(fx.domain);
+    applyLink(app, domain, planLink(app, domain));
+    app = loadApp(fx.app);
+
+    const plan = planUnlink(app, domain);
+    assert.equal(plan.ok, true, plan.blockers.join('\n'));
+    assert.deepEqual(plan.actions.resourceFiles, []);
+    assert.ok(plan.warnings.some((w) => w.includes('"../../../outside.jks"')));
+    assert.ok(plan.warnings.some((w) => w.includes('"../../../outside.yaml"')));
+    const written = applyUnlink(app, domain, plan);
+    assert.ok(written.every((p) => p.startsWith(fx.app)), written.join('\n'));
+  } finally {
+    rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
 test('unlink matches shared libraries by groupId and artifactId', () => {
   const fx = fixture();
   const appPom = (groupId) => pom({

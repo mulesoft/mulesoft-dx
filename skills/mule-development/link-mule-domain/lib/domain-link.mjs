@@ -20,7 +20,7 @@
 // applyLink(app, domain, plan) / applyUnlink(app, domain, plan) -> files written[]
 
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { basename, isAbsolute, join, relative, resolve } from 'node:path';
 import {
   DOMAIN_CLASSIFIER,
   PLUGIN_CLASSIFIER,
@@ -61,6 +61,13 @@ const RESOURCE_EXTENSIONS = /\.(jks|jceks|p12|pfx|pem|crt|cer|key|keystore|trust
 
 const readText = (p) => readFileSync(p, 'utf8');
 
+// `file` resolved under `base`, or null when it escapes it (`..`, absolute path).
+function insideDir(base, file) {
+  const path = resolve(base, file);
+  const rel = relative(base, path);
+  return rel && !rel.startsWith('..') && !isAbsolute(rel) ? path : null;
+}
+
 function semverOk(v) {
   return typeof v === 'string' && /^\d+\.\d+\.\d+([-+].*)?$/.test(v);
 }
@@ -86,9 +93,9 @@ function loadPropertyFiles(elements, resourcesDir) {
     if (el.local !== 'configuration-properties' || el.prefix !== '') continue;
     const file = ownAttr(el, 'file');
     if (!file) continue;
-    const path = join(resourcesDir, file);
-    if (file.includes('${') || !existsSync(path)) {
-      files.push({ file, path, values: new Map(), missing: true });
+    const path = insideDir(resourcesDir, file);
+    if (file.includes('${') || !path || !existsSync(path)) {
+      files.push({ file, path: path ?? join(resourcesDir, file), values: new Map(), missing: true });
       continue;
     }
     const text = readText(path);
@@ -419,10 +426,14 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
       }
     }
     for (const value of elementAttrValues(el.text)) {
-      if (!RESOURCE_EXTENSIONS.test(value) || value.includes('${') || value.startsWith('/')) continue;
-      const src = join(domain.resourcesDir, value);
+      if (!RESOURCE_EXTENSIONS.test(value) || value.includes('${')) continue;
+      const src = insideDir(domain.resourcesDir, value);
+      const dest = insideDir(app.resourcesDir, value);
+      if (!src || !dest) {
+        warnings.push(`Shared "${el.name}" references resource "${value}" outside src/main/resources; it is not copied. Copy it into the application manually if needed.`);
+        continue;
+      }
       if (!existsSync(src)) continue;
-      const dest = join(app.resourcesDir, value);
       if (existsSync(dest)) {
         if (readFileSync(dest).equals(readFileSync(src))) continue;
         blockers.push(`Shared "${el.name}" needs resource "${value}", but the application already has a different file at that path.`);
@@ -438,9 +449,14 @@ export function planUnlink(app, domain, { otherApps = [] } = {}) {
       for (const sc of secureConfigs) {
         if (!appNames.has(sc.name)) extraElements.push(sc);
         const file = ownAttr(sc, 'file');
-        const dest = file && join(app.resourcesDir, file);
-        if (file && !file.includes('${') && existsSync(join(domain.resourcesDir, file)) && !existsSync(dest) && !resourceFiles.some((f) => f.dest === dest)) {
-          resourceFiles.push({ src: join(domain.resourcesDir, file), dest, file });
+        if (file && !file.includes('${')) {
+          const src = insideDir(domain.resourcesDir, file);
+          const dest = insideDir(app.resourcesDir, file);
+          if (!src || !dest) {
+            warnings.push(`Secure properties "${sc.name}" reads "${file}" outside src/main/resources; it is not copied. Copy it into the application manually if needed.`);
+          } else if (existsSync(src) && !existsSync(dest) && !resourceFiles.some((f) => f.dest === dest)) {
+            resourceFiles.push({ src, dest, file });
+          }
         }
         for (const key of collectPlaceholders(sc.text)) if (domain.properties.has(key)) inlineProperty(key, sc.name);
       }

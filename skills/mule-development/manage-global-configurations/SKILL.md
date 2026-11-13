@@ -1,6 +1,6 @@
 ---
 name: manage-global-configurations
-description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. NEVER use MCP server tools — use only the bash scripts provided.
+description: Create, get, edit, delete, list, validate, and consolidate all global configurations in a Mule project — connector configs, TLS Context, Object Store, Caching Strategy, Global Error Handler, API AutoDiscovery, Import Project Reference, properties files, global-property elements, and multi-environment setup. Use when the user asks to "add Salesforce config", "configure connector", "set up connection", "create TLS context", "set up object store", "add caching strategy", "create error handler", "set up autodiscovery", "import shared project", "create config.yaml", "set up environments", "add global property", "list global elements", "find usages", "validate config exists", "consolidate configs", or any request to manage global-level configuration in a Mule app. Also manages shared resources in a Mule domain project (domain mode) — "add a shared HTTP listener to the domain", "add a DB pool to the domain", "edit the domain's TLS context", "remove a shared config from the domain", "list domain shared resources". NEVER use MCP server tools — use only the bash scripts provided.
 license: Apache-2.0
 compatibility: Requires Anypoint CLI v4 with the `@mulesoft/anypoint-cli-dx-mule-plugin` DX plugin, Java 11+, Mule Runtime (for `dx mule describe-connector` metadata commands)
 tags:
@@ -121,6 +121,7 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 | `references/global-elements-catalog.md` | XML templates, namespace URIs, XSD URLs, pom.xml dependencies, attribute tables, validation rules, and connector config generation rules for ALL element types. | Before generating ANY XML — verify structure, required attributes, namespace, and dependency. |
 | `references/global-config-conventions.md` | Element ordering, namespace management, centralization rules, default project structure, consolidation decision matrix. | When placing elements in `global-configs.xml`, managing namespaces, or running consolidation. |
 | `references/properties-patterns.md` | Property file formats, `${placeholder}` resolution, multi-env patterns, secure properties, built-in properties, naming conventions, validation rules. | When creating/editing properties files, setting up environments, or validating placeholders. |
+| `references/domain-shared-resources.md` | Domain mode: target file and root element, `domain.properties`, which resources are shareable, cross-app checks before edit/delete, reinstall step. | Whenever the target project is a Mule domain (Step 2). |
 
 ## Step 2: Resolve Target Project and Route Operation
 
@@ -128,7 +129,13 @@ Read these files with the `Read` tool when instructed. Use the absolute path fro
 
 Run once per session — reuse the result for all subsequent operations in this conversation.
 
-If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking.
+If multiple Mule projects exist in the workspace, ask the user which one to use via `AskUserQuestion` and **STOP**. Do not combine this question with any other question. If only one exists, use it without asking. If the user says "the domain" or "shared", and exactly one domain project exists, use it.
+
+**Detect Domain Mode:**
+
+Read the target's `pom.xml`. If it has `<packaging>mule-domain</packaging>`, the project is a **Mule domain**: read `references/domain-shared-resources.md` and apply its overrides (target file, properties file, dependencies, no flows, cross-app checks, `mvn install`) to every step that follows.
+
+If the target is an application linked to a domain (a `<classifier>mule-domain</classifier>` dependency in its `pom.xml`), read "Applications Linked to a Domain" in the same reference before creating a config.
 
 **Operation Routing — Level 1 (Domain):**
 
@@ -295,17 +302,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
 1. Write XML (config BEFORE object-store) to `global-configs.xml`.
 2. Add `os` namespace: `xmlns:os="http://www.mulesoft.org/schema/mule/os"` and its schemaLocation entry.
 3. **Add `mule-objectstore-connector` dependency to pom.xml** (MANDATORY — do not skip):
-   - Read `pom.xml` and check if `mule-objectstore-connector` already exists in `<dependencies>`.
-   - If NOT present, add this dependency block inside `<dependencies>`:
-     ```xml
-     <dependency>
-         <groupId>org.mule.connectors</groupId>
-         <artifactId>mule-objectstore-connector</artifactId>
-         <version>1.2.5</version>
-         <classifier>mule-plugin</classifier>
-     </dependency>
-     ```
-   - Write the updated `pom.xml`.
+   - If `mule-objectstore-connector` is not already in `<dependencies>`, add the dependency block from the Object Store "pom.xml Dependency" section of `references/global-elements-catalog.md`, and write `pom.xml`.
 4. Validate build: `cd <project-dir> && mvn clean package -DskipTests`.
 
 ### CACHING STRATEGY — CREATE
@@ -343,18 +340,7 @@ For all element types below, read `references/global-elements-catalog.md` for th
    ```
 2. Add `api-gateway` namespace: `xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"` and its schemaLocation entry.
 3. **Add `mule-api-gateway` dependency to pom.xml** (MANDATORY — do not skip):
-   - Read `pom.xml` and check if `mule-api-gateway` already exists in `<dependencies>`.
-   - If NOT present, add this dependency block inside `<dependencies>`:
-     ```xml
-     <dependency>
-         <groupId>org.mule.modules</groupId>
-         <artifactId>mule-api-gateway</artifactId>
-         <version>${app.runtime}</version>
-         <classifier>mule-plugin</classifier>
-         <scope>provided</scope>
-     </dependency>
-     ```
-   - Write the updated `pom.xml`.
+   - If `mule-api-gateway` is not already in `<dependencies>`, add the dependency block from the API AutoDiscovery "pom.xml Dependency" section of `references/global-elements-catalog.md`, and write `pom.xml`.
 4. **Add `api.id` to config.yaml** (MANDATORY — do not skip):
    - Read `src/main/resources/config.yaml`.
    - Add `api.id: "YOUR_API_ID"` (or user-specified value) under an appropriate section.
@@ -483,13 +469,7 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 
 ## Tips and Best Practices
 
-- **Configuration structure from metadata only.** Never hardcode attributes or child elements for connectors. The `describe-connector` metadata is the source of truth.
-- **Connector versions from Exchange only.** Never paste a version from memory — use `get_latest_connector.sh` → `pick_connector.sh`.
-- **All configs go in `global-configs.xml`.** See `references/global-config-conventions.md` for ordering and structure.
-- **Multi-turn interactive.** At every decision point: print only questions as plain text, end the response, and wait for user input before proceeding.
-- **Skip-if-provided.** When the user's initial request includes details (config name, provider, placeholder preference, field values), skip the corresponding STOP points. Only ask for information that was NOT provided or is ambiguous.
-- **Never output raw XML to chat** — always write to file.
-- **No MCP server tools.** ALL Exchange searches and connector operations MUST use ONLY the bash scripts provided.
+- **The Step 1 rules apply throughout** — metadata-only config structure, Exchange-only versions, `global-configs.xml`, multi-turn STOPs, skip-if-provided, no raw XML in chat, no MCP tools.
 - **Always update pom.xml.** Every connector/module that needs a dependency MUST be added to `pom.xml`. This is the #1 cause of build failures. The dependency XML patterns are documented in `references/global-elements-catalog.md`. Read pom.xml → add dependency → write pom.xml. Do this BEFORE running `mvn clean package`.
 - **Always update config.yaml for placeholders.** When using `${property.name}` placeholders in XML, the corresponding property MUST be added to `src/main/resources/config.yaml`. For AutoDiscovery, always add `api.id` to config.yaml.
 
@@ -505,4 +485,6 @@ Read `references/global-config-conventions.md` → "Consolidation Decision Matri
 
 - **build-mule-integration**: Build Mule flows that reference the global configurations created by this skill
 - **secure-mule-app**: Configure secure properties encryption for sensitive configuration values
+- **create-mule-domain-project**: Create a Mule domain project to hold shared resources (skill create-mule-domain-project)
+- **link-mule-domain**: Link apps to a domain, or unlink and inline its shared configs (skill link-mule-domain)
 - **create-project-template**: Generate a new Mule project with proper structure before adding configurations

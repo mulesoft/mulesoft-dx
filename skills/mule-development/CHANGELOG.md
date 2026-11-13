@@ -4,7 +4,39 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.8] - Unreleased
+
+### Added
+
+- **`create-mule-domain-project`** (new): creates a Mule 4 domain project that Anypoint Code Builder treats as a domain. `scripts/scaffold_domain.mjs` writes the same `pom.xml` as ACB's "Create Mule Domain Project" (`<packaging>mule-domain</packaging>`, `mule-maven-plugin` 4.10.3, Exchange repository derived from any control-plane host), plus `mule-artifact.json` and `src/main/mule/mule-domain-config.xml`. It also writes `src/main/resources/domain.properties`, registered through `<configuration-properties>`. Shared resources that the user describes in natural language are created through `manage-global-configurations` in domain mode, and the domain is then `mvn install`ed. The scaffold also creates an empty `src/test/munit` folder, so `mvn install` doesn't fail in `generate-test-sources` once the domain has a connector dependency. Finally, the domain is added to the VS Code workspace with `open_project` (`addToWorkspace: true`) so ACB recognizes it. The skill falls back to defaults when the parent folder or the named sibling apps don't exist yet.
+- **`link-mule-domain`** (new): links an application to a domain, or unlinks it, with a dry-run plan and a confirmation gate.
+  - **Linking** makes the same edits ACB does:
+    - adds a `mule-domain` dependency with `provided` scope;
+    - sets shared connectors to `provided` at the domain's version, updating the `${property}` when the version is one;
+    - aligns `app.runtime`, `minMuleVersion` and `javaSpecificationVersions` with the domain.
+  - **Cross-project validation** reports references the domain resolves, references nothing defines, and app configs that shadow a domain config. It also warns about listener ports that clash with a domain listener.
+  - **Unlinking** copies every shared config the app still uses into `global-configs.xml`, following references transitively. It brings the namespaces, the property values (into `<domain>.properties`), the required `global-property` and secure-properties elements, and resource files such as keystores. It removes the domain dependency, puts connectors back at compile scope, and adds the domain's shared libraries to the app.
+  - **Unlinking stops with a blocker** when a config cannot be inlined safely:
+    - a name collision;
+    - `${domain}` placeholders;
+    - a property value that conflicts with the app's;
+    - a resource file that differs from the app's file at the same path;
+    - unresolved `${secure::}` placeholders.
+  - `scripts/scan_workspace.mjs` reports each app's domain status: `workspace`, `installed`, `version-mismatch` or `missing`.
+- **`manage-global-configurations`**: domain mode, active when pom packaging is `mule-domain`.
+  - Targets `mule-domain-config.xml` and `domain.properties`.
+  - Puts dependencies (and `<sharedLibraries>`) in the domain pom, and refuses flows and flow-bound elements.
+  - Checks the linked apps for usages before a rename or delete, and validates by running `mvn install`.
+  - New `references/domain-shared-resources.md`.
+  - In an app linked to a domain, it reuses the domain's shared configs instead of creating duplicates.
+- **`create-mule-run-config`**: domain-aware run and debug configurations. The new `scripts/resolve_domain_run_plan.mjs`:
+  - orders the selected projects with domains before their applications;
+  - adds each app's workspace domain and suggests the linked apps of a selected domain;
+  - rejects a selection that contains only domains;
+  - fails with a clear error when an app's domain is neither in the workspace nor installed in `~/.m2`.
+  
+  `execute-mule-run-config` and `update-mule-run-config` use the same check, and `execute-mule-run-config` explains how to recover from the runtime's missing-domain error.
+- **`build-mule-integration`**: update mode no longer generates flows in a domain project. In an app linked to a domain, it reuses the domain's shared configs.
 
 ### Fixed
 

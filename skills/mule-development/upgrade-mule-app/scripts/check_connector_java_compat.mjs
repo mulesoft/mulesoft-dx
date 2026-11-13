@@ -49,9 +49,9 @@
 // Exit code: 1 when stop is true (a connector could not be verified); 0 otherwise.
 
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
 import { listExactGaRows } from "../lib/anypoint.mjs";
+import { DESCRIBE_ATTEMPTS, CACHE_DIRNAME, describeWithRetry, parseCliJson } from "../lib/exchange-describe.mjs";
 
 // Don't crash if a downstream consumer (e.g. `head`) closes stdout early.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
@@ -60,64 +60,10 @@ function log(msg) {
   process.stdout.write(msg + "\n");
 }
 
-const DESCRIBE_ATTEMPTS = 3;
-const DESCRIBE_GAP_MS = 2000;
-
-// Block the CLI's env-driven defaults from redirecting the lookup, and silence
-// Node deprecation warnings the CLI emits on stderr.
-const CLI_ENV = { ...process.env, NODE_NO_WARNINGS: "1" };
-delete CLI_ENV.ANYPOINT_ENV;
-
-// Synchronous sleep without a busy-wait (which would peg a CPU core and starve
-// the next spawn). Blocks the thread for ms using Atomics.wait on a throwaway
-// buffer — dependency-free and idle.
-function sleep(ms) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
-
-// Run `exchange asset describe <coord>` once. Returns { ok, out, err }.
-function describeOnce(coord) {
-  const r = spawnSync(
-    "anypoint-cli-v4",
-    ["exchange", "asset", "describe", coord, "--output", "json"],
-    { encoding: "utf8", env: CLI_ENV, maxBuffer: 32 * 1024 * 1024 }
-  );
-  if (r.error) return { ok: false, out: "", err: r.error.message };
-  const out = r.stdout || "";
-  const err = r.stderr || "";
-  return { ok: r.status === 0, out, err };
-}
-
-// Describe with retries. A failure is retried (transient network/auth) up to
-// DESCRIBE_ATTEMPTS; the last stderr is returned so the caller can surface it.
-function describeWithRetry(coord) {
-  let last = { ok: false, out: "", err: "" };
-  for (let attempt = 1; attempt <= DESCRIBE_ATTEMPTS; attempt++) {
-    last = describeOnce(coord);
-    if (last.ok) return last;
-    if (attempt < DESCRIBE_ATTEMPTS) sleep(DESCRIBE_GAP_MS);
-  }
-  return last;
-}
-
 // Existence probe (used only when describing the current version fails): true when
 // an exact groupId+assetId row exists (only the pinned version was delisted).
 function assetExistsOnExchange(groupId, artifactId) {
   return listExactGaRows(groupId, artifactId).length > 0;
-}
-
-// The CLI prints a "Fetching..." preamble before the JSON body. Slice from the
-// first { or [ so JSON.parse sees only the document.
-function parseCliJson(out) {
-  const objStart = out.indexOf("{");
-  const arrStart = out.indexOf("[");
-  const start = arrStart === -1 ? objStart : (objStart === -1 ? arrStart : Math.min(objStart, arrStart));
-  if (start === -1) return null;
-  try {
-    return JSON.parse(out.slice(start));
-  } catch {
-    return null;
-  }
 }
 
 // From an asset-describe payload, return the sorted list of Java majors whose
@@ -150,6 +96,7 @@ function main() {
   projectDir = resolve(projectDir);
 
   const inPath = process.env.CONNECTORS_FILE || join(projectDir, "tmp", "connectors.json");
+  const cacheDir = join(projectDir, "tmp", CACHE_DIRNAME); // shared with Step 6
   const outPath = process.env.CONNECTOR_JAVA_COMPAT_FILE || join(projectDir, "tmp", "connector-java-compat.json");
 
   const result = {
@@ -206,7 +153,7 @@ function main() {
     }
 
     const coord = `${c.groupId}/${c.artifactId}/${c.version}`;
-    const res = describeWithRetry(coord);
+    const res = describeWithRetry(coord, { cacheDir });
 
     // 2. describe of the current version failed. Delisted old version (asset still
     //    on Exchange) -> not a stop; genuinely absent -> stop.

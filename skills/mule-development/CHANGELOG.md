@@ -4,11 +4,15 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.8]
 
 ### Fixed
 
 - **`upgrade-mule-app`** — faster connector metadata step (W-24731666). The first pass of Step 7 failed the coverage gate because SKILL.md described Mode C as used-only while the gate requires it for every Mode-A config × provider pair, and the describe calls ran one at a time. New `scripts/describe_missing.mjs` runs the missing describe calls, up to `min(4, cores/2)` at a time, using the same expected-file list as `verify_metadata_coverage.mjs`; Step 7 and the Step 11.5 remedy now use it. The enumerators also mishandled hyphenated Mode-A names (sources, configs, providers), so those sources and operations got no Mode-B file; they are now matched ignoring kebab/camel spelling. Steps 7a and 7b took 42s–71s instead of 2m 10s–3m 54s on three sample apps.
+
+### Changed
+
+- **`upgrade-mule-app`** — less redundant work per run (W-24731669). Step 5b caches each Exchange describe (`lib/exchange-describe.mjs`) and Step 6 reuses it instead of calling the CLI again. Step 8 starts with `scripts/java_boundary.mjs`, so a Java-unchanged upgrade (e.g. 17 → 17) skips it. Step 11 starts with `scripts/detect_munit.mjs` and skips the MUnit lookups for apps without MUnit. Step 7 describes Mode-C only for the connection providers the app uses (a producer-only Kafka app needs 1 file, not 14), falling back to every provider when a provider rename is possible, a config has no connection child, or the usage can't be mapped. Step 7a now always re-describes Mode-A and clears that connector's Mode-B/C files, so a leftover `tmp/` can't feed stale metadata downstream.
 
 ## [1.9.7]
 

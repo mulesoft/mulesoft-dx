@@ -20,12 +20,7 @@ export const DEFAULT_JAVA = '17';
 
 const EMPTY_DIRS = ['src/test/munit'];
 
-const EXCHANGE_HOSTS = {
-  us: 'anypoint',
-  eu: 'eu1.anypoint',
-  ca: 'ca1.platform',
-  jp: 'jp1.platform',
-};
+export const DEFAULT_CONTROL_PLANE = 'anypoint.mulesoft.com';
 
 /** @param {string} name Free-form project name. @returns {string} kebab-case form (ACB's paramCase). */
 export function toKebabCase(name) {
@@ -37,13 +32,23 @@ export function toKebabCase(name) {
     .toLowerCase();
 }
 
-/** @param {string} region us|eu|ca|jp. @returns {string} Exchange Maven facade URL. */
-export function exchangeUrlForRegion(region) {
-  const host = EXCHANGE_HOSTS[String(region || 'us').toLowerCase()];
-  if (!host) {
-    throw new Error(`unknown region "${region}" (expected one of ${Object.keys(EXCHANGE_HOSTS).join(', ')})`);
+/**
+ * Every control plane serves its Exchange Maven facade at `maven.<host>`
+ * (anypoint.mulesoft.com, eu1.anypoint.mulesoft.com, ca1.platform.mulesoft.com, ...),
+ * so no region list is needed.
+ * @param {string} controlPlane Control-plane host or URL, e.g. eu1.anypoint.mulesoft.com.
+ * @returns {string} Exchange Maven facade URL.
+ */
+export function exchangeUrlForControlPlane(controlPlane) {
+  const host = String(controlPlane || DEFAULT_CONTROL_PLANE)
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase();
+  if (!/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+mulesoft\.com$/.test(host)) {
+    throw new Error(`invalid control plane "${controlPlane}" (expected a host such as eu1.anypoint.mulesoft.com)`);
   }
-  return `https://maven.${host}.mulesoft.com/api/v3/maven`;
+  return `https://maven.${host.replace(/^maven\./, '')}/api/v3/maven`;
 }
 
 /** @param {string} runtime e.g. 4.9.5. @returns {string} minMuleVersion with patch forced to 0 (4.9.0). */
@@ -166,7 +171,7 @@ export function scaffoldDomain(parentDir, rawName, opts = {}) {
   minMuleVersion(runtime); // validates semver
   const java = String(opts.java || DEFAULT_JAVA);
   if (!/^[1-9]\d*$/.test(java)) throw new Error(`invalid Java version "${java}" (expected e.g. 17)`);
-  const exchangeUrl = opts.exchangeUrl || exchangeUrlForRegion(opts.region || 'us');
+  const exchangeUrl = opts.exchangeUrl || exchangeUrlForControlPlane(opts.controlPlane);
   if (!/^https?:\/\/[^\s<>&"']+$/.test(exchangeUrl)) throw new Error(`invalid Exchange URL "${exchangeUrl}"`);
 
   const projectDir = resolve(parentDir, artifactId);

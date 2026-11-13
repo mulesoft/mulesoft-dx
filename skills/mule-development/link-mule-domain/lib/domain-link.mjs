@@ -5,7 +5,9 @@
 //   link   -> app pom gets <classifier>mule-domain</classifier><scope>provided</scope>
 //             (replacing any previous domain), app connectors the domain also
 //             supplies become `provided` at the domain's version, `provided`
-//             connectors the domain no longer supplies go back to compile, and
+//             connectors the previous domain supplied but the new one doesn't
+//             go back to compile (other `provided` plugins, such as
+//             mule-api-gateway, are left alone), and
 //             the app inherits the domain's runtime (pom app.runtime +
 //             mule-artifact.json minMuleVersion) and Java version
 //             (javaSpecificationVersions). mule-artifact.json has no domain key.
@@ -15,7 +17,9 @@
 //             namespaces, property values and referenced resource files.
 //
 // loadDomain(dir), loadApp(dir) -> snapshots read from disk
-// planLink(app, domain, {otherApps}) / planUnlink(app, domain, {otherApps})
+// previousDomainPlugins(app, projects) -> mule-plugins of the domain the app
+//     links today (workspace project, else ~/.m2 pom), or null when not found
+// planLink(app, domain, {otherApps, previousPlugins}) / planUnlink(app, domain, {otherApps})
 //     -> {ok, blockers[], warnings[], ...actions}   (pure, no writes)
 // applyLink(app, domain, plan) / applyUnlink(app, domain, plan) -> files written[]
 
@@ -25,6 +29,7 @@ import {
   DOMAIN_CLASSIFIER,
   PLUGIN_CLASSIFIER,
   describeProject,
+  domainArtifactPaths,
   insertDependency,
   muleConfigFiles,
   readMuleArtifact,
@@ -235,8 +240,27 @@ function resolvePort(port, props) {
 // Link
 // ---------------------------------------------------------------------------
 
-/** Validate and plan linking `app` to `domain`. Pure. */
-export function planLink(app, domain, { otherApps = [] } = {}) {
+/**
+ * The mule-plugins supplied by the domain `app` is linked to today, read from the
+ * workspace domain project with that exact GAV, else from the pom in ~/.m2.
+ * Returns null when the app has no domain or its pom cannot be found.
+ */
+export function previousDomainPlugins(app, projects = []) {
+  const dep = app.domainDependency;
+  if (!dep) return null;
+  const inWorkspace = projects.find((p) => p.kind === 'domain' && sameGA(p.gav, dep) && p.gav.version === dep.version);
+  const pomPath = inWorkspace ? join(inWorkspace.dir, 'pom.xml') : domainArtifactPaths(dep).pom;
+  if (!existsSync(pomPath)) return null;
+  return readPom(readText(pomPath)).dependencies.filter((d) => d.classifier === PLUGIN_CLASSIFIER);
+}
+
+/**
+ * Validate and plan linking `app` to `domain`. Pure.
+ * `previousPlugins` (from previousDomainPlugins) are the connectors the current
+ * domain supplied; only those are reverted to compile scope when the new domain
+ * no longer supplies them.
+ */
+export function planLink(app, domain, { otherApps = [], previousPlugins = null } = {}) {
   const blockers = [];
   const warnings = [];
 
@@ -265,8 +289,12 @@ export function planLink(app, domain, { otherApps = [] } = {}) {
     const fromDomain = supplied.find((s) => sameGA(s, p));
     if (fromDomain && (p.scope !== 'provided' || p.version !== fromDomain.version)) {
       connectorChanges.push({ groupId: p.groupId, artifactId: p.artifactId, scope: { from: p.scope ?? 'compile', to: 'provided' }, version: { from: p.version, to: fromDomain.version } });
-    } else if (!fromDomain && p.scope === 'provided') {
-      connectorChanges.push({ groupId: p.groupId, artifactId: p.artifactId, scope: { from: 'provided', to: 'compile' }, version: { from: p.version, to: p.version } });
+    } else if (!fromDomain && p.scope === 'provided' && mode !== 'link') {
+      if (previousPlugins?.some((s) => sameGA(s, p))) {
+        connectorChanges.push({ groupId: p.groupId, artifactId: p.artifactId, scope: { from: 'provided', to: 'compile' }, version: { from: p.version, to: p.version } });
+      } else if (!previousPlugins) {
+        warnings.push(`${p.artifactId} is provided, and the new domain doesn't supply it. The previous domain's pom wasn't found, so its scope is left unchanged; set it to compile if the previous domain supplied it.`);
+      }
     }
   }
 

@@ -69,7 +69,7 @@ Invoke scripts by the absolute path of this skill's directory (the directory con
 node <skill-dir>/scripts/scaffold_domain.mjs <parent-dir> <domain-name> \
   [--group-id com.mycompany] [--version 1.0.0-SNAPSHOT] \
   [--runtime 4.9.0] [--java 17] \
-  [--region us|eu|ca|jp] [--exchange-url <maven-facade-url>]
+  [--control-plane <host>] [--exchange-url <maven-facade-url>]
 ```
 
 The logic lives in `lib/domain-scaffold.mjs`; tests are in `lib/domain-scaffold.test.mjs` (`node --test`).
@@ -111,11 +111,11 @@ Read what the user already said, and ask (with `AskUserQuestion`) only for what 
 | groupId | The sibling apps' `groupId`, else `com.mycompany` | Linked apps reference the domain by this groupId. |
 | Mule Runtime | The sibling apps' highest `app.runtime`, else `4.9.0` | **Apps inherit the domain's runtime when they are linked.** Pick a version every app can run on. |
 | Java | The sibling apps' `javaSpecificationVersions`, else `17` | Apps inherit this too. |
-| Exchange repository | Copy the `anypoint-exchange-v3` URL from a sibling app's `pom.xml` (`--exchange-url`); otherwise ask for the control-plane region (`--region us\|eu\|ca\|jp`, default `us`) | Keeps the domain resolving connectors from the same Exchange as the apps. |
+| Exchange repository | Copy the `anypoint-exchange-v3` URL from a sibling app's `pom.xml` (`--exchange-url`); otherwise pass the Anypoint control-plane host the user signs in to (`--control-plane eu1.anypoint.mulesoft.com`, default `anypoint.mulesoft.com`); the script builds `https://maven.<host>/api/v3/maven`, so any region works | Keeps the domain resolving connectors from the same Exchange as the apps. |
 
 To read the sibling defaults, run the scan from skill link-mule-domain (`node <link-mule-domain-dir>/scripts/scan_workspace.mjs <workspace-root>`, where `<link-mule-domain-dir>` is the sibling `link-mule-domain` folder next to this skill's directory), or read the sibling `pom.xml` and `mule-artifact.json` files directly.
 
-**No sibling apps:** an app the user names might not exist yet (for example, "a domain for my orders app" before `orders-app` is created), or the parent folder might contain no apps. Either way, do not stop and do not ask for the groupId, runtime, or Java. Use the defaults above and list them in the Step 6 summary. Ask only for the control-plane region, and only if the user hasn't given it.
+**No sibling apps:** an app the user names might not exist yet (for example, "a domain for my orders app" before `orders-app` is created), or the parent folder might contain no apps. Either way, do not stop and do not ask for the groupId, runtime, or Java. Use the defaults above and list them in the Step 6 summary. Ask only for the control-plane host (the address of the Anypoint Platform they sign in to), and only if the user hasn't given it.
 
 ### Step 2: Scaffold
 
@@ -169,7 +169,7 @@ ACB recognizes the domain only after it is in the open VS Code workspace. When t
 
 If `open_project` is not available, run `code --add "<projectDir>"`. If both fail, carry on to Step 6 and tell the user to add the folder with **File → Add Folder to Workspace**.
 
-If the window held only one folder before, adding the domain turns it into an unsaved (in-memory) multi-root workspace. Skill create-mule-run-config saves it to a `.code-workspace` file when a run configuration needs one.
+If the window held only one folder before, adding the domain turns it into an unsaved (in-memory) multi-root workspace. A multi-project run configuration needs a saved workspace, so ask the user to save it with **File → Save Workspace As…** before creating one.
 
 ### Step 6: Report and offer next steps
 
@@ -188,7 +188,7 @@ Then offer:
 
 ## Best Practices
 
-- **Skip-if-provided.** Extract the domain name, parent folder, groupId, runtime, Java, region, and shared resources from the user's request before asking anything. Ask only for what is missing or ambiguous. "Create a domain called shared-services with a shared HTTP listener on 8081" needs no questions when sibling apps supply the remaining defaults.
+- **Skip-if-provided.** Extract the domain name, parent folder, groupId, runtime, Java, control plane, and shared resources from the user's request before asking anything. Ask only for what is missing or ambiguous. "Create a domain called shared-services with a shared HTTP listener on 8081" needs no questions when sibling apps supply the remaining defaults.
 - **Pick the runtime for every app.** Linked apps inherit the domain's runtime and Java version, so choose the highest version all of them can run on.
 - **Never overwrite.** If the target folder exists, ask for another name. Never delete it.
 - **Shared global elements only.** Domains never contain flows, sub-flows, or flow-bound error handlers.

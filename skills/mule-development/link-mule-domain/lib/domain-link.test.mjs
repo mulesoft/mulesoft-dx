@@ -6,8 +6,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyLink, applyUnlink, loadApp, loadDomain, planLink, planUnlink } from './domain-link.mjs';
-import { readPom } from './mule-project.mjs';
+import { applyLink, applyUnlink, loadApp, loadDomain, planLink, planUnlink, previousDomainPlugins } from './domain-link.mjs';
+import { findMuleProjects, readPom } from './mule-project.mjs';
 import { listGlobalElements, rootInfo } from './mule-xml.mjs';
 import { parseProperties } from './properties.mjs';
 import { scanWorkspace } from './workspace.mjs';
@@ -234,6 +234,48 @@ test('unlink inlines used shared configs transitively with properties, resources
     assert.equal(byId['mule-db-connector'].version, '1.14.0');
     assert.equal(byId['mysql-connector-j'].version, '8.4.0');
     assert.match(readFileSync(join(fx.app, 'pom.xml'), 'utf8'), /<sharedLibrary>\s*<groupId>com\.mysql<\/groupId>/);
+  } finally {
+    rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
+test('changing domains reverts only connectors the previous domain supplied', () => {
+  const fx = fixture();
+  try {
+    // Linked to shared-domain: db connector provided by it; mule-api-gateway provided by the runtime.
+    write(join(fx.app, 'pom.xml'), pom({
+      artifactId: 'orders-app',
+      packaging: 'mule-application',
+      deps: dep('com.acme', 'shared-domain', '1.0.0-SNAPSHOT', 'mule-domain', 'provided')
+        + dep('org.mule.connectors', 'mule-db-connector', '1.14.0', 'mule-plugin', 'provided')
+        + dep('com.mulesoft.anypoint', 'mule-api-gateway', '1.0.0', 'mule-plugin', 'provided'),
+    }));
+    const other = join(fx.root, 'other-domain');
+    write(join(other, 'pom.xml'), pom({ artifactId: 'other-domain', packaging: 'mule-domain' }));
+    write(join(other, 'mule-artifact.json'), JSON.stringify({ minMuleVersion: '4.9.0', javaSpecificationVersions: ['17'] }));
+    write(join(other, 'src/main/mule/mule-domain-config.xml'), '<domain:mule-domain xmlns:domain="http://www.mulesoft.org/schema/mule/ee/domain"></domain:mule-domain>\n');
+
+    const app = loadApp(fx.app);
+    const domain = loadDomain(other);
+    const scope = (plan) => plan.actions.connectorChanges.map((c) => [c.artifactId, c.scope.to]);
+
+    const previousPlugins = previousDomainPlugins(app, findMuleProjects([fx.root]));
+    const plan = planLink(app, domain, { previousPlugins });
+    assert.equal(plan.mode, 'change');
+    assert.deepEqual(scope(plan), [['mule-db-connector', 'compile']]);
+
+    // Previous domain not found: nothing is reverted, the user is told.
+    const unknown = planLink(app, domain);
+    assert.deepEqual(scope(unknown), []);
+    assert.ok(unknown.warnings.some((w) => w.includes('mule-db-connector')));
+
+    // A first link never touches provided plugins.
+    write(join(fx.app, 'pom.xml'), pom({
+      artifactId: 'orders-app',
+      packaging: 'mule-application',
+      deps: dep('com.mulesoft.anypoint', 'mule-api-gateway', '1.0.0', 'mule-plugin', 'provided'),
+    }));
+    assert.deepEqual(scope(planLink(loadApp(fx.app), domain)), []);
   } finally {
     rmSync(fx.root, { recursive: true, force: true });
   }

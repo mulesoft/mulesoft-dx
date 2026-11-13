@@ -131,25 +131,6 @@ node <skill-dir>/scripts/resolve_domain_run_plan.mjs \
 
 Domains cannot be debugged on their own: breakpoints in domain files are ignored. The debugger attaches to the applications.
 
-## Step 2c: Saved Workspace Check (only when the final `projects` list has more than one entry)
-
-A configuration with several projects is stored in the workspace's `.code-workspace` file. VS Code keeps a multi-root workspace in memory until it is saved: the title bar shows **Untitled (Workspace)**. This usually happens after folders are added to a single-folder window, for example when `open_project` adds a new domain. In that state the configuration can't be stored or executed. `get_workspace_info` doesn't report it, so check for the file:
-
-1. Find the closest common parent folder of the Step 1 `projects` paths, and list the `*.code-workspace` files in it.
-2. Read each file. Resolve every `folders[].path` against the file's own folder. A file whose folders include every Step 1 project path is the saved workspace. Continue to Step 3.
-3. If no file matches, the workspace is in memory. Ask, with two buttons, "Create workspace file" and "Cancel":
-   > "Your workspace isn't saved to a file, so a multi-project run configuration can't be stored. Should I create `<common-parent>/<name>.code-workspace` with your <N> projects?"
-
-   On confirmation, write the file with relative folder paths and an empty launch section. Never overwrite an existing file; choose another name instead.
-   ```json
-   {
-     "folders": [{ "path": "shared-domain" }, { "path": "orders-app" }],
-     "settings": {},
-     "launch": { "version": "0.2.0", "configurations": [], "compounds": [] }
-   }
-   ```
-   Then tell the user to open it with **File → Open Workspace from File…** (or `code "<file>"`). Opening it reloads the window, which ends this conversation, so **stop here** and ask them to request the run configuration again afterwards.
-
 ## Step 3: Collect Additional Preferences
 
 After user selects projects, ask for:
@@ -227,16 +208,6 @@ If the user says yes, call the tool again with operation "execute". **Use the EX
 }
 ```
 
-### Step 5b: Fallback when execute fails because the workspace isn't saved
-
-Use this only when `create` succeeded but `execute` then fails with a workspace error. Examples are "Configuration … not found in workspace scope", "Workspace file not found", and "Not a multi-root workspace". In each case the workspace isn't backed by a `.code-workspace` file. For any other error, report it verbatim and stop.
-
-- **Several applications, or an application with a domain**: do not fall back. `run_local_mule_application` deploys exactly one application jar, replaces any applications already deployed, and never deploys a domain. Follow Step 2c to save the workspace to a file instead.
-- **Exactly one application, no domain**: tell the user you are running the app directly in the local runtime without the run configuration (run mode only, no debugger). Then:
-  1. Read the app's `mule-artifact.json`. `run_local_mule_application` requires a `name` field, and ACB's project scaffolder omits it. If `name` is missing, set it to the pom's `artifactId`; the tool looks for `target/<name>*-mule-application.jar`. Tell the user you added the field.
-  2. Call `run_local_mule_application` with `projectPath` and `javaHome`, as described in the tool's parameter description. The tool stops any running local Mule runtime first.
-  3. Report `app_name`, `runtime_version`, and `runtime_path` from the result. The runtime runs in a new terminal window.
-
 ## Handling Common Scenarios
 
 ### Scenario 1: Single project workspace
@@ -279,7 +250,7 @@ Flow:
 
 - **Always show available projects first** - list workspace folders and let user select by number
 - **Support flexible input** - users can enter "1", "1,3", "all", or project names
-- **Validate domains and the workspace file only** - Step 2b's script validates the domain setup and Step 2c checks for a saved workspace; the tool handles all other validation and file operations
+- **Validate domains only** - Step 2b's script validates the domain setup; the tool handles all other validation and file operations
 - **Keep it conversational** - don't ask for information the command doesn't need
 - **Detect debug intent** - if user says "debug" in their request, set noDebug = false
 - **Use the EXACT name returned after creating** - If the create operation returns "Run my-app (2)", you MUST use that exact name (with the number) when offering to run it. Do NOT use the original suggested name.

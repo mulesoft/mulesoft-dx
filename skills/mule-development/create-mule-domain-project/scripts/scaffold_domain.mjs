@@ -11,11 +11,13 @@
 //   node scripts/scaffold_domain.mjs <parent-dir> <domain-name> \
 //     [--group-id com.mycompany] [--version 1.0.0-SNAPSHOT] \
 //     [--runtime 4.9.0] [--java 17] \
-//     [--region us|eu|ca|jp] [--exchange-url <maven-facade-url>]
+//     [--control-plane <host>] [--exchange-url <maven-facade-url>]
 //
 // <domain-name> is converted to kebab-case; that value is both the folder name
-// and the Maven artifactId. --exchange-url wins over --region; copy it from a
-// sibling application's pom.xml so the domain resolves from the same Exchange.
+// and the Maven artifactId. --exchange-url wins over --control-plane; copy it
+// from a sibling application's pom.xml so the domain resolves from the same
+// Exchange. --control-plane is the Anypoint host the user signs in to
+// (default anypoint.mulesoft.com); the facade URL is https://maven.<host>/api/v3/maven.
 //
 // Prints a JSON summary ({projectDir, artifactId, files[]}) on stdout.
 // Exit codes:
@@ -28,7 +30,7 @@ import { scaffoldDomain } from '../lib/domain-scaffold.mjs';
 function parseArgs(args) {
   const positional = [];
   const opts = {};
-  const keys = { '--group-id': 'groupId', '--version': 'version', '--runtime': 'runtime', '--java': 'java', '--region': 'region', '--exchange-url': 'exchangeUrl' };
+  const keys = { '--group-id': 'groupId', '--version': 'version', '--runtime': 'runtime', '--java': 'java', '--control-plane': 'controlPlane', '--exchange-url': 'exchangeUrl' };
   for (let i = 0; i < args.length; i++) {
     const key = keys[args[i]];
     if (key) {
@@ -46,7 +48,7 @@ function parseArgs(args) {
 try {
   const { positional, opts } = parseArgs(argv.slice(2));
   if (positional.length !== 2) {
-    throw new Error('usage: scaffold_domain.mjs <parent-dir> <domain-name> [--group-id G] [--version V] [--runtime R] [--java J] [--region us|eu|ca|jp] [--exchange-url URL]');
+    throw new Error('usage: scaffold_domain.mjs <parent-dir> <domain-name> [--group-id G] [--version V] [--runtime R] [--java J] [--control-plane HOST] [--exchange-url URL]');
   }
   const result = scaffoldDomain(positional[0], positional[1], opts);
   stdout.write(`${JSON.stringify(result, null, 2)}\n`);

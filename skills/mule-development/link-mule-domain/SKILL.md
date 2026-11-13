@@ -81,7 +81,7 @@ The logic lives in `lib/` (`domain-link.mjs`, `mule-project.mjs`, `mule-xml.mjs`
 
 ### What linking changes
 
-- **`pom.xml`**: removes any existing `mule-domain` dependency, then adds `<dependency>` with `<classifier>mule-domain</classifier><scope>provided</scope>` for the domain's GAV. Each connector that both the app and the domain declare becomes `provided` at the domain's version. When the app's version is a `${property}`, the property is updated instead. Connectors that were `provided` but are no longer supplied by the new domain go back to compile scope. `app.runtime` is set to the domain's runtime.
+- **`pom.xml`**: removes any existing `mule-domain` dependency, then adds `<dependency>` with `<classifier>mule-domain</classifier><scope>provided</scope>` for the domain's GAV. Each connector that both the app and the domain declare becomes `provided` at the domain's version. When the app's version is a `${property}`, the property is updated instead. When the app moves from another domain (or another version of it), connectors that the previous domain supplied and the new one doesn't go back to compile scope; the previous domain's pom is read from the workspace or `~/.m2`. Other `provided` plugins, such as `mule-api-gateway`, are never changed. `app.runtime` is set to the domain's runtime.
 - **`mule-artifact.json`**: `minMuleVersion` and `javaSpecificationVersions` are aligned with the domain. All other keys are kept. Mule has no `domain` key in `mule-artifact.json`; the runtime finds the domain through the pom dependency.
 - **Cross-project validation** (`references` in the plan):
   - `resolvedByDomain`: app references that the domain satisfies.

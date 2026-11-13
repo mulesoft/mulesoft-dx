@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  exchangeUrlForRegion,
+  exchangeUrlForControlPlane,
   minMuleVersion,
   scaffoldDomain,
   toKebabCase,
@@ -35,10 +35,14 @@ test('minMuleVersion forces the patch to 0', () => {
   assert.throws(() => minMuleVersion('latest'), /not a semver/);
 });
 
-test('exchangeUrlForRegion maps control planes and rejects unknown ones', () => {
-  assert.equal(exchangeUrlForRegion('us'), 'https://maven.anypoint.mulesoft.com/api/v3/maven');
-  assert.equal(exchangeUrlForRegion('EU'), 'https://maven.eu1.anypoint.mulesoft.com/api/v3/maven');
-  assert.throws(() => exchangeUrlForRegion('mars'), /unknown region/);
+test('exchangeUrlForControlPlane derives the facade from any control-plane host', () => {
+  assert.equal(exchangeUrlForControlPlane(undefined), 'https://maven.anypoint.mulesoft.com/api/v3/maven');
+  assert.equal(exchangeUrlForControlPlane('EU1.anypoint.mulesoft.com'), 'https://maven.eu1.anypoint.mulesoft.com/api/v3/maven');
+  assert.equal(exchangeUrlForControlPlane('https://jp1.platform.mulesoft.com/home/'), 'https://maven.jp1.platform.mulesoft.com/api/v3/maven');
+  assert.equal(exchangeUrlForControlPlane('maven.ca1.platform.mulesoft.com'), 'https://maven.ca1.platform.mulesoft.com/api/v3/maven');
+  assert.equal(exchangeUrlForControlPlane('xy9.platform.mulesoft.com'), 'https://maven.xy9.platform.mulesoft.com/api/v3/maven');
+  assert.throws(() => exchangeUrlForControlPlane('evil.example.com'), /invalid control plane/);
+  assert.throws(() => exchangeUrlForControlPlane('eu1.anypoint.mulesoft.com"/><x'), /invalid control plane/);
 });
 
 test('scaffoldDomain writes the full domain layout', () => withTmp((dir) => {
@@ -77,7 +81,7 @@ test('scaffoldDomain refuses to overwrite and validates input', () => withTmp((d
 }));
 
 test('CLI prints a JSON summary and exits 1 on bad arguments', () => withTmp((dir) => {
-  const ok = spawnSync(process.execPath, [SCRIPT_PATH, dir, 'billing-domain', '--region', 'eu'], { encoding: 'utf8' });
+  const ok = spawnSync(process.execPath, [SCRIPT_PATH, dir, 'billing-domain', '--control-plane', 'eu1.anypoint.mulesoft.com'], { encoding: 'utf8' });
   assert.equal(ok.status, 0, ok.stderr);
   const summary = JSON.parse(ok.stdout);
   assert.equal(summary.artifactId, 'billing-domain');

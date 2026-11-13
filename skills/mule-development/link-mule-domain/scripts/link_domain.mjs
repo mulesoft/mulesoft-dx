@@ -3,7 +3,8 @@
 // as Anypoint Code Builder's Project Properties > Domain does: the domain
 // dependency (classifier mule-domain, scope provided) goes into the app pom
 // (replacing any previous domain), connectors the domain supplies become
-// `provided` at the domain's version, and the app inherits the domain's runtime
+// `provided` at the domain's version, connectors only the previous domain
+// supplied go back to compile scope, and the app inherits the domain's runtime
 // (pom app.runtime, mule-artifact.json minMuleVersion) and Java version
 // (mule-artifact.json javaSpecificationVersions).
 //
@@ -18,7 +19,7 @@
 //   2  blockers found — nothing was written
 
 import { argv, exit, stderr, stdout } from 'node:process';
-import { applyLink, loadApp, loadDomain, planLink } from '../lib/domain-link.mjs';
+import { applyLink, loadApp, loadDomain, planLink, previousDomainPlugins } from '../lib/domain-link.mjs';
 import { findMuleProjects } from '../lib/mule-project.mjs';
 
 const positional = [];
@@ -38,7 +39,8 @@ if (positional.length !== 2) {
 try {
   const app = loadApp(positional[0]);
   const domain = loadDomain(positional[1]);
-  const plan = planLink(app, domain, { otherApps: findMuleProjects(workspace) });
+  const projects = findMuleProjects(workspace);
+  const plan = planLink(app, domain, { otherApps: projects, previousPlugins: previousDomainPlugins(app, projects) });
   if (!plan.ok) {
     stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
     exit(2);

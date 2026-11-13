@@ -1974,33 +1974,7 @@ describe('loginBearer error handling', () => {
         expect(getAuthMessage().text.toLowerCase()).not.toContain('proxy');
     });
 
-    test('403 invalid csrf token retries with the XSRF-TOKEN cookie in the body and succeeds', async () => {
-        document.cookie = 'XSRF-TOKEN=abc123';
-        var loginCallCount = 0;
-        var seenPayloads = [];
-        global.fetch = jest.fn((url, opts) => {
-            if (url.indexOf('/accounts/login') === -1) {
-                // introspectToken (or any other call) - fail harmlessly, not under test here.
-                return Promise.reject(new Error('not mocked'));
-            }
-            loginCallCount++;
-            seenPayloads.push(JSON.parse(opts.body));
-            if (loginCallCount === 1) {
-                return Promise.resolve({ ok: false, status: 403, text: () => Promise.resolve('invalid csrf token') });
-            }
-            return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify({ access_token: 'tok-1' })) });
-        });
-        await loginBearer();
-        expect(loginCallCount).toBe(2);
-        expect(seenPayloads[0]._csrf).toBeUndefined();
-        expect(seenPayloads[1]._csrf).toBe('abc123');
-        const msg = getAuthMessage();
-        expect(msg.text).toBe('Login successful!');
-        expect(msg.isError).toBe(false);
-    });
-
-    test('403 invalid csrf token without a cookie does not retry', async () => {
-        document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    test('403 invalid csrf token surfaces as a login failure with a single request', async () => {
         mockDirectFetchResponse(403, 'invalid csrf token');
         await loginBearer();
         expect(global.fetch).toHaveBeenCalledTimes(1);

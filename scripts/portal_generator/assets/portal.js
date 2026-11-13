@@ -2575,6 +2575,26 @@ function showAuthMessage(msg, isError) {
     setTimeout(function() { el.style.display = 'none'; }, 5000);
 }
 
+function _readCookie(name) {
+    var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function _postAccountsLogin(serverBase, username, password, csrfToken) {
+    var payload = {username: username, password: password};
+    if (csrfToken) payload._csrf = csrfToken;
+    var resp = await fetch(serverBase + '/accounts/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    var raw = await resp.text();
+    var body = {};
+    try { body = JSON.parse(raw); } catch (_) { body = {}; }
+    return { resp: resp, raw: raw, body: body };
+}
+
 async function loginBearer() {
     var username = document.getElementById('authUsername').value.trim();
     var password = document.getElementById('authPassword').value;
@@ -2589,14 +2609,23 @@ async function loginBearer() {
         // POC (W-logintest): call /accounts/login directly from the browser,
         // bypassing PROXY_URL, to verify whether the CorePaaS environments
         // (devx/qax/stgx) respond with CORS headers that allow this.
-        var resp = await fetch(serverBase + '/accounts/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username: username, password: password})
-        });
-        var raw = await resp.text();
-        var body = {};
-        try { body = JSON.parse(raw); } catch (_) { body = {}; }
+        //
+        // The server runs CSRF protection (double-submit cookie) on this
+        // endpoint. The first attempt (no token) fails but sets the
+        // XSRF-TOKEN cookie; retry once with that value echoed back in the
+        // body (not a header - the server's Access-Control-Allow-Headers
+        // doesn't allowlist any CSRF header, so a header would be blocked by
+        // the browser's preflight).
+        var result = await _postAccountsLogin(serverBase, username, password, null);
+        if (!result.resp.ok && /csrf/i.test(result.raw)) {
+            var csrfToken = _readCookie('XSRF-TOKEN');
+            if (csrfToken) {
+                result = await _postAccountsLogin(serverBase, username, password, csrfToken);
+            }
+        }
+        var resp = result.resp;
+        var raw = result.raw;
+        var body = result.body;
         if (resp.ok && body.access_token) {
             sessionStorage.setItem('anypoint_token', body.access_token);
             sessionStorage.setItem('anypoint_identity', username);

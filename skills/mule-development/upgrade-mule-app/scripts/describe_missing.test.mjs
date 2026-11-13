@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, rmSync } from 'node:fs';
 import * as os from 'node:os';
 import { join, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +25,7 @@ const MODE_A = {
 // Fake CLI: logs "start"/"end" per describe call (to measure overlap), sleeps, and
 // prints Mode-A JSON for plain calls or a stub for --type calls. FAKE_FAIL=<name>
 // makes calls with --name <name> fail; FAKE_FAIL_ONCE=<name> fails only the first time.
+// FAKE_RENAME=<provider> makes that provider's Mode-C report elementName '<provider>-renamed'.
 const FAKE_CLI = `#!/bin/sh
 if [ "$1" != "dx" ]; then exit 1; fi
 name=""; type=""
@@ -36,7 +37,11 @@ sleep "\${FAKE_SLEEP:-0.3}"
 echo "end" >> "$FAKE_LOG"
 if [ -n "$name" ] && [ "$name" = "$FAKE_FAIL" ]; then echo "boom" >&2; exit 1; fi
 if [ -n "$name" ] && [ "$name" = "$FAKE_FAIL_ONCE" ] && [ ! -f "$FAKE_LOG.once" ]; then touch "$FAKE_LOG.once"; echo "boom" >&2; exit 1; fi
-if [ -z "$type" ]; then printf '%s' "$FAKE_MODE_A"; else printf '{"described":"%s"}' "$name"; fi
+if [ -z "$type" ]; then printf '%s' "$FAKE_MODE_A"
+elif [ "$type" = "connection-provider" ]; then
+  el="$name"; [ "$name" = "$FAKE_RENAME" ] && el="$name-renamed"
+  printf '{"described":"%s","connectionProviders":[{"name":"%s","elementName":"%s"}]}' "$name" "$name" "$el"
+else printf '{"described":"%s"}' "$name"; fi
 `;
 
 function setup({ nicks = ['kafka'], usage } = {}) {
@@ -76,15 +81,52 @@ const assertOverlap = (log) => {
 const meta = (s, f) => join(s.work, 'tmp/connector-metadata', f);
 const cleanup = (s) => rmSync(s.dir, { recursive: true, force: true });
 
-test('phase a describes Mode-A for every nick, concurrently, then skips on re-run', { skip: SKIP }, () => {
+test('phase a describes Mode-A for every nick, concurrently', { skip: SKIP }, () => {
   const s = setup({ nicks: ['a', 'b', 'c'] });
   try {
     const r = run(s, ['--phase', 'a', 'a', 'b', 'c']);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     for (const n of ['a', 'b', 'c']) assert.ok(existsSync(meta(s, `${n}-new.json`)));
     assertOverlap(s.log);
-    const again = run(s, ['--phase', 'a', 'a', 'b', 'c']);
-    assert.match(again.stdout, /nothing to do/);
+  } finally { cleanup(s); }
+});
+
+test('phase a re-describes a Mode-A file left over from an earlier run', { skip: SKIP }, () => {
+  const s = setup({ nicks: ['a'] });
+  try {
+    writeFileSync(meta(s, 'a-new.json'), JSON.stringify({ stale: true }));
+    const r = run(s, ['--phase', 'a', 'a']);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.doesNotMatch(r.stdout, /nothing to do/);
+    const doc = JSON.parse(readFileSync(meta(s, 'a-new.json'), 'utf8'));
+    assert.equal(doc.stale, undefined);
+    assert.ok(Array.isArray(doc.operations));
+    // and it does so on every run
+    assert.equal(run(s, ['--phase', 'a', 'a']).status, 0);
+    assert.equal(readFileSync(s.log, 'utf8').split('\n').filter((l) => l === 'start').length, 2);
+  } finally { cleanup(s); }
+});
+
+test('phase a also drops that nick\'s stale Mode-B/C files, but not other nicks or the rename notes', { skip: SKIP }, () => {
+  const s = setup({ nicks: ['a', 'b'] });
+  try {
+    for (const f of ['a-new-publish.json', 'a-new-cfg-prov.json', 'b-new-publish.json', 'a-op-renames.json']) writeFileSync(meta(s, f), '{}');
+    const r = run(s, ['--phase', 'a', 'a']);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!existsSync(meta(s, 'a-new-publish.json')));
+    assert.ok(!existsSync(meta(s, 'a-new-cfg-prov.json')));
+    assert.ok(existsSync(meta(s, 'b-new-publish.json')), 'another nick is untouched');
+    assert.ok(existsSync(meta(s, 'a-op-renames.json')), 'rename notes are kept');
+  } finally { cleanup(s); }
+});
+
+test('phase a with a failing describe leaves no stale Mode-A behind', { skip: SKIP }, () => {
+  const s = setup({ nicks: ['a'] });
+  try {
+    writeFileSync(meta(s, 'a-new.json'), JSON.stringify({ stale: true }));
+    const r = run(s, ['--phase', 'a', 'a'], { FAKE_MODE_A: 'not json' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.ok(!existsSync(meta(s, 'a-new.json')));
   } finally { cleanup(s); }
 });
 
@@ -163,5 +205,96 @@ test('bad arguments exit 2', { skip: SKIP }, () => {
     for (const args of [[], ['--phase', 'x'], ['--phase', 'a'], ['--phase', 'bc', 'kafka']]) {
       assert.equal(run(s, args).status, 2, args.join(' '));
     }
+  } finally { cleanup(s); }
+});
+
+// ---- Mode-C limited to the providers the app uses ------------------------------------------
+
+const LAZY_MODE_A = {
+  namespace: { prefix: 'kafka', namespace: 'http://x', schemaLocation: 'x' },
+  operations: ['publish'],
+  sources: [],
+  configs: [
+    { name: 'consumer-config', connectionProviders: ['consumer-plain-connection', 'consumer-scram-connection'] },
+    { name: 'producer-config', connectionProviders: ['producer-plain-connection', 'producer-scram-connection', 'producer-token-connection'] },
+  ],
+};
+const LAZY_USAGE = { kafka: { operations_used: ['publish'], sources_used: [], config_providers_used: ['producerPlainConnection'] } };
+const modeCFiles = (s) => readdirSync(join(s.work, 'tmp/connector-metadata')).filter((f) => /-config-/.test(f)).sort();
+const gateRun = (s) => spawnSync(process.execPath, [join(RUNNER, '..', 'verify_metadata_coverage.mjs')], { cwd: s.work, env: s.env, encoding: 'utf8' });
+
+test('phase bc describes only the Mode-C providers the app uses (1 of 5), and the gate agrees', { skip: SKIP }, () => {
+  const s = setup({ usage: LAZY_USAGE });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.deepEqual(modeCFiles(s), ['kafka-new-producer-config-producer-plain-connection.json']);
+    assert.doesNotMatch(r.stdout, /pass 2/);
+    assert.match(r.stdout, /Mode-C skipped for config\(s\) the app does not use: consumer-config/);
+    const g = gateRun(s);
+    assert.equal(g.status, 0, g.stdout + g.stderr);
+  } finally { cleanup(s); }
+});
+
+test('RENAME: a used provider whose elementName changed triggers a second pass over its config only', { skip: SKIP }, () => {
+  const s = setup({ usage: LAZY_USAGE });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05', FAKE_RENAME: 'producer-plain-connection' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /pass 2 — 2 more Mode-C describe/);
+    assert.deepEqual(modeCFiles(s), [
+      'kafka-new-producer-config-producer-plain-connection.json',
+      'kafka-new-producer-config-producer-scram-connection.json',
+      'kafka-new-producer-config-producer-token-connection.json',
+    ]);
+    const g = gateRun(s);
+    assert.equal(g.status, 0, g.stdout + g.stderr);
+    // idempotent: a re-run has nothing left to do
+    assert.match(run(s, ['--phase', 'bc']).stdout, /nothing to do/);
+  } finally { cleanup(s); }
+});
+
+test('usage that cannot be mapped to a provider falls back to the full cross-product', { skip: SKIP }, () => {
+  const s = setup({ usage: { kafka: { operations_used: ['publish'], config_providers_used: ['producerPlainConnection', 'legacyAuthConnection'] } } });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.equal(modeCFiles(s).length, 5);
+  } finally { cleanup(s); }
+});
+
+test('a failed used-provider describe does not start a widening pass', { skip: SKIP }, () => {
+  const s = setup({ usage: LAZY_USAGE });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05', FAKE_FAIL: 'producer-plain-connection' });
+    assert.equal(r.status, 1);
+    assert.deepEqual(modeCFiles(s), []);
+    assert.doesNotMatch(r.stdout, /pass 2/);
+  } finally { cleanup(s); }
+});
+
+test('work still needed after the pass cap exits 1 instead of reporting success', { skip: SKIP }, () => {
+  const s = setup({ usage: LAZY_USAGE });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05', FAKE_RENAME: 'producer-plain-connection', DESCRIBE_MAX_PASSES: '1' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /2 describe\(s\) still needed after 1 pass/);
+    assert.match(r.stderr, /MISSING kafka\/producer-config\/producer-scram-connection/);
+    // a plain re-run (default cap) finishes the job
+    assert.equal(run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05', FAKE_RENAME: 'producer-plain-connection' }).status, 0);
+  } finally { cleanup(s); }
+});
+
+test('no widening note when the cap is reached with nothing left to do', { skip: SKIP }, () => {
+  const s = setup({ usage: LAZY_USAGE });
+  try {
+    writeFileSync(meta(s, 'kafka-new.json'), JSON.stringify(LAZY_MODE_A));
+    const r = run(s, ['--phase', 'bc'], { FAKE_SLEEP: '0.05', DESCRIBE_MAX_PASSES: '1' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
   } finally { cleanup(s); }
 });

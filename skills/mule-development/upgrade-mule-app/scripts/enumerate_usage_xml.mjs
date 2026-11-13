@@ -201,6 +201,7 @@ const record = {
   sources_used: unique(sources_used),
   configs_used: unique(configs_used),
   config_providers_used: unique(config_providers_used),
+  config_elems_used: unique(config_elems_used),
   child_elements_used: unique(child_elements_used),
   errorTypes_caught,
   errorTypes_raised,

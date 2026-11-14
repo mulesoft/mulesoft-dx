@@ -120,7 +120,7 @@ and a clean app. If you ever need the overlay approach again (e.g. to patch one 
 plugin rebuild), the recipe is in docs/UPDATING.md, but the shaded jar is the preferred shape.
 
 === Connector descriptors (dsl/) ===
-http, salesforce, twilio, mule-core dsl.json — byte-identical copies of
+http, mule-core dsl.json — byte-identical copies of
 go-runtime @ f7fb6dd0 connectors/<name>/descriptor/dsl.json (the runtime's own
 ground truth). The flow axis reads only name + dslJson, so model/xsd are null.
 

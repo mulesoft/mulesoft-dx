@@ -67,11 +67,11 @@ silently change findings.
 ## 2. Refresh the connector descriptors (`dsl/`)
 
 The flow axis decides element support against `dsl/<name>/dsl.json`. Refresh them
-with `scripts/regen-dsl.sh`, which **generates** `http`, `twilio`, and `mule-core`
+with `scripts/regen-dsl.sh`, which **generates** `http` and `mule-core`
 from each connector's `extension-model.json` via the versionless `descriptor-gen`
 CLI — the same CLI the Maven packager (`ConnectorSchemaResolver`) drives at build
 time — instead of hand-copying go-runtime's `dsl.json`. descriptor-gen reproduces
-those three byte-for-byte, so the script gates every run on an exact parity check.
+them byte-for-byte, so the script gates every run on an exact parity check.
 
 ```bash
 scripts/regen-dsl.sh           # regenerate dsl/ (writes)
@@ -83,17 +83,8 @@ It resolves `descriptor-gen` from the sibling `build-run-versionless-app` skill'
 the workspace `go-runtime/` sibling (override with `--go <dir>`). Exit codes: 0
 clean/refreshed, 1 unexpected drift, 2 usage/missing-input.
 
-**`salesforce` is the one exception — it stays a verbatim go-runtime `cp`** (the
-script does this copy for you). descriptor-gen hyphenizes the operation element
-names (`describeSObject` → `describe-s-object`, `getUserInfo` → `get-user-info`),
-but the flow axis resolves an app's XML elements by exactly that `elementName`, and
-the connector's own `extension.xsd` and go golden use the camelCase form. The
-element name isn't stored in the extension model, so hyphenize can't recover it —
-generating salesforce would manufacture a flow-axis false-negative on those two
-ops. See `docs/OPEN-ITEMS.md` O8.
-
 Add a connector by listing it in `regen-dsl.sh` (in `GENERATED_CONNECTORS` once its
-descriptor-gen output is parity-verified, else `COPIED_CONNECTORS`); the CLI loads
+descriptor-gen output is parity-verified); the CLI loads
 every `<name>/dsl.json` under the dsl dir as a bundle. The flow axis reads only
 `name` + `dslJson`, so no model/xsd is needed.
 

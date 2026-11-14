@@ -143,7 +143,7 @@ current bundle.)
 | --- | --- | --- |
 | `lib/*.jar` | the validator runtime classpath (5 jars, ~121 MB) | the validator and its DataWeave parser cannot run without them; provided-scope in the LSP host and not on any public registry. The plugin jar shades all seven switch axes; the CLI jar is the headless entry point. Proven-minimal via a leave-one-out sweep (see `PROVENANCE.txt`) |
 | `rds-override/rds/dwx-capabilities.json` | DataWeave capability manifest, prepended to the classpath | the copy baked into the plugin jar is stale on data formats (marks `yaml`/`excel`/`properties`/`octet-stream`/`binary` writers unsupported though the engine implements them); the override is the engine's own generated manifest, corrected on three entries the generator gets wrong (`system::now`, `dw::util::Timer`, the `application/java` passthrough writer). See `PROVENANCE.txt` and `docs/UPDATING.md` §2b |
-| `dsl/<name>/dsl.json` | versionless connector descriptors (http, salesforce, mule-core, twilio) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth). The CLI prunes the mule-core constructs the versionless runtime does not implement before the flow axis runs |
+| `dsl/<name>/dsl.json` | versionless connector descriptors (http, mule-core) | the flow axis decides element support against these; sourced from the go-runtime descriptors (the runtime's own ground truth). The CLI prunes the mule-core constructs the versionless runtime does not implement before the flow axis runs |
 | `src/VersionlessValidatorCli.java` | the CLI source | provenance + rebuild input for `versionless-validator-cli.jar` (see `docs/UPDATING.md`) |
 
 ### Why bundle jars instead of a native binary
@@ -275,7 +275,7 @@ The report file mirrors the wizard's `ValidationResult`:
     {
       "category": "flow",
       "ruleId": "flow.element.unsupported",
-      "symbol": "salesforce:modified-object-listener",
+      "symbol": "mule:until-successful",
       "severity": "BLOCK",
       "message": "...",
       "fileUri": "file:///.../src/main/mule/app.xml",

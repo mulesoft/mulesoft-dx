@@ -10,25 +10,38 @@
 # mule-ast binaries and the bundled connector exchange stub, producing a
 # *-mule-application-versionless.jar with META-INF/mule-artifact/artifact.ast inside.
 #
-# Usage: scripts/build.sh <project-dir>
+# Usage: scripts/build.sh [--stage] <project-dir>
 #   <project-dir>  a versionless Mule app root (pom.xml with
 #                  <packaging>mule-application-versionless</packaging>). Defaults to CWD.
-#
-# The switch-classic-mule-to-versionless skill stages its versionless output under
-# <root>/target/versionless-staging/ rather than editing source. So if <project-dir> is a
-# project root that has a staged tree, this builds the STAGED tree; if <project-dir> is
-# already the staging dir, it builds that directly.
+#   --stage        build the staged versionless tree the switch-classic-mule-to-versionless
+#                  skill writes under <root>/target/versionless-staging/ instead of the
+#                  given dir. By default this builds <project-dir> as-is (the source tree).
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_DIR="$(cd "${1:-$PWD}" && pwd)"
 
-# Resolve the staged versionless tree when present. If the caller already pointed us at
-# the staging dir, use it as-is; otherwise prefer <root>/target/versionless-staging.
-if [ "$(basename "${PROJECT_DIR}")" != "versionless-staging" ] \
-   && [ -f "${PROJECT_DIR}/target/versionless-staging/pom.xml" ]; then
-  PROJECT_DIR="${PROJECT_DIR}/target/versionless-staging"
-  echo "==> Using staged versionless tree: ${PROJECT_DIR}"
+# Parse args: an optional --stage flag plus the project dir (in any order).
+STAGE=0
+PROJECT_ARG=""
+for a in "$@"; do
+  case "$a" in
+    --stage) STAGE=1 ;;
+    *) PROJECT_ARG="$a" ;;
+  esac
+done
+PROJECT_DIR="$(cd "${PROJECT_ARG:-$PWD}" && pwd)"
+
+# With --stage, build the staged versionless tree instead of the given dir. If the caller
+# already pointed us at the staging dir, use it as-is. Without --stage, build the given dir.
+if [ "${STAGE}" -eq 1 ] && [ "$(basename "${PROJECT_DIR}")" != "versionless-staging" ]; then
+  if [ -f "${PROJECT_DIR}/target/versionless-staging/pom.xml" ]; then
+    PROJECT_DIR="${PROJECT_DIR}/target/versionless-staging"
+    echo "==> Using staged versionless tree: ${PROJECT_DIR}"
+  else
+    echo "ERROR: --stage given but no staged tree at ${PROJECT_DIR}/target/versionless-staging/pom.xml" >&2
+    echo "       Run the switch with --stage first, or omit --stage to build the source tree." >&2
+    exit 1
+  fi
 fi
 
 if [ ! -f "${PROJECT_DIR}/pom.xml" ]; then

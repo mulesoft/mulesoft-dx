@@ -13,7 +13,9 @@
 //   2. Derives each connector's versionless `name` (its XML namespace / prefix — the
 //      identity the versionless runtime resolves against) and keeps ONLY the ones
 //      whose prefix actually appears in the app's Mule XML (the "used in code" gate).
-//      Declared-but-unused deps are dropped from the manifest and left in the pom.
+//      Declared-but-unused deps are dropped from the manifest; a child-pom one is
+//      commented out of the pom (a parent-pom one is left in place, as parent POMs
+//      are never edited).
 //      Runtime-provided modules in MANIFEST_EXCLUDED (e.g. org.mule.modules:mule-apikit-module)
 //      are a special case: their child-pom dependency IS commented out, but they are
 //      NOT written to the manifest — the versionless runtime supplies them itself.
@@ -24,16 +26,18 @@
 //      pom.xml (parent POMs are never edited). Idempotent: the parser strips
 //      comments, so already-migrated deps are invisible on re-run.
 //
-// NON-DESTRUCTIVE: the source tree is only READ. The edited pom.xml and the
-// project-manifest.json are written into a STAGED COPY of the project at
-// <projectDir>/target/versionless-staging/ — recreated fresh from source on every run,
-// so staging is deterministic and idempotent. The source pom.xml / project-manifest.json
-// are never modified.
+// By DEFAULT the switch edits the source tree IN PLACE: the pom.xml is rewritten and
+// project-manifest.json is written next to it. Pass --stage to switch NON-DESTRUCTIVELY
+// instead: the source tree is only READ, and the edited pom.xml + project-manifest.json
+// are written into a STAGED COPY of the project at <projectDir>/target/versionless-staging/
+// — recreated fresh from source on every run, so staging is deterministic and idempotent,
+// and the source pom.xml / project-manifest.json are left untouched.
 //
 // Usage:
-//   node switch_to_versionless.mjs [projectDir] [--dry-run]
-//   Default projectDir = cwd. The switch always stages (no flag needed). --dry-run
-//   prints the plan and the manifest it WOULD write, but touches nothing on disk.
+//   node switch_to_versionless.mjs [projectDir] [--stage] [--dry-run]
+//   Default projectDir = cwd. Without --stage the switch writes into the source tree;
+//   with --stage it writes into target/versionless-staging/ and leaves source untouched.
+//   --dry-run prints the plan and the manifest it WOULD write, but touches nothing on disk.
 //
 // Output: a JSON report on stdout (see the `report` object below for its fields).
 // Manifest connectors are written name-only: { "name": "<xml-prefix>" }.
@@ -58,12 +62,12 @@ const MULE_PLUGIN_CLASSIFIER = "mule-plugin";
 const MANIFEST_FILE_NAME = "project-manifest.json";
 const MANIFEST_VERSION = "1.0.0";
 
-// The switch is NON-DESTRUCTIVE by default: it never edits the source tree. It stages a
-// full copy of the project under <projectDir>/target/<STAGING_SUBDIR>/ and writes the
-// versionless pom + manifest THERE. The in-tree location (inside target/, which has an
+// With --stage, the switch is NON-DESTRUCTIVE: rather than editing the source tree it
+// stages a full copy of the project under <projectDir>/target/<STAGING_SUBDIR>/ and writes
+// the versionless pom + manifest THERE. The in-tree location (inside target/, which has an
 // ancestor pom) keeps project-manifest.json discoverable so the staged jar is deployable
 // from its own tree. Running the switch against a dir that already IS the staging dir
-// operates in place (no re-nesting).
+// operates in place (no re-nesting). Without --stage, the source tree is edited directly.
 const STAGING_SUBDIR = "versionless-staging";
 
 // A versionless app is not just a manifest: the pom must declare the versionless
@@ -189,12 +193,13 @@ function deriveName(artifactId, xmlPrefixes) {
 
 // Comment out the migrated connector <dependency> blocks in the child pom's raw
 // text. Only blocks whose groupId:artifactId is in `migratedKeys` are wrapped.
-// Blocks whose GA is also in `excludedKeys` get a "runtime-provided; not in manifest"
-// note instead of the "moved to project-manifest.json" note, since they are not
-// recorded as manifest connectors. Idempotent (skips already-commented blocks) and
-// safe (skips blocks containing a nested comment, which would break XML). Returns
-// { text, edits[], warnings[] }.
-function commentOutDeps(raw, migratedKeys, excludedKeys = new Set()) {
+// The note recorded in the wrapping comment depends on which set the GA is in:
+//   - `unusedKeys`:   "declared but unused" (not in manifest; namespace never used in code)
+//   - `excludedKeys`: "runtime-provided; not in manifest"
+//   - otherwise:      "moved to project-manifest.json"
+// Idempotent (skips already-commented blocks) and safe (skips blocks containing a
+// nested comment, which would break XML). Returns { text, edits[], warnings[] }.
+function commentOutDeps(raw, migratedKeys, excludedKeys = new Set(), unusedKeys = new Set()) {
   const edits = [];
   const warnings = [];
 
@@ -232,9 +237,11 @@ function commentOutDeps(raw, migratedKeys, excludedKeys = new Set()) {
       warnings.push(`Skipped commenting ${ga}: block contains "--" (would break XML comment). Comment it out manually.`);
       continue;
     }
-    const note = excludedKeys.has(ga)
-      ? `[versionless] removed (runtime-provided; not in ${MANIFEST_FILE_NAME})`
-      : `[versionless] moved to ${MANIFEST_FILE_NAME}`;
+    const note = unusedKeys.has(ga)
+      ? `[versionless] removed (declared but unused in src/main/mule; not in ${MANIFEST_FILE_NAME})`
+      : excludedKeys.has(ga)
+        ? `[versionless] removed (runtime-provided; not in ${MANIFEST_FILE_NAME})`
+        : `[versionless] moved to ${MANIFEST_FILE_NAME}`;
     result += raw.slice(cursor, start);
     result += `<!-- ${note}\n${stripped}\n-->`;
     cursor = start + block.length;
@@ -350,25 +357,30 @@ function readExistingManifest(manifestPath) {
 function main() {
   const argv = process.argv.slice(2);
   const dryRun = argv.includes("--dry-run");
+  const stage = argv.includes("--stage");
   let projectDir = process.cwd();
   for (const a of argv) if (!a.startsWith("--")) projectDir = resolve(a);
   projectDir = resolve(projectDir);
 
-  // Where the staged (versionless) copy lives. Normally a subdir of the source tree's
-  // target/; if the caller already pointed us AT a staging dir, operate in place.
-  const stagingDir = (basename(projectDir) === STAGING_SUBDIR)
-    ? projectDir
-    : join(projectDir, "target", STAGING_SUBDIR);
+  // Default: write into the source tree in place (stagingDir === projectDir). With --stage,
+  // write into a staged copy under target/versionless-staging/ instead. If the caller
+  // already pointed us AT a staging dir, operate in place there (no re-nesting), regardless
+  // of the flag.
+  const stagingDir = (stage && basename(projectDir) !== STAGING_SUBDIR)
+    ? join(projectDir, "target", STAGING_SUBDIR)
+    : projectDir;
+  const staged = stagingDir !== projectDir;
 
   const report = {
     projectDir,
-    stagingDir,            // the staged copy the versionless pom + manifest are written into
+    staged,                // true when --stage wrote into a staged copy, false when source was edited in place
+    stagingDir: staged ? stagingDir : null,  // the staged copy the versionless pom + manifest are written into (null when editing source in place)
     pomPath: null,
     manifestPath: null,
     connectors: [],        // final, merged manifest connectors (name-only): existing + newly added
     existingRetained: [],  // connector names carried over from a pre-existing manifest
     newlyAdded: [],         // connectors migrated on THIS run (detailed), from uncommented pom deps
-    declaredButUnused: [],  // mule-plugin deps whose namespace is NOT used in src/main/mule — excluded from the manifest, left in the pom
+    declaredButUnused: [],  // mule-plugin deps whose namespace is NOT used in src/main/mule — excluded from the manifest; child-pom ones commented out of the pom, parent-pom ones left in place
     manifestExcluded: [],   // runtime-provided modules (e.g. APIkit) commented out of the child pom but intentionally NOT written to the manifest
     skipped: [],
     xmlPrefixes: [],
@@ -455,6 +467,7 @@ function main() {
   // mule-plugins (MUnit tooling) are not application connectors and are skipped,
   // mirroring the plugin.
   const migratedKeys = new Set();
+  const unusedKeys = new Set();  // child-pom GAs commented out as declared-but-unused (subset of migratedKeys)
   for (const d of byGa.values()) {
     if (d.scope === "test") {
       report.skipped.push({ groupId: d.groupId, artifactId: d.artifactId, reason: "test-scoped mule-plugin (e.g. MUnit tooling)" });
@@ -473,11 +486,20 @@ function main() {
     const { name, nameConfirmed } = deriveName(d.artifactId, xmlPrefixes);
     if (!nameConfirmed) {
       // Declared as a dependency but its namespace is not used anywhere in
-      // src/main/mule — leave the pom alone and keep it OUT of the manifest.
+      // src/main/mule — keep it OUT of the manifest. A child-pom dep is commented
+      // out (it serves no purpose on the versionless runtime and the comment keeps
+      // its coordinates recoverable); a parent-pom dep is left in place since this
+      // script never edits parent POMs.
       report.declaredButUnused.push({
         groupId: d.groupId, artifactId: d.artifactId, derivedName: name, resolvedFrom: d.resolvedFrom,
       });
-      report.warnings.push(`${d.groupId}:${d.artifactId} is declared (${d.resolvedFrom} pom) but its namespace is not used in src/main/mule — excluded from the manifest and left in the pom. If it IS used, its XML prefix may differ from the artifactId; add it to the manifest manually.`);
+      if (d.resolvedFrom === "child") {
+        migratedKeys.add(ga);
+        unusedKeys.add(ga);
+        report.warnings.push(`${d.groupId}:${d.artifactId} is declared (child pom) but its namespace is not used in src/main/mule — excluded from the manifest and commented out of the pom. If it IS used, its XML prefix may differ from the artifactId; add it to the manifest manually and restore the dependency.`);
+      } else {
+        report.warnings.push(`${d.groupId}:${d.artifactId} is declared (${d.resolvedFrom} pom) but its namespace is not used in src/main/mule — excluded from the manifest and left in place (parent POMs are not edited). If it IS used, its XML prefix may differ from the artifactId; add it to the manifest manually.`);
+      }
       continue;
     }
     report.newlyAdded.push({
@@ -538,7 +560,7 @@ function main() {
   const excludedChildKeys = new Set(
     report.manifestExcluded.filter((e) => e.resolvedFrom === "child").map((e) => `${e.groupId}:${e.artifactId}`)
   );
-  const { text: commentedPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys, excludedChildKeys);
+  const { text: commentedPom, edits, warnings: pomWarnings } = commentOutDeps(rawPom, migratedKeys, excludedChildKeys, unusedKeys);
   report.pomEdits = edits;
   report.warnings.push(...pomWarnings);
   const { text: newPom, changes: versionlessChanges, warnings: versionlessWarnings } = applyVersionlessPomChanges(commentedPom);

@@ -13,9 +13,8 @@
 # (ConnectorSchemaResolver) does at build time. It is NOT on the validate path:
 # validate.sh stays offline and binary-free; this runs only when refreshing.
 #
-# descriptor-gen reproduces http/twilio/mule-core byte-for-byte, so those three
-# flip from `cp` to generated under an exact parity gate. salesforce is a known
-# exception (see below) and stays a go-runtime copy.
+# descriptor-gen reproduces http/mule-core byte-for-byte, so they are generated
+# under an exact parity gate.
 #
 # Usage: scripts/regen-dsl.sh [--check] [--descriptor-gen <path>] [--go <go-runtime-dir>]
 #   --check             generate into a temp dir and diff against the committed
@@ -26,7 +25,7 @@
 #                       else `descriptor-gen` on PATH).
 #   --go                go-runtime checkout (default: ../../../../go-runtime relative
 #                       to this skill, i.e. the workspace sibling). Supplies the
-#                       extension-model.json inputs and the salesforce golden.
+#                       extension-model.json inputs.
 #
 # Exit codes: 0 clean (or refreshed), 1 unexpected drift / parity failure,
 # 2 usage or missing-input error.
@@ -39,20 +38,10 @@ DSL_DIR="${SKILL_DIR}/dsl"
 # extension-model.json. Verified identical on 2026-10-22; the parity gate below
 # re-proves it on every run, so a future divergence fails loudly rather than
 # silently shipping a wrong descriptor.
-GENERATED_CONNECTORS=(http twilio)
+GENERATED_CONNECTORS=(http)
 
 # mule-core is generated too, but via `descriptor-gen core` (model baked into the
 # binary) rather than `generate --extension-model`, so it is handled separately.
-
-# salesforce is DELIBERATELY excluded from generation. descriptor-gen hyphenizes
-# the operation element names (describeSObject -> describe-s-object,
-# getUserInfo -> get-user-info), but the flow axis resolves an app's XML elements
-# by exactly that elementName, and the connector's own XSD + go golden use the
-# camelCase form. The element name is not stored in the extension model, so
-# hyphenize cannot recover it — generating salesforce would introduce a flow-axis
-# false-negative on those two ops. Until descriptor-gen carries the element name,
-# salesforce stays a verbatim go-runtime copy. (docs/OPEN-ITEMS.md O8.)
-COPIED_CONNECTORS=(salesforce)
 
 CHECK=0
 DESCRIPTOR_GEN=""
@@ -85,7 +74,7 @@ if [ -z "${DESCRIPTOR_GEN}" ]; then
   fi
 fi
 
-# Resolve go-runtime (extension-model.json inputs + salesforce golden).
+# Resolve go-runtime (extension-model.json inputs).
 if [ -z "${GO_DIR}" ]; then
   GO_DIR="$(cd "${SKILL_DIR}/../../../.." && pwd)/go-runtime"
 fi
@@ -132,7 +121,7 @@ done
 if [ "${CHECK}" -eq 1 ]; then
   if [ "${drift}" -ne 0 ]; then
     echo "ERROR: descriptor-gen output drifted from the committed descriptors above." >&2
-    echo "       For http/twilio/mule-core this should be byte-identical, so drift means" >&2
+    echo "       For http/mule-core this should be byte-identical, so drift means" >&2
     echo "       either a real upstream descriptor change (re-run without --check to adopt," >&2
     echo "       then review the git diff) or a descriptor-gen regression (investigate)." >&2
     exit 1
@@ -141,7 +130,7 @@ if [ "${CHECK}" -eq 1 ]; then
   exit 0
 fi
 
-# REFRESH: promote generated descriptors into dsl/, and cp the quarantined ones.
+# REFRESH: promote generated descriptors into dsl/.
 # Promotion is connector-by-connector; a cp failure mid-loop (disk/permissions)
 # leaves dsl/ half-updated — a filesystem failure, visible in the truncated run
 # output, reviewed via git diff before commit, not a silent wrong descriptor.
@@ -149,12 +138,5 @@ for n in "${GENERATED_CONNECTORS[@]}" mule-core; do
   mkdir -p "${DSL_DIR}/${n}"
   cp "${STAGE}/${n}/dsl.json" "${DSL_DIR}/${n}/dsl.json"
   echo "    ${n}: refreshed from descriptor-gen"
-done
-for n in "${COPIED_CONNECTORS[@]}"; do
-  src="${GO_DIR}/connectors/${n}/descriptor/dsl.json"
-  [ -f "${src}" ] || { echo "ERROR: missing salesforce golden ${src}" >&2; exit 2; }
-  mkdir -p "${DSL_DIR}/${n}"
-  cp "${src}" "${DSL_DIR}/${n}/dsl.json"
-  echo "    ${n}: copied from go-runtime (descriptor-gen hyphenize known-diff; see header)"
 done
 echo "==> dsl/ refreshed."

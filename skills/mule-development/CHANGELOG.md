@@ -4,6 +4,11 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## Fixed
+- **`upgrade-mule-app`** — `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"}` failed under zsh (the macOS default shell) with "The specified user settings file does not exist" because zsh does not word-split the text inside that expansion, so Maven received one argument `-s /path`. SKILL.md and the comments in `write_maven_settings.mjs` and `lib/maven-settings.mjs` now use `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, which gives the same arguments in zsh and bash (W-24908151). New `scripts/skill_mvn_settings_idiom.test.mjs` fails if the old form comes back when run (`node --test`); it is not part of CI or the git hooks.
+
 ## [1.9.8]
 
 ### Fixed

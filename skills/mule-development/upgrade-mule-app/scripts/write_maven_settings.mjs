@@ -18,7 +18,7 @@
 // Prints JSON: { path, patched, credentialKind, needsLogin, duplicateServerIds, warning? } to stdout.
 // `path` is null when ~/.m2/settings.xml does not exist — callers MUST omit
 // `-s` in that case rather than pass a nonexistent path, e.g.
-// `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} ...`. Whenever path is non-null
+// `mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} ...`. Whenever path is non-null
 // it is always safe to pass as `mvn -s <path>`. Never prints or logs any
 // credential value. Once mvn is done with the temp settings file, callers
 // should run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to

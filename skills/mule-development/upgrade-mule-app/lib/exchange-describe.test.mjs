@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DESCRIBE_ATTEMPTS, describeWithRetry, parseCliJson } from './exchange-describe.mjs';
+import { DESCRIBE_ATTEMPTS, describeWithRetry, parseCliJson, resetCache } from './exchange-describe.mjs';
 
 const COORD = 'com.mulesoft.connectors/mule-http-connector/1.7.3';
 const BODY = 'Fetching...\n{"tags":[{"key":"is-java-17-supported","value":"true"}],"versions":[]}';
@@ -111,4 +111,29 @@ test('a spawn error is reported as a failure', () => {
   const r = describeWithRetry(COORD, { spawn, sleep: noSleep });
   assert.equal(r.ok, false);
   assert.equal(r.err, 'ENOENT');
+});
+
+test('resetCache drops every cached describe, so a later call hits the CLI again', () => withDir((dir) => {
+  const cacheDir = join(dir, 'exchange-describe');
+  const spawn = fakeSpawn([ok()]);
+  describeWithRetry(COORD, { cacheDir, spawn, sleep: noSleep });
+  assert.ok(existsSync(cacheDir));
+  resetCache(cacheDir);
+  assert.ok(!existsSync(cacheDir));
+  describeWithRetry(COORD, { cacheDir, spawn, sleep: noSleep });
+  assert.equal(spawn.calls.length, 2);
+  resetCache(join(dir, 'never-existed')); // no throw
+}));
+
+test('the CLI is spawned without ANYPOINT_ENV and with NODE_NO_WARNINGS', () => {
+  const saved = process.env.ANYPOINT_ENV;
+  process.env.ANYPOINT_ENV = 'leak';
+  try {
+    let seen;
+    describeWithRetry(COORD, { spawn: (cmd, args, o) => { seen = o.env; return ok(); }, sleep: noSleep });
+    assert.equal(seen.ANYPOINT_ENV, undefined);
+    assert.equal(seen.NODE_NO_WARNINGS, '1');
+  } finally {
+    if (saved === undefined) delete process.env.ANYPOINT_ENV; else process.env.ANYPOINT_ENV = saved;
+  }
 });

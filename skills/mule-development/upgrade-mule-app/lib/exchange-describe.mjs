@@ -8,19 +8,16 @@
 // writes each successful describe under `<tmp>/exchange-describe/`, Step 6 reads it
 // back instead of calling the CLI again. Only successful, parseable responses are
 // cached, so a failure is always retried live. A missing or corrupt entry is a miss.
-// Step 1 clears `tmp/`, so the cache never outlives the run that produced it.
+// An aborted or cancelled run leaves `tmp/` behind and the cache key has no run marker, so Step 5b
+// calls resetCache() before its first describe: a leftover entry must not feed Step 6 stale `.versions[]`.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { anypointEnv } from './anypoint.mjs';
 
 export const DESCRIBE_ATTEMPTS = 3;
 export const DESCRIBE_GAP_MS = 2000;
 export const CACHE_DIRNAME = 'exchange-describe';
-
-// Block the CLI's env-driven defaults from redirecting the lookup, and silence
-// Node deprecation warnings the CLI emits on stderr.
-const CLI_ENV = { ...process.env, NODE_NO_WARNINGS: '1' };
-delete CLI_ENV.ANYPOINT_ENV;
 
 // Synchronous sleep without a busy-wait (which would peg a CPU core and starve
 // the next spawn).
@@ -33,7 +30,7 @@ export function describeOnce(coord, spawn = spawnSync) {
   const r = spawn(
     'anypoint-cli-v4',
     ['exchange', 'asset', 'describe', coord, '--output', 'json'],
-    { encoding: 'utf8', env: CLI_ENV, maxBuffer: 32 * 1024 * 1024 }
+    { encoding: 'utf8', env: anypointEnv(), maxBuffer: 32 * 1024 * 1024 }
   );
   if (r.error) return { ok: false, out: '', err: r.error.message };
   return { ok: r.status === 0, out: r.stdout || '', err: r.stderr || '' };
@@ -50,6 +47,15 @@ export function parseCliJson(out) {
     return JSON.parse(out.slice(start));
   } catch {
     return null;
+  }
+}
+
+/** Drop every cached describe, so the cache only holds what the current run fetched. */
+export function resetCache(cacheDir) {
+  try {
+    rmSync(cacheDir, { recursive: true, force: true });
+  } catch {
+    // best effort: a stale entry that survives is no worse than before
   }
 }
 

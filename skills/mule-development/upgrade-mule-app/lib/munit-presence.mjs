@@ -13,6 +13,7 @@
 // Only when NONE is found is the app treated as having no MUnit.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+// Deliberate lib -> scripts import: reuses the Steps 1-6 POM reader (ancestor walk) rather than duplicating it.
 import { child, findParentPomPath, readPomProject } from '../scripts/_pom_utils.mjs';
 
 const POM_SIGNALS = [

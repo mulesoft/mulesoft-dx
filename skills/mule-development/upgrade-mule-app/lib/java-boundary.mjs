@@ -5,6 +5,12 @@
 // used to be a sentence of prose, and agents read the app's Java sources and
 // Spring beans before applying it. This makes the verdict a single command.
 
+/** Java major from "17", 17 or the legacy "1.8" (= 8). @returns {number} NaN when not a version */
+function javaMajor(v) {
+  const s = String(v).trim();
+  return Number.parseInt(s.startsWith('1.') ? s.slice(2) : s, 10);
+}
+
 /**
  * @param {unknown} from current Java major (e.g. 17 or "17")
  * @param {unknown} to   target Java major
@@ -12,8 +18,8 @@
  *   `unknown` (a value missing or not a number) means the gate cannot decide, and the caller runs Step 8.
  */
 export function javaBoundary(from, to) {
-  const f = Number.parseInt(String(from), 10);
-  const t = Number.parseInt(String(to), 10);
+  const f = javaMajor(from);
+  const t = javaMajor(to);
   if (!Number.isFinite(f) || !Number.isFinite(t)) {
     return { from: Number.isFinite(f) ? f : null, to: Number.isFinite(t) ? t : null, crosses: false, verdict: 'unknown', reason: `cannot compare Java versions (current=${from}, target=${to}); run Step 8` };
   }

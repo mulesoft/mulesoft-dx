@@ -51,7 +51,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import { listExactGaRows } from "../lib/anypoint.mjs";
-import { DESCRIBE_ATTEMPTS, CACHE_DIRNAME, describeWithRetry, parseCliJson } from "../lib/exchange-describe.mjs";
+import { DESCRIBE_ATTEMPTS, CACHE_DIRNAME, describeWithRetry, parseCliJson, resetCache } from "../lib/exchange-describe.mjs";
 
 // Don't crash if a downstream consumer (e.g. `head`) closes stdout early.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
@@ -97,6 +97,7 @@ function main() {
 
   const inPath = process.env.CONNECTORS_FILE || join(projectDir, "tmp", "connectors.json");
   const cacheDir = join(projectDir, "tmp", CACHE_DIRNAME); // shared with Step 6
+  resetCache(cacheDir); // entries left by an earlier run must not reach Step 6
   const outPath = process.env.CONNECTOR_JAVA_COMPAT_FILE || join(projectDir, "tmp", "connector-java-compat.json");
 
   const result = {

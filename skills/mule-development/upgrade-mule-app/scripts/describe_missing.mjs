@@ -47,7 +47,7 @@ const METADATA_DIR = env.CONNECTOR_METADATA_DIR || 'tmp/connector-metadata';
 const USAGE_DIR = env.CONNECTOR_USAGE_DIR || 'tmp/connector-usage';
 const LOG_DIR = env.DESCRIBE_LOG_DIR || 'tmp/describe-logs';
 
-/** Delete the Mode-B/C files (`<nick>-new-*.json`) of each nick; Mode-A and `<nick>-op-renames.json` do not match. */
+/** Delete the Mode-B/C files (`<nick>-new-*.json`) of each nick. Mode-A does not match; `<nick>-op-renames.json` does not either, and is kept on purpose: it records Step 7's operation-rename findings, which describe output cannot rebuild. */
 function removeDerivedFiles(nicks) {
   let names;
   try { names = readdirSync(METADATA_DIR); } catch { return; }

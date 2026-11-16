@@ -73,3 +73,11 @@ test('script: missing or corrupt upgrade-targets.json is unknown, exit 0', () =>
   assert.equal(r.status, 0);
   assert.equal(out.verdict, 'unknown');
 });
+
+test('legacy 1.x notation reads as the major (1.8 = 8)', () => {
+  assert.equal(javaBoundary('1.8', '11').verdict, 'run');
+  assert.equal(javaBoundary('1.8', '11').from, 8);
+  assert.equal(javaBoundary('1.8', '8').verdict, 'skip');
+  assert.equal(javaBoundary('17', '1.8').verdict, 'skip');
+  assert.equal(javaBoundary('1.8', 'x').verdict, 'unknown');
+});

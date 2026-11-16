@@ -7,8 +7,8 @@
 // Part of upgrade-mule-app skill.
 //
 // Step 11 gate — does the app use MUnit? When it does not, Step 11 skips the MUnit
-// version lookup (11a) and the MUnit release-notes read (11b). See
-// lib/munit-presence.mjs for the signals.
+// version lookup (11a) and the MUnit release-notes read (11b); the MMP envelope check still
+// runs. See lib/munit-presence.mjs for the signals.
 //
 // Usage:
 //   node detect_munit.mjs [projectDir]

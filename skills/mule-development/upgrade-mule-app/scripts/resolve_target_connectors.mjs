@@ -43,23 +43,12 @@
 //   0 otherwise.
 
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
 import { listExactGaRows } from "../lib/anypoint.mjs";
+import { DESCRIBE_ATTEMPTS, CACHE_DIRNAME, describeWithRetry, parseCliJson } from "../lib/exchange-describe.mjs";
 
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); });
 function log(msg) { process.stdout.write(msg + "\n"); }
-
-const DESCRIBE_ATTEMPTS = 3;
-const DESCRIBE_GAP_MS = 2000;
-
-const CLI_ENV = { ...process.env, NODE_NO_WARNINGS: "1" };
-delete CLI_ENV.ANYPOINT_ENV;
-
-// Idle synchronous sleep (no busy-wait) — matches Step 5b.
-function sleep(ms) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
 
 // A pre-release / non-GA version carries a qualifier after a hyphen
 // (e.g. 1.7.0-rc1, 2.0.0-SNAPSHOT, 1.5.0-beta). We never upgrade TO one, so these
@@ -81,36 +70,6 @@ function cmpVersion(a, b) {
     if (na !== nb) return na < nb ? -1 : 1;
   }
   return 0;
-}
-
-function describeOnce(coord) {
-  const r = spawnSync(
-    "anypoint-cli-v4",
-    ["exchange", "asset", "describe", coord, "--output", "json"],
-    { encoding: "utf8", env: CLI_ENV, maxBuffer: 32 * 1024 * 1024 }
-  );
-  if (r.error) return { ok: false, out: "", err: r.error.message };
-  return { ok: r.status === 0, out: r.stdout || "", err: r.stderr || "" };
-}
-
-function describeWithRetry(coord) {
-  let last = { ok: false, out: "", err: "" };
-  for (let attempt = 1; attempt <= DESCRIBE_ATTEMPTS; attempt++) {
-    last = describeOnce(coord);
-    if (last.ok) return last;
-    if (attempt < DESCRIBE_ATTEMPTS) sleep(DESCRIBE_GAP_MS);
-  }
-  return last;
-}
-
-// The CLI prints a "Fetching..." preamble before the JSON. Slice from the first
-// { or [ so JSON.parse sees only the document.
-function parseCliJson(out) {
-  const objStart = out.indexOf("{");
-  const arrStart = out.indexOf("[");
-  const start = arrStart === -1 ? objStart : (objStart === -1 ? arrStart : Math.min(objStart, arrStart));
-  if (start === -1) return null;
-  try { return JSON.parse(out.slice(start)); } catch { return null; }
 }
 
 // When describing the pinned version fails, return the newest GA sibling to re-anchor
@@ -185,6 +144,7 @@ function main() {
   projectDir = resolve(projectDir);
 
   const inPath = process.env.CONNECTORS_FILE || join(projectDir, "tmp", "connectors.json");
+  const cacheDir = join(projectDir, "tmp", CACHE_DIRNAME); // filled by Step 5b
   const outPath = process.env.TARGET_CONNECTORS_FILE || join(projectDir, "tmp", "target-connectors.json");
 
   const { mule: targetMule, java: targetJava, source: targetSource } = readTarget(projectDir);
@@ -258,7 +218,7 @@ function main() {
       continue;
     }
 
-    let res = describeWithRetry(`${c.groupId}/${c.artifactId}/${c.version}`);
+    let res = describeWithRetry(`${c.groupId}/${c.artifactId}/${c.version}`, { cacheDir });
 
     // Current version delisted? Re-anchor the describe on the newest GA sibling so
     // we can still read `.versions[]`. Only a genuinely-absent asset blocks here.
@@ -267,7 +227,7 @@ function main() {
       if (anchor) {
         const note = `${c.groupId}:${c.artifactId} ${c.version}: this version is delisted from Exchange; resolving the target from the newest available version (${anchor}) instead.`;
         result.warnings.push(note);
-        res = describeWithRetry(`${c.groupId}/${c.artifactId}/${anchor}`);
+        res = describeWithRetry(`${c.groupId}/${c.artifactId}/${anchor}`, { cacheDir });
       }
     }
     if (!res.ok) {

@@ -64,8 +64,10 @@ if (!targetMmp) {
 
 // Latest MUnit resolved live in Step 11a and written back by the agent. Optional:
 // when absent, editMunitVersion leaves the MUnit version sites untouched (and warns).
+// Step 11a records `munit: {to: null, skipped: true}` for an app with no MUnit
+// (scripts/detect_munit.mjs) — nothing to bump, so no warning.
 const targetMunit = targets?.munit?.to || null;
-if (!targetMunit) {
+if (!targetMunit && !targets?.munit?.skipped) {
   stderr.write(
     `⚠️  ${targetsFile} has no munit.to — resolve the latest MUnit (Step 11a) and add it, ` +
     `or the MUnit versions (property/plugin/dependencies) will be left unchanged.\n`

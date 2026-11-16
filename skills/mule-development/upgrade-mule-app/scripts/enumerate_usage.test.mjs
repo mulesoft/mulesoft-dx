@@ -54,6 +54,7 @@ for (const script of ['enumerate_usage.mjs', 'enumerate_usage_xml.mjs']) {
       assert.deepEqual(usage.operations_used, ['publish']);
       assert.deepEqual(usage.child_elements_used, ['producerSaslPlainConnection']);
       assert.deepEqual(usage.config_providers_used, ['producerSaslPlainConnection']);
+      assert.deepEqual(usage.config_elems_used, ['producerConfig']);
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 }

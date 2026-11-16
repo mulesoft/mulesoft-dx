@@ -56,3 +56,48 @@ test('exits 2 when there are no usage files', () => {
   const dir = mkdtempSync(join(tmpdir(), 'coverage-gate-'));
   try { assert.equal(gate(dir).status, 2); } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+// ---- lazy Mode-C: the gate follows the same plan as the runner ----------------------------
+
+function lazyProject(usageExtra) {
+  const dir = project();
+  writeFileSync(join(dir, 'tmp/connector-usage/kafka.json'), JSON.stringify({
+    operations_used: ['publish'], sources_used: [], config_providers_used: ['producerSaslPlainConnection'], ...usageExtra,
+  }));
+  return dir;
+}
+const mc = (dir, f, elementName) => writeFileSync(join(dir, 'tmp/connector-metadata', f), JSON.stringify({ connectionProviders: [{ name: 'p', elementName }] }));
+
+test('lazy: describing just the used provider passes when its elementName matches the flows', () => {
+  const dir = lazyProject();
+  try {
+    md(dir, 'kafka-new-publish.json');
+    mc(dir, 'kafka-new-producer-config-producer-sasl-plain-connection.json', 'producer-sasl-plain-connection');
+    const r = gate(dir);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('lazy: RENAME - used provider elementName differs, so the gate demands the sibling providers', () => {
+  const dir = lazyProject();
+  try {
+    md(dir, 'kafka-new-publish.json');
+    mc(dir, 'kafka-new-producer-config-producer-sasl-plain-connection.json', 'producer-sasl-plain-auth-connection');
+    const r = gate(dir);
+    assert.equal(r.status, 1);
+    assert.equal((r.stdout.match(/^FAIL  .*missing Mode-C/gm) || []).length, 2); // the 2 other producer providers
+    assert.doesNotMatch(r.stdout, /consumer-config.*missing Mode-C/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('lazy: RENAME - passes once the config\'s other providers are described', () => {
+  const dir = lazyProject();
+  try {
+    md(dir, 'kafka-new-publish.json');
+    mc(dir, 'kafka-new-producer-config-producer-sasl-plain-connection.json', 'producer-sasl-plain-auth-connection');
+    md(dir, 'kafka-new-producer-config-producer-plaintext-connection.json');
+    md(dir, 'kafka-new-producer-config-producer-sasl-scram-connection.json');
+    const r = gate(dir);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

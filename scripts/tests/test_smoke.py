@@ -517,6 +517,61 @@ class TestGenerationWithoutSkills:
         assert (output / 'llms.txt').exists()
 
 
+class TestApiNarrativeGuides:
+    """Verify apis/<slug>/docs/<version>/*.md narrative guides are rendered."""
+
+    @pytest.fixture
+    def generated_guides_portal(self, tmp_path):
+        repo = tmp_path / 'repo'
+        repo.mkdir()
+
+        apis_dir = repo / 'apis'
+        apis_dir.mkdir()
+
+        api_dir = apis_dir / 'simple-api'
+        api_dir.mkdir()
+        (api_dir / 'api.yaml').write_text(MINIMAL_OAS_YAML)
+        (api_dir / 'exchange.json').write_text(MINIMAL_EXCHANGE_JSON)
+
+        # MINIMAL_OAS_YAML declares info.version: 1.0.0
+        docs_dir = api_dir / 'docs' / '1.0.0'
+        docs_dir.mkdir(parents=True)
+        (docs_dir / 'FAQs.md').write_text('**Is this free?**\n\nYes.')
+
+        setup_schema_docs(repo)
+
+        output = tmp_path / 'output'
+        generator = PortalGenerator(output)
+        generator.generate(repo)
+        return output
+
+    def test_guides_tab_appears_in_sidebar(self, generated_guides_portal):
+        html = (generated_guides_portal / 'apis' / 'simple-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        tab = soup.find('button', {'data-tab': 'guides'})
+        assert tab is not None
+        assert 'Guides' in tab.get_text()
+
+    def test_guide_content_rendered_on_page(self, generated_guides_portal):
+        html = (generated_guides_portal / 'apis' / 'simple-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        section = soup.find(id='guide-faqs')
+        assert section is not None
+        assert '<strong>Is this free?</strong>' in str(section)
+
+    def test_sidebar_links_to_guide_anchor(self, generated_guides_portal):
+        html = (generated_guides_portal / 'apis' / 'simple-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        link = soup.find('a', href='#guide-faqs')
+        assert link is not None
+
+    def test_no_guides_tab_when_api_has_no_docs(self, generated_portal):
+        """The shared fixture's test-api has no docs/ dir — no Guides tab."""
+        html = (generated_portal / 'apis' / 'test-api.html').read_text(encoding='utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        assert soup.find('button', {'data-tab': 'guides'}) is None
+
+
 class TestGenerationMultipleApis:
     """Verify the generator handles multiple APIs."""
 
@@ -940,7 +995,7 @@ class TestTerraformPageGeneration:
         """Each parsed doc renders as a div with id='doc-<slug>'."""
         section = terraform_soup.find('div', id='doc-anypoint_api_instance')
         assert section is not None
-        assert 'terraform-subsection' in section.get('class', [])
+        assert 'content-subsection' in section.get('class', [])
 
     def test_no_auth_panel_status_button(self, terraform_soup):
         """prose_only mode hides the auth-panel-status button."""

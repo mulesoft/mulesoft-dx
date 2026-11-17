@@ -2,7 +2,8 @@
 API, MCP server, skill, and Terraform provider discovery.
 
 Scans the repository for:
-- API directories under ``apis/`` (containing ``api.yaml``).
+- API directories under ``apis/`` (containing ``api.yaml``), including any
+  narrative guides under ``apis/<slug>/docs/<version>/*.md``.
 - MCP server directories under ``mcps/`` (containing ``mcp.yaml``).
 - Skill files under ``skills/``, associated with APIs and MCPs by parsing
   ``urn:api:<slug>`` / ``urn:mcp:<slug>`` references inside their YAML step
@@ -20,7 +21,7 @@ from typing import Dict, List, Optional, Tuple
 
 from ruamel.yaml import YAML
 
-from .parsers import parse_oas, parse_skill, parse_mcp, parse_terraform_doc
+from .parsers import parse_oas, parse_skill, parse_mcp, parse_terraform_doc, discover_api_docs
 from .utils import get_category, is_valid_version_dirname, sort_versions_desc
 
 
@@ -185,6 +186,7 @@ def _parse_single_api(api_dir_path: str) -> Optional[Dict]:
         'security_schemes': oas_data['security_schemes'],
         'tags': oas_data['tags'],
         'private': is_private,
+        'guides': discover_api_docs(api_dir, oas_data['version']),
     }
 
 

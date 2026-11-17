@@ -21,6 +21,7 @@ from portal_generator.parsers.skill_parser import (
 )
 from portal_generator.parsers.mcp_parser import _example_from_schema
 from portal_generator.discovery import calculate_stats, _extract_api_refs, discover_skills, discover_terraform
+from portal_generator.parsers.api_doc_parser import parse_api_doc, discover_api_docs
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'build'))
@@ -1729,3 +1730,76 @@ class TestDiscoverTerraform:
             },
         })
         assert discover_terraform(repo) == []
+
+
+# ============================================================================
+# api_doc_parser.parse_api_doc / discover_api_docs
+# ============================================================================
+
+class TestParseApiDoc:
+    def test_parses_body_to_html(self, tmp_path):
+        """Markdown body is rendered to HTML."""
+        f = tmp_path / "FAQs.md"
+        f.write_text("**Bold question?**\n\nAn answer.")
+        doc = parse_api_doc(f)
+        assert "<strong>Bold question?</strong>" in doc["body_html"]
+        assert "<p>An answer.</p>" in doc["body_html"]
+
+    def test_title_preserves_filename_casing(self, tmp_path):
+        """A filename that already has mixed case is used verbatim as the title."""
+        f = tmp_path / "Public Portal.md"
+        f.write_text("content")
+        doc = parse_api_doc(f)
+        assert doc["title"] == "Public Portal"
+        assert doc["slug"] == "public-portal"
+
+    def test_title_capitalizes_all_lowercase_filename(self, tmp_path):
+        """An all-lowercase filename like 'home.md' is capitalized for display."""
+        f = tmp_path / "home.md"
+        f.write_text("content")
+        doc = parse_api_doc(f)
+        assert doc["title"] == "Home"
+        assert doc["slug"] == "home"
+
+    def test_body_markdown_preserves_raw_source(self, tmp_path):
+        """body_markdown keeps the original markdown source, unrendered."""
+        f = tmp_path / "FAQs.md"
+        f.write_text("**Bold question?**")
+        doc = parse_api_doc(f)
+        assert doc["body_markdown"] == "**Bold question?**"
+
+
+class TestDiscoverApiDocs:
+    def test_returns_empty_when_docs_dir_missing(self, tmp_path):
+        """No docs/<version>/ directory yields an empty list."""
+        api_dir = tmp_path / "exchange-experience"
+        api_dir.mkdir()
+        assert discover_api_docs(api_dir, "v2") == []
+
+    def test_returns_empty_when_version_dir_missing(self, tmp_path):
+        """docs/ exists but not for the requested version."""
+        api_dir = tmp_path / "exchange-experience"
+        (api_dir / "docs" / "v1").mkdir(parents=True)
+        assert discover_api_docs(api_dir, "v2") == []
+
+    def test_discovers_guides_for_matching_version(self, tmp_path):
+        """Markdown files under docs/<version>/ are discovered and parsed."""
+        api_dir = tmp_path / "exchange-experience"
+        docs_dir = api_dir / "docs" / "v2"
+        docs_dir.mkdir(parents=True)
+        (docs_dir / "FAQs.md").write_text("Some FAQ content.")
+        (docs_dir / "Public Portal.md").write_text("Portal content.")
+
+        guides = discover_api_docs(api_dir, "v2")
+        assert [g["title"] for g in guides] == ["FAQs", "Public Portal"]
+
+    def test_home_guide_sorts_first(self, tmp_path):
+        """The 'home' guide, if present, always sorts before other guides."""
+        api_dir = tmp_path / "exchange-experience"
+        docs_dir = api_dir / "docs" / "v2"
+        docs_dir.mkdir(parents=True)
+        (docs_dir / "FAQs.md").write_text("FAQ content.")
+        (docs_dir / "home.md").write_text("Home content.")
+
+        guides = discover_api_docs(api_dir, "v2")
+        assert [g["title"] for g in guides] == ["Home", "FAQs"]

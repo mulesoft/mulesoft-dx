@@ -1712,7 +1712,7 @@ describe('wrapTerraformCodeBlocks', () => {
 
     function buildMarkdown(preCount) {
         const container = document.createElement('div');
-        container.className = 'terraform-view-markdown';
+        container.className = 'markdown-content';
         for (let i = 0; i < preCount; i++) {
             const pre = document.createElement('pre');
             const code = document.createElement('code');
@@ -1743,7 +1743,7 @@ describe('wrapTerraformCodeBlocks', () => {
         expect(wrappers.length).toBe(2);
     });
 
-    test('does nothing when no terraform-view-markdown pre exists', () => {
+    test('does nothing when no markdown-content pre exists', () => {
         wrapTerraformCodeBlocks();
         const wrappers = document.querySelectorAll('.code-block-wrapper');
         expect(wrappers.length).toBe(0);

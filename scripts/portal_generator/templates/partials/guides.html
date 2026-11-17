@@ -1,0 +1,12 @@
+{% if api.guides %}
+<section class="content-section api-guides" id="guides">
+    {% for guide in api.guides %}
+    <div class="content-subsection" id="guide-{{ guide.slug }}">
+        <h3>{{ guide.title }}</h3>
+        <div class="markdown-content">
+            {{ guide.body_html|safe }}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}

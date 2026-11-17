@@ -1,0 +1,93 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "StackSets administration role. Deploy in the account managing self-managed StackSets.",
+  "Parameters": {
+    "AdministrationRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerStackSetAdministrationRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ExecutionRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerStackSetExecutionRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ExecutionRoleArns": {
+      "Type": "CommaDelimitedList"
+    },
+    "StackSetName": {
+      "Type": "String",
+      "Default": "agent-scanner-spokes",
+      "AllowedPattern": "[A-Za-z][A-Za-z0-9-]{0,127}"
+    }
+  },
+  "Resources": {
+    "AdministrationRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Ref": "AdministrationRoleName"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudformation.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stackset/${StackSetName}:*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Purpose",
+            "Value": "agent-scanner-cross-account"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "AssumeStackSetExecutionRoles",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sts:AssumeRole"
+                  ],
+                  "Resource": {
+                    "Ref": "ExecutionRoleArns"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "AdministrationRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AdministrationRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Install with target-account administrator credentials before self-managed StackSets deployment.",
+  "Parameters": {
+    "AdministratorAccountId": {
+      "Type": "String",
+      "AllowedPattern": "[0-9]{12}"
+    },
+    "AdministrationRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerStackSetAdministrationRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ExecutionRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerStackSetExecutionRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "SpokeRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerSpokeRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "StackSetName": {
+      "Type": "String",
+      "Default": "agent-scanner-spokes",
+      "AllowedPattern": "[A-Za-z][A-Za-z0-9-]{0,127}"
+    }
+  },
+  "Resources": {
+    "ExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Ref": "ExecutionRoleName"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AdministratorAccountId}:role/${AdministrationRoleName}"
+                }
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Purpose",
+            "Value": "agent-scanner-cross-account"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ManageScannerSpoke",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cloudformation:CreateStack",
+                    "cloudformation:UpdateStack",
+                    "cloudformation:DeleteStack",
+                    "cloudformation:DescribeStacks",
+                    "cloudformation:DescribeStackEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/StackSet-${StackSetName}-*/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:CreateRole",
+                    "iam:DeleteRole",
+                    "iam:GetRole",
+                    "iam:UpdateAssumeRolePolicy",
+                    "iam:PutRolePolicy",
+                    "iam:GetRolePolicy",
+                    "iam:DeleteRolePolicy",
+                    "iam:ListRolePolicies",
+                    "iam:ListAttachedRolePolicies",
+                    "iam:TagRole",
+                    "iam:UntagRole",
+                    "iam:UpdateRole",
+                    "iam:UpdateRoleDescription"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${SpokeRoleName}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ExecutionRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

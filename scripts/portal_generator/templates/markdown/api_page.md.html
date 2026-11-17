@@ -41,3 +41,13 @@
 - [{{ skill.name }}]({{ base_url }}/skills/{{ skill.slug }}.md) — {{ skill.description }}
 {% endfor %}
 {% endif %}
+
+{% if api.guides %}
+## Guides
+{% for guide in api.guides %}
+### {{ guide.title }}
+
+{{ guide.body_markdown }}
+
+{% endfor %}
+{% endif %}

@@ -64,6 +64,12 @@
                 Related Skills <span class="tab-count" id="skills-count" style="display: none;"></span>
             </button>
             {% endif %}
+            {% if api.guides %}
+            <button class="sidebar-tab" role="tab" aria-selected="false" aria-controls="guides-panel"
+                data-tab="guides" onclick="switchSidebarTab('guides')">
+                Guides <span class="tab-count" id="guides-count" style="display: none;"></span>
+            </button>
+            {% endif %}
         </div>
     </div>
     <nav class="sidebar-nav">
@@ -99,6 +105,17 @@
                         {% if step_count > 0 %}
                         <span class="api-operation-count">({{ step_count }})</span>
                         {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if api.guides %}
+            <div id="guides-panel" class="sidebar-panel" role="tabpanel" aria-labelledby="guides-tab" style="display: none;">
+                {% for guide in api.guides %}
+                <li>
+                    <a href="#guide-{{ guide.slug }}" class="nav-link nav-operation-flat">
+                        <span class="op-name">{{ guide.title }}</span>
                     </a>
                 </li>
                 {% endfor %}

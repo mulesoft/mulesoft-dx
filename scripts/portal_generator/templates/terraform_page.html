@@ -30,7 +30,7 @@
         <div class="terraform-install-modal-body">
             <p class="terraform-install-intro">To install this provider, copy and paste this code into your Terraform configuration.<br>Then, run <code>terraform init</code>.</p>
             <h4 class="terraform-install-version-heading">Terraform {{ terraform_install_info.min_terraform_version }}+</h4>
-            <div class="terraform-view-markdown">
+            <div class="markdown-content">
                 <pre><code id="terraform-install-snippet-code" class="language-hcl">terraform {
   required_providers {
     {{ terraform_install_info.local_name }} = {

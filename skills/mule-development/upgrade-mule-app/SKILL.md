@@ -72,7 +72,7 @@ This skill ships small Node.js (ESM, zero-dep) scripts under `scripts/`. Invoke 
 
 | Script | Purpose | Output location |
 | --- | --- | --- |
-| `scripts/write_maven_settings.mjs` | Run before every direct `mvn` invocation the skill makes (Steps 3c, 16, 17, and `verify_dependency_tree.mjs`'s own internal call). Refreshes the `anypoint-exchange-v2` and `anypoint-exchange-v3` `<server>` credentials in a temp copy of `~/.m2/settings.xml` from the live `anypoint-cli-v4` session (Connected App > bearer token, same precedence the DX plugin itself uses) — refreshing whichever blocks already exist (both patched identically, since they share one bearer token) and **adding** whichever of the two is missing, directly in the temp copy. If the CLI session is empty (the CLI was never authenticated), falls back to the credential in Anypoint Code Builder's own `acb_settings.xml` (under `~/AnypointCodeBuilder/.tmp/<pid>/`, most recently modified wins), covering users who only ever signed in through the ACB IDE UI. Every other `<server>`/`<profile>`/`<mirror>` (Nexus, orbit, …) passes through untouched, and the real `~/.m2/settings.xml` on disk is never written to. No-op (returns the original path) when there's a `~/.m2/settings.xml` but no CLI/ACB session anywhere, or the file has no recognizable `<settings>` root to anchor an insertion on (e.g. a zero-byte file). When `~/.m2/settings.xml` doesn't exist at all, still checks for a CLI/ACB session first — if one is found, synthesizes a brand-new minimal settings.xml in the temp copy from that credential; only returns `path: null` when the file is absent AND no credential was found anywhere, since there's nothing to pass `-s` for in that case. Never logs or prints the credential value | stdout JSON `{path, patched, credentialKind, needsLogin, duplicateServerIds, warning?}` — `needsLogin: true` means no CLI/ACB session (the temp copy has no fresh Exchange credential); `duplicateServerIds` lists `<server><id>` values repeated in the real `~/.m2/settings.xml`, which Maven only warns about but can silently let a stale entry shadow the right one (tell the user; do not edit the file yourself) — `credentialKind` is `client`\|`token`\|`acb`\|`null`; `path` is `null` only when there's no source settings.xml AND no CLI/ACB credential, in which case omit `-s` (`mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} ...`) rather than pass it — otherwise always safe to pass as `mvn -s <path>`. Run `scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` right after the `mvn` call to remove the temp credential file |
+| `scripts/write_maven_settings.mjs` | Run before every direct `mvn` invocation the skill makes (Steps 3c, 16, 17, and `verify_dependency_tree.mjs`'s own internal call). Refreshes the `anypoint-exchange-v2` and `anypoint-exchange-v3` `<server>` credentials in a temp copy of `~/.m2/settings.xml` from the live `anypoint-cli-v4` session (Connected App > bearer token, same precedence the DX plugin itself uses) — refreshing whichever blocks already exist (both patched identically, since they share one bearer token) and **adding** whichever of the two is missing, directly in the temp copy. If the CLI session is empty (the CLI was never authenticated), falls back to the credential in Anypoint Code Builder's own `acb_settings.xml` (under `~/AnypointCodeBuilder/.tmp/<pid>/`, most recently modified wins), covering users who only ever signed in through the ACB IDE UI. Every other `<server>`/`<profile>`/`<mirror>` (Nexus, orbit, …) passes through untouched, and the real `~/.m2/settings.xml` on disk is never written to. No-op (returns the original path) when there's a `~/.m2/settings.xml` but no CLI/ACB session anywhere, or the file has no recognizable `<settings>` root to anchor an insertion on (e.g. a zero-byte file). When `~/.m2/settings.xml` doesn't exist at all, still checks for a CLI/ACB session first — if one is found, synthesizes a brand-new minimal settings.xml in the temp copy from that credential; only returns `path: null` when the file is absent AND no credential was found anywhere, since there's nothing to pass `-s` for in that case. Never logs or prints the credential value | stdout JSON `{path, patched, credentialKind, needsLogin, duplicateServerIds, warning?}` — `needsLogin: true` means no CLI/ACB session (the temp copy has no fresh Exchange credential); `duplicateServerIds` lists `<server><id>` values repeated in the real `~/.m2/settings.xml`, which Maven only warns about but can silently let a stale entry shadow the right one (tell the user; do not edit the file yourself) — `credentialKind` is `client`\|`token`\|`acb`\|`null`; `path` is `null` only when there's no source settings.xml AND no CLI/ACB credential, in which case omit `-s` (`mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} ...`) rather than pass it — otherwise always safe to pass as `mvn -s <path>`. Run `scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` right after the `mvn` call to remove the temp credential file |
 | `scripts/ensure_mulesoft_releases_repo.mjs` | Step 1 — apply/re-check half of the releases-repo preflight (`validate_prerequisites.mjs` reports `mulesoftReleasesRepo`): verifies that `~/.m2/settings.xml` declares `https://repository.mulesoft.org/releases/` in an active profile (or that a catch-all `<mirror>` covers it), because describe-connector (Step 7) fails silently without it. Default mode only reads. `--apply` edits the user's real `settings.xml` (backup first, dedicated profile activated via `<activeProfiles>`, creates `~/.m2/repository` if missing) and must only run after the user confirmed | stdout JSON: check `{settingsPath, exists, covered, via, needsAdd}`; apply `{changed, settingsPath, backupPath, createdLocalRepo}` |
 | `scripts/validate_prerequisites.mjs` | Step 1 — validate app directory (`pom.xml` + `mule-artifact.json`), parent-POM availability (if referenced), Anypoint CLI v4, **DX plugin ≥ 1.3.1** (version read from `anypoint-cli-v4 plugins`; required for `dx mule jdk download` and for describe-connector's auth for some connectors), and local **Maven on the 3.9.x line** (MMP 4.x + MUnit require it; detect-and-instruct, never install). Also fails fast when there is no Anypoint session (no `anypoint-cli-v4` credential and no ACB `acb_settings.xml`) and warns on duplicate `<server><id>` entries in `~/.m2/settings.xml`. Validation-ONLY; exits non-zero when `errors[]` is non-empty | `tmp/upgrade-prereqs.json` (contains `inAppDir`, `parentDeclared`, `parentFound`, `cliPresent`, `dxPluginPresent`, `dxPluginVersion`, `dxPluginInRange`, `mavenVersion`, `mavenInRange`, `anypointSession`, `duplicateServerIds`, `errors[]`, ...) |
 | `scripts/detect_current_mule_version.mjs` | Step 2a — determine the current Mule Runtime version from the `app.runtime` property, searching the child `pom.xml` then its full local parent chain (parent, grandparent, …) with `${...}` resolved against the merged chain, and flag versions below the supported floor (4.3). `--user-version <v>` persists a user-supplied/corrected value (also flagged via `belowFloor`) | `tmp/current-mule-version.json` (contains `version`, `source`, `resolvedFrom` (`"child"` \| `"parent"` \| `"ancestor"`), `needsUserPrompt`, `belowFloor`, `minSupportedVersion`, `warnings[]`, ...) |
@@ -303,19 +303,21 @@ Then apply it for the baseline build only. Every `mvn` invocation below is prefi
 MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
 ```
 
+Write the flag as two expansions, `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, exactly as in the commands below. Putting `-s` and the path inside one expansion is not word-split by zsh (the macOS default shell), so Maven would receive one argument `-s /path` and fail with "settings file does not exist".
+
 Two cases, by how the pom pins the plugin version:
 
 - **Case A — version is a property** (e.g. `<version>${mule.maven.plugin.version}</version>`): override on the command line, **no file change**:
   ```bash
   JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) \
-    mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -Dmule.maven.plugin.version="$MMP"
+    mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package -Dmule.maven.plugin.version="$MMP"
   node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
   ```
 - **Case B — version is a literal** (e.g. `<version>3.5.4</version>`): a `-D` flag cannot override a hardcoded plugin version, so the pom must be edited. **Do not hand-edit with `Edit`/`sed`** — tab-indented poms and multiple `mule-maven-plugin` blocks (build/plugins + pluginManagement) make that error-prone. Use the deterministic writer, which rewrites only the `<version>` inside the matched plugin block(s), whitespace-agnostic:
   ```bash
   cp pom.xml tmp/pom.baseline.bak
   node scripts/set_plugin_version.mjs mule-maven-plugin "$MMP" . --group-id org.mule.tools.maven
-  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package
   node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
   cp tmp/pom.baseline.bak pom.xml   # ALWAYS revert — on success AND failure. The real bump happens in Phase 2 after approval.
   ```
@@ -324,7 +326,7 @@ Two cases, by how the pom pins the plugin version:
 For a 4.x MMP with no bump needed, just run the build with the resolved `JAVA_HOME` (one `mvn` invocation, nothing else in the response):
 
 ```bash
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package
 node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 
@@ -1225,7 +1227,7 @@ node <skill-dir>/scripts/promote_new_connector_pins.mjs
 node <skill-dir>/scripts/apply_runtime_bump.mjs .
 ```
 
-`apply_runtime_bump.mjs` only rewrites versions in `pom.xml` / `mule-artifact.json` — it does not run java. Correct-JDK enforcement comes from **pinning the build to the resolved target JDK inline**: Step 16's `mvn` is invoked as `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package …`, exactly like the baseline build (Step 3c). The user's ambient `JAVA_HOME`/`PATH` is never consulted — the JDK is the one `resolve_jdk.mjs` found-or-installed in Step 13 (under the ACB java dir, or downloaded if absent).
+`apply_runtime_bump.mjs` only rewrites versions in `pom.xml` / `mule-artifact.json` — it does not run java. Correct-JDK enforcement comes from **pinning the build to the resolved target JDK inline**: Step 16's `mvn` is invoked as `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package …`, exactly like the baseline build (Step 3c). The user's ambient `JAVA_HOME`/`PATH` is never consulted — the JDK is the one `resolve_jdk.mjs` found-or-installed in Step 13 (under the ACB java dir, or downloaded if absent).
 
 Then per connector:
 
@@ -1392,7 +1394,7 @@ Use metadata from `describe-connector` to ensure operations, configs, and attrib
 Bounded recovery loop with a **5-retry** cap. `mvn clean package -DskipTests` BUILD SUCCESS is packaging-only — it validates that (a) XSDs parse, (b) DataWeave compiles, (c) the `.jar` packages. It does NOT execute any flow, hit any external system, or run MUnit. Step 17 (`mvn test`) is the real runtime gate.
 
 - Refresh the Exchange session credential first (each `Bash` call is a fresh shell, so this is re-run every retry too): `MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')`
-- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -DskipTests 2>&1 | tee tmp/mvn-failures/build-<attempt>.log` — set `JAVA_HOME` inline to the target JDK (each `Bash` call is a fresh shell; an earlier `export` does not carry over). Immediately after, run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to remove the temp credential file.
+- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package -DskipTests 2>&1 | tee tmp/mvn-failures/build-<attempt>.log` — set `JAVA_HOME` inline to the target JDK (each `Bash` call is a fresh shell; an earlier `export` does not carry over). Immediately after, run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to remove the temp credential file.
 - If BUILD SUCCESS → advance to Step 17.
 - If BUILD FAILURE → **do not ad-hoc patch.** Enter the classifier below (16.1). Almost every mvn failure is an XSD/DSL mismatch whose fix is already in the metadata collected during Plan Phase (Mode-A / Mode-B / Mode-C JSON) — structured recovery reuses that data instead of re-guessing. Apply **one** targeted edit, then re-run `mvn` in a NEW response.
 
@@ -1440,7 +1442,7 @@ Meaning: the flow XML calls an op that the *resolved* XSD doesn't declare. The p
 Before editing anything, run:
 ```bash
 MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
-mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} dependency:tree -Dincludes=<groupId>:<artifactId> 2>&1 | tail -20
+mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} dependency:tree -Dincludes=<groupId>:<artifactId> 2>&1 | tail -20
 node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 - If the command itself fails with `status code: 401` / `ReasonPhrase: Unauthorized` / `Not authorized to access` → stop here, this is an expired Anypoint CLI session, not a stale/renamed op. Ask the user for permission to re-authenticate the Anypoint CLI, then re-run this probe.
@@ -1453,7 +1455,7 @@ Symptom: `java.lang.ClassCastException: class java.lang.String cannot be cast to
 Before editing anything, re-run with debug and grep for the failure frame + bean context:
 ```bash
 MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
-mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package -DskipTests -X 2>&1 | grep -B 20 -A 3 'ClassCastException\|NullPointerException' \
+mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package -DskipTests -X 2>&1 | grep -B 20 -A 3 'ClassCastException\|NullPointerException' \
   | tee tmp/mvn-failures/build-<attempt>-debug.log
 node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
@@ -1508,7 +1510,7 @@ find src/test/munit -name '*.xml' 2>/dev/null | wc -l   # suites present?
   RT=$(jq -r '.runtimePath // empty' tmp/resolve-runtime-<target-mule>.json 2>/dev/null)   # <target-mule> = .mule.to in tmp/upgrade-targets.json
   # the MUnit plugin rejects a distribution without version.txt (ACB writes the same file); only touch an existing dir
   [ -d "$RT" ] && { [ -f "$RT/version.txt" ] || printf '%s' "<target-mule>" > "$RT/version.txt"; }
-  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} -DruntimeLocalDistribution="$RT" clean test 2>&1 | tee tmp/mvn-failures/munit-<attempt>-local.log
+  JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} -DruntimeLocalDistribution="$RT" clean test 2>&1 | tee tmp/mvn-failures/munit-<attempt>-local.log
   ```
   This is a one-time substitute run of the same attempt, not a new attempt. If it passes the gate, continue. If `runtimePath` is missing, or it fails again with `mulesoft-ee-auth` / `other-repo-auth`, **stop**: show the user the classifier's `hint` verbatim, report that MUnit could not be verified, and wait. Do not loop.
 - `other-repo-auth` → stop and show the `hint` verbatim (a repository the skill does not know rejected the build). No retry spent.
@@ -1531,7 +1533,7 @@ MUnit failures classify against the same Mode-B `.attributes[] / .childElements[
 Do NOT attempt a 7th retry without user direction. Treat repeated failures as a signal that the plan missed a Mode-B / Mode-C detail, not as noise to retry through.
 
 - Refresh the Exchange session credential first: `MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')`
-- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean test 2>&1 | tee tmp/mvn-failures/munit-<attempt>.log` — pin the MUnit run to the resolved target JDK inline, same as Steps 3c and 16; the log feeds the classifier above
+- Run `JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean test 2>&1 | tee tmp/mvn-failures/munit-<attempt>.log` — pin the MUnit run to the resolved target JDK inline, same as Steps 3c and 16; the log feeds the classifier above
 - Confirm the `MUnit Run Summary` shows `Tests run: N (>= 1)`, `Failed: 0`, `Errors: 0` — `BUILD SUCCESS` alone is not a pass
 - Run `node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"` to remove the plaintext credential from /tmp
 - Fix MUnit tests
@@ -1575,7 +1577,7 @@ Prints a short summary; the full result is written to `tmp/parent-pom-fork.json`
 
 ```bash
 MVN_SETTINGS=$(node scripts/write_maven_settings.mjs | jq -r '.path // empty')
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<target-java>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package
 node scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 ```
 
@@ -1679,7 +1681,7 @@ node <skill-dir>/scripts/detect_current_mmp_version.mjs .
 
 # Step 3c — baseline build on the resolved JAVA_HOME (must be BUILD SUCCESS)
 MVN_SETTINGS=$(node <skill-dir>/scripts/write_maven_settings.mjs | jq -r '.path // empty')
-JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"} clean package
+JAVA_HOME=$(jq -r .javaHome tmp/resolve-jdk-<major>.json) mvn ${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"} clean package
 node <skill-dir>/scripts/cleanup_maven_settings.mjs "$MVN_SETTINGS"
 
 # Step 4 — recommend a target (writes tmp/target-versions.json)

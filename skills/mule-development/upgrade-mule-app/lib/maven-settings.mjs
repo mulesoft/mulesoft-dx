@@ -348,7 +348,7 @@ function addMissingExchangeServers(xml, creds, foundIds) {
  *   case, so callers MUST omit `-s` rather than pass a nonexistent path
  *   (`mvn -s /nonexistent/settings.xml` hard-fails with "The specified
  *   user settings file does not exist"), e.g.
- *   `${MVN_SETTINGS:+-s "$MVN_SETTINGS"}`. When sourcePath does not exist
+ *   `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`. When sourcePath does not exist
  *   but a credential IS found (CLI or ACB), a brand-new minimal
  *   settings.xml is synthesized in the temp copy — path is non-null in
  *   that case too. Whenever a source file DOES exist, path is always

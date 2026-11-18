@@ -2585,11 +2585,13 @@ async function loginBearer() {
     var loginBtn = document.querySelector('#authTabBearer .btn-auth-login');
     if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add('loading'); }
     var serverBase = getSelectedBaseUrl();
+    var endpointInput = document.getElementById('authLoginEndpoint');
+    var endpoint = (endpointInput && endpointInput.value.trim()) || '/accounts/login';
     try {
-        // POC (W-logintest): call /accounts/api/login directly from the browser,
+        // POC (W-logintest): call the login endpoint directly from the browser,
         // bypassing PROXY_URL, to verify whether the CorePaaS environments
         // (devx/qax/stgx) respond with CORS headers that allow this.
-        var resp = await fetch(serverBase + '/accounts/api/login', {
+        var resp = await fetch(serverBase + endpoint, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username: username, password: password})

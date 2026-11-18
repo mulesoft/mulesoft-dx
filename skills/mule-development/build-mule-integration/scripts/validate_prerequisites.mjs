@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // validate_prerequisites — Step 1: validate the Mule dev environment
-// (anypoint-cli-v4, DX plugin, anypoint-cli-v4 logged in, JAVA_HOME + Java 11+, Mule runtime) and write a
+// (anypoint-cli-v4, DX plugin, anypoint-cli-v4 logged in, JAVA_HOME or bundled JDK + Java 11+, Mule runtime) and write a
 // JSON report. Validates only — never installs or modifies anything.
 // Output path: $MULE_DEV_ENV_FILE when set, otherwise tmp/mule-dev-env.json.
 // Output JSON shape:
@@ -14,6 +14,7 @@ import { homedir } from 'node:os';
 import { mkdirp, writeJson, isDir, listDir, readJsonOrNull, isFile } from '../lib/fsx.mjs';
 import { commandExists, runProbe } from '../lib/anypoint.mjs';
 import { parseJavaVersion, sortVersionStrings } from '../lib/platform.mjs';
+import { findBundledJdk, javaHomeFixHint, javaMajorOf, acbJavaDir } from '../lib/jdk.mjs';
 
 const OUT_FILE = process.env.MULE_DEV_ENV_FILE || path.join('tmp', 'mule-dev-env.json');
 // Reject `..` segments in the override to keep a hostile MULE_DEV_ENV_FILE
@@ -71,23 +72,55 @@ if (anypointPresent) {
 }
 
 // 4. JAVA_HOME + Java 11+
-const javaHome = process.env.JAVA_HOME || '';
+// Resolve order: $JAVA_HOME, then the JDK bundled with Anypoint Code Builder
+// (~/AnypointCodeBuilder/java), then `java` on PATH. The script cannot export
+// env vars to the caller, so when JAVA_HOME is unset it reports the resolved
+// path (java_home in the JSON) and the platform-correct command to set it.
+const MIN_JAVA = 11;
+let javaHome = process.env.JAVA_HOME || '';
+const javaExe = process.platform === 'win32' ? 'java.exe' : 'java';
+if (javaHome && !isFile(path.join(javaHome, 'bin', javaExe))) {
+    console.log(`⚠️  JAVA_HOME is set but has no bin/${javaExe}: ${javaHome}`);
+    warnings.push(`JAVA_HOME (${javaHome}) does not contain bin/${javaExe}; ignoring it.`);
+    javaHome = '';
+}
+let javaMajor = javaHome ? javaMajorOf(javaHome) : null;
+let javaUnset = !process.env.JAVA_HOME;
+if (!javaHome || javaMajor === null || javaMajor < MIN_JAVA) {
+    const bundled = findBundledJdk(MIN_JAVA);
+    if (bundled) {
+        if (javaHome) warnings.push(`JAVA_HOME (${javaHome}) is Java ${javaMajor ?? 'unknown'}; the bundled JDK ${bundled.javaHome} is Java ${bundled.major}.`);
+        javaHome = bundled.javaHome;
+        javaMajor = bundled.major;
+        javaUnset = true; // not exported in the caller's shell
+    }
+}
 if (!javaHome) {
-    console.log('❌ JAVA_HOME not set');
-    errors.push('JAVA_HOME not set. Fix: export JAVA_HOME=$(/usr/libexec/java_home -v 11)');
-} else {
-    console.log(`✅ JAVA_HOME: ${javaHome}`);
-    // `java -version` writes to stderr by convention.
+    // Last resort: a `java` on PATH (no JAVA_HOME to record).
     const r = runProbe('java', ['-version']);
-    const out = (r.stderr || '') + (r.stdout || '');
-    const { raw, major } = parseJavaVersion(out);
-    if (!major || major < 11) {
-        const shown = raw || 'unknown';
-        console.log(`❌ Java 11+ required (found: Java ${shown})`);
-        errors.push(`Java 11+ required, found: ${shown}`);
-    } else {
+    const { raw, major } = parseJavaVersion((r.stderr || '') + (r.stdout || ''));
+    if (major && major >= MIN_JAVA) {
+        javaMajor = major;
         javaVersion = String(major);
-        console.log(`✅ Java version: ${javaVersion}`);
+        console.log(`✅ Java version: ${javaVersion} (from PATH; JAVA_HOME not set)`);
+        warnings.push('JAVA_HOME is not set; using `java` from PATH.');
+    } else {
+        console.log('❌ JAVA_HOME not set and no Java 11+ found');
+        const found = raw ? ` (java on PATH is ${raw})` : '';
+        errors.push(`No Java ${MIN_JAVA}+ found${found}: JAVA_HOME is not set and no JDK is bundled under ${acbJavaDir()}. Fix: install a JDK ${MIN_JAVA}+ (or run 'anypoint-cli-v4 dx mule jdk download'), then set JAVA_HOME — ${javaHomeFixHint(MIN_JAVA)}`);
+    }
+} else if (javaMajor === null || javaMajor < MIN_JAVA) {
+    const shown = javaMajor === null ? 'unknown' : String(javaMajor);
+    console.log(`❌ Java ${MIN_JAVA}+ required (found: Java ${shown} at ${javaHome})`);
+    errors.push(`Java ${MIN_JAVA}+ required, found: ${shown} at ${javaHome}`);
+} else {
+    javaVersion = String(javaMajor);
+    console.log(`✅ JAVA_HOME: ${javaHome}`);
+    console.log(`✅ Java version: ${javaVersion}`);
+    if (javaUnset) {
+        const msg = `JAVA_HOME is not set in this shell. Using the bundled JDK at ${javaHome}. Set it with: ${javaHomeFixHint(MIN_JAVA, javaHome)}`;
+        console.log(`⚠️  ${msg}`);
+        warnings.push(msg);
     }
 }
 

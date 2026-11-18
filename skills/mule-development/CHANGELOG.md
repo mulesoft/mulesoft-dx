@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## Unreleased
 
 ## Fixed
+- **`build-mule-integration`, `upgrade-mule-app`** — `validate_prerequisites.mjs` failed on Windows (and anywhere `JAVA_HOME` is unset) with macOS-only advice (`/usr/libexec/java_home`), which led the agent to invent a JDK path. It now falls back to the JDK bundled with Anypoint Code Builder (`~/AnypointCodeBuilder/java`), checks the version of the JDK it resolved rather than whichever `java` is on PATH, reports the resolved path as `java_home`, and prints platform-specific set-`JAVA_HOME` guidance (PowerShell `$env:JAVA_HOME`/`setx`, macOS, Linux). `describe_connector.mjs` gets the same bundled-JDK fallback for Java 17, no longer depends on `/bin/sh` (absent on Windows), and uses the shared hint. New `lib/jdk.mjs` + `lib/jdk.test.mjs`.
 - **`upgrade-mule-app`** — `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"}` failed under zsh (the macOS default shell) with "The specified user settings file does not exist" because zsh does not word-split the text inside that expansion, so Maven received one argument `-s /path`. SKILL.md and the comments in `write_maven_settings.mjs` and `lib/maven-settings.mjs` now use `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, which gives the same arguments in zsh and bash (W-24908151). New `scripts/skill_mvn_settings_idiom.test.mjs` fails if the old form comes back when run (`node --test`); it is not part of CI or the git hooks.
 
 ## [1.9.8]

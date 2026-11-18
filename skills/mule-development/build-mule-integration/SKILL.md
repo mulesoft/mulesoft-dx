@@ -37,7 +37,7 @@ Always search Exchange for system-specific connectors first. Most SaaS applicati
 ```bash
 anypoint-cli-v4 --version
 anypoint-cli-v4 dx --help
-echo $JAVA_HOME && java -version   # Java 11+
+java -version   # Java 11+ (JAVA_HOME may be unset; validate_prerequisites.mjs also finds the JDK bundled with Anypoint Code Builder)
 anypoint-cli-v4 conf
 ```
 
@@ -1198,7 +1198,7 @@ Do **not** include: lengthy "Features Implemented" sections, redacted JSON paylo
 
 ## Troubleshooting
 
-**JAVA_HOME not set:** `export JAVA_HOME=$(/usr/libexec/java_home -v 11)`
+**JAVA_HOME not set:** `validate_prerequisites.mjs` falls back to the JDK bundled with Anypoint Code Builder (`~/AnypointCodeBuilder/java/jdk-*`) and records it as `java_home` in `tmp/mule-dev-env.json`; use that path, and never guess a JDK path. To set it yourself — PowerShell: `$env:JAVA_HOME = "<path>"` (current session) or `setx JAVA_HOME "<path>"` (persistent); macOS: `export JAVA_HOME=$(/usr/libexec/java_home -v 11)`; Linux/Git Bash: `export JAVA_HOME=<path>`. Prefix later `mvn`/CLI calls with the same `java_home` if the shell variable is unset.
 
 **anypoint-cli-v4 not found:** `npm install -g anypoint-cli-v4-public`
 

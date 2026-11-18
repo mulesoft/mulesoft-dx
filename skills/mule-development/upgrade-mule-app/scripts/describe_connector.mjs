@@ -37,6 +37,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { mkdirp } from '../lib/fsx.mjs';
 import { parseJavaVersion } from '../lib/platform.mjs';
+import { findBundledJdk, javaHomeFixHint } from '../lib/jdk.mjs';
 import { checkReleasesRepo, RELEASES_REPO_URL } from '../lib/releases-repo.mjs';
 import { anypointEnv, checkDxPluginVersion, DX_PLUGIN_MIN_LABEL, DX_PLUGIN_UPGRADE_CMD } from '../lib/anypoint.mjs';
 import { recordDescribe } from '../lib/step-timing.mjs';
@@ -64,26 +65,39 @@ function dxPluginVersionHint() {
 // mvn's XSD validator fails at process-classes.
 // Override for legacy-JDK repro: ALLOW_LEGACY_JAVA_FOR_DESCRIBE=1.
 if (!env.ALLOW_LEGACY_JAVA_FOR_DESCRIBE) {
-  let javaBin = '';
+  const javaExe = process.platform === 'win32' ? 'java.exe' : 'java';
+  const probeMajor = (bin) => {
+    const probe = spawnSync(bin, ['-version'], { encoding: 'utf8' });
+    if (probe.error) return { major: null, line: '' };
+    const line = (probe.stderr || probe.stdout || '').split(/\r?\n/, 1)[0] || '';
+    return { major: parseJavaVersion(line).major, line };
+  };
+  // JAVA_HOME's java if present, else `java` on PATH (spawnSync resolves PATH on every OS).
+  let javaBin = 'java';
   if (env.JAVA_HOME) {
-    const candidate = path.join(env.JAVA_HOME, 'bin', 'java');
+    const candidate = path.join(env.JAVA_HOME, 'bin', javaExe);
     if (existsSync(candidate)) javaBin = candidate;
   }
-  if (!javaBin) {
-    const which = spawnSync('/bin/sh', ['-c', 'command -v java'], { encoding: 'utf8' });
-    if (which.status === 0) javaBin = which.stdout.trim();
+  let { major, line: versionLine } = probeMajor(javaBin);
+  if (major === null || major < 17) {
+    // Fall back to the JDK bundled with Anypoint Code Builder and point the CLI at it.
+    const bundled = findBundledJdk(17);
+    if (bundled) {
+      process.env.JAVA_HOME = bundled.javaHome;
+      process.env.PATH = `${path.join(bundled.javaHome, 'bin')}${path.delimiter}${process.env.PATH || ''}`;
+      stderr.write(`ℹ️  describe_connector.mjs: using bundled Java ${bundled.major} at ${bundled.javaHome}\n`);
+      major = bundled.major;
+    }
   }
-  if (!javaBin) {
-    stderr.write('❌ describe_connector.mjs: no `java` on PATH and JAVA_HOME is unset — Java 17+ is required\n');
-    exit(1);
-  }
-  const probe = spawnSync(javaBin, ['-version'], { encoding: 'utf8' });
-  const versionLine = (probe.stderr || probe.stdout || '').split(/\r?\n/, 1)[0] || '';
-  const parsed = parseJavaVersion(versionLine);
-  if (parsed.major === null || parsed.major < 17) {
-    stderr.write(`❌ describe_connector.mjs: Java ${parsed.major ?? '?'} detected (${versionLine}); Java 17+ is required\n`);
-    stderr.write('   Under Java 8/11 the describe returns a degraded schema (empty configs[].parameters) that hides required-attribute changes.\n');
-    stderr.write('   Fix: export JAVA_HOME="$(/usr/libexec/java_home -v 17)" (or point at a Java 17+ install) and re-run.\n');
+  if (major === null || major < 17) {
+    if (major === null) {
+      stderr.write('❌ describe_connector.mjs: no Java found (JAVA_HOME unset/invalid, none on PATH, no bundled JDK) — Java 17+ is required\n');
+    } else {
+      stderr.write(`❌ describe_connector.mjs: Java ${major} detected (${versionLine}); Java 17+ is required\n`);
+      stderr.write('   Under Java 8/11 the describe returns a degraded schema (empty configs[].parameters) that hides required-attribute changes.\n');
+    }
+    stderr.write(`   Fix: ${javaHomeFixHint(17)} (or point at a Java 17+ install) and re-run.\n`);
+    stderr.write('   Or run scripts/resolve_jdk.mjs 17 to find/download a JDK and use its javaHome.\n');
     stderr.write('   Override: set ALLOW_LEGACY_JAVA_FOR_DESCRIBE=1 only if you truly need a legacy-JDK describe.\n');
     exit(1);
   }

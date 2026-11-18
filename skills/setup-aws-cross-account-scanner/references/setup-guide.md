@@ -11,7 +11,7 @@ Select one or more scanners with `--scanners bedrock,agentcore,agentcore-mcp,api
 1. Choose a hub account and explicit spoke account IDs. Install the AWS CLI and ensure your **deployment** identity can create CloudFormation stacks and named IAM roles. Use `--profile PROFILE` or standard environment credentials for each command. The deployment identity is separate from the scanner identity and from the StackSets roles.
 2. Pick an External ID unique to the customer/connection and a consistent spoke role name. Supply the same values to each command and to the scanner connection. The CloudFormation parameter is visible to authorized AWS administrators, as is normal for an External ID. Do not commit an environment file containing credentials.
 3. Choose one enabled AWS region for deploying these IAM roles. IAM roles are account-wide; using several CloudFormation regions with the same role names causes conflicts. Scanner target regions are configured independently.
-4. For a cautious preview append `--dry-run` to any command; use `--help` for all options. Examples use placeholders; replace them before running.
+4. Append `--dry-run` to provisioning or validation commands to print requests without contacting AWS; use `--help` for all options. The cleanup commands `teardown` and `teardown-stack` instead read AWS and preview deletion until `--confirm-delete` is supplied; they do not accept `--dry-run`. Examples use placeholders; replace them before running.
 
 ## Hub
 

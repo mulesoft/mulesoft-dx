@@ -76,9 +76,10 @@ CloudFormation and, when applicable, Organizations authority described in the
 guide. These permissions are separate from the scanner's runtime permissions.
 
 Before applying changes, present the selected accounts, regions, roles, scanner
-policy families, and commands. Use `--dry-run` to show the AWS requests. It prints
+policy families, and commands. For provisioning and validation, use `--dry-run` to show the AWS requests. It prints
 commands without contacting AWS and therefore does not validate access or
-existing infrastructure. Preserve the intended account scope and the CLI's
+existing infrastructure. Cleanup commands use the AWS-reading preview described
+under **Updates and removal**, rather than `--dry-run`. Preserve the intended account scope and the CLI's
 existing deletion acknowledgements.
 
 IAM roles are account-wide: deploy each named role in one CloudFormation region.

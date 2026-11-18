@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## Fixed
 - **`upgrade-mule-app`** — `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"}` failed under zsh (the macOS default shell) with "The specified user settings file does not exist" because zsh does not word-split the text inside that expansion, so Maven received one argument `-s /path`. SKILL.md and the comments in `write_maven_settings.mjs` and `lib/maven-settings.mjs` now use `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, which gives the same arguments in zsh and bash (W-24908151). New `scripts/skill_mvn_settings_idiom.test.mjs` fails if the old form comes back when run (`node --test`); it is not part of CI or the git hooks.
 
+### Added
+
+- **`upgrade-mule-app`** — repeat guard for the Step 16 build loop and the Step 17 MUnit loop (W-24731671). New `scripts/fingerprint_mvn_failure.mjs` compares a failed `mvn` log with the previous attempt's and reports `new`, `repeat` or `halt`. On a repeat the skill makes a different edit instead of rebuilding the same failure; the third identical XSD parse failure halts with `AskUserQuestion`. Other failures and Step 17 can repeat but never halt, though a repeat with no supported different edit stops early. The retry caps (5 and 6) are unchanged.
+
 ## [1.9.8]
 
 ### Fixed

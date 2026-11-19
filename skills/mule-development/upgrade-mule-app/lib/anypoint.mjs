@@ -9,7 +9,7 @@ export function anypointEnv(extra = {}) {
   return { ...env, ...extra };
 }
 
-// Required DX Mule plugin floor. Two independent failure modes land on the
+// Required DX Mule plugin floor. Three independent failure modes land on the
 // same floor: (1) `dx mule jdk download` — used to auto-provision the
 // source/target JDK (Steps 3b/13) — only exists in
 // @salesforce/anypoint-cli-dx-mule-plugin >= 1.3.0; older plugins pass the
@@ -17,16 +17,22 @@ export function anypointEnv(extra = {}) {
 // `describe-connector`'s session-token auth path only works correctly for
 // some connectors >= 1.3.1 — below that it authenticates fine for most
 // connectors but exits 0 with an empty/failed response for others, with no
-// indication it's a version problem.
-// 1.3.1 is a strict superset of 1.3.0, so one floor covers both.
+// indication it's a version problem. (3) Plugins < 1.3.2 bundle Flow Design
+// Service 1.1.800 (mule-api 1.12.2), which hits a swallowed NoSuchMethodError
+// and exits 1 with no output against runtimes released from 2026-10-07 (e.g.
+// 4.9.22). Step 7 describes on the target runtime when it is 4.9 or later, so
+// that is where this bites. 1.3.2 bundles FDS 1.1.2300 (mule-api 1.13.1).
+// 1.3.2 is a strict superset of 1.3.1 and 1.3.0, so one floor covers all three.
 export const DX_PLUGIN_MIN_MAJOR = 1;
 export const DX_PLUGIN_MIN_MINOR = 3;
-export const DX_PLUGIN_MIN_PATCH = 1;
+export const DX_PLUGIN_MIN_PATCH = 2;
 export const DX_PLUGIN_MIN_LABEL = `${DX_PLUGIN_MIN_MAJOR}.${DX_PLUGIN_MIN_MINOR}.${DX_PLUGIN_MIN_PATCH}`;
-export const DX_PLUGIN_UPGRADE_CMD = 'npm install -g @salesforce/anypoint-cli-dx-mule-plugin@latest';
+// Installs into the CLI's own plugin directory, which is where the CLI loads the
+// plugin from. `npm install -g <plugin>` does not update that copy.
+export const DX_PLUGIN_UPGRADE_CMD = 'anypoint-cli-v4 plugins:install @salesforce/anypoint-cli-dx-mule-plugin';
 
 /** Parse "@salesforce/anypoint-cli-dx-mule-plugin 1.3.1" from `anypoint-cli-v4
- * plugins`. @param {string} out @returns {{major:number,minor:number,patch:number,version:string}|null} */
+ * plugins` (or `plugins --core`). @param {string} out @returns {{major:number,minor:number,patch:number,version:string}|null} */
 export function parseDxPluginVersion(out) {
   const m = /@salesforce\/anypoint-cli-dx-mule-plugin\s+v?(\d+)\.(\d+)\.(\d+)/i.exec(out);
   if (!m) return null;
@@ -46,14 +52,23 @@ export function isDxPluginAtLeastMin(v) {
   return v.patch >= DX_PLUGIN_MIN_PATCH;
 }
 
-/** Read the installed DX plugin version via `anypoint-cli-v4 plugins` and report
- * whether it meets DX_PLUGIN_MIN_LABEL. Used both at Step 1 (pre-check) and
- * reactively at describe-connector's failure point (correlate, don't guess).
+/** Run `anypoint-cli-v4 <args>` and return its combined output, or '' on failure. @param {string[]} args @returns {string} */
+function pluginsOutput(args) {
+  // shell on win32 only: anypoint-cli-v4 is a .cmd shim there, which spawnSync cannot find by bare name.
+  const r = spawnSync('anypoint-cli-v4', args, { env: anypointEnv(), encoding: 'utf8', timeout: 10_000, shell: process.platform === 'win32' });
+  return r.status === 0 ? `${r.stdout || ''}${r.stderr || ''}` : '';
+}
+
+/** Read the DX plugin version the CLI loads and report whether it meets
+ * DX_PLUGIN_MIN_LABEL. Used both at Step 1 (pre-check) and reactively at
+ * describe-connector's failure point (correlate, don't guess).
+ * `plugins` lists only user-installed plugins. A fresh CLI install carries the
+ * plugin as a core (bundled) plugin that `plugins` does not list, so fall back
+ * to `plugins --core` (when a user copy exists, both commands show it, so the
+ * order only saves a second CLI start-up). @param {(args:string[]) => string} [run] Output source; injectable for tests.
  * @returns {{parsed:{major:number,minor:number,patch:number,version:string}|null, inRange:boolean}} */
-export function checkDxPluginVersion() {
-  const r = spawnSync('anypoint-cli-v4', ['plugins'], { env: anypointEnv(), encoding: 'utf8', timeout: 10_000 });
-  if (r.status !== 0) return { parsed: null, inRange: false };
-  const parsed = parseDxPluginVersion(`${r.stdout || ''}${r.stderr || ''}`);
+export function checkDxPluginVersion(run = pluginsOutput) {
+  const parsed = parseDxPluginVersion(run(['plugins'])) ?? parseDxPluginVersion(run(['plugins', '--core']));
   if (!parsed) return { parsed: null, inRange: false };
   return { parsed, inRange: isDxPluginAtLeastMin(parsed) };
 }

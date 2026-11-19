@@ -50,8 +50,8 @@ import { recordDescribe } from '../lib/step-timing.mjs';
 function dxPluginVersionHint() {
   const { parsed, inRange } = checkDxPluginVersion();
   if (!parsed || inRange) return '';
-  return `   possible cause: @salesforce/anypoint-cli-dx-mule-plugin ${parsed.version} is below the required ${DX_PLUGIN_MIN_LABEL} — describe-connector's auth silently fails for some connectors below this floor. (This connector may not be affected, in which case the real cause is something else below.)\n` +
-    `   fix: ${DX_PLUGIN_UPGRADE_CMD}, then re-run \`anypoint-cli-v4 plugins\` and confirm the version actually changed before retrying (a stale PATH entry can make the install silently not take effect).\n`;
+  return `   possible cause: @salesforce/anypoint-cli-dx-mule-plugin ${parsed.version} is below the required ${DX_PLUGIN_MIN_LABEL} — below this floor describe-connector's auth silently fails for some connectors, and the bundled Flow Design Service exits with no output against runtimes released from 2026-10-07 (e.g. 4.9.22). (This connector may not be affected, in which case the real cause is something else below.)\n` +
+    `   fix: ${DX_PLUGIN_UPGRADE_CMD}, then re-run \`anypoint-cli-v4 plugins\` and confirm it now shows ${DX_PLUGIN_MIN_LABEL} or higher before retrying.\n`;
 }
 
 // ------------------------------------------------------------------

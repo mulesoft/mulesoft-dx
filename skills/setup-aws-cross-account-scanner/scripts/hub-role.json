@@ -1,0 +1,143 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS scanner hub role. Runtime permissions only; deployment permissions are separate.",
+  "Parameters": {
+    "HubRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerHubRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ScannerPrincipalArn": {
+      "Type": "String",
+      "Description": "Existing IAM user or role that assumes the hub role; not an STS session ARN."
+    },
+    "SpokeRoleArns": {
+      "Type": "CommaDelimitedList",
+      "Default": ""
+    },
+    "AutoEnroll": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": ["true", "false"]
+    },
+    "OrganizationId": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "(^$|o-[a-z0-9]{10,32})"
+    },
+    "SpokeRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerSpokeRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ExternalId": {
+      "Type": "String",
+      "MinLength": 2,
+      "MaxLength": 1224,
+      "AllowedPattern": "[A-Za-z0-9_+=,.@:/-]+"
+    },
+    "EnableOrganizationsDiscovery": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    }
+  },
+  "Conditions": {
+    "AutomaticEnrollment": {
+      "Fn::Equals": [{"Ref": "AutoEnroll"}, "true"]
+    },
+    "OrganizationsDiscovery": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableOrganizationsDiscovery"
+        },
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "HubRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Ref": "HubRoleName"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Ref": "ScannerPrincipalArn"
+                }
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Purpose",
+            "Value": "agent-scanner-cross-account"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "AssumeScannerSpokes",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sts:AssumeRole"
+                  ],
+                  "Resource": {"Fn::If": ["AutomaticEnrollment", {"Fn::Sub": "arn:${AWS::Partition}:iam::*:role/${SpokeRoleName}"}, {"Ref": "SpokeRoleArns"}]},
+                  "Condition": {"Fn::If": ["AutomaticEnrollment", {"StringEquals": {"sts:ExternalId": {"Ref": "ExternalId"}, "aws:ResourceOrgID": {"Ref": "OrganizationId"}}}, {"StringEquals": {"sts:ExternalId": {"Ref": "ExternalId"}}}]}
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "OrganizationsPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "OrganizationsDiscovery",
+      "Properties": {
+        "PolicyName": "DiscoverScannerAccounts",
+        "Roles": [
+          {
+            "Ref": "HubRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "organizations:ListAccounts"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "HubRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "HubRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

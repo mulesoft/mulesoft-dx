@@ -1,0 +1,279 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Scanner-specific spoke permissions; deploy once per account in one region.",
+  "Parameters": {
+    "HubRoleArn": {
+      "Type": "String"
+    },
+    "SpokeRoleName": {
+      "Type": "String",
+      "Default": "AgentScannerSpokeRole",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "ExternalId": {
+      "Type": "String",
+      "MinLength": 2,
+      "MaxLength": 1224,
+      "AllowedPattern": "[A-Za-z0-9_+=,.@:/-]+"
+    },
+    "EnableBedrock": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    },
+    "EnableAgentCore": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    },
+    "EnableAgentCoreMcp": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    },
+    "EnableApiGateway": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    }
+  },
+  "Conditions": {
+    "Bedrock": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableBedrock"
+        },
+        "true"
+      ]
+    },
+    "AgentCore": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableAgentCore"
+        },
+        "true"
+      ]
+    },
+    "AgentCoreMcp": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableAgentCoreMcp"
+        },
+        "true"
+      ]
+    },
+    "ApiGateway": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableApiGateway"
+        },
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "SpokeRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Ref": "SpokeRoleName"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Ref": "HubRoleArn"
+                }
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": {
+                    "Ref": "ExternalId"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Purpose",
+            "Value": "agent-scanner-cross-account"
+          }
+        ]
+      }
+    },
+    "BedrockPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "Bedrock",
+      "Properties": {
+        "PolicyName": "ScannerBedrock",
+        "Roles": [
+          {
+            "Ref": "SpokeRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock:ListAgents",
+                "bedrock:GetAgent",
+                "bedrock:ListAgentVersions",
+                "bedrock:GetAgentVersion",
+                "bedrock:ListAgentAliases",
+                "bedrock:GetAgentAlias",
+                "bedrock:ListAgentActionGroups",
+                "bedrock:GetAgentActionGroup",
+                "bedrock:ListAgentKnowledgeBases",
+                "bedrock:GetAgentKnowledgeBase",
+                "bedrock:ListKnowledgeBases",
+                "bedrock:GetKnowledgeBase",
+                "bedrock:ListAgentCollaborators",
+                "bedrock:GetAgentCollaborator",
+                "bedrock:GetGuardrail",
+                "bedrock:ListDataSources",
+                "bedrock:GetDataSource",
+                "bedrock:ListTagsForResource"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "AgentCorePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "AgentCore",
+      "Properties": {
+        "PolicyName": "ScannerAgentCore",
+        "Roles": [
+          {
+            "Ref": "SpokeRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock-agentcore:ListAgentRuntimes",
+                "bedrock-agentcore:GetAgentRuntime",
+                "bedrock-agentcore:ListAgentRuntimeVersions",
+                "bedrock-agentcore:ListAgentRuntimeEndpoints",
+                "bedrock-agentcore:ListHarnesses",
+                "bedrock-agentcore:GetHarness",
+                "bedrock-agentcore:GetAgentCard"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock-agentcore:InvokeAgentRuntime"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:${AWS::Partition}:bedrock-agentcore:*:${AWS::AccountId}:runtime/*"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AgentCoreMcpPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "AgentCoreMcp",
+      "Properties": {
+        "PolicyName": "ScannerAgentCoreMcp",
+        "Roles": [
+          {
+            "Ref": "SpokeRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock-agentcore:ListAgentRuntimes",
+                "bedrock-agentcore:GetAgentRuntime",
+                "bedrock-agentcore:ListAgentRuntimeVersions",
+                "bedrock-agentcore:ListAgentRuntimeEndpoints"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock-agentcore:InvokeAgentRuntime"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:${AWS::Partition}:bedrock-agentcore:*:${AWS::AccountId}:runtime/*"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "ApiGateway",
+      "Properties": {
+        "PolicyName": "ScannerApiGateway",
+        "Roles": [
+          {
+            "Ref": "SpokeRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "apigateway:GET",
+                "route53:ListHealthChecks",
+                "wafv2:GetWebACLForResource"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "SpokeRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "SpokeRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

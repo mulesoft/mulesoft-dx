@@ -4,10 +4,12 @@ All notable changes to `@salesforce/mulesoft-vibes-skills` are documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [1.9.9]
 
-## Fixed
-- **`upgrade-mule-app`** — `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"}` failed under zsh (the macOS default shell) with "The specified user settings file does not exist" because zsh does not word-split the text inside that expansion, so Maven received one argument `-s /path`. SKILL.md and the comments in `write_maven_settings.mjs` and `lib/maven-settings.mjs` now use `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, which gives the same arguments in zsh and bash (W-24908151). New `scripts/skill_mvn_settings_idiom.test.mjs` fails if the old form comes back when run (`node --test`); it is not part of CI or the git hooks.
+### Fixed
+
+- **`upgrade-mule-app`** — `mvn ${MVN_SETTINGS:+-s "$MVN_SETTINGS"}` failed under zsh (the macOS default shell) with "The specified user settings file does not exist" because zsh does not word-split the text inside that expansion, so Maven received one argument `-s /path`. SKILL.md and the comments in `write_maven_settings.mjs` and `lib/maven-settings.mjs` now use `${MVN_SETTINGS:+-s} ${MVN_SETTINGS:+"$MVN_SETTINGS"}`, which gives the same arguments in zsh and bash. New `scripts/skill_mvn_settings_idiom.test.mjs` fails if the old form comes back when run (`node --test`); it is not part of CI or the git hooks.
+- **`upgrade-mule-app`** — `describe-connector` (Step 7) failed with no output on newer Mule runtimes because plugins below 1.3.2 bundle an outdated Flow Design Service. Step 1 now requires DX Mule plugin 1.3.2 or later and also reads `anypoint-cli-v4 plugins --core`, so a plugin bundled with a fresh CLI install is checked too. The printed upgrade command is now `anypoint-cli-v4 plugins:install @salesforce/anypoint-cli-dx-mule-plugin`; a global `npm install -g` of the plugin does not change the version the CLI loads.
 
 ## [1.9.8]
 

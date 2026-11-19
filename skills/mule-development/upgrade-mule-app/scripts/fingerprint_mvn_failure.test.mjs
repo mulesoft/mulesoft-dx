@@ -260,8 +260,8 @@ test('MUnit: a different assertion in the same failing test is progress, and MUn
     assert.equal(check(dir, 'munit-3.log', munit('basic')).verdict, 'repeat');
     const fourth = check(dir, 'munit-4.log', munit('basic'));
     assert.equal(fourth.verdict, 'repeat');
-    assert.match(fourth.hint, /HALT via AskUserQuestion/);
-    assert.doesNotMatch(fourth.hint, /probe/);
+    assert.match(fourth.hint, /compare the failing assertion text/);
+    assert.doesNotMatch(fourth.hint, /probe|HALT via/);
   });
 });
 
@@ -302,5 +302,72 @@ test('usage errors exit 2', () => {
     assert.match(badName.stderr, /build-<N>\.log or munit-<N>\.log/);
     const missing = spawnSync(process.execPath, [SCRIPT_PATH, join(dir, 'build-9.log')], { encoding: 'utf8' });
     assert.equal(missing.status, 2);
+  });
+});
+
+test('UUIDs, hex addresses and temp paths in [ERROR] lines do not make a repeat look new', () => {
+  const log = (id, hex, dir) => `[ERROR] Failed to execute goal org.mule.tools.maven:mule-maven-plugin:4.10.4:deploy (default) on project app: Container ${id} at ${hex} failed to start from ${dir}/mule-app -> [Help 1]\n`;
+  withDir((d) => {
+    check(d, 'build-1.log', log('3f2b8c1e-9a4d-4e0b-8f6a-1c2d3e4f5a6b', '0x7f3a9c', '/var/folders/ab/cd12/T/mvn-111'));
+    assert.equal(check(d, 'build-2.log', log('a1b2c3d4-0000-4000-8000-123456789abc', '0x1b2c3d', '/var/folders/zz/yy99/T/mvn-222')).verdict, 'repeat');
+  });
+});
+
+test('a damaged line in fingerprints.jsonl is skipped', () => {
+  withDir((dir) => {
+    check(dir, 'build-1.log', xsdLog());
+    writeFileSync(join(dir, 'fingerprints.jsonl'), readFileSync(join(dir, 'fingerprints.jsonl'), 'utf8') + '{not json\n');
+    assert.equal(check(dir, 'build-2.log', xsdLog()).verdict, 'repeat');
+  });
+});
+
+test('MUnit: a change in an assertion shape the fingerprint does not capture still reads as a repeat (known limit)', () => {
+  const munit = (extra) => [
+    '[ERROR] Failed to execute goal com.mulesoft.munit.tools:munit-maven-plugin:3.7.6:test (test) on project app: Build Failed: MUnit Tests Failed -> [Help 1]',
+    '[INFO] MUnit Run Summary - Product: MULE_CE, Version: 4.9.22',
+    '[INFO]  >> s.xml test result: Tests: 1, Errors: 0, Failures: 1, Skipped: 0',
+    '[INFO] \t --- t <<< FAILED',
+    extra,
+    '',
+  ].join('\n');
+  withDir((dir) => {
+    check(dir, 'munit-1.log', munit('Payload mismatch at $.a'));
+    const second = check(dir, 'munit-2.log', munit('Payload mismatch at $.b'));
+    assert.equal(second.verdict, 'repeat');
+    assert.match(second.hint, /by eye/);
+  });
+});
+
+test('two different files under a /tmp checkout stay different failures', () => {
+  const log = (file, n) => `[ERROR] /tmp/app-1234/src/main/java/${file}:[${n},5] cannot find symbol\n[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project app: Compilation failure -> [Help 1]\n`;
+  withDir((d) => {
+    check(d, 'build-1.log', log('Foo.java', 10));
+    assert.equal(check(d, 'build-2.log', log('Bar.java', 22)).verdict, 'new');
+    // same file and line from a different random temp dir is still a repeat
+    assert.equal(check(d, 'build-3.log', log('Bar.java', 22).replace('app-1234', 'app-9876')).verdict, 'repeat');
+  });
+});
+
+test('MUnit: temp paths in Caused by lines do not make a repeat look new', () => {
+  const munit = (dir) => [
+    '[ERROR] Failed to execute goal com.mulesoft.munit.tools:munit-maven-plugin:3.7.6:test (test) on project app: Build Failed: MUnit Tests Failed -> [Help 1]',
+    '[INFO] MUnit Run Summary - Product: MULE_CE, Version: 4.9.22',
+    '[INFO]  >> s.xml test result: Tests: 1, Errors: 1, Failures: 0, Skipped: 0',
+    `Caused by: java.io.IOException: cannot open ${dir}/app.jar`,
+    '',
+  ].join('\n');
+  withDir((d) => {
+    check(d, 'munit-1.log', munit('/var/folders/ab/cd12/T/mule-111'));
+    assert.equal(check(d, 'munit-2.log', munit('/var/folders/zz/yy99/T/mule-222')).verdict, 'repeat');
+  });
+});
+
+test('an auth attempt leaves the earlier attempts alone, and the retry reusing its number keeps the chain', () => {
+  withDir((d) => {
+    check(d, 'build-1.log', xsdLog());
+    assert.equal(check(d, 'build-2.log', AUTH_LOG).kind, 'auth');
+    assert.deepEqual(readFileSync(join(d, 'fingerprints.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l).attempt), [1]);
+    // the retry after the credentials were fixed reuses attempt 2 and still compares with attempt 1
+    assert.equal(check(d, 'build-2.log', xsdLog()).verdict, 'repeat');
   });
 });

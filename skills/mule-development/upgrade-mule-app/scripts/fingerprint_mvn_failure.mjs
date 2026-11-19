@@ -30,11 +30,14 @@
 //                 plus, for a munit log, the MUnit Run Summary suite lines, failing test names and
 //                 totals and the assertion / `Caused by` / schema-error text. These lines do not
 //                 reliably name the failing element, so a generic failure can say 'repeat' but
-//                 never 'halt'.
+//                 never 'halt'. UUIDs, 0x addresses and temp-dir paths are normalised; any other
+//                 volatile text (ports, timings) makes every attempt look 'new', which is the
+//                 safe direction but means the guard does nothing for such a failure.
 //     auth      - a credential failure (see classify_mvn_failure.mjs). Not recorded and not
-//                 compared: it never counts as a repeat. It still uses its attempt number, so
-//                 two identical failures with an auth attempt between them start counting again
-//                 (a missed halt, never a wrong one).
+//                 compared: it never counts as a repeat. The skill gives an auth failure no
+//                 attempt number (the retry reuses it, so the chain stays intact); a caller that
+//                 numbers it anyway leaves a gap that restarts the count at 1 (a missed halt,
+//                 never a wrong one).
 //     none      - no comparable error text. Recorded, so it breaks a run of repeats.
 //   verdict: 'new'    - first time this failure was seen, or it changed since the last attempt
 //            'repeat' - identical to the previous attempt (2nd occurrence in a row)
@@ -65,12 +68,24 @@ const BOILERPLATE_RES = [
   /^Full list:$/,
 ];
 
+// Text that changes on every run without meaning a different failure.
+const VOLATILE_RES = [
+  [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '<uuid>'],
+  [/\b0x[0-9a-f]+\b/gi, '<hex>'],
+  // Only the random temp root (`/var/folders/<xx>/<yyyy>/T/<dir>`, `/tmp/<dir>`) is replaced; the
+  // rest of the path, the file name and any `:[line,col]` stay, so different files stay different.
+  [/(?<![\w.\/-])\/(?:private\/)?(?:var\/folders\/[^\/\s'"\]]+\/[^\/\s'"\]]+\/[A-Za-z]|tmp)\/[^\/\s'"\[\]:,]+/g, '<tmp>'],
+];
+function normalise(line) {
+  return VOLATILE_RES.reduce((l, [re, to]) => l.replace(re, to), line);
+}
+
 function errorLines(text) {
   const out = [];
   for (const raw of text.split(/\r?\n/)) {
     const m = raw.match(/^\[ERROR\]\s?(.*)$/);
     if (!m) continue;
-    const line = m[1].replace(/\s+/g, ' ').trim();
+    const line = normalise(m[1].replace(/\s+/g, ' ').trim());
     if (line && !BOILERPLATE_RES.some((re) => re.test(line))) out.push(line);
   }
   return out;
@@ -133,10 +148,10 @@ const DETAIL_RE = /^(java\.lang\.AssertionError|Expected:|but:|Caused by:|org\.x
 function detailLines(text) {
   const out = [];
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.replace(/\s+/g, ' ').trim();
+    const line = normalise(raw.replace(/\s+/g, ' ').trim());
     if (DETAIL_RE.test(line)) out.push(line);
   }
-  return out.slice(0, 20);
+  return out;
 }
 
 function fingerprint(text, phase) {
@@ -183,7 +198,7 @@ const HINTS = {
 
 function hintFor(verdict, phase, attempt, occurrence) {
   if (verdict === 'repeat' && phase === 'munit') {
-    return `Same failure as attempt ${attempt - 1}: the last edit did not change it. Make ONE edit that differs from the last. If no different edit is backed by the metadata or the plan, HALT via AskUserQuestion instead of guessing.`;
+    return `Same failure as attempt ${attempt - 1} as far as the fingerprint can tell: compare the failing assertion text with the previous log by eye (it can miss a changed assertion shape); if it differs, fix it as new. Otherwise make ONE edit that differs from the last. The 6-attempt cap ends this loop, not a halt.`;
   }
   if (verdict === 'repeat') {
     return `Same failure as attempt ${attempt - 1}: the last edit did not change it. Run any escalation probe not yet run, then make ONE edit that differs from the last. If no different edit is backed by the metadata or the plan (or the last edit was a Trigger C plan directive), HALT via AskUserQuestion instead of guessing.`;
@@ -248,7 +263,7 @@ const occurrence = signature ? previous + 1 : 0;
 let verdict = 'none';
 if (signature) {
   const canHalt = fp.kind === 'xsd-parse' && phase === 'build';
-  verdict = occurrence === 1 ? 'new' : occurrence <= TOLERANCE + 1 || !canHalt ? 'repeat' : 'halt';
+  verdict = occurrence === 1 ? 'new' : (occurrence <= TOLERANCE + 1 || !canHalt) ? 'repeat' : 'halt';
 }
 
 kept.push({ phase, attempt, kind: fp.kind, signature });

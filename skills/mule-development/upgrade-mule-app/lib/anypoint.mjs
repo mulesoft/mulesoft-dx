@@ -9,6 +9,33 @@ export function anypointEnv(extra = {}) {
   return { ...env, ...extra };
 }
 
+const JVM_OPTIONS_VARS = ['_JAVA_OPTIONS', 'JAVA_TOOL_OPTIONS', 'JDK_JAVA_OPTIONS'];
+
+/** Remove the JVM's `Picked up <VAR>: <value>` banners from `text`, for the options set in `childEnv`.
+ * The CLI re-wraps the plugin's error message (` › ` prefixes, line breaks anywhere), so whitespace and `›`
+ * are allowed between every character of the value. A banner for a variable that is not in `childEnv`
+ * (e.g. one a CLI launcher sets itself) is left alone. @param {string} text @param {Record<string,string|undefined>} childEnv
+ * @returns {string} */
+export function stripJvmOptionsBanners(text, childEnv) {
+  let out = text;
+  for (const name of JVM_OPTIONS_VARS) {
+    // Drop `›` from the value too: the pattern already allows it between characters, and adjacent
+    // `[\s›]*›[\s›]*` groups would backtrack exponentially.
+    const chars = [...(childEnv[name] ?? '').replace(/[\s›]+/g, '')];
+    if (chars.length === 0) continue;
+    const value = chars.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s›]*');
+    out = out.replace(new RegExp(`(?:NOTE:[\\s›]*)?Picked[\\s›]+up[\\s›]+${name}:[\\s›]*${value}`, 'g'), '');
+  }
+  return out;
+}
+
+/** True when `text` (CLI stderr, banners already stripped) holds nothing but the `Error: Failed to describe
+ * connector:` header and ` ›` prefixes — the Flow Design Service prints no cause for most failures.
+ * @param {string} text @returns {boolean} */
+export function hasNoCliErrorText(text) {
+  return text.replace(/Error:[\s›]*Failed[\s›]+to[\s›]+describe[\s›]+connector:/gi, '').replace(/[\s›]/g, '') === '';
+}
+
 // Required DX Mule plugin floor. Three independent failure modes land on the
 // same floor: (1) `dx mule jdk download` — used to auto-provision the
 // source/target JDK (Steps 3b/13) — only exists in

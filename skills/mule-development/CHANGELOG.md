@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`upgrade-mule-app`** — repeat guard for the Step 16 build loop and the Step 17 MUnit loop (W-24731671). New `scripts/fingerprint_mvn_failure.mjs` compares a failed `mvn` log with the previous attempt's and reports `new`, `repeat` or `halt`. On a repeat the skill makes a different edit instead of rebuilding the same failure; the third identical XSD parse failure halts with `AskUserQuestion`. Other failures and Step 17 can repeat but never halt. In Step 16 a repeat with no supported different edit stops early; in Step 17 only the 6-attempt cap ends the loop. The retry caps (5 and 6) are unchanged.
 
+### Fixed
+
+- **`upgrade-mule-app`** — the JVM's `Picked up _JAVA_OPTIONS: ...` banner no longer breaks `describe_connector.mjs`. The Java 17+ gate now finds the `version "..."` line anywhere in `java -version` output, so a valid JDK 17 is no longer rejected as "Java ? detected" when `_JAVA_OPTIONS` or `JAVA_TOOL_OPTIONS` is set. The banner is stripped from the reported describe error, which it previously replaced; when nothing else is left, the script says `no error text` and prints a checklist. SKILL.md's silent-failure debugging advice is updated to match.
+
 ## [1.9.9]
 
 ### Fixed

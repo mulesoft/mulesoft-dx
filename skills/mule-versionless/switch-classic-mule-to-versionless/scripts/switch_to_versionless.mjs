@@ -40,7 +40,8 @@
 //   --dry-run prints the plan and the manifest it WOULD write, but touches nothing on disk.
 //
 // Output: a JSON report on stdout (see the `report` object below for its fields).
-// Manifest connectors are written name-only: { "name": "<xml-prefix>" }.
+// Manifest connectors are written as { "groupId": "org.mule.versionless.connectors",
+// "artifactId": "<xml-prefix>" }.
 //
 // Exit code: 0 on success (including "nothing to migrate"), 1 only on a hard error
 // (no pom.xml, unrecognized existing manifest, manifest/pom write failure).
@@ -61,6 +62,11 @@ import {
 const MULE_PLUGIN_CLASSIFIER = "mule-plugin";
 const MANIFEST_FILE_NAME = "project-manifest.json";
 const MANIFEST_VERSION = "1.0.0";
+
+// Every manifest connector is written as { groupId, artifactId }. The connector's
+// versionless name (its XML namespace / prefix) is the artifactId; the groupId is
+// always this fixed value — the versionless runtime resolves connectors under it.
+const MANIFEST_CONNECTOR_GROUP_ID = "org.mule.versionless.connectors";
 
 // With --stage, the switch is NON-DESTRUCTIVE: rather than editing the source tree it
 // stages a full copy of the project under <projectDir>/target/<STAGING_SUBDIR>/ and writes
@@ -330,7 +336,8 @@ function applyVersionlessPomChanges(raw) {
 }
 
 // Read the connector names already declared in an existing project-manifest.json,
-// in order. Returns { names: string[], parseError: string|null }. A missing file is
+// in order (each connector's name is its `artifactId`, or legacy `name`). Returns
+// { names: string[], parseError: string|null }. A missing file is
 // { names: [] , parseError: null }. A malformed/unexpected file returns an empty
 // list WITH a parseError set, so the caller can refuse to overwrite rather than
 // silently wiping a hand-edited manifest.
@@ -347,9 +354,13 @@ function readExistingManifest(manifestPath) {
   }
   const names = [];
   for (const entry of doc.connectors) {
-    if (entry && typeof entry === "object" && typeof entry.name === "string" && entry.name.trim()) {
-      names.push(entry.name.trim());
-    }
+    if (!entry || typeof entry !== "object") continue;
+    // New format stores the connector name in `artifactId`; accept the legacy
+    // name-only format (`name`) too so older manifests still merge cleanly.
+    const raw = typeof entry.artifactId === "string" && entry.artifactId.trim()
+      ? entry.artifactId
+      : (typeof entry.name === "string" ? entry.name : "");
+    if (raw.trim()) names.push(raw.trim());
   }
   return { names, parseError: null };
 }
@@ -377,7 +388,7 @@ function main() {
     stagingDir: staged ? stagingDir : null,  // the staged copy the versionless pom + manifest are written into (null when editing source in place)
     pomPath: null,
     manifestPath: null,
-    connectors: [],        // final, merged manifest connectors (name-only): existing + newly added
+    connectors: [],        // final, merged manifest connectors ({ groupId, artifactId }): existing + newly added
     existingRetained: [],  // connector names carried over from a pre-existing manifest
     newlyAdded: [],         // connectors migrated on THIS run (detailed), from uncommented pom deps
     declaredButUnused: [],  // mule-plugin deps whose namespace is NOT used in src/main/mule — excluded from the manifest; child-pom ones commented out of the pom, parent-pom ones left in place
@@ -545,10 +556,13 @@ function main() {
     mergedNames.push(c.name);
   }
 
-  // Connectors are written name-only — the connector's versionless name (its XML
-  // namespace / prefix) is the identity the runtime resolves against; GAV is not
-  // part of the manifest schema.
-  report.connectors = mergedNames.map((name) => ({ name }));
+  // Connectors are written as { groupId, artifactId }: the connector's versionless
+  // name (its XML namespace / prefix) is the artifactId that the runtime resolves
+  // against, under the fixed versionless connector groupId.
+  report.connectors = mergedNames.map((name) => ({
+    groupId: MANIFEST_CONNECTOR_GROUP_ID,
+    artifactId: name,
+  }));
   const manifestDoc = {
     version: MANIFEST_VERSION,
     connectors: report.connectors,

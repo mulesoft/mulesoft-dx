@@ -313,7 +313,7 @@ components:
         values: $.id
         labels: $.name
       - api: urn:api:exchange-experience
-        operation: getAssetsSearch
+        operation: searchAssets
         description: GET `/assets/search`; use the asset search results from Exchange and extract `groupId` values.
         values: $[*].groupId
         labels: $[*].name

@@ -218,7 +218,7 @@ AssetWithFiles:
         deprecated: false
     dependencies: []
     generated:
-      - roupId: org.mule.modules
+      - groupId: org.mule.modules
         assetId: mule-plugin-asset-with-files
         version: 2.0.0
         versionGroup: 2.0.0

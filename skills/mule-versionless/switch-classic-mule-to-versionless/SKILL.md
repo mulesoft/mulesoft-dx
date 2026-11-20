@@ -17,11 +17,11 @@ description: >
   upgrade-mule-app), or to build a new integration (skill build-mule-integration).
 license: Apache-2.0
 compatibility: >
-  Requires Node.js 18+ for the switch itself, and JDK 17 for the switchability gate
-  (the bundled validator in the sibling validate-versionless-switch skill). A Mule 4
-  application (a pom.xml with mule-application packaging). If JDK 17 or the validator
-  sibling is unavailable, the gate cannot run and the switch stops unless the user
-  explicitly opts to skip it.
+  Requires Node.js 18+ for the switch itself, and JDK 17+ for the switchability gate
+  (the validator in the sibling validate-versionless-switch skill, which gets its jar
+  from the internal Nexus). A Mule 4 application (a pom.xml with mule-application
+  packaging). If JDK 17+ or the validator is unavailable, the gate cannot run and the
+  switch stops unless the user explicitly opts to skip it.
 allowed-tools: Bash Read Write Edit AskUserQuestion
 metadata:
   author: mule-dx-tooling
@@ -147,14 +147,15 @@ rewritten in place, so commit or stash first if you want an easy way back.
 
 ```bash
 node --version    # needs 18+ (the switch itself)
-java -version     # needs JDK 17 (the switchability gate, Step 2) — or set JAVA_HOME
+java -version     # needs JDK 17+ (the switchability gate, Step 2) — or set JAVA_HOME
 ```
 
 The current working directory (or the path you pass) must be a Mule application
 root — it must contain a `pom.xml`. The gate also needs the sibling
-`validate-versionless-switch` skill present alongside this one (it ships the
-validator). If either the JDK or the sibling is missing, the gate cannot run — see
-Step 2 for how that is handled.
+`validate-versionless-switch` skill present alongside this one (it runs the
+validator), and access to the internal Nexus or a cached validator jar. If the JDK,
+the sibling or the jar is missing, the gate cannot run — see Step 2 for how that is
+handled.
 
 ## Bundled scripts
 
@@ -222,7 +223,7 @@ Branch on the **exit code** — do not parse the text:
 | --- | --- | --- |
 | `0` | SWITCHABLE — no blockers | Proceed to Step 3. |
 | `3` | NOT SWITCHABLE — one or more blockers | **STOP.** Print the blocker table (axis / symbol / rule / code / `path:line:col`) from the report and tell the user what to fix. Do **not** write the manifest or touch the pom. |
-| `1` | FAIL-CLOSED — validator could not run (manifest or connector descriptors unavailable, no JDK 17) | **STOP.** Report that switchability could not be verified; do not switch. |
+| `1` | FAIL-CLOSED — validator could not run (malformed app XML, bad capability data, no JDK 17+, the jar could not be downloaded) | **STOP.** Report that switchability could not be verified; do not switch. |
 | `2` | usage error (bad project dir) | Fix the path and re-run. |
 
 **Why gate on all seven axes, not the wizard's three.** The ACB wizard gates on
@@ -244,9 +245,7 @@ builder:
 
 The validator reports all seven axes by default, so a plain run blocks an app that
 would compile-fail or deploy broken. This is deliberately **stricter than the ACB
-wizard**. (The legacy `--extended` flag is still accepted but now a no-op — seven-axis
-scope is the default — so an older gate invocation that passes it still behaves
-identically.)
+wizard**.
 
 **`.properties` config files do not block.** The versionless runtime loads both `.yaml`
 and `.properties` (full Java-properties parity, mule-versionless PR #124), so a
@@ -262,7 +261,7 @@ tree) so it can never be mistaken for the validate skill's own project-local rep
 **Keep it when the gate blocks or fails closed** — the user needs its blocker detail to
 fix the app. It is removed only after a *successful* switch (Step 5).
 
-**If the validator sibling or a JDK 17 is absent**, the gate cannot run. State that
+**If the validator sibling, a JDK 17+ or the validator jar is absent**, the gate cannot run. State that
 plainly and stop — do not switch unvalidated. Proceed only if the user **explicitly**
 asks to skip the gate (e.g. "switch anyway, I know it fails to validate"); record that
 they overrode it, and continue at their risk. An explicit override is the *only* path

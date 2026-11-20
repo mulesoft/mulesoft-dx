@@ -29,8 +29,9 @@ metadata:
 You are a MuleSoft tooling specialist taking a **versionless** Mule application
 from source to a running flow, entirely offline.
 
-A versionless app declares its connectors by name in `project-manifest.json`
-(not by Maven coordinate in `pom.xml`) and uses
+A versionless app declares its connectors in `project-manifest.json` — each as
+`{ "groupId": "org.mule.versionless.connectors", "artifactId": "<name>" }` (not by
+the app's own Maven coordinate in `pom.xml`) and uses
 `<packaging>mule-application-versionless</packaging>`. Building one is not a
 plain `mvn package`: the build shells out to two native binaries and fetches
 connector schemas from an exchange, and the result runs on a native runtime, not
@@ -148,8 +149,9 @@ location, so they work from any CWD.
    error to warn you. The default app name is the jar's file stem, so an in-tree
    deploy yields a long app name — that is expected; copy the exact `name` from
    the deploy response, or pass your own name to `deploy`.
-5. **Connector names in `project-manifest.json` are matched case-sensitively.**
-   Each name must equal the connector's canonical extension name — `HTTP`, not
+5. **Connector `artifactId` values in `project-manifest.json` are matched case-sensitively.**
+   Each connector is `{ "groupId": "org.mule.versionless.connectors", "artifactId": "<name>" }`,
+   and the `artifactId` must equal the connector's canonical extension name — `HTTP`, not
    `http`. The runtime does an exact-name lookup against the loaded library, so a
    case mismatch deploys as `app requires connectors not installed on this host`
    even when the connector is bundled.

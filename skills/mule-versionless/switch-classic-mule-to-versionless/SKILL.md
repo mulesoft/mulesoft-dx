@@ -102,15 +102,16 @@ passes it:
    (the identity the versionless runtime resolves against, e.g. `http`, `salesforce`,
    `os`) — cross-checking the namespaces actually declared in the app's Mule XML.
 3. **Writes** `project-manifest.json` next to `pom.xml` (in the staged copy under
-   `--stage`), merging in any manifest already present. Connectors are
-   **name-only** — the versionless name (XML namespace / prefix) is the identity the
-   runtime resolves against:
+   `--stage`), merging in any manifest already present. Each connector is written as
+   `{ groupId, artifactId }` — the versionless name (XML namespace / prefix) is the
+   `artifactId` the runtime resolves against, under the fixed groupId
+   `org.mule.versionless.connectors`:
    ```json
    {
      "version": "1.0.0",
      "connectors": [
-       { "name": "http" },
-       { "name": "salesforce" }
+       { "groupId": "org.mule.versionless.connectors", "artifactId": "http" },
+       { "groupId": "org.mule.versionless.connectors", "artifactId": "salesforce" }
      ]
    }
    ```
@@ -284,7 +285,7 @@ Read the JSON report:
 
 - **`staged`** — `true` when `--stage` will write into a staged copy; `false` when the source tree will be edited in place.
 - **`stagingDir`** — where the staged versionless copy will be written (`<projectDir>/target/versionless-staging`), or `null` when editing source in place.
-- **`connectors[]`** — the final, merged manifest (name-only): retained + newly added.
+- **`connectors[]`** — the final, merged manifest (each `{ groupId, artifactId }`): retained + newly added.
 - **`existingRetained[]`** — connector names carried over from a manifest found in source.
 - **`newlyAdded[]`** — connectors migrated on this run (declared **and** used in code); empty means the source declares no new connectors.
 - **`declaredButUnused[]`** — mule-plugin deps whose namespace is not used in `src/main/mule`; excluded from the manifest. Child-pom ones are commented out of the pom; parent-pom ones are left in place (parent POMs are not edited).

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
   "connectors": [
-    { "name": "HTTP" }
+    { "groupId": "org.mule.versionless.connectors", "artifactId": "HTTP" }
   ]
 }

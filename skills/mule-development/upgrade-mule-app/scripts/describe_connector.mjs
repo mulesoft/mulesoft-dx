@@ -38,7 +38,7 @@ import path from 'node:path';
 import { mkdirp } from '../lib/fsx.mjs';
 import { parseJavaVersion } from '../lib/platform.mjs';
 import { checkReleasesRepo, RELEASES_REPO_URL } from '../lib/releases-repo.mjs';
-import { anypointEnv, checkDxPluginVersion, DX_PLUGIN_MIN_LABEL, DX_PLUGIN_UPGRADE_CMD } from '../lib/anypoint.mjs';
+import { anypointEnv, checkDxPluginVersion, DX_PLUGIN_MIN_LABEL, DX_PLUGIN_UPGRADE_CMD, hasNoCliErrorText, stripJvmOptionsBanners } from '../lib/anypoint.mjs';
 import { recordDescribe } from '../lib/step-timing.mjs';
 
 // Correlate a describe-connector failure with an outdated DX plugin rather
@@ -78,10 +78,18 @@ if (!env.ALLOW_LEGACY_JAVA_FOR_DESCRIBE) {
     exit(1);
   }
   const probe = spawnSync(javaBin, ['-version'], { encoding: 'utf8' });
-  const versionLine = (probe.stderr || probe.stdout || '').split(/\r?\n/, 1)[0] || '';
-  const parsed = parseJavaVersion(versionLine);
-  if (parsed.major === null || parsed.major < 17) {
-    stderr.write(`❌ describe_connector.mjs: Java ${parsed.major ?? '?'} detected (${versionLine}); Java 17+ is required\n`);
+  // Parse the whole output, not line 1: _JAVA_OPTIONS / JAVA_TOOL_OPTIONS make the JVM print a `Picked up ...` banner first.
+  const probeOut = (probe.stderr || probe.stdout || '').trim();
+  const parsed = parseJavaVersion(probeOut);
+  if (parsed.major === null) {
+    stderr.write(`❌ describe_connector.mjs: could not read a Java version from \`${javaBin} -version\`; Java 17+ is required\n`);
+    stderr.write(`   output:\n${(probeOut || probe.error?.message || '(empty)').replace(/^/gm, '     ')}\n`);
+    stderr.write('   Override: set ALLOW_LEGACY_JAVA_FOR_DESCRIBE=1 only if you truly need a legacy-JDK describe.\n');
+    exit(1);
+  }
+  if (parsed.major < 17) {
+    const versionLine = probeOut.split(/\r?\n/).find((l) => /\bversion "/.test(l)) ?? parsed.raw;
+    stderr.write(`❌ describe_connector.mjs: Java ${parsed.major} detected (${versionLine}); Java 17+ is required\n`);
     stderr.write('   Under Java 8/11 the describe returns a degraded schema (empty configs[].parameters) that hides required-attribute changes.\n');
     stderr.write('   Fix: export JAVA_HOME="$(/usr/libexec/java_home -v 17)" (or point at a Java 17+ install) and re-run.\n');
     stderr.write('   Override: set ALLOW_LEGACY_JAVA_FOR_DESCRIBE=1 only if you truly need a legacy-JDK describe.\n');
@@ -214,12 +222,31 @@ mkdirp(ERRORS_DIR);
 // Run the CLI
 // ------------------------------------------------------------------
 // Preserve caller's _JAVA_OPTIONS and append the LOOSE-enforcement flag so
-// older-connector describes work under the CLI's bundled Java 17 runtime.
+// older-connector describes work under the CLI's bundled Java 17 runtime. The
+// flag is needed when the connector, or a dependency it pulls in (http 1.5.0
+// -> Sockets), declares only Java 8/11: under the default STRICT the Flow
+// Design Service then exits 1 with no output. The plugin has no way to pass a
+// JVM property other than the environment, so the JVM prints a
+// `Picked up _JAVA_OPTIONS: ...` banner on every run; it is stripped from the
+// CLI's error text below.
 function buildChildEnv() {
   const childEnv = anypointEnv();
-  const priorJavaOpts = env._JAVA_OPTIONS ?? '';
-  childEnv._JAVA_OPTIONS = `${priorJavaOpts} -Dmule.jvm.version.extension.enforcement=LOOSE`;
+  const priorJavaOpts = (env._JAVA_OPTIONS ?? '').trim();
+  childEnv._JAVA_OPTIONS = `${priorJavaOpts} -Dmule.jvm.version.extension.enforcement=LOOSE`.trim();
   return childEnv;
+}
+const CHILD_ENV = buildChildEnv();
+
+// The CLI's stderr with the JVM options banners removed. When the JVM banner
+// was the only thing in it (the Flow Design Service prints no cause for most
+// failures) say so, instead of leaving the user to read the banner as the error.
+function cliErrorText(stderrBuf, signal) {
+  const cleaned = stripJvmOptionsBanners(stderrBuf.toString('utf8'), CHILD_ENV);
+  if (!hasNoCliErrorText(cleaned)) return cleaned.endsWith('\n') ? cleaned : `${cleaned}\n`;
+  // Killed (e.g. out of memory), not a describe failure: the checklist below would be the wrong advice.
+  if (signal) return `   anypoint-cli-v4 was terminated by ${signal} before it reported anything.\n`;
+  return '   no error text: the Flow Design Service exited without output, which is how it reports most failures.\n' +
+    '   check: the GAV exists on Exchange; --name / --config-name are SDK names from Mode-A; a Mule >= 4.9 runtime is registered (`anypoint-cli-v4 dx mule runtime path`); you are logged in to Anypoint.\n';
 }
 
 // describe-connector resolves the connector's parent POMs, which are published
@@ -247,7 +274,7 @@ if (CONFIG_NAME) cmdArgs.push('--config-name', CONFIG_NAME);
 
 const cliStartedAt = Date.now();
 const r = spawnSync('anypoint-cli-v4', cmdArgs, {
-  env: buildChildEnv(),
+  env: CHILD_ENV,
   shell: false,
   encoding: 'buffer',
   maxBuffer: Infinity,
@@ -274,7 +301,7 @@ const stdoutBuf = r.stdout || Buffer.alloc(0);
 const stderrBuf = r.stderr || Buffer.alloc(0);
 
 if (r.status !== 0) {
-  if (stderrBuf.length > 0) stderr.write(stderrBuf);
+  stderr.write(cliErrorText(stderrBuf, r.signal));
   if (TYPE === 'connection-provider') {
     stderr.write(`❌ describe-connector failed for ${GAV} (--type ${TYPE} --name ${NAME} --config-name ${CONFIG_NAME})\n`);
     stderr.write(`   hint: --name and --config-name must be the SDK-side names from ${METADATA_DIR}/${NICKNAME}.json — .configs[].name for --config-name, .configs[].connectionProviders[] entry for --name. Do NOT use flow XML names like 'Warehouse_DB_Config' or 'basic-connection'.\n`);
@@ -284,14 +311,17 @@ if (r.status !== 0) {
     stderr.write(`❌ describe-connector failed for ${GAV}\n`);
   }
   stderr.write(dxPluginVersionHint());
-  if (stdoutBuf.length === 0) stderr.write(releasesRepoHint());
+  // Not after a signal kill: the CLI never ran to completion, so "fails silently" would be a guess.
+  if (stdoutBuf.length === 0 && !r.signal) stderr.write(releasesRepoHint());
   exit(1);
 }
 
 // Empty-stdout guard: CLI's error formatter sometimes exits 0 with empty stdout
-// (LOOSE-flag banner absorbed the real error). Refuse to persist a 0-byte file.
+// (the JVM options banner may be all that is left of the error). Refuse to
+// persist a 0-byte file.
 if (stdoutBuf.length === 0) {
-  if (stderrBuf.length > 0) stderr.write(stderrBuf);
+  const leftover = stripJvmOptionsBanners(stderrBuf.toString('utf8'), CHILD_ENV);
+  if (!hasNoCliErrorText(leftover)) stderr.write(leftover.endsWith('\n') ? leftover : `${leftover}\n`);
   stderr.write(`❌ describe-connector returned empty JSON for ${GAV} (args: ${cmdArgs.join(' ')})\n`);
   stderr.write(`   hint: check --name / --config-name spelling against ${METADATA_DIR}/${NICKNAME}.json (SDK names, not flow XML names)\n`);
   stderr.write(dxPluginVersionHint());

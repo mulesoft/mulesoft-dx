@@ -165,7 +165,7 @@ commit were skipped. That message is expected. The mapping was approved in chat,
 so live is not refused for a pending fingerprint. A partial workspace still
 calls `POST /commit` with `complete: false` and does not ask. A full success
 asks "Commit this scan? [y/N]". The default is no. `--commit` or
-`PUSH_COMMIT=yes` is that yes when there is no prompt, and that yes sends
+`PUSH_COMMIT` matches `yes` without regard to case (`yes`, `Yes`, `YES`). Empty, `no`, and `No` are no. That yes sends
 `complete: true`. Live without `--commit` on a full success uploads and stops.
 
 Before discovery, explain:
@@ -226,6 +226,8 @@ Each row contains:
   "evidence": "OpenAPI components.schemas.Agent.properties.endpoint"
 }
 ```
+
+That `targetPath` is an example for a complete A2A v0.3 card. A non-A2A agent uses `other-card.json` and does not mark `skills` or `protocolVersion` required. Missing `skills` or `protocolVersion` is not a reason to skip an agent that has an HTTP URL. Choose the artifact with the rule in `SKILL.md` under **ZIP and push** and in `scanner-contract.md`.
 
 Include representative generated `config.json` and artifact JSON. Redact secret
 or unrelated response values. Mark large-artifact previews as truncated and

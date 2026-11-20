@@ -342,7 +342,7 @@ paths:
     summary: API Groups Instances
     description: API Groups instances
     get:
-      description: Gets API Group Instance
+      description: Lists the API group instances of a version group of an asset.
       parameters:
       - $ref: '#/components/parameters/LimitNotValidated'
       - $ref: '#/components/parameters/Offset'
@@ -1053,7 +1053,7 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     get:
-      description: Gets a list of pages
+      description: Lists the pages of the published documentation of an asset version, in display order.
       responses:
         '200':
           description: success
@@ -1079,7 +1079,7 @@ paths:
     - $ref: '#/components/parameters/Version'
     - $ref: '#/components/parameters/PagePath'
     get:
-      description: Gets a particular page
+      description: 'Gets a page of the published documentation of an asset version. The response format (HTML, Markdown, or JSON) depends on the `Accept` header.'
       parameters:
       - $ref: '#/components/parameters/PublicPortalDomain'
       - $ref: '#/components/parameters/ForwardedHost'
@@ -1116,7 +1116,7 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     get:
-      description: Gets portals resources
+      description: Lists the resources (images and other files) used by the published documentation of an asset version.
       responses:
         '200':
           description: Retrieved list of resources
@@ -1137,7 +1137,7 @@ paths:
     - $ref: '#/components/parameters/Version'
     - $ref: '#/components/parameters/ResourceId'
     get:
-      description: Gets portals resource
+      description: Downloads a resource from the published documentation of an asset version as binary content.
       responses:
         '200':
           description: Retrieved file as a binary content
@@ -1222,7 +1222,7 @@ paths:
       summary: Create asset portal draft page
       operationId: createAssetPortalDraftPage
     get:
-      description: Gets a list of pages
+      description: Lists the pages of the unpublished documentation draft of an asset version, in display order.
       responses:
         '200':
           description: success
@@ -1345,7 +1345,7 @@ paths:
     - $ref: '#/components/parameters/AssetId'
     - $ref: '#/components/parameters/Version'
     get:
-      description: Gets portals resources
+      description: Lists the resources (images and other files) used by the unpublished documentation draft of an asset version.
       responses:
         '200':
           description: Retrieved list of resources
@@ -1395,14 +1395,14 @@ paths:
     - $ref: '#/components/parameters/Version'
     - $ref: '#/components/parameters/ResourceId'
     delete:
-      description: Deletes a resource
+      description: Deletes a resource from the unpublished documentation draft of an asset version.
       responses:
         '204':
           description: Resource deleted
       summary: Delete asset portal draft resource
       operationId: deleteAssetPortalDraftResource
     get:
-      description: Gets portals resource
+      description: Downloads a resource from the unpublished documentation draft of an asset version as binary content.
       responses:
         '200':
           description: Retrieved file as a binary content
@@ -1582,14 +1582,14 @@ paths:
     put:
       summary: Update asset tag field
       operationId: updateAssetTagField
-      description: Update or create a custom field
+      description: Sets the value of a custom field on an asset version, adding it if it is not set yet.
       responses:
         '200':
           description: Custom field updated
     delete:
       summary: Delete asset tag field
       operationId: deleteAssetTagField
-      description: Delete a custom field
+      description: Removes the value of a custom field from an asset version.
       responses:
         '204':
           description: Custom field deleted
@@ -1604,7 +1604,7 @@ paths:
     put:
       summary: Update asset tag category
       operationId: updateAssetTagCategory
-      description: Updates or creates a category.
+      description: Sets the value of a category on an asset version, adding it if it is not set yet.
       requestBody:
         content:
           application/json:
@@ -1618,7 +1618,7 @@ paths:
         '200':
           description: Successful operation.
     delete:
-      description: Deletes a category
+      description: Removes the value of a category from an asset version.
       responses:
         '204':
           description: Operation completed successfully with no content returned.
@@ -1706,7 +1706,7 @@ paths:
     put:
       summary: Update asset owner
       operationId: updateAssetOwner
-      description: Update Asset ownership
+      description: 'Changes the owner of an asset version by setting `createdById` to the user ID of the new owner.'
       requestBody:
         content:
           application/json:
@@ -1866,7 +1866,7 @@ paths:
                 '
       summary: List top assets by metric
       operationId: listTopAssets
-      description: Creates top.
+      description: 'Lists the top assets of the given organizations ranked by a reuse or engagement metric (such as downloads, engagement, imports from API Designer, dependents, or contracts) over a period. Set `format` to `csv` in the request body to get a CSV report instead of JSON. Requires organization administrator permissions and the Asset Reuse and Engagement entitlement.'
   /organizations/{masterOrganizationId}/clientProviders/{clientProviderId}/grantTypes:
     summary: Grant Types
     description: Grant types of a client provider
@@ -2313,7 +2313,7 @@ paths:
     summary: Organization
     description: A single organization identified by an "organizationId"
     delete:
-      description: Unconditional delete organization
+      description: Permanently deletes all Exchange data of an organization (assets, documentation, portal customization, reviews, and search data) without any precondition checks. This operation cannot be undone.
       parameters:
       - $ref: '#/components/parameters/OrganizationId'
       responses:
@@ -2965,7 +2965,7 @@ paths:
         '409':
           description: There were conflicts while publishing
     get:
-      description: Gets the customization portal
+      description: Gets the published customization of the organization's public portal.
       responses:
         '200':
           description: Gets customization
@@ -3001,7 +3001,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     get:
-      description: Gets portals resources
+      description: Lists the resources (images and other files) used by the published customization of the organization's public portal.
       responses:
         '200':
           description: Retrieved list of resources
@@ -3020,7 +3020,7 @@ paths:
     - $ref: '#/components/parameters/OrganizationDomain'
     - $ref: '#/components/parameters/ResourceId'
     get:
-      description: Gets portals resource
+      description: Downloads a resource from the published customization of the organization's public portal as binary content.
       responses:
         '200':
           description: Retrieved file as a binary content
@@ -3066,7 +3066,7 @@ paths:
           description: success
       summary: Get public asset
       operationId: getPublicAsset
-      description: Retrieves a assets.
+      description: Gets the full details of the latest version of an asset that is published in the organization's public portal.
   /portals/{organizationDomain}/assets/{groupId}/{assetId}/asset:
     summary: Asset
     description: Asset
@@ -3092,7 +3092,7 @@ paths:
     summary: API Group instances
     description: API Group instances for an asset version group
     get:
-      description: Gets API Group Instance
+      description: Lists the API group instances of a version group of an asset that is published in the organization's public portal.
       parameters:
       - $ref: '#/components/parameters/LimitNotValidated'
       - $ref: '#/components/parameters/Offset'
@@ -3330,7 +3330,7 @@ paths:
       summary: Delete portal customization draft
       operationId: deletePortalCustomizationDraft
     get:
-      description: Gets the customization portal
+      description: Gets the unpublished customization draft of the organization's public portal.
       responses:
         '200':
           description: Customization obtained
@@ -3401,7 +3401,7 @@ paths:
       summary: Delete portal draft page
       operationId: deletePortalDraftPage
     get:
-      description: Gets a particular page
+      description: 'Gets a page of the unpublished customization draft of the organization''s public portal. The response format (HTML, Markdown, or JSON) depends on the `Accept` header.'
       parameters:
       - $ref: '#/components/parameters/PublicPortalDomain'
       - $ref: '#/components/parameters/ForwardedHost'
@@ -3468,7 +3468,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/OrganizationDomain'
     get:
-      description: Gets portals resources
+      description: Lists the resources (images and other files) used by the unpublished customization draft of the organization's public portal.
       responses:
         '200':
           description: Retrieved list of resources
@@ -3518,14 +3518,14 @@ paths:
     - $ref: '#/components/parameters/OrganizationDomain'
     - $ref: '#/components/parameters/ResourceId'
     delete:
-      description: Deletes portals resource
+      description: Deletes a resource from the unpublished customization draft of the organization's public portal.
       responses:
         '204':
           description: Resource deleted
       summary: Delete portal draft resource
       operationId: deletePortalDraftResource
     get:
-      description: Gets portals resource
+      description: Downloads a resource from the unpublished customization draft of the organization's public portal as binary content.
       responses:
         '200':
           description: Retrieved file as a binary content
@@ -3535,7 +3535,7 @@ paths:
     summary: Page
     description: A single portal page identified by a "pagePath"
     get:
-      description: Gets a particular page
+      description: 'Gets a page of the published customization of the organization''s public portal. The response format (HTML, Markdown, or JSON) depends on the `Accept` header.'
       parameters:
       - $ref: '#/components/parameters/OrganizationDomain'
       - $ref: '#/components/parameters/PagePath'
@@ -3659,7 +3659,7 @@ paths:
           description: Successful operation.
       summary: List feature flags
       operationId: listFeatureFlags
-      description: Lists featureFlags.
+      description: Returns the feature flags evaluated for the caller's request context. Intended for testing and troubleshooting.
   /graphql:
     get:
       responses:
@@ -3667,14 +3667,14 @@ paths:
           description: Successful operation.
       summary: Get GraphQL playground
       operationId: getGraphqlPlayground
-      description: Lists graphql.
+      description: Opens the interactive GraphQL playground, where you can explore the Exchange GraphQL schema and run queries from a browser.
     post:
       responses:
         '200':
           description: Successful operation.
       summary: Execute GraphQL query
       operationId: executeGraphqlQuery
-      description: Creates graphql.
+      description: Runs a GraphQL query against the Exchange GraphQL API. Send the query and any variables as JSON in the request body.
 components:
   securitySchemes:
     bearerAuth:

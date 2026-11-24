@@ -2600,8 +2600,10 @@ async function loginBearer() {
         var body = {};
         try { body = JSON.parse(raw); } catch (_) { body = {}; }
         console.log('[logintest] response', resp.status, 'ok=', resp.ok, 'raw=', raw);
-        console.log('[logintest] set-cookie header=', resp.headers.get('set-cookie'));
-        console.log('[logintest] all response headers=', Array.from(resp.headers.entries()));
+        if (resp.headers) {
+            console.log('[logintest] set-cookie header=', resp.headers.get('set-cookie'));
+            console.log('[logintest] all response headers=', Array.from(resp.headers.entries()));
+        }
         console.log('[logintest] document.cookie=', document.cookie);
         if (resp.ok && body.access_token) {
             sessionStorage.setItem('anypoint_token', body.access_token);

@@ -1,135 +1,98 @@
 #!/usr/bin/env bash
-#
-# Copyright (c) 2026, Salesforce, Inc.
-# All rights reserved.
-# For full license text, see the LICENSE.txt file
-#
-# Part of validate-versionless-switch skill.
-#
-# Run the Upgrade-to-Versionless switch validator over a Mule project, headlessly.
-# This is the same VersionlessValidator the ACB "Upgrade to Versionless" wizard runs
-# (all seven compatibility axes, including the Scala DataWeave parser), invoked outside
-# the IDE/LSP. It writes a JSON report and prints a short summary.
-#
-# Usage:  validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--include-info] [--extended]
-#   <project-dir>   project root (the directory containing pom.xml and src/main/mule)
-#   --out           report path (default: <project-dir>/<app>-versionless-switch-report.json)
-#   --dsl-dir       connector descriptor dir, <name>/dsl.json (default: bundled dsl/)
-#   --include-info  serialize INFO notices into the JSON report too. Default: the report
-#                   carries blockers only (INFO is advisory and never gates the switch).
-#                   The blocker count and exit code are identical either way.
-#   --extended      accepted but a no-op — all seven axes report by default now.
-#                   Retained so older callers/scripts that pass it don't error.
-#
-# Exit codes mirror the CLI: 0 switchable, 3 blockers present, 1 fail-closed
-# (capability manifest unavailable), 2 usage error.
+# Runs the versionless switch validator on a Mule project or packaged app jar. Args pass through to the jar:
+#   validate.sh <project-dir|app.jar> [--out <file>] [--profile strict|acb] [--include-info] [--app-id <id>] [-D<key>=<value>...]
+# Exit codes: 0 switchable, 3 blockers, 1 fail closed (or no JDK), 2 usage.
 set -euo pipefail
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LIB="${SKILL_DIR}/lib"
-DSL_DIR="${SKILL_DIR}/dsl"
+sha256() { if command -v sha256sum >/dev/null; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1; }
 
-if [ "$#" -eq 0 ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
-  echo "usage: validate.sh <project-dir> [--out <file>] [--dsl-dir <dir>] [--extended]" >&2
-  exit 2
-fi
+# mule-versionless master CI publishes every build to this fixed SNAPSHOT (scripts/pipeline/sfci/package-validator.sh).
+version=0.0.1-SNAPSHOT
+dir="https://nexus-proxy.repo.local.sfdc.net/nexus/content/repositories/snapshots/org/mule/tools/versionless/versionless-validator/$version"
 
-PROJECT_DIR="$1"; shift
-OUT=""
-EXTENDED=""
-INCLUDE_INFO=""
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --out|--dsl-dir)
-      if [ "$#" -lt 2 ]; then
-        echo "ERROR: $1 requires a value" >&2
-        exit 2
-      fi
-      case "$1" in
-        --out)     OUT="$2" ;;
-        --dsl-dir) DSL_DIR="$2" ;;
-      esac
-      shift 2 ;;
-    --include-info) INCLUDE_INFO="1"; shift ;;
-    --extended) EXTENDED="1"; shift ;;
-    *) echo "ERROR: unknown argument: $1" >&2; exit 2 ;;
-  esac
-done
+# Prints the path of the latest master jar; downloads it into the cache when master published a new build.
+fetch_jar() {
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/mule-versionless" cfg meta part="" cred value jar url sha old
+  mkdir -p "$cache"
+  # Credentials go through a curl config file so they do not show in the process list.
+  cfg="$(mktemp)" meta="$(mktemp)"
+  trap 'rm -f "$cfg" "$meta" "$part"' RETURN
+  if [[ -n "${NEXUS_USERNAME:-}" ]]; then
+    # curl config values treat \ and " as special.
+    cred="$NEXUS_USERNAME:${NEXUS_PASSWORD:-}"
+    cred="${cred//\\/\\\\}"
+    printf 'user = "%s"\n' "${cred//\"/\\\"}" >"$cfg"
+  fi
+  get() { curl -fsSL --config "$cfg" --netrc-optional --connect-timeout 10 --retry 2 "$@"; }
 
-if [ ! -d "${PROJECT_DIR}" ]; then
-  echo "ERROR: project dir not found: ${PROJECT_DIR}" >&2
-  exit 2
-fi
-if [ ! -d "${PROJECT_DIR}/src/main/mule" ]; then
-  echo "ERROR: ${PROJECT_DIR} has no src/main/mule — not a Mule 4 app root." >&2
-  exit 2
-fi
+  if ! get --max-time 30 -o "$meta" "$dir/maven-metadata.xml"; then
+    jar="$(ls -t "$cache"/versionless-validator-*.jar 2>/dev/null | head -1 || true)"
+    if [[ -n "$jar" ]]; then
+      echo "WARNING: Nexus is not reachable; using the cached $jar" >&2
+      echo "$jar"
+      return 0
+    fi
+    echo "ERROR: could not read $dir/maven-metadata.xml. On 401, set NEXUS_USERNAME and NEXUS_PASSWORD (or a" >&2
+    echo "       ~/.netrc entry); otherwise check the VPN. Or set VERSIONLESS_VALIDATOR_JAR to a local jar." >&2
+    return 1
+  fi
+  value="${version%-SNAPSHOT}-$(sed -n 's:.*<timestamp>\(.*\)</timestamp>.*:\1:p' "$meta" | head -1)-$(sed -n 's:.*<buildNumber>\(.*\)</buildNumber>.*:\1:p' "$meta" | head -1)"
+  jar="$cache/versionless-validator-$value.jar"
+  [[ -f "$jar" ]] && { echo "$jar"; return 0; }
 
-# Locate a JDK 17+ java. Prefer JAVA_HOME, then common install roots, then PATH.
-# (On some corp machines the PATH `java` is a wrapper stub, so PATH is tried last.)
+  url="$dir/versionless-validator-$value.jar"
+  part="$jar.part.$$"
+  echo "Downloading the latest validator jar (~12 MB) from $url" >&2
+  if ! get --max-time 300 -o "$part" "$url" || ! sha="$(get --max-time 30 "$url.sha256" | tr -d '[:space:]')"; then
+    echo "ERROR: could not download $url" >&2
+    return 1
+  fi
+  if [[ "$(sha256 "$part")" != "$sha" ]]; then
+    echo "ERROR: $url does not match its .sha256" >&2
+    return 1
+  fi
+  mv -f "$part" "$jar"
+  for old in "$cache"/versionless-validator-*.jar; do
+    [[ "$old" == "$jar" ]] || rm -f "$old"
+  done
+  echo "$jar"
+}
+
 java_major() {
   "$1" -version 2>&1 | awk -F'"' '/version/{print $2}' | awk -F. '{print ($1=="1")?$2:$1}' | head -1
 }
-JAVA_BIN=""
-CANDIDATES=()
-[ -n "${JAVA_HOME:-}" ] && CANDIDATES+=("${JAVA_HOME}/bin/java")
-CANDIDATES+=(
-  "/opt/homebrew/opt/openjdk@17/bin/java"
-  "/usr/local/opt/openjdk@17/bin/java"
-  "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java"
-  "/usr/lib/jvm/java-17-openjdk/bin/java"
-  "/usr/lib/jvm/temurin-17-jdk/bin/java"
-)
-if command -v java >/dev/null 2>&1; then
-  CANDIDATES+=("$(command -v java)")
+
+# The PATH java can be a wrapper stub on some corporate machines, so try it last.
+candidates=()
+[[ -n "${JAVA_HOME:-}" ]] && candidates+=("$JAVA_HOME/bin/java")
+if [[ -x /usr/libexec/java_home ]] && home="$(/usr/libexec/java_home -v 17+ 2>/dev/null)"; then
+  candidates+=("$home/bin/java")
 fi
-for c in "${CANDIDATES[@]}"; do
-  if [ -x "${c}" ]; then
-    major="$(java_major "${c}" || true)"
-    if [ -n "${major}" ] && [ "${major}" -ge 17 ] 2>/dev/null; then
-      JAVA_BIN="${c}"
-      break
-    fi
+candidates+=(
+  /opt/homebrew/opt/openjdk@17/bin/java
+  /usr/local/opt/openjdk@17/bin/java
+  /usr/lib/jvm/java-17-openjdk/bin/java
+  /usr/lib/jvm/temurin-17-jdk/bin/java
+)
+command -v java >/dev/null 2>&1 && candidates+=("$(command -v java)")
+
+java_bin=""
+for c in "${candidates[@]}"; do
+  if [[ -x "$c" ]] && major="$(java_major "$c")" && [[ "$major" =~ ^[0-9]+$ ]] && ((major >= 17)); then
+    java_bin="$c"
+    break
   fi
 done
-if [ -z "${JAVA_BIN}" ]; then
-  echo "ERROR: no JDK 17+ found. Set JAVA_HOME to a JDK 17 install, or install one" >&2
+if [[ -z "$java_bin" ]]; then
+  echo "ERROR: no JDK 17+ found. Set JAVA_HOME to a JDK 17+ install, or install one" >&2
   echo "       (macOS: 'brew install openjdk@17'; Linux: a temurin/openjdk 17 package)." >&2
   exit 1
 fi
-
-if [ ! -f "${LIB}/versionless-validator-cli.jar" ]; then
-  echo "ERROR: bundled CLI jar missing at ${LIB}/versionless-validator-cli.jar — skill is incomplete." >&2
-  exit 1
+if [[ -n "${VERSIONLESS_VALIDATOR_JAR:-}" ]]; then
+  jar="$VERSIONLESS_VALIDATOR_JAR"
+  [[ -f "$jar" ]] || { echo "ERROR: validator jar not found at $jar" >&2; exit 1; }
+else
+  jar="$(fetch_jar)" || exit 1
 fi
 
-# rds-override/ first so its rds/dwx-capabilities.json wins the stub's first-match-wins
-# classloader lookup over the copy baked into the plugin jar, which is stale on data formats
-# (yaml/excel/properties/binary/octet-stream) — see PROVENANCE.txt and docs/UPDATING.md §2b.
-# Literal lib/* — the JVM expands the classpath wildcard, so it must NOT be shell-globbed.
-CP="${SKILL_DIR}/rds-override:${LIB}/*"
-
-# The plugin jar bundles a log4j2.xml whose File appender writes to
-# ${sys:mule.dx.logs.dir}/mule-dx-platform.log. Unset, log4j takes the property
-# name literally and creates a "${sys:mule.dx.logs.dir}" directory in the CALLER's
-# CWD. Point it at a temp dir so the (empty) log lands out of the user's project.
-LOGS_DIR="${TMPDIR:-/tmp}/mule-dx-switch-logs"
-mkdir -p "${LOGS_DIR}" 2>/dev/null || true
-
-CMD=("${JAVA_BIN}" -Dmule.dx.logs.dir="${LOGS_DIR}" -cp "${CP}" VersionlessValidatorCli "${PROJECT_DIR}" --dsl-dir "${DSL_DIR}")
-if [ -n "${OUT}" ]; then
-  CMD+=(--out "${OUT}")
-fi
-if [ -n "${INCLUDE_INFO}" ]; then
-  CMD+=(--include-info)
-fi
-if [ -n "${EXTENDED}" ]; then
-  CMD+=(--extended)
-fi
-
-# The CLI's exit code is the gate (0/3/1); surface it to the caller verbatim.
-set +e
-"${CMD[@]}"
-rc=$?
-set -e
-exit "${rc}"
+exec "$java_bin" -jar "$jar" "$@"

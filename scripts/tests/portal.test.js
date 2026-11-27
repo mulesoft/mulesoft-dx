@@ -2982,12 +2982,12 @@ describe('refreshAuthUiFor — region-led lock state', () => {
     }
     afterEach(() => cleanupAll());
 
-    test('authenticated=true disables regionSelect, serverSelect, regionCustomInput', () => {
+    test('authenticated=true keeps regionSelect, serverSelect, regionCustomInput available', () => {
         setupMinimalDom();
         refreshAuthUiFor(true, 'me@example.com', 'Bearer Token');
-        expect(document.getElementById('regionSelect').disabled).toBe(true);
-        expect(document.getElementById('serverSelect').disabled).toBe(true);
-        expect(document.getElementById('regionCustomInput').disabled).toBe(true);
+        expect(document.getElementById('regionSelect').disabled).toBe(false);
+        expect(document.getElementById('serverSelect').disabled).toBe(false);
+        expect(document.getElementById('regionCustomInput').disabled).toBe(false);
     });
 
     test('authenticated=false re-enables all three', () => {
@@ -3684,13 +3684,12 @@ describe('refreshAuthUiFor — locked-state tooltip contents (SERVER_LOCKED_TOOL
     }
     afterEach(() => cleanupAll());
 
-    test('authenticated=true sets the SERVER_LOCKED_TOOLTIP title on all three inputs', () => {
+    test('authenticated=true does not lock the region controls', () => {
         setupMinimalDom();
         refreshAuthUiFor(true, 'me@example.com', 'Bearer Token');
-        const EXPECTED = 'Log out and log in again to switch server.';
-        expect(document.getElementById('regionSelect').getAttribute('title')).toBe(EXPECTED);
-        expect(document.getElementById('serverSelect').getAttribute('title')).toBe(EXPECTED);
-        expect(document.getElementById('regionCustomInput').getAttribute('title')).toBe(EXPECTED);
+        expect(document.getElementById('regionSelect').hasAttribute('title')).toBe(false);
+        expect(document.getElementById('serverSelect').hasAttribute('title')).toBe(false);
+        expect(document.getElementById('regionCustomInput').hasAttribute('title')).toBe(false);
     });
 
     test('authenticated=false removes the title attribute from all three inputs', () => {
@@ -3786,4 +3785,3 @@ describe('W-23256513 — au1 is registered in portal.js source', () => {
         expect(labelsBlock).toMatch(/au1\s*:\s*['"]Australia \(au1\)['"]/);
     });
 });
-
